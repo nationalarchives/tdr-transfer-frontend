@@ -1,6 +1,6 @@
 FROM openjdk:8-slim
 WORKDIR play
-COPY tdr-transfer-frontend-1.0-SNAPSHOT.zip .
+COPY target/universal/tdr-transfer-frontend-1.0-SNAPSHOT.zip .
 RUN apt-get update && apt-get install unzip && unzip -qq tdr-transfer-frontend-1.0-SNAPSHOT.zip
 CMD printenv && AWS_ACCESS_KEY_ID=$ACCESS_KEY_ID \
       AWS_SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY \
