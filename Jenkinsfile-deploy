@@ -1,34 +1,34 @@
 pipeline {
   agent none
   parameters {
-    choice(name: 'STAGE', choices: ['intg', 'staging', 'prod'], description: 'The stage you are building the front end for')
+    choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are building the front end for")
   }
   stages {
-    stage('Test') {
+    stage("Test") {
         agent {
             ecs {
-                inheritFrom 'sbt'
+                inheritFrom "sbt"
             }
         }
         steps {
             checkout scm
-            sh 'sbt dist'
-            stash includes: 'Dockerfile', name: 'Dockerfile'
-            stash includes: 'target/universal/tdr-transfer-frontend-*.zip', name: 'tdr-transfer-frontend-zip'
+            sh "sbt dist"
+            stash includes: "Dockerfile", name: "Dockerfile"
+            stash includes: "target/universal/tdr-transfer-frontend-*.zip", name: "tdr-transfer-frontend-zip"
         }
     }
-    stage('Docker') {
+    stage("Docker") {
             agent {
-                label 'master'
+                label "master"
             }
             steps {
-                unstash 'tdr-transfer-frontend-zip'
-                unstash 'Dockerfile'
-                sh 'docker build -t nationalarchives/tdr-transfer-frontend .'
-                withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    sh 'echo $PASSWORD | docker login --username $USERNAME --password-stdin'
-                    sh 'docker push nationalarchives/tdr-transfer-frontend:${params.STAGE}'
-                    slackSend color: 'good', message: 'The front end app has been pushed to docker hub', channel: '#tdr'
+                unstash "tdr-transfer-frontend-zip"
+                unstash "Dockerfile"
+                sh "docker build -t nationalarchives/tdr-transfer-frontend:${params.STAGE} ."
+                withCredentials([usernamePassword(credentialsId: "docker", usernameVariable: "USERNAME", passwordVariable: "PASSWORD")]) {
+                    sh "echo $PASSWORD | docker login --username $USERNAME --password-stdin"
+                    sh "docker push nationalarchives/tdr-transfer-frontend:${params.STAGE}"
+                    slackSend color: "good", message: "The front end app has been pushed to docker hub", channel: "#tdr"
                 }
             }
         }
