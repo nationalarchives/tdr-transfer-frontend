@@ -12,7 +12,7 @@ pipeline {
             checkout scm
             sh 'sbt dist'
             stash includes: 'Dockerfile', name: 'Dockerfile'
-            stash includes: 'target/universal/tdr-transfer-frontend-1.0-SNAPSHOT.zip', name: 'tdr-transfer-frontend-1.0-SNAPSHOT.zip'
+            stash includes: 'target/universal/tdr-transfer-frontend-*.zip', name: 'tdr-transfer-frontend-zip'
         }
     }
     stage('Docker') {
@@ -20,7 +20,7 @@ pipeline {
                 label 'master'
             }
             steps {
-                unstash 'tdr-transfer-frontend-1.0-SNAPSHOT.zip'
+                unstash 'tdr-transfer-frontend-zip'
                 unstash 'Dockerfile'
                 sh 'docker build -t nationalarchives/tdr-transfer-frontend .'
                 withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
