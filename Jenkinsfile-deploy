@@ -28,7 +28,7 @@ pipeline {
             withCredentials([usernamePassword(credentialsId: "docker", usernameVariable: "USERNAME", passwordVariable: "PASSWORD")]) {
                 sh "echo $PASSWORD | docker login --username $USERNAME --password-stdin"
                 sh "docker push nationalarchives/tdr-transfer-frontend:${params.STAGE}"
-                // slackSend color: "good", message: "The front end app has been pushed to docker hub", channel: "#tdr"
+                slackSend color: "good", message: "The front end app has been pushed to docker hub", channel: "#tdr"
             }
         }
     }
