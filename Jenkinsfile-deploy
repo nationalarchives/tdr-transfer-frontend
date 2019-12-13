@@ -45,12 +45,13 @@ pipeline {
                 accessKeyVariable: "AWS_ACCESS_KEY_ID",
                 secretKeyVariable: "AWS_SECRET_ACCESS_KEY"
             ]]) {
-                    def stageToAccount = [
-                      "intg": env.INTEGRATION_ACCOUNT,
-                      "staging": env.STAGING_ACCOUNT
-                    ]
-                    sh "python /update_service.py ${stageToAccount.get(STAGE)} ${stage} frontend"
-                
+                    script {
+                        def stageToAccount = [
+                            "intg": env.INTEGRATION_ACCOUNT,
+                            "staging": env.STAGING_ACCOUNT
+                        ]
+                        sh "python /update_service.py ${stageToAccount.get(STAGE)} ${stage} frontend"
+                    }
             }
         }
     }
