@@ -24,11 +24,11 @@ pipeline {
         steps {
             unstash "tdr-transfer-frontend-zip"
             unstash "Dockerfile"
-            sh "docker build -t nationalarchives/tdr-transfer-frontend:${params.STAGE} ."
-            withCredentials([usernamePassword(credentialsId: "docker", usernameVariable: "USERNAME", passwordVariable: "PASSWORD")]) {
-                sh "echo $PASSWORD | docker login --username $USERNAME --password-stdin"
-                sh "docker push nationalarchives/tdr-transfer-frontend:${params.STAGE}"
-                slackSend color: "good", message: "The front end app has been pushed to docker hub", channel: "#tdr"
+            script {
+                docker.withRegistry('', 'docker') {
+                    docker.build("nationalarchives/tdr-transfer-frontend:${params.STAGE}").push()
+                    slackSend color: "good", message: "The front end app has been pushed to docker hub", channel: "#tdr"
+                }
             }
         }
     }
@@ -36,22 +36,16 @@ pipeline {
         agent {
             ecs {
                 inheritFrom "aws"
-            }            
+            }
         }
         steps {
-            withCredentials([[
-                $class: "AmazonWebServicesCredentialsBinding",
-                credentialsId: "integrationTerraform",
-                accessKeyVariable: "AWS_ACCESS_KEY_ID",
-                secretKeyVariable: "AWS_SECRET_ACCESS_KEY"
-            ]]) {
-                    script {
-                        def stageToAccount = [
-                            "intg": env.INTEGRATION_ACCOUNT,
-                            "staging": env.STAGING_ACCOUNT
-                        ]
-                        sh "python /update_service.py ${stageToAccount.get(STAGE)} ${stage} frontend"
-                    }
+            script {
+                def stageToAccount = [
+                    "intg": env.INTG_ACCOUNT,
+                    "staging": env.STAGING_ACCOUNT
+                ]
+                sh "python /update_service.py ${stageToAccount.get(STAGE)} ${STAGE} frontend"
+                slackSend color: "good", message: "The front end app has been updated in ECS", channel: "#tdr"
             }
         }
     }
