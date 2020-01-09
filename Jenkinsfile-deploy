@@ -64,17 +64,11 @@ pipeline {
 }
 
 def getAccountNumberFromStage() {
-
-    def accountNumber = env.INTG_ACCOUNT
-
     def stageToAccountMap = [
-        "staging": env.STAGING_ACCOUNT,
-        "prod": env.PROD_ACCOUNT
+            "intg": env.INTG_ACCOUNT,
+            "staging": env.STAGING_ACCOUNT,
+            "prod": env.PROD_ACCOUNT
     ]
 
-    if (stageToAccountMap.get(params.STAGE)) {
-        accountNumber = stageToAccountMap.get(params.STAGE)
-    }
-
-    return accountNumber
+    return stageToAccountMap.get(params.STAGE)
 }
