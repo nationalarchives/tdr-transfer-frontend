@@ -5,11 +5,19 @@ pipeline {
   parameters {
     choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are building the front end for")
   }
-  environment {
-      mgmtAccount = sh(returnStdout: true, script: 'echo $MANAGEMENT_ACCOUNT').trim()
-  }
   stages {
-    stage("Test") {
+    stage ("Test") {
+        agent {
+            ecs {
+                inheritFrom 'sbt'
+            }
+        }
+        steps {
+            checkout scm
+            sh 'sbt test'
+        }
+    }
+    stage("Build") {
         agent {
             ecs {
                 inheritFrom "sbt"
@@ -41,7 +49,7 @@ pipeline {
         agent {
             ecs {
                 inheritFrom "aws"
-                taskrole "arn:aws:iam::${env.mgmtAccount}:role/TDRJenkinsNodeRole${params.STAGE.capitalize()}"
+                taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsNodeRole${params.STAGE.capitalize()}"
             }
         }
         steps {
@@ -56,11 +64,17 @@ pipeline {
 }
 
 def getAccountNumberFromStage() {
+
+    def accountNumber = env.INTG_ACCOUNT
+
     def stageToAccountMap = [
-            "intg": env.INTG_ACCOUNT,
-            "staging": env.STAGING_ACCOUNT,
-            "prod": env.PROD_ACCOUNT
+        "staging": env.STAGING_ACCOUNT,
+        "prod": env.PROD_ACCOUNT
     ]
 
-    return stageToAccountMap.get(params.STAGE)
+    if (stageToAccountMap.get(params.STAGE)) {
+        accountNumber = stageToAccountMap.get(params.STAGE)
+    }
+
+    return accountNumber
 }
