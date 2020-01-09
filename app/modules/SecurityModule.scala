@@ -1,0 +1,58 @@
+package modules
+
+import com.google.inject.{AbstractModule, Provides}
+import org.pac4j.core.client.Clients
+import org.pac4j.core.config.Config
+import org.pac4j.core.profile.CommonProfile
+import org.pac4j.oidc.client.OidcClient
+import org.pac4j.oidc.config.OidcConfiguration
+import org.pac4j.oidc.profile.OidcProfile
+import org.pac4j.play.scala.{DefaultSecurityComponents, Pac4jScalaTemplateHelper, SecurityComponents}
+import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
+import org.pac4j.play.{CallbackController, LogoutController}
+import play.api.{Configuration, Environment}
+
+
+class SecurityModule extends AbstractModule {
+  override def configure(): Unit = {
+
+    bind(classOf[PlaySessionStore]).to(classOf[PlayCacheSessionStore])
+    bind(classOf[SecurityComponents]).to(classOf[DefaultSecurityComponents])
+
+    bind(classOf[Pac4jScalaTemplateHelper[CommonProfile]])
+
+    // callback
+    val callbackController = new CallbackController()
+    callbackController.setDefaultUrl("/?defaulturlafterlogout")
+    callbackController.setMultiProfile(true)
+    callbackController.setRenewSession(false)
+    bind(classOf[CallbackController]).toInstance(callbackController)
+
+    // logout
+    val logoutController = new LogoutController()
+    logoutController.setDefaultUrl("/")
+    bind(classOf[LogoutController]).toInstance(logoutController)
+  }
+
+  @Provides
+  def provideOidcClient: OidcClient[OidcProfile, OidcConfiguration] = {
+    val oidcConfiguration = new OidcConfiguration()
+    oidcConfiguration.setClientId("tdr")
+    oidcConfiguration.setSecret("4b5c800d-7a97-4db1-8805-322eba30a638")
+    val configuration = Configuration.load(Environment.simple())
+    val authUrl = configuration.get[String]("auth.url")
+    val callback = configuration.get[String]("auth.callback")
+    oidcConfiguration.setDiscoveryURI(s"$authUrl/auth/realms/tdr/.well-known/openid-configuration")
+    val oidcClient = new OidcClient[OidcProfile, OidcConfiguration](oidcConfiguration)
+    oidcClient.setCallbackUrl(callback)
+    oidcClient
+  }
+
+  @Provides
+  def provideConfig(oidcClient: OidcClient[OidcProfile, OidcConfiguration]): Config = {
+    val clients = new Clients(oidcClient)
+    val config = new Config(clients)
+    config.setHttpActionAdapter(new FrontendHttpActionAdaptor())
+    config
+  }
+}
