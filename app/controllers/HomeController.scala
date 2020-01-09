@@ -1,6 +1,10 @@
 package controllers
 
 import javax.inject._
+import org.pac4j.core.profile.CommonProfile
+import org.pac4j.play.scala.{Pac4jScalaTemplateHelper, Security}
+import org.pac4j.play.scala._
+import org.pac4j.play.store.PlaySessionStore
 import play.api._
 import play.api.mvc._
 
@@ -9,7 +13,7 @@ import play.api.mvc._
  * application's home page.
  */
 @Singleton
-class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) {
+class HomeController @Inject()(val controllerComponents: SecurityComponents) extends Security[CommonProfile] {
 
   /**
    * Create an Action to render an HTML page.
@@ -18,7 +22,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
    * will be called when the application receives a `GET` request with
    * a path of `/`.
    */
-  def index() = Action { implicit request: Request[AnyContent] =>
+  def index() = Secure("OidcClient") { implicit request: Request[AnyContent] =>
     Ok(views.html.index())
   }
 }
