@@ -5,5 +5,5 @@ RUN apt-get update && apt-get install unzip && unzip -qq tdr-transfer-frontend-*
 CMD  tdr-transfer-frontend-*/bin/tdr-transfer-frontend \
                         -Dplay.http.secret.key=$PLAY_SECRET_KEY \
                         -Dconfig.resource=application.$ENVIRONMENT.conf \
-                        -Dredis.password=$REDIS_PASSWORD \
-                        -Dredis.host=$REDIS_HOST
+                        -Dplay.cache.redis.host=$REDIS_HOST \
+                        -Dauth.secret=$AUTH_SECRET
