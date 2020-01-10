@@ -16,7 +16,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3
 // Adds additional packages into conf/routes
 // play.sbt.routes.RoutesKeys.routesImport += "tna.binders._"
 
-val playPac4jVersion = "8.0.0"
+val playPac4jVersion = "8.0.1"
 val pac4jVersion = "3.7.0"
 
 libraryDependencies ++= Seq(
