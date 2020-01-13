@@ -1,5 +1,25 @@
 @()
 
-@main("Welcome to Play") {
-  <h1>Welcome to Play!</h1>
+@main("Welcome") {
+@defining(play.core.PlayVersion.current) { version =>
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    <!-- Headline -->
+    <h1 class="govuk-heading-xl">Transfer Digital Records</h1>
+
+    <p class="govuk-body">Use this service to:</p>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>transfer digital records to The National Archives</li>
+      <li>resume a transfer</li>
+      <li>view your transfer history</li>
+    </ul>
+
+    <a href="/" role="button" draggable="false" class="govuk-button govuk-button--start">
+      Start now
+    </a>
+
+  </div>
+</div>
+}
 }
