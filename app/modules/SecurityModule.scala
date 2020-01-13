@@ -23,7 +23,7 @@ class SecurityModule extends AbstractModule {
 
     // callback
     val callbackController = new CallbackController()
-    callbackController.setDefaultUrl("/?defaulturlafterlogout")
+    callbackController.setDefaultUrl("/")
     callbackController.setMultiProfile(true)
     callbackController.setRenewSession(false)
     bind(classOf[CallbackController]).toInstance(callbackController)
