@@ -2,3 +2,9 @@
 logs
 target
 project/target
+node_modules
+public/fonts/*
+public/images/*
+public/javascripts/*
+public/stylesheets/*
+css-src/*.css
