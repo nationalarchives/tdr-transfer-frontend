@@ -25,6 +25,8 @@ pipeline {
         }
         steps {
             checkout scm
+            sh "npm install"
+            sh "npm build"
             sh "sbt dist"
             stash includes: "Dockerfile", name: "Dockerfile"
             stash includes: "target/universal/tdr-transfer-frontend-*.zip", name: "tdr-transfer-frontend-zip"
