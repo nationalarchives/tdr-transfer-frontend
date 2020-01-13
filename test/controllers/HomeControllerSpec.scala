@@ -27,14 +27,6 @@ class HomeControllerSpec extends PlaySpec with GuiceOneAppPerTest with Injecting
       status(home) mustBe OK
       checkContent(home)
     }
-
-    "render the index page from the router" in {
-      val request = FakeRequest(GET, "/")
-      val home = route(app, request).get
-
-      status(home) mustBe OK
-      checkContent(home)
-    }
   }
 
   private def checkContent(result: Future[Result]): Unit = {

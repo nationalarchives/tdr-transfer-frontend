@@ -55,7 +55,7 @@ pipeline {
         steps {
             script {
                 def accountNumber = getAccountNumberFromStage()
-                sh "python /update_service.py ${accountNumber} ${STAGE} frontend"
+                sh "python /update_service.py ${accountNumber} ${params.STAGE} frontend"
                 slackSend color: "good", message: "The front end app has been updated in ECS", channel: "#tdr"
             }
         }
