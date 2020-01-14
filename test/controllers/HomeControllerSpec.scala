@@ -7,7 +7,7 @@ import util.FrontEndTestHelper
 
 import scala.concurrent._
 
-class HomeControllerSpec extends  FrontEndTestHelper {
+class HomeControllerSpec extends FrontEndTestHelper {
 
   "HomeController GET" should {
 
