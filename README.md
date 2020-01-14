@@ -5,17 +5,22 @@ Repository for TDR transfer code
 
 * Start the auth server
 
-`docker run -d  --name keycloak -p 8080:8080 nationalarchives/tdr-auth-server:intg`
+`docker run -d  --name keycloak -p 8080:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin nationalarchives/tdr-auth-server:intg`
+* Go to http://localhost:8080/auth/admin and log in with username admin and password admin.
 
-* Set up a [realm](https://www.keycloak.org/docs/latest/getting_started/index.html#creating-a-realm-and-user)
+* Set up a [realm](https://www.keycloak.org/docs/latest/getting_started/index.html#creating-a-realm-and-user) called tdr. You can set the display name to something else if you want as this will show on the login page.
 
-* Set up a [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients)
+* Set up a [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients) called tdr.
+
+* In the client settings, change the login theme to govuk.
 
 * Generate a [secret](https://www.keycloak.org/docs/latest/server_admin/#_client-credentials)
 
-* Set the secret in auth.secret in [application.conf](conf/application.conf)
+* Set the secret in auth.secret in [application.conf](conf/application.conf).
 
-* Start redis locally
+* Create a new [user](https://www.keycloak.org/docs/latest/getting_started/index.html#_create-new-user) in the tdr realm.
+
+* Start redis locally.
 
 `docker run -d --name redis -p 6379:6379 redis`
 
