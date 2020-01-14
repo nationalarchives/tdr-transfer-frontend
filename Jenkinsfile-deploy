@@ -6,25 +6,17 @@ pipeline {
     choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are building the front end for")
   }
   stages {
-    stage ("Test") {
-        agent {
-            ecs {
-                inheritFrom 'sbt'
-            }
-        }
-        steps {
-            checkout scm
-            sh 'sbt test'
-        }
-    }
     stage("Build") {
         agent {
             ecs {
-                inheritFrom "sbt"
+                inheritFrom "transfer-frontend"
             }
         }
         steps {
             checkout scm
+            sh "npm install"
+            sh "npm build"
+            sh 'sbt test'
             sh "sbt dist"
             stash includes: "Dockerfile", name: "Dockerfile"
             stash includes: "target/universal/tdr-transfer-frontend-*.zip", name: "tdr-transfer-frontend-zip"
