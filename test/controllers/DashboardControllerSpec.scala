@@ -1,14 +1,11 @@
 package controllers
 
 import org.scalatest.Matchers._
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerTest
+import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status, _}
-import play.api.test.{FakeRequest, Injecting}
 import util.FrontEndTestHelper
 
-class DashboardControllerSpec extends PlaySpec with GuiceOneAppPerTest with Injecting with MockitoSugar with FrontEndTestHelper {
+class DashboardControllerSpec extends FrontEndTestHelper {
 
   "DashboardController GET" should {
 
@@ -21,7 +18,7 @@ class DashboardControllerSpec extends PlaySpec with GuiceOneAppPerTest with Inje
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = inject[DashboardController]
+      val controller = new DashboardController(getUnauthorisedSecurityComponents())
       val home = controller.dashboard().apply(FakeRequest(GET, "/"))
       redirectLocation(home).get should include ("/auth/realms/tdr/protocol/openid-connect/auth")
       status(home) mustBe 303
