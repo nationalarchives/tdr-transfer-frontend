@@ -86,7 +86,6 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     // Mock the init method to stop it calling out to the keycloak server
     doNothing().when(configuration).init()
 
-
     // Mock the redirect return when the client is unauthorised
     val client = mock[KeycloakOidcClient]
     doAnswer(_ => "OidcClient").when(client).getName
