@@ -32,5 +32,6 @@ class HomeControllerSpec extends FrontEndTestHelper {
     contentType(result) mustBe Some("text/html")
     contentAsString(result) must include ("Transfer Digital Records")
     contentAsString(result) must include ("Welcome")
+    contentAsString(result) must include ("Start now")
   }
 }
