@@ -1,14 +1,13 @@
 package controllers
 
-import org.scalatestplus.play._
-import org.scalatestplus.play.guice._
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test._
+import util.FrontEndTestHelper
 
 import scala.concurrent._
 
-class HomeControllerSpec extends PlaySpec with GuiceOneAppPerTest with Injecting {
+class HomeControllerSpec extends  FrontEndTestHelper {
 
   "HomeController GET" should {
 

@@ -2,20 +2,36 @@ package util
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito._
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
 import org.pac4j.core.context.Pac4jConstants
-import org.pac4j.oidc.client.OidcClient
+import org.pac4j.core.redirect.RedirectAction
+import org.pac4j.oidc.client.{KeycloakOidcClient, OidcClient}
+import org.pac4j.oidc.config.OidcConfiguration
 import org.pac4j.oidc.profile.OidcProfile
 import org.pac4j.play.PlayWebContext
 import org.pac4j.play.http.PlayHttpActionAdapter
 import org.pac4j.play.scala.SecurityComponents
-import org.pac4j.play.store.PlaySessionStore
+import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerTest
+import play.api.Application
+import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
+import play.api.test.Injecting
 
-trait FrontEndTestHelper {
+trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest {
+
+  override def fakeApplication(): Application = {
+    val syncCacheApi = mock[PlayCacheSessionStore]
+    GuiceApplicationBuilder()
+      .bindings(bind[PlayCacheSessionStore].toInstance(syncCacheApi))
+      .build()
+  }
 
   def getAuthorisedSecurityComponents(): SecurityComponents = {
     // Pac4j checks the session to see if there any profiles stored there. If there are, the request is authenticated.
@@ -27,10 +43,10 @@ trait FrontEndTestHelper {
     val profileMap: java.util.LinkedHashMap[String, OidcProfile] = new java.util.LinkedHashMap[String, OidcProfile]
     profileMap.put("OidcClient", profile)
 
-    val sessionStore: PlaySessionStore = MockitoSugar.mock[PlaySessionStore]
+    val sessionStore: PlaySessionStore = mock[PlaySessionStore]
 
     //Mock the get method to return the expected map.
-    org.mockito.Mockito.doAnswer(_ => profileMap).when(sessionStore).get(any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES))
+    doAnswer(_ => profileMap).when(sessionStore).get(any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES))
 
     val testConfig = new Config()
 
@@ -39,7 +55,47 @@ trait FrontEndTestHelper {
 
     // There is a check to see whether an OidcClient exists. The name matters and must match the string passed to Secure in the controller.
     val clients = new Clients()
-    clients.setClients(new OidcClient())
+    val configuration = mock[OidcConfiguration]
+    doNothing().when(configuration).init()
+
+    clients.setClients(new OidcClient(configuration))
+    testConfig.setClients(clients)
+
+    //Create a new controller with the session store and config. The parser and components don't affect the tests.
+
+    new SecurityComponents {
+      override def components: ControllerComponents = stubControllerComponents()
+      override def config: Config = testConfig
+      override def playSessionStore: PlaySessionStore = sessionStore
+      override def parser: BodyParsers.Default = null
+    }
+  }
+
+  def getUnauthorisedSecurityComponents(): SecurityComponents = {
+    val sessionStore: PlaySessionStore = mock[PlaySessionStore]
+
+    val testConfig = new Config()
+
+    //There is a null check for the action adaptor.
+    testConfig.setHttpActionAdapter(new PlayHttpActionAdapter())
+
+    // There is a check to see whether an OidcClient exists. The name matters and must match the string passed to Secure in the controller.
+    val clients = new Clients()
+    val configuration = mock[OidcConfiguration]
+
+    // Mock the init method to stop it calling out to the keycloak server
+    doNothing().when(configuration).init()
+
+
+    // Mock the redirect return when the client is unauthorised
+    val client = mock[KeycloakOidcClient]
+    doAnswer(_ => "OidcClient").when(client).getName
+
+    doAnswer(_ => RedirectAction.redirect("/auth/realms/tdr/protocol/openid-connect/auth")).when(client).getRedirectAction(any[PlayWebContext])
+
+    client.setCallbackUrl("test")
+
+    clients.setClients(client)
     testConfig.setClients(clients)
 
     //Create a new controller with the session store and config. The parser and components don't affect the tests.
