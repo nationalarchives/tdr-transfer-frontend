@@ -9,9 +9,9 @@ class FrontendHttpActionAdaptor extends PlayHttpActionAdapter {
 
   override def adapt(code: Int, context: PlayWebContext): Result = {
     if (code == HttpConstants.UNAUTHORIZED) {
-      Results.unauthorized(views.html.index.render().toString()).as(HttpConstants.HTML_CONTENT_TYPE)
+      Results.redirect("/")
     } else if (code == HttpConstants.FORBIDDEN) {
-      Results.forbidden(views.html.index.render().toString()).as(HttpConstants.HTML_CONTENT_TYPE)
+      Results.redirect("/")
     } else {
       super.adapt(code, context)
     }
