@@ -17,3 +17,4 @@ class FrontendHttpActionAdaptor extends PlayHttpActionAdapter {
     }
   }
 }
+
