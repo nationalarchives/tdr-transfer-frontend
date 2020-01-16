@@ -16,8 +16,8 @@ pipeline {
             checkout scm
             sh "npm install"
             sh "npm run build"
-            sh 'sbt test'
-            sh "sbt dist"
+            sh 'sbt -no-colors test scalastyle'
+            sh "sbt -no-colors dist"
             stash includes: "Dockerfile", name: "Dockerfile"
             stash includes: "target/universal/tdr-transfer-frontend-*.zip", name: "tdr-transfer-frontend-zip"
         }
