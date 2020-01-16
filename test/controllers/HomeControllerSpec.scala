@@ -16,7 +16,10 @@ class HomeControllerSpec extends FrontEndTestHelper {
       val home = controller.index().apply(FakeRequest(GET, "/"))
 
       status(home) mustBe OK
-      checkContent(home)
+      contentType(home) mustBe Some("text/html")
+      contentAsString(home) must include ("home.title")
+      contentAsString(home) must include ("home.use.transfer.start")
+      contentAsString(home) must include ("home.start")
     }
 
     "render the index page from the application" in {
@@ -24,14 +27,9 @@ class HomeControllerSpec extends FrontEndTestHelper {
       val home = controller.index().apply(FakeRequest(GET, "/"))
 
       status(home) mustBe OK
-      checkContent(home)
+      contentAsString(home) must include ("Transfer Digital Records")
+      contentAsString(home) must include ("Welcome")
+      contentAsString(home) must include ("Start now")
     }
-  }
-
-  private def checkContent(result: Future[Result]): Unit = {
-    contentType(result) mustBe Some("text/html")
-    contentAsString(result) must include ("Transfer Digital Records")
-    contentAsString(result) must include ("Welcome")
-    contentAsString(result) must include ("Start now")
   }
 }
