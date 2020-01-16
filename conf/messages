@@ -1,1 +1,10 @@
 # https://www.playframework.com/documentation/latest/ScalaI18N
+home.header=Welcome
+home.title=Transfer Digital Records
+home.use.transfer.header=Use this service to:
+home.use.transfer.start=transfer digital records to The National Archives
+home.use.transfer.resume=resume a transfer
+home.use.transfer.history=view your transfer history
+home.start=Start now
+dashboard.header=Dashboard
+dashboard.title=Welcome to the dashboard

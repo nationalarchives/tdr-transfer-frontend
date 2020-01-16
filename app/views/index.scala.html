@@ -1,22 +1,22 @@
-@()
+@()(implicit messages: Messages)
 
-@main("Welcome") {
+@main(Messages("home.header")) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
 
     <!-- Headline -->
-    <h1 class="govuk-heading-xl">Transfer Digital Records</h1>
+    <h1 class="govuk-heading-xl">@Messages("home.title")</h1>
 
-    <p class="govuk-body">Use this service to:</p>
+    <p class="govuk-body">@Messages("home.use.transfer.header")</p>
     <ul class="govuk-list govuk-list--bullet">
-      <li>transfer digital records to The National Archives</li>
-      <li>resume a transfer</li>
-      <li>view your transfer history</li>
+      <li>@Messages("home.use.transfer.start")</li>
+      <li>@Messages("home.use.transfer.resume")</li>
+      <li>@Messages("home.use.transfer.history")</li>
     </ul>
 
     <a href="@routes.DashboardController.dashboard" role="button" draggable="false" class="govuk-button govuk-button--start">
-      Start now
+      @Messages("home.start")
     </a>
 
   </div>
