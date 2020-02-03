@@ -1,4 +1,7 @@
-@()(implicit messages: Messages)
+@import helper._
+@import viewsapi.FormFunctions._
+
+@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit messages: Messages)
 
 @main(Messages("seriesDetails.header")) {
 @defining(play.core.PlayVersion.current) { version =>
@@ -12,6 +15,17 @@
         <span class="govuk-caption-xl">Step X of Y</span>
 
         <h1 class="govuk-heading-xl">@Messages("seriesDetails.title")</h1>
+
+        @form(action = routes.SeriesDetailsController.seriesSubmit) {
+
+            @inputDropdown(
+                seriesDetailsForm("series"),
+                allSeriesData,
+                '_name -> "Series Details",
+                '_label -> "Choose an existing series reference*",
+                requiredInputArg -> false
+            )
+        }
 
         <form action="" method="POST">
             <div class="govuk-form-group">
