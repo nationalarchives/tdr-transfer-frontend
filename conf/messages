@@ -8,3 +8,5 @@ home.use.transfer.history=view your transfer history
 home.start=Start now
 dashboard.header=Dashboard
 dashboard.title=Welcome to the dashboard
+seriesDetails.header=SeriesDetails
+seriesDetails.title= Series Details
