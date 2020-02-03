@@ -26,5 +26,16 @@ Repository for TDR transfer code
 
 * Start the application using `sbt run`
 
+* If css is not displaying on localhost:9000/dashboard run `npm run build`
+
+* If npm is not installed install [nvm](https://github.com/nvm-sh/nvm) in root directory.
+
+* Once nvm is installed:
+    `nvm install 13.6`
+
+* `cd` into tdr-transfer-frontend in terminal
+
+* run  `npm install` again, then `npm run build`. CSS should now appear on localhost.
+
 ## Notes
 * Each environment has its own secret for the auth server. These cannot be generated inside aws in any way and so it's difficult to get them into the terraform scripts. At the moment, these are stored in a parameter store variable called /${env}/auth/secret although this may change.
