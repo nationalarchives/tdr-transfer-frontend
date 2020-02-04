@@ -8,6 +8,10 @@ object FormFunctions {
     def requiredInput(): String = {
       if (args.exists(_ == (requiredInputArg, true))) "required" else ""
     }
+
+    def requiredLabelSuffix(): String = {
+      if (args.exists(_ == (requiredInputArg, true))) "*" else ""
+    }
   }
 
   implicit def inputRenderOptions(args: Map[Symbol, Any]): InputRenderOptions = new InputRenderOptions(args)
