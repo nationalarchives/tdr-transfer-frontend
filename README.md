@@ -14,9 +14,15 @@ Repository for TDR transfer code
 
 * In the client settings, change the login theme to govuk.
 
+* Set "Root URL" to `http://localhost:9000`
+
+* Set "Valid redirect URIs" to `http://localhost:9000/*`
+
 * Generate a [secret](https://www.keycloak.org/docs/latest/server_admin/#_client-credentials)
 
-* Set the secret in auth.secret in [application.conf](conf/application.conf).
+* In the [application.conf](conf/application.conf) file find the auth.secret key and set its value to the secret you have just generated
+
+### User accounts
 
 * Create a new [user](https://www.keycloak.org/docs/latest/getting_started/index.html#_create-new-user) in the tdr realm.
 
@@ -24,9 +30,7 @@ Repository for TDR transfer code
 
 `docker run -d --name redis -p 6379:6379 redis`
 
-* Start the application using `sbt run`
-
-* If css is not displaying on localhost:9000/dashboard run `npm run build`
+### Static assets
 
 * If npm is not installed install [nvm](https://github.com/nvm-sh/nvm) in root directory.
 
@@ -35,7 +39,13 @@ Repository for TDR transfer code
 
 * `cd` into tdr-transfer-frontend in terminal
 
-* run  `npm install` again, then `npm run build`. CSS should now appear on localhost.
+* run  `npm install` again, then `npm run build`
+
+### Run Play
+
+* Start the application using `sbt run`
+
+* Go to http://localhost:9000
 
 ## Notes
 * Each environment has its own secret for the auth server. These cannot be generated inside aws in any way and so it's difficult to get them into the terraform scripts. At the moment, these are stored in a parameter store variable called /${env}/auth/secret although this may change.
