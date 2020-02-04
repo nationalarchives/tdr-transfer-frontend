@@ -22,23 +22,10 @@
                 seriesDetailsForm("series"),
                 allSeriesData,
                 '_name -> "Series Details",
-                '_label -> "Choose an existing series reference*",
-                requiredInputArg -> false
+                '_label -> Messages("seriesDetails.chooseSeries"),
+                requiredInputArg -> true
             )
         }
-
-        <form action="" method="POST">
-            <div class="govuk-form-group">
-                <label class="govuk-label" for="seriesNo">
-                    Choose an existing series reference*
-                </label>
-                <select class="govuk-select" id="seriesNo" name="seriesNo" required>
-                    <option value="" selected>Please choose...</option>
-                    <option value="placeholderId">[Placeholder Series Name]</option>
-                </select>
-            </div>
-        </form>
-
     </div>
 </div>
 

@@ -19,10 +19,33 @@ class FormFunctionSpec extends FrontEndTestHelper  {
       result shouldBe ""
     }
 
-    "render 'required' on html 'select' tag when value is empty String" in {
-      val args: Map[Symbol, Any] = Map('_requiredOption -> "")
+    "does not render 'required' on html 'select' tag when no '_requiredOption" in {
+      val args: Map[Symbol, Any] = Map('_madeUpOption -> true)
 
       val result = FormFunctions.inputRenderOptions(args).requiredInput()
+      result shouldBe ""
+    }
+  }
+
+  "requiredLabelSuffix function" should {
+    "render an asterisk when set to 'true'" in {
+      val args: Map[Symbol, Any] = Map('_requiredOption -> true)
+
+      val result = FormFunctions.inputRenderOptions(args).requiredLabelSuffix()
+      result shouldBe "*"
+    }
+
+    "does not render an asterisk when set to 'false'" in {
+      val args: Map[Symbol, Any] = Map('_requiredOption -> false)
+
+      val result = FormFunctions.inputRenderOptions(args).requiredLabelSuffix()
+      result shouldBe ""
+    }
+
+    "does not render an asterisk when no '_requiredOption" in {
+      val args: Map[Symbol, Any] = Map('_madeUpOption -> true)
+
+      val result = FormFunctions.inputRenderOptions(args).requiredLabelSuffix()
       result shouldBe ""
     }
   }
