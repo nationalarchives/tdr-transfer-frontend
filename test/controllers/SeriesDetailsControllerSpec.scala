@@ -15,6 +15,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentType(home) mustBe Some("text/html")
       contentAsString(home) must include ("seriesDetails.header")
       contentAsString(home) must include ("seriesDetails.title")
+      contentAsString(home) must include ("seriesDetails.chooseSeries")
+      contentAsString(home) must include ("id=\"series\"")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
