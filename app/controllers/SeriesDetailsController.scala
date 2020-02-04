@@ -18,11 +18,15 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     )(SelectedSeriesData.apply)(SelectedSeriesData.unapply)
   )
   // Mocked data until API implemented to show dropdown on page working
-  val mockedAllSeriesData: Seq[(String, String)] = Seq(("mockedSeries1", "Mocked Series 1"), ("mockedSeries2", "Mocked Series 2"), ("mockedSeries3", "Mocked Series 3"))
+  val mockedAllSeriesData: Seq[(String, String)] = Seq(
+    ("mockedSeries1", "Mocked Series 1"),
+    ("mockedSeries2", "Mocked Series 2"),
+    ("mockedSeries3", "Mocked Series 3"))
 
   def seriesDetails(): Action[AnyContent] = Secure("OidcClient") { implicit request: Request[AnyContent] =>
     Ok(views.html.seriesDetails(mockedAllSeriesData, selectedSeriesForm))
   }
+
   // Submit returns current page until next page is ready
   def seriesSubmit(): Action[AnyContent] =  Secure("OidcClient") { implicit request: Request[AnyContent] =>
     Redirect(routes.SeriesDetailsController.seriesDetails())
