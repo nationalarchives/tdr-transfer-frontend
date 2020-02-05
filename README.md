@@ -16,7 +16,11 @@ Repository for TDR transfer code
 
 * Generate a [secret](https://www.keycloak.org/docs/latest/server_admin/#_client-credentials)
 
-* Set the secret in auth.secret in [application.conf](conf/application.conf).
+* Set the secret in auth.secret as an environment variable:
+  ```
+  AUTH_SECRET=[secret value]
+
+  ```
 
 * Create a new [user](https://www.keycloak.org/docs/latest/getting_started/index.html#_create-new-user) in the tdr realm.
 
