@@ -16,7 +16,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
 
   val selectedSeriesForm = Form(
     mapping(
-      "seriesId" -> number
+      "seriesId" -> nonEmptyText
     )(SelectedSeriesData.apply)(SelectedSeriesData.unapply)
   )
 
@@ -36,4 +36,4 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
   }
 }
 
-case class SelectedSeriesData (seriesId: Int)
+case class SelectedSeriesData (seriesId: String)
