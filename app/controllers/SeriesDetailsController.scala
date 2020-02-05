@@ -12,23 +12,26 @@ import play.api.mvc.{Action, AnyContent, Request}
 class SeriesDetailsController @Inject()(val controllerComponents: SecurityComponents)
                                          extends Security[CommonProfile] with I18nSupport  {
 
+  private val secureAction = Secure("OidcClient")
+
   val selectedSeriesForm = Form(
     mapping(
       "seriesId" -> number
     )(SelectedSeriesData.apply)(SelectedSeriesData.unapply)
   )
+
   // Mocked data until API implemented to show dropdown on page working
   val mockedAllSeriesData: Seq[(String, String)] = Seq(
     ("mockedSeries1", "Mocked Series 1"),
     ("mockedSeries2", "Mocked Series 2"),
     ("mockedSeries3", "Mocked Series 3"))
 
-  def seriesDetails(): Action[AnyContent] = Secure("OidcClient") { implicit request: Request[AnyContent] =>
+  def seriesDetails(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.seriesDetails(mockedAllSeriesData, selectedSeriesForm))
   }
 
   // Submit returns current page until next page is ready
-  def seriesSubmit(): Action[AnyContent] =  Secure("OidcClient") { implicit request: Request[AnyContent] =>
+  def seriesSubmit(): Action[AnyContent] =  secureAction { implicit request: Request[AnyContent] =>
     Redirect(routes.SeriesDetailsController.seriesDetails())
   }
 }
