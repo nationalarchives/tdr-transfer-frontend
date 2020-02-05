@@ -22,7 +22,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "return a redirect to the auth server with an unauthenticated user" in {
       val controller = new SeriesDetailsController(getUnauthorisedSecurityComponents())
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/seriesDetails"))
-      redirectLocation(seriesDetailsPage).get should include ("/auth/realms/tdr/protocol/openid-connect/auth")
+      redirectLocation(seriesDetailsPage) must be(Some("/auth/realms/tdr/protocol/openid-connect/auth"))
       status(seriesDetailsPage) mustBe 303
     }
   }
