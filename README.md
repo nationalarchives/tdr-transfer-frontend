@@ -39,7 +39,7 @@ Repository for TDR transfer code
 
 * `cd` into tdr-transfer-frontend in terminal
 
-* run  `npm install` again, then `npm run build`
+* run  `npm install` then `npm run build`
 
 ### Run Play
 
