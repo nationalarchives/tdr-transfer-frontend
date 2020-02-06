@@ -10,8 +10,9 @@
         "copy-assets": "npm-run-all copy-govuk-image-assets copy-govuk-font-assets copy-govuk-js-assets",
         "sass-watch": "node-sass ./css-src/sass/main.scss ./public/stylesheets/main.css --watch",
         "sass-compile": "node-sass ./css-src/sass/main.scss ./css-src/main.css",
+        "add-stylesheet-dir": "mkdir -p ./public/stylesheets",
         "compress-css": "minify ./css-src/main.css > ./public/stylesheets/main.css",
-        "build-css": "npm-run-all sass-compile compress-css",
+        "build-css": "npm-run-all add-stylesheet-dir sass-compile compress-css",
         "build": "npm-run-all copy-assets build-css"
     },
     "main": "index.js",

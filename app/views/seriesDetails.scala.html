@@ -1,0 +1,32 @@
+@import helper._
+@import viewsapi.FormFunctions._
+
+@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit messages: Messages)
+
+@main(Messages("seriesDetails.header")) {
+@defining(play.core.PlayVersion.current) { version =>
+
+<!-- Back -->
+<a href="@routes.DashboardController.dashboard" class="govuk-back-link">Back</a>
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <!-- Progress indicator -->
+        <span class="govuk-caption-xl">Step X of Y</span>
+
+        <h1 class="govuk-heading-xl">@Messages("seriesDetails.title")</h1>
+
+        @form(action = routes.SeriesDetailsController.seriesSubmit) {
+            @inputDropdown(
+                seriesDetailsForm("series"),
+                allSeriesData,
+                '_name -> "Series Details",
+                '_label -> Messages("seriesDetails.chooseSeries"),
+                requiredInputArg -> true
+            )
+        }
+    </div>
+</div>
+
+}
+}
