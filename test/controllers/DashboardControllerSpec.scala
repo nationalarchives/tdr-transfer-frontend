@@ -11,18 +11,17 @@ class DashboardControllerSpec extends FrontEndTestHelper {
 
     "render the dashboard page with an authenticated user" in {
       val controller = new DashboardController(getAuthorisedSecurityComponents())
-      val home = controller.dashboard().apply(FakeRequest(GET, "/"))
-      status(home) mustBe OK
-      contentType(home) mustBe Some("text/html")
-      contentAsString(home) must include ("dashboard.header")
+      val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
+      status(dashboardPage) mustBe OK
+      contentType(dashboardPage) mustBe Some("text/html")
+      contentAsString(dashboardPage) must include ("dashboard.header")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
       val controller = new DashboardController(getUnauthorisedSecurityComponents())
-      val home = controller.dashboard().apply(FakeRequest(GET, "/"))
-      redirectLocation(home).get should include ("/auth/realms/tdr/protocol/openid-connect/auth")
-      status(home) mustBe 303
-
+      val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
+      redirectLocation(dashboardPage) must be(Some("/auth/realms/tdr/protocol/openid-connect/auth"))
+      status(dashboardPage) mustBe 303
     }
   }
 }
