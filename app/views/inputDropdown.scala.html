@@ -1,0 +1,29 @@
+@* dropdownOptions as Tuple until data model clearer *@
+
+@(field: Field,
+dropdownOptions: Seq[(String, String)],
+ args: (Symbol, Any)*
+)(implicit messages: Messages)
+
+@import views.html.helper._
+@import viewsapi.FormFunctions._
+
+@elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
+
+<div class="govuk-form-group">
+    <label class="govuk-label" for="@elements.id">
+        @elements.args.get('_label)
+        @elements.args.requiredLabelSuffix()
+    </label>
+    <select
+            class="govuk-select"
+            id="@elements.id"
+            name="@elements.id"
+            @elements.args.requiredInput()>
+        <option value="" selected>Please choose...</option>
+
+        @for(dropdownOption <- dropdownOptions) {
+            <option value="@dropdownOption._1">@dropdownOption._2</option>
+        }
+    </select>
+</div>
