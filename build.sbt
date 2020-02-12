@@ -47,9 +47,8 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "core" % "2.0.0-RC9",
   "com.softwaremill.sttp.client" %% "circe" % "2.0.0-RC9",
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % "2.0.0-RC9",
-  "org.keycloak" % "keycloak-adapter-core" % "8.0.1",
-  "org.keycloak" % "keycloak-core" % "8.0.1",
-  "uk.gov.nationalarchives.tdr" %% "tdr-graphql-client" % "0.1.0-SNAPSHOT"
+   "uk.gov.nationalarchives.tdr" %% "tdr-graphql-client" % "0.1.0-SNAPSHOT",
+  "uk.gov.nationalarchives.tdr" %% "tdr-auth-utils" % "0.1.0-SNAPSHOT"
 
 )
 
