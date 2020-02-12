@@ -10,8 +10,6 @@ scalaVersion := "2.12.8"
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test
 
-resolvers += Resolver.bintrayRepo("jarlakxen", "maven")
-
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "tna.controllers._"
 
@@ -42,16 +40,16 @@ libraryDependencies ++= Seq(
   "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude("commons-io", "commons-io"),
   "com.typesafe.play" % "play-cache_2.12" % "2.7.2",
   "org.apache.shiro" % "shiro-core" % "1.4.0",
-  "com.typesafe.akka" %% "akka-http" % "10.1.11",
-  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-  "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-  "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
   "net.bytebuddy" % "byte-buddy" % "1.9.7",
   "org.sangria-graphql" %% "sangria" % "2.0.0-M3",
   "io.circe" %% "circe-core" % "0.13.0",
-  "io.circe" %% "circe-parser" % "0.13.0",
   "io.circe" %% "circe-generic" % "0.13.0",
-  "de.heikoseeberger" %% "akka-http-circe" % "1.31.0"
+  "com.softwaremill.sttp.client" %% "core" % "2.0.0-RC9",
+  "com.softwaremill.sttp.client" %% "circe" % "2.0.0-RC9",
+  "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % "2.0.0-RC9",
+  "org.keycloak" % "keycloak-adapter-core" % "8.0.1",
+  "org.keycloak" % "keycloak-core" % "8.0.1",
+  "uk.gov.nationalarchives.tdr" %% "tdr-graphql-client" % "0.1.0-SNAPSHOT"
 
 )
 
