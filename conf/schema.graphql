@@ -1,0 +1,11 @@
+type Query {
+  getSeries(body: String): [Series!]!
+}
+
+type Series {
+  seriesid: Int!
+  bodyid: Int
+  name: String
+  code: String
+  description: String
+}

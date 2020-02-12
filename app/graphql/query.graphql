@@ -1,0 +1,9 @@
+query getSeries($body: String) {
+    getSeries(body: $body) {
+        seriesid,
+        bodyid,
+        name,
+        code,
+        description
+    }
+}
