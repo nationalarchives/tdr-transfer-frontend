@@ -31,6 +31,37 @@ pipeline {
             }
           }
         }
+        stage("Build Docker image") {
+          agent {
+            ecs {
+              inheritFrom "transfer-frontend"
+            }
+          }
+          steps {
+            checkout scm
+            sh "npm ci"
+            sh "npm run build"
+            sh 'sbt -no-colors test scalastyle'
+            sh "sbt -no-colors dist"
+            stash includes: "Dockerfile", name: "Dockerfile"
+            stash includes: "target/universal/tdr-transfer-frontend-*.zip", name: "tdr-transfer-frontend-zip"
+          }
+        }
+        stage("Push Docker image") {
+          agent {
+            label "master"
+          }
+          steps {
+            unstash "tdr-transfer-frontend-zip"
+            unstash "Dockerfile"
+            script {
+              docker.withRegistry('', 'docker') {
+                docker.build("nationalarchives/tdr-transfer-frontend:${versionTag}").push()
+                slackSend color: "good", message: "Pushed version ${versionTag} of the front end app to docker hub", channel: "#tdr"
+              }
+            }
+          }
+        }
         stage('Deploy to integration') {
           steps {
             build(
