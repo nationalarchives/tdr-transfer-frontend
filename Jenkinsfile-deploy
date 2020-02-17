@@ -7,60 +7,60 @@ pipeline {
   }
   stages {
     stage("Build") {
-        agent {
-            ecs {
-                inheritFrom "transfer-frontend"
-            }
+      agent {
+        ecs {
+          inheritFrom "transfer-frontend"
         }
-        steps {
-            checkout scm
-            sh "npm install"
-            sh "npm run build"
-            sh 'sbt -no-colors test scalastyle'
-            sh "sbt -no-colors dist"
-            stash includes: "Dockerfile", name: "Dockerfile"
-            stash includes: "target/universal/tdr-transfer-frontend-*.zip", name: "tdr-transfer-frontend-zip"
-        }
+      }
+      steps {
+        checkout scm
+        sh "npm install"
+        sh "npm run build"
+        sh 'sbt -no-colors test scalastyle'
+        sh "sbt -no-colors dist"
+        stash includes: "Dockerfile", name: "Dockerfile"
+        stash includes: "target/universal/tdr-transfer-frontend-*.zip", name: "tdr-transfer-frontend-zip"
+      }
     }
     stage("Docker") {
-        agent {
-            label "master"
+      agent {
+        label "master"
+      }
+      steps {
+        unstash "tdr-transfer-frontend-zip"
+        unstash "Dockerfile"
+        script {
+          docker.withRegistry('', 'docker') {
+            docker.build("nationalarchives/tdr-transfer-frontend:${params.STAGE}").push()
+            slackSend color: "good", message: "The front end app has been pushed to docker hub", channel: "#tdr"
+          }
         }
-        steps {
-            unstash "tdr-transfer-frontend-zip"
-            unstash "Dockerfile"
-            script {
-                docker.withRegistry('', 'docker') {
-                    docker.build("nationalarchives/tdr-transfer-frontend:${params.STAGE}").push()
-                    slackSend color: "good", message: "The front end app has been pushed to docker hub", channel: "#tdr"
-                }
-            }
-        }
+      }
     }
     stage("Update ECS container") {
-        agent {
-            ecs {
-                inheritFrom "aws"
-                taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsNodeRole${params.STAGE.capitalize()}"
-            }
+      agent {
+        ecs {
+          inheritFrom "aws"
+          taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsNodeRole${params.STAGE.capitalize()}"
         }
-        steps {
-            script {
-                def accountNumber = getAccountNumberFromStage()
-                sh "python /update_service.py ${accountNumber} ${params.STAGE} frontend"
-                slackSend color: "good", message: "The front end app has been updated in ECS", channel: "#tdr"
-            }
+      }
+      steps {
+        script {
+          def accountNumber = getAccountNumberFromStage()
+          sh "python /update_service.py ${accountNumber} ${params.STAGE} frontend"
+          slackSend color: "good", message: "The front end app has been updated in ECS", channel: "#tdr"
         }
+      }
     }
   }
 }
 
 def getAccountNumberFromStage() {
-    def stageToAccountMap = [
-            "intg": env.INTG_ACCOUNT,
-            "staging": env.STAGING_ACCOUNT,
-            "prod": env.PROD_ACCOUNT
-    ]
+  def stageToAccountMap = [
+      "intg": env.INTG_ACCOUNT,
+      "staging": env.STAGING_ACCOUNT,
+      "prod": env.PROD_ACCOUNT
+  ]
 
-    return stageToAccountMap.get(params.STAGE)
+  return stageToAccountMap.get(params.STAGE)
 }

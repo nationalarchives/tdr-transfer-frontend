@@ -3,15 +3,32 @@ pipeline {
 
   stages {
     stage('Test') {
-        agent {
-            ecs {
-                inheritFrom 'transfer-frontend'
-            }
+      agent {
+        ecs {
+          inheritFrom 'transfer-frontend'
         }
-        steps {
-            checkout scm
-            sh 'sbt -no-colors test scalastyle'
+      }
+      steps {
+        checkout scm
+        sh 'sbt -no-colors test scalastyle'
+      }
+    }
+    stage('Tag Release') {
+      agent {
+        label "master"
+      }
+      when {
+        expression { env.BRANCH_NAME == "master"}
+      }
+      steps {
+        script {
+          versionTag = "v${env.BUILD_NUMBER}"
         }
+        sh "git tag ${versionTag}"
+        sshagent(['github-jenkins']) {
+          sh("git push origin ${versionTag}")
+        }
+      }
     }
   }
 }
