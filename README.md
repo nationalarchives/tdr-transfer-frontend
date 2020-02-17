@@ -52,9 +52,8 @@ If you need to add a new query:
 
 * Run `git clone https://github.com/nationalarchives/tdr-generated-graphql.git`
 * Add the new query to the `src/main/graphql` directory
-* Bump the build.sbt version by one patch version.
 * Run `sbt package publishLocal`
-* Change the version in this project's build.sbt to match the new version.
+* Set the version for `tdr-generated-graphql` in this projects build.sbt to be the snapshot version.
  
 
 ### Run Play
