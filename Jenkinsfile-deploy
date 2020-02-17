@@ -1,9 +1,12 @@
+def releaseBranch = "release-${env.STAGE}"
+
 pipeline {
   agent {
     label "master"
   }
   parameters {
     choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are building the front end for")
+    string(name: "TO_DEPLOY", description: "The git tag, branch or commit reference to deploy, e.g. 'v123'")
   }
   stages {
     stage("Build") {
@@ -14,7 +17,7 @@ pipeline {
       }
       steps {
         checkout scm
-        sh "npm install"
+        sh "npm ci"
         sh "npm run build"
         sh 'sbt -no-colors test scalastyle'
         sh "sbt -no-colors dist"
@@ -47,8 +50,19 @@ pipeline {
       steps {
         script {
           def accountNumber = getAccountNumberFromStage()
-          sh "python /update_service.py ${accountNumber} ${params.STAGE} frontend"
+          sh "python3 /update_service.py ${accountNumber} ${params.STAGE} frontend"
           slackSend color: "good", message: "The front end app has been updated in ECS", channel: "#tdr"
+        }
+      }
+    }
+    stage("Update release branch") {
+      agent {
+        label "master"
+      }
+      steps {
+        sh "git branch -f ${releaseBranch} HEAD"
+        sshagent(['github-jenkins']) {
+          sh("git push -f origin ${releaseBranch}")
         }
       }
     }

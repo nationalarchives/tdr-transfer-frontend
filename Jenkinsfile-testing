@@ -1,3 +1,5 @@
+def versionTag = "v${env.BUILD_NUMBER}"
+
 pipeline {
   agent none
 
@@ -13,20 +15,32 @@ pipeline {
         sh 'sbt -no-colors test scalastyle'
       }
     }
-    stage('Tag Release') {
+    stage('Post-build') {
       agent {
         label "master"
       }
       when {
         expression { env.BRANCH_NAME == "master"}
       }
-      steps {
-        script {
-          versionTag = "v${env.BUILD_NUMBER}"
+      stages {
+        stage('Tag Release') {
+          steps {
+            sh "git tag ${versionTag}"
+            sshagent(['github-jenkins']) {
+              sh("git push origin ${versionTag}")
+            }
+          }
         }
-        sh "git tag ${versionTag}"
-        sshagent(['github-jenkins']) {
-          sh("git push origin ${versionTag}")
+        stage('Deploy to integration') {
+          steps {
+            build(
+                job: "TDR Front End Deploy",
+                parameters: [
+                    string(name: "STAGE", value: "intg"),
+                    string(name: "TO_DEPLOY", value: versionTag)
+                ],
+                wait: false)
+          }
         }
       }
     }
