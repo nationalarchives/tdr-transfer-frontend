@@ -4,6 +4,7 @@ pipeline {
   }
   parameters {
     choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are building the front end for")
+    string(name: "TO_DEPLOY", description: "The git tag, branch or commit reference to deploy, e.g. 'v123'")
   }
   stages {
     stage("Build") {
