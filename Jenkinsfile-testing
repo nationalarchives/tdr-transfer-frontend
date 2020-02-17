@@ -13,20 +13,29 @@ pipeline {
         sh 'sbt -no-colors test scalastyle'
       }
     }
-    stage('Tag Release') {
+    stage('Post-build') {
       agent {
         label "master"
       }
       when {
         expression { env.BRANCH_NAME == "master"}
       }
-      steps {
-        script {
-          versionTag = "v${env.BUILD_NUMBER}"
+      stages {
+        stage('Tag Release') {
+          steps {
+            script {
+              versionTag = "v${env.BUILD_NUMBER}"
+            }
+            sh "git tag ${versionTag}"
+            sshagent(['github-jenkins']) {
+              sh("git push origin ${versionTag}")
+            }
+          }
         }
-        sh "git tag ${versionTag}"
-        sshagent(['github-jenkins']) {
-          sh("git push origin ${versionTag}")
+        stage('Deploy to integration') {
+          steps {
+            build job: "TDR Front End Deploy", wait: false
+          }
         }
       }
     }
