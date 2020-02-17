@@ -63,8 +63,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     //Create the profile and add to the map
     val profile: OidcProfile = new OidcProfile()
-
-    profile.setAccessToken(new BearerAccessToken("test"))
+    profile.setAccessToken(new BearerAccessToken("faketoken"))
 
     val profileMap: java.util.LinkedHashMap[String, OidcProfile] = new java.util.LinkedHashMap[String, OidcProfile]
     profileMap.put("OidcClient", profile)
