@@ -1,3 +1,5 @@
+def versionTag = "v${env.BUILD_NUMBER}"
+
 pipeline {
   agent none
 
@@ -23,9 +25,6 @@ pipeline {
       stages {
         stage('Tag Release') {
           steps {
-            script {
-              versionTag = "v${env.BUILD_NUMBER}"
-            }
             sh "git tag ${versionTag}"
             sshagent(['github-jenkins']) {
               sh("git push origin ${versionTag}")
@@ -34,7 +33,13 @@ pipeline {
         }
         stage('Deploy to integration') {
           steps {
-            build job: "TDR Front End Deploy", wait: false
+            build(
+                job: "TDR Front End Deploy",
+                parameters: [
+                    string(name: "STAGE", value: "intg"),
+                    string(name: "TO_DEPLOY", value: versionTag)
+                ],
+                wait: false)
           }
         }
       }
