@@ -45,6 +45,18 @@ Repository for TDR transfer code
 
 * run  `npm install` then `npm run build`
 
+### Generated GraphQL classes
+There is a separate repository which contains the generated case classes needed to query the consignment API. 
+These classes will be needed by more than one project which is why they are in a separate project.
+If you need to add a new query:
+
+* Run `git clone https://github.com/nationalarchives/tdr-generated-graphql.git`
+* Add the new query to the `src/main/graphql` directory
+* Bump the build.sbt version by one patch version.
+* Run `sbt package publishLocal`
+* Change the version in this project's build.sbt to match the new version.
+ 
+
 ### Run Play
 
 * Start the application using `sbt run`
