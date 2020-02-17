@@ -5,11 +5,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status, _}
 import util.FrontEndTestHelper
 
-import scala.concurrent.ExecutionContext
-
 class DashboardControllerSpec extends FrontEndTestHelper {
-
-  implicit val ec: ExecutionContext = ExecutionContext.global
 
   "DashboardController GET" should {
 
