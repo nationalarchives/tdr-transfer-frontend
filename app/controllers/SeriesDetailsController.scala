@@ -28,9 +28,9 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
   )
 
   def seriesDetails(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-    val body = keycloakConfiguration.verifyToken(request.token.getValue)
+    val userTransferringBody = keycloakConfiguration.verifyToken(request.token.getValue)
       .map(t => t.getOtherClaims.get("body").asInstanceOf[String])
-    val variables: Variables = new Variables(body)
+    val variables: Variables = new Variables(userTransferringBody)
 
     client.getResult(request.token, document, Some(variables)).map(data => {
       if (data.data.isDefined) {
