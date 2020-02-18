@@ -15,6 +15,4 @@ trait TokenSecurity extends Security[CommonProfile] {
     val token = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
     RequestWithToken(request, token)
   }
-
-
 }
