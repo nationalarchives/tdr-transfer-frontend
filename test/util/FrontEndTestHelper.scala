@@ -1,6 +1,13 @@
 package util
 
+import java.io.File
+
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import configuration.KeycloakConfiguration
+import org.keycloak.representations.AccessToken
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.pac4j.core.client.Clients
@@ -14,6 +21,7 @@ import org.pac4j.play.PlayWebContext
 import org.pac4j.play.http.PlayHttpActionAdapter
 import org.pac4j.play.scala.SecurityComponents
 import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
@@ -24,13 +32,30 @@ import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
 
-trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest {
+trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach {
 
   override def fakeApplication(): Application = {
     val syncCacheApi = mock[PlayCacheSessionStore]
     GuiceApplicationBuilder()
+      .in(new File("src/test/resources/application.conf"))
       .bindings(bind[PlayCacheSessionStore].toInstance(syncCacheApi))
       .build()
+  }
+
+  def getValidKeycloakConfiguration: KeycloakConfiguration = {
+    val keycloakMock = mock[KeycloakConfiguration]
+    val accessToken = new AccessToken()
+    accessToken.setOtherClaims("body", "Body")
+    doAnswer(_ => Some(accessToken)).when(keycloakMock).verifyToken(any[String])
+    keycloakMock
+  }
+
+  def getInvalidKeycloakConfiguration: KeycloakConfiguration = {
+    val keycloakMock = mock[KeycloakConfiguration]
+    val accessToken = new AccessToken()
+    accessToken.setOtherClaims("body", "Body")
+    doAnswer(_ => Option.empty).when(keycloakMock).verifyToken(any[String])
+    keycloakMock
   }
 
   def getAuthorisedSecurityComponents(): SecurityComponents = {
@@ -67,6 +92,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       override def components: ControllerComponents = stubControllerComponents()
       override def config: Config = testConfig
       override def playSessionStore: PlaySessionStore = sessionStore
+      //noinspection ScalaStyle
       override def parser: BodyParsers.Default = null
     }
   }
@@ -103,6 +129,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       override def components: ControllerComponents = stubControllerComponents()
       override def config: Config = testConfig
       override def playSessionStore: PlaySessionStore = sessionStore
+      //noinspection ScalaStyle
       override def parser: BodyParsers.Default = null
     }
   }

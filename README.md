@@ -5,7 +5,7 @@ Repository for TDR transfer code
 
 * Start the auth server
 
-    `docker run -d  --name keycloak -p 8080:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin nationalarchives/tdr-auth-server:intg`
+    `docker run -d  --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin nationalarchives/tdr-auth-server:intg`
 * Go to `http://localhost:8080/auth/admin` and log in with username admin and password admin.
 
 * Set up a [realm](https://www.keycloak.org/docs/latest/getting_started/index.html#creating-a-realm-and-user) called tdr. You can set the display name to something else if you want as this will show on the login page.
@@ -44,6 +44,17 @@ Repository for TDR transfer code
 * `cd` into tdr-transfer-frontend in terminal
 
 * run  `npm install` then `npm run build`
+
+### Generated GraphQL classes
+There is a separate repository which contains the generated case classes needed to query the consignment API. 
+These classes will be needed by more than one project which is why they are in a separate project.
+If you need to add a new query:
+
+* Run `git clone https://github.com/nationalarchives/tdr-generated-graphql.git`
+* Add the new query to the `src/main/graphql` directory
+* Run `sbt package publishLocal`
+* Set the version for `tdr-generated-graphql` in this projects build.sbt to be the snapshot version.
+ 
 
 ### Run Play
 

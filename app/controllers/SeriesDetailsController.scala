@@ -1,18 +1,25 @@
 package controllers
 
+import auth.TokenSecurity
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.GetSeries.getSeries._
 import javax.inject.{Inject, Singleton}
-import org.pac4j.core.profile.CommonProfile
-import org.pac4j.play.scala.{Security, SecurityComponents}
+import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 
+import scala.concurrent.ExecutionContext
+
 @Singleton
-class SeriesDetailsController @Inject()(val controllerComponents: SecurityComponents)
-                                         extends Security[CommonProfile] with I18nSupport  {
+class SeriesDetailsController @Inject()(val controllerComponents: SecurityComponents,
+                                        val graphqlConfiguration: GraphQLConfiguration,
+                                        val keycloakConfiguration: KeycloakConfiguration
+                                        )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   private val secureAction = Secure("OidcClient")
+  private val client = graphqlConfiguration.getClient[Data, Variables]()
 
   val selectedSeriesForm = Form(
     mapping(
@@ -20,14 +27,20 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     )(SelectedSeriesData.apply)(SelectedSeriesData.unapply)
   )
 
-  // Mocked data until API implemented to show dropdown on page working
-  val mockedAllSeriesData: Seq[(String, String)] = Seq(
-    ("mockedSeries1", "Mocked Series 1"),
-    ("mockedSeries2", "Mocked Series 2"),
-    ("mockedSeries3", "Mocked Series 3"))
+  def seriesDetails(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    val userTransferringBody = keycloakConfiguration.verifyToken(request.token.getValue)
+      .map(t => t.getOtherClaims.get("body").asInstanceOf[String])
+    val variables: Variables = new Variables(userTransferringBody)
 
-  def seriesDetails(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
-    Ok(views.html.seriesDetails(mockedAllSeriesData, selectedSeriesForm))
+    client.getResult(request.token, document, Some(variables)).map(data => {
+      if (data.data.isDefined) {
+        val seriesData: Seq[(String, String)] = data.data.get.getSeries.map(s => (s.seriesid.toString, s.code.getOrElse("")))
+        Ok(views.html.seriesDetails(seriesData, selectedSeriesForm))
+      } else {
+        Ok(views.html.error(data.errors.map(e => e.message).mkString))
+      }
+    })
+
   }
 
   // Submit returns current page until next page is ready
