@@ -20,7 +20,7 @@ pipeline {
             sh "docker tag nationalarchives/tdr-transfer-frontend:${params.TO_DEPLOY} nationalarchives/tdr-transfer-frontend:${params.STAGE}"
             sh "docker push nationalarchives/tdr-transfer-frontend:${params.STAGE}"
 
-            slackSend color: "good", message: "The front end app ${params.STAGE} tag has been upated to the ${params.TO_DEPLOY} version in Docker Hub", channel: "#tdr"
+            slackSend color: "good", message: "*Transfer frontend* :whale: The '${params.TO_DEPLOY}' image has been tagged with '${params.STAGE}' in Docker Hub", channel: "#tdr"
           }
         }
       }
@@ -36,7 +36,7 @@ pipeline {
         script {
           def accountNumber = getAccountNumberFromStage()
           sh "python3 /update_service.py ${accountNumber} ${params.STAGE} frontend"
-          slackSend color: "good", message: "The front end app has been updated in ECS", channel: "#tdr"
+          slackSend color: "good", message: "*Transfer frontend* :arrow_up: The app has been updated in ECS in the *${params.STAGE}* environment", channel: "#tdr"
         }
       }
     }
