@@ -11,3 +11,7 @@ dashboard.title=Welcome to the dashboard
 seriesDetails.header=Series Details
 seriesDetails.title=Series Details
 seriesDetails.chooseSeries=Choose an existing series reference
+
+# Progress indicator step numbers
+seriesDetails.progress=1
+progress.totalSteps=1
