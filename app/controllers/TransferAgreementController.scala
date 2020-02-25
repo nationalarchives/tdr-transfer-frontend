@@ -8,7 +8,7 @@ import play.api.mvc.{Action, AnyContent, Request}
 
 @Singleton
 class TransferAgreementController @Inject()(val controllerComponents: SecurityComponents) extends Security[CommonProfile] with I18nSupport  {
-  def transferAgreement(): Action[AnyContent] = Secure("OidcClient") { implicit request: Request[AnyContent] =>
-    Ok(views.html.transferAgreement())
+  def transferAgreement(consignmentId: Long): Action[AnyContent] = Secure("OidcClient") { implicit request: Request[AnyContent] =>
+    Ok(views.html.transferAgreement(consignmentId))
   }
 }
