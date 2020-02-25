@@ -11,6 +11,8 @@ dashboard.title=Welcome to the dashboard
 seriesDetails.header=Series Details
 seriesDetails.title=Series Details
 seriesDetails.chooseSeries=Choose an existing series reference
+transferAgreement.title=Transfer Agreement
+transferAgreement.header=Transfer Agreement
 
 # Progress indicator step numbers
 seriesDetails.progress=1
