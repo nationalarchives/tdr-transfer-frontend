@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % "2.0.0-RC9",
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.1",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.1",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.1",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.17",
   "com.github.tomakehurst" % "wiremock-jre8" % "2.26.0" % Test
 
 )
