@@ -31,7 +31,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "render the correct series details page with an authenticated user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[Data, Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(Data(List(GetSeries(1L, Option.empty,Option.empty, Some("code"), Option.empty)))))
+      val data: client.GraphqlData = client.GraphqlData(Some(Data(List(GetSeries(1L, 1L,Option.empty, Some("code"), Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -93,6 +93,12 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesDetailsPage) must include ("govuk-error-message")
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
+    }
+
+    "create a consignment when a valid form is submitted" in {
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+      val response = controller.seriesSubmit().apply(FakeRequest(POST, "/series"))
+      playStatus(response) mustBe SEE_OTHER
     }
   }
 }
