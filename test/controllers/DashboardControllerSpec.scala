@@ -15,6 +15,8 @@ class DashboardControllerSpec extends FrontEndTestHelper {
       status(dashboardPage) mustBe OK
       contentType(dashboardPage) mustBe Some("text/html")
       contentAsString(dashboardPage) must include ("dashboard.header")
+      contentAsString(dashboardPage) must include ("dashboard.title")
+      contentAsString(dashboardPage) must include ("dashboard.transfer.start")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
