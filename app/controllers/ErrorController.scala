@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class ErrorController @Inject()(val cc: ControllerComponents)(implicit val ec: ExecutionContext)  extends AbstractController(cc) with I18nSupport {
-  def error(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+  def error(message: String): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.error(""))
   }
 }
