@@ -1,0 +1,26 @@
+@(field: Field,
+args: (Symbol, Any)*
+)(implicit messages: Messages)
+
+@import views.html.helper._
+@import viewsapi.FormFunctions._
+
+@elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
+@value = {@elements.args.get('_value)}
+@label = {@elements.args.get('_label)}
+
+<div class="govuk-checkboxes">
+    <div class="govuk-checkboxes__item @if(elements.args.contains('_smallCheckbox)){govuk-checkboxes--small}">
+        <input
+                @elements.args.requiredInput()
+                class="govuk-checkboxes__input"
+                id="@elements.id"
+                name="@elements.id"
+                type="checkbox"
+                value="@value"
+        />
+        <label class="govuk-label govuk-checkboxes__label" for="@elements.id">
+            @label
+        </label>
+    </div>
+</div>

@@ -19,7 +19,12 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
       contentAsString(transferAgreementPage) must include("transferAgreement.header")
-      contentAsString(transferAgreementPage) must include("transferAgreement.title")
+      contentAsString(transferAgreementPage) must include("transferAgreement.publicRecord")
+      contentAsString(transferAgreementPage) must include("transferAgreement.crownCopyright")
+      contentAsString(transferAgreementPage) must include("transferAgreement.english")
+      contentAsString(transferAgreementPage) must include("transferAgreement.digital")
+      contentAsString(transferAgreementPage) must include("transferAgreement.droAppraisalselection")
+      contentAsString(transferAgreementPage) must include("transferAgreement.droSensitivity")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -28,5 +33,6 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       redirectLocation(transferAgreementPage) must be(Some("/auth/realms/tdr/protocol/openid-connect/auth"))
       playStatus(transferAgreementPage) mustBe 303
     }
+
   }
 }

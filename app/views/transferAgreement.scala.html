@@ -1,5 +1,80 @@
-@(consignmentId: Long)(implicit messages: Messages)
+@import helper._
 
+@(consignmentId: Long, transferAgreementForm: Form[TransferAgreementData], agreementOptions: Seq[(String, String)])(implicit messages: Messages)
 @main(Messages("transferAgreement.header")) {
-    <h1 class="govuk-heading-xl">@Messages("transferAgreement.title")</h1>
+@defining(play.core.PlayVersion.current) { version =>
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-xl">@Messages("transferAgreement.title")</h1>
+        @form(action = routes.TransferAgreementController.transferAgreementSubmit(consignmentId)) {
+        <fieldset class="govuk-fieldset" aria-describedby="transfer-agreement">
+            <div class="govuk-form-group">
+                @inputRadioGroup(
+                transferAgreementForm("publicRecord"),
+                agreementOptions,
+                '_name -> Messages("transferAgreement.publicRecord"),
+                '_requiredOption -> true,
+                '_disabledOption -> "false",
+                '_selectedOption -> "true"
+                )
+                @inputRadioGroup(
+                transferAgreementForm("crownCopyright"),
+                agreementOptions,
+                '_name -> Messages("transferAgreement.crownCopyright"),
+                '_requiredOption -> true,
+                '_disabledOption -> "false"
+                )
+                @inputRadioGroup(
+                transferAgreementForm("english"),
+                agreementOptions,
+                '_name -> Messages("transferAgreement.english"),
+                '_requiredOption -> true,
+                '_disabledOption -> "false"
+                )
+                @inputRadioGroup(
+                transferAgreementForm("digital"),
+                agreementOptions,
+                '_name -> Messages("transferAgreement.digital"),
+                '_requiredOption -> true,
+                '_disabledOption -> "false"
+                )
+            </div>
+        </fieldset>
+        <!-- DRO confirmation -->
+        <fieldset class="govuk-fieldset" aria-describedby="transfer-agreement-checks">
+            <div class="govuk-form-group">
+                @inputSingleCheckbox(
+                transferAgreementForm("droAppraisalselection"),
+                '_label -> Messages("transferAgreement.droAppraisalselection"),
+                '_value -> "true",
+                '_smallCheckbox -> true,
+                '_requiredOption -> true
+                )
+                @inputSingleCheckbox(
+                transferAgreementForm("droSensitivity"),
+                '_label -> Messages("transferAgreement.droSensitivity"),
+                '_value -> "true",
+                '_smallCheckbox -> true,
+                '_requiredOption -> true
+                )
+            </div>
+        </fieldset>
+
+        <!-- Buttons -->
+        <div>
+            <!-- Cancel -->
+            <a href="@routes.DashboardController.dashboard" role="button" draggable="false"
+               class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                Cancel
+            </a>
+
+            <!-- Continue -->
+            <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                Continue
+            </button>
+        </div>
+        }
+    </div>
+</div>
+}
 }
