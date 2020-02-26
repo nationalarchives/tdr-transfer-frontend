@@ -19,6 +19,7 @@
             @inputDropdown(
                 seriesDetailsForm("series"),
                 allSeriesData,
+                '_error -> seriesDetailsForm.errors("error").headOption.getOrElse(None),
                 '_name -> "Series Details",
                 '_label -> Messages("seriesDetails.chooseSeries"),
                 requiredInputArg -> true
