@@ -1,7 +1,7 @@
 @import helper._
 @import viewsapi.FormFunctions._
 
-@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit messages: Messages)
+@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit request: RequestHeader, messages: Messages)
 
 @main(Messages("seriesDetails.header")) {
 @defining(play.core.PlayVersion.current) { version =>
@@ -15,6 +15,7 @@
         <h1 class="govuk-heading-xl">@Messages("seriesDetails.title")</h1>
 
         @form(action = routes.SeriesDetailsController.seriesSubmit) {
+            @CSRF.formField
             @inputDropdown(
                 seriesDetailsForm("series"),
                 allSeriesData,
@@ -22,6 +23,11 @@
                 '_label -> Messages("seriesDetails.chooseSeries"),
                 requiredInputArg -> true
             )
+        <div class="govuk-form-group">
+            <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                Continue
+            </button>
+        </div>
         }
     </div>
 </div>
