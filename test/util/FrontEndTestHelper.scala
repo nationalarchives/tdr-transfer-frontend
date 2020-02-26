@@ -31,6 +31,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
+import play.api.test.CSRFTokenHelper._
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach {
 
@@ -46,6 +47,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val keycloakMock = mock[KeycloakConfiguration]
     val accessToken = new AccessToken()
     accessToken.setOtherClaims("body", "Body")
+    accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     doAnswer(_ => Some(accessToken)).when(keycloakMock).verifyToken(any[String])
     keycloakMock
   }
