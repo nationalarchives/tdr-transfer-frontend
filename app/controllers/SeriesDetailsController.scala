@@ -69,7 +69,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
         if(data.data.isDefined) {
           Redirect(routes.TransferAgreementController.transferAgreement(data.data.get.addConsignment.consignmentid.get))
         } else {
-          Ok(views.html.error(data.errors.map(e => e.message).mkString))
+          Redirect(routes.ErrorController.error(data.errors.map(e => e.message).mkString))
         }
       })
     }
