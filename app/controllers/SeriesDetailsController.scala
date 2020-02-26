@@ -13,7 +13,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,20 +33,22 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     )(SelectedSeriesData.apply)(SelectedSeriesData.unapply)
   )
 
-  def seriesDetails(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  private def getSeriesDetails(request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
     val userTransferringBody = keycloakConfiguration.verifyToken(request.token.getValue)
       .map(t => t.getOtherClaims.get("body").asInstanceOf[String])
     val variables: getSeries.Variables = new getSeries.Variables(userTransferringBody)
-
     getSeriesClient.getResult(request.token, getSeries.document, Some(variables)).map(data => {
       if (data.data.isDefined) {
         val seriesData: Seq[(String, String)] = data.data.get.getSeries.map(s => (s.seriesid.toString, s.code.getOrElse("")))
-        Ok(views.html.seriesDetails(seriesData, selectedSeriesForm))
+        status(views.html.seriesDetails(seriesData, form))
       } else {
-        Ok(views.html.error(data.errors.map(e => e.message).mkString))
+        status(views.html.error(data.errors.map(e => e.message).mkString))
       }
     })
+  }
 
+  def seriesDetails(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    getSeriesDetails(request, Ok, selectedSeriesForm)
   }
 
   // Submit returns current page until next page is ready
@@ -54,9 +56,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest
 
     val errorFunction: Form[SelectedSeriesData] => Future[Result] = { formWithErrors: Form[SelectedSeriesData] =>
-      Future {
-        BadRequest(views.html.seriesDetails(Seq(), formWithErrors))
-      }
+      getSeriesDetails(request, BadRequest, formWithErrors)
     }
 
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
