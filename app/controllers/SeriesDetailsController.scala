@@ -51,7 +51,6 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     getSeriesDetails(request, Ok, selectedSeriesForm)
   }
 
-  // Submit returns current page until next page is ready
   def seriesSubmit(): Action[AnyContent] =  secureAction.async { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest
 
@@ -73,14 +72,10 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
         }
       })
     }
-
     formValidationResult.fold(
       errorFunction,
       successFunction
     )
-
-
-
   }
 }
 
