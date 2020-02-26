@@ -8,6 +8,7 @@ home.use.transfer.history=view your transfer history
 home.start=Start now
 dashboard.header=Dashboard
 dashboard.title=Welcome to the dashboard
+dashboard.transfer.start=Start a new records transfer
 seriesDetails.header=Series Details
 seriesDetails.title=Series Details
 seriesDetails.chooseSeries=Choose an existing series reference

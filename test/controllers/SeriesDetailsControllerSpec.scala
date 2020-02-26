@@ -55,7 +55,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = new SeriesDetailsController(getUnauthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+      val controller = new SeriesDetailsController(getUnauthorisedSecurityComponents(),
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
       redirectLocation(seriesDetailsPage) must be(Some("/auth/realms/tdr/protocol/openid-connect/auth"))
       playStatus(seriesDetailsPage) mustBe SEE_OTHER
@@ -68,7 +69,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
       playStatus(seriesDetailsPage) mustBe OK
@@ -87,7 +89,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getInvalidKeycloakConfiguration)
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+        new GraphQLConfiguration(app.configuration), getInvalidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
       playStatus(seriesDetailsPage) mustBe OK
