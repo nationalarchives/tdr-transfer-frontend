@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetSeries.{getSeries => gs}
 import io.circe.Printer
-import graphql.codegen.AddConsignment.addConsignment
+import graphql.codegen.AddConsignment.{addConsignment => ac}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
@@ -103,11 +103,11 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     }
 
     "create a consignment when a valid form is submitted and the api response is successful" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[addConsignment.Data, addConsignment.Variables]()
+      val client = new GraphQLConfiguration(app.configuration).getClient[ac.Data, ac.Variables]()
       val consignmentId = 1
       val seriesId = 1
-      val consignmentResponse: addConsignment.AddConsignment = new addConsignment.AddConsignment(Some(consignmentId), seriesId, UUID.randomUUID())
-      val data: client.GraphqlData = client.GraphqlData(Some(addConsignment.Data(consignmentResponse)), List())
+      val consignmentResponse: ac.AddConsignment = new ac.AddConsignment(Some(consignmentId), seriesId, UUID.randomUUID())
+      val data: client.GraphqlData = client.GraphqlData(Some(ac.Data(consignmentResponse)), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
