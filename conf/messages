@@ -12,3 +12,5 @@ dashboard.transfer.start=Start a new records transfer
 seriesDetails.header=Series Details
 seriesDetails.title=Series Details
 seriesDetails.chooseSeries=Choose an existing series reference
+transferAgreement.title=Transfer Agreement
+transferAgreement.header=Transfer Agreement
