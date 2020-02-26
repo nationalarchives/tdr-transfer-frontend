@@ -111,7 +111,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest().withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
-      print(contentAsString(seriesSubmit))
       playStatus(seriesSubmit) mustBe SEE_OTHER
       redirectLocation(seriesSubmit) must be(Some(s"/consignment/$consignmentId/transfer-agreement"))
     }
@@ -131,7 +130,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     }
 
     "display errors when an invalid form is submitted" in {
-      val seriesId = 1
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Error", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
@@ -141,7 +139,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest(POST, "/series").withCSRFToken)
       playStatus(seriesSubmit) mustBe BAD_REQUEST
-      contentAsString(seriesSubmit) must include("Required")
+      contentAsString(seriesSubmit) must include("govuk-error-message")
+      contentAsString(seriesSubmit) must include("Error")
     }
   }
 }
