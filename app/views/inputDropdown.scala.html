@@ -12,7 +12,7 @@ dropdownOptions: Seq[(String, String)],
 
 <div class="govuk-form-group">
     <label class="govuk-label" for="@elements.id">
-        @elements.args.get('_label)
+        @elements.args.get(Symbol("_label"))
         @elements.args.requiredLabelSuffix()
     </label>
     <select
