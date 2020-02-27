@@ -32,7 +32,7 @@ object FormFunctions {
           elements.errors.mkString(", ")
         )
       } else {
-        Html("<span/>")
+        Html("")
       }
     }
   }
