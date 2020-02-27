@@ -14,6 +14,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
+import scala.collection.JavaConverters._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,9 +35,10 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
   )
 
   private def getSeriesDetails(request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
-    val userTransferringBody = keycloakConfiguration.verifyToken(request.token.getValue)
-      .map(t => t.getOtherClaims.get("body").asInstanceOf[String])
+    val userTransferringBody: Option[String] = keycloakConfiguration.verifyToken(request.token.getValue)
+      .flatMap(t => t.getOtherClaims.asScala.get("body").asInstanceOf[Option[String]])
     val variables: getSeries.Variables = new getSeries.Variables(userTransferringBody)
+
     getSeriesClient.getResult(request.token, getSeries.document, Some(variables)).map(data => {
       if (data.data.isDefined) {
         val seriesData: Seq[(String, String)] = data.data.get.getSeries.map(s => (s.seriesid.toString, s.code.getOrElse("")))
