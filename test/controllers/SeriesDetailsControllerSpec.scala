@@ -145,5 +145,40 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesSubmit) must include("govuk-error-message")
       contentAsString(seriesSubmit) must include("Error")
     }
+
+    "will send a null body if it is not present on the user" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Body does not match", Nil, Nil)))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfigurationWithoutBody)
+      val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
+
+      playStatus(seriesDetailsPage) mustBe OK
+      contentType(seriesDetailsPage) mustBe Some("text/html")
+      val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":null}}"
+      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))
+    }
+
+    "will send the correct body if it is present on the user" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Body does not match", Nil, Nil)))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+      val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
+
+      playStatus(seriesDetailsPage) mustBe OK
+      contentType(seriesDetailsPage) mustBe Some("text/html")
+      val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":\"Body\"}}"
+      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))
+    }
+
   }
 }

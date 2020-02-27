@@ -51,6 +51,13 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     keycloakMock
   }
 
+  def getValidKeycloakConfigurationWithoutBody: KeycloakConfiguration = {
+    val keycloakMock = mock[KeycloakConfiguration]
+    val accessToken = new AccessToken()
+    doAnswer(_ => Some(accessToken)).when(keycloakMock).verifyToken(any[String])
+    keycloakMock
+  }
+
   def getInvalidKeycloakConfiguration: KeycloakConfiguration = {
     val keycloakMock = mock[KeycloakConfiguration]
     val accessToken = new AccessToken()
