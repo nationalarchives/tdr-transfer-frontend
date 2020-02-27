@@ -1,5 +1,6 @@
 name := """tdr-transfer-frontend"""
 organization := "tna"
+maintainer := "tdr@nationalarchives.gov.uk"
 
 version := "1.0-SNAPSHOT"
 
@@ -31,6 +32,7 @@ libraryDependencies ++= Seq(
   "com.github.tomakehurst" % "wiremock-jre8" % "2.26.0" % Test,
   "org.mockito" % "mockito-core" % "3.3.0" % Test
 )
+scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
 libraryDependencies += "com.github.karelcemus" %% "play-redis" % "2.6.0"
