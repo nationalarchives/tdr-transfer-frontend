@@ -31,12 +31,12 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "render the correct series details page with an authenticated user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[Data, Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(Data(List(GetSeries(1L, Option.empty,Option.empty, Some("code"), Option.empty)))))
+      val data: client.GraphqlData = client.GraphqlData(Some(Data(List(GetSeries(1L, 1L, Option.empty, Some("code"), Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
@@ -52,11 +52,11 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = new SeriesDetailsController(getUnauthorisedSecurityComponents(),
+      val controller = new SeriesDetailsController(getUnauthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
-      redirectLocation(seriesDetailsPage) must be(Some("/auth/realms/tdr/protocol/openid-connect/auth"))
-      playStatus(seriesDetailsPage) mustBe 303
+      redirectLocation(seriesDetailsPage).get must startWith ("/auth/realms/tdr/protocol/openid-connect/auth")
+      playStatus(seriesDetailsPage) mustBe FOUND
     }
 
     "render the error page if the api returns errors" in {
@@ -66,7 +66,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
@@ -86,7 +86,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getInvalidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
