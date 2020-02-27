@@ -1,7 +1,7 @@
 package viewsapi
 
 object FormFunctions {
-  val requiredInputArg = '_requiredOption
+  val requiredInputArg = Symbol("_requiredOption")
 
   class InputRenderOptions(args: Map[Symbol, Any]) {
 
