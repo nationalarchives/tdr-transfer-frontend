@@ -49,7 +49,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     accessToken.setOtherClaims("body", "Body")
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     val token = Token(Some(accessToken), new BearerAccessToken)
-    doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
+    doAnswer(_ => token).when(keycloakMock).token(any[String])
     keycloakMock
   }
 
@@ -57,7 +57,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val keycloakMock = mock[KeycloakConfiguration]
     val accessToken = new AccessToken()
     val token = Token(Some(accessToken), new BearerAccessToken)
-    doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
+    doAnswer(_ => token).when(keycloakMock).token(any[String])
     keycloakMock
   }
 
@@ -66,7 +66,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val accessToken = new AccessToken()
     accessToken.setOtherClaims("body", "Body")
     val token = Token(Option.empty, new BearerAccessToken)
-    doAnswer(_ => Option.empty).when(keycloakMock).token(any[String])
+    doAnswer(_ => token).when(keycloakMock).token(any[String])
     keycloakMock
   }
 
