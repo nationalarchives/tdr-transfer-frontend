@@ -33,7 +33,17 @@ import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+
+
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach {
+
+  implicit class AwaitFuture[T](future: Future[T]) {
+    def await(timeout: Duration = 2.seconds): T = {
+      Await.result(future, timeout)
+    }
+  }
 
   override def fakeApplication(): Application = {
     val syncCacheApi = mock[PlayCacheSessionStore]
