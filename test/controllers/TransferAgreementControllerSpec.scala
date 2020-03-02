@@ -13,7 +13,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
     "render the transfer agreement page with an authenticated user" in {
 
-      val controller = new TransferAgreementController(getAuthorisedSecurityComponents())
+      val controller = new TransferAgreementController(getAuthorisedSecurityComponents)
       val transferAgreementPage = controller.transferAgreement(123).apply(FakeRequest(GET, "/consignment/123/transfer-agreement"))
 
       playStatus(transferAgreementPage) mustBe OK
@@ -23,10 +23,10 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = new TransferAgreementController(getUnauthorisedSecurityComponents())
+      val controller = new TransferAgreementController(getUnauthorisedSecurityComponents)
       val transferAgreementPage = controller.transferAgreement(123).apply(FakeRequest(GET, "/consignment/123/transfer-agreement"))
-      redirectLocation(transferAgreementPage) must be(Some("/auth/realms/tdr/protocol/openid-connect/auth"))
-      playStatus(transferAgreementPage) mustBe 303
+      redirectLocation(transferAgreementPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      playStatus(transferAgreementPage) mustBe FOUND
     }
   }
 }

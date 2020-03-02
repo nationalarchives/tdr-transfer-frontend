@@ -41,7 +41,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series").withCSRFToken)
 
       playStatus(seriesDetailsPage) mustBe OK
@@ -56,11 +57,11 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = new SeriesDetailsController(getUnauthorisedSecurityComponents(),
+      val controller = new SeriesDetailsController(getUnauthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
-      redirectLocation(seriesDetailsPage) must be(Some("/auth/realms/tdr/protocol/openid-connect/auth"))
-      playStatus(seriesDetailsPage) mustBe SEE_OTHER
+      redirectLocation(seriesDetailsPage).get must startWith ("/auth/realms/tdr/protocol/openid-connect/auth")
+      playStatus(seriesDetailsPage) mustBe FOUND
     }
 
     "render the error page if the api returns errors" in {
@@ -70,7 +71,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
@@ -90,7 +91,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getInvalidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
@@ -113,7 +114,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest().withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
       playStatus(seriesSubmit) mustBe SEE_OTHER
       redirectLocation(seriesSubmit) must be(Some(s"/consignment/$consignmentId/transfer-agreement"))
@@ -127,7 +128,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest(POST, "/series").withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
       playStatus(seriesSubmit) mustBe BAD_REQUEST
     }
@@ -139,7 +140,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest(POST, "/series").withCSRFToken)
       playStatus(seriesSubmit) mustBe BAD_REQUEST
       contentAsString(seriesSubmit) must include("govuk-error-message")
@@ -153,7 +154,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
             .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfigurationWithoutBody)
       controller.seriesDetails().apply(FakeRequest(GET, "/series")).await()
 
@@ -168,9 +169,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql")).willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
-      controller.seriesDetails().apply(FakeRequest(GET, "/series"))
+      controller.seriesDetails().apply(FakeRequest(GET, "/series")).await()
 
       val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":\"Body\"}}"
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))

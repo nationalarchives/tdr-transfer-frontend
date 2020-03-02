@@ -19,10 +19,10 @@
             @inputDropdown(
                 seriesDetailsForm("series"),
                 allSeriesData,
-                '_error -> seriesDetailsForm.errors("error").headOption.getOrElse(None),
-                '_name -> "Series Details",
-                '_label -> Messages("seriesDetails.chooseSeries"),
-                requiredInputArg -> false
+                Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
+                Symbol("_name") -> "Series Details",
+                Symbol("_label") -> Messages("seriesDetails.chooseSeries"),
+                requiredInputArg -> true
             )
         <div class="govuk-form-group">
             <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
