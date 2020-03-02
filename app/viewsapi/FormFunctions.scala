@@ -25,16 +25,6 @@ object FormFunctions {
         ""
       }
     }
-
-    def renderErrorMessage(): Html = {
-      if(elements.hasErrors) {
-        Html("<span id=\"error\" class=\"govuk-error-message\"><span class=\"govuk-visually-hidden\">Error:</span>" +
-          elements.errors.mkString(", ")
-        )
-      } else {
-        Html("")
-      }
-    }
   }
 
   implicit def errorHandling(elements: FieldElements): ErrorHandling = new ErrorHandling(elements)
