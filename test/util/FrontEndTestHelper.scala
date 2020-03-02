@@ -4,28 +4,22 @@ import java.io.File
 import java.net.URI
 import java.util
 
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import com.nimbusds.oauth2.sdk.ResponseType
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.KeycloakConfiguration
 import org.keycloak.representations.AccessToken
-import org.mockito.ArgumentMatchers.{any, eq => mockEq}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.pac4j.core.authorization.authorizer.Authorizer
-import org.pac4j.core.authorization.checker.AuthorizationChecker
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
 import org.pac4j.core.context.WebContext
 import org.pac4j.core.engine.DefaultSecurityLogic
-import org.pac4j.core.util.Pac4jConstants
-import org.pac4j.core.exception.http.{FoundAction, RedirectionAction, RedirectionActionHelper, TemporaryRedirectAction}
 import org.pac4j.core.http.ajax.AjaxRequestResolver
 import org.pac4j.core.profile.UserProfile
-import org.pac4j.oidc.client.{KeycloakOidcClient, OidcClient}
-import org.pac4j.oidc.config.{KeycloakOidcConfiguration, OidcConfiguration}
+import org.pac4j.core.util.Pac4jConstants
+import org.pac4j.oidc.client.OidcClient
+import org.pac4j.oidc.config.OidcConfiguration
 import org.pac4j.oidc.profile.OidcProfile
 import org.pac4j.oidc.redirect.OidcRedirectionActionBuilder
 import org.pac4j.play.PlayWebContext
@@ -39,12 +33,22 @@ import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc.{BodyParsers, ControllerComponents, Request}
+import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
-import play.mvc.Http
+import uk.gov.nationalarchives.tdr.keycloak.Token
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach {
+
+  implicit class AwaitFuture[T](future: Future[T]) {
+    def await(timeout: Duration = 2.seconds): T = {
+      Await.result(future, timeout)
+    }
+  }
 
   override def fakeApplication(): Application = {
     val syncCacheApi = mock[PlayCacheSessionStore]
@@ -58,7 +62,17 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val keycloakMock = mock[KeycloakConfiguration]
     val accessToken = new AccessToken()
     accessToken.setOtherClaims("body", "Body")
-    doAnswer(_ => Some(accessToken)).when(keycloakMock).verifyToken(any[String])
+    accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
+    val token = Token(Some(accessToken), new BearerAccessToken)
+    doAnswer(_ => token).when(keycloakMock).token(any[String])
+    keycloakMock
+  }
+
+  def getValidKeycloakConfigurationWithoutBody: KeycloakConfiguration = {
+    val keycloakMock = mock[KeycloakConfiguration]
+    val accessToken = new AccessToken()
+    val token = Token(Some(accessToken), new BearerAccessToken)
+    doAnswer(_ => token).when(keycloakMock).token(any[String])
     keycloakMock
   }
 
@@ -66,7 +80,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val keycloakMock = mock[KeycloakConfiguration]
     val accessToken = new AccessToken()
     accessToken.setOtherClaims("body", "Body")
-    doAnswer(_ => Option.empty).when(keycloakMock).verifyToken(any[String])
+    val token = Token(Option.empty, new BearerAccessToken)
+    doAnswer(_ => token).when(keycloakMock).token(any[String])
     keycloakMock
   }
 
