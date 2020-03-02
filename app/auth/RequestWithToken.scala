@@ -1,9 +1,14 @@
 package auth
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import org.keycloak.representations.AccessToken
 import play.api.mvc.{AnyContent, Request}
+import uk.gov.nationalarchives.tdr.keycloak.Token
 
-class RequestWithToken(request: Request[AnyContent], val token: BearerAccessToken)
+
+class RequestWithToken(request: Request[AnyContent], val token: Token)
+
 object RequestWithToken {
-  def apply(request: Request[AnyContent], token: BearerAccessToken): RequestWithToken = new RequestWithToken(request, token)
+  def apply(request: Request[AnyContent], token: Token): RequestWithToken
+  = new RequestWithToken(request, token)
 }
