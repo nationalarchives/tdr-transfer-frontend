@@ -73,7 +73,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
-      playStatus(seriesDetailsPage) mustBe OK
+      playStatus(seriesDetailsPage) mustBe BAD_REQUEST
       contentType(seriesDetailsPage) mustBe Some("text/html")
       //This test is based on the placeholder error page, it will need to be changed when we implement a new error page.
       contentAsString(seriesDetailsPage) must include ("Error")
@@ -93,7 +93,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         new GraphQLConfiguration(app.configuration), getInvalidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
-      playStatus(seriesDetailsPage) mustBe OK
+      playStatus(seriesDetailsPage) mustBe BAD_REQUEST
       contentType(seriesDetailsPage) mustBe Some("text/html")
       //This test is based on the placeholder error page, it will need to be changed when we implement a new error page.
       contentAsString(seriesDetailsPage) must include ("Body does not match")
@@ -128,8 +128,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(), new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest(POST, "/series").withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
-      playStatus(seriesSubmit) mustBe SEE_OTHER
-      redirectLocation(seriesSubmit) must be(Some(s"/error?message=Error"))
+      playStatus(seriesSubmit) mustBe BAD_REQUEST
     }
 
     "display errors when an invalid form is submitted" in {
@@ -157,7 +156,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfigurationWithoutBody)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
-      playStatus(seriesDetailsPage) mustBe OK
+      playStatus(seriesDetailsPage) mustBe BAD_REQUEST
       contentType(seriesDetailsPage) mustBe Some("text/html")
       val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":null}}"
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))
@@ -174,7 +173,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
-      playStatus(seriesDetailsPage) mustBe OK
+      playStatus(seriesDetailsPage) mustBe BAD_REQUEST
       contentType(seriesDetailsPage) mustBe Some("text/html")
       val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":\"Body\"}}"
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))
