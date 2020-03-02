@@ -27,7 +27,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
       "droAppraisalselection" -> boolean
         .verifying("Must answer yes", b => b),
       "droSensitivity" -> boolean
-        .verifying("Must answer yes", b => b),
+        .verifying("Must answer yes", b => b)
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
