@@ -1,6 +1,6 @@
 name := """tdr-transfer-frontend"""
 organization := "tna"
-maintainer := "tdr@nationalarchives.gov.uk"
+maintainer := "TDRTeam@nationalarchives.gov.uk"
 
 version := "1.0-SNAPSHOT"
 
