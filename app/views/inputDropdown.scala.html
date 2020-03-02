@@ -26,5 +26,5 @@ dropdownOptions: Seq[(String, String)],
             <option value="@dropdownOption._1">@dropdownOption._2</option>
         }
     </select>
-    @elements.renderErrorMessage()
+    @errorMessage(elements)
 </div>

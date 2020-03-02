@@ -9,7 +9,7 @@ import play.twirl.api.Html
 import util.FrontEndTestHelper
 import views.html.helper.FieldElements
 
-class FormFunctionSpec extends FrontEndTestHelper  {
+class FormFunctionSpec extends FrontEndTestHelper {
 
   def getFieldElements(errors: Map[Symbol, String]) = {
     val form = Form(
@@ -18,7 +18,7 @@ class FormFunctionSpec extends FrontEndTestHelper  {
       )(TestData.apply)(TestData.unapply)
     )
     val field = Field(form, "", Seq(), Option.empty, Seq(), Option.empty)
-    val fieldElements: FieldElements = new FieldElements("", field, Html(""),errors, MessagesImpl(Lang.forCode("en-gb"), new DefaultMessagesApi()))
+    val fieldElements: FieldElements = new FieldElements("", field, Html(""), errors, MessagesImpl(Lang.forCode("en-gb"), new DefaultMessagesApi()))
     fieldElements
   }
 
@@ -84,23 +84,6 @@ class FormFunctionSpec extends FrontEndTestHelper  {
     }
   }
 
-  "renderErrorMessage function" should {
-    "return the error html if the element has errors" in {
-      val errors: Map[Symbol, String] = Map(Symbol("_error") -> "Test Error")
-      val fieldElements: FieldElements = getFieldElements(errors)
-      val html: Html = viewsapi.FormFunctions.errorHandling(fieldElements).renderErrorMessage()
-      val expectedResult = Html("<span id=\"error\" class=\"govuk-error-message\"><span class=\"govuk-visually-hidden\">Error:</span>Test Error")
-      html should be(expectedResult)
-    }
-
-    "return empty html if the element has no errors" in {
-      val errors: Map[Symbol, String] = Map()
-      val fieldElements: FieldElements = getFieldElements(errors)
-      val html: Html = viewsapi.FormFunctions.errorHandling(fieldElements).renderErrorMessage()
-      val expectedResult = Html("")
-      html should be(expectedResult)
-    }
-  }
 }
 
 case class TestData(id: String)
