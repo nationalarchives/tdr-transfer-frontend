@@ -4,7 +4,7 @@ import play.twirl.api.Html
 import views.html.helper.FieldElements
 
 object FormFunctions {
-  val requiredInputArg = '_requiredOption
+  val requiredInputArg = Symbol("_requiredOption")
 
   class InputRenderOptions(args: Map[Symbol, Any]) {
 
