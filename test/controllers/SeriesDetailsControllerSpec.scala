@@ -28,6 +28,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
   }
 
   override def afterEach(): Unit = {
+    wiremockServer.resetAll()
     wiremockServer.stop()
   }
 
@@ -118,7 +119,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       redirectLocation(seriesSubmit) must be(Some(s"/consignment/$consignmentId/transfer-agreement"))
     }
 
-    "redirect to the error page when a valid form is submitted but there is an error from the api" in {
+    "renders an error when a valid form is submitted but there is an error from the api" in {
       val seriesId = 1
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Error", Nil, Nil)))
@@ -150,34 +151,29 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Body does not match", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+            .willReturn(okJson(dataString)))
 
       val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfigurationWithoutBody)
-      val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
+      controller.seriesDetails().apply(FakeRequest(GET, "/series")).await()
 
-      playStatus(seriesDetailsPage) mustBe BAD_REQUEST
-      contentType(seriesDetailsPage) mustBe Some("text/html")
       val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":null}}"
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))
+      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql"))
+        .withRequestBody(equalToJson(expectedJson)))
     }
 
     "will send the correct body if it is present on the user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Body does not match", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql")).willReturn(okJson(dataString)))
 
       val controller = new SeriesDetailsController(getAuthorisedSecurityComponents(),
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
-      val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
+      controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
-      playStatus(seriesDetailsPage) mustBe BAD_REQUEST
-      contentType(seriesDetailsPage) mustBe Some("text/html")
       val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":\"Body\"}}"
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))
     }
-
   }
 }
