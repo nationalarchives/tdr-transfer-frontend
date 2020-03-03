@@ -6,11 +6,11 @@ args: (Symbol, Any)*
 @import viewsapi.FormFunctions._
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
-@value = {@elements.args.get('_value)}
-@label = {@elements.args.get('_label)}
+@value = {@elements.args.get(Symbol("_value"))}
+@label = {@elements.args.get(Symbol("_label"))}
 
 <div class="govuk-checkboxes">
-    <div class="govuk-checkboxes__item @if(elements.args.contains('_smallCheckbox)){govuk-checkboxes--small}">
+    <div class='govuk-checkboxes__item @if(elements.args.contains(Symbol("_smallCheckbox"))){govuk-checkboxes--small}'>
         <input
                 @elements.args.requiredInput()
                 class="govuk-checkboxes__input"

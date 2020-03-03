@@ -60,7 +60,7 @@ class FormFunctionSpec extends FrontEndTestHelper {
       result shouldBe ""
     }
 
-    "not render an asterisk when no '_requiredOption" in {
+    "not render an asterisk when no _requiredOption" in {
       val args: Map[Symbol, Any] = Map(Symbol("_madeUpOption") -> true)
 
       val result = FormFunctions.inputRenderOptions(args).requiredLabelSuffix()
@@ -69,15 +69,15 @@ class FormFunctionSpec extends FrontEndTestHelper {
   }
 
   "disabledInput function" should {
-    "render disabled when '_disabledOption set to \"false\"" in {
-      val args: Map[Symbol, Any] = Map('_disabledOption -> "false")
+    "render disabled when _disabledOption set to \"false\"" in {
+      val args: Map[Symbol, Any] = Map(Symbol("_disabledOption") -> "false")
 
       val result = FormFunctions.inputRenderOptions(args).disabledInput("false")
       result shouldBe Some("disabled")
     }
 
-    "not render disabled when no '_disabledOption" in {
-      val args: Map[Symbol, Any] = Map('_madeUpOption -> "true")
+    "not render disabled when no _disabledOption" in {
+      val args: Map[Symbol, Any] = Map(Symbol("_madeUpOption") -> "true")
 
       val result = FormFunctions.inputRenderOptions(args).disabledInput("true")
       result shouldBe ()
@@ -90,6 +90,7 @@ class FormFunctionSpec extends FrontEndTestHelper {
       val errorClass = viewsapi.FormFunctions.errorHandling(fieldElements).setErrorClass()
       errorClass should be("govuk-form-group--error")
     }
+  }
 
     "return empty string if the element has no errors" in {
       val errors: Map[Symbol, String] = Map()

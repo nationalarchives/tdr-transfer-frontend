@@ -31,9 +31,8 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
-  def transferAgreement(consignmentId: Long): Action[AnyContent] = Secure("OidcClient") { implicit request: Request[AnyContent] =>
+  def transferAgreement(consignmentId: Long): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.transferAgreement(consignmentId, form, options))
-
   }
 
   def transferAgreementSubmit(consignmentId: Long): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>

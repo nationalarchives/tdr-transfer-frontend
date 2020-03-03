@@ -5,8 +5,8 @@ import views.html.helper.FieldElements
 
 object FormFunctions {
   val requiredInputArg = Symbol("_requiredOption")
-  val selectedInputArg = '_checkedOption
-  val disabledInputArg = '_disabledOption
+  val selectedInputArg = Symbol("_checkedOption")
+  val disabledInputArg = Symbol("_disabledOption")
 
   class InputRenderOptions(args: Map[Symbol, Any]) {
 
