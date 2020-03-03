@@ -69,7 +69,7 @@ class FormFunctionSpec extends FrontEndTestHelper {
   }
 
   "disabledInput function" should {
-    "render disabled when _disabledOption set to \"false\"" in {
+    "render disabled when _disabledOption set to a particular input option" in {
       val args: Map[Symbol, Any] = Map(Symbol("_disabledOption") -> "false")
 
       val result = FormFunctions.inputRenderOptions(args).disabledInput("false")
