@@ -11,7 +11,7 @@ import views.html.helper.FieldElements
 
 class FormFunctionSpec extends FrontEndTestHelper {
 
-  def getFieldElements(errors: Map[Symbol, String]) = {
+  def getFieldElements(errors: Map[Symbol, String]): FieldElements = {
     val form = Form(
       mapping(
         "id" -> nonEmptyText
