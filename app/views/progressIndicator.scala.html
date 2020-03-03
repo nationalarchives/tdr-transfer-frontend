@@ -1,0 +1,6 @@
+@(step: String)(implicit messages: Messages)
+
+<span>
+    <a href="@routes.DashboardController.dashboard" class="govuk-back-link">Back</a>
+    <span class="govuk-caption-xl">Step @step of @Messages("progress.totalSteps")</span>
+</span>

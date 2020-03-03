@@ -31,11 +31,13 @@ class SecurityModule extends AbstractModule {
     // logout
     val logoutController = new LogoutController()
     logoutController.setDefaultUrl("/")
+    logoutController.setLocalLogout(false)
+    logoutController.setCentralLogout(true)
     bind(classOf[LogoutController]).toInstance(logoutController)
   }
 
   @Provides
-  def provideOidcClient: OidcClient[OidcProfile, OidcConfiguration] = {
+  def provideOidcClient: OidcClient[OidcConfiguration] = {
     val oidcConfiguration = new OidcConfiguration()
     oidcConfiguration.setClientId("tdr")
     val configuration = Configuration.load(Environment.simple())
@@ -44,13 +46,13 @@ class SecurityModule extends AbstractModule {
     val secret = configuration.get[String]("auth.secret")
     oidcConfiguration.setSecret(secret)
     oidcConfiguration.setDiscoveryURI(s"$authUrl/auth/realms/tdr/.well-known/openid-configuration")
-    val oidcClient = new OidcClient[OidcProfile, OidcConfiguration](oidcConfiguration)
+    val oidcClient = new OidcClient[OidcConfiguration](oidcConfiguration)
     oidcClient.setCallbackUrl(callback)
     oidcClient
   }
 
   @Provides
-  def provideConfig(oidcClient: OidcClient[OidcProfile, OidcConfiguration]): Config = {
+  def provideConfig(oidcClient: OidcClient[OidcConfiguration]): Config = {
     val clients = new Clients(oidcClient)
     val config = new Config(clients)
     config.setHttpActionAdapter(new FrontendHttpActionAdaptor())

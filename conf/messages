@@ -8,6 +8,7 @@ home.use.transfer.history=view your transfer history
 home.start=Start now
 dashboard.header=Dashboard
 dashboard.title=Welcome to the dashboard
+dashboard.transfer.start=Start a new records transfer
 seriesDetails.header=Series Details
 seriesDetails.title=Series Details
 seriesDetails.chooseSeries=Choose an existing series reference
@@ -19,3 +20,7 @@ transferAgreement.english=The records are all in English
 transferAgreement.digital=The records are all Digital
 transferAgreement.droAppraisalselection=I confirm that the DRO has signed off on the appraisal and selection decision.
 transferAgreement.droSensitivity=I confirm that the DRO has signed off on the sensitivity review and that all records are OPEN i.e. no FOI exemptions apply to these records.
+
+# Progress indicator step numbers
+seriesDetails.progress=1
+progress.totalSteps=1

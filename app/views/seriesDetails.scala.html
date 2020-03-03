@@ -1,29 +1,34 @@
 @import helper._
 @import viewsapi.FormFunctions._
 
-@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit messages: Messages)
+@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit request: RequestHeader, messages: Messages)
 
 @main(Messages("seriesDetails.header")) {
 @defining(play.core.PlayVersion.current) { version =>
 
 <!-- Back -->
-<a href="@routes.DashboardController.dashboard" class="govuk-back-link">Back</a>
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <!-- Progress indicator -->
-        <span class="govuk-caption-xl">Step X of Y</span>
+        @progressIndicator(Messages("seriesDetails.progress"))
 
         <h1 class="govuk-heading-xl">@Messages("seriesDetails.title")</h1>
 
         @form(action = routes.SeriesDetailsController.seriesSubmit) {
+            @CSRF.formField
             @inputDropdown(
                 seriesDetailsForm("series"),
                 allSeriesData,
-                '_name -> "Series Details",
-                '_label -> Messages("seriesDetails.chooseSeries"),
+                Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
+                Symbol("_name") -> "Series Details",
+                Symbol("_label") -> Messages("seriesDetails.chooseSeries"),
                 requiredInputArg -> true
             )
+        <div class="govuk-form-group">
+            <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                Continue
+            </button>
+        </div>
         }
     </div>
 </div>
