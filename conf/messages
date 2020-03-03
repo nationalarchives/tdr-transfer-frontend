@@ -23,4 +23,5 @@ transferAgreement.droSensitivity=I confirm that the DRO has signed off on the se
 
 # Progress indicator step numbers
 seriesDetails.progress=1
-progress.totalSteps=1
+transferAgreement.progress=2
+progress.totalSteps=2
