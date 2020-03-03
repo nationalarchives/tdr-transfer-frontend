@@ -10,9 +10,9 @@ dropdownOptions: Seq[(String, String)],
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
 
-<div class="govuk-form-group">
+<div class="govuk-form-group @elements.setErrorClass">
     <label class="govuk-label" for="@elements.id">
-        @elements.args.get('_label)
+        @elements.args.get(Symbol("_label"))
         @elements.args.requiredLabelSuffix()
     </label>
     <select
@@ -26,4 +26,5 @@ dropdownOptions: Seq[(String, String)],
             <option value="@dropdownOption._1">@dropdownOption._2</option>
         }
     </select>
+    @errorMessage(elements)
 </div>

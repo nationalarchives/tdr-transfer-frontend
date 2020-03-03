@@ -15,6 +15,6 @@ POST    /consignment/:consignmentId/transfer-agreement     controllers.TransferA
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
 # Routes necessary for play-pac4j
-GET         /callback                                @org.pac4j.play.CallbackController.callback()
-POST        /callback                                @org.pac4j.play.CallbackController.callback()
-GET         /logout                                  @org.pac4j.play.LogoutController.logout()
+GET         /callback                                @org.pac4j.play.CallbackController.callback(request: play.mvc.Http.Request)
+POST        /callback                                @org.pac4j.play.CallbackController.callback(request: play.mvc.Http.Request)
+GET         /logout                                  @org.pac4j.play.LogoutController.logout(request: play.mvc.Http.Request)
