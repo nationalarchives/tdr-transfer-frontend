@@ -9,7 +9,7 @@ args: (Symbol, Any)*
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
 
 <label class="govuk-label">
-    @elements.args.get('_name)
+    @elements.args.get(Symbol("_name"))
 </label>
 
 <div class="govuk-radios govuk-radios--small govuk-radios--inline" id="@elements.id">
