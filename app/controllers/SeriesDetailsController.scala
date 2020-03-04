@@ -14,6 +14,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
+import play.filters.csrf.CSRF
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -23,7 +24,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
                                         val keycloakConfiguration: KeycloakConfiguration
                                         )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  private val secureAction = Secure("OidcClient")
+  private val secureAction = Secure("OidcClient", authorizers = "custom")
   private val getSeriesClient = graphqlConfiguration.getClient[getSeries.Data, getSeries.Variables]()
   private val addConsignmentClient = graphqlConfiguration.getClient[addConsignment.Data, addConsignment.Variables]()
 
@@ -66,6 +67,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
       addConsignmentClient.getResult(request.token.bearerAccessToken, addConsignment.document, Some(variables)).map(data => {
         if(data.data.isDefined) {
           Redirect(routes.TransferAgreementController.transferAgreement(data.data.get.addConsignment.consignmentid.get))
+
         } else {
           BadRequest(views.html.error(data.errors.map(e => e.message).mkString))
         }
