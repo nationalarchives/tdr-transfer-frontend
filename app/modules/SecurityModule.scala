@@ -1,12 +1,15 @@
 package modules
 
+import java.util
+
 import com.google.inject.{AbstractModule, Provides}
+import org.pac4j.core.authorization.authorizer.Authorizer
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
+import org.pac4j.core.context.WebContext
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.oidc.client.OidcClient
 import org.pac4j.oidc.config.OidcConfiguration
-import org.pac4j.oidc.profile.OidcProfile
 import org.pac4j.play.scala.{DefaultSecurityComponents, Pac4jScalaTemplateHelper, SecurityComponents}
 import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
 import org.pac4j.play.{CallbackController, LogoutController}
@@ -56,6 +59,11 @@ class SecurityModule extends AbstractModule {
     val clients = new Clients(oidcClient)
     val config = new Config(clients)
     config.setHttpActionAdapter(new FrontendHttpActionAdaptor())
+    config.addAuthorizer("custom", new CustomAuthoriser)
     config
   }
+}
+
+class CustomAuthoriser extends Authorizer[CommonProfile] {
+  override def isAuthorized(context: WebContext, profiles: util.List[CommonProfile]): Boolean = true
 }
