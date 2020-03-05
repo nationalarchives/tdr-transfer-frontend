@@ -111,7 +111,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
           ("digital", true.toString),
           ("droAppraisalSelection", true.toString),
           ("droSensitivity", true.toString)).withCSRFToken)
-      playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
+      playStatus(transferAgreementSubmit) mustBe INTERNAL_SERVER_ERROR
     }
 
     "display errors when an invalid form is submitted" in {

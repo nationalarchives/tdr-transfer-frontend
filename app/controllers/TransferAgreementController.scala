@@ -65,7 +65,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         if(data.data.isDefined) {
           Redirect(routes.DashboardController.dashboard())
         } else {
-          BadRequest(views.html.error(data.errors.map(e => e.message).mkString))
+          InternalServerError(views.html.error(data.errors.map(e => e.message).mkString))
         }
       })
     }
