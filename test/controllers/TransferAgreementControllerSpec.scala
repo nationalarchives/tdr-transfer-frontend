@@ -46,7 +46,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       contentAsString(transferAgreementPage) must include("transferAgreement.crownCopyright")
       contentAsString(transferAgreementPage) must include("transferAgreement.english")
       contentAsString(transferAgreementPage) must include("transferAgreement.digital")
-      contentAsString(transferAgreementPage) must include("transferAgreement.droAppraisalselection")
+      contentAsString(transferAgreementPage) must include("transferAgreement.droAppraisalSelection")
       contentAsString(transferAgreementPage) must include("transferAgreement.droSensitivity")
     }
 
