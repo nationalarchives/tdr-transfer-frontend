@@ -33,7 +33,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         .verifying("All records must be confirmed as English language before proceeding", b => b),
       "digital" -> boolean
         .verifying("All records must be confirmed as digital before proceeding", b => b),
-      "droAppraisalselection" -> boolean
+      "droAppraisalSelection" -> boolean
         .verifying("DRO must have signed off the appraisal and selection decision for records", b => b),
       "droSensitivity" -> boolean
         .verifying("DRO must have signed off sensitivity review and all records are open", b => b)
@@ -83,5 +83,5 @@ case class TransferAgreementData(publicRecord: Boolean,
                                  crownCopyright: Boolean,
                                  english: Boolean,
                                  digital: Boolean,
-                                 droAppraisalselection: Boolean,
+                                 droAppraisalSelection: Boolean,
                                  droSensitivity: Boolean)

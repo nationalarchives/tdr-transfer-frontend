@@ -82,6 +82,23 @@ class FormFunctionSpec extends FrontEndTestHelper {
       val result = FormFunctions.inputRenderOptions(args).disabledInput("true")
       result shouldBe ()
     }
+  }
+
+  "selectedInput function" should {
+    "render checked when _checkedOption set to a particular input option" in {
+      val args: Map[Symbol, Any] = Map(Symbol("_checkedOption") -> "false")
+
+      val result = FormFunctions.inputRenderOptions(args).selectedInput("false")
+      result shouldBe Some("checked")
+    }
+
+    "not render checked when no _checkedOption" in {
+      val args: Map[Symbol, Any] = Map(Symbol("_madeUpOption") -> "true")
+
+      val result = FormFunctions.inputRenderOptions(args).selectedInput("true")
+      result shouldBe ()
+    }
+  }
 
   "setErrorClass function" should {
     "return the error class if the element has errors" in {
@@ -90,7 +107,6 @@ class FormFunctionSpec extends FrontEndTestHelper {
       val errorClass = viewsapi.FormFunctions.errorHandling(fieldElements).setErrorClass()
       errorClass should be("govuk-form-group--error")
     }
-  }
 
     "return empty string if the element has no errors" in {
       val errors: Map[Symbol, String] = Map()
