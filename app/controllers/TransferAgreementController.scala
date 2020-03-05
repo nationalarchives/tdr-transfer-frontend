@@ -24,7 +24,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         .verifying("Must answer yes", b => b),
       "digital" -> boolean
         .verifying("Must answer yes", b => b),
-      "droAppraisalselection" -> boolean
+      "droAppraisalSelection" -> boolean
         .verifying("Must answer yes", b => b),
       "droSensitivity" -> boolean
         .verifying("Must answer yes", b => b)
@@ -44,5 +44,5 @@ case class TransferAgreementData(publicRecord: Boolean,
                                  crownCopyright: Boolean,
                                  english: Boolean,
                                  digital: Boolean,
-                                 droAppraisalselection: Boolean,
+                                 droAppraisalSelection: Boolean,
                                  droSensitivity: Boolean)
