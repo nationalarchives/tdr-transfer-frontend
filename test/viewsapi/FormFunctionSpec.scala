@@ -11,7 +11,7 @@ import views.html.helper.FieldElements
 
 class FormFunctionSpec extends FrontEndTestHelper {
 
-  def getFieldElements(errors: Map[Symbol, String]) = {
+  def getFieldElements(errors: Map[Symbol, String]): FieldElements = {
     val form = Form(
       mapping(
         "id" -> nonEmptyText
@@ -60,11 +60,43 @@ class FormFunctionSpec extends FrontEndTestHelper {
       result shouldBe ""
     }
 
-    "not render an asterisk when no '_requiredOption" in {
+    "not render an asterisk when no _requiredOption" in {
       val args: Map[Symbol, Any] = Map(Symbol("_madeUpOption") -> true)
 
       val result = FormFunctions.inputRenderOptions(args).requiredLabelSuffix()
       result shouldBe ""
+    }
+  }
+
+  "disabledInput function" should {
+    "render disabled when _disabledOption set to a particular input option" in {
+      val args: Map[Symbol, Any] = Map(Symbol("_disabledOption") -> "false")
+
+      val result = FormFunctions.inputRenderOptions(args).disabledInput("false")
+      result shouldBe Some("disabled")
+    }
+
+    "not render disabled when no _disabledOption" in {
+      val args: Map[Symbol, Any] = Map(Symbol("_madeUpOption") -> "true")
+
+      val result = FormFunctions.inputRenderOptions(args).disabledInput("true")
+      result shouldBe ()
+    }
+  }
+
+  "selectedInput function" should {
+    "render checked when _checkedOption set to a particular input option" in {
+      val args: Map[Symbol, Any] = Map(Symbol("_checkedOption") -> "false")
+
+      val result = FormFunctions.inputRenderOptions(args).selectedInput("false")
+      result shouldBe Some("checked")
+    }
+
+    "not render checked when no _checkedOption" in {
+      val args: Map[Symbol, Any] = Map(Symbol("_madeUpOption") -> "true")
+
+      val result = FormFunctions.inputRenderOptions(args).selectedInput("true")
+      result shouldBe ()
     }
   }
 
