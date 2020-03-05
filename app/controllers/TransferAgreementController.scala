@@ -55,7 +55,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         Some(formData.crownCopyright),
         Some(formData.english),
         Some(formData.digital),
-        Some(formData.droAppraisalselection),
+        Some(formData.droAppraisalSelection),
         Some(formData.droSensitivity)
       )
 
