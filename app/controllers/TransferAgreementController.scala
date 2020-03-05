@@ -19,32 +19,32 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
                                             val keycloakConfiguration: KeycloakConfiguration)
                                            (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  private val secureAction = Secure("OidcClient")
+  private val secureAction = Secure("OidcClient", authorizers = "custom")
   private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
   private val addTransferAgreementClient = graphqlConfiguration.getClient[AddTransferAgreement.Data, AddTransferAgreement.Variables]()
 
   val transferAgreementForm = Form(
     mapping(
       "publicRecord" -> boolean
-        .verifying("Must answer yes", b => b),
+        .verifying("All records must be confirmed as public before proceeding", b => b),
       "crownCopyright" -> boolean
-        .verifying("Must answer yes", b => b),
+        .verifying("All records must be confirmed Crown Copyright before proceeding", b => b),
       "english" -> boolean
-        .verifying("Must answer yes", b => b),
+        .verifying("All records must be confirmed as English language before proceeding", b => b),
       "digital" -> boolean
-        .verifying("Must answer yes", b => b),
+        .verifying("All records must be confirmed as digital before proceeding", b => b),
       "droAppraisalselection" -> boolean
-        .verifying("Must answer yes", b => b),
+        .verifying("DRO must have signed off the appraisal and selection decision for records", b => b),
       "droSensitivity" -> boolean
-        .verifying("Must answer yes", b => b)
+        .verifying("DRO must have signed off sensitivity review and all records are open", b => b)
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
-  def transferAgreement(consignmentId: Long): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+  def transferAgreement(consignmentId: Long): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
   }
 
-  def transferAgreementSubmit(consignmentId: Long): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+  def transferAgreementSubmit(consignmentId: Long): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
       Future.successful(BadRequest(views.html.transferAgreement(consignmentId, formWithErrors, options)))
     }
