@@ -18,7 +18,7 @@ transferAgreement.publicRecord=The records are all Public Records
 transferAgreement.crownCopyright=The records are all Crown Copyright
 transferAgreement.english=The records are all in English
 transferAgreement.digital=The records are all Digital
-transferAgreement.droAppraisalselection=I confirm that the DRO has signed off on the appraisal and selection decision.
+transferAgreement.droAppraisalSelection=I confirm that the DRO has signed off on the appraisal and selection decision.
 transferAgreement.droSensitivity=I confirm that the DRO has signed off on the sensitivity review and that all records are OPEN i.e. no FOI exemptions apply to these records.
 
 # Progress indicator step numbers
