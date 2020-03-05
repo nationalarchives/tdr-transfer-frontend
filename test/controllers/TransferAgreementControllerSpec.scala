@@ -86,7 +86,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
           ("crownCopyright", true.toString),
           ("english", true.toString),
           ("digital", true.toString),
-          ("droAppraisalselection", true.toString),
+          ("droAppraisalSelection", true.toString),
           ("droSensitivity", true.toString)
         ).withCSRFToken)
       playStatus(transferAgreementSubmit) mustBe SEE_OTHER
@@ -109,7 +109,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
           ("crownCopyright", true.toString),
           ("english", true.toString),
           ("digital", true.toString),
-          ("droAppraisalselection", true.toString),
+          ("droAppraisalSelection", true.toString),
           ("droSensitivity", true.toString)).withCSRFToken)
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
     }
