@@ -63,7 +63,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 
       addTransferAgreementClient.getResult(request.token.bearerAccessToken, AddTransferAgreement.document, Some(variables)).map(data => {
         if(data.data.isDefined) {
-          Redirect(routes.DashboardController.dashboard())
+          Redirect(routes.UploadController.uploadPage(consignmentId))
         } else {
           InternalServerError(views.html.error(data.errors.map(e => e.message).mkString))
         }

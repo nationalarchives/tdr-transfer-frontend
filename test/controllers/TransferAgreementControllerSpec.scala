@@ -90,7 +90,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
           ("droSensitivity", true.toString)
         ).withCSRFToken)
       playStatus(transferAgreementSubmit) mustBe SEE_OTHER
-      redirectLocation(transferAgreementSubmit) must be(Some(s"/dashboard"))
+      redirectLocation(transferAgreementSubmit) must be(Some(s"/consignment/1/upload"))
     }
 
     "renders an error when a valid form is submitted but there is an error from the api" in {
