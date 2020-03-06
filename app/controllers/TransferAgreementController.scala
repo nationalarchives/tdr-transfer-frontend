@@ -19,7 +19,6 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
                                             val keycloakConfiguration: KeycloakConfiguration)
                                            (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  private val secureAction = Secure("OidcClient", authorizers = "custom")
   private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
   private val addTransferAgreementClient = graphqlConfiguration.getClient[AddTransferAgreement.Data, AddTransferAgreement.Variables]()
 

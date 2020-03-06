@@ -1,15 +1,13 @@
 package controllers
 
-import auth.TokenSecurity
+import auth.OidcSecurity
 import javax.inject.{Inject, Singleton}
-import org.pac4j.core.profile.CommonProfile
-import org.pac4j.play.scala.{Security, SecurityComponents}
+import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 
 @Singleton
-class UploadController @Inject()(val controllerComponents: SecurityComponents) extends Security[CommonProfile] with I18nSupport {
-  private val secureAction = Secure("OidcClient", authorizers = "custom")
+class UploadController @Inject()(val controllerComponents: SecurityComponents) extends OidcSecurity with I18nSupport {
 
   def uploadPage(consignmentId: Long): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.upload())

@@ -13,8 +13,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
-import play.filters.csrf.CSRF
+import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -24,7 +23,6 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
                                         val keycloakConfiguration: KeycloakConfiguration
                                         )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  private val secureAction = Secure("OidcClient", authorizers = "custom")
   private val getSeriesClient = graphqlConfiguration.getClient[getSeries.Data, getSeries.Variables]()
   private val addConsignmentClient = graphqlConfiguration.getClient[addConsignment.Data, addConsignment.Variables]()
 

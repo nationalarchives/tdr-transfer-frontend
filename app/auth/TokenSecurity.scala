@@ -2,14 +2,12 @@ package auth
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
-import org.keycloak.representations.AccessToken
 import org.pac4j.core.profile.{CommonProfile, ProfileManager}
 import org.pac4j.play.PlayWebContext
-import org.pac4j.play.scala.Security
 import play.api.mvc.{AnyContent, Request}
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
-trait TokenSecurity extends Security[CommonProfile] {
+trait TokenSecurity extends OidcSecurity {
 
   def keycloakConfiguration: KeycloakConfiguration
 
