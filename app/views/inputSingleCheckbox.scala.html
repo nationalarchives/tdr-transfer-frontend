@@ -9,7 +9,7 @@ args: (Symbol, Any)*
 @value = {@elements.args.get(Symbol("_value"))}
 @label = {@elements.args.get(Symbol("_label"))}
 
-<div class="govuk-checkboxes">
+<div class="govuk-checkboxes @elements.setErrorClass">
     <div class='govuk-checkboxes__item @if(elements.args.contains(Symbol("_smallCheckbox"))){govuk-checkboxes--small}'>
         <input
                 @elements.args.requiredInput()
@@ -23,4 +23,5 @@ args: (Symbol, Any)*
             @label
         </label>
     </div>
+    @errorMessage(elements)
 </div>
