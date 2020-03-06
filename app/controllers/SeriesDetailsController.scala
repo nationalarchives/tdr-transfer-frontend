@@ -65,7 +65,6 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
       addConsignmentClient.getResult(request.token.bearerAccessToken, addConsignment.document, Some(variables)).map(data => {
         if(data.data.isDefined) {
           Redirect(routes.TransferAgreementController.transferAgreement(data.data.get.addConsignment.consignmentid.get))
-
         } else {
           BadRequest(views.html.error(data.errors.map(e => e.message).mkString))
         }
