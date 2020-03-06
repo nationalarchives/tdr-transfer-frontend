@@ -116,16 +116,12 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
     "display errors when an invalid form is submitted" in {
       val consignmentId = 1L
-      val client = new GraphQLConfiguration(app.configuration).getClient[ata.Data, ata.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Error", Nil, Nil)))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
-
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withCSRFToken)
+
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
       contentAsString(transferAgreementSubmit) must include("govuk-error-message")
       contentAsString(transferAgreementSubmit) must include("Error")
