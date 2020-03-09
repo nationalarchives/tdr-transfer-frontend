@@ -10,7 +10,10 @@
         @progressIndicator(Messages("transferAgreement.progress"))
 
         <h1 class="govuk-heading-xl">@Messages("transferAgreement.title")</h1>
-        @form(action = routes.TransferAgreementController.transferAgreementSubmit(consignmentId)) {
+        @form(
+            routes.TransferAgreementController.transferAgreementSubmit(consignmentId),
+            (Symbol("novalidate"), "")
+        ) {
         @CSRF.formField
         <fieldset class="govuk-fieldset" aria-describedby="transfer-agreement">
             <div class="govuk-form-group">
