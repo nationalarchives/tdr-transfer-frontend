@@ -1,5 +1,5 @@
 @import views.html.helper._
 @(elements: FieldElements)
 @if(elements.hasErrors) {
-    <span id="error" class="govuk-error-message">Error: @elements.errors.mkString(", ")</span>
+    <span id="error" class="govuk-error-message">@elements.errors.mkString(", ")</span>
 }
