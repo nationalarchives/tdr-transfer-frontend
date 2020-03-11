@@ -55,26 +55,21 @@
         </fieldset>
         <!-- DRO confirmation -->
         <fieldset class="govuk-fieldset" aria-describedby="transfer-agreement-checks">
-            <div class="govuk-form-group">
-                @inputSingleCheckbox(
-                transferAgreementForm("droAppraisalSelection"),
-                Symbol("_label") -> Messages("transferAgreement.droAppraisalSelection"),
-                Symbol("_value") -> "true",
-                Symbol("_smallCheckbox") -> true,
-                Symbol("_requiredOption") -> true
-                )
-            </div>
-            <div class="govuk-form-group">
-                @inputSingleCheckbox(
-                transferAgreementForm("droSensitivity"),
-                Symbol("_label") -> Messages("transferAgreement.droSensitivity"),
-                Symbol("_value") -> "true",
-                Symbol("_smallCheckbox") -> true,
-                Symbol("_requiredOption") -> true
-                )
-            </div>
+            @inputSingleCheckbox(
+            transferAgreementForm("droAppraisalSelection"),
+            Symbol("_label") -> Messages("transferAgreement.droAppraisalSelection"),
+            Symbol("_value") -> "true",
+            Symbol("_smallCheckbox") -> true,
+            Symbol("_requiredOption") -> true
+            )
+            @inputSingleCheckbox(
+            transferAgreementForm("droSensitivity"),
+            Symbol("_label") -> Messages("transferAgreement.droSensitivity"),
+            Symbol("_value") -> "true",
+            Symbol("_smallCheckbox") -> true,
+            Symbol("_requiredOption") -> true
+            )
         </fieldset>
-
         <!-- Buttons -->
         <div>
             <!-- Cancel -->
