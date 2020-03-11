@@ -9,19 +9,21 @@ args: (Symbol, Any)*
 @value = {@elements.args.get(Symbol("_value"))}
 @label = {@elements.args.get(Symbol("_label"))}
 
-<div class="govuk-checkboxes @elements.setErrorClass">
-    <div class='govuk-checkboxes__item @if(elements.args.contains(Symbol("_smallCheckbox"))){govuk-checkboxes--small}'>
-        <input
-                @elements.args.requiredInput()
-                class="govuk-checkboxes__input"
-                id="@elements.id"
-                name="@elements.id"
-                type="checkbox"
-                value="@value"
-        />
-        <label class="govuk-label govuk-checkboxes__label" for="@elements.id">
-            @label
-        </label>
+<div class="govuk-form-group">
+    <div class="govuk-checkboxes @elements.setErrorClass">
+        <div class='govuk-checkboxes__item @if(elements.args.contains(Symbol("_smallCheckbox"))){govuk-checkboxes--small}'>
+            <input
+                    @elements.args.requiredInput()
+                    class="govuk-checkboxes__input"
+                    id="@elements.id"
+                    name="@elements.id"
+                    type="checkbox"
+                    value="@value"
+            />
+            <label class="govuk-label govuk-checkboxes__label" for="@elements.id">
+                @label
+            </label>
+        </div>
+        @errorMessage(elements)
     </div>
-    @errorMessage(elements)
 </div>
