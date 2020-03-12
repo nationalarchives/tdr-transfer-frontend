@@ -3,6 +3,48 @@ Repository for TDR transfer code
 
 ## Running locally
 
+There are two ways to develop this project:
+
+- Frontend development only, using the AWS integration environment for everything else
+- Full stack local development, using a local dev copy of the API, Keycloak, etc.
+
+### Prerequisites
+
+Regardless of how you set up the development environment, you will need:
+
+- IntelliJ with the Scala plugin (or equivalent Scala dev environment)
+- Docker
+
+### Frontend development only
+
+Follow these instructions if you want to make changes to the frontend application without needing to set up a full
+development environment for the other TDR services.
+
+- Run redis using Docker:
+  ```
+  docker run -d --name redis -p 6379:6379 redis
+  ```
+- Get the TDR client secret for integration by logging into the [Keycloak admin site][auth-admin], and going to Clients,
+  then "tdr", then Credentials, and copying the UUID in the Secret field
+- In IntelliJ, create a new sbt run configuration:
+  - Set the Tasks parameter to `run`
+  - Configure environment variables:
+    - AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
+    - AUTH_SECRET=<insert the secret for the tdr client that you copied above>
+    - API_URL=https://api.tdr-integration.nationalarchives.gov.uk/graphql
+- Follow the Static Assets steps below to build the CSS and JS
+- Run the project from IntelliJ
+- Visit `http://localhost:9000`
+
+When you log into the site, you will need to log in as a user from the Integration environment.
+
+[auth-admin]: https://auth.tdr-integration.nationalarchives.gov.uk/auth/admin
+
+### Full stack local development
+
+Follow these instructions if you want to make changes to the API, database and/or auth system at the same time as
+updating the frontend.
+
 * Start the auth server
 
     `docker run -d  --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin nationalarchives/tdr-auth-server:intg`
@@ -33,6 +75,8 @@ Repository for TDR transfer code
 * Start redis locally.
 
     `docker run -d --name redis -p 6379:6379 redis`
+* Run the frontend with `sbt run` from IntelliJ or the command line
+* Visit `http://localhost:9000`
 
 ### Static assets
 
@@ -45,7 +89,8 @@ Repository for TDR transfer code
 
 * run  `npm install` then `npm run build`
 
-### Generated GraphQL classes
+## Generated GraphQL classes
+
 There is a separate repository which contains the generated case classes needed to query the consignment API. 
 These classes will be needed by more than one project which is why they are in a separate project.
 If you need to add a new query:
@@ -54,13 +99,6 @@ If you need to add a new query:
 * Add the new query to the `src/main/graphql` directory
 * Run `sbt package publishLocal`
 * Set the version for `tdr-generated-graphql` in this projects build.sbt to be the snapshot version.
- 
-
-### Run Play
-
-* Start the application using `sbt run`
-
-* Go to `http://localhost:9000`
 
 ## Notes
 * Each environment has its own secret for the auth server. These cannot be generated inside aws in any way and so it's difficult to get them into the terraform scripts. At the moment, these are stored in a parameter store variable called /${env}/auth/secret although this may change.
