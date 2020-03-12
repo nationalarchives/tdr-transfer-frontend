@@ -29,6 +29,7 @@ object FormFunctions {
       if (args.exists(_ == (requiredInputArg, true))) "*" else ""
     }
   }
+
   class ErrorHandling(elements: FieldElements) {
 
     def setErrorClass(): String = {
