@@ -22,6 +22,8 @@ transferAgreement.droAppraisalSelection=I confirm that the DRO has signed off on
 transferAgreement.droSensitivity=I confirm that the DRO has signed off on the sensitivity review and that all records are OPEN i.e. no FOI exemptions apply to these records.
 upload.header=Upload
 upload.title=Upload
+records.header=Records
+records.title=Records
 
 # Progress indicator step numbers
 seriesDetails.progress=1
