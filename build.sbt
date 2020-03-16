@@ -6,6 +6,8 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
+watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
+
 scalaVersion := "2.13.0"
 
 libraryDependencies += guice
