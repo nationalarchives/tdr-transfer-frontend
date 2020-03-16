@@ -30,7 +30,7 @@ development environment for the other TDR services.
   - Set the Tasks parameter to `run`
   - Configure environment variables:
     - AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
-    - AUTH_SECRET=<insert the secret for the tdr client that you copied above>
+    - AUTH_SECRET=\<insert the secret for the tdr client that you copied above\>
     - API_URL=https://api.tdr-integration.nationalarchives.gov.uk/graphql
 - Follow the Static Assets steps below to build the CSS and JS
 - Run the project from IntelliJ
