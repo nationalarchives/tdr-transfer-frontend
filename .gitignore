@@ -7,5 +7,4 @@ public/fonts/*
 public/images/*
 public/javascripts/*
 public/stylesheets/*
-css-src/*.css
-npm/dist
+npm/css-src/*.css
