@@ -5,6 +5,7 @@ project/target
 node_modules
 public/fonts/*
 public/images/*
-public/javascripts/*
+public/javascripts/
 public/stylesheets/*
-css-src/*.css
+npm/css-src/*.css
+npm/dist
