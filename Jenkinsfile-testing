@@ -39,8 +39,6 @@ pipeline {
           }
           steps {
             checkout scm
-            sh "npm ci"
-            sh "npm run build"
             sh 'sbt -no-colors test scalastyle'
             sh "sbt -no-colors dist"
             stash includes: "Dockerfile", name: "Dockerfile"
