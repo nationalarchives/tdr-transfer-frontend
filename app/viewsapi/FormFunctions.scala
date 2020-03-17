@@ -1,6 +1,5 @@
 package viewsapi
 
-import play.twirl.api.Html
 import views.html.helper.FieldElements
 
 object FormFunctions {
@@ -30,6 +29,7 @@ object FormFunctions {
       if (args.exists(_ == (requiredInputArg, true))) "*" else ""
     }
   }
+
   class ErrorHandling(elements: FieldElements) {
 
     def setErrorClass(): String = {
