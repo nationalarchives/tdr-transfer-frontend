@@ -8,19 +8,23 @@ args: (Symbol, Any)*
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
 @value = {@elements.args.get(Symbol("_value"))}
 @label = {@elements.args.get(Symbol("_label"))}
+@isSelected = {@elements.args.selectedInput(value.toString)}
 
-<div class="govuk-checkboxes">
-    <div class='govuk-checkboxes__item @if(elements.args.contains(Symbol("_smallCheckbox"))){govuk-checkboxes--small}'>
-        <input
-                @elements.args.requiredInput()
-                class="govuk-checkboxes__input"
-                id="@elements.id"
-                name="@elements.id"
-                type="checkbox"
-                value="@value"
-        />
-        <label class="govuk-label govuk-checkboxes__label" for="@elements.id">
-            @label
-        </label>
+<div class="govuk-form-group @elements.setErrorClass">
+    <div class="govuk-checkboxes">
+        <div class='govuk-checkboxes__item @if(elements.args.contains(Symbol("_smallCheckbox"))){govuk-checkboxes--small}'>
+            <input
+                    @isSelected
+                    class="govuk-checkboxes__input"
+                    id="@elements.id"
+                    name="@elements.id"
+                    type="checkbox"
+                    value="@value"
+            />
+            <label class="govuk-label govuk-checkboxes__label" for="@elements.id">
+                @label
+            </label>
+        </div>
+        @errorMessage(elements)
     </div>
 </div>

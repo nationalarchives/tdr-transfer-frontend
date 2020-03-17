@@ -14,7 +14,7 @@
 
         <h1 class="govuk-heading-xl">@Messages("seriesDetails.title")</h1>
 
-        @form(action = routes.SeriesDetailsController.seriesSubmit) {
+        @form(routes.SeriesDetailsController.seriesSubmit, (Symbol("novalidate"), "")) {
             @CSRF.formField
             @inputDropdown(
                 seriesDetailsForm("series"),

@@ -10,61 +10,64 @@
         @progressIndicator(Messages("transferAgreement.progress"))
 
         <h1 class="govuk-heading-xl">@Messages("transferAgreement.title")</h1>
-        @form(action = routes.TransferAgreementController.transferAgreementSubmit(consignmentId)) {
+        @form(
+            routes.TransferAgreementController.transferAgreementSubmit(consignmentId),
+            (Symbol("novalidate"), "")
+        ) {
         @CSRF.formField
         <fieldset class="govuk-fieldset" aria-describedby="transfer-agreement">
-            <div class="govuk-form-group">
-                @inputRadioGroup(
-                transferAgreementForm("publicRecord"),
-                agreementOptions,
-                Symbol("_name") -> Messages("transferAgreement.publicRecord"),
-                Symbol("_requiredOption") -> true,
-                Symbol("_disabledOption") -> "false",
-                Symbol("_selectedOption") -> "true"
-                )
-                @inputRadioGroup(
-                transferAgreementForm("crownCopyright"),
-                agreementOptions,
-                Symbol("_name") -> Messages("transferAgreement.crownCopyright"),
-                Symbol("_requiredOption") -> true,
-                Symbol("_disabledOption ")-> "false"
-                )
-                @inputRadioGroup(
-                transferAgreementForm("english"),
-                agreementOptions,
-                Symbol("_name") -> Messages("transferAgreement.english"),
-                Symbol("_requiredOption") -> true,
-                Symbol("_disabledOption") -> "false"
-                )
-                @inputRadioGroup(
-                transferAgreementForm("digital"),
-                agreementOptions,
-                Symbol("_name") -> Messages("transferAgreement.digital"),
-                Symbol("_requiredOption") -> true,
-                Symbol("_disabledOption") -> "false"
-                )
-            </div>
+            @inputRadioGroup(
+            transferAgreementForm("publicRecord"),
+            agreementOptions,
+            Symbol("_name") -> Messages("transferAgreement.publicRecord"),
+            Symbol("_requiredOption") -> true,
+            Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("publicRecord", ""),
+            Symbol("_disabledOption") -> "false"
+            )
+            @inputRadioGroup(
+            transferAgreementForm("crownCopyright"),
+            agreementOptions,
+            Symbol("_name") -> Messages("transferAgreement.crownCopyright"),
+            Symbol("_requiredOption") -> true,
+            Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("crownCopyright", ""),
+            Symbol("_disabledOption") -> "false"
+            )
+            @inputRadioGroup(
+            transferAgreementForm("english"),
+            agreementOptions,
+            Symbol("_name") -> Messages("transferAgreement.english"),
+            Symbol("_requiredOption") -> true,
+            Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("english", ""),
+            Symbol("_disabledOption") -> "false"
+            )
+            @inputRadioGroup(
+            transferAgreementForm("digital"),
+            agreementOptions,
+            Symbol("_name") -> Messages("transferAgreement.digital"),
+            Symbol("_requiredOption") -> true,
+            Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("digital", ""),
+            Symbol("_disabledOption") -> "false"
+            )
         </fieldset>
         <!-- DRO confirmation -->
         <fieldset class="govuk-fieldset" aria-describedby="transfer-agreement-checks">
-            <div class="govuk-form-group">
-                @inputSingleCheckbox(
-                transferAgreementForm("droAppraisalSelection"),
-                Symbol("_label") -> Messages("transferAgreement.droAppraisalSelection"),
-                Symbol("_value") -> "true",
-                Symbol("_smallCheckbox") -> true,
-                Symbol("_requiredOption") -> true
-                )
-                @inputSingleCheckbox(
-                transferAgreementForm("droSensitivity"),
-                Symbol("_label") -> Messages("transferAgreement.droSensitivity"),
-                Symbol("_value") -> "true",
-                Symbol("_smallCheckbox") -> true,
-                Symbol("_requiredOption") -> true
-                )
-            </div>
+            @inputSingleCheckbox(
+            transferAgreementForm("droAppraisalSelection"),
+            Symbol("_label") -> Messages("transferAgreement.droAppraisalSelection"),
+            Symbol("_value") -> "true",
+            Symbol("_smallCheckbox") -> true,
+            Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("droAppraisalSelection", ""),
+            Symbol("_requiredOption") -> true
+            )
+            @inputSingleCheckbox(
+            transferAgreementForm("droSensitivity"),
+            Symbol("_label") -> Messages("transferAgreement.droSensitivity"),
+            Symbol("_value") -> "true",
+            Symbol("_smallCheckbox") -> true,
+            Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("droSensitivity", ""),
+            Symbol("_requiredOption") -> true
+            )
         </fieldset>
-
         <!-- Buttons -->
         <div>
             <!-- Cancel -->

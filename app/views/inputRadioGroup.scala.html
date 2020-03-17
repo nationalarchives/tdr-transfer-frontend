@@ -8,26 +8,29 @@ args: (Symbol, Any)*
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
 
-<label class="govuk-label">
-    @elements.args.get(Symbol("_name"))
-</label>
+<div class="govuk-form-group">
+    <label class="govuk-label">
+        @elements.args.get(Symbol("_name"))
+    </label>
 
-<div class="govuk-radios govuk-radios--small govuk-radios--inline" id="@elements.id">
-    @radioOptions.map {case (label, value) =>
-    <div class="govuk-radios__item">
-        <input
-                class="govuk-radios__input"
-                id="@elements.id@value"
-                name="@elements.id"
-                type="radio"
-                value="@value"
-                @elements.args.disabledInput(value)
-                @elements.args.selectedInput(value)
-                @elements.args.requiredInput()
-        />
-        <label class="govuk-label govuk-radios__label" for="@elements.id@value">
-            @label
-        </label>
+    <div class="govuk-radios govuk-radios--small govuk-radios--inline @elements.setErrorClass" id="@elements.id">
+        @radioOptions.map {case (label, value) =>
+        <div class="govuk-radios__item">
+            <input
+                    class="govuk-radios__input"
+                    id="@elements.id@value"
+                    name="@elements.id"
+                    type="radio"
+                    value="@value"
+                    @elements.args.disabledInput(value)
+                    @elements.args.selectedInput(value)
+                    @elements.args.requiredInput()
+            />
+            <label class="govuk-label govuk-radios__label" for="@elements.id@value">
+                @label
+            </label>
+        </div>
+        }
+        @errorMessage(elements)
     </div>
-    }
 </div>
