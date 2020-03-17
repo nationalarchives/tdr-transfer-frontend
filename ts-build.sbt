@@ -3,12 +3,26 @@ import scala.sys.process.Process
 PlayKeys.playRunHooks += baseDirectory.map(NpmRunHook.apply).value
 
 val Success = 0
+val Error = 1
 
 def runOnCommandline(script: String)(implicit dir: File): Int = Process(script, dir)!
 
-def executeTsTests(implicit dir: File): Int = runOnCommandline(NpmCommands.test)
+def runNpmInstall(implicit dir: File): Int =
+  runOnCommandline(NpmCommands.dependencyInstall)
 
-def executeProdBuild(implicit dir: File): Int = runOnCommandline(NpmCommands.build)
+// Execute task if node modules are installed, else return Error status.
+def ifNodeModulesInstalled(task: => Int)(implicit dir: File): Int =
+  if (runNpmInstall == Success){
+    task
+  }
+  else {
+    Error
+  }
+
+
+def executeTsTests(implicit dir: File): Int = ifNodeModulesInstalled(runOnCommandline(NpmCommands.test))
+
+def executeProdBuild(implicit dir: File): Int = ifNodeModulesInstalled(runOnCommandline(NpmCommands.build))
 
 lazy val `ts-test` = taskKey[Unit]("Run TS tests when testing application.")
 
