@@ -124,7 +124,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
       contentAsString(transferAgreementSubmit) must include("govuk-error-message")
-      contentAsString(transferAgreementSubmit) must include("Error")
+      contentAsString(transferAgreementSubmit) must include("error")
     }
   }
 }
