@@ -1,17 +1,22 @@
 # https://www.playframework.com/documentation/latest/ScalaI18N
+
+main.logo=GOV.UK
+main.header=Transfer Digital Records
 home.header=Welcome
 home.title=Transfer Digital Records
 home.use.transfer.header=Use this service to:
-home.use.transfer.start=transfer digital records to The National Archives
+home.use.transfer.records=transfer digital records to The National Archives
 home.use.transfer.resume=resume a transfer
 home.use.transfer.history=view your transfer history
-home.start=Start now
+home.startLink=Start now
 dashboard.header=Dashboard
 dashboard.title=Welcome to the dashboard
 dashboard.transfer.start=Start a new records transfer
+dashboard.transfer.startLink=Start
 seriesDetails.header=Series Details
 seriesDetails.title=Series Details
 seriesDetails.chooseSeries=Choose an existing series reference
+seriesDetails.continueLink=Continue
 transferAgreement.title=Transfer Agreement
 transferAgreement.header=Transfer Agreement
 transferAgreement.publicRecord=The records are all Public Records
@@ -20,6 +25,9 @@ transferAgreement.english=The records are all in English
 transferAgreement.digital=The records are all Digital
 transferAgreement.droAppraisalSelection=I confirm that the DRO has signed off on the appraisal and selection decision.
 transferAgreement.droSensitivity=I confirm that the DRO has signed off on the sensitivity review and that all records are OPEN i.e. no FOI exemptions apply to these records.
+transferAgreement.cancelLink=Cancel
+transferAgreement.continueLink=Continue
+inputDropdown.choose=Please choose...
 upload.header=Upload
 upload.title=Upload
 records.header=Records
