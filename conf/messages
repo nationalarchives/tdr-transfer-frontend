@@ -13,6 +13,7 @@ dashboard.header=Dashboard
 dashboard.title=Welcome to the dashboard
 dashboard.transfer.start=Start a new records transfer
 dashboard.transfer.startLink=Start
+progressIndicator.step=Step {0} of {1}
 seriesDetails.header=Series Details
 seriesDetails.title=Series Details
 seriesDetails.chooseSeries=Choose an existing series reference
@@ -36,4 +37,6 @@ records.title=Records
 # Progress indicator step numbers
 seriesDetails.progress=1
 transferAgreement.progress=2
-progress.totalSteps=2
+upload.progress=3
+records.progress=4
+progress.totalSteps=4
