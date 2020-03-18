@@ -45,32 +45,57 @@ When you log into the site, you will need to log in as a user from the Integrati
 Follow these instructions if you want to make changes to the API, database and/or auth system at the same time as
 updating the frontend.
 
-* Start the auth server
+#### Auth server
 
-    `docker run -d  --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin nationalarchives/tdr-auth-server:intg`
-* Go to `http://localhost:8081/auth/admin` and log in with username admin and password admin.
+-  Start the auth server
+  ```
+  docker run -d  --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin nationalarchives/tdr-auth-server:intg
+  ```
+- Go to `http://localhost:8081/auth/admin` and log in with username admin and password admin.
+- Set up a [realm](https://www.keycloak.org/docs/latest/getting_started/index.html#creating-a-realm-and-user) called tdr. You can set the display name to something else if you want as this will show on the login page.
+- Set up a [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients) called tdr:
+  - In the client settings, change the "Login Theme" to govuk.
+  - Set "Access Type" to `confidential`
+  - Set "Root URL" to `http://localhost:9000`
+  - Set "Valid redirect URIs" to `http://localhost:9000/*`
+  - Click Save
+  - In newly appeared "Credentials" tab, generate a [secret](https://www.keycloak.org/docs/latest/server_admin/#_client-credentials)
+- Configure the token mappers for the client
+  - In the tdr client settings, click the Mappers tab
+  - Add two mappings:
+    - User ID mapping:
+      - Name = `user_id`
+      - Mapper Type = User Property
+      - Property = `id`
+      - Token Claim Name = `user_id`
+      - Claim JSON Type = String
+    - Transferring body mapping:
+      - Name = `body`
+      - Mapper Type = User Attribute
+      - Property = `body`
+      - Token Claim Name = `body`
+      - Claim JSON Type = String 
+- Configure the roles:
+  - Click Roles in the menu on the left
+  - Add a new role called `tdr_user`
+- Create a user:
+  - Click Users in the menu on the left
+  - Click Add User
+  - Set a Username (all the other fields are optional) and click Save
+  - Click the Role Mappings tab
+  - Move the `tdr_user` role into the Assigned Roles
+  - Click the Attributes tab
+  - Add an attribute called `body` with value matching one of the transferring bodies in the database, e.g.
+    `MOCK1 Department`
+  - Click the Credentials tab
+  - Set a non-temporary password for the user
+- Set AUTH_SECRET as an environment variable in IntelliJ and/or the command line (depending on how you plan to run the
+  frontend project) with the secret as its value:
+  ```
+  AUTH_SECRET=[secret value]
+  ```
 
-* Set up a [realm](https://www.keycloak.org/docs/latest/getting_started/index.html#creating-a-realm-and-user) called tdr. You can set the display name to something else if you want as this will show on the login page.
-
-* Set up a [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients) called tdr.
-
-* In the client settings, change the "Login Theme" to govuk.
-
-* Set "Access Type" to `confidential`
-
-* Set "Root URL" to `http://localhost:9000`
-
-* Set "Valid redirect URIs" to `http://localhost:9000/*`
-
-* Click `Save` below
-
-* In newly appeared "Credentials" tab, generate a [secret](https://www.keycloak.org/docs/latest/server_admin/#_client-credentials)
-
-* Set AUTH_SECRET as an environment variable with the secret as its value:
-  
-  `AUTH_SECRET=[secret value]`
-
-* Create a new [user](https://www.keycloak.org/docs/latest/getting_started/index.html#_create-new-user) in the tdr realm.
+#### Frontend project
 
 * Start redis locally.
 
