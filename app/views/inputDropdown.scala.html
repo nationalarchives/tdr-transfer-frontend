@@ -20,7 +20,7 @@ dropdownOptions: Seq[(String, String)],
             id="@elements.id"
             name="@elements.id"
             @elements.args.requiredInput()>
-        <option value="" selected>Please choose...</option>
+        <option value="" selected>@Messages("inputDropdown.choose")</option>
 
         @for(dropdownOption <- dropdownOptions) {
             <option value="@dropdownOption._1">@dropdownOption._2</option>
