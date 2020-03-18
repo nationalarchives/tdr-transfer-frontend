@@ -32,7 +32,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "redirect to the transfer agreement page if the transfer agreement for that consignment has not been signed" in {
       implicit val ec: ExecutionContext = ExecutionContext.global
       val consignmentId = 1
-      val controller = new UploadController(getAuthorisedSecurityComponents)
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
 
       stubGetTransferAgreementResponse(Option.empty)
 
@@ -46,7 +47,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "redirect to the transfer agreement page if the transfer agreement for that consignment has been partially agreed to" in {
       implicit val ec: ExecutionContext = ExecutionContext.global
       val consignmentId = 1
-      val controller = new UploadController(getAuthorisedSecurityComponents)
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
 
       stubGetTransferAgreementResponse(Some(new gta.GetTransferAgreement(
         Some(1),
@@ -68,7 +70,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "show the upload page if the transfer agreement for that consignment has been agreed to in full" in {
       implicit val ec: ExecutionContext = ExecutionContext.global
       val consignmentId = 1
-      val controller = new UploadController(getAuthorisedSecurityComponents)
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
 
       stubGetTransferAgreementResponse(Some(new gta.GetTransferAgreement(
         Some(1),
