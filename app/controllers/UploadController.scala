@@ -9,7 +9,7 @@ import play.api.mvc.{Action, AnyContent, Request}
 @Singleton
 class UploadController @Inject()(val controllerComponents: SecurityComponents) extends OidcSecurity with I18nSupport {
 
-  def uploadPage(consignmentId: Long): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
+  def uploadPage(consignmentId: Long): Action[AnyContent] = transferAgreementExistsAction(consignmentId) { implicit request: Request[AnyContent] =>
     Ok(views.html.upload())
   }
 }
