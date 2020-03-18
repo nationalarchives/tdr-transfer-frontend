@@ -1,4 +1,4 @@
-import scala.sys.process.Process
+    import scala.sys.process.Process
 
 PlayKeys.playRunHooks += baseDirectory.map(NpmRunHook.apply).value
 
