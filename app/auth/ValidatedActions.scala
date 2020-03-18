@@ -13,13 +13,6 @@ abstract class ValidatedActions() extends TokenSecurity {
 
   private val getTransferAgreementClient = graphqlConfiguration.getClient[gta.Data, gta.Variables]()
 
-  private def agreed(field: Option[Boolean]) = field.isDefined && field.get
-
-  private def isTransferAgreementComplete(ta: gta.GetTransferAgreement): Boolean = {
-    val fields = List(ta.allCrownCopyright, ta.allDigital, ta.allEnglish, ta.allPublicRecords, ta.appraisalSelectionSignedOff, ta.sensitivityReviewSignedOff)
-    fields.forall(agreed)
-  }
-
   def transferAgreementExistsAction(consignmentId: Long)(f: Request[AnyContent] => Result): Action[AnyContent]
   = secureAction.async { implicit request: Request[AnyContent] =>
     val variables = gta.Variables(consignmentId)
@@ -27,7 +20,7 @@ abstract class ValidatedActions() extends TokenSecurity {
       val isComplete: Option[Boolean] = for {
         dataDefined <- data.data
         transferAgreement <- dataDefined.getTransferAgreement
-      } yield isTransferAgreementComplete(transferAgreement)
+      } yield transferAgreement.isAgreementComplete
 
       if (isComplete.isDefined && isComplete.get) {
         f(request)

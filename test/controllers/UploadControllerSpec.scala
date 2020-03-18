@@ -58,7 +58,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         Some(true),
         Some(true),
         Some(true),
-        Some(true)
+        Some(true),
+        false
       )))
 
       val uploadPage = controller.uploadPage(consignmentId)
@@ -81,7 +82,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         Some(true),
         Some(true),
         Some(true),
-        Some(true)
+        Some(true),
+        true
       )))
 
       val uploadPage = controller.uploadPage(consignmentId)
