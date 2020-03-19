@@ -11,8 +11,12 @@ class KeycloakConfigurationController @Inject ()(val controllerComponents: Secur
                                                  configuration: Configuration
                                                 ) extends OidcSecurity {
 
-  def keycloak(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
+  def keycloak: Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     val authUrl = configuration.get[String]("auth.url")
-    Ok(Json.obj("auth-server-url" -> s"$authUrl/auth", "resource" -> "tdr-fe", "realm" -> "tdr", "ssl-required" -> "external"))
+    Ok(Json.obj(
+      "auth-server-url" -> s"$authUrl/auth",
+      "resource" -> "tdr-fe",
+      "realm" -> "tdr",
+      "ssl-required" -> "external"))
   }
 }
