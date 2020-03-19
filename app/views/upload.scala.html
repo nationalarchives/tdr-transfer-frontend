@@ -9,7 +9,7 @@
         <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
         <div class="govuk-form-group">
             <label class="govuk-label" for="file-selection">
-                @Messages("upload.message")
+                @Messages("upload.selectFolder")
             </label>
             <input type="hidden" class="file-id-data" name="file-id-data" />
             <input type="file" id="file-selection" name="files" class="govuk-file-upload" webkitdirectory>
@@ -17,11 +17,11 @@
             <details class="govuk-details" data-module="govuk-details">
                 <summary class="govuk-details__summary">
                     <span class="govuk-details__summary-text">
-                        @Messages("upload.details")
+                        @Messages("upload.fileExtensionTitle")
                     </span>
                 </summary>
                 <div class="govuk-details__text">
-                    @Messages("upload.summary")
+                    @Messages("upload.fileExtensionSummary")
                 </div>
             </details>
 

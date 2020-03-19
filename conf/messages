@@ -22,14 +22,14 @@ transferAgreement.droAppraisalSelection=I confirm that the DRO has signed off on
 transferAgreement.droSensitivity=I confirm that the DRO has signed off on the sensitivity review and that all records are OPEN i.e. no FOI exemptions apply to these records.
 upload.header=Upload Records
 upload.title=Upload Records
-upload.message=Select a folder
-upload.details=Which file extensions are not permitted?
-upload.summary=Cannot upload the following file extensions: .zip, thumbs.db, .exe
+upload.selectFolder=Select a folder
+upload.fileExtensionTitle=Which file extensions are not permitted?
+upload.fileExtensionSummary=Cannot upload the following file extensions: .zip, thumbs.db, .exe
 records.header=Records
 records.title=Records
 
 # Progress indicator step numbers
 seriesDetails.progress=1
 transferAgreement.progress=2
-progress.uploadStep=3
+upload.progress=3
 progress.totalSteps=3
