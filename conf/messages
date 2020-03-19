@@ -20,8 +20,9 @@ transferAgreement.english=The records are all in English
 transferAgreement.digital=The records are all Digital
 transferAgreement.droAppraisalSelection=I confirm that the DRO has signed off on the appraisal and selection decision.
 transferAgreement.droSensitivity=I confirm that the DRO has signed off on the sensitivity review and that all records are OPEN i.e. no FOI exemptions apply to these records.
-upload.header=Upload
-upload.title=Upload
+upload.header=Upload Records
+upload.title=Upload Records
+upload.message=Select a folder
 records.header=Records
 records.title=Records
 

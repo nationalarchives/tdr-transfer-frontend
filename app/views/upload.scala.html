@@ -1,37 +1,28 @@
-@()(implicit messages: Messages)
+    @()(implicit messages: Messages)
 
 @main(Messages("upload.header")) {
-  <div class="govuk-grid-row">
+<div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <span>
-            <a href="/dashboard" class="govuk-back-link">Back</a>
-            <span class="govuk-caption-xl">Step 3 of 3</span>
-            <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
-        </span>
+        <a href="/dashboard" class="govuk-back-link">Back</a>
+        <span class="govuk-caption-xl">Step 3 of 3</span>
+        <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
         <div class="govuk-form-group">
-            <label class="govuk-label" for="file-upload-1">
-              Select a folder
+            <label class="govuk-label" for="file-selection">
+                @Messages("upload.message")
             </label>
-            <input class="govuk-file-upload" id="file-upload-1" name="file-upload-1" type="file">
-
+            <input type="hidden" class="file-id-data" name="file-id-data" />
+            <input type="file" id="file-selection" name="files" class="govuk-file-upload" webkitdirectory>
+    
             <details class="govuk-details" data-module="govuk-details">
                 <summary class="govuk-details__summary">
-                  <span class="govuk-details__summary-text">
-                    Which file extensions are not permitted?
-                  </span>
+                    <span class="govuk-details__summary-text">
+                        Which file extensions are not permitted?
+                    </span>
                 </summary>
                 <div class="govuk-details__text">
-                  Cannot upload the following extensions: .exe, thumbs.db and .zip
+                    Cannot upload the following extensions: .exe, thumbs.db and .zip
                 </div>
-              </details>
-
-            <!-- <div class="govuk-warning-text">
-                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                <strong class="govuk-warning-text__text">
-                  <span class="govuk-warning-text__assistive">Warning</span>
-                  You may be required to restart your transfer if you do not upload the correct file extensions.
-                </strong>
-              </div> -->
+            </details>
 
             <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
                 Continue
@@ -40,8 +31,3 @@
     </div>
 </div>
 }
-
-
-
-
-
