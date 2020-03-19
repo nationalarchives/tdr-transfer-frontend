@@ -5,7 +5,7 @@
     <div class="govuk-grid-column-two-thirds">
 
         @progressIndicator(Messages("progress.uploadStep"))
-        
+
         <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
         <div class="govuk-form-group">
             <label class="govuk-label" for="file-selection">
@@ -17,11 +17,11 @@
             <details class="govuk-details" data-module="govuk-details">
                 <summary class="govuk-details__summary">
                     <span class="govuk-details__summary-text">
-                        Which file extensions are not permitted?
+                        @Messages("upload.details")
                     </span>
                 </summary>
                 <div class="govuk-details__text">
-                    Cannot upload the following extensions: .exe, thumbs.db and .zip
+                    @Messages("upload.summary")
                 </div>
             </details>
 
