@@ -28,7 +28,6 @@ test("Returns an error if the user is not logged in", async () => {
     return new MockKeycloakUnauthenticated()
   })
   await expect(getToken()).rejects.toEqual("User is not authenticated")
-  jest.clearAllMocks()
 })
 
 test("Returns a token if the user is logged in", async () => {
