@@ -1,15 +1,19 @@
 package controllers
 
+import java.util.UUID
+
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddTransferAgreement.AddTransferAgreement
+import graphql.codegen.GetConsignment
+import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.types.AddTransferAgreementInput
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Langs}
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -41,8 +45,29 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
-  def transferAgreement(consignmentId: Long): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
-    Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
+  private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
+
+  private def getConsignmentDetails(request: Request[AnyContent],
+                                    status: Status,
+                                    consignmentId: Long)(
+                                     implicit requestHeader: RequestHeader): Future[Result] = {
+    val variables: getConsignment.Variables = new GetConsignment.getConsignment.Variables(consignmentId)
+    getConsignmentClient.getResult(request.token.bearerAccessToken, getConsignment.document, Some(variables)).map(data => {
+      if (data.data.isDefined) {
+        val consignmentData: Option[(Long, UUID)] = data.data.get.getConsignment.map(c => (c.seriesid, c.userid))
+        if (consignmentData.isEmpty) {
+          NotFound(views.html.notFoundError(data.errors.map(e => e.message).mkString))
+        } else {
+          status(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
+        }
+      } else {
+        BadRequest(views.html.error(data.errors.map(e => e.message).mkString))
+      }
+    })
+  }
+
+  def transferAgreement(consignmentId: Long): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    getConsignmentDetails(request, Ok, consignmentId)
   }
 
   def transferAgreementSubmit(consignmentId: Long): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>

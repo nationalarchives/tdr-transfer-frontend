@@ -1,0 +1,22 @@
+@*
+* This is a placeholder to allow us to write unit tests which show the redirect to the error page.
+* It will be replaced once we have a properly designed error page
+*@
+@(errorMessage: String)(implicit messages: Messages)
+
+@main(Messages("error.header")) {
+    @defining(play.core.PlayVersion.current) { version =>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <h1 class="govuk-heading-xl">404 - Page not found</h1>
+                <p>This is a placeholder error page for when the API gets a result but the consignment specified does not exist</p>
+                <span id="general-error" class="govuk-error-message">
+                    @errorMessage
+                </span>
+            </div>
+        </div>
+    }
+}
+
+
+
