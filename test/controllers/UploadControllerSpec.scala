@@ -3,7 +3,7 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
-import graphql.codegen.GetTransferAgreement.{getTransferAgreement => gta}
+import graphql.codegen.IsTransferAgreementComplete.{isTransferAgreementComplete => itac}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -50,17 +50,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
 
-      stubGetTransferAgreementResponse(Some(new gta.GetTransferAgreement(
-        Some(1),
-        consignmentId,
-        Some(true),
-        Some(false),
-        Some(true),
-        Some(true),
-        Some(true),
-        Some(true),
-        false
-      )))
+      stubGetTransferAgreementResponse(Some(new itac.GetTransferAgreement(false)))
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
@@ -74,17 +64,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
 
-      stubGetTransferAgreementResponse(Some(new gta.GetTransferAgreement(
-        Some(1),
-        consignmentId,
-        Some(true),
-        Some(true),
-        Some(true),
-        Some(true),
-        Some(true),
-        Some(true),
-        true
-      )))
+      stubGetTransferAgreementResponse(Some(new itac.GetTransferAgreement(true)))
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
@@ -92,9 +72,9 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def stubGetTransferAgreementResponse(agreement: Option[gta.GetTransferAgreement])(implicit ec: ExecutionContext) = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[gta.Data, gta.Variables]()
-    val data: client.GraphqlData = client.GraphqlData(Some(gta.Data(agreement)), List())
+  private def stubGetTransferAgreementResponse(agreement: Option[itac.GetTransferAgreement])(implicit ec: ExecutionContext) = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[itac.Data, itac.Variables]()
+    val data: client.GraphqlData = client.GraphqlData(Some(itac.Data(agreement)), List())
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .willReturn(okJson(dataString)))
