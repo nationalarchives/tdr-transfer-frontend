@@ -72,6 +72,10 @@ updating the frontend.
 
 * Create a new [user](https://www.keycloak.org/docs/latest/getting_started/index.html#_create-new-user) in the tdr realm.
 
+* Set up another [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients) called tdr-fe.
+
+* Set "Valid redirect URIs" to `http://localhost:9000/*` Leave everything else on the defaults.
+
 * Start redis locally.
 
     `docker run -d --name redis -p 6379:6379 redis`
