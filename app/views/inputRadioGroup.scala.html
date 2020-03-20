@@ -8,12 +8,12 @@ args: (Symbol, Any)*
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
 
-<div class="govuk-form-group">
+<div class="govuk-form-group @elements.setErrorClass">
     <label class="govuk-label">
         @elements.args.get(Symbol("_name"))
     </label>
-
-    <div class="govuk-radios govuk-radios--small govuk-radios--inline @elements.setErrorClass" id="@elements.id">
+    @errorMessage(elements)
+    <div class="govuk-radios govuk-radios--small govuk-radios--inline" id="@elements.id">
         @radioOptions.map {case (label, value) =>
         <div class="govuk-radios__item">
             <input
@@ -31,6 +31,5 @@ args: (Symbol, Any)*
             </label>
         </div>
         }
-        @errorMessage(elements)
     </div>
 </div>
