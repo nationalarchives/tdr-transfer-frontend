@@ -11,6 +11,10 @@ class KeycloakConfigurationController @Inject ()(val controllerComponents: Secur
                                                  configuration: Configuration
                                                 ) extends OidcSecurity {
 
+  /**
+    * The route for this endpoint is /keycloak.json This is the standard place which the keycloak javascript library
+    * looks for the configuration.
+    */
   def keycloak: Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     val authUrl = configuration.get[String]("auth.url")
     Ok(Json.obj(
