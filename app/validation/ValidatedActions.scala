@@ -1,5 +1,6 @@
-package auth
+package validation
 
+import auth.TokenSecurity
 import configuration.GraphQLConfiguration
 import controllers.routes
 import graphql.codegen.IsTransferAgreementComplete.{isTransferAgreementComplete => itac}
@@ -11,12 +12,12 @@ abstract class ValidatedActions() extends TokenSecurity {
   implicit val ec: ExecutionContext
   val graphqlConfiguration: GraphQLConfiguration
 
-  private val getTransferAgreementClient = graphqlConfiguration.getClient[itac.Data, itac.Variables]()
+  private val isTransferAgreementCompleteClient = graphqlConfiguration.getClient[itac.Data, itac.Variables]()
 
   def transferAgreementExistsAction(consignmentId: Long)(f: Request[AnyContent] => Result): Action[AnyContent]
   = secureAction.async { implicit request: Request[AnyContent] =>
     val variables = itac.Variables(consignmentId)
-    getTransferAgreementClient.getResult(request.token.bearerAccessToken, itac.document, Some(variables)).map(data => {
+    isTransferAgreementCompleteClient.getResult(request.token.bearerAccessToken, itac.document, Some(variables)).map(data => {
       val isComplete: Option[Boolean] = for {
         dataDefined <- data.data
         transferAgreement <- dataDefined.getTransferAgreement
