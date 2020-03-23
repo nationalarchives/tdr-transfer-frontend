@@ -8,7 +8,7 @@ import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.i18n.I18nSupport
+import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,26 +16,28 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class TransferAgreementController @Inject()(val controllerComponents: SecurityComponents,
                                             val graphqlConfiguration: GraphQLConfiguration,
-                                            val keycloakConfiguration: KeycloakConfiguration)
+                                            val keycloakConfiguration: KeycloakConfiguration,
+                                            langs: Langs)
                                            (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
   private val addTransferAgreementClient = graphqlConfiguration.getClient[AddTransferAgreement.Data, AddTransferAgreement.Variables]()
+  implicit val language: Lang = langs.availables.head
 
   val transferAgreementForm = Form(
     mapping(
       "publicRecord" -> boolean
-        .verifying("All records must be confirmed as public before proceeding", b => b),
+        .verifying(messagesApi("transferAgreement.publicRecord.error"), b => b),
       "crownCopyright" -> boolean
-        .verifying("All records must be confirmed Crown Copyright before proceeding", b => b),
+        .verifying(messagesApi("transferAgreement.crownCopyright.error"), b => b),
       "english" -> boolean
-        .verifying("All records must be confirmed as English language before proceeding", b => b),
+        .verifying(messagesApi("transferAgreement.english.error"), b => b),
       "digital" -> boolean
-        .verifying("All records must be confirmed as digital before proceeding", b => b),
+        .verifying(messagesApi("transferAgreement.digital.error"), b => b),
       "droAppraisalSelection" -> boolean
-        .verifying("DRO must have signed off the appraisal and selection decision for records", b => b),
+        .verifying(messagesApi("transferAgreement.droAppraisalSelection.error"), b => b),
       "droSensitivity" -> boolean
-        .verifying("DRO must have signed off sensitivity review and all records are open", b => b)
+        .verifying(messagesApi("transferAgreement.droSensitivity.error"), b => b)
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
