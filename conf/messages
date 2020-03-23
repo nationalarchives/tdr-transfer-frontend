@@ -35,8 +35,12 @@ transferAgreement.droSensitivity.error=DRO must have signed off sensitivity revi
 transferAgreement.cancelLink=Cancel
 transferAgreement.continueLink=Continue
 inputDropdown.choose=Please choose...
-upload.header=Upload
-upload.title=Upload
+upload.header=Upload Records
+upload.title=Upload Records
+upload.selectFolder=Select a folder
+upload.fileExtensionTitle=Which file extensions are not permitted?
+upload.fileExtensionSummary=Cannot upload the following file extensions: .zip, thumbs.db, .exe
+upload.continueLink=Continue
 records.header=Records
 records.title=Records
 
