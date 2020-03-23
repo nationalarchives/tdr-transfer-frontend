@@ -4,15 +4,15 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.AddTransferAgreement.{AddTransferAgreement => ata}
-import graphql.codegen.GetSeries.{getSeries => gs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
+import play.api.i18n.Langs
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
-import util.FrontEndTestHelper
+import util.{EnglishLang, FrontEndTestHelper}
 
 import scala.concurrent.ExecutionContext
 
@@ -30,12 +30,14 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
+  val langs: Langs = new EnglishLang
+
   "TransferAgreementController GET" should {
 
     "render the transfer agreement page with an authenticated user" in {
 
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
       val transferAgreementPage = controller.transferAgreement(123)
         .apply(FakeRequest(GET, "/consignment/123/transfer-agreement").withCSRFToken)
 
@@ -52,7 +54,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
     "return a redirect to the auth server with an unauthenticated user" in {
       val controller = new TransferAgreementController(getUnauthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
       val transferAgreementPage = controller.transferAgreement(123).apply(FakeRequest(GET, "/consignment/123/transfer-agreement"))
       redirectLocation(transferAgreementPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(transferAgreementPage) mustBe FOUND
@@ -79,7 +81,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest().withFormUrlEncodedBody(
           ("publicRecord", true.toString),
@@ -102,7 +104,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withFormUrlEncodedBody(
           ("publicRecord", true.toString),
@@ -117,7 +119,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     "display errors when an invalid form is submitted" in {
       val consignmentId = 1L
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withCSRFToken)
