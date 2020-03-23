@@ -20,6 +20,7 @@ seriesDetails.chooseSeries=Choose an existing series reference
 seriesDetails.continueLink=Continue
 transferAgreement.title=Transfer Agreement
 transferAgreement.header=Transfer Agreement
+screenReader.error=Error:
 transferAgreement.publicRecord=The records are all Public Records
 transferAgreement.publicRecord.error=All records must be confirmed as public before proceeding
 transferAgreement.crownCopyright=The records are all Crown Copyright
