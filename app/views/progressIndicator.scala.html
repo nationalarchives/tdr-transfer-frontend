@@ -2,5 +2,5 @@
 
 <span>
     <a href="@routes.DashboardController.dashboard" class="govuk-back-link">Back</a>
-    <span class="govuk-caption-xl">Step @step of @Messages("progress.totalSteps")</span>
+    <span class="govuk-caption-xl">@Messages("progressIndicator.step", step, Messages("progress.totalSteps"))</span>
 </span>
