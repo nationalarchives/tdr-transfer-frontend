@@ -40,7 +40,7 @@ pipeline {
           steps {
             checkout scm
             sh 'sbt -no-colors test scalastyle'
-            sh "sbt -no-colors dist"
+            sh "sbt -no-colors dist -Dstage=intg"
             stash includes: "Dockerfile", name: "Dockerfile"
             stash includes: "target/universal/tdr-transfer-frontend-*.zip", name: "tdr-transfer-frontend-zip"
           }
