@@ -9,6 +9,7 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
+import org.scalatest.concurrent.ScalaFutures._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
@@ -94,13 +95,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         new GraphQLConfiguration(app.configuration), getInvalidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
-      playStatus(seriesDetailsPage) mustBe BAD_REQUEST
-      contentType(seriesDetailsPage) mustBe Some("text/html")
-      //This test is based on the placeholder error page, it will need to be changed when we implement a new error page.
-      contentAsString(seriesDetailsPage) must include ("Body does not match")
-      contentAsString(seriesDetailsPage) must include ("govuk-error-message")
+      val failure = seriesDetailsPage.failed.futureValue
 
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
+      failure.getMessage should include("Transferring body missing from token")
     }
 
     "create a consignment when a valid form is submitted and the api response is successful" in {
@@ -146,22 +143,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesSubmit) must include("Error")
     }
 
-    "will not send a body if it is not present on the user" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Body does not match", Nil, Nil)))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-            .willReturn(okJson(dataString)))
-
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfigurationWithoutBody)
-      controller.seriesDetails().apply(FakeRequest(GET, "/series")).await()
-
-      val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{}}"
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql"))
-        .withRequestBody(equalToJson(expectedJson)))
-    }
-
     "will send the correct body if it is present on the user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Body does not match", Nil, Nil)))
@@ -172,7 +153,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
       controller.seriesDetails().apply(FakeRequest(GET, "/series")).await()
 
-      val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":\"Body\"}}"
+      val expectedJson = "{\"query\":\"query getSeries($body:String!){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":\"Body\"}}"
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))
     }
   }
