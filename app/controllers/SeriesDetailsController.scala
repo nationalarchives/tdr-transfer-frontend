@@ -31,7 +31,8 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
   )
 
   private def getSeriesDetails(request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
-    val userTransferringBody: Option[String] = request.token.transferringBody
+    val userTransferringBody: String = request.token.transferringBody
+      .getOrElse(throw new RuntimeException(s"Transferring body missing from token for user ${request.token.userId}"))
     val variables: getSeries.Variables = new getSeries.Variables(userTransferringBody)
 
     getSeriesClient.getResult(request.token.bearerAccessToken, getSeries.document, Some(variables)).map(data => {
