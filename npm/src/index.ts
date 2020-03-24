@@ -1,3 +1,4 @@
+// This is just an example of how to use the client and will be deleted when we use it properly.
 import { GraphqlClient } from "./graphql"
 
 // All queries can be imported from this package. You add them in the same way you do as for the scala classes.
@@ -19,7 +20,7 @@ const graphqlClient = new GraphqlClient(TDR_API_URL)
 const getSeriesDescription: (
   graphqlClient: GraphqlClient
 ) => Promise<string> = async graphqlClient => {
-  const variables = { body: "Test" }
+  const variables: GetSeriesQueryVariables = { body: "Test" }
   const result: ApolloQueryResult<GetSeriesQuery> = await graphqlClient.query(
     GetSeries,
     variables
