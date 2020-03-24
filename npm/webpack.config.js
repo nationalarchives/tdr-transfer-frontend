@@ -1,5 +1,5 @@
-const path = require("path");
-const fs = require("fs");
+const path = require("path")
+const webpack = require("webpack")
 
 module.exports = {
   entry: "./src/index.ts",
@@ -16,17 +16,24 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".js"]
   },
-  plugins: [new DtsBundlePlugin()],
+  plugins: [
+    new DtsBundlePlugin(),
+    new webpack.DefinePlugin({
+      TDR_API_URL: JSON.stringify(
+        `${process.env.TDR_API_URL || "http://localhost:8080"}/graphql`
+      )
+    })
+  ],
   output: {
     filename: "main.js",
     path: path.resolve(__dirname, "../public/javascripts")
   }
-};
+}
 
 function DtsBundlePlugin() {}
 DtsBundlePlugin.prototype.apply = function(compiler) {
   compiler.plugin("done", function() {
-    var dts = require("dts-bundle");
+    var dts = require("dts-bundle")
 
     dts.bundle({
       name: "tdr",
@@ -34,6 +41,6 @@ DtsBundlePlugin.prototype.apply = function(compiler) {
       out: "../dist/index.d.ts",
       removeSource: true,
       outputAsModuleFolder: true // to use npm in-package typings
-    });
-  });
-};
+    })
+  })
+}
