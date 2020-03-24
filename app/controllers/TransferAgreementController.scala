@@ -10,10 +10,13 @@ import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.types.AddTransferAgreementInput
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
+import play.api.data
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
+import services.GetConsignmentService
+import sttp.client.SttpClientException
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -21,6 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferAgreementController @Inject()(val controllerComponents: SecurityComponents,
                                             val graphqlConfiguration: GraphQLConfiguration,
                                             val keycloakConfiguration: KeycloakConfiguration,
+                                            val getConsignmentService: GetConsignmentService,
                                             langs: Langs)
                                            (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
@@ -45,29 +49,16 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
-  private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
-
-  private def getConsignmentDetails(request: Request[AnyContent],
-                                    status: Status,
-                                    consignmentId: Long)(
-                                     implicit requestHeader: RequestHeader): Future[Result] = {
-    val variables: getConsignment.Variables = new GetConsignment.getConsignment.Variables(consignmentId)
-    getConsignmentClient.getResult(request.token.bearerAccessToken, getConsignment.document, Some(variables)).map(data => {
-      if (data.data.isDefined) {
-        val consignmentData: Option[(Long, UUID)] = data.data.get.getConsignment.map(c => (c.seriesid, c.userid))
-        if (consignmentData.isEmpty) {
-          NotFound(views.html.notFoundError(data.errors.map(e => e.message).mkString))
-        } else {
-          status(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
-        }
-      } else {
-        BadRequest(views.html.error(data.errors.map(e => e.message).mkString))
-      }
-    })
-  }
-
   def transferAgreement(consignmentId: Long): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-    getConsignmentDetails(request, Ok, consignmentId)
+    val consignmentExists = getConsignmentService.consignmentExists(consignmentId, request.token.bearerAccessToken)
+    consignmentExists.map {
+      case true => Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
+      case false => NotFound(views.html.notFoundError("The consignment you are trying to access does not exist"))
+    }.recover {
+      case cause => {
+        BadRequest(views.html.error(cause.getMessage))
+      }
+    }
   }
 
   def transferAgreementSubmit(consignmentId: Long): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
