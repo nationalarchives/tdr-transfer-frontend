@@ -22,7 +22,7 @@ def ifNodeModulesInstalled(task: => Int)(implicit dir: File): Int =
 
 def executeTsTests(implicit dir: File): Int = ifNodeModulesInstalled(runOnCommandline(NpmCommands.test))
 
-def executeProdBuild(implicit dir: File): Int = ifNodeModulesInstalled(runOnCommandline(NpmCommands.build))
+def executeProdBuild(implicit dir: File): Int = ifNodeModulesInstalled(runOnCommandline(NpmCommands.build(System.getProperty("stage"))))
 
 lazy val `ts-test` = taskKey[Unit]("Run TS tests when testing application.")
 
