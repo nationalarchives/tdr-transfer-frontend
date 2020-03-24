@@ -38,7 +38,8 @@
   },
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
-    "govuk-frontend": "^3.6.0"
+    "govuk-frontend": "^3.6.0",
+    "keycloak-js": "^9.0.0"
   },
   "devDependencies": {
     "@types/jest": "^25.1.4",
