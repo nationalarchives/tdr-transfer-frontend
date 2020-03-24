@@ -97,6 +97,10 @@ updating the frontend.
 
 #### Frontend project
 
+* Set up another [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients) called tdr-fe. This will be a public client as the configuration is available publicly in the browser. This means there are no client credentials.
+
+* Set "Valid redirect URIs" to `http://localhost:9000/*` Leave everything else on the defaults.
+
 * Start redis locally.
 
     `docker run -d --name redis -p 6379:6379 redis`
