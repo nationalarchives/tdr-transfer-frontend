@@ -64,7 +64,8 @@ class MockApolloClientFailure {
 beforeEach(() => jest.resetModules())
 
 const mockSuccess: () => void = () => {
-  ;(getToken as jest.Mock).mockImplementation(() => {
+  const token = getToken as jest.Mock
+  token.mockImplementation(() => {
     return new Promise((resolve, _) => resolve("token"))
   })
   const mock = ApolloClient as jest.Mock
@@ -74,7 +75,8 @@ const mockSuccess: () => void = () => {
 }
 
 const mockFailure: () => void = () => {
-  ;(getToken as jest.Mock).mockImplementation(() => {
+  const token = getToken as jest.Mock
+  token.mockImplementation(() => {
     return new Promise((resolve, _) => resolve("token"))
   })
   const mock = ApolloClient as jest.Mock
