@@ -12,6 +12,7 @@ import play.api.i18n.Langs
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
+import uk.gov.nationalarchives.tdr.GraphQLClient
 import util.{EnglishLang, FrontEndTestHelper}
 
 import scala.concurrent.ExecutionContext
@@ -98,7 +99,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     "renders an error when a valid form is submitted but there is an error from the api" in {
       val consignmentId = 1L
       val client = new GraphQLConfiguration(app.configuration).getClient[ata.Data, ata.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Error", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
