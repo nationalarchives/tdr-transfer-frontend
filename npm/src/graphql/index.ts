@@ -44,8 +44,8 @@ export class GraphqlClient {
           }
         }
       }
-    } catch {
-      throw Error("Cannot fetch token")
+    } catch (e) {
+      throw Error(e)
     }
   }
 

@@ -107,7 +107,7 @@ test("Returns the correct data for a mutation", async () => {
 
 test("Rejects the query if there is a problem getting the token", async () => {
   ;(getToken as jest.Mock).mockImplementation(() => {
-    return new Promise((_, reject) => reject())
+    return new Promise((_, reject) => reject("Cannot fetch token"))
   })
   const client = new GraphqlClient("test")
   await expect(
@@ -117,7 +117,7 @@ test("Rejects the query if there is a problem getting the token", async () => {
 
 test("Rejects the mutation if there is a problem getting the token", async () => {
   ;(getToken as jest.Mock).mockImplementation(() => {
-    return new Promise((_, reject) => reject())
+    return new Promise((_, reject) => reject("Cannot fetch token"))
   })
   const client = new GraphqlClient("test")
   await expect(
