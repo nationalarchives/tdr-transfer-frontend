@@ -5,6 +5,7 @@
 object NpmCommands {
   val dependencyInstall: String = "npm ci"
   val test: String = "npm run test"
-  val build: String = "npm run build"
+  def build(stage: String): String = s"npm run build:$stage"
+
   val buildDev: String = "npm run build-ts"
 }
