@@ -42,10 +42,10 @@
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
     "govuk-frontend": "^3.6.0",
-    "keycloak-js": "^9.0.0",
+    "keycloak-js": "9.0.0",
     "apollo-boost": "^0.4.7",
     "graphql": "^14.6.0",
-    "@nationalarchives/tdr-generated-graphql": "1.0.0",
+    "@nationalarchives/tdr-generated-graphql": "1.0.3",
     "unfetch": "^4.1.0"
   },
   "devDependencies": {
