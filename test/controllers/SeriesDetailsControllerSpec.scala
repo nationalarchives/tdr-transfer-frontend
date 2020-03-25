@@ -1,20 +1,19 @@
 package controllers
 
-import java.util.UUID
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
+import graphql.codegen.AddConsignment.{addConsignment => ac}
 import graphql.codegen.GetSeries.{getSeries => gs}
 import io.circe.Printer
-import graphql.codegen.AddConsignment.{addConsignment => ac}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
+import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
+import uk.gov.nationalarchives.tdr.GraphQLClient
 import util.FrontEndTestHelper
-import play.api.test.CSRFTokenHelper._
 
 import scala.concurrent.ExecutionContext
 
@@ -66,7 +65,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "render the error page if the api returns errors" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Error", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -86,7 +85,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "render the error page if the token is invalid" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Body does not match", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Body does not match", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -123,7 +122,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "renders an error when a valid form is submitted but there is an error from the api" in {
       val seriesId = 1
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Error", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -135,7 +134,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "display errors when an invalid form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Error", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -147,9 +146,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesSubmit) must include("Error")
     }
 
-    "will send a null body if it is not present on the user" in {
+    "will not send a body if it is not present on the user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Body does not match", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Body does not match", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
             .willReturn(okJson(dataString)))
@@ -158,14 +157,14 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfigurationWithoutBody)
       controller.seriesDetails().apply(FakeRequest(GET, "/series")).await()
 
-      val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":null}}"
+      val expectedJson = "{\"query\":\"query getSeries($body:String){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{}}"
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql"))
         .withRequestBody(equalToJson(expectedJson)))
     }
 
     "will send the correct body if it is present on the user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(client.GraphqlError("Body does not match", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Body does not match", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql")).willReturn(okJson(dataString)))
 
