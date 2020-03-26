@@ -6,11 +6,18 @@ export const getToken: () => Promise<string | undefined> = async () => {
     `${window.location.origin}/keycloak.json`
   )
 
+  console.log("Keycloak: " + keycloak.clientId)
+
+  console.log("In get token")
+
   const authenticated: boolean = await keycloak.init({
     promiseType: "native",
     onLoad: "check-sso"
   })
+
+  console.log("Authenticated: " + authenticated)
   if (authenticated) {
+    console.log("Returning token")
     return keycloak.token
   } else {
     throw "User is not authenticated"
