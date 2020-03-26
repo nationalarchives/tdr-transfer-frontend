@@ -11,6 +11,7 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
+import org.scalatest.concurrent.ScalaFutures
 import util.FrontEndTestHelper
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -38,6 +39,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
   "GetConsignmentService GET" should {
 
     "Return true when given a valid consignment id" in {
+
       val graphQLConfig = new GraphQLConfiguration(app.configuration)
       val graphQLClient = graphQLConfig.getClient[gc.Data, gc.Variables]()
 
@@ -75,8 +77,10 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql")).willReturn(serverError))
 
       val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(999L, new BearerAccessToken("someAccessToken"))
-      val actualError = getConsignment.failed.futureValue
-      actualError shouldBe a[HttpError]
+
+      ScalaFutures.whenReady(getConsignment.failed) { results =>
+        results shouldBe a[HttpError]
+      }
     }
   }
 }
