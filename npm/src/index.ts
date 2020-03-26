@@ -8,6 +8,7 @@ import {
   GetSeriesQuery
 } from "@nationalarchives/tdr-generated-graphql"
 import { ApolloQueryResult } from "apollo-boost"
+import { upload } from "./upload"
 
 // Needed to keep typescript happy
 declare var TDR_API_URL: string
@@ -26,4 +27,18 @@ const getSeriesDescription: (
     variables
   )
   return result.data!.getSeries[0].description!
+}
+
+window.onload = function() {
+  renderModules()
+}
+
+const renderModules = () => {
+  const uploadContainer: HTMLDivElement | null = document.querySelector(
+    ".govuk-file-upload"
+  )
+
+  if (uploadContainer) {
+    upload(graphqlClient)
+  }
 }
