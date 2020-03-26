@@ -2,7 +2,6 @@
 @(elements: FieldElements)(implicit messages: Messages)
 
 @if(elements.hasErrors) {
-
     <span id="@elements.id-error" class="govuk-error-message">
         <span class="govuk-visually-hidden">@Messages("screenReader.error")</span> @elements.errors.mkString(", ")
     </span>
