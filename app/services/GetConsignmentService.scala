@@ -16,17 +16,16 @@ class GetConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfigura
 
   def consignmentExists(consignmentId: Long,
                         token: BearerAccessToken): Future[Boolean] = {
-      val variables: getConsignment.Variables = new GetConsignment.getConsignment.Variables(consignmentId)
-      getConsignmentClient.getResult(token, getConsignment.document, Some(variables)).map(data => {
-        data.data match {
-          case Some(data) => {
-            data.getConsignment match {
-              case Some(_) => true
-              case None => false
-            }
-          } case None => false
-        }
+    val variables: getConsignment.Variables = new GetConsignment.getConsignment.Variables(consignmentId)
+    getConsignmentClient.getResult(token, getConsignment.document, Some(variables)).map(data => {
+      data.data match {
+        case Some(data) => {
+          data.getConsignment match {
+            case Some(_) => true
+            case None => false
+          }
+        } case None => false
+      }
     })
   }
 }
-
