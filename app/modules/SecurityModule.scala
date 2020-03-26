@@ -45,6 +45,7 @@ class SecurityModule extends AbstractModule {
     val secret = configuration.get[String]("auth.secret")
     oidcConfiguration.setSecret(secret)
     oidcConfiguration.setDiscoveryURI(s"$authUrl/auth/realms/tdr/.well-known/openid-configuration")
+    oidcConfiguration.setExpireSessionWithToken(true)
     val oidcClient = new OidcClient[OidcConfiguration](oidcConfiguration)
     oidcClient.setCallbackUrl(callback)
     oidcClient
