@@ -20,7 +20,6 @@ export const upload: (graphqlClient: GraphqlClient) => void = graphqlClient => {
       ev.preventDefault()
 
       const consignmentId: number = retrieveConsignmentId()
-      console.log("Consignment Id: " + consignmentId)
 
       if (!consignmentId) {
         throw Error()
@@ -29,9 +28,13 @@ export const upload: (graphqlClient: GraphqlClient) => void = graphqlClient => {
       const target: HTMLInputTarget | null = ev.currentTarget
       const files: TdrFile[] = target!.files!.files!
 
-      processFiles(graphqlClient, consignmentId, files.length).then(r => {
-        console.log(r.toString())
-      })
+      processFiles(graphqlClient, consignmentId, files.length)
+        .then(r => {
+          console.log("HERE!!!" + r.toString())
+        })
+        .catch(err => {
+          console.log(err)
+        })
     })
   }
 }

@@ -38,6 +38,9 @@ const renderModules = () => {
     ".govuk-file-upload"
   )
 
+  //const series = getSeriesDescription(graphqlClient)
+  //console.log("Series: " + series)
+
   if (uploadContainer) {
     upload(graphqlClient)
   }
