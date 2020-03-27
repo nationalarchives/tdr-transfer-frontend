@@ -1,22 +1,17 @@
 package controllers
 
-import java.util.UUID
-
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddTransferAgreement.AddTransferAgreement
-import graphql.codegen.GetConsignment
-import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.types.AddTransferAgreementInput
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
-import play.api.data
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Langs}
-import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
+import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.GetConsignmentService
-import sttp.client.SttpClientException
+import validation.ValidatedActions
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -26,7 +21,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
                                             val keycloakConfiguration: KeycloakConfiguration,
                                             val getConsignmentService: GetConsignmentService,
                                             langs: Langs)
-                                           (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+                                           (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
   private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
   private val addTransferAgreementClient = graphqlConfiguration.getClient[AddTransferAgreement.Data, AddTransferAgreement.Variables]()
@@ -49,16 +44,8 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
-  def transferAgreement(consignmentId: Long): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-    val consignmentExists = getConsignmentService.consignmentExists(consignmentId, request.token.bearerAccessToken)
-    consignmentExists.map {
-      case true => Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
-      case false => NotFound(views.html.notFoundError("The consignment you are trying to access does not exist"))
-    }.recover {
-      case cause => {
-        BadRequest(views.html.error(cause.getMessage))
-      }
-    }
+  def transferAgreement(consignmentId: Long): Action[AnyContent] = consignmentExists(consignmentId) { implicit request: Request[AnyContent] =>
+    Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
   }
 
   def transferAgreementSubmit(consignmentId: Long): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
