@@ -6,7 +6,7 @@ import {
   AddFilesMutationVariables
 } from "@nationalarchives/tdr-generated-graphql"
 
-import { FetchResult, ApolloQueryResult } from "apollo-boost"
+import { FetchResult } from "apollo-boost"
 
 export const processFiles: (
   graphqlClient: GraphqlClient,
@@ -17,9 +17,6 @@ export const processFiles: (
   consignmentId: number,
   numberOfFiles: number
 ) => {
-  console.log("Consignment Id: " + consignmentId)
-  console.log("Number of files: " + numberOfFiles)
-
   const variables: AddFilesMutationVariables = {
     addFilesInput: {
       consignmentId: consignmentId,
@@ -32,5 +29,9 @@ export const processFiles: (
     variables
   )
 
-  return result.data?.addFiles.fileIds!
+  if (!result.data) {
+    throw Error("Add files failed")
+  } else {
+    return result.data.addFiles.fileIds
+  }
 }
