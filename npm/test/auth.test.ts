@@ -1,7 +1,7 @@
 import { getToken } from "../src/auth"
 jest.mock("keycloak-js")
 
-import Keycloak from "keycloak-js"
+import Keycloak, { KeycloakInstance } from "keycloak-js"
 
 class MockKeycloakAuthenticated {
   token: string = "fake-auth-token"
@@ -34,7 +34,7 @@ test("Returns a token if the user is logged in", async () => {
   ;(Keycloak as jest.Mock).mockImplementation(() => {
     return new MockKeycloakAuthenticated()
   })
-  await expect(getToken()).resolves.toEqual("fake-auth-token")
+  await expect(getToken()).resolves.toEqual({ token: "fake-auth-token" })
 })
 
 test("Returns an error if login attempt fails", async () => {
