@@ -2,84 +2,108 @@ package services
 
 import java.util.UUID
 
-import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo, _}
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import graphql.codegen.GetConsignment.getConsignment._
 import graphql.codegen.GetConsignment.{getConsignment => gc}
-import io.circe.Printer
-import io.circe.generic.auto._
-import io.circe.syntax._
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito._
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures
-import util.FrontEndTestHelper
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.time.{Millis, Seconds, Span}
+import sangria.ast.Document
 import sttp.client.HttpError
 import uk.gov.nationalarchives.tdr.GraphQLClient
+import uk.gov.nationalarchives.tdr.GraphQLClient.GraphqlError
+import util.FrontEndTestHelper
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class GetConsignmentServiceSpec extends FrontEndTestHelper {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
   implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = scaled(Span(100, Millis)))
+  case class GraphqlData(data: Option[Data], errors: List[GraphqlError] = Nil)
 
-  val wiremockServer = new WireMockServer(9006)
-
-  override def beforeEach(): Unit = {
-    wiremockServer.start()
+  private def verifyCaptors(captors: (ArgumentCaptor[Document], ArgumentCaptor[BearerAccessToken], ArgumentCaptor[Option[Variables]]), consignmentId: Long): Unit = {
+    val (documentCaptor, tokenCaptor, variablesCaptor) = captors
+    documentCaptor.getValue should be(gc.document)
+    tokenCaptor.getValue.getValue should be("someAccessToken")
+    variablesCaptor.getValue.isDefined should be(true)
+    variablesCaptor.getValue.get.consignmentId should be(consignmentId)
   }
 
-  override def afterEach(): Unit = {
-    wiremockServer.resetAll()
-    wiremockServer.stop()
+  def mockOkResponse(graphQLClient: GraphQLClient[gc.Data, gc.Variables], data: Option[gc.Data], errors: List[GraphqlError]):
+  (ArgumentCaptor[Document], ArgumentCaptor[BearerAccessToken], ArgumentCaptor[Option[Variables]])= {
+    val documentCaptor: ArgumentCaptor[Document] = ArgumentCaptor.forClass(classOf[Document])
+    val tokenCaptor: ArgumentCaptor[BearerAccessToken] = ArgumentCaptor.forClass(classOf[BearerAccessToken])
+    val variablesCaptor: ArgumentCaptor[Option[gc.Variables]] = ArgumentCaptor.forClass(classOf[Option[gc.Variables]])
+
+    val graphqlData = graphQLClient.GraphqlData(data, errors)
+
+    when(graphQLClient.getResult(tokenCaptor.capture(), documentCaptor.capture(), variablesCaptor.capture())).thenReturn(Future(graphqlData))
+    Tuple3(documentCaptor, tokenCaptor, variablesCaptor)
+  }
+
+  def mockFailedResponse(graphQLClient: GraphQLClient[gc.Data, gc.Variables]) = {
+    val documentCaptor: ArgumentCaptor[Document] = ArgumentCaptor.forClass(classOf[Document])
+    val tokenCaptor: ArgumentCaptor[BearerAccessToken] = ArgumentCaptor.forClass(classOf[BearerAccessToken])
+    val variablesCaptor: ArgumentCaptor[Option[gc.Variables]] = ArgumentCaptor.forClass(classOf[Option[gc.Variables]])
+
+    when(graphQLClient.getResult(tokenCaptor.capture(), documentCaptor.capture(), variablesCaptor.capture())).thenReturn(Future.failed(HttpError("")))
+    Tuple3(documentCaptor, tokenCaptor, variablesCaptor)
   }
 
   "GetConsignmentService GET" should {
 
     "Return true when given a valid consignment id" in {
+      val graphQLClient = mock[GraphQLClient[gc.Data, gc.Variables]]
+      val graphQLConfig = mock[GraphQLConfiguration]
+      when(graphQLConfig.getClient[gc.Data, gc.Variables]()).thenReturn(graphQLClient)
 
-      val graphQLConfig = new GraphQLConfiguration(app.configuration)
-      val graphQLClient = graphQLConfig.getClient[gc.Data, gc.Variables]()
+      val consignmentId = 999
 
-      val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), 555L)
-      val data: graphQLClient.GraphqlData = graphQLClient.GraphqlData(Some(gc.Data(Some(consignmentResponse))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(aResponse()
-          .withStatus(200)
-          .withBody(dataString)))
+      val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), 1L)
 
-      val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(999L, new BearerAccessToken("someAccessToken"))
+      val captors = mockOkResponse(graphQLClient, Some(gc.Data(Some(consignmentResponse))), List())
+
+      val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
       val actualResults = getConsignment.futureValue
-      actualResults shouldBe true
+
+      actualResults should be(true)
+      verifyCaptors(captors, consignmentId)
     }
 
     "Return false if consignment with given id does not exist" in {
-      val graphQLConfig = new GraphQLConfiguration(app.configuration)
-      val graphQLClient = graphQLConfig.getClient[gc.Data, gc.Variables]()
-      val data: graphQLClient.GraphqlData = graphQLClient.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
+      val consignmentId = 999
+      val graphQLClient = mock[GraphQLClient[gc.Data, gc.Variables]]
 
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(aResponse()
-          .withStatus(200)
-          .withBody(dataString)))
+      val graphQLConfig = mock[GraphQLConfiguration]
+      when(graphQLConfig.getClient[gc.Data, gc.Variables]()).thenReturn(graphQLClient)
 
-      val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(999L, new BearerAccessToken("someAccessToken"))
+      val captors = mockOkResponse(graphQLClient, Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
+
+      val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
       val actualResults = getConsignment.futureValue
       actualResults shouldBe false
+      verifyCaptors(captors, consignmentId)
     }
 
     "Return an error when the API has an error" in {
-      val graphQLConfig = new GraphQLConfiguration(app.configuration)
-      wiremockServer.stubFor(post(urlEqualTo("/graphql")).willReturn(serverError))
+      val consignmentId = 999
+      val graphQLClient = mock[GraphQLClient[gc.Data, gc.Variables]]
 
-      val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(999L, new BearerAccessToken("someAccessToken"))
+      val graphQLConfig = mock[GraphQLConfiguration]
+      when(graphQLConfig.getClient[gc.Data, gc.Variables]()).thenReturn(graphQLClient)
+
+      val captors = mockFailedResponse(graphQLClient)
+
+      val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
 
       ScalaFutures.whenReady(getConsignment.failed) { results =>
         results shouldBe a[HttpError]
+        verifyCaptors(captors, consignmentId)
       }
     }
   }
