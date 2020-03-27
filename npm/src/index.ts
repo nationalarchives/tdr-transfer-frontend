@@ -1,36 +1,12 @@
-// This is just an example of how to use the client and will be deleted when we use it properly.
 import { GraphqlClient } from "./graphql"
-
-// All queries can be imported from this package. You add them in the same way you do as for the scala classes.
-import {
-  GetSeries,
-  GetSeriesQueryVariables,
-  GetSeriesQuery
-} from "@nationalarchives/tdr-generated-graphql"
-import { ApolloQueryResult } from "apollo-boost"
-import { upload } from "./upload"
 import { getToken } from "./auth"
+import { upload } from "./upload"
 
-// Needed to keep typescript happy
 declare var TDR_API_URL: string
 
-// Pass this class instance to any class or function that needs it
-// This means we don't create the graphql client each time we need a query or mutation
-const clientPromise: Promise<GraphqlClient> = getToken().then(
-  token => new GraphqlClient(TDR_API_URL, token)
+const client: Promise<GraphqlClient> = getToken().then(
+  keycloak => new GraphqlClient(TDR_API_URL, keycloak)
 )
-
-// Then use the imported types like this
-const getSeriesDescription: (
-  graphqlClient: GraphqlClient
-) => Promise<string> = async graphqlClient => {
-  const variables: GetSeriesQueryVariables = { body: "Test" }
-  const result: ApolloQueryResult<GetSeriesQuery> = await graphqlClient.query(
-    GetSeries,
-    variables
-  )
-  return result.data!.getSeries[0].description!
-}
 
 window.onload = function() {
   renderModules()
@@ -42,6 +18,6 @@ const renderModules = () => {
   )
 
   if (uploadContainer) {
-    clientPromise.then(GraphqlClient => upload(GraphqlClient))
+    client.then(graphqlClient => upload(graphqlClient))
   }
 }

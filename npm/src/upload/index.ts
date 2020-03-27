@@ -10,8 +10,6 @@ interface InputElement {
   files?: TdrFile[]
 }
 
-declare var TDR_API_URL: string
-
 export const upload: (graphqlClient: GraphqlClient) => void = graphqlClient => {
   const uploadForm: HTMLFormElement | null = document.querySelector(
     "#file-upload-form"

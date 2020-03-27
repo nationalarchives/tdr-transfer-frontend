@@ -9,17 +9,18 @@ import {
   MutationOptions,
   FetchResult
 } from "apollo-boost"
-import { getToken } from "../auth"
 import fetch from "unfetch"
+import { KeycloakInstance } from "keycloak-js"
 
 type CommonQueryOptions<T> = Omit<T, "query">
 
 export class GraphqlClient {
   client: ApolloClient<NormalizedCacheObject>
-  token: string | undefined
+  keycloak: KeycloakInstance<"native">
 
-  constructor(uri: string, token: string | undefined) {
-    this.token = token
+  constructor(uri: string, keycloak: Keycloak.KeycloakInstance<"native">) {
+    console.log("URI: " + uri)
+    this.keycloak = keycloak
 
     const link = createHttpLink({
       uri,
@@ -38,16 +39,20 @@ export class GraphqlClient {
     CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>
   > = async <V>(variables: V) => {
     try {
-      const token = await getToken()
+      if (this.keycloak.isTokenExpired(30)) {
+        await this.keycloak.updateToken(30)
+        console.log("Token refreshed")
+      }
       return {
         variables,
         context: {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${this.keycloak.token}`
           }
         }
       }
     } catch (e) {
+      console.log("In error!!!!")
       throw Error(e)
     }
   }
@@ -74,13 +79,15 @@ export class GraphqlClient {
     mutation: DocumentNode,
     variables: V
   ) => {
+    console.log("In mutation")
+
     const options: MutationOptions<D, V> = {
       mutation,
       ...(await this.getOptions<D, V>(variables))
     }
-
+    console.log("Fetching result...")
     const result: FetchResult<D> = await this.client.mutate<D, V>(options)
-
+    console.log("REsult fetched")
     return result
   }
 }
