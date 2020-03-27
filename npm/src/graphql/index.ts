@@ -9,16 +9,18 @@ import {
   MutationOptions,
   FetchResult
 } from "apollo-boost"
-import { getToken } from "../auth"
 import fetch from "unfetch"
+import { KeycloakInstance } from "keycloak-js"
 
 type CommonQueryOptions<T> = Omit<T, "query">
 
 export class GraphqlClient {
   client: ApolloClient<NormalizedCacheObject>
+  keycloak: KeycloakInstance<"native">
 
-  constructor(uri: string) {
+  constructor(uri: string, keycloak: Keycloak.KeycloakInstance<"native">) {
     console.log("URI: " + uri)
+    this.keycloak = keycloak
 
     const link = createHttpLink({
       uri,
@@ -37,14 +39,15 @@ export class GraphqlClient {
     CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>
   > = async <V>(variables: V) => {
     try {
-      console.log("About to get token")
-      const token = await getToken()
-      console.log("Token: " + token)
+      if (this.keycloak.isTokenExpired(30)) {
+        await this.keycloak.updateToken(30)
+        console.log("Token refreshed")
+      }
       return {
         variables,
         context: {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${this.keycloak.token}`
           }
         }
       }
