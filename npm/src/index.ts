@@ -9,13 +9,16 @@ import {
 } from "@nationalarchives/tdr-generated-graphql"
 import { ApolloQueryResult } from "apollo-boost"
 import { upload } from "./upload"
+import { getToken } from "./auth"
 
 // Needed to keep typescript happy
 declare var TDR_API_URL: string
 
 // Pass this class instance to any class or function that needs it
 // This means we don't create the graphql client each time we need a query or mutation
-const graphqlClient = new GraphqlClient(TDR_API_URL)
+const clientPromise: Promise<GraphqlClient> = getToken().then(
+  token => new GraphqlClient(TDR_API_URL, token)
+)
 
 // Then use the imported types like this
 const getSeriesDescription: (
@@ -38,10 +41,7 @@ const renderModules = () => {
     ".govuk-file-upload"
   )
 
-  //const series = getSeriesDescription(graphqlClient)
-  //console.log("Series: " + series)
-
   if (uploadContainer) {
-    upload(graphqlClient)
+    clientPromise.then(GraphqlClient => upload(GraphqlClient))
   }
 }

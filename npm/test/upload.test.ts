@@ -6,7 +6,7 @@ beforeEach(() => jest.resetModules())
 
 test("Calls processing files function if file upload form present", () => {
   const spy = jest.spyOn(clientprocessing, "processFiles")
-  const client = new GraphqlClient("test")
+  const client = new GraphqlClient("test", "token")
   document.body.innerHTML =
     "<div>" +
     '<form id="file-upload-form">' +
@@ -22,7 +22,7 @@ test("Calls processing files function if file upload form present", () => {
 
 test("Does not call processing files if file upload form is not present", () => {
   const spy = jest.spyOn(clientprocessing, "processFiles")
-  const client = new GraphqlClient("test")
+  const client = new GraphqlClient("test", "token")
 
   document.body.innerHTML =
     "<div>" +

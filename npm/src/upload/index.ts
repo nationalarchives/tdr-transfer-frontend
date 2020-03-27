@@ -10,6 +10,8 @@ interface InputElement {
   files?: TdrFile[]
 }
 
+declare var TDR_API_URL: string
+
 export const upload: (graphqlClient: GraphqlClient) => void = graphqlClient => {
   const uploadForm: HTMLFormElement | null = document.querySelector(
     "#file-upload-form"
@@ -30,10 +32,10 @@ export const upload: (graphqlClient: GraphqlClient) => void = graphqlClient => {
 
       processFiles(graphqlClient, consignmentId, files.length)
         .then(r => {
-          console.log("HERE!!!" + r.toString())
+          console.log("Returned File Ids: " + r.toString())
         })
         .catch(err => {
-          console.log(err)
+          throw err
         })
     })
   }

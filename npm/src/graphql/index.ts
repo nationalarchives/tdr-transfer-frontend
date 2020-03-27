@@ -16,9 +16,10 @@ type CommonQueryOptions<T> = Omit<T, "query">
 
 export class GraphqlClient {
   client: ApolloClient<NormalizedCacheObject>
+  token: string | undefined
 
-  constructor(uri: string) {
-    console.log("URI: " + uri)
+  constructor(uri: string, token: string | undefined) {
+    this.token = token
 
     const link = createHttpLink({
       uri,
@@ -37,9 +38,7 @@ export class GraphqlClient {
     CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>
   > = async <V>(variables: V) => {
     try {
-      console.log("About to get token")
       const token = await getToken()
-      console.log("Token: " + token)
       return {
         variables,
         context: {
@@ -49,7 +48,6 @@ export class GraphqlClient {
         }
       }
     } catch (e) {
-      console.log("In error!!!!")
       throw Error(e)
     }
   }
@@ -76,15 +74,13 @@ export class GraphqlClient {
     mutation: DocumentNode,
     variables: V
   ) => {
-    console.log("In mutation")
-
     const options: MutationOptions<D, V> = {
       mutation,
       ...(await this.getOptions<D, V>(variables))
     }
-    console.log("Fetching result...")
+
     const result: FetchResult<D> = await this.client.mutate<D, V>(options)
-    console.log("REsult fetched")
+
     return result
   }
 }
