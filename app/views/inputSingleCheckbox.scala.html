@@ -6,9 +6,8 @@ args: (Symbol, Any)*
 @import viewsapi.FormFunctions._
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
-@value = {@elements.args.get(Symbol("_value"))}
 @label = {@elements.args.get(Symbol("_label"))}
-@isSelected = {@elements.args.selectedInput(value.toString)}
+@isSelected = {@elements.args.selectedInput("true")}
 
 <div class="govuk-form-group @elements.setErrorClass">
     @errorMessage(elements)
@@ -20,7 +19,7 @@ args: (Symbol, Any)*
                     id="@elements.id"
                     name="@elements.id"
                     type="checkbox"
-                    value="@value"
+                    value="true"
             />
             <label class="govuk-label govuk-checkboxes__label" for="@elements.id">
                 @label
