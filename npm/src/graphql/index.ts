@@ -41,7 +41,6 @@ export class GraphqlClient {
     try {
       if (this.keycloak.isTokenExpired(30)) {
         await this.keycloak.updateToken(30)
-        console.log("Token refreshed")
       }
       return {
         variables,
@@ -52,7 +51,6 @@ export class GraphqlClient {
         }
       }
     } catch (e) {
-      console.log("In error!!!!")
       throw Error(e)
     }
   }
@@ -79,15 +77,11 @@ export class GraphqlClient {
     mutation: DocumentNode,
     variables: V
   ) => {
-    console.log("In mutation")
-
     const options: MutationOptions<D, V> = {
       mutation,
       ...(await this.getOptions<D, V>(variables))
     }
-    console.log("Fetching result...")
     const result: FetchResult<D> = await this.client.mutate<D, V>(options)
-    console.log("REsult fetched")
     return result
   }
 }
