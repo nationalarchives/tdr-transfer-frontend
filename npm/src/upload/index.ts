@@ -1,6 +1,6 @@
-import { processFiles } from "../clientprocessing"
 import { GraphqlClient } from "../graphql"
 import { TdrFile } from "@nationalarchives/file-information"
+import { ClientFileProcessing } from "../clientprocessing"
 
 interface HTMLInputTarget extends EventTarget {
   files?: InputElement
@@ -15,6 +15,10 @@ export const upload: (graphqlClient: GraphqlClient) => void = graphqlClient => {
     "#file-upload-form"
   )
 
+  const clientFileProcessing: ClientFileProcessing = new ClientFileProcessing(
+    graphqlClient
+  )
+
   if (uploadForm) {
     uploadForm.addEventListener("submit", ev => {
       ev.preventDefault()
@@ -22,15 +26,19 @@ export const upload: (graphqlClient: GraphqlClient) => void = graphqlClient => {
       const consignmentId: number = retrieveConsignmentId()
 
       if (!consignmentId) {
-        throw Error()
+        throw Error("No consignment provided")
       }
 
       const target: HTMLInputTarget | null = ev.currentTarget
       const files: TdrFile[] = target!.files!.files!
 
-      processFiles(graphqlClient, consignmentId, files.length)
+      clientFileProcessing
+        .processFiles(consignmentId, files.length)
         .then(r => {
-          console.log("Returned File Ids: " + r.toString())
+          clientFileProcessing.processMetadata(files, r).then(md =>
+            //For now print number of file metadata returned
+            console.log("Returned metadata: " + md.length)
+          )
         })
         .catch(err => {
           throw err
