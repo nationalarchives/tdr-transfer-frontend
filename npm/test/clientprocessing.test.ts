@@ -3,29 +3,28 @@ import { DocumentNode, FetchResult } from "apollo-boost"
 import { KeycloakInstance } from "keycloak-js"
 import { ClientFileProcessing } from "../src/clientprocessing"
 import { IFileMetadata, TdrFile } from "@nationalarchives/file-information"
-import doMock = jest.doMock
 import { GraphQLError } from "graphql"
 
 jest.mock("../src/graphql")
 jest.mock("@nationalarchives/file-information", () => {
   return {
-    extractFileMetadata: () => {
-      const mockMetadata1 = <IFileMetadata>{
-        checksum: "checksum1",
-        size: 10,
-        path: "path/to/file1",
-        lastModified: new Date()
-      }
-      const mockMetadata2 = <IFileMetadata>{
-        checksum: "checksum2",
-        size: 10,
-        path: "path/to/file2",
-        lastModified: new Date()
-      }
-
-      const data: IFileMetadata[] = [mockMetadata1, mockMetadata2]
-      return data
-    }
+    extractFileMetadata: () =>
+      new Promise((resolve, reject) => {
+        const mockMetadata1 = <IFileMetadata>{
+          checksum: "checksum1",
+          size: 10,
+          path: "path/to/file1",
+          lastModified: new Date()
+        }
+        const mockMetadata2 = <IFileMetadata>{
+          checksum: "checksum2",
+          size: 10,
+          path: "path/to/file2",
+          lastModified: new Date()
+        }
+        const data: IFileMetadata[] = [mockMetadata1, mockMetadata2]
+        process.nextTick(() => resolve(data))
+      })
   }
 })
 
@@ -201,7 +200,10 @@ test("extractClientFileMetadata adds extract client file metadata to database", 
   const fileIds: number[] = [1, 2]
   const client = new GraphqlClient("https://test.im", mockKeycloak)
   const processing = new ClientFileProcessing(client)
-  const result = await processing.processMetadata(clientSideFiles, fileIds)
+  const result = await processing.processClientFileMetadata(
+    clientSideFiles,
+    fileIds
+  )
 
   expect(result).toBe(true)
 })
@@ -213,7 +215,10 @@ test("extractClientFileMetadata fails to adds extracted client file metadata to 
   const fileIds: number[] = [1, 2]
   const client = new GraphqlClient("https://test.im", mockKeycloak)
   const processing = new ClientFileProcessing(client)
-  const result = await processing.processMetadata(clientSideFiles, fileIds)
+  const result = await processing.processClientFileMetadata(
+    clientSideFiles,
+    fileIds
+  )
 
   expect(result).toBe(false)
 })

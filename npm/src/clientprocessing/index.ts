@@ -6,12 +6,11 @@ import {
 } from "@nationalarchives/file-information"
 
 import {
-  AddFilesMutation,
-  AddFiles,
-  AddFilesMutationVariables,
+  AddClientFileMetadata,
   AddClientFileMetadataMutationVariables,
-  AddClientFileMetadataMutation,
-  AddClientFileMetadata
+  AddFiles,
+  AddFilesMutation,
+  AddFilesMutationVariables
 } from "@nationalarchives/tdr-generated-graphql"
 
 import { FetchResult } from "apollo-boost"
@@ -49,38 +48,43 @@ export class ClientFileProcessing {
     }
   }
 
-  processMetadata: (
+  processClientFileMetadata: (
     files: File[],
     fileIds: number[]
   ) => Promise<boolean> = async (files: File[], fileIds: number[]) => {
-    const metadata: IFileMetadata[] = await extractFileMetadata(files)
-
-    for (const element of metadata) {
-      let index = metadata.indexOf(element)
-      const fileId = fileIds[index]
-      const variables: AddClientFileMetadataMutationVariables = this.mutationVariables(
-        fileId,
-        element
-      )
-
-      const result: FetchResult<AddClientFileMetadataMutation> = await this.client.mutation(
-        AddClientFileMetadata,
-        variables
-      )
-
-      if (result.errors) {
-        return false
-      }
-    }
+    await extractFileMetadata(files)
+      .then(r => {
+        this.addClientFileMetadata(fileIds, r)
+      })
+      .catch(err => {
+        throw err
+      })
 
     return true
   }
 
-  mutationVariables(
+  async addClientFileMetadata(fileIds: number[], metadata: IFileMetadata[]) {
+    for (const element of metadata) {
+      let index = metadata.indexOf(element)
+      const fileId = fileIds[index]
+      const variables: AddClientFileMetadataMutationVariables = this.generateMutationVariables(
+        fileId,
+        element
+      )
+
+      await this.client
+        .mutation(AddClientFileMetadata, variables)
+        .catch(err => {
+          throw err
+        })
+    }
+  }
+
+  generateMutationVariables(
     fileId: number,
     metadata: IFileMetadata
   ): AddClientFileMetadataMutationVariables {
-    const variables: AddClientFileMetadataMutationVariables = {
+    return {
       input: {
         fileId: fileId,
         lastModified: metadata.lastModified.getTime(),
@@ -91,7 +95,5 @@ export class ClientFileProcessing {
         datetime: Date.now()
       }
     }
-
-    return variables
   }
 }

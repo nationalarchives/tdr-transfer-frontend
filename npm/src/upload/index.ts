@@ -35,13 +35,13 @@ export const upload: (graphqlClient: GraphqlClient) => void = graphqlClient => {
       clientFileProcessing
         .processFiles(consignmentId, files.length)
         .then(r => {
-          clientFileProcessing.processMetadata(files, r).then(md =>
-            //For now print number of file metadata returned
-            console.log("Returned metadata: " + md.length)
+          clientFileProcessing.processClientFileMetadata(files, r).then(_ =>
+            //For now print success message
+            console.log("Client File Metadata added")
           )
         })
         .catch(err => {
-          throw err
+          throw Error("Failed to process files: " + err.message)
         })
     })
   }
