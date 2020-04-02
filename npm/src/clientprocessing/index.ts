@@ -52,13 +52,8 @@ export class ClientFileProcessing {
   processMetadata: (
     files: File[],
     fileIds: number[]
-  ) => Promise<FetchResult<AddClientFileMetadataMutation>[]> = async (
-    files: File[],
-    fileIds: number[]
-  ) => {
+  ) => Promise<boolean> = async (files: File[], fileIds: number[]) => {
     const metadata: IFileMetadata[] = await extractFileMetadata(files)
-
-    const results: FetchResult<AddClientFileMetadataMutation>[] = []
 
     for (const element of metadata) {
       let index = metadata.indexOf(element)
@@ -73,10 +68,12 @@ export class ClientFileProcessing {
         variables
       )
 
-      results.push(result)
+      if (result.errors) {
+        return false
+      }
     }
 
-    return results
+    return true
   }
 
   mutationVariables(
