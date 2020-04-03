@@ -1,3 +1,7 @@
+const mockFileInformation = {
+  extractFileMetadata: jest.fn()
+}
+
 import { GraphqlClient } from "../src/graphql"
 import { DocumentNode, FetchResult } from "apollo-boost"
 import { KeycloakInstance } from "keycloak-js"
@@ -6,27 +10,7 @@ import { IFileMetadata, TdrFile } from "@nationalarchives/file-information"
 import { GraphQLError } from "graphql"
 
 jest.mock("../src/graphql")
-jest.mock("@nationalarchives/file-information", () => {
-  return {
-    extractFileMetadata: () =>
-      new Promise((resolve, reject) => {
-        const mockMetadata1 = <IFileMetadata>{
-          checksum: "checksum1",
-          size: 10,
-          path: "path/to/file1",
-          lastModified: new Date()
-        }
-        const mockMetadata2 = <IFileMetadata>{
-          checksum: "checksum2",
-          size: 10,
-          path: "path/to/file2",
-          lastModified: new Date()
-        }
-        const data: IFileMetadata[] = [mockMetadata1, mockMetadata2]
-        process.nextTick(() => resolve(data))
-      })
-  }
-})
+jest.mock("@nationalarchives/file-information", () => mockFileInformation)
 
 type IMockAddFileData = { addFiles: { fileIds: number[] } } | null
 type IMockAddFileMetadata = {
@@ -40,6 +24,19 @@ type IMockAddFileMetadata = {
 } | null
 
 type TMockVariables = string
+
+const mockMetadata1 = <IFileMetadata>{
+  checksum: "checksum1",
+  size: 10,
+  path: "path/to/file1",
+  lastModified: new Date()
+}
+const mockMetadata2 = <IFileMetadata>{
+  checksum: "checksum2",
+  size: 10,
+  path: "path/to/file2",
+  lastModified: new Date()
+}
 
 class GraphqlClientSuccessAddFiles {
   mutation: (
@@ -83,7 +80,9 @@ class GraphqlClientFailureAddMetadata {
     query: DocumentNode,
     variables: TMockVariables
   ) => {
-    return { errors: [new GraphQLError("error")] }
+    return {
+      errors: [new GraphQLError("error 1"), new GraphQLError("error 2")]
+    }
   }
 }
 
@@ -150,31 +149,6 @@ const mockFailureAddMetadata: () => void = () => {
   })
 }
 
-// const mockSuccessExtractFileMetadata: () => void = () => {
-//   //const mockFileInformation = jest.mock('@nationalarchives/file-information')
-//   doMock('@nationalarchives/file-information', () => {
-//     return {
-//       extractFileMetadata: () => {
-//         const mockMetadata1 = <IFileMetadata>{
-//           checksum: "checksum1",
-//           size: 10,
-//           path: "path/to/file1",
-//           lastModified: new Date()
-//         }
-//         const mockMetadata2 = <IFileMetadata>{
-//           checksum: "checksum2",
-//           size: 10,
-//           path: "path/to/file2",
-//           lastModified: new Date()
-//         }
-//
-//         const data: IFileMetadata[] = [mockMetadata1, mockMetadata2]
-//         return data
-//       }
-//     }
-//   })
-// }
-
 test("processFiles returns list of file ids", async () => {
   mockSuccessAddFile()
   const client = new GraphqlClient("https://test.im", mockKeycloak)
@@ -193,32 +167,59 @@ test("processFiles returns error if no data returned", async () => {
   )
 })
 
-test("extractClientFileMetadata adds extract client file metadata to database", async () => {
+test("processClientFileMetadata adds extracted client file metadata to database", async () => {
+  const spyExtractFileMetadata = jest
+    .spyOn(mockFileInformation, "extractFileMetadata")
+    .mockImplementation(() => Promise.resolve([mockMetadata1, mockMetadata2]))
+
   mockSuccessAddMetadata()
 
   const clientSideFiles: TdrFile[] = []
   const fileIds: number[] = [1, 2]
   const client = new GraphqlClient("https://test.im", mockKeycloak)
   const processing = new ClientFileProcessing(client)
-  const result = await processing.processClientFileMetadata(
-    clientSideFiles,
-    fileIds
-  )
+  await processing.processClientFileMetadata(clientSideFiles, fileIds)
 
-  expect(result).toBe(true)
+  expect(spyExtractFileMetadata).toBeCalledTimes(1)
+
+  spyExtractFileMetadata.mockRestore()
 })
 
-test("extractClientFileMetadata fails to adds extracted client file metadata to database", async () => {
+test("extractFileMetadata throws error", async () => {
+  jest
+    .spyOn(mockFileInformation, "extractFileMetadata")
+    .mockImplementation(() => {
+      throw Error("some error message")
+    })
+
+  mockSuccessAddMetadata()
+
+  const clientSideFiles: TdrFile[] = []
+  const fileIds: number[] = [1, 2]
+  const client = new GraphqlClient("https://test.im", mockKeycloak)
+  const processing = new ClientFileProcessing(client)
+
+  await expect(
+    processing.processClientFileMetadata(clientSideFiles, fileIds)
+  ).rejects.toStrictEqual(Error("some error message"))
+})
+
+test("processClientFileMetadata fails to add extracted client file metadata to database", async () => {
+  const spyExtractFileMetadata = jest
+    .spyOn(mockFileInformation, "extractFileMetadata")
+    .mockImplementation(() => Promise.resolve([mockMetadata1, mockMetadata2]))
+
   mockFailureAddMetadata()
 
   const clientSideFiles: TdrFile[] = []
   const fileIds: number[] = [1, 2]
   const client = new GraphqlClient("https://test.im", mockKeycloak)
   const processing = new ClientFileProcessing(client)
-  const result = await processing.processClientFileMetadata(
-    clientSideFiles,
-    fileIds
-  )
 
-  expect(result).toBe(false)
+  const expectedErrorMessage =
+    "Add client file metadata failed for file 1: error 1,error 2"
+
+  await expect(
+    processing.processClientFileMetadata(clientSideFiles, fileIds)
+  ).rejects.toStrictEqual(Error(expectedErrorMessage))
 })
