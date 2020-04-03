@@ -29,8 +29,11 @@ export const upload: (graphqlClient: GraphqlClient) => void = graphqlClient => {
         throw Error("No consignment provided")
       }
 
-      const target: HTMLInputTarget | null = ev.currentTarget
-      const files: TdrFile[] = target!.files!.files!
+      //const target: HTMLInputTarget | null = ev.currentTarget
+
+      const files: TdrFile[] = [] //target!.files!.files!
+
+      console.log("HERE: " + files.length)
 
       clientFileProcessing
         .processFiles(consignmentId, files.length)

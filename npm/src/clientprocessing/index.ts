@@ -51,16 +51,16 @@ export class ClientFileProcessing {
   processClientFileMetadata: (
     files: File[],
     fileIds: number[]
-  ) => Promise<boolean> = async (files: File[], fileIds: number[]) => {
-    await extractFileMetadata(files)
+  ) => Promise<void> = async (files: File[], fileIds: number[]) => {
+    extractFileMetadata(files)
       .then(r => {
-        this.addClientFileMetadata(fileIds, r)
+        this.addClientFileMetadata(fileIds, r).catch(e => {
+          throw Error(e.message)
+        })
       })
       .catch(err => {
-        throw err
+        throw Error("Process client file metadata failed")
       })
-
-    return true
   }
 
   async addClientFileMetadata(fileIds: number[], metadata: IFileMetadata[]) {
@@ -72,13 +72,37 @@ export class ClientFileProcessing {
         element
       )
 
-      await this.client
-        .mutation(AddClientFileMetadata, variables)
-        .catch(err => {
-          throw err
-        })
+      const result = await this.client.mutation(
+        AddClientFileMetadata,
+        variables
+      )
+
+      if (result.errors) {
+        throw Error(
+          "Add client file metadata failed for file " +
+            fileId +
+            ": " +
+            result.errors.toString()
+        )
+      }
     }
   }
+
+  // addClientFileMetadata: (
+  //     fileId: number,
+  //     metadata: IFileMetadata
+  // ) => Promise<void> = async (fileId: number, metadata: IFileMetadata) => {
+  //   const variables: AddClientFileMetadataMutationVariables = this.generateMutationVariables(
+  //     fileId,
+  //     metadata
+  //   )
+  //
+  //   const result = await this.client.mutation(AddClientFileMetadata, variables)
+  //
+  //   if(result.errors) {
+  //     throw Error("Metadata upload failed for file " + fileId + ": " + result.errors.toString())
+  //   }
+  // }
 
   generateMutationVariables(
     fileId: number,

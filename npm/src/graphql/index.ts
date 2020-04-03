@@ -19,7 +19,6 @@ export class GraphqlClient {
   keycloak: KeycloakInstance<"native">
 
   constructor(uri: string, keycloak: Keycloak.KeycloakInstance<"native">) {
-    console.log("URI: " + uri)
     this.keycloak = keycloak
 
     const link = createHttpLink({
