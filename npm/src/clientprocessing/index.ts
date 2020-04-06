@@ -49,15 +49,12 @@ export class ClientFileProcessing {
     files: File[],
     fileIds: number[]
   ): Promise<void> {
-    extractFileMetadata(files)
-      .then(clientMetadata => {
-        this.addClientFileMetadata(fileIds, clientMetadata).catch(err => {
-          this.handleErrors(err)
-        })
-      })
-      .catch(err => {
-        this.handleErrors(err)
-      })
+    try {
+      const metadata: IFileMetadata[] = await extractFileMetadata(files)
+      await this.addClientFileMetadata(fileIds, metadata)
+    } catch (e) {
+      throw Error("Processing client metadata failed: " + e.message)
+    }
   }
 
   async addClientFileMetadata(
@@ -77,6 +74,7 @@ export class ClientFileProcessing {
         variables
       )
 
+      //Stop processing if an error is encountered
       if (result.errors) {
         throw Error(
           "Add client file metadata failed for file " +
