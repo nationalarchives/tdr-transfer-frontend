@@ -9,12 +9,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
-resolvers ++= Seq[Resolver](
-  s3resolver.value("Releases resolver", s3("tdr-releases-mgmt")),
-  s3resolver.value("Snapshots resolver", s3("tdr-snapshots-mgmt"))
-)
-
-useCoursier := false
+resolvers += "TDR Releases" at "s3://tdr-releases-mgmt"
 
 scalaVersion := "2.13.0"
 
@@ -36,9 +31,9 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "core" % "2.0.0-RC9",
   "com.softwaremill.sttp.client" %% "circe" % "2.0.0-RC9",
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % "2.0.0-RC9",
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.5",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.5",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.40",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.10",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.10",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.42",
   "com.github.tomakehurst" % "wiremock-jre8" % "2.26.0" % Test,
   "org.mockito" % "mockito-core" % "3.3.0" % Test
 )
