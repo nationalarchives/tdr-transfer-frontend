@@ -1,5 +1,7 @@
 package controllers
 
+import java.util.UUID
+
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
@@ -36,7 +38,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "render the correct series details page with an authenticated user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(gs.Data(List(gs.GetSeries(1L, 1L,Option.empty, Some("code"), Option.empty)))))
+      val uuid = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val data: client.GraphqlData = client.GraphqlData(Some(gs.Data(List(gs.GetSeries(uuid, uuid,Option.empty, Some("code"), Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -51,7 +54,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesDetailsPage) must include ("seriesDetails.title")
       contentAsString(seriesDetailsPage) must include ("seriesDetails.chooseSeries")
       contentAsString(seriesDetailsPage) must include ("id=\"series\"")
-      contentAsString(seriesDetailsPage) must include ("<option value=\"1\">code</option>")
+      contentAsString(seriesDetailsPage) must include (s"""<option value="${uuid.toString}">code</option>""")
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
@@ -97,13 +100,13 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       val failure = seriesDetailsPage.failed.futureValue
 
-      failure.getMessage should include("Transferring body missing from token")
+      failure.getMessage should include("Token not provided")
     }
 
     "create a consignment when a valid form is submitted and the api response is successful" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[ac.Data, ac.Variables]()
-      val consignmentId = 1
-      val seriesId = 1
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val seriesId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val consignmentResponse: ac.AddConsignment = new ac.AddConsignment(Some(consignmentId), seriesId)
       val data: client.GraphqlData = client.GraphqlData(Some(ac.Data(consignmentResponse)), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
@@ -117,7 +120,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     }
 
     "renders an error when a valid form is submitted but there is an error from the api" in {
-      val seriesId = 1
+      val seriesId = UUID.randomUUID()
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))

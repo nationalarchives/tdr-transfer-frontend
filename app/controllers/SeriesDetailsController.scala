@@ -1,5 +1,7 @@
 package controllers
 
+import java.util.UUID
+
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddConsignment
@@ -57,7 +59,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     }
 
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
-      val addConsignmentInput: AddConsignmentInput = AddConsignmentInput(formData.seriesId.toLong, None)
+      val addConsignmentInput: AddConsignmentInput = AddConsignmentInput(UUID.fromString(formData.seriesId))
       val variables: addConsignment.Variables = AddConsignment.addConsignment.Variables(addConsignmentInput)
 
       addConsignmentClient.getResult(request.token.bearerAccessToken, addConsignment.document, Some(variables)).map(data => {
