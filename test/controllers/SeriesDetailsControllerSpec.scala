@@ -100,7 +100,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       val failure = seriesDetailsPage.failed.futureValue
 
-      failure.getMessage should include("Transferring body missing from token")
+      failure.getMessage should include("Token not provided")
     }
 
     "create a consignment when a valid form is submitted and the api response is successful" in {
