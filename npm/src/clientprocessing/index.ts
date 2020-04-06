@@ -22,13 +22,10 @@ export class ClientFileProcessing {
     this.client = client
   }
 
-  processFiles: (
+  async processFiles(
     consignmentId: number,
     numberOfFiles: number
-  ) => Promise<number[]> = async (
-    consignmentId: number,
-    numberOfFiles: number
-  ) => {
+  ): Promise<number[]> {
     const variables: AddFilesMutationVariables = {
       addFilesInput: {
         consignmentId: consignmentId,
@@ -48,22 +45,25 @@ export class ClientFileProcessing {
     }
   }
 
-  processClientFileMetadata: (
+  async processClientFileMetadata(
     files: File[],
     fileIds: number[]
-  ) => Promise<void> = async (files: File[], fileIds: number[]) => {
+  ): Promise<void> {
     extractFileMetadata(files)
-      .then(r => {
-        this.addClientFileMetadata(fileIds, r).catch(e => {
-          throw Error(e.message)
+      .then(clientMetadata => {
+        this.addClientFileMetadata(fileIds, clientMetadata).catch(err => {
+          this.handleErrors(err)
         })
       })
       .catch(err => {
-        throw Error("Process client file metadata failed")
+        this.handleErrors(err)
       })
   }
 
-  async addClientFileMetadata(fileIds: number[], metadata: IFileMetadata[]) {
+  async addClientFileMetadata(
+    fileIds: number[],
+    metadata: IFileMetadata[]
+  ): Promise<void> {
     for (const element of metadata) {
       let index = metadata.indexOf(element)
       const fileId = fileIds[index]
@@ -88,22 +88,6 @@ export class ClientFileProcessing {
     }
   }
 
-  // addClientFileMetadata: (
-  //     fileId: number,
-  //     metadata: IFileMetadata
-  // ) => Promise<void> = async (fileId: number, metadata: IFileMetadata) => {
-  //   const variables: AddClientFileMetadataMutationVariables = this.generateMutationVariables(
-  //     fileId,
-  //     metadata
-  //   )
-  //
-  //   const result = await this.client.mutation(AddClientFileMetadata, variables)
-  //
-  //   if(result.errors) {
-  //     throw Error("Metadata upload failed for file " + fileId + ": " + result.errors.toString())
-  //   }
-  // }
-
   generateMutationVariables(
     fileId: number,
     metadata: IFileMetadata
@@ -115,9 +99,16 @@ export class ClientFileProcessing {
         fileSize: metadata.size,
         originalPath: metadata.path,
         checksum: metadata.checksum,
+        //For now add current time
         createdDate: Date.now(),
+        //Unclear what this field is meant to represent
         datetime: Date.now()
       }
     }
+  }
+
+  handleErrors(error: Error) {
+    //For now console log errors
+    console.log(error.message)
   }
 }
