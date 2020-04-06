@@ -1,4 +1,3 @@
-import { GraphqlClient } from "../graphql"
 import { TdrFile } from "@nationalarchives/file-information"
 import { ClientFileProcessing } from "../clientprocessing"
 
@@ -10,49 +9,68 @@ interface InputElement {
   files?: TdrFile[]
 }
 
-export const upload: (graphqlClient: GraphqlClient) => void = graphqlClient => {
-  const uploadForm: HTMLFormElement | null = document.querySelector(
-    "#file-upload-form"
-  )
+export class UploadFiles {
+  clientFileProcessing: ClientFileProcessing
 
-  const clientFileProcessing: ClientFileProcessing = new ClientFileProcessing(
-    graphqlClient
-  )
-
-  if (uploadForm) {
-    uploadForm.addEventListener("submit", ev => {
-      ev.preventDefault()
-
-      const consignmentId: number = retrieveConsignmentId()
-
-      if (!consignmentId) {
-        throw Error("No consignment provided")
-      }
-
-      //const target: HTMLInputTarget | null = ev.currentTarget
-
-      const files: TdrFile[] = [] //target!.files!.files!
-
-      console.log("HERE: " + files.length)
-
-      clientFileProcessing
-        .processFiles(consignmentId, files.length)
-        .then(r => {
-          clientFileProcessing.processClientFileMetadata(files, r).then(_ =>
-            //For now print success message
-            console.log("Client File Metadata added")
-          )
-        })
-        .catch(err => {
-          throw Error("Failed to process files: " + err.message)
-        })
-    })
+  constructor(clientFileProcessing: ClientFileProcessing) {
+    this.clientFileProcessing = clientFileProcessing
   }
-}
 
-export function retrieveConsignmentId(): number {
-  const pathName: string = window.location.pathname
-  const paths: string[] = pathName.split("/", 3)
+  upload(): void {
+    const uploadForm: HTMLFormElement | null = document.querySelector(
+      "#file-upload-form"
+    )
 
-  return parseInt(paths[2]!, 10)
+    if (uploadForm) {
+      uploadForm.addEventListener("submit", ev => {
+        ev.preventDefault()
+        const consignmentId: number = this.retrieveConsignmentId()
+
+        if (!consignmentId) {
+          throw Error("No consignment provided")
+        }
+
+        const target: HTMLInputTarget | null = ev.currentTarget
+
+        try {
+          const files: TdrFile[] = target!.files!.files!
+
+          this.generateFileDetails(consignmentId, files.length).then(r => {
+            this.uploadClientFileMetadata(r, files)
+          })
+        } catch (e) {
+          //For now console log errors
+          console.log("Upload failed: " + e.message)
+        }
+      })
+    }
+  }
+
+  retrieveConsignmentId(): number {
+    const pathName: string = window.location.pathname
+    const paths: string[] = pathName.split("/", 3)
+
+    return parseInt(paths[2]!, 10)
+  }
+
+  //Split to separate function to make testing easier
+  async generateFileDetails(
+    consignmentId: number,
+    numberOfFiles: number
+  ): Promise<number[]> {
+    const result = await this.clientFileProcessing.processFiles(
+      consignmentId,
+      numberOfFiles
+    )
+
+    return result
+  }
+
+  //Split to separate function to make testing easier
+  async uploadClientFileMetadata(
+    fileIds: number[],
+    files: TdrFile[]
+  ): Promise<void> {
+    await this.clientFileProcessing.processClientFileMetadata(files, fileIds)
+  }
 }

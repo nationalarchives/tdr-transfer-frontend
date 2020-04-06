@@ -1,7 +1,46 @@
-import * as clientprocessing from "../src/clientprocessing"
-import { upload, retrieveConsignmentId } from "../src/upload"
+import { ClientFileProcessing } from "../src/clientprocessing"
+import { UploadFiles } from "../src/upload"
 import { GraphqlClient } from "../src/graphql"
 import { KeycloakInstance } from "keycloak-js"
+
+jest.mock("../src/clientprocessing")
+
+class ClientFileProcessingSuccess {
+  processFiles: (
+    consignmentId: number,
+    numberOfFiles: number
+  ) => Promise<number[]> = async (
+    consignmentId: number,
+    numberOfFiles: number
+  ) => {
+    const data: number[] = [1, 2]
+    return data
+  }
+  processClientFileMetadata: (
+    files: File[],
+    fileIds: number[]
+  ) => Promise<void> = async (files: File[], fileIds: number[]) => {
+    return Promise.resolve()
+  }
+}
+
+class ClientFileProcessingError {
+  processFiles: (
+    consignmentId: number,
+    numberOfFiles: number
+  ) => Promise<number[]> = async (
+    consignmentId: number,
+    numberOfFiles: number
+  ) => {
+    return Promise.reject(Error("Process files failed"))
+  }
+  processClientFileMetadata: (
+    files: File[],
+    fileIds: number[]
+  ) => Promise<void> = async (files: File[], fileIds: number[]) => {
+    return Promise.reject(Error("Process client file metadata failed"))
+  }
+}
 
 beforeEach(() => jest.resetModules())
 
@@ -25,40 +64,28 @@ const mockKeycloak: KeycloakInstance<"native"> = {
   token: "fake-auth-token"
 }
 
-test("Calls processing files function if file upload form present", () => {
-  const spy = jest.spyOn(clientprocessing, "processFiles")
+function setUpUpload(): UploadFiles {
   const client = new GraphqlClient("test", mockKeycloak)
-  document.body.innerHTML =
-    "<div>" +
-    '<form id="file-upload-form">' +
-    '<button class="govuk-button" type="submit" data-module="govuk-button" role="button" />' +
-    "</form>" +
-    "</div>"
+  const clientFileProcessing = new ClientFileProcessing(client)
 
-  upload(client)
-  expect(spy).toBeCalledTimes(1)
+  return new UploadFiles(clientFileProcessing)
+}
 
-  spy.mockRestore()
-})
+const mockSuccess: () => void = () => {
+  const mock = ClientFileProcessing as jest.Mock
+  mock.mockImplementation(() => {
+    return new ClientFileProcessingSuccess()
+  })
+}
 
-test("Does not call processing files if file upload form is not present", () => {
-  const spy = jest.spyOn(clientprocessing, "processFiles")
-  const client = new GraphqlClient("test", mockKeycloak)
+const mockFailure: () => void = () => {
+  const mock = ClientFileProcessing as jest.Mock
+  mock.mockImplementation(() => {
+    return new ClientFileProcessingError()
+  })
+}
 
-  document.body.innerHTML =
-    "<div>" +
-    '<form id="wrong-id">' +
-    '<button class="govuk-button" type="submit" data-module="govuk-button" role="button" />' +
-    "</form>" +
-    "</div>"
-
-  upload(client)
-  expect(spy).toBeCalledTimes(0)
-
-  spy.mockRestore()
-})
-
-test("Return consignment id from windows location", () => {
+test("retrieveConsignmentId returns consignment id from windows location", () => {
   const url = "https://test.gov.uk/consignment/1/upload"
   Object.defineProperty(window, "location", {
     value: {
@@ -67,5 +94,45 @@ test("Return consignment id from windows location", () => {
     }
   })
 
-  expect(retrieveConsignmentId()).toBe(1)
+  const uploadFiles = setUpUpload()
+
+  expect(uploadFiles.retrieveConsignmentId()).toBe(1)
+})
+
+test("generateFileDetails adds Files to database and returns file ids", async () => {
+  mockSuccess()
+  const uploadFiles = setUpUpload()
+
+  const result = await uploadFiles.generateFileDetails(1, 2)
+
+  expect(result).toHaveLength(2)
+  expect(result[0]).toBe(1)
+  expect(result[1]).toBe(2)
+})
+
+test("generateFileDetails returns an error if adding Files fails", async () => {
+  mockFailure()
+  const uploadFiles = setUpUpload()
+
+  await expect(uploadFiles.generateFileDetails(1, 2)).rejects.toStrictEqual(
+    Error("Process files failed")
+  )
+})
+
+test("uploadClientFileMetadata adds client file metadata to database", async () => {
+  mockSuccess()
+  const uploadFiles = setUpUpload()
+
+  await expect(
+    uploadFiles.uploadClientFileMetadata([], [])
+  ).resolves.not.toThrow()
+})
+
+test("uploadClientFileMetadata returns an error if uploading file metadata fails", async () => {
+  mockFailure()
+  const uploadFiles = setUpUpload()
+
+  await expect(
+    uploadFiles.uploadClientFileMetadata([], [])
+  ).rejects.toStrictEqual(Error("Process client file metadata failed"))
 })
