@@ -2,7 +2,6 @@ package controllers
 
 import java.util.UUID
 
-import auth.OidcSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
@@ -19,6 +18,6 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
                                 (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
   def uploadPage(consignmentId: UUID): Action[AnyContent] = transferAgreementExistsAction(consignmentId) { implicit request: Request[AnyContent] =>
-    Ok(views.html.upload())
+    Ok(views.html.upload(consignmentId))
   }
 }

@@ -85,21 +85,7 @@ const mockFailure: () => void = () => {
   })
 }
 
-test("retrieveConsignmentId returns consignment id from windows location", () => {
-  const url = "https://test.gov.uk/consignment/1/upload"
-  Object.defineProperty(window, "location", {
-    value: {
-      href: url,
-      pathname: "/consignment/1/upload"
-    }
-  })
-
-  const uploadFiles = setUpUpload()
-
-  expect(uploadFiles.retrieveConsignmentId()).toBe(1)
-})
-
-test("generateFileDetails adds Files to database and returns file ids", async () => {
+test("generateFileDetails returns file ids", async () => {
   mockSuccess()
   const uploadFiles = setUpUpload()
 
@@ -119,7 +105,7 @@ test("generateFileDetails returns an error if adding Files fails", async () => {
   )
 })
 
-test("uploadClientFileMetadata adds client file metadata to database", async () => {
+test("uploadClientFileMetadata adds client file metadata", async () => {
   mockSuccess()
   const uploadFiles = setUpUpload()
 
