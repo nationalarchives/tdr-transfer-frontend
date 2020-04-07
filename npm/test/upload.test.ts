@@ -7,37 +7,37 @@ jest.mock("../src/clientprocessing")
 
 class ClientFileProcessingSuccess {
   processFiles: (
-    consignmentId: number,
+    consignmentId: string,
     numberOfFiles: number
-  ) => Promise<number[]> = async (
-    consignmentId: number,
+  ) => Promise<string[]> = async (
+    consignmentId: string,
     numberOfFiles: number
   ) => {
-    const data: number[] = [1, 2]
+    const data: string[] = ["1", "2"]
     return data
   }
   processClientFileMetadata: (
     files: File[],
-    fileIds: number[]
-  ) => Promise<void> = async (files: File[], fileIds: number[]) => {
+    fileIds: string[]
+  ) => Promise<void> = async (files: File[], fileIds: string[]) => {
     return Promise.resolve()
   }
 }
 
 class ClientFileProcessingError {
   processFiles: (
-    consignmentId: number,
+    consignmentId: string,
     numberOfFiles: number
   ) => Promise<number[]> = async (
-    consignmentId: number,
+    consignmentId: string,
     numberOfFiles: number
   ) => {
     return Promise.reject(Error("Process files failed"))
   }
   processClientFileMetadata: (
     files: File[],
-    fileIds: number[]
-  ) => Promise<void> = async (files: File[], fileIds: number[]) => {
+    fileIds: string[]
+  ) => Promise<void> = async (files: File[], fileIds: string[]) => {
     return Promise.reject(Error("Process client file metadata failed"))
   }
 }
@@ -89,18 +89,18 @@ test("generateFileDetails returns file ids", async () => {
   mockSuccess()
   const uploadFiles = setUpUpload()
 
-  const result = await uploadFiles.generateFileDetails(1, 2)
+  const result = await uploadFiles.generateFileDetails("1", 2)
 
   expect(result).toHaveLength(2)
-  expect(result[0]).toBe(1)
-  expect(result[1]).toBe(2)
+  expect(result[0]).toBe("1")
+  expect(result[1]).toBe("2")
 })
 
 test("generateFileDetails returns an error if adding Files fails", async () => {
   mockFailure()
   const uploadFiles = setUpUpload()
 
-  await expect(uploadFiles.generateFileDetails(1, 2)).rejects.toStrictEqual(
+  await expect(uploadFiles.generateFileDetails("1", 2)).rejects.toStrictEqual(
     Error("Process files failed")
   )
 })
