@@ -104,9 +104,4 @@ export class ClientFileProcessing {
       }
     }
   }
-
-  handleErrors(error: Error) {
-    //For now console log errors
-    console.log(error.message)
-  }
 }
