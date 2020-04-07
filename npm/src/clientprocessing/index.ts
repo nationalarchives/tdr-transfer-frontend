@@ -23,9 +23,9 @@ export class ClientFileProcessing {
   }
 
   async processFiles(
-    consignmentId: number,
+    consignmentId: string,
     numberOfFiles: number
-  ): Promise<number[]> {
+  ): Promise<string[]> {
     const variables: AddFilesMutationVariables = {
       addFilesInput: {
         consignmentId: consignmentId,
@@ -47,7 +47,7 @@ export class ClientFileProcessing {
 
   async processClientFileMetadata(
     files: File[],
-    fileIds: number[]
+    fileIds: string[]
   ): Promise<void> {
     try {
       const metadata: IFileMetadata[] = await extractFileMetadata(files)
@@ -58,7 +58,7 @@ export class ClientFileProcessing {
   }
 
   async addClientFileMetadata(
-    fileIds: number[],
+    fileIds: string[],
     metadata: IFileMetadata[]
   ): Promise<void> {
     for (const element of metadata) {
@@ -87,7 +87,7 @@ export class ClientFileProcessing {
   }
 
   generateMutationVariables(
-    fileId: number,
+    fileId: string,
     metadata: IFileMetadata
   ): AddClientFileMetadataMutationVariables {
     return {

@@ -24,7 +24,9 @@ export class UploadFiles {
     if (uploadForm) {
       uploadForm.addEventListener("submit", ev => {
         ev.preventDefault()
-        const consignmentId: number = this.retrieveConsignmentId()
+        const consignmentId: string | null = uploadForm.getAttribute(
+          "data-consignment-id"
+        )
 
         if (!consignmentId) {
           throw Error("No consignment provided")
@@ -46,18 +48,11 @@ export class UploadFiles {
     }
   }
 
-  retrieveConsignmentId(): number {
-    const pathName: string = window.location.pathname
-    const paths: string[] = pathName.split("/", 3)
-
-    return parseInt(paths[2]!, 10)
-  }
-
   //Split to separate function to make testing easier
   async generateFileDetails(
-    consignmentId: number,
+    consignmentId: string,
     numberOfFiles: number
-  ): Promise<number[]> {
+  ): Promise<string[]> {
     const result = await this.clientFileProcessing.processFiles(
       consignmentId,
       numberOfFiles
@@ -68,7 +63,7 @@ export class UploadFiles {
 
   //Split to separate function to make testing easier
   async uploadClientFileMetadata(
-    fileIds: number[],
+    fileIds: string[],
     files: TdrFile[]
   ): Promise<void> {
     await this.clientFileProcessing.processClientFileMetadata(files, fileIds)

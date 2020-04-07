@@ -1,4 +1,5 @@
-    @()(implicit messages: Messages)
+@import java.util.UUID
+@(consignmentId: UUID)(implicit messages: Messages)
 
 @main(Messages("upload.header")) {
 <div class="govuk-grid-row">
@@ -7,7 +8,7 @@
         @progressIndicator(Messages("upload.progress"))
 
         <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
-        <form id="file-upload-form">
+        <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <label class="govuk-label" for="file-selection">
                     @Messages("upload.selectFolder")
