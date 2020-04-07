@@ -12,6 +12,8 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, Result}
+import services.GetConsignmentService
+import validation.ValidatedActions
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,8 +21,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferAgreementController @Inject()(val controllerComponents: SecurityComponents,
                                             val graphqlConfiguration: GraphQLConfiguration,
                                             val keycloakConfiguration: KeycloakConfiguration,
+                                            val getConsignmentService: GetConsignmentService,
                                             langs: Langs)
-                                           (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+                                           (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
   private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
   private val addTransferAgreementClient = graphqlConfiguration.getClient[AddTransferAgreement.Data, AddTransferAgreement.Variables]()
@@ -43,7 +46,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
-  def transferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
+  def transferAgreement(consignmentId: UUID): Action[AnyContent] = consignmentExists(consignmentId) { implicit request: Request[AnyContent] =>
     Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
   }
 
