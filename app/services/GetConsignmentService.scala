@@ -1,5 +1,7 @@
 package services
 
+import java.util.UUID
+
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignment
@@ -14,15 +16,11 @@ class GetConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfigura
 
   private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
 
-  def consignmentExists(consignmentId: Long,
+  def consignmentExists(consignmentId: UUID,
                         token: BearerAccessToken): Future[Boolean] = {
     val variables: getConsignment.Variables = new GetConsignment.getConsignment.Variables(consignmentId)
     getConsignmentClient.getResult(token, getConsignment.document, Some(variables)).map(data => {
-      data.data match {
-        case Some(data) =>
-          data.getConsignment.isDefined
-        case None => false
-      }
+      data.data.isDefined && data.data.get.getConsignment.isDefined
     })
   }
 }

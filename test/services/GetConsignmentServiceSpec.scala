@@ -26,7 +26,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
   implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = scaled(Span(100, Millis)))
   case class GraphqlData(data: Option[Data], errors: List[GraphqlError] = Nil)
 
-  private def verifyCaptors(captors: (ArgumentCaptor[Document], ArgumentCaptor[BearerAccessToken], ArgumentCaptor[Option[Variables]]), consignmentId: Long): Unit = {
+  private def verifyCaptors(captors: (ArgumentCaptor[Document], ArgumentCaptor[BearerAccessToken], ArgumentCaptor[Option[Variables]]), consignmentId: UUID): Unit = {
     val (documentCaptor, tokenCaptor, variablesCaptor) = captors
     documentCaptor.getValue should be(gc.document)
     tokenCaptor.getValue.getValue should be("someAccessToken")
@@ -46,7 +46,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
     Tuple3(documentCaptor, tokenCaptor, variablesCaptor)
   }
 
-  def mockFailedResponse(graphQLClient: GraphQLClient[gc.Data, gc.Variables]) = {
+  def mockFailedResponse(graphQLClient: GraphQLClient[gc.Data, gc.Variables]): (ArgumentCaptor[Document], ArgumentCaptor[BearerAccessToken], ArgumentCaptor[Option[Variables]]) = {
     val documentCaptor: ArgumentCaptor[Document] = ArgumentCaptor.forClass(classOf[Document])
     val tokenCaptor: ArgumentCaptor[BearerAccessToken] = ArgumentCaptor.forClass(classOf[BearerAccessToken])
     val variablesCaptor: ArgumentCaptor[Option[gc.Variables]] = ArgumentCaptor.forClass(classOf[Option[gc.Variables]])
@@ -62,9 +62,9 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
       val graphQLConfig = mock[GraphQLConfiguration]
       when(graphQLConfig.getClient[gc.Data, gc.Variables]()).thenReturn(graphQLClient)
 
-      val consignmentId = 999
+      val consignmentId = UUID.randomUUID()
 
-      val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), 1L)
+      val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), UUID.randomUUID())
 
       val captors = mockOkResponse(graphQLClient, Some(gc.Data(Some(consignmentResponse))), List())
 
@@ -76,7 +76,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
     }
 
     "Return false if consignment with given id does not exist" in {
-      val consignmentId = 999
+      val consignmentId = UUID.randomUUID()
       val graphQLClient = mock[GraphQLClient[gc.Data, gc.Variables]]
 
       val graphQLConfig = mock[GraphQLConfiguration]
@@ -91,7 +91,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
     }
 
     "Return an error when the API has an error" in {
-      val consignmentId = 999
+      val consignmentId = UUID.randomUUID()
       val graphQLClient = mock[GraphQLClient[gc.Data, gc.Variables]]
 
       val graphQLConfig = mock[GraphQLConfiguration]

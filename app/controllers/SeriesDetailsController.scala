@@ -1,5 +1,7 @@
 package controllers
 
+import java.util.UUID
+
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddConsignment
@@ -31,7 +33,8 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
   )
 
   private def getSeriesDetails(request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
-    val userTransferringBody: Option[String] = request.token.transferringBody
+    val userTransferringBody: String = request.token.transferringBody
+      .getOrElse(throw new RuntimeException(s"Transferring body missing from token for user ${request.token.userId}"))
     val variables: getSeries.Variables = new getSeries.Variables(userTransferringBody)
 
     getSeriesClient.getResult(request.token.bearerAccessToken, getSeries.document, Some(variables)).map(data => {
@@ -56,7 +59,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     }
 
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
-      val addConsignmentInput: AddConsignmentInput = AddConsignmentInput(formData.seriesId.toLong, None)
+      val addConsignmentInput: AddConsignmentInput = AddConsignmentInput(UUID.fromString(formData.seriesId))
       val variables: addConsignment.Variables = AddConsignment.addConsignment.Variables(addConsignmentInput)
 
       addConsignmentClient.getResult(request.token.bearerAccessToken, addConsignment.document, Some(variables)).map(data => {

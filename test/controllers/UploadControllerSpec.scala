@@ -1,5 +1,7 @@
 package controllers
 
+import java.util.UUID
+
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
@@ -10,7 +12,7 @@ import io.circe.syntax._
 import org.scalatest.Matchers._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, status, redirectLocation, _}
+import play.api.test.Helpers.{GET, redirectLocation, status, _}
 import util.FrontEndTestHelper
 
 import scala.concurrent.ExecutionContext
@@ -31,7 +33,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
   "UploadController GET" should {
     "redirect to the transfer agreement page if the transfer agreement for that consignment has not been signed" in {
       implicit val ec: ExecutionContext = ExecutionContext.global
-      val consignmentId = 1
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
 
@@ -46,7 +48,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     // This is unlikely but it's possible that they've bypassed the checks and partially agreed to things
     "redirect to the transfer agreement page if the transfer agreement for that consignment has been partially agreed to" in {
       implicit val ec: ExecutionContext = ExecutionContext.global
-      val consignmentId = 1
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
 
@@ -60,14 +62,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     "show the upload page if the transfer agreement for that consignment has been agreed to in full" in {
       implicit val ec: ExecutionContext = ExecutionContext.global
-      val consignmentId = 1
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
 
       stubGetTransferAgreementResponse(Some(new itac.GetTransferAgreement(true)))
 
       val uploadPage = controller.uploadPage(consignmentId)
-        .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
       status(uploadPage) mustBe OK
     }
   }

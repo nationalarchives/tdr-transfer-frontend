@@ -41,19 +41,22 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
   "TransferAgreementController GET" should {
 
     "render the transfer agreement page with an authenticated user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration,
+        new GetConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+
       val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-      val consignmentId: Long = 888L
-      val seriesId = 1L
-      val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), seriesId)
+      val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), UUID.randomUUID())
       val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(Some(consignmentResponse))), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, new GetConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+
       val transferAgreementPage = controller.transferAgreement(consignmentId)
-        .apply(FakeRequest(GET, "/consignment/888/transfer-agreement").withCSRFToken)
+        .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
+
 
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
@@ -67,16 +70,11 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val seriesId = 1L
-      val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), seriesId)
-      val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(Some(consignmentResponse))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new TransferAgreementController(getUnauthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, new GetConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
-      val transferAgreementPage = controller.transferAgreement(123).apply(FakeRequest(GET, "/consignment/123/transfer-agreement"))
+      val transferAgreementPage = controller.transferAgreement(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-agreement"))
+
       redirectLocation(transferAgreementPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(transferAgreementPage) mustBe FOUND
     }
@@ -88,7 +86,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val consignmentId = 888
+      val consignmentId = UUID.randomUUID()
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, new GetConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
 
@@ -101,8 +99,8 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
     "create a transfer agreement when a valid form is submitted and the api response is successful" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[ata.Data, ata.Variables]()
-      val consignmentId = 1L
-      val transferAgreementId = Some(1L)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val transferAgreementId = Some(UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68"))
       val addTransferAgreementResponse: ata.AddTransferAgreement = new ata.AddTransferAgreement(
         consignmentId,
         Some(true),
@@ -131,11 +129,11 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
           ("droSensitivity", true.toString)
         ).withCSRFToken)
       playStatus(transferAgreementSubmit) mustBe SEE_OTHER
-      redirectLocation(transferAgreementSubmit) must be(Some("/consignment/1/upload"))
+      redirectLocation(transferAgreementSubmit) must be(Some("/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload"))
     }
 
     "renders an error when a valid form is submitted but there is an error from the api" in {
-      val consignmentId = 1L
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val client = new GraphQLConfiguration(app.configuration).getClient[ata.Data, ata.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
@@ -156,7 +154,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     }
 
     "display errors when an invalid form is submitted" in {
-      val consignmentId = 1L
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, new GetConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
 
