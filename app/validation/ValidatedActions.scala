@@ -22,9 +22,6 @@ abstract class ValidatedActions() extends TokenSecurity with I18nSupport {
     consignmentExists.map {
       case true => f(request)
       case false => NotFound(views.html.notFoundError("The consignment you are trying to access does not exist"))
-    }.recover {
-      case cause =>
-        BadRequest(views.html.error(cause.getMessage))
     }
   }
 

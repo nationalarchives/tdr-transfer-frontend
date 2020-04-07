@@ -101,10 +101,10 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
 
       val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
 
-      ScalaFutures.whenReady(getConsignment.failed) { results =>
-        results shouldBe a[HttpError]
-        verifyCaptors(captors, consignmentId)
-      }
+      val results = getConsignment.failed.futureValue
+
+      results shouldBe a[HttpError]
+      verifyCaptors(captors, consignmentId)
     }
   }
 }
