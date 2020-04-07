@@ -69,7 +69,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "render the error page if the api returns errors" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Error", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -89,7 +89,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "render the error page if the token is invalid" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Body does not match", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Body does not match", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -122,7 +122,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "renders an error when a valid form is submitted but there is an error from the api" in {
       val seriesId = UUID.randomUUID()
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Error", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -134,7 +134,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "display errors when an invalid form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Error", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -148,7 +148,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "will send the correct body if it is present on the user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Body does not match", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Body does not match", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql")).willReturn(okJson(dataString)))
 
