@@ -1,8 +1,9 @@
 @* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
 @import helper.{inputRadioGroup => _, _}
 @import viewsapi.FormFunctions._
+@import java.util.UUID
 
-@(consignmentId: Long, transferAgreementForm: Form[TransferAgreementData], agreementOptions: Seq[(String, String)])(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, transferAgreementForm: Form[TransferAgreementData], agreementOptions: Seq[(String, String)])(implicit request: RequestHeader, messages: Messages)
 @main(Messages("transferAgreement.header")) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
