@@ -100,6 +100,25 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       contentAsString(transferAgreementPage) must include ("404")
     }
 
+    "throws an authorisation exception when the user does not have permission to see a consignment's transfer agreement" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(None)), List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
+      val consignmentId = UUID.randomUUID()
+      val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
+        getValidKeycloakConfiguration, new GetConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+
+      val transferAgreementPage = controller.transferAgreement(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
+
+      val failure: Throwable = transferAgreementPage.failed.futureValue
+
+      failure mustBe an[AuthorisationException]
+    }
+
     "create a transfer agreement when a valid form is submitted and the api response is successful" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val transferAgreementId = Some(UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68"))
