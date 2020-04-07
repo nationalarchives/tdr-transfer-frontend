@@ -153,7 +153,7 @@ test("processFiles returns list of file ids", async () => {
   mockSuccessAddFile()
   const client = new GraphqlClient("https://test.im", mockKeycloak)
   const processing = new ClientFileProcessing(client)
-  const result = await processing.processFiles(1, 3)
+  const result = await processing.processFiles("1", 3)
 
   expect(result).toEqual([1, 2, 3])
 })
@@ -162,7 +162,7 @@ test("processFiles returns error if no data returned", async () => {
   mockFailureAddFiles()
   const client = new GraphqlClient("https://test.im", mockKeycloak)
   const processing = new ClientFileProcessing(client)
-  await expect(processing.processFiles(1, 3)).rejects.toStrictEqual(
+  await expect(processing.processFiles("1", 3)).rejects.toStrictEqual(
     Error("Add files failed")
   )
 })
@@ -175,7 +175,7 @@ test("processClientFileMetadata adds extracted client file metadata to database"
   mockSuccessAddMetadata()
 
   const clientSideFiles: TdrFile[] = []
-  const fileIds: number[] = [1, 2]
+  const fileIds: string[] = ["1", "2"]
   const client = new GraphqlClient("https://test.im", mockKeycloak)
   const processing = new ClientFileProcessing(client)
   await processing.processClientFileMetadata(clientSideFiles, fileIds)
@@ -193,7 +193,7 @@ test("extractFileMetadata throws error", async () => {
     })
 
   const clientSideFiles: TdrFile[] = []
-  const fileIds: number[] = [1, 2]
+  const fileIds: string[] = ["1", "2"]
   const client = new GraphqlClient("https://test.im", mockKeycloak)
   const processing = new ClientFileProcessing(client)
 
@@ -213,7 +213,7 @@ test("processClientFileMetadata fails to add extracted client file metadata to d
   mockFailureAddMetadata()
 
   const clientSideFiles: TdrFile[] = []
-  const fileIds: number[] = [1, 2]
+  const fileIds: string[] = ["1", "2"]
   const client = new GraphqlClient("https://test.im", mockKeycloak)
   const processing = new ClientFileProcessing(client)
 
