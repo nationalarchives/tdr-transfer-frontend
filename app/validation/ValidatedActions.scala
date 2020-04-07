@@ -16,7 +16,8 @@ abstract class ValidatedActions() extends TokenSecurity with I18nSupport {
 
   private val isTransferAgreementCompleteClient = graphqlConfiguration.getClient[itac.Data, itac.Variables]()
 
-  def consignmentExists(consignmentId: Long)(f: Request[AnyContent] => Result): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def consignmentExists(consignmentId: Long)(f: Request[AnyContent] => Result): Action[AnyContent] = secureAction.async {
+    implicit request: Request[AnyContent] =>
     val getConsignmentService = new GetConsignmentService(graphqlConfiguration)
     val consignmentExists = getConsignmentService.consignmentExists(consignmentId, request.token.bearerAccessToken)
     consignmentExists.map {
