@@ -5,18 +5,15 @@ import java.util.UUID
 import auth.TokenSecurity
 import configuration.GraphQLConfiguration
 import controllers.routes
-import graphql.codegen.IsTransferAgreementComplete.{isTransferAgreementComplete => itac}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.GetConsignmentService
+import services.{GetConsignmentService, TransferAgreementService}
 
 import scala.concurrent.ExecutionContext
 
 abstract class ValidatedActions() extends TokenSecurity with I18nSupport {
   implicit val ec: ExecutionContext
   val graphqlConfiguration: GraphQLConfiguration
-
-  private val isTransferAgreementCompleteClient = graphqlConfiguration.getClient[itac.Data, itac.Variables]()
 
   def consignmentExists(consignmentId: UUID)(f: Request[AnyContent] => Result): Action[AnyContent] = secureAction.async {
     implicit request: Request[AnyContent] =>
@@ -30,18 +27,11 @@ abstract class ValidatedActions() extends TokenSecurity with I18nSupport {
 
   def transferAgreementExistsAction(consignmentId: UUID)(f: Request[AnyContent] => Result): Action[AnyContent]
   = secureAction.async { implicit request: Request[AnyContent] =>
-    val variables = itac.Variables(consignmentId)
-    isTransferAgreementCompleteClient.getResult(request.token.bearerAccessToken, itac.document, Some(variables)).map(data => {
-      val isComplete: Option[Boolean] = for {
-        dataDefined <- data.data
-        transferAgreement <- dataDefined.getTransferAgreement
-      } yield transferAgreement.isAgreementComplete
+    val transferAgreementService = new TransferAgreementService(graphqlConfiguration)
 
-      if (isComplete.isDefined && isComplete.get) {
-        f(request)
-      } else {
-        Redirect(routes.TransferAgreementController.transferAgreement(consignmentId))
-      }
-    })
+    transferAgreementService.transferAgreementExists(consignmentId, request.token.bearerAccessToken) map {
+      case true => f(request)
+      case false => Redirect(routes.TransferAgreementController.transferAgreement(consignmentId))
+    }
   }
 }
