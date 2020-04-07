@@ -1,5 +1,7 @@
 package controllers
 
+import java.util.UUID
+
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddTransferAgreement.AddTransferAgreement
@@ -41,11 +43,11 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
-  def transferAgreement(consignmentId: Long): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
+  def transferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
   }
 
-  def transferAgreementSubmit(consignmentId: Long): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
       Future.successful(BadRequest(views.html.transferAgreement(consignmentId, formWithErrors, options)))
     }

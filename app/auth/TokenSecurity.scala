@@ -16,7 +16,7 @@ trait TokenSecurity extends OidcSecurity {
     val profileManager = new ProfileManager[CommonProfile](webContext)
     val profile = profileManager.get(true)
     val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
-    val accessToken: Token = keycloakConfiguration.token(token.getValue)
+    val accessToken: Option[Token] = keycloakConfiguration.token(token.getValue)
     RequestWithToken(request, accessToken)
   }
 }

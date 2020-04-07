@@ -1,5 +1,7 @@
 package controllers
 
+import java.util.UUID
+
 import auth.OidcSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import javax.inject.{Inject, Singleton}
@@ -13,7 +15,7 @@ class RecordsController @Inject()(val controllerComponents: SecurityComponents,
                                   val keycloakConfiguration: KeycloakConfiguration
                                  ) extends OidcSecurity with I18nSupport {
 
-  def recordsPage(consignmentId: Long): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
+  def recordsPage(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.records())
   }
 }
