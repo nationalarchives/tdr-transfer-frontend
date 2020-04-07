@@ -16,6 +16,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import uk.gov.nationalarchives.tdr.GraphQLClient
+import uk.gov.nationalarchives.tdr.error.GraphQlError
 import util.FrontEndTestHelper
 
 import scala.concurrent.ExecutionContext
