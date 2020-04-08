@@ -5,135 +5,74 @@ import java.util.UUID
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
-import graphql.codegen.GetConsignment.getConsignment._
 import graphql.codegen.GetConsignment.{getConsignment => gc}
-import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
 import org.mockito.Mockito._
-import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.time.{Millis, Seconds, Span}
-import sangria.ast.Document
+import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
+import org.scalatestplus.mockito.MockitoSugar
 import sttp.client.HttpError
-import uk.gov.nationalarchives.tdr.error.{GraphQlError, NotAuthorisedError}
+import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
-import util.FrontEndTestHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ConsignmentServiceSpec extends FrontEndTestHelper {
+class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
-  implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = scaled(Span(100, Millis)))
-  case class GraphqlData(data: Option[Data], errors: List[GraphQLClient.Error] = Nil)
 
-  private def verifyCaptors(captors: (ArgumentCaptor[Document], ArgumentCaptor[BearerAccessToken], ArgumentCaptor[Option[Variables]]), consignmentId: UUID): Unit = {
-    val (documentCaptor, tokenCaptor, variablesCaptor) = captors
-    documentCaptor.getValue should be(gc.document)
-    tokenCaptor.getValue.getValue should be("someAccessToken")
-    variablesCaptor.getValue.isDefined should be(true)
-    variablesCaptor.getValue.get.consignmentId should be(consignmentId)
-  }
+  private val graphQlConfig = mock[GraphQLConfiguration]
+  private val graphQlClient = mock[GraphQLClient[gc.Data, gc.Variables]]
+  when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(graphQlClient)
 
-  def mockOkResponse(graphQLClient: GraphQLClient[gc.Data, gc.Variables], data: Option[gc.Data], errors: List[GraphQlError]):
-  (ArgumentCaptor[Document], ArgumentCaptor[BearerAccessToken], ArgumentCaptor[Option[Variables]])= {
-    val documentCaptor: ArgumentCaptor[Document] = ArgumentCaptor.forClass(classOf[Document])
-    val tokenCaptor: ArgumentCaptor[BearerAccessToken] = ArgumentCaptor.forClass(classOf[BearerAccessToken])
-    val variablesCaptor: ArgumentCaptor[Option[gc.Variables]] = ArgumentCaptor.forClass(classOf[Option[gc.Variables]])
+  private val consignmentService = new ConsignmentService(graphQlConfig)
 
-    val graphqlData = GraphQlResponse(data, errors)
+  private val token = new BearerAccessToken("some-token")
+  private val consignmentId = UUID.fromString("180f9166-fe3c-486e-b9ab-6dfa5f3058dc")
+  private val seriesId = UUID.fromString("d54a5118-33a0-4ba2-8030-d16efcf1d1f4")
 
-    when(graphQLClient.getResult(tokenCaptor.capture(), documentCaptor.capture(), variablesCaptor.capture())).thenReturn(Future(graphqlData))
-    Tuple3(documentCaptor, tokenCaptor, variablesCaptor)
-  }
-
-  def mockFailedResponse(graphQLClient: GraphQLClient[gc.Data, gc.Variables]): (ArgumentCaptor[Document], ArgumentCaptor[BearerAccessToken], ArgumentCaptor[Option[Variables]]) = {
-    val documentCaptor: ArgumentCaptor[Document] = ArgumentCaptor.forClass(classOf[Document])
-    val tokenCaptor: ArgumentCaptor[BearerAccessToken] = ArgumentCaptor.forClass(classOf[BearerAccessToken])
-    val variablesCaptor: ArgumentCaptor[Option[gc.Variables]] = ArgumentCaptor.forClass(classOf[Option[gc.Variables]])
-
-    when(graphQLClient.getResult(tokenCaptor.capture(), documentCaptor.capture(), variablesCaptor.capture())).thenReturn(Future.failed(HttpError("")))
-    Tuple3(documentCaptor, tokenCaptor, variablesCaptor)
-  }
-
-  def mockGraphqlError(
-                        graphQLClient: GraphQLClient[gc.Data, gc.Variables],
-                        consignmentId: UUID,
-                        token: BearerAccessToken,
-                        error: GraphQlError
-                      ): Unit = {
-    val graphqlData = GraphQlResponse[gc.Data](None, List(error))
-    val variables = gc.Variables(consignmentId)
-
-    when(graphQLClient.getResult(token, document, Some(variables))).thenReturn(Future.successful(graphqlData))
+  override def afterEach(): Unit = {
+    Mockito.reset(graphQlClient)
   }
 
   "consignmentExists" should {
-
     "Return true when given a valid consignment id" in {
-      val graphQLClient = mock[GraphQLClient[gc.Data, gc.Variables]]
-      val graphQLConfig = mock[GraphQLConfiguration]
-      when(graphQLConfig.getClient[gc.Data, gc.Variables]()).thenReturn(graphQLClient)
+      val response = GraphQlResponse(Some(gc.Data(Some(gc.GetConsignment(consignmentId, seriesId)))), Nil)
+      when(graphQlClient.getResult(token, gc.document, Some(gc.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
 
-      val consignmentId = UUID.randomUUID()
-
-      val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), UUID.randomUUID())
-
-      val captors = mockOkResponse(graphQLClient, Some(gc.Data(Some(consignmentResponse))), List())
-
-      val getConsignment = new ConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
+      val getConsignment = consignmentService.consignmentExists(consignmentId, token)
       val actualResults = getConsignment.futureValue
 
       actualResults should be(true)
-      verifyCaptors(captors, consignmentId)
     }
 
     "Return false if consignment with given id does not exist" in {
-      val consignmentId = UUID.randomUUID()
-      val graphQLClient = mock[GraphQLClient[gc.Data, gc.Variables]]
+      val response = GraphQlResponse(Some(gc.Data(None)), Nil)
+      when(graphQlClient.getResult(token, gc.document, Some(gc.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
 
-      val graphQLConfig = mock[GraphQLConfiguration]
-      when(graphQLConfig.getClient[gc.Data, gc.Variables]()).thenReturn(graphQLClient)
-
-      val captors = mockOkResponse(graphQLClient, Some(gc.Data(None)), List())
-
-      val getConsignment = new ConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
+      val getConsignment = consignmentService.consignmentExists(consignmentId, token)
       val actualResults = getConsignment.futureValue
-      actualResults shouldBe false
-      verifyCaptors(captors, consignmentId)
+
+      actualResults should be(false)
     }
 
     "Return an error when the API has an error" in {
-      val consignmentId = UUID.randomUUID()
-      val graphQLClient = mock[GraphQLClient[gc.Data, gc.Variables]]
+      when(graphQlClient.getResult(token, gc.document, Some(gc.Variables(consignmentId))))
+        .thenReturn(Future.failed(HttpError("something went wrong")))
 
-      val graphQLConfig = mock[GraphQLConfiguration]
-      when(graphQLConfig.getClient[gc.Data, gc.Variables]()).thenReturn(graphQLClient)
-
-      val captors = mockFailedResponse(graphQLClient)
-
-      val getConsignment = new ConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
-
-      val results = getConsignment.failed.futureValue
-
-      results shouldBe a[HttpError]
-      verifyCaptors(captors, consignmentId)
+      val results = consignmentService.consignmentExists(consignmentId, token)
+      results.failed.futureValue shouldBe a[HttpError]
     }
 
     "throw an AuthorisationException if the API returns an auth error" in {
-      val consignmentId = UUID.randomUUID()
-      val token = new BearerAccessToken("someAccessToken")
-      val graphQLClient = mock[GraphQLClient[gc.Data, gc.Variables]]
+      val response = GraphQlResponse[gc.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
+      when(graphQlClient.getResult(token, gc.document, Some(gc.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
 
-      val graphQLConfig = mock[GraphQLConfiguration]
-      when(graphQLConfig.getClient[gc.Data, gc.Variables]()).thenReturn(graphQLClient)
-
-      val error = NotAuthorisedError("some auth error", List(), List())
-      mockGraphqlError(graphQLClient, consignmentId, token, error)
-
-      val getConsignment = new ConsignmentService(graphQLConfig).consignmentExists(consignmentId, token)
-
+      val getConsignment = consignmentService.consignmentExists(consignmentId, token)
       val results = getConsignment.failed.futureValue
-
       results shouldBe a[AuthorisationException]
     }
   }
