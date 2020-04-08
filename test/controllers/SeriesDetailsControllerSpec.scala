@@ -5,6 +5,7 @@ import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
+import errors.GraphQlException
 import graphql.codegen.AddConsignment.{addConsignment => ac}
 import graphql.codegen.GetSeries.{getSeries => gs}
 import io.circe.Printer
@@ -146,7 +147,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         seriesService, consignmentService)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest(POST, "/series").withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
 
-      seriesSubmit.failed.futureValue shouldBe a[RuntimeException]
+      seriesSubmit.failed.futureValue shouldBe a[GraphQlException]
     }
 
     "display errors when an invalid form is submitted" in {
