@@ -1,7 +1,7 @@
 package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import errors.AuthorisationException
+import errors.{AuthorisationException, GraphQlException}
 import sangria.ast.Document
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
@@ -20,8 +20,7 @@ object ApiErrorHandling {
       result.errors match {
         case Nil => result.data.get
         case List(authError: NotAuthorisedError) => throw new AuthorisationException(authError.message)
-        // TODO: Create generic exception
-        case errors => throw new RuntimeException(errors.map(e => e.message).mkString)
+        case errors => throw new GraphQlException(errors)
       }
     })
   }

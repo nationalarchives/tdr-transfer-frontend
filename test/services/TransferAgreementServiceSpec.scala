@@ -4,7 +4,7 @@ import java.util.UUID
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
-import errors.AuthorisationException
+import errors.{AuthorisationException, GraphQlException}
 import graphql.codegen.IsTransferAgreementComplete.isTransferAgreementComplete._
 import graphql.codegen.IsTransferAgreementComplete.{isTransferAgreementComplete => taComplete}
 import org.mockito.Mockito
@@ -12,6 +12,7 @@ import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
+import sttp.client.HttpError
 import uk.gov.nationalarchives.tdr.error.{NotAuthorisedError, UnknownGraphQlError}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
@@ -64,9 +65,9 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
 
   "transferAgreementExists" should "throw an error if the API call fails" in {
     when(graphQlClient.getResult(token, document, Some(variables)))
-      .thenReturn(Future.failed(new RuntimeException("something went wrong")))
+      .thenReturn(Future.failed(new HttpError("something went wrong")))
 
-    transferAgreementService.transferAgreementExists(consignmentId, token).failed.futureValue shouldBe a[RuntimeException]
+    transferAgreementService.transferAgreementExists(consignmentId, token).failed.futureValue shouldBe a[HttpError]
   }
 
   "transferAgreementExists" should "throw an error if the API call contains a GraphQL error" in {
@@ -75,7 +76,7 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
     when(graphQlClient.getResult(token, document, Some(variables)))
       .thenReturn(Future.successful(response))
 
-    transferAgreementService.transferAgreementExists(consignmentId, token).failed.futureValue shouldBe a[RuntimeException]
+    transferAgreementService.transferAgreementExists(consignmentId, token).failed.futureValue shouldBe a[GraphQlException]
   }
 
   "transferAgreementExists" should "throw an authorisation exception if the API call is not authorised" in {
