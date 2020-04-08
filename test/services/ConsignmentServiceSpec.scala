@@ -112,5 +112,14 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
 
       results.failed.futureValue shouldBe a[HttpError]
     }
+
+    "throw an AuthorisationException if the API returns an auth error" in {
+      val response = GraphQlResponse[addConsignment.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
+      when(addConsignmentClient.getResult(token, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId)))))
+        .thenReturn(Future.successful(response))
+
+      val results = consignmentService.createConsignment(seriesId, token).failed.futureValue
+      results shouldBe a[AuthorisationException]
+    }
   }
 }

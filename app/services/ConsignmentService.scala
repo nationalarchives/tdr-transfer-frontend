@@ -38,9 +38,10 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
     val variables: addConsignment.Variables = AddConsignment.addConsignment.Variables(addConsignmentInput)
 
     addConsignmentClient.getResult(token, addConsignment.document, Some(variables)).map(data => {
-      data.data match {
-        case Some(consignment) => consignment.addConsignment
-        case None => throw new RuntimeException(data.errors.map(e => e.message).mkString)
+      data.errors match {
+        case Nil => data.data.get.addConsignment
+        case List(authError: NotAuthorisedError) => throw new AuthorisationException(authError.message)
+        case errors => throw new RuntimeException(errors.map(e => e.message).mkString)
       }
     })
   }
