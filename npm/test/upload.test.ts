@@ -2,45 +2,9 @@ import { ClientFileProcessing } from "../src/clientprocessing"
 import { UploadFiles } from "../src/upload"
 import { GraphqlClient } from "../src/graphql"
 import { KeycloakInstance } from "keycloak-js"
+import SpyInstance = jest.SpyInstance
 
 jest.mock("../src/clientprocessing")
-
-class ClientFileProcessingSuccess {
-  processFiles: (
-    consignmentId: string,
-    numberOfFiles: number
-  ) => Promise<string[]> = async (
-    consignmentId: string,
-    numberOfFiles: number
-  ) => {
-    const data: string[] = ["1", "2"]
-    return data
-  }
-  processClientFileMetadata: (
-    files: File[],
-    fileIds: string[]
-  ) => Promise<void> = async (files: File[], fileIds: string[]) => {
-    return Promise.resolve()
-  }
-}
-
-class ClientFileProcessingError {
-  processFiles: (
-    consignmentId: string,
-    numberOfFiles: number
-  ) => Promise<number[]> = async (
-    consignmentId: string,
-    numberOfFiles: number
-  ) => {
-    return Promise.reject(Error("Process files failed"))
-  }
-  processClientFileMetadata: (
-    files: File[],
-    fileIds: string[]
-  ) => Promise<void> = async (files: File[], fileIds: string[]) => {
-    return Promise.reject(Error("Process client file metadata failed"))
-  }
-}
 
 beforeEach(() => jest.resetModules())
 
@@ -64,61 +28,73 @@ const mockKeycloak: KeycloakInstance<"native"> = {
   token: "fake-auth-token"
 }
 
-function setUpUpload(): UploadFiles {
-  const client = new GraphqlClient("test", mockKeycloak)
-  const clientFileProcessing = new ClientFileProcessing(client)
-
-  return new UploadFiles(clientFileProcessing)
-}
-
-const mockSuccess: () => void = () => {
-  const mock = ClientFileProcessing as jest.Mock
-  mock.mockImplementation(() => {
-    return new ClientFileProcessingSuccess()
-  })
-}
-
-const mockFailure: () => void = () => {
-  const mock = ClientFileProcessing as jest.Mock
-  mock.mockImplementation(() => {
-    return new ClientFileProcessingError()
-  })
-}
-
 test("generateFileDetails returns file ids", async () => {
-  mockSuccess()
-  const uploadFiles = setUpUpload()
+  const client = new GraphqlClient("test", mockKeycloak)
+  const spyProcessing: SpyInstance = jest
+    .spyOn(ClientFileProcessing.prototype, "processFiles")
+    .mockResolvedValue(["1", "2"])
+  const clientFileProcessing: ClientFileProcessing = new ClientFileProcessing(
+    client
+  )
+  const uploadFiles = new UploadFiles(clientFileProcessing)
 
   const result = await uploadFiles.generateFileDetails("1", 2)
-
+  expect(spyProcessing).toBeCalledTimes(1)
   expect(result).toHaveLength(2)
   expect(result[0]).toBe("1")
   expect(result[1]).toBe("2")
+
+  spyProcessing.mockReset()
 })
 
 test("generateFileDetails returns an error if adding Files fails", async () => {
-  mockFailure()
-  const uploadFiles = setUpUpload()
+  const client = new GraphqlClient("test", mockKeycloak)
+  const spyProcessing: SpyInstance = jest
+    .spyOn(ClientFileProcessing.prototype, "processFiles")
+    .mockRejectedValue(Error("Process files failed"))
+  const clientFileProcessing: ClientFileProcessing = new ClientFileProcessing(
+    client
+  )
+  const uploadFiles = new UploadFiles(clientFileProcessing)
 
   await expect(uploadFiles.generateFileDetails("1", 2)).rejects.toStrictEqual(
     Error("Process files failed")
   )
+  expect(spyProcessing).toBeCalledTimes(1)
+
+  spyProcessing.mockReset()
 })
 
 test("uploadClientFileMetadata adds client file metadata", async () => {
-  mockSuccess()
-  const uploadFiles = setUpUpload()
+  const client = new GraphqlClient("test", mockKeycloak)
+  const spyProcessing: SpyInstance = jest
+    .spyOn(ClientFileProcessing.prototype, "processClientFileMetadata")
+    .mockResolvedValue()
+  const clientFileProcessing: ClientFileProcessing = new ClientFileProcessing(
+    client
+  )
+  const uploadFiles = new UploadFiles(clientFileProcessing)
 
-  await expect(
-    uploadFiles.uploadClientFileMetadata([], [])
-  ).resolves.not.toThrow()
+  await uploadFiles.uploadClientFileMetadata([], [])
+  expect(spyProcessing).toBeCalledTimes(1)
+
+  spyProcessing.mockReset()
 })
 
 test("uploadClientFileMetadata returns an error if uploading file metadata fails", async () => {
-  mockFailure()
-  const uploadFiles = setUpUpload()
+  const client = new GraphqlClient("test", mockKeycloak)
+  const spyProcessing: SpyInstance = jest
+    .spyOn(ClientFileProcessing.prototype, "processClientFileMetadata")
+    .mockRejectedValue(Error("Process client file metadata failed"))
+  const clientFileProcessing: ClientFileProcessing = new ClientFileProcessing(
+    client
+  )
+  const uploadFiles = new UploadFiles(clientFileProcessing)
 
   await expect(
     uploadFiles.uploadClientFileMetadata([], [])
   ).rejects.toStrictEqual(Error("Process client file metadata failed"))
+  expect(spyProcessing).toBeCalledTimes(1)
+
+  spyProcessing.mockReset()
 })
