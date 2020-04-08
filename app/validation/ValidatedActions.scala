@@ -7,7 +7,7 @@ import configuration.GraphQLConfiguration
 import controllers.routes
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.{GetConsignmentService, TransferAgreementService}
+import services.{ConsignmentService, TransferAgreementService}
 
 import scala.concurrent.ExecutionContext
 
@@ -17,8 +17,8 @@ abstract class ValidatedActions() extends TokenSecurity with I18nSupport {
 
   def consignmentExists(consignmentId: UUID)(f: Request[AnyContent] => Result): Action[AnyContent] = secureAction.async {
     implicit request: Request[AnyContent] =>
-    val getConsignmentService = new GetConsignmentService(graphqlConfiguration)
-    val consignmentExists = getConsignmentService.consignmentExists(consignmentId, request.token.bearerAccessToken)
+    val consignmentService = new ConsignmentService(graphqlConfiguration)
+    val consignmentExists = consignmentService.consignmentExists(consignmentId, request.token.bearerAccessToken)
     consignmentExists.map {
       case true => f(request)
       case false => NotFound(views.html.notFoundError("The consignment you are trying to access does not exist"))
