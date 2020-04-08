@@ -4,6 +4,7 @@ import java.util.UUID
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import errors.AuthorisationException
 import graphql.codegen.GetSeries.getSeries
 import graphql.codegen.GetSeries.getSeries.GetSeries
 import org.keycloak.representations.AccessToken
@@ -12,6 +13,7 @@ import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
+import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
@@ -56,5 +58,14 @@ class SeriesServiceSpec extends FlatSpec with Matchers with MockitoSugar with Be
       .thenReturn(Future.failed(new RuntimeException("something went wrong")))
 
     seriesService.getSeriesForUser(token).failed.futureValue shouldBe a[RuntimeException]
+  }
+
+  "getSeriesForUser" should "throw an AuthorisationException if the API returns an auth error" in {
+    val response = GraphQlResponse[getSeries.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
+    when(graphQlClient.getResult(token.bearerAccessToken, getSeries.document, Some(getSeries.Variables(bodyName))))
+      .thenReturn(Future.successful(response))
+
+    val results = seriesService.getSeriesForUser(token).failed.futureValue
+    results shouldBe a[AuthorisationException]
   }
 }
