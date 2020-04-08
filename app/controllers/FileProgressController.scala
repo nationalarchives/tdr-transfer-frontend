@@ -1,0 +1,21 @@
+package controllers
+
+import java.util.UUID
+
+import auth.OidcSecurity
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import javax.inject.{Inject, Singleton}
+import org.pac4j.play.scala.SecurityComponents
+import play.api.i18n.I18nSupport
+import play.api.mvc.{Action, AnyContent, Request}
+
+@Singleton
+class FileProgressController @Inject()(val controllerComponents: SecurityComponents,
+                                  val graphqlConfiguration: GraphQLConfiguration,
+                                  val keycloakConfiguration: KeycloakConfiguration
+                                 ) extends OidcSecurity with I18nSupport {
+
+  def fileProgress(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
+    Ok(views.html.fileProgress())
+  }
+}

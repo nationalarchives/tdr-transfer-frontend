@@ -42,6 +42,8 @@ upload.selectFolder=Select a folder
 upload.fileExtensionTitle=Which file extensions are not permitted?
 upload.fileExtensionSummary=Cannot upload the following file extensions: .zip, thumbs.db, .exe
 upload.continueLink=Continue
+fileProgress.header=Uploading Records...
+fileProgress.title=Please wait. Do not close your browser window while your files are being uploaded. This could take a few minutes.
 records.header=Records
 records.title=Records
 
@@ -49,5 +51,6 @@ records.title=Records
 seriesDetails.progress=1
 transferAgreement.progress=2
 upload.progress=3
-records.progress=4
-progress.totalSteps=4
+fileProgress.progress=4
+records.progress=5
+progress.totalSteps=5
