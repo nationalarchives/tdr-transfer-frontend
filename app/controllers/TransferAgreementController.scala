@@ -12,7 +12,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.GetConsignmentService
+import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import validation.ValidatedActions
 
@@ -22,7 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferAgreementController @Inject()(val controllerComponents: SecurityComponents,
                                             val graphqlConfiguration: GraphQLConfiguration,
                                             val keycloakConfiguration: KeycloakConfiguration,
-                                            val getConsignmentService: GetConsignmentService,
+                                            val getConsignmentService: ConsignmentService,
                                             langs: Langs)
                                            (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 

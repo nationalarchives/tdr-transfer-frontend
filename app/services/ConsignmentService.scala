@@ -13,8 +13,8 @@ import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class GetConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguration)
-                                     (implicit val ec: ExecutionContext)  {
+class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguration)
+                                  (implicit val ec: ExecutionContext)  {
 
   private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
 

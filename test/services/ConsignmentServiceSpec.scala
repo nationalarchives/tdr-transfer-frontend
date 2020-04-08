@@ -20,7 +20,7 @@ import util.FrontEndTestHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetConsignmentServiceSpec extends FrontEndTestHelper {
+class ConsignmentServiceSpec extends FrontEndTestHelper {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
   implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = scaled(Span(100, Millis)))
@@ -80,7 +80,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
 
       val captors = mockOkResponse(graphQLClient, Some(gc.Data(Some(consignmentResponse))), List())
 
-      val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
+      val getConsignment = new ConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
       val actualResults = getConsignment.futureValue
 
       actualResults should be(true)
@@ -96,7 +96,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
 
       val captors = mockOkResponse(graphQLClient, Some(gc.Data(None)), List())
 
-      val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
+      val getConsignment = new ConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
       val actualResults = getConsignment.futureValue
       actualResults shouldBe false
       verifyCaptors(captors, consignmentId)
@@ -111,7 +111,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
 
       val captors = mockFailedResponse(graphQLClient)
 
-      val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
+      val getConsignment = new ConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
 
       val results = getConsignment.failed.futureValue
 
@@ -130,7 +130,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
       val error = NotAuthorisedError("some auth error", List(), List())
       mockGraphqlError(graphQLClient, consignmentId, token, error)
 
-      val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(consignmentId, token)
+      val getConsignment = new ConsignmentService(graphQLConfig).consignmentExists(consignmentId, token)
 
       val results = getConsignment.failed.futureValue
 
