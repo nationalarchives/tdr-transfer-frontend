@@ -23,18 +23,13 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
 
   private val graphQlConfig = mock[GraphQLConfiguration]
   private val graphQlClient = mock[GraphQLClient[taComplete.Data, taComplete.Variables]]
+  when(graphQlConfig.getClient[taComplete.Data, taComplete.Variables]()).thenReturn(graphQlClient)
 
-  private var transferAgreementService = new TransferAgreementService(graphQlConfig)
+  private val transferAgreementService: TransferAgreementService = new TransferAgreementService(graphQlConfig)
 
   private val consignmentId = UUID.fromString("da84d99f-469d-4893-8c7b-46900cfa1a8f")
   private val token = new BearerAccessToken("some-token")
   private val variables = Variables(consignmentId)
-
-  override def beforeEach(): Unit = {
-    when(graphQlConfig.getClient[taComplete.Data, taComplete.Variables]()).thenReturn(graphQlClient)
-
-    transferAgreementService = new TransferAgreementService(graphQlConfig)
-  }
 
   override def afterEach(): Unit = {
     Mockito.reset(graphQlClient)
