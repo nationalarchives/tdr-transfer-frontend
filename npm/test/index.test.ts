@@ -1,9 +1,14 @@
+import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
+
 const mockAuth = {
   getToken: jest.fn()
 }
 
 import { KeycloakInstance } from "keycloak-js"
 import { renderModules } from "../src/index"
+import SpyInstance = jest.SpyInstance
+import { UploadFiles } from "../src/upload"
+import { GraphqlClient } from "../src/graphql"
 
 jest.mock("../src/auth", () => mockAuth)
 
@@ -33,7 +38,7 @@ beforeEach(() => {
   jest.resetModules()
 })
 
-test("renderModules calls authorisation when upload for present on page", async () => {
+test("renderModules calls authorisation when upload form present on page", async () => {
   const spyAuth = jest
     .spyOn(mockAuth, "getToken")
     .mockImplementation(() => Promise.resolve(mockKeycloak))
@@ -64,6 +69,8 @@ test("renderModules does not call authorisation when no upload form present on p
     "</div>"
 
   renderModules()
+
   expect(spyAuth).toBeCalledTimes(0)
+
   spyAuth.mockRestore()
 })

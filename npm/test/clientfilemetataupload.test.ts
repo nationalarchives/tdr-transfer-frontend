@@ -1,16 +1,11 @@
-const mockFileInformation = {
-  extractFileMetadata: jest.fn()
-}
-
 import { GraphqlClient } from "../src/graphql"
 import { DocumentNode, FetchResult } from "apollo-boost"
 import { KeycloakInstance } from "keycloak-js"
-import { ClientFileProcessing } from "../src/clientprocessing"
+import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFileMetadata, TdrFile } from "@nationalarchives/file-information"
 import { GraphQLError } from "graphql"
 
 jest.mock("../src/graphql")
-jest.mock("@nationalarchives/file-information", () => mockFileInformation)
 
 type IMockAddFileData = { addFiles: { fileIds: number[] } } | null
 type IMockAddFileMetadata = {
@@ -149,78 +144,48 @@ const mockFailureAddMetadata: () => void = () => {
   })
 }
 
-test("processFiles returns list of file ids", async () => {
+test("fileInformation returns list of file ids", async () => {
   mockSuccessAddFile()
   const client = new GraphqlClient("https://test.im", mockKeycloak)
-  const processing = new ClientFileProcessing(client)
-  const result = await processing.processFiles("1", 3)
+  const uploadMetadata = new ClientFileMetadataUpload(client)
+  const result = await uploadMetadata.fileInformation("1", 3)
 
   expect(result).toEqual([1, 2, 3])
 })
 
-test("processFiles returns error if no data returned", async () => {
+test("fileInformation returns error if no data returned", async () => {
   mockFailureAddFiles()
   const client = new GraphqlClient("https://test.im", mockKeycloak)
-  const processing = new ClientFileProcessing(client)
-  await expect(processing.processFiles("1", 3)).rejects.toStrictEqual(
+  const uploadMetadata = new ClientFileMetadataUpload(client)
+  await expect(uploadMetadata.fileInformation("1", 3)).rejects.toStrictEqual(
     Error("Add files failed")
   )
 })
 
-test("processClientFileMetadata adds extracted client file metadata to database", async () => {
-  const spyExtractFileMetadata = jest
-    .spyOn(mockFileInformation, "extractFileMetadata")
-    .mockImplementation(() => Promise.resolve([mockMetadata1, mockMetadata2]))
-
+test("clientFileMetadata uploads client file metadata", async () => {
   mockSuccessAddMetadata()
 
-  const clientSideFiles: TdrFile[] = []
+  const metadata: IFileMetadata[] = [mockMetadata1, mockMetadata2]
   const fileIds: string[] = ["1", "2"]
   const client = new GraphqlClient("https://test.im", mockKeycloak)
-  const processing = new ClientFileProcessing(client)
-  await processing.processClientFileMetadata(clientSideFiles, fileIds)
-
-  expect(spyExtractFileMetadata).toBeCalledTimes(1)
-
-  spyExtractFileMetadata.mockRestore()
-})
-
-test("extractFileMetadata throws error", async () => {
-  jest
-    .spyOn(mockFileInformation, "extractFileMetadata")
-    .mockImplementation(() => {
-      throw Error("some error message")
-    })
-
-  const clientSideFiles: TdrFile[] = []
-  const fileIds: string[] = ["1", "2"]
-  const client = new GraphqlClient("https://test.im", mockKeycloak)
-  const processing = new ClientFileProcessing(client)
-
-  const expectedErrorMessage =
-    "Processing client metadata failed: some error message"
+  const uploadMetadata = new ClientFileMetadataUpload(client)
 
   await expect(
-    processing.processClientFileMetadata(clientSideFiles, fileIds)
-  ).rejects.toStrictEqual(Error(expectedErrorMessage))
+    uploadMetadata.clientFileMetadata(fileIds, metadata)
+  ).resolves.not.toThrow()
 })
 
-test("processClientFileMetadata fails to add extracted client file metadata to database", async () => {
-  const spyExtractFileMetadata = jest
-    .spyOn(mockFileInformation, "extractFileMetadata")
-    .mockImplementation(() => Promise.resolve([mockMetadata1, mockMetadata2]))
-
+test("clientFileMetadata fails to upload client file metadata", async () => {
   mockFailureAddMetadata()
 
-  const clientSideFiles: TdrFile[] = []
+  const metadata: IFileMetadata[] = [mockMetadata1, mockMetadata2]
   const fileIds: string[] = ["1", "2"]
   const client = new GraphqlClient("https://test.im", mockKeycloak)
-  const processing = new ClientFileProcessing(client)
-
-  const expectedErrorMessage =
-    "Processing client metadata failed: Add client file metadata failed for file 1: error 1,error 2"
+  const uploadMetadata = new ClientFileMetadataUpload(client)
 
   await expect(
-    processing.processClientFileMetadata(clientSideFiles, fileIds)
-  ).rejects.toStrictEqual(Error(expectedErrorMessage))
+    uploadMetadata.clientFileMetadata(fileIds, metadata)
+  ).rejects.toStrictEqual(
+    Error("Add client file metadata failed for file 1: error 1,error 2")
+  )
 })

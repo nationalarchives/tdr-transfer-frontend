@@ -1,7 +1,7 @@
 import { GraphqlClient } from "./graphql"
 import { getToken } from "./auth"
 import { UploadFiles } from "./upload"
-import { ClientFileProcessing } from "./clientprocessing"
+import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 
 declare var TDR_API_URL: string
 
@@ -20,7 +20,7 @@ export const renderModules = () => {
     )
 
     client.then(graphqlClient => {
-      const clientFileProcessing = new ClientFileProcessing(graphqlClient)
+      const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
       new UploadFiles(clientFileProcessing).upload()
     })
   }

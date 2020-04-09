@@ -1,9 +1,6 @@
 import { GraphqlClient } from "../graphql"
 
-import {
-  extractFileMetadata,
-  IFileMetadata
-} from "@nationalarchives/file-information"
+import { IFileMetadata } from "@nationalarchives/file-information"
 
 import {
   AddClientFileMetadata,
@@ -15,14 +12,14 @@ import {
 
 import { FetchResult } from "apollo-boost"
 
-export class ClientFileProcessing {
+export class ClientFileMetadataUpload {
   client: GraphqlClient
 
   constructor(client: GraphqlClient) {
     this.client = client
   }
 
-  async processFiles(
+  async fileInformation(
     consignmentId: string,
     numberOfFiles: number
   ): Promise<string[]> {
@@ -45,19 +42,7 @@ export class ClientFileProcessing {
     }
   }
 
-  async processClientFileMetadata(
-    files: File[],
-    fileIds: string[]
-  ): Promise<void> {
-    try {
-      const metadata: IFileMetadata[] = await extractFileMetadata(files)
-      await this.addClientFileMetadata(fileIds, metadata)
-    } catch (e) {
-      throw Error("Processing client metadata failed: " + e.message)
-    }
-  }
-
-  async addClientFileMetadata(
+  async clientFileMetadata(
     fileIds: string[],
     metadata: IFileMetadata[]
   ): Promise<void> {
