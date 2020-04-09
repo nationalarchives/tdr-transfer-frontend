@@ -1,5 +1,6 @@
 import { TdrFile } from "@nationalarchives/file-information"
-import { ClientFileProcessing } from "../clientprocessing"
+import { ClientFileProcessing } from "../clientfileprocessing"
+import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 
 interface HTMLInputTarget extends EventTarget {
   files?: InputElement
@@ -12,8 +13,8 @@ interface InputElement {
 export class UploadFiles {
   clientFileProcessing: ClientFileProcessing
 
-  constructor(clientFileProcessing: ClientFileProcessing) {
-    this.clientFileProcessing = clientFileProcessing
+  constructor(clientFileProcessing: ClientFileMetadataUpload) {
+    this.clientFileProcessing = new ClientFileProcessing(clientFileProcessing)
   }
 
   upload(): void {
@@ -28,44 +29,19 @@ export class UploadFiles {
           "data-consignment-id"
         )
 
-        if (!consignmentId) {
-          throw Error("No consignment provided")
-        }
-
         const target: HTMLInputTarget | null = ev.currentTarget
 
         try {
+          if (!consignmentId) {
+            throw Error("No consignment provided")
+          }
           const files: TdrFile[] = target!.files!.files!
-
-          this.generateFileDetails(consignmentId, files.length).then(r => {
-            this.uploadClientFileMetadata(r, files)
-          })
+          this.clientFileProcessing.processClientFiles(consignmentId, files)
         } catch (e) {
           //For now console log errors
-          console.log("Upload failed: " + e.message)
+          console.error("Client file upload failed: " + e.message)
         }
       })
     }
-  }
-
-  //Split to separate function to make testing easier
-  async generateFileDetails(
-    consignmentId: string,
-    numberOfFiles: number
-  ): Promise<string[]> {
-    const result = await this.clientFileProcessing.processFiles(
-      consignmentId,
-      numberOfFiles
-    )
-
-    return result
-  }
-
-  //Split to separate function to make testing easier
-  async uploadClientFileMetadata(
-    fileIds: string[],
-    files: TdrFile[]
-  ): Promise<void> {
-    await this.clientFileProcessing.processClientFileMetadata(files, fileIds)
   }
 }
