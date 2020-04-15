@@ -1,5 +1,5 @@
 import { GraphqlClient } from "./graphql"
-import { getToken } from "./auth"
+import { getToken, authenticateAndGetIdentityId } from "./auth"
 import { UploadFiles } from "./upload"
 import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 
@@ -15,13 +15,12 @@ export const renderModules = () => {
   )
 
   if (uploadContainer) {
-    const client: Promise<GraphqlClient> = getToken().then(
-      keycloak => new GraphqlClient(TDR_API_URL, keycloak)
-    )
-
-    client.then(graphqlClient => {
-      const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
-      new UploadFiles(clientFileProcessing).upload()
+    getToken().then(keycloak => {
+      const graphqlClient = new GraphqlClient(TDR_API_URL, keycloak)
+      authenticateAndGetIdentityId(keycloak).then(identityId => {
+        const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
+        new UploadFiles(clientFileProcessing, identityId).upload()
+      })
     })
   }
 }

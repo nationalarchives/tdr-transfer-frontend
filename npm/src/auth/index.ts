@@ -1,11 +1,6 @@
 import Keycloak from "keycloak-js"
 import AWS, { CognitoIdentityCredentials } from "aws-sdk"
 
-export interface IAuthenticatedUpload {
-  s3: AWS.S3
-  identityId: string
-}
-
 declare var TDR_AUTH_URL: string
 declare var TDR_IDENTITY_POOL_ID: string
 
@@ -27,9 +22,23 @@ export const getToken: () => Promise<
   }
 }
 
-export const getAuthenticatedUploadObject: (
-  token: string
-) => Promise<IAuthenticatedUpload> = async token => {
+export const refreshOrReturnToken: (
+  keycloak: Keycloak.KeycloakInstance<"native">
+) => Promise<string> = async keycloak => {
+  if (keycloak.isTokenExpired(30)) {
+    await keycloak.updateToken(30)
+  }
+  if (keycloak.token) {
+    return keycloak.token
+  } else {
+    throw "Token is expired"
+  }
+}
+
+export const authenticateAndGetIdentityId: (
+  keycloak: Keycloak.KeycloakInstance<"native">
+) => Promise<string> = async keycloak => {
+  const token = await refreshOrReturnToken(keycloak)
   const credentials = new CognitoIdentityCredentials({
     IdentityPoolId: TDR_IDENTITY_POOL_ID,
     Logins: {
@@ -39,5 +48,5 @@ export const getAuthenticatedUploadObject: (
   AWS.config.update({ region: "eu-west-2", credentials })
   await credentials.getPromise()
   const { identityId } = credentials
-  return { s3: new AWS.S3(), identityId }
+  return identityId
 }
