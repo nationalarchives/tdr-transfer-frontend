@@ -1,17 +1,10 @@
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 
-const mockAuth = {
-  getToken: jest.fn()
-}
-
 import { KeycloakInstance } from "keycloak-js"
 import { renderModules } from "../src/index"
-import SpyInstance = jest.SpyInstance
-import { UploadFiles } from "../src/upload"
-import { GraphqlClient } from "../src/graphql"
 
-jest.mock("../src/auth", () => mockAuth)
-
+jest.mock("../src/auth")
+import { getToken, authenticateAndGetIdentityId } from "../src/auth"
 beforeEach(() => jest.resetModules())
 
 const mockKeycloak: KeycloakInstance<"native"> = {
@@ -36,12 +29,16 @@ const mockKeycloak: KeycloakInstance<"native"> = {
 
 beforeEach(() => {
   jest.resetModules()
+  jest.resetAllMocks()
 })
 
 test("renderModules calls authorisation when upload form present on page", async () => {
-  const spyAuth = jest
-    .spyOn(mockAuth, "getToken")
-    .mockImplementation(() => Promise.resolve(mockKeycloak))
+  const token = getToken as jest.Mock
+  token.mockImplementation(() => Promise.resolve(mockKeycloak))
+  const authenticateAndGetIdentity = authenticateAndGetIdentityId as jest.Mock
+  authenticateAndGetIdentity.mockImplementation(() =>
+    Promise.resolve("identityId")
+  )
 
   document.body.innerHTML =
     '<div class="govuk-file-upload">' +
@@ -51,15 +48,18 @@ test("renderModules calls authorisation when upload form present on page", async
     "</div>"
 
   renderModules()
-  expect(spyAuth).toBeCalledTimes(1)
+  expect(token).toBeCalledTimes(1)
 
-  spyAuth.mockRestore()
+  token.mockRestore()
 })
 
 test("renderModules does not call authorisation when no upload form present on page", async () => {
-  const spyAuth = jest
-    .spyOn(mockAuth, "getToken")
-    .mockImplementation(() => Promise.resolve(mockKeycloak))
+  const token = getToken as jest.Mock
+  token.mockImplementation(() => Promise.resolve(mockKeycloak))
+  const authenticateAndGetIdentity = authenticateAndGetIdentityId as jest.Mock
+  authenticateAndGetIdentity.mockImplementation(() =>
+    Promise.resolve("identityId")
+  )
 
   document.body.innerHTML =
     "<div>" +
@@ -70,7 +70,7 @@ test("renderModules does not call authorisation when no upload form present on p
 
   renderModules()
 
-  expect(spyAuth).toBeCalledTimes(0)
+  expect(token).toBeCalledTimes(0)
 
-  spyAuth.mockRestore()
+  token.mockRestore()
 })
