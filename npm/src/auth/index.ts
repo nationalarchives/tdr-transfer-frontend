@@ -1,9 +1,5 @@
 import Keycloak from "keycloak-js"
-import AWS, {
-  Credentials,
-  CognitoIdentity,
-  CognitoIdentityCredentials
-} from "aws-sdk"
+import AWS, { CognitoIdentityCredentials } from "aws-sdk"
 
 export interface IAuthenticatedUpload {
   s3: AWS.S3
@@ -16,12 +12,14 @@ declare var TDR_IDENTITY_POOL_ID: string
 export const getToken: () => Promise<
   Keycloak.KeycloakInstance<"native">
 > = async () => {
-  const keycloak: Keycloak.KeycloakInstance<"native"> = Keycloak()
-
+  const keycloak: Keycloak.KeycloakInstance<"native"> = Keycloak(
+    `${window.location.origin}/keycloak.json`
+  )
   const authenticated: boolean = await keycloak.init({
     promiseType: "native",
     onLoad: "check-sso"
   })
+
   if (authenticated) {
     return keycloak
   } else {
