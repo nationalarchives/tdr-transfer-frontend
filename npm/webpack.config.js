@@ -21,6 +21,14 @@ module.exports = {
     new webpack.DefinePlugin({
       TDR_API_URL: JSON.stringify(
         `${process.env.TDR_API_URL || "http://localhost:8080"}/graphql`
+      ),
+      TDR_AUTH_URL: JSON.stringify(
+        process.env.TDR_AUTH_URL ||
+          "auth.tdr-integration.nationalarchives.gov.uk/auth/realms/tdr"
+      ),
+      TDR_IDENTITY_POOL_ID: JSON.stringify(
+        process.env.TDR_IDENTITY_POOL_ID ||
+          "eu-west-2:17067e3d-4ec7-4e66-abd4-1c2291cd5169"
       )
     })
   ],
