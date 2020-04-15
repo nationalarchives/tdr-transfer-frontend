@@ -11,6 +11,7 @@ import {
 } from "apollo-boost"
 import { GraphQLError } from "graphql"
 import { KeycloakInstance } from "keycloak-js"
+import { refreshOrReturnToken } from "../src/auth"
 
 type IMockData = { [index: string]: string } | null
 type TMockVariables = string
@@ -137,38 +138,4 @@ test("Returns errors if the mutation was not successful", async () => {
   )
   expect(result.errors).toHaveLength(1)
   expect(result.errors![0].message).toBe("error")
-})
-
-test("Calls refresh if the token for the query has expired", async () => {
-  const refreshToken = mockKeycloak.updateToken as jest.MockedFunction<
-    (minValidity: number) => Promise<boolean>
-  >
-  const isTokenExpired = mockKeycloak.isTokenExpired as jest.MockedFunction<
-    (minValidity: number) => boolean
-  >
-  isTokenExpired.mockImplementation(_ => true)
-
-  const client = new GraphqlClient("test", mockKeycloak)
-  await client.query<IMockData, TMockVariables>(
-    { definitions: [], kind: "Document" },
-    ""
-  )
-  expect(refreshToken).toHaveBeenCalled()
-})
-
-test("Calls refresh if the token for the mutation has expired", async () => {
-  const refreshToken = mockKeycloak.updateToken as jest.MockedFunction<
-    (minValidity: number) => Promise<boolean>
-  >
-  const isTokenExpired = mockKeycloak.isTokenExpired as jest.MockedFunction<
-    (minValidity: number) => boolean
-  >
-  isTokenExpired.mockImplementation(_ => true)
-
-  const client = new GraphqlClient("test", mockKeycloak)
-  await client.mutation<IMockData, TMockVariables>(
-    { definitions: [], kind: "Document" },
-    ""
-  )
-  expect(refreshToken).toHaveBeenCalled()
 })
