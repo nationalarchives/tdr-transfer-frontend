@@ -12,7 +12,6 @@ import {
 
 import { FetchResult } from "apollo-boost"
 import { ITdrFile } from "../s3upload"
-import { file } from "@babel/types"
 
 export class ClientFileMetadataUpload {
   client: GraphqlClient
@@ -21,7 +20,7 @@ export class ClientFileMetadataUpload {
     this.client = client
   }
 
-  async fileInformation(
+  async saveFileInformation(
     consignmentId: string,
     numberOfFiles: number
   ): Promise<string[]> {
@@ -37,14 +36,17 @@ export class ClientFileMetadataUpload {
       variables
     )
 
-    if (!result.data) {
-      throw Error("Add files failed")
+    if (!result.data || result.errors) {
+      const errorMessage: string = result.errors
+        ? result.errors.toString()
+        : "no data"
+      throw Error("Add files failed: " + errorMessage)
     } else {
       return result.data.addFiles.fileIds
     }
   }
 
-  async clientFileMetadata(
+  async saveClientFileMetadata(
     fileIds: string[],
     metadata: IFileMetadata[]
   ): Promise<ITdrFile[]> {

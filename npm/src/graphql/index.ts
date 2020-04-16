@@ -15,6 +15,8 @@ import { refreshOrReturnToken } from "../auth"
 
 type CommonQueryOptions<T> = Omit<T, "query">
 
+const tokenMinValidityInSecs: number = 30
+
 export class GraphqlClient {
   client: ApolloClient<NormalizedCacheObject>
   keycloak: KeycloakInstance<"native">
@@ -39,7 +41,7 @@ export class GraphqlClient {
     CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>
   > = async <V>(variables: V) => {
     try {
-      const token = refreshOrReturnToken(this.keycloak)
+      const token = refreshOrReturnToken(this.keycloak, tokenMinValidityInSecs)
       return {
         variables,
         context: {

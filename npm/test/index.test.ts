@@ -1,10 +1,8 @@
-import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
-
 import { KeycloakInstance } from "keycloak-js"
 import { renderModules } from "../src/index"
 
 jest.mock("../src/auth")
-import { getToken, authenticateAndGetIdentityId } from "../src/auth"
+import { getKeycloakInstance, authenticateAndGetIdentityId } from "../src/auth"
 beforeEach(() => jest.resetModules())
 
 const mockKeycloak: KeycloakInstance<"native"> = {
@@ -33,8 +31,8 @@ beforeEach(() => {
 })
 
 test("renderModules calls authorisation when upload form present on page", async () => {
-  const token = getToken as jest.Mock
-  token.mockImplementation(() => Promise.resolve(mockKeycloak))
+  const keycloakInstance = getKeycloakInstance as jest.Mock
+  keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
   const authenticateAndGetIdentity = authenticateAndGetIdentityId as jest.Mock
   authenticateAndGetIdentity.mockImplementation(() =>
     Promise.resolve("identityId")
@@ -48,14 +46,14 @@ test("renderModules calls authorisation when upload form present on page", async
     "</div>"
 
   renderModules()
-  expect(token).toBeCalledTimes(1)
+  expect(keycloakInstance).toBeCalledTimes(1)
 
-  token.mockRestore()
+  keycloakInstance.mockRestore()
 })
 
 test("renderModules does not call authorisation when no upload form present on page", async () => {
-  const token = getToken as jest.Mock
-  token.mockImplementation(() => Promise.resolve(mockKeycloak))
+  const keycloakInstance = getKeycloakInstance as jest.Mock
+  keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
   const authenticateAndGetIdentity = authenticateAndGetIdentityId as jest.Mock
   authenticateAndGetIdentity.mockImplementation(() =>
     Promise.resolve("identityId")
@@ -70,7 +68,7 @@ test("renderModules does not call authorisation when no upload form present on p
 
   renderModules()
 
-  expect(token).toBeCalledTimes(0)
+  expect(keycloakInstance).toBeCalledTimes(0)
 
-  token.mockRestore()
+  keycloakInstance.mockRestore()
 })
