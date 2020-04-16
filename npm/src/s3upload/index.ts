@@ -32,18 +32,15 @@ export class S3Upload {
     progressInfo
   ) => {
     const { file, fileId } = tdrFile
+    console.log(`${this.identityId}/${fileId}`)
     const progress: S3.ManagedUpload = this.s3.upload({
       Key: `${this.identityId}/${fileId}`,
       Body: file,
       Bucket: "tdr-upload-files-intg"
     })
-    const {
-      processedChunks: loadedChunks,
-      totalChunks,
-      totalFiles
-    } = progressInfo
+    const { processedChunks, totalChunks, totalFiles } = progressInfo
     progress.on("httpUploadProgress", ev => {
-      const chunks = ev.loaded + loadedChunks
+      const chunks = ev.loaded + processedChunks
       const percentageProcessed = Math.round((chunks / totalChunks) * 100)
       const processedFiles = Math.floor((chunks / totalChunks) * totalFiles)
 
@@ -74,8 +71,7 @@ export class S3Upload {
         totalFiles
       })
       sendData.push(uploadResult)
-      const currentLoaded = Math.ceil(file.file.size / chunkSize)
-      processedChunks += currentLoaded
+      processedChunks += file.file.size
     }
     return sendData
   }
