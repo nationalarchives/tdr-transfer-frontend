@@ -35,7 +35,13 @@ export class UploadFiles {
           if (!consignmentId) {
             throw Error("No consignment provided")
           }
+
           const files: TdrFile[] = target!.files!.files!
+
+          if (files === null || files.length === 0) {
+            throw Error("No files selected")
+          }
+
           this.clientFileProcessing.processClientFiles(consignmentId, files)
         } catch (e) {
           //For now console log errors

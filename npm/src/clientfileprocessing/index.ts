@@ -16,14 +16,17 @@ export class ClientFileProcessing {
     files: TdrFile[]
   ): Promise<void> {
     try {
-      const fileIds: string[] = await this.clientFileMetadataUpload.fileInformation(
+      const fileIds: string[] = await this.clientFileMetadataUpload.saveFileInformation(
         consignmentId,
         files.length
       )
       const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
         files
       )
-      await this.clientFileMetadataUpload.clientFileMetadata(fileIds, metadata)
+      await this.clientFileMetadataUpload.saveClientFileMetadata(
+        fileIds,
+        metadata
+      )
     } catch (e) {
       throw Error("Processing client files failed: " + e.message)
     }

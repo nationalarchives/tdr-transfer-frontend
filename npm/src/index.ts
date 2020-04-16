@@ -1,5 +1,5 @@
 import { GraphqlClient } from "./graphql"
-import { getToken } from "./auth"
+import { getKeycloakInstance } from "./auth"
 import { UploadFiles } from "./upload"
 import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 
@@ -15,7 +15,7 @@ export const renderModules = () => {
   )
 
   if (uploadContainer) {
-    const client: Promise<GraphqlClient> = getToken().then(
+    const client: Promise<GraphqlClient> = getKeycloakInstance().then(
       keycloak => new GraphqlClient(TDR_API_URL, keycloak)
     )
 

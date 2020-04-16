@@ -1,18 +1,18 @@
 import Keycloak from "keycloak-js"
 
-export const getToken: () => Promise<
+export const getKeycloakInstance: () => Promise<
   Keycloak.KeycloakInstance<"native">
 > = async () => {
-  const keycloak: Keycloak.KeycloakInstance<"native"> = Keycloak(
+  const keycloakInstance: Keycloak.KeycloakInstance<"native"> = Keycloak(
     `${window.location.origin}/keycloak.json`
   )
-  const authenticated: boolean = await keycloak.init({
+  const authenticated: boolean = await keycloakInstance.init({
     promiseType: "native",
     onLoad: "check-sso"
   })
 
   if (authenticated) {
-    return keycloak
+    return keycloakInstance
   } else {
     throw "User is not authenticated"
   }
