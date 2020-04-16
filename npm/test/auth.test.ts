@@ -61,7 +61,6 @@ test("Returns an error if login attempt fails", async () => {
 test("Calls the correct authentication update", async () => {
   const config = AWS.config.update as jest.Mock
   const token = "testtoken"
-  config.mockImplementation(() => console.log("update called"))
   ;(Keycloak as jest.Mock).mockImplementation(() => {
     return new MockKeycloakAuthenticated()
   })
