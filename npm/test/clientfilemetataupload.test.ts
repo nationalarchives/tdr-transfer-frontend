@@ -131,13 +131,6 @@ const mockDataErrorsAddFiles: () => void = () => {
   })
 }
 
-const mockSuccessAddMetadata: () => void = () => {
-  const mock = GraphqlClient as jest.Mock
-  mock.mockImplementation(() => {
-    return new GraphqlClientSuccessAddMetadata()
-  })
-}
-
 const mockFailureAddMetadata: () => void = () => {
   const mock = GraphqlClient as jest.Mock
   mock.mockImplementation(() => {
@@ -173,7 +166,10 @@ test("saveFileInformation returns error if returned data contains errors", async
 })
 
 test("saveClientFileMetadata uploads client file metadata", async () => {
-  mockSuccessAddMetadata()
+  const mockGraphqlClient = GraphqlClient as jest.Mock
+  mockGraphqlClient.mockImplementation(() => {
+    return new GraphqlClientSuccessAddMetadata()
+  })
 
   const metadata: IFileMetadata[] = [mockMetadata1, mockMetadata2]
   const fileIds: string[] = ["1", "2"]
@@ -183,6 +179,8 @@ test("saveClientFileMetadata uploads client file metadata", async () => {
   await expect(
     uploadMetadata.saveClientFileMetadata(fileIds, metadata)
   ).resolves.not.toThrow()
+
+  expect(mockGraphqlClient).toHaveBeenCalled()
 })
 
 test("saveClientFileMetadata fails to upload client file metadata", async () => {
