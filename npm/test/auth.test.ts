@@ -93,12 +93,12 @@ test("Calls refresh token if the token is expired", async () => {
     token: "fake-auth-token"
   }
 
-  refreshOrReturnToken(mockKeycloak)
+  await refreshOrReturnToken(mockKeycloak)
 
   expect(updateToken).toHaveBeenCalled()
 })
 
-test("Doesn't call refresh token if the token is not expired", () => {
+test("Doesn't call refresh token if the token is not expired", async () => {
   const isTokenExpired = jest.fn().mockImplementation(() => false)
   const updateToken = jest.fn()
   const mockKeycloak: KeycloakInstance<"native"> = {
@@ -121,7 +121,7 @@ test("Doesn't call refresh token if the token is not expired", () => {
     token: "fake-auth-token"
   }
 
-  refreshOrReturnToken(mockKeycloak)
+  await refreshOrReturnToken(mockKeycloak)
 
   expect(updateToken).not.toHaveBeenCalled()
 })
