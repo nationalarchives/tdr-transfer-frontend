@@ -1,38 +1,13 @@
-import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
-
 const mockAuth = {
-  getToken: jest.fn()
+  getKeycloakInstance: jest.fn()
 }
 
-import { KeycloakInstance } from "keycloak-js"
 import { renderModules } from "../src/index"
-import SpyInstance = jest.SpyInstance
-import { UploadFiles } from "../src/upload"
-import { GraphqlClient } from "../src/graphql"
+import { mockKeycloakInstance } from "./utils"
 
 jest.mock("../src/auth", () => mockAuth)
 
 beforeEach(() => jest.resetModules())
-
-const mockKeycloak: KeycloakInstance<"native"> = {
-  init: jest.fn(),
-  login: jest.fn(),
-  logout: jest.fn(),
-  register: jest.fn(),
-  accountManagement: jest.fn(),
-  createLoginUrl: jest.fn(),
-  createLogoutUrl: jest.fn(),
-  createRegisterUrl: jest.fn(),
-  createAccountUrl: jest.fn(),
-  isTokenExpired: jest.fn(),
-  updateToken: jest.fn(),
-  clearToken: jest.fn(),
-  hasRealmRole: jest.fn(),
-  hasResourceRole: jest.fn(),
-  loadUserInfo: jest.fn(),
-  loadUserProfile: jest.fn(),
-  token: "fake-auth-token"
-}
 
 beforeEach(() => {
   jest.resetModules()
@@ -40,8 +15,8 @@ beforeEach(() => {
 
 test("renderModules calls authorisation when upload form present on page", async () => {
   const spyAuth = jest
-    .spyOn(mockAuth, "getToken")
-    .mockImplementation(() => Promise.resolve(mockKeycloak))
+    .spyOn(mockAuth, "getKeycloakInstance")
+    .mockImplementation(() => Promise.resolve(mockKeycloakInstance))
 
   document.body.innerHTML =
     '<div class="govuk-file-upload">' +
@@ -58,8 +33,8 @@ test("renderModules calls authorisation when upload form present on page", async
 
 test("renderModules does not call authorisation when no upload form present on page", async () => {
   const spyAuth = jest
-    .spyOn(mockAuth, "getToken")
-    .mockImplementation(() => Promise.resolve(mockKeycloak))
+    .spyOn(mockAuth, "getKeycloakInstance")
+    .mockImplementation(() => Promise.resolve(mockKeycloakInstance))
 
   document.body.innerHTML =
     "<div>" +

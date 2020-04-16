@@ -14,6 +14,8 @@ import { KeycloakInstance } from "keycloak-js"
 
 type CommonQueryOptions<T> = Omit<T, "query">
 
+const tokenMinValidityInSecs: number = 30
+
 export class GraphqlClient {
   client: ApolloClient<NormalizedCacheObject>
   keycloak: KeycloakInstance<"native">
@@ -38,8 +40,8 @@ export class GraphqlClient {
     CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>
   > = async <V>(variables: V) => {
     try {
-      if (this.keycloak.isTokenExpired(30)) {
-        await this.keycloak.updateToken(30)
+      if (this.keycloak.isTokenExpired(tokenMinValidityInSecs)) {
+        await this.keycloak.updateToken(tokenMinValidityInSecs)
       }
       return {
         variables,
