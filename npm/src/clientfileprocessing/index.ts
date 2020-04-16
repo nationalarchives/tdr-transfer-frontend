@@ -27,14 +27,14 @@ export class ClientFileProcessing {
     callback: TProgressFunction
   ): Promise<void> {
     try {
-      const fileIds: string[] = await this.clientFileMetadataUpload.fileInformation(
+      const fileIds: string[] = await this.clientFileMetadataUpload.saveFileInformation(
         consignmentId,
         files.length
       )
       const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
         files
       )
-      const tdrFiles: ITdrFile[] = await this.clientFileMetadataUpload.clientFileMetadata(
+      const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
         fileIds,
         metadata
       )

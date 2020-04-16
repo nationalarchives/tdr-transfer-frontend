@@ -4,29 +4,30 @@ import AWS, { CognitoIdentityCredentials } from "aws-sdk"
 declare var TDR_AUTH_URL: string
 declare var TDR_IDENTITY_POOL_ID: string
 
-export const getToken: () => Promise<
+export const getKeycloakInstance: () => Promise<
   Keycloak.KeycloakInstance<"native">
 > = async () => {
-  const keycloak: Keycloak.KeycloakInstance<"native"> = Keycloak(
+  const keycloakInstance: Keycloak.KeycloakInstance<"native"> = Keycloak(
     `${window.location.origin}/keycloak.json`
   )
-  const authenticated: boolean = await keycloak.init({
+  const authenticated: boolean = await keycloakInstance.init({
     promiseType: "native",
     onLoad: "check-sso"
   })
 
   if (authenticated) {
-    return keycloak
+    return keycloakInstance
   } else {
     throw "User is not authenticated"
   }
 }
 
 export const refreshOrReturnToken: (
-  keycloak: Keycloak.KeycloakInstance<"native">
-) => Promise<string> = async keycloak => {
-  if (keycloak.isTokenExpired(30)) {
-    await keycloak.updateToken(30)
+  keycloak: Keycloak.KeycloakInstance<"native">,
+  tokenMinValidityInSecs?: number
+) => Promise<string> = async (keycloak, tokenMinValidityInSecs = 30) => {
+  if (keycloak.isTokenExpired(tokenMinValidityInSecs)) {
+    await keycloak.updateToken(tokenMinValidityInSecs)
   }
   if (keycloak.token) {
     return keycloak.token

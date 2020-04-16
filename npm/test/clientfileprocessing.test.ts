@@ -1,4 +1,3 @@
-import { KeycloakInstance } from "keycloak-js"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { GraphqlClient } from "../src/graphql"
 import { ClientFileProcessing } from "../src/clientfileprocessing"
@@ -10,6 +9,7 @@ import {
 import { ClientFileExtractMetadata } from "../src/clientfileextractmetadata"
 import { S3Upload, ITdrFile } from "../src/s3upload"
 import { ManagedUpload } from "aws-sdk/clients/s3"
+import { mockKeycloakInstance } from "./utils"
 
 jest.mock("../src/clientfilemetadataupload")
 jest.mock("../src/clientfileextractmetadata")
@@ -26,7 +26,7 @@ class S3UploadMock extends S3Upload {
 }
 
 class ClientFileUploadSuccess {
-  fileInformation: (
+  saveFileInformation: (
     consignmentId: string,
     numberOfFiles: number
   ) => Promise<string[]> = async (
@@ -35,7 +35,7 @@ class ClientFileUploadSuccess {
   ) => {
     return Promise.resolve(["1", "2"])
   }
-  clientFileMetadata: (
+  saveClientFileMetadata: (
     files: File[],
     fileIds: string[]
   ) => Promise<void> = async (files: File[], fileIds: string[]) => {
@@ -52,7 +52,7 @@ class ClientFileExtractMetadataSuccess {
 }
 
 class ClientFileUploadFileInformationFailure {
-  fileInformation: (
+  saveFileInformation: (
     consignmentId: string,
     numberOfFiles: number
   ) => Promise<string[]> = async (
@@ -61,7 +61,7 @@ class ClientFileUploadFileInformationFailure {
   ) => {
     return Promise.reject(Error("upload client file information error"))
   }
-  clientFileMetadata: (
+  saveClientFileMetadata: (
     files: File[],
     fileIds: string[]
   ) => Promise<void> = async (files: File[], fileIds: string[]) => {
@@ -70,7 +70,7 @@ class ClientFileUploadFileInformationFailure {
 }
 
 class ClientFileUploadMetadataFailure {
-  fileInformation: (
+  saveFileInformation: (
     consignmentId: string,
     numberOfFiles: number
   ) => Promise<string[]> = async (
@@ -79,7 +79,7 @@ class ClientFileUploadMetadataFailure {
   ) => {
     return Promise.resolve(["1", "2"])
   }
-  clientFileMetadata: (
+  saveClientFileMetadata: (
     files: File[],
     fileIds: string[]
   ) => Promise<void> = async (files: File[], fileIds: string[]) => {
@@ -93,26 +93,6 @@ class ClientFileExtractMetadataFailure {
   ) => {
     return Promise.reject(Error("client file metadata extraction error"))
   }
-}
-
-const mockKeycloak: KeycloakInstance<"native"> = {
-  init: jest.fn(),
-  login: jest.fn(),
-  logout: jest.fn(),
-  register: jest.fn(),
-  accountManagement: jest.fn(),
-  createLoginUrl: jest.fn(),
-  createLogoutUrl: jest.fn(),
-  createRegisterUrl: jest.fn(),
-  createAccountUrl: jest.fn(),
-  isTokenExpired: jest.fn(),
-  updateToken: jest.fn(),
-  clearToken: jest.fn(),
-  hasRealmRole: jest.fn(),
-  hasResourceRole: jest.fn(),
-  loadUserInfo: jest.fn(),
-  loadUserProfile: jest.fn(),
-  token: "fake-auth-token"
 }
 
 const mockMetadataUploadSuccess: () => void = () => {
@@ -154,7 +134,7 @@ test("client file metadata successfully uploaded", async () => {
   mockMetadataExtractSuccess()
   mockMetadataUploadSuccess()
 
-  const client = new GraphqlClient("test", mockKeycloak)
+  const client = new GraphqlClient("test", mockKeycloakInstance)
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
@@ -171,7 +151,7 @@ test("file successfully uploaded to s3", async () => {
   mockMetadataExtractSuccess()
   mockMetadataUploadSuccess()
 
-  const client = new GraphqlClient("test", mockKeycloak)
+  const client = new GraphqlClient("test", mockKeycloakInstance)
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
@@ -187,7 +167,7 @@ test("Error thrown if processing files fails", async () => {
   mockMetadataExtractSuccess()
   mockUploadFileInformationFailure()
 
-  const client = new GraphqlClient("test", mockKeycloak)
+  const client = new GraphqlClient("test", mockKeycloakInstance)
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
@@ -209,7 +189,7 @@ test("Error thrown if processing file metadata fails", async () => {
   mockMetadataExtractSuccess()
   mockUploadMetadataFailure()
 
-  const client = new GraphqlClient("test", mockKeycloak)
+  const client = new GraphqlClient("test", mockKeycloakInstance)
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
@@ -229,7 +209,7 @@ test("Error thrown if extracting file metadata fails", async () => {
   mockMetadataExtractFailure()
   mockMetadataUploadSuccess()
 
-  const client = new GraphqlClient("test", mockKeycloak)
+  const client = new GraphqlClient("test", mockKeycloakInstance)
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
