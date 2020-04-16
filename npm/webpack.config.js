@@ -28,7 +28,7 @@ module.exports = {
       ),
       TDR_IDENTITY_POOL_ID: JSON.stringify(
         process.env.TDR_IDENTITY_POOL_ID ||
-          "eu-west-2:17067e3d-4ec7-4e66-abd4-1c2291cd5169"
+          "eu-west-2:72554146-a0ac-4773-b0ee-ec5cb069ce96"
       )
     })
   ],
