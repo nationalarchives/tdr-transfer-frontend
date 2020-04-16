@@ -1,6 +1,11 @@
 import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { ClientFileExtractMetadata } from "../clientfileextractmetadata"
-import { IFileMetadata, TdrFile } from "@nationalarchives/file-information"
+import {
+  IFileMetadata,
+  IProgressInformation,
+  TdrFile,
+  TProgressFunction
+} from "@nationalarchives/file-information"
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
@@ -21,7 +26,14 @@ export class ClientFileProcessing {
         files.length
       )
       const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
-        files
+        files,
+        //Temporary function until s3 upload in place
+        function(progressInformation: IProgressInformation) {
+          console.log(
+            "Percent of metadata extracted: " +
+              progressInformation.percentageProcessed
+          )
+        }
       )
       await this.clientFileMetadataUpload.saveClientFileMetadata(
         fileIds,
