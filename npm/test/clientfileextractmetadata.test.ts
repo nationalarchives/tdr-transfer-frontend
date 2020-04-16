@@ -28,7 +28,7 @@ test("extract function returns list of client file metadata", async () => {
   })
 
   const extractMetadata = new ClientFileExtractMetadata()
-  const result = await extractMetadata.extract([])
+  const result = await extractMetadata.extract([], jest.fn())
   expect(result).toHaveLength(2)
   expect(result[0]).toStrictEqual(mockMetadata1)
   expect(result[1]).toStrictEqual(mockMetadata2)
@@ -40,7 +40,9 @@ test("extract function throws error if client file metadata extraction failed", 
   })
 
   const extractMetadata = new ClientFileExtractMetadata()
-  await expect(extractMetadata.extract([])).rejects.toStrictEqual(
+  await expect(
+    extractMetadata.extract([], function() {})
+  ).rejects.toStrictEqual(
     Error("Client file metadata extraction failed: Some error")
   )
 })
