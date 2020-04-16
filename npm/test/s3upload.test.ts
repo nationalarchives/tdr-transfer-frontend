@@ -1,6 +1,7 @@
 import { PutObjectRequest } from "aws-sdk/clients/s3"
 import { ManagedUpload } from "aws-sdk/clients/s3"
 import { S3Upload, ITdrFile } from "../src/s3upload"
+import { IProgressInformation } from "@nationalarchives/file-information"
 
 class MockFailedS3 {
   upload(_: PutObjectRequest) {
@@ -41,12 +42,19 @@ class MockSuccessfulS3 {
   }
 }
 
-const checkCallbackCalls: (callback: jest.Mock, arr: number[]) => void = (
-  callback,
-  arr
-) => {
+const checkCallbackCalls: (
+  callback: jest.Mock,
+  totalFiles: number,
+  arr: number[]
+) => void = (callback, totalFiles, arr) => {
   for (let i = 0; i < arr.length; i++) {
-    expect(callback).toHaveBeenNthCalledWith(i + 1, arr[i])
+    const percentageProcessed = arr[i]
+    const expectedResult: IProgressInformation = {
+      percentageProcessed,
+      totalFiles,
+      processedFiles: Math.floor((percentageProcessed / 100) * totalFiles)
+    }
+    expect(callback).toHaveBeenNthCalledWith(i + 1, expectedResult)
   }
 }
 
@@ -74,7 +82,7 @@ test("a single file upload calls the callback correctly", async () => {
     callback,
     1
   )
-  checkCallbackCalls(callback, [20, 40, 60, 80, 100])
+  checkCallbackCalls(callback, 1, [20, 40, 60, 80, 100])
 })
 
 test("multiple file uploads return the correct keys", async () => {
@@ -115,7 +123,7 @@ test("multiple file uploads call the callback correctly", async () => {
   const s3Upload = new S3Upload("identityId")
   s3Upload.s3 = new MockSuccessfulS3()
   await s3Upload.uploadToS3(files, callback, 1)
-  checkCallbackCalls(callback, [
+  checkCallbackCalls(callback, 4, [
     5,
     10,
     15,
@@ -158,5 +166,5 @@ test("a single file upload calls the callback correctly with a different chunk s
     callback,
     2
   )
-  checkCallbackCalls(callback, [20, 60, 100])
+  checkCallbackCalls(callback, 1, [20, 60, 100])
 })
