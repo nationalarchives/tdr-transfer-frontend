@@ -3,7 +3,6 @@ import { ClientFileExtractMetadata } from "../clientfileextractmetadata"
 import {
   IFileMetadata,
   TdrFile,
-  IProgressInformation,
   TProgressFunction
 } from "@nationalarchives/file-information"
 import { ITdrFile, S3Upload } from "../s3upload"
