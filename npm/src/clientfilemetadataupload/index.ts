@@ -11,6 +11,8 @@ import {
 } from "@nationalarchives/tdr-generated-graphql"
 
 import { FetchResult } from "apollo-boost"
+import { ITdrFile } from "../s3upload"
+import { file } from "@babel/types"
 
 export class ClientFileMetadataUpload {
   client: GraphqlClient
@@ -45,7 +47,8 @@ export class ClientFileMetadataUpload {
   async clientFileMetadata(
     fileIds: string[],
     metadata: IFileMetadata[]
-  ): Promise<void> {
+  ): Promise<ITdrFile[]> {
+    const files: ITdrFile[] = []
     for (const element of metadata) {
       let index = metadata.indexOf(element)
       const fileId = fileIds[index]
@@ -68,7 +71,10 @@ export class ClientFileMetadataUpload {
             result.errors.toString()
         )
       }
+      const { file } = element
+      files.push({ fileId, file })
     }
+    return files
   }
 
   generateMutationVariables(

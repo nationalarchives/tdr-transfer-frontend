@@ -1,6 +1,7 @@
 import { TdrFile } from "@nationalarchives/file-information"
 import { ClientFileProcessing } from "../clientfileprocessing"
 import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
+import { S3Upload } from "../s3upload"
 
 interface HTMLInputTarget extends EventTarget {
   files?: InputElement
@@ -12,14 +13,15 @@ interface InputElement {
 
 export class UploadFiles {
   clientFileProcessing: ClientFileProcessing
-  identityId: string
 
   constructor(
     clientFileProcessing: ClientFileMetadataUpload,
     identityId: string
   ) {
-    this.clientFileProcessing = new ClientFileProcessing(clientFileProcessing)
-    this.identityId = identityId
+    this.clientFileProcessing = new ClientFileProcessing(
+      clientFileProcessing,
+      new S3Upload(identityId)
+    )
   }
   upload(): void {
     const uploadForm: HTMLFormElement | null = document.querySelector(
@@ -40,7 +42,11 @@ export class UploadFiles {
             throw Error("No consignment provided")
           }
           const files: TdrFile[] = target!.files!.files!
-          this.clientFileProcessing.processClientFiles(consignmentId, files)
+          this.clientFileProcessing.processClientFiles(
+            consignmentId,
+            files,
+            progressPercentage => console.log(progressPercentage)
+          )
         } catch (e) {
           //For now console log errors
           console.error("Client file upload failed: " + e.message)
