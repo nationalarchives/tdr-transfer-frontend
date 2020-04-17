@@ -4,7 +4,7 @@
 @main(Messages("upload.header")) {
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds govuk-file-upload">
-
+        <a href="@routes.DashboardController.dashboard" class="govuk-back-link">Back</a>
         @progressIndicator(Messages("upload.progress"))
 
         <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
@@ -15,7 +15,7 @@
                 </label>
                 <input type="hidden" class="file-id-data" name="file-id-data" />
                 <input type="file" id="file-selection" name="files" class="govuk-file-upload" webkitdirectory>
-    
+
                 <details class="govuk-details" data-module="govuk-details">
                     <summary class="govuk-details__summary">
                         <span class="govuk-details__summary-text">
