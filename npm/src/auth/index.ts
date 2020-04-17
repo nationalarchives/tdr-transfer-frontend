@@ -1,7 +1,7 @@
 import Keycloak from "keycloak-js"
 import AWS, { CognitoIdentityCredentials } from "aws-sdk"
 
-declare var TDR_AUTH_URL: string
+declare var TDR_IDENTITY_PROVIDER_NAME: string
 declare var TDR_IDENTITY_POOL_ID: string
 
 export const getKeycloakInstance: () => Promise<
@@ -43,7 +43,7 @@ export const authenticateAndGetIdentityId: (
   const credentials = new CognitoIdentityCredentials({
     IdentityPoolId: TDR_IDENTITY_POOL_ID,
     Logins: {
-      [TDR_AUTH_URL]: token
+      [TDR_IDENTITY_PROVIDER_NAME]: token
     }
   })
   AWS.config.update({ region: "eu-west-2", credentials })

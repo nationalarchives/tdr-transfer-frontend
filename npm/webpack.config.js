@@ -17,18 +17,15 @@ module.exports = {
     extensions: [".ts", ".js"]
   },
   plugins: [
-    new DtsBundlePlugin(),
     new webpack.DefinePlugin({
-      TDR_API_URL: JSON.stringify(
-        `${process.env.TDR_API_URL || "http://localhost:8080"}/graphql`
+      API_URL: JSON.stringify(
+        `${process.env.API_URL || "http://localhost:8080"}/graphql`
       ),
-      TDR_AUTH_URL: JSON.stringify(
-        process.env.TDR_AUTH_URL ||
-          "auth.tdr-integration.nationalarchives.gov.uk/auth/realms/tdr"
+      TDR_IDENTITY_PROVIDER_NAME: JSON.stringify(
+        process.env.TDR_IDENTITY_PROVIDER_NAME || "auth.tdr-integration.nationalarchives.gov.uk/auth/realms/tdr"
       ),
       TDR_IDENTITY_POOL_ID: JSON.stringify(
-        process.env.TDR_IDENTITY_POOL_ID ||
-          "eu-west-2:72554146-a0ac-4773-b0ee-ec5cb069ce96"
+        process.env.TDR_IDENTITY_POOL_ID
       )
     })
   ],
