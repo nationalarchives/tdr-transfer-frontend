@@ -32,6 +32,7 @@ development environment for the other TDR services.
     - AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
     - AUTH_SECRET=\<insert the secret for the tdr client that you copied above\>
     - API_URL=https://api.tdr-integration.nationalarchives.gov.uk/graphql
+    - TDR_IDENTITY_POOL_ID=secret-from-/mgmt/identitypoolid_intg in the management account
 - Follow the Static Assets steps below to build the CSS and JS
 - Run the project from IntelliJ
 - Visit `http://localhost:9000`
@@ -94,6 +95,11 @@ updating the frontend.
   ```
   AUTH_SECRET=[secret value]
   ```
+  
+If you want to upload to the aws s3 bucket, you can no longer use your local keycloak instance so you'll have to set at least these environment variables
+- AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
+- AUTH_SECRET=\<insert the secret for the tdr client in the integration account\>
+- TDR_IDENTITY_POOL_ID=secret-from-/intg/cognito/identitypool in the management account 
 
 #### Frontend project
 
