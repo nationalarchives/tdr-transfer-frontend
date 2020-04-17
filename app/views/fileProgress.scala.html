@@ -6,7 +6,20 @@
         @progressIndicator(Messages("fileProgress.progress"))
         <h1 class="govuk-heading-xl">@Messages("fileProgress.header")</h1>
         <p class="govuk-body">@Messages("fileProgress.title")</p>
-        <progress max="100" value="50"></progress> <!--Visible here (still alot to look into this)-->
+
+        <progress id="progress" max="100" value="50"></progress>
+        <span id="present"></span>
+
+        <script type="text/javascript">
+        var progressBar = document.getElementById("progress"),
+          xhr = new XMLHttpRequest();
+          xhr.upload.onprogress = function(e){
+            var done = e.position || e.loaded, total = e.totalSize || e.total
+            var present = Math.floor(done/total*100)
+            document.getElementById('progress').innerHTML = present + '%'
+          }
+        </script>
+
       </div>
     </div>
 </div>
