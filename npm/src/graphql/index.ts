@@ -11,6 +11,7 @@ import {
 } from "apollo-boost"
 import fetch from "unfetch"
 import { KeycloakInstance } from "keycloak-js"
+import { refreshOrReturnToken } from "../auth"
 
 type CommonQueryOptions<T> = Omit<T, "query">
 
@@ -40,14 +41,15 @@ export class GraphqlClient {
     CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>
   > = async <V>(variables: V) => {
     try {
-      if (this.keycloak.isTokenExpired(tokenMinValidityInSecs)) {
-        await this.keycloak.updateToken(tokenMinValidityInSecs)
-      }
+      const token = await refreshOrReturnToken(
+        this.keycloak,
+        tokenMinValidityInSecs
+      )
       return {
         variables,
         context: {
           headers: {
-            Authorization: `Bearer ${this.keycloak.token}`
+            Authorization: `Bearer ${token}`
           }
         }
       }

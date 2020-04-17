@@ -118,37 +118,3 @@ test("Returns errors if the mutation was not successful", async () => {
   expect(result.errors).toHaveLength(1)
   expect(result.errors![0].message).toBe("error")
 })
-
-test("Calls refresh if the token for the query has expired", async () => {
-  const refreshToken = mockKeycloakInstance.updateToken as jest.MockedFunction<
-    (minValidity: number) => Promise<boolean>
-  >
-  const isTokenExpired = mockKeycloakInstance.isTokenExpired as jest.MockedFunction<
-    (minValidity: number) => boolean
-  >
-  isTokenExpired.mockImplementation(_ => true)
-
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  await client.query<IMockData, TMockVariables>(
-    { definitions: [], kind: "Document" },
-    ""
-  )
-  expect(refreshToken).toHaveBeenCalled()
-})
-
-test("Calls refresh if the token for the mutation has expired", async () => {
-  const refreshToken = mockKeycloakInstance.updateToken as jest.MockedFunction<
-    (minValidity: number) => Promise<boolean>
-  >
-  const isTokenExpired = mockKeycloakInstance.isTokenExpired as jest.MockedFunction<
-    (minValidity: number) => boolean
-  >
-  isTokenExpired.mockImplementation(_ => true)
-
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  await client.mutation<IMockData, TMockVariables>(
-    { definitions: [], kind: "Document" },
-    ""
-  )
-  expect(refreshToken).toHaveBeenCalled()
-})
