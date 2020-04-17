@@ -14,9 +14,9 @@
     "compress-css": "minify ./css-src/main.css > ../public/stylesheets/main.css",
     "build-css": "npm-run-all add-stylesheet-dir sass-compile compress-css",
     "build:local": "npm-run-all copy-assets build-css build-ts:prod",
-    "build:intg": "API_URL=https://api.tdr-integration.nationalarchives.gov.uk TDR_IDENTITY_PROVIDER_NAME=auth.tdr-integration.nationalarchives.gov.uk/auth/realms/tdr npm-run-all copy-assets build-css build-ts:prod",
-    "build:staging": "API_URL=https://api.tdr-staging.nationalarchives.gov.uk TDR_IDENTITY_PROVIDER_NAME=auth.tdr-staging.nationalarchives.gov.uk/auth/realms/tdr npm-run-all copy-assets build-css build-ts:prod",
-    "build:prod": "API_URL=https://api.tdr.nationalarchives.gov.uk npm-run-all TDR_IDENTITY_PROVIDER_NAME=auth.tdr.nationalarchives.gov.uk/auth/realms/tdr copy-assets build-css build-ts:prod",
+    "build:intg": "API_URL=https://api.tdr-integration.nationalarchives.gov.uk REGION=eu-west-2 STAGE=intg TDR_IDENTITY_PROVIDER_NAME=auth.tdr-integration.nationalarchives.gov.uk/auth/realms/tdr npm-run-all copy-assets build-css build-ts:prod",
+    "build:staging": "API_URL=https://api.tdr-staging.nationalarchives.gov.uk REGION=eu-west-2 STAGE=staging TDR_IDENTITY_PROVIDER_NAME=auth.tdr-staging.nationalarchives.gov.uk/auth/realms/tdr npm-run-all copy-assets build-css build-ts:prod",
+    "build:prod": "API_URL=https://api.tdr.nationalarchives.gov.uk REGION=eu-west-2 STAGE=prod npm-run-all TDR_IDENTITY_PROVIDER_NAME=auth.tdr.nationalarchives.gov.uk/auth/realms/tdr copy-assets build-css build-ts:prod",
     "test": "jest",
     "build-ts:prod": "webpack --mode production",
     "build-ts": "webpack --mode development --watch"

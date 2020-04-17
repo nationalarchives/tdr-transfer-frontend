@@ -3,6 +3,7 @@ import AWS, { CognitoIdentityCredentials } from "aws-sdk"
 
 declare var TDR_IDENTITY_PROVIDER_NAME: string
 declare var TDR_IDENTITY_POOL_ID: string
+declare var REGION: string
 
 export const getKeycloakInstance: () => Promise<
   Keycloak.KeycloakInstance<"native">
@@ -46,7 +47,7 @@ export const authenticateAndGetIdentityId: (
       [TDR_IDENTITY_PROVIDER_NAME]: token
     }
   })
-  AWS.config.update({ region: "eu-west-2", credentials })
+  AWS.config.update({ region: REGION, credentials })
   await credentials.getPromise()
   const { identityId } = credentials
   return identityId
