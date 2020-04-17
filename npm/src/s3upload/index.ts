@@ -3,6 +3,8 @@ import {
   IProgressInformation,
   TProgressFunction
 } from "@nationalarchives/file-information"
+declare var STAGE: string
+
 export interface ITdrFile {
   fileId: string
   file: File
@@ -32,11 +34,10 @@ export class S3Upload {
     progressInfo
   ) => {
     const { file, fileId } = tdrFile
-    console.log(`${this.identityId}/${fileId}`)
     const progress: S3.ManagedUpload = this.s3.upload({
       Key: `${this.identityId}/${fileId}`,
       Body: file,
-      Bucket: "tdr-upload-files-intg"
+      Bucket: `tdr-upload-files-${STAGE}`
     })
     const { processedChunks, totalChunks, totalFiles } = progressInfo
     progress.on("httpUploadProgress", ev => {
