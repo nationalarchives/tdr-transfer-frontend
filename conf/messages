@@ -44,6 +44,8 @@ upload.fileExtensionSummary=Cannot upload the following file extensions: .zip, t
 upload.continueLink=Continue
 fileProgress.header=Uploading Records...
 fileProgress.title=Please wait. Do not close your browser window while your files are being uploaded. This could take a few minutes.
+checkingRecords.header=Checking your records
+checkingRecords.title=We are now checking your records. It is safe to close the browser if you wish, otherwise please wait and you will be redirected automatically once complete.
 records.header=Records
 records.title=Records
 
