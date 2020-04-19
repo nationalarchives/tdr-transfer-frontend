@@ -135,7 +135,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     "renders an error when a valid form is submitted but there is an error from the api" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val client = new GraphQLConfiguration(app.configuration).getClient[ata.Data, ata.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Error", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
