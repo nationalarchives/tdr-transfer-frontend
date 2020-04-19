@@ -8,8 +8,6 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "declaration": true,
-    "declarationDir": "./src",
     "moduleResolution": "node",
     "strict": true
   },

@@ -2,7 +2,6 @@ package controllers
 
 import java.util.UUID
 
-import auth.OidcSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents

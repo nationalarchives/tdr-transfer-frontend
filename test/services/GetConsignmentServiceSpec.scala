@@ -9,13 +9,12 @@ import graphql.codegen.GetConsignment.{getConsignment => gc}
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.Matchers._
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.time.{Millis, Seconds, Span}
 import sangria.ast.Document
 import sttp.client.HttpError
-import uk.gov.nationalarchives.tdr.GraphQLClient
-import uk.gov.nationalarchives.tdr.GraphQLClient.GraphqlError
+import uk.gov.nationalarchives.tdr.error.{GraphQlError, UnknownGraphQlError}
+import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 import util.FrontEndTestHelper
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -24,7 +23,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
   implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = scaled(Span(100, Millis)))
-  case class GraphqlData(data: Option[Data], errors: List[GraphqlError] = Nil)
+  case class GraphqlData(data: Option[Data], errors: List[GraphQLClient.Error] = Nil)
 
   private def verifyCaptors(captors: (ArgumentCaptor[Document], ArgumentCaptor[BearerAccessToken], ArgumentCaptor[Option[Variables]]), consignmentId: UUID): Unit = {
     val (documentCaptor, tokenCaptor, variablesCaptor) = captors
@@ -34,13 +33,13 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
     variablesCaptor.getValue.get.consignmentId should be(consignmentId)
   }
 
-  def mockOkResponse(graphQLClient: GraphQLClient[gc.Data, gc.Variables], data: Option[gc.Data], errors: List[GraphqlError]):
+  def mockOkResponse(graphQLClient: GraphQLClient[gc.Data, gc.Variables], data: Option[gc.Data], errors: List[GraphQlError]):
   (ArgumentCaptor[Document], ArgumentCaptor[BearerAccessToken], ArgumentCaptor[Option[Variables]])= {
     val documentCaptor: ArgumentCaptor[Document] = ArgumentCaptor.forClass(classOf[Document])
     val tokenCaptor: ArgumentCaptor[BearerAccessToken] = ArgumentCaptor.forClass(classOf[BearerAccessToken])
     val variablesCaptor: ArgumentCaptor[Option[gc.Variables]] = ArgumentCaptor.forClass(classOf[Option[gc.Variables]])
 
-    val graphqlData = graphQLClient.GraphqlData(data, errors)
+    val graphqlData = GraphQlResponse(data, errors)
 
     when(graphQLClient.getResult(tokenCaptor.capture(), documentCaptor.capture(), variablesCaptor.capture())).thenReturn(Future(graphqlData))
     Tuple3(documentCaptor, tokenCaptor, variablesCaptor)
@@ -82,7 +81,7 @@ class GetConsignmentServiceSpec extends FrontEndTestHelper {
       val graphQLConfig = mock[GraphQLConfiguration]
       when(graphQLConfig.getClient[gc.Data, gc.Variables]()).thenReturn(graphQLClient)
 
-      val captors = mockOkResponse(graphQLClient, Option.empty, List(GraphQLClient.GraphqlError("Error", Nil, Nil)))
+      val captors = mockOkResponse(graphQLClient, Option.empty, List(UnknownGraphQlError("Error", Nil, Nil, None)))
 
       val getConsignment = new GetConsignmentService(graphQLConfig).consignmentExists(consignmentId, new BearerAccessToken("someAccessToken"))
       val actualResults = getConsignment.futureValue

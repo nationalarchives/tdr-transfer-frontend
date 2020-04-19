@@ -10,7 +10,7 @@ import {
   FetchResult
 } from "apollo-boost"
 import { GraphQLError } from "graphql"
-import { getToken } from "../src/auth"
+import { mockKeycloakInstance } from "./utils"
 
 type IMockData = { [index: string]: string } | null
 type TMockVariables = string
@@ -64,10 +64,6 @@ class MockApolloClientFailure {
 beforeEach(() => jest.resetModules())
 
 const mockSuccess: () => void = () => {
-  const token = getToken as jest.Mock
-  token.mockImplementation(() => {
-    return new Promise((resolve, _) => resolve("token"))
-  })
   const mock = ApolloClient as jest.Mock
   mock.mockImplementation(() => {
     return new MockApolloClientSuccess()
@@ -75,10 +71,6 @@ const mockSuccess: () => void = () => {
 }
 
 const mockFailure: () => void = () => {
-  const token = getToken as jest.Mock
-  token.mockImplementation(() => {
-    return new Promise((resolve, _) => resolve("token"))
-  })
   const mock = ApolloClient as jest.Mock
   mock.mockImplementation(() => {
     return new MockApolloClientFailure()
@@ -87,7 +79,7 @@ const mockFailure: () => void = () => {
 
 test("Returns the correct data for a query", async () => {
   mockSuccess()
-  const client = new GraphqlClient("test")
+  const client = new GraphqlClient("test", mockKeycloakInstance)
   const result = await client.query<IMockData, TMockVariables>(
     { definitions: [], kind: "Document" },
     ""
@@ -97,7 +89,7 @@ test("Returns the correct data for a query", async () => {
 
 test("Returns the correct data for a mutation", async () => {
   mockSuccess()
-  const client = new GraphqlClient("test")
+  const client = new GraphqlClient("test", mockKeycloakInstance)
   const result = await client.mutation<IMockData, TMockVariables>(
     { definitions: [], kind: "Document" },
     ""
@@ -105,29 +97,9 @@ test("Returns the correct data for a mutation", async () => {
   expect(result.data!.data).toEqual("expectedData")
 })
 
-test("Rejects the query if there is a problem getting the token", async () => {
-  ;(getToken as jest.Mock).mockImplementation(() => {
-    return new Promise((_, reject) => reject("Cannot fetch token"))
-  })
-  const client = new GraphqlClient("test")
-  await expect(
-    client.query({ definitions: [], kind: "Document" }, "")
-  ).rejects.toStrictEqual(Error("Cannot fetch token"))
-})
-
-test("Rejects the mutation if there is a problem getting the token", async () => {
-  ;(getToken as jest.Mock).mockImplementation(() => {
-    return new Promise((_, reject) => reject("Cannot fetch token"))
-  })
-  const client = new GraphqlClient("test")
-  await expect(
-    client.mutation({ definitions: [], kind: "Document" }, "")
-  ).rejects.toStrictEqual(Error("Cannot fetch token"))
-})
-
 test("Returns errors if the query was not successful", async () => {
   mockFailure()
-  const client = new GraphqlClient("test")
+  const client = new GraphqlClient("test", mockKeycloakInstance)
   const result = await client.query<IMockData, TMockVariables>(
     { definitions: [], kind: "Document" },
     ""
@@ -138,7 +110,7 @@ test("Returns errors if the query was not successful", async () => {
 
 test("Returns errors if the mutation was not successful", async () => {
   mockFailure()
-  const client = new GraphqlClient("test")
+  const client = new GraphqlClient("test", mockKeycloakInstance)
   const result = await client.mutation<IMockData, TMockVariables>(
     { definitions: [], kind: "Document" },
     ""
