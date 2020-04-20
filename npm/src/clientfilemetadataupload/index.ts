@@ -15,6 +15,11 @@ import { ITdrFile } from "../s3upload"
 
 declare var METADATA_UPLOAD_BATCH_SIZE: number
 
+export interface IClientFileData {
+  metadataInput: AddClientFileMetadataInput
+  tdrFile: ITdrFile
+}
+
 export class ClientFileMetadataUpload {
   client: GraphqlClient
 
@@ -52,12 +57,15 @@ export class ClientFileMetadataUpload {
     fileIds: string[],
     metadata: IFileMetadata[]
   ): Promise<ITdrFile[]> {
-    const inputs: Map<
-      AddClientFileMetadataInput,
-      ITdrFile
-    > = this.generateInputs(fileIds, metadata)
+    const metadataInputs: AddClientFileMetadataInput[] = []
+    const files: ITdrFile[] = []
+    this.generateClientFileData(fileIds, metadata).forEach(value => {
+      metadataInputs.push(value.metadataInput)
+      files.push(value.tdrFile)
+    })
+
     const metadataBatches: AddClientFileMetadataInput[][] = this.createMetadataInputBatches(
-      Array.from(inputs.keys())
+      metadataInputs
     )
 
     for (const metadataInputs of metadataBatches) {
@@ -74,14 +82,14 @@ export class ClientFileMetadataUpload {
       }
     }
 
-    return Array.from(inputs.values())
+    return files
   }
 
-  generateInputs(
+  generateClientFileData(
     fileIds: string[],
     metadata: IFileMetadata[]
-  ): Map<AddClientFileMetadataInput, ITdrFile> {
-    const metadataInputs = new Map<AddClientFileMetadataInput, ITdrFile>()
+  ): IClientFileData[] {
+    const clientFilesData: IClientFileData[] = []
 
     metadata.forEach((value, index) => {
       const fileId = fileIds[index]
@@ -103,10 +111,13 @@ export class ClientFileMetadataUpload {
         file: file
       }
 
-      metadataInputs.set(input, tdrFile)
+      clientFilesData.push({
+        metadataInput: input,
+        tdrFile: tdrFile
+      })
     })
 
-    return metadataInputs
+    return clientFilesData
   }
 
   createMetadataInputBatches(metadataInput: AddClientFileMetadataInput[]) {
