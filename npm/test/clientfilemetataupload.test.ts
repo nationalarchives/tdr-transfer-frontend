@@ -5,7 +5,6 @@ import { IFileMetadata } from "@nationalarchives/file-information"
 import { GraphQLError } from "graphql"
 import { mockKeycloakInstance } from "./utils"
 import { AddClientFileMetadataInput } from "@nationalarchives/tdr-generated-graphql"
-import { JobSettings } from "aws-sdk/clients/mediaconvert"
 
 jest.mock("../src/graphql")
 
