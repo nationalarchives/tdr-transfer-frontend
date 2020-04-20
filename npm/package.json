@@ -46,7 +46,7 @@
     "govuk-frontend": "^3.6.0",
     "graphql": "^14.6.0",
     "keycloak-js": "9.0.0",
-    "@nationalarchives/tdr-generated-graphql": "1.0.11",
+    "@nationalarchives/tdr-generated-graphql": "1.0.12",
     "@nationalarchives/file-information": "1.0.4",
     "unfetch": "^4.1.0"
   },

@@ -4,14 +4,21 @@ import { IFileMetadata } from "@nationalarchives/file-information"
 
 import {
   AddClientFileMetadata,
-  AddClientFileMetadataMutationVariables,
   AddFiles,
   AddFilesMutation,
-  AddFilesMutationVariables
+  AddFilesMutationVariables,
+  AddClientFileMetadataInput
 } from "@nationalarchives/tdr-generated-graphql"
 
 import { FetchResult } from "apollo-boost"
 import { ITdrFile } from "../s3upload"
+
+declare var METADATA_UPLOAD_BATCH_SIZE: number
+
+export interface IClientFileData {
+  metadataInput: AddClientFileMetadataInput
+  tdrFile: ITdrFile
+}
 
 export class ClientFileMetadataUpload {
   client: GraphqlClient
@@ -50,51 +57,81 @@ export class ClientFileMetadataUpload {
     fileIds: string[],
     metadata: IFileMetadata[]
   ): Promise<ITdrFile[]> {
-    const files: ITdrFile[] = []
-    for (const element of metadata) {
-      let index = metadata.indexOf(element)
-      const fileId = fileIds[index]
-      const variables: AddClientFileMetadataMutationVariables = this.generateMutationVariables(
-        fileId,
-        element
-      )
+    const inputs: Map<
+      AddClientFileMetadataInput,
+      ITdrFile
+    > = this.generateInputs(fileIds, metadata)
+    const metadataBatches: AddClientFileMetadataInput[][] = this.createMetadataInputBatches(
+      Array.from(inputs.keys())
+    )
 
+    for (const metadataInputs of metadataBatches) {
+      const variables = { input: metadataInputs }
       const result = await this.client.mutation(
         AddClientFileMetadata,
         variables
       )
 
-      //Stop processing if an error is encountered
       if (result.errors) {
         throw Error(
-          "Add client file metadata failed for file " +
-            fileId +
-            ": " +
-            result.errors.toString()
+          "Add client file metadata failed: " + result.errors.toString()
         )
       }
-      const { file } = element
-      files.push({ fileId, file })
     }
-    return files
+
+    return Array.from(inputs.values())
   }
 
-  generateMutationVariables(
-    fileId: string,
-    metadata: IFileMetadata
-  ): AddClientFileMetadataMutationVariables {
-    return {
-      input: {
+  generateInputs(
+    fileIds: string[],
+    metadata: IFileMetadata[]
+  ): Map<AddClientFileMetadataInput, ITdrFile> {
+    const metadataInputs = new Map<AddClientFileMetadataInput, ITdrFile>()
+
+    metadata.forEach((value, index) => {
+      const fileId = fileIds[index]
+      const input: AddClientFileMetadataInput = {
         fileId: fileId,
-        lastModified: metadata.lastModified.getTime(),
-        fileSize: metadata.size,
-        originalPath: metadata.path,
-        checksum: metadata.checksum,
+        lastModified: value.lastModified.getTime(),
+        fileSize: value.size,
+        originalPath: value.path,
+        checksum: value.checksum,
         //For now add current time
         createdDate: Date.now(),
         //Unclear what this field is meant to represent
         datetime: Date.now()
       }
+
+      const { file } = value
+      const tdrFile: ITdrFile = {
+        fileId: fileId,
+        file: file
+      }
+
+      const data: IClientFileData = {
+        metadataInput: input,
+        tdrFile: tdrFile
+      }
+
+      metadataInputs.set(input, tdrFile)
+    })
+
+    return metadataInputs
+  }
+
+  createMetadataInputBatches(metadataInput: AddClientFileMetadataInput[]) {
+    const batches: AddClientFileMetadataInput[][] = []
+
+    for (
+      let index = 0;
+      index < metadataInput.length;
+      index += METADATA_UPLOAD_BATCH_SIZE
+    ) {
+      batches.push(
+        metadataInput.slice(index, index + METADATA_UPLOAD_BATCH_SIZE)
+      )
     }
+
+    return batches
   }
 }
