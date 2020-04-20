@@ -15,11 +15,6 @@ import { ITdrFile } from "../s3upload"
 
 declare var METADATA_UPLOAD_BATCH_SIZE: number
 
-export interface IClientFileData {
-  metadataInput: AddClientFileMetadataInput
-  tdrFile: ITdrFile
-}
-
 export class ClientFileMetadataUpload {
   client: GraphqlClient
 
@@ -106,11 +101,6 @@ export class ClientFileMetadataUpload {
       const tdrFile: ITdrFile = {
         fileId: fileId,
         file: file
-      }
-
-      const data: IClientFileData = {
-        metadataInput: input,
-        tdrFile: tdrFile
       }
 
       metadataInputs.set(input, tdrFile)
