@@ -89,9 +89,7 @@ export class ClientFileMetadataUpload {
     fileIds: string[],
     metadata: IFileMetadata[]
   ): IClientFileData[] {
-    const clientFilesData: IClientFileData[] = []
-
-    metadata.forEach((value, index) => {
+    return metadata.map((value, index) => {
       const fileId = fileIds[index]
       const input: AddClientFileMetadataInput = {
         fileId: fileId,
@@ -111,13 +109,11 @@ export class ClientFileMetadataUpload {
         file: file
       }
 
-      clientFilesData.push({
+      return {
         metadataInput: input,
         tdrFile: tdrFile
-      })
+      }
     })
-
-    return clientFilesData
   }
 
   createMetadataInputBatches(metadataInput: AddClientFileMetadataInput[]) {
