@@ -18,7 +18,6 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import util.FrontEndTestHelper
-import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import util.{EnglishLang, FrontEndTestHelper}
@@ -46,8 +45,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     "render the transfer agreement page with an authenticated user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration,
-        new ConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
       val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), UUID.randomUUID())
@@ -75,7 +73,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     "return a redirect to the auth server with an unauthenticated user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new TransferAgreementController(getUnauthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, new ConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+        getValidKeycloakConfiguration, langs)
       val transferAgreementPage = controller.transferAgreement(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-agreement"))
 
       redirectLocation(transferAgreementPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -91,7 +89,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
       val consignmentId = UUID.randomUUID()
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, new ConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+        getValidKeycloakConfiguration, langs)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
@@ -109,7 +107,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
       val consignmentId = UUID.randomUUID()
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, new ConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+        getValidKeycloakConfiguration, langs)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
@@ -136,7 +134,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       stubTransferAgreementResponse(Some(addTransferAgreementResponse))
 
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, new ConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+        getValidKeycloakConfiguration, langs)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest().withFormUrlEncodedBody(completedTransferAgreementForm:_*).withCSRFToken)
       playStatus(transferAgreementSubmit) mustBe SEE_OTHER
@@ -148,7 +146,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       stubTransferAgreementResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
 
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, new ConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+        getValidKeycloakConfiguration, langs)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
           .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
@@ -163,7 +161,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       stubTransferAgreementResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
 
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, new ConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+        getValidKeycloakConfiguration, langs)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
           .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
@@ -177,7 +175,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     "display errors when an invalid form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, new ConsignmentService(new GraphQLConfiguration(app.configuration)), langs)
+        getValidKeycloakConfiguration, langs)
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withCSRFToken)
