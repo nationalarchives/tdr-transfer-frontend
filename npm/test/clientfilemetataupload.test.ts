@@ -232,7 +232,7 @@ test("createMetadataInputBatches generates batches of the defined size", () => {
 
 function generateMockMetadataInput(): AddClientFileMetadataInput {
   return {
-    fileId: "fileId",
+    fileId: Math.random().toString(36),
     lastModified: Date.now(),
     fileSize: 10,
     originalPath: "path",
