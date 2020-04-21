@@ -97,9 +97,13 @@ updating the frontend.
   ```
   
 If you want to upload to the aws s3 bucket, you can no longer use your local keycloak instance so you'll have to set at least these environment variables
+- API_URL=http://localhost:8080
 - AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
 - AUTH_SECRET=\<insert the secret for the tdr client in the integration account\>
-- TDR_IDENTITY_POOL_ID=secret-from-/intg/cognito/identitypool in the management account 
+- TDR_IDENTITY_POOL_ID=secret-from-/intg/cognito/identitypool in the management account
+
+You will also need to set the AUTH_URL environment variable for your locally running API project to:
+-  AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
 
 #### Frontend project
 
