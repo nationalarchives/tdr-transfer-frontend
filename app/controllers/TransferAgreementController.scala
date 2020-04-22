@@ -3,7 +3,6 @@ package controllers
 import java.util.UUID
 
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import errors.AuthorisationException
 import graphql.codegen.AddTransferAgreement.AddTransferAgreement
 import graphql.codegen.types.AddTransferAgreementInput
 import javax.inject.{Inject, Singleton}
@@ -12,7 +11,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
+import services.ApiErrorHandling.sendApiRequest
 import validation.ValidatedActions
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -66,13 +65,8 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 
       val variables: AddTransferAgreement.Variables = AddTransferAgreement.Variables(addTransferAgreementInput)
 
-      addTransferAgreementClient.getResult(request.token.bearerAccessToken, AddTransferAgreement.document, Some(variables)).map(data => {
-        data.errors match {
-          case Nil => Redirect(routes.UploadController.uploadPage(consignmentId))
-          case List(authError: NotAuthorisedError) => throw new AuthorisationException(authError.message)
-          case errors => throw new RuntimeException(errors.map(e => e.message).mkString)
-        }
-      })
+      sendApiRequest(addTransferAgreementClient, AddTransferAgreement.document, request.token.bearerAccessToken, variables)
+        .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
     }
 
     val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest
