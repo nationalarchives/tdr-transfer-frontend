@@ -93,7 +93,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
       val failure = seriesDetailsPage.failed.futureValue
-      failure mustBe an[Exception]
+      failure mustBe an[GraphQlException]
     }
 
     "render the error page if the token is invalid" in {
