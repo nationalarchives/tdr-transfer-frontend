@@ -1,8 +1,15 @@
 def versionTag = "v${env.BUILD_NUMBER}"
 
+def setBuildStatus(String status, String desc) {
+  withCredentials([string(credentialsId: 'github-jenkins-access-token', variable: 'GITHUB_ACCESS_TOKEN')]) {
+    String sha = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+    String url = "https://api.github.com/repos/nationalarchives/tdr-transfer-frontend/statuses/${sha}"
+    sh "curl -XPOST '${url}' -H 'Authorization: bearer ${env.GITHUB_ACCESS_TOKEN}' --data '{\"state\":\"${status}\",\"target_url\":\"${env.BUILD_URL}\",\"description\":\"${desc}\",\"context\":\"Jenkins TDR Front end test\"}'"
+  }
+}
+
 pipeline {
   agent none
-
   stages {
     stage('Test') {
       agent {
@@ -11,6 +18,7 @@ pipeline {
         }
       }
       steps {
+        setBuildStatus("pending", "Jenkins build has started")
         checkout scm
         sh 'sbt -no-colors test scalastyle'
       }
@@ -71,6 +79,18 @@ pipeline {
                 wait: false)
           }
         }
+      }
+    }
+  }
+  post {
+    failure {
+      node('master') {
+        setBuildStatus("failure", "Jenkins build has failed")
+      }
+    }
+    success {
+      node('master') {
+        setBuildStatus("success", "Jenkins build has completed successfully")
       }
     }
   }
