@@ -1,5 +1,6 @@
 import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { ClientFileExtractMetadata } from "../clientfileextractmetadata"
+import { handleUploadError } from "../errorhandling"
 import {
   IFileMetadata,
   TdrFile,
@@ -48,7 +49,7 @@ export class ClientFileProcessing {
       )
       this.s3Upload.uploadToS3(tdrFiles, callback)
     } catch (e) {
-      throw Error("Processing client files failed: " + e.message)
+      handleUploadError(e, "Processing client files failed")
     }
   }
 }
