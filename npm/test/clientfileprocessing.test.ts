@@ -21,6 +21,7 @@ class S3UploadMock extends S3Upload {
   uploadToS3: (
     files: ITdrFile[],
     callback: TProgressFunction,
+    stage: string,
     chunkSize?: number
   ) => Promise<ManagedUpload.SendData[]> = jest.fn()
 }
@@ -143,7 +144,7 @@ test("client file metadata successfully uploaded", async () => {
     new S3UploadMock("")
   )
   await expect(
-    fileProcessing.processClientFiles("1", [], jest.fn())
+    fileProcessing.processClientFiles("1", [], jest.fn(), "")
   ).resolves.not.toThrow()
 })
 
@@ -158,7 +159,7 @@ test("file successfully uploaded to s3", async () => {
   const s3UploadMock = new S3UploadMock("")
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3UploadMock)
   await expect(
-    fileProcessing.processClientFiles("1", [], jest.fn())
+    fileProcessing.processClientFiles("1", [], jest.fn(), "")
   ).resolves.not.toThrow()
   expect(s3UploadMock.uploadToS3).toHaveBeenCalledTimes(1)
 })
@@ -177,7 +178,7 @@ test("Error thrown if processing files fails", async () => {
   )
 
   await expect(
-    fileProcessing.processClientFiles("1", [], jest.fn())
+    fileProcessing.processClientFiles("1", [], jest.fn(), "")
   ).rejects.toStrictEqual(
     Error(
       "Processing client files failed: upload client file information error"
@@ -199,7 +200,7 @@ test("Error thrown if processing file metadata fails", async () => {
   )
 
   await expect(
-    fileProcessing.processClientFiles("1", [], jest.fn())
+    fileProcessing.processClientFiles("1", [], jest.fn(), "")
   ).rejects.toStrictEqual(
     Error("Processing client files failed: upload client file metadata error")
   )
@@ -219,7 +220,7 @@ test("Error thrown if extracting file metadata fails", async () => {
   )
 
   await expect(
-    fileProcessing.processClientFiles("1", [], jest.fn())
+    fileProcessing.processClientFiles("1", [], jest.fn(), "")
   ).rejects.toStrictEqual(
     Error(
       "Processing client files failed: client file metadata extraction error"
