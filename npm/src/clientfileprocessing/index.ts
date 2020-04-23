@@ -40,6 +40,30 @@ export class ClientFileProcessing {
             "Percent of metadata extracted: " +
               progressInformation.percentageProcessed
           )
+          const fileUpload: HTMLDivElement | null = document.querySelector(
+            "#file-upload"
+          )
+          const progressBar: HTMLDivElement | null = document.querySelector(
+            "#progress-bar"
+          )
+          const progressBarElement: HTMLDivElement | null = document.querySelector(
+            ".progress-bar"
+          )
+
+          if (fileUpload && progressBar) {
+            fileUpload.style.display = "none"
+            progressBar.style.visibility = "visible"
+          }
+
+          if (
+            progressBarElement &&
+            progressInformation.percentageProcessed < 50
+          ) {
+            progressBarElement.setAttribute(
+              "value",
+              progressInformation.percentageProcessed.toString()
+            )
+          }
         }
       )
       const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
