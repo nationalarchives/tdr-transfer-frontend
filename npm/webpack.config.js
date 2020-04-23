@@ -19,15 +19,19 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       API_URL: JSON.stringify(
-        `${process.env.API_URL || "http://localhost:8080"}/graphql`
+        `${process.env.API_URL || "http://localhost:8080/graphql"}`
       ),
       TDR_IDENTITY_PROVIDER_NAME: JSON.stringify(
         process.env.TDR_IDENTITY_PROVIDER_NAME ||
           "auth.tdr-integration.nationalarchives.gov.uk/auth/realms/tdr"
       ),
       TDR_IDENTITY_POOL_ID: JSON.stringify(process.env.TDR_IDENTITY_POOL_ID),
-      REGION: JSON.stringify(process.env.REGION | "eu-west-2"),
-      STAGE: JSON.stringify(process.env.STAGE | "intg")
+      REGION: JSON.stringify(process.env.REGION || "eu-west-2"),
+      STAGE: JSON.stringify(process.env.STAGE || "intg"),
+      //Default batch of 250 taken from prototype
+      METADATA_UPLOAD_BATCH_SIZE: JSON.stringify(
+        `${process.env.METADATA_UPLOAD_BATCH_SIZE || 250}`
+      )
     })
   ],
   output: {
