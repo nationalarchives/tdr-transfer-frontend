@@ -1,9 +1,6 @@
 import Keycloak from "keycloak-js"
 import AWS, { CognitoIdentityCredentials } from "aws-sdk"
-
-declare var TDR_IDENTITY_PROVIDER_NAME: string
-declare var TDR_IDENTITY_POOL_ID: string
-declare var REGION: string
+import { IFrontEndInfo } from ".."
 
 export const getKeycloakInstance: () => Promise<
   Keycloak.KeycloakInstance<"native">
@@ -38,16 +35,19 @@ export const refreshOrReturnToken: (
 }
 
 export const authenticateAndGetIdentityId: (
-  keycloak: Keycloak.KeycloakInstance<"native">
-) => Promise<string> = async keycloak => {
+  keycloak: Keycloak.KeycloakInstance<"native">,
+  frontEndInfo: IFrontEndInfo
+) => Promise<string> = async (keycloak, frontEndInfo) => {
   const token = await refreshOrReturnToken(keycloak)
+  const { identityProviderName, identityPoolId, region } = frontEndInfo
+
   const credentials = new CognitoIdentityCredentials({
-    IdentityPoolId: TDR_IDENTITY_POOL_ID,
+    IdentityPoolId: identityPoolId,
     Logins: {
-      [TDR_IDENTITY_PROVIDER_NAME]: token
+      [identityProviderName]: token
     }
   })
-  AWS.config.update({ region: REGION, credentials })
+  AWS.config.update({ region, credentials })
   await credentials.getPromise()
   const { identityId } = credentials
   return identityId
