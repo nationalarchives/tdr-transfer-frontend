@@ -17,10 +17,11 @@ module.exports = {
     extensions: [".ts", ".js"]
   },
   plugins: [
-        METADATA_UPLOAD_BATCH_SIZE: JSON.stringify(
-        `${process.env.METADATA_UPLOAD_BATCH_SIZE || 250}`
-      )
-    })
+       new webpack.DefinePlugin({
+             METADATA_UPLOAD_BATCH_SIZE: JSON.stringify(
+               `${process.env.METADATA_UPLOAD_BATCH_SIZE || 250}`
+             )
+           })
   ],
   output: {
     filename: "main.js",
