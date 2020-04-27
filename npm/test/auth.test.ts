@@ -5,6 +5,7 @@ jest.mock("aws-sdk")
 
 import Keycloak, { KeycloakInstance } from "keycloak-js"
 import AWS from "aws-sdk"
+import { IFrontEndInfo } from "../src"
 
 class MockKeycloakAuthenticated {
   token: string = "fake-auth-token"
@@ -65,7 +66,14 @@ test("Calls the correct authentication update", async () => {
     return new MockKeycloakAuthenticated()
   })
   const keycloak = await getKeycloakInstance()
-  const identityId = await authenticateAndGetIdentityId(keycloak)
+  const frontEndInfo: IFrontEndInfo = {
+    stage: "",
+    region: "",
+    identityPoolId: "",
+    identityProviderName: "",
+    apiUrl: ""
+  }
+  const identityId = await authenticateAndGetIdentityId(keycloak, frontEndInfo)
   expect(identityId).toBeUndefined()
   expect(config).toHaveBeenCalled()
 })

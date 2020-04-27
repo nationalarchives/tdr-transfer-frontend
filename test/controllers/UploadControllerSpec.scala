@@ -10,6 +10,7 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
+import play.api.Configuration
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
@@ -35,7 +36,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       implicit val ec: ExecutionContext = ExecutionContext.global
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, frontEndInfoConfiguration)
 
       stubGetTransferAgreementResponse(Option.empty)
 
@@ -50,7 +51,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       implicit val ec: ExecutionContext = ExecutionContext.global
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, frontEndInfoConfiguration)
 
       stubGetTransferAgreementResponse(Some(new itac.GetTransferAgreement(false)))
 
@@ -64,7 +65,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       implicit val ec: ExecutionContext = ExecutionContext.global
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, frontEndInfoConfiguration)
 
       stubGetTransferAgreementResponse(Some(new itac.GetTransferAgreement(true)))
 

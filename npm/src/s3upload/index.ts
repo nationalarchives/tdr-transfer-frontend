@@ -1,9 +1,5 @@
 import S3 from "aws-sdk/clients/s3"
-import {
-  IProgressInformation,
-  TProgressFunction
-} from "@nationalarchives/file-information"
-declare var STAGE: string
+import { TProgressFunction } from "@nationalarchives/file-information"
 
 export interface ITdrFile {
   fileId: string
@@ -25,10 +21,12 @@ export class S3Upload {
     this.identityId = identityId
   }
   private uploadSingleFile: (
+    stage: string,
     tdrFile: ITdrFile,
     callback: TProgressFunction,
     progressInfo: IFileProgressInfo
   ) => Promise<S3.ManagedUpload.SendData> = (
+    stage,
     tdrFile,
     callback,
     progressInfo
@@ -37,7 +35,7 @@ export class S3Upload {
     const progress: S3.ManagedUpload = this.s3.upload({
       Key: `${this.identityId}/${fileId}`,
       Body: file,
-      Bucket: `tdr-upload-files-${STAGE}`
+      Bucket: `tdr-upload-files-${stage}`
     })
     const { processedChunks, totalChunks, totalFiles } = progressInfo
     progress.on("httpUploadProgress", ev => {
@@ -53,10 +51,12 @@ export class S3Upload {
   uploadToS3: (
     files: ITdrFile[],
     callback: TProgressFunction,
+    stage: string,
     chunkSize?: number
   ) => Promise<S3.ManagedUpload.SendData[]> = async (
     files,
     callback,
+    stage,
     chunkSize = 5 * 1024 * 1024
   ) => {
     const totalChunks: number = files
@@ -66,7 +66,7 @@ export class S3Upload {
     const totalFiles = files.length
     const sendData: S3.ManagedUpload.SendData[] = []
     for (const file of files) {
-      const uploadResult = await this.uploadSingleFile(file, callback, {
+      const uploadResult = await this.uploadSingleFile(stage, file, callback, {
         processedChunks,
         totalChunks,
         totalFiles
