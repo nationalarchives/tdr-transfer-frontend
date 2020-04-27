@@ -3,28 +3,23 @@ package controllers
 import java.util.UUID
 
 import auth.TokenSecurity
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.AddConsignment
-import graphql.codegen.AddConsignment.addConsignment
-import graphql.codegen.GetSeries.getSeries
-import graphql.codegen.types.AddConsignmentInput
+import configuration.KeycloakConfiguration
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import services.{ConsignmentService, SeriesService}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SeriesDetailsController @Inject()(val controllerComponents: SecurityComponents,
-                                        val graphqlConfiguration: GraphQLConfiguration,
-                                        val keycloakConfiguration: KeycloakConfiguration
+                                        val keycloakConfiguration: KeycloakConfiguration,
+                                        seriesService: SeriesService,
+                                        consignmentService: ConsignmentService
                                         )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
-
-  private val getSeriesClient = graphqlConfiguration.getClient[getSeries.Data, getSeries.Variables]()
-  private val addConsignmentClient = graphqlConfiguration.getClient[addConsignment.Data, addConsignment.Variables]()
 
   val selectedSeriesForm = Form(
     mapping(
@@ -33,18 +28,11 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
   )
 
   private def getSeriesDetails(request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
-    val userTransferringBody: String = request.token.transferringBody
-      .getOrElse(throw new RuntimeException(s"Transferring body missing from token for user ${request.token.userId}"))
-    val variables: getSeries.Variables = new getSeries.Variables(userTransferringBody)
-
-    getSeriesClient.getResult(request.token.bearerAccessToken, getSeries.document, Some(variables)).map(data => {
-      if (data.data.isDefined) {
-        val seriesData: Seq[(String, String)] = data.data.get.getSeries.map(s => (s.seriesid.toString, s.code.getOrElse("")))
-        status(views.html.seriesDetails(seriesData, form))
-      } else {
-        BadRequest(views.html.error(data.errors.map(e => e.message).mkString))
-      }
-    })
+    seriesService.getSeriesForUser(request.token)
+      .map({series =>
+        val seriesFormData = series.map(s => (s.seriesid.toString, s.code.getOrElse("")))
+        status(views.html.seriesDetails(seriesFormData, form))
+      })
   }
 
   def seriesDetails(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
@@ -59,17 +47,13 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     }
 
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
-      val addConsignmentInput: AddConsignmentInput = AddConsignmentInput(UUID.fromString(formData.seriesId))
-      val variables: addConsignment.Variables = AddConsignment.addConsignment.Variables(addConsignmentInput)
-
-      addConsignmentClient.getResult(request.token.bearerAccessToken, addConsignment.document, Some(variables)).map(data => {
-        if(data.data.isDefined) {
-          Redirect(routes.TransferAgreementController.transferAgreement(data.data.get.addConsignment.consignmentid.get))
-        } else {
-          BadRequest(views.html.error(data.errors.map(e => e.message).mkString))
-        }
-      })
+      consignmentService
+        .createConsignment(UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
+        .map(consignment => {
+          Redirect(routes.TransferAgreementController.transferAgreement(consignment.consignmentid.get))
+        })
     }
+
     formValidationResult.fold(
       errorFunction,
       successFunction
