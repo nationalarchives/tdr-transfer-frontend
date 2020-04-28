@@ -47,7 +47,7 @@ export class ClientFileProcessing {
         fileIds,
         metadata
       )
-      this.s3Upload.uploadToS3(tdrFiles, callback, stage)
+      this.s3Upload.uploadToS3(consignmentId, tdrFiles, callback, stage)
     } catch (e) {
       throw Error("Processing client files failed: " + e.message)
     }
