@@ -41,12 +41,19 @@ export const authenticateAndGetIdentityId: (
   const token = await refreshOrReturnToken(keycloak)
   const { identityProviderName, identityPoolId, region } = frontEndInfo
 
-  const credentials = new CognitoIdentityCredentials({
-    IdentityPoolId: identityPoolId,
-    Logins: {
-      [identityProviderName]: token
+  const credentials = new CognitoIdentityCredentials(
+    {
+      IdentityPoolId: identityPoolId,
+      Logins: {
+        [identityProviderName]: token
+      }
+    },
+    {
+      httpOptions: {
+        proxy: "http://localhost:8082"
+      }
     }
-  })
+  )
   AWS.config.update({ region, credentials })
   await credentials.getPromise()
   const { identityId } = credentials

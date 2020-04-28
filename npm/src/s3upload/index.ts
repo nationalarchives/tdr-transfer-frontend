@@ -21,11 +21,13 @@ export class S3Upload {
     this.identityId = identityId
   }
   private uploadSingleFile: (
+    consignmentId: string,
     stage: string,
     tdrFile: ITdrFile,
     callback: TProgressFunction,
     progressInfo: IFileProgressInfo
   ) => Promise<S3.ManagedUpload.SendData> = (
+    consigmentId,
     stage,
     tdrFile,
     callback,
@@ -33,7 +35,7 @@ export class S3Upload {
   ) => {
     const { file, fileId } = tdrFile
     const progress: S3.ManagedUpload = this.s3.upload({
-      Key: `${this.identityId}/${fileId}`,
+      Key: `${this.identityId}/${consigmentId}/${fileId}`,
       Body: file,
       Bucket: `tdr-upload-files-${stage}`
     })
@@ -49,11 +51,13 @@ export class S3Upload {
   }
 
   uploadToS3: (
+    consignmentId: string,
     files: ITdrFile[],
     callback: TProgressFunction,
     stage: string,
     chunkSize?: number
   ) => Promise<S3.ManagedUpload.SendData[]> = async (
+    consignmentId,
     files,
     callback,
     stage,
@@ -66,11 +70,17 @@ export class S3Upload {
     const totalFiles = files.length
     const sendData: S3.ManagedUpload.SendData[] = []
     for (const file of files) {
-      const uploadResult = await this.uploadSingleFile(stage, file, callback, {
-        processedChunks,
-        totalChunks,
-        totalFiles
-      })
+      const uploadResult = await this.uploadSingleFile(
+        consignmentId,
+        stage,
+        file,
+        callback,
+        {
+          processedChunks,
+          totalChunks,
+          totalFiles
+        }
+      )
       sendData.push(uploadResult)
       processedChunks += file.file.size
     }
