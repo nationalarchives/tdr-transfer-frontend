@@ -19,6 +19,7 @@ beforeEach(() => jest.resetModules())
 
 class S3UploadMock extends S3Upload {
   uploadToS3: (
+    consignmentId: string,
     files: ITdrFile[],
     callback: TProgressFunction,
     stage: string,
