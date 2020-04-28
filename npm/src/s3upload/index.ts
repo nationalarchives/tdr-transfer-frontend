@@ -37,7 +37,7 @@ export class S3Upload {
     const progress: S3.ManagedUpload = this.s3.upload({
       Key: `${this.identityId}/${consigmentId}/${fileId}`,
       Body: file,
-      Bucket: `tdr-upload-files-${stage}`
+      Bucket: `tdr-upload-files-dirty-${stage}`
     })
     const { processedChunks, totalChunks, totalFiles } = progressInfo
     progress.on("httpUploadProgress", ev => {
