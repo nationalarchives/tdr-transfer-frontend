@@ -44,12 +44,19 @@ test("handleUploadError function throws error and does not display error message
 })
 
 function checkExpectedErrorHtmlState(expectedRenderedErrorMessage: string) {
+  const mockFormElement: HTMLFormElement | null = document.querySelector(
+    "#file-upload-form"
+  )
   const mockErrorElement: HTMLDivElement | null = document.querySelector(
     ".govuk-error-summary"
   )
   const mockErrorMessageElement: HTMLParagraphElement | null = document.querySelector(
     ".errorMessage"
   )
+
+  if (mockFormElement) {
+    expect(mockFormElement.classList.toString()).toEqual("hide")
+  }
 
   if (mockErrorElement) {
     expect(mockErrorElement.classList.toString()).toEqual("govuk-error-summary")
@@ -64,10 +71,12 @@ function checkExpectedErrorHtmlState(expectedRenderedErrorMessage: string) {
 
 function setupErrorHtml() {
   document.body.innerHTML =
+    '<form id="file-upload-form">' +
     '<div class="govuk-error-summary hide">' +
     '<p class="errorMessage">' +
     "</p>" +
-    "</div>"
+    "</div>" +
+    "</form>"
 }
 
 function setupNonErrorHtml() {
