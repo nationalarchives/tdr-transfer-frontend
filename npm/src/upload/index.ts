@@ -13,15 +13,18 @@ interface InputElement {
 
 export class UploadFiles {
   clientFileProcessing: ClientFileProcessing
+  stage: string
 
   constructor(
     clientFileProcessing: ClientFileMetadataUpload,
-    identityId: string
+    identityId: string,
+    stage: string
   ) {
     this.clientFileProcessing = new ClientFileProcessing(
       clientFileProcessing,
       new S3Upload(identityId)
     )
+    this.stage = stage
   }
   upload(): void {
     const uploadForm: HTMLFormElement | null = document.querySelector(
@@ -51,7 +54,8 @@ export class UploadFiles {
           this.clientFileProcessing.processClientFiles(
             consignmentId,
             files,
-            progress => console.log(progress.percentageProcessed)
+            progress => console.log(progress.percentageProcessed),
+            this.stage
           )
         } catch (e) {
           //For now console log errors

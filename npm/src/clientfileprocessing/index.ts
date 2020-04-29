@@ -25,7 +25,8 @@ export class ClientFileProcessing {
   async processClientFiles(
     consignmentId: string,
     files: TdrFile[],
-    callback: TProgressFunction
+    callback: TProgressFunction,
+    stage: string
   ): Promise<void> {
     try {
       const fileIds: string[] = await this.clientFileMetadataUpload.saveFileInformation(
@@ -70,7 +71,7 @@ export class ClientFileProcessing {
         fileIds,
         metadata
       )
-      this.s3Upload.uploadToS3(tdrFiles, callback)
+      this.s3Upload.uploadToS3(consignmentId, tdrFiles, callback, stage)
     } catch (e) {
       throw Error("Processing client files failed: " + e.message)
     }

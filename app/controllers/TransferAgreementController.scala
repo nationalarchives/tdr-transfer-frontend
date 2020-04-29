@@ -2,7 +2,6 @@ package controllers
 
 import java.util.UUID
 
-import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddTransferAgreement.AddTransferAgreement
 import graphql.codegen.types.AddTransferAgreementInput
@@ -12,7 +11,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.GetConsignmentService
+import services.ApiErrorHandling.sendApiRequest
 import validation.ValidatedActions
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -21,7 +20,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferAgreementController @Inject()(val controllerComponents: SecurityComponents,
                                             val graphqlConfiguration: GraphQLConfiguration,
                                             val keycloakConfiguration: KeycloakConfiguration,
-                                            val getConsignmentService: GetConsignmentService,
                                             langs: Langs)
                                            (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
@@ -67,13 +65,8 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 
       val variables: AddTransferAgreement.Variables = AddTransferAgreement.Variables(addTransferAgreementInput)
 
-      addTransferAgreementClient.getResult(request.token.bearerAccessToken, AddTransferAgreement.document, Some(variables)).map(data => {
-        if(data.data.isDefined) {
-          Redirect(routes.UploadController.uploadPage(consignmentId))
-        } else {
-          InternalServerError(views.html.error(data.errors.map(e => e.message).mkString))
-        }
-      })
+      sendApiRequest(addTransferAgreementClient, AddTransferAgreement.document, request.token.bearerAccessToken, variables)
+        .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
     }
 
     val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest

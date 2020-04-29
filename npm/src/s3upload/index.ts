@@ -1,9 +1,5 @@
 import S3 from "aws-sdk/clients/s3"
-import {
-  IProgressInformation,
-  TProgressFunction
-} from "@nationalarchives/file-information"
-declare var STAGE: string
+import { TProgressFunction } from "@nationalarchives/file-information"
 
 export interface ITdrFile {
   fileId: string
@@ -25,19 +21,23 @@ export class S3Upload {
     this.identityId = identityId
   }
   private uploadSingleFile: (
+    consignmentId: string,
+    stage: string,
     tdrFile: ITdrFile,
     callback: TProgressFunction,
     progressInfo: IFileProgressInfo
   ) => Promise<S3.ManagedUpload.SendData> = (
+    consigmentId,
+    stage,
     tdrFile,
     callback,
     progressInfo
   ) => {
     const { file, fileId } = tdrFile
     const progress: S3.ManagedUpload = this.s3.upload({
-      Key: `${this.identityId}/${fileId}`,
+      Key: `${this.identityId}/${consigmentId}/${fileId}`,
       Body: file,
-      Bucket: `tdr-upload-files-${STAGE}`
+      Bucket: `tdr-upload-files-dirty-${stage}`
     })
     const { processedChunks, totalChunks, totalFiles } = progressInfo
     progress.on("httpUploadProgress", ev => {
@@ -51,12 +51,16 @@ export class S3Upload {
   }
 
   uploadToS3: (
+    consignmentId: string,
     files: ITdrFile[],
     callback: TProgressFunction,
+    stage: string,
     chunkSize?: number
   ) => Promise<S3.ManagedUpload.SendData[]> = async (
+    consignmentId,
     files,
     callback,
+    stage,
     chunkSize = 5 * 1024 * 1024
   ) => {
     const totalChunks: number = files
@@ -66,11 +70,17 @@ export class S3Upload {
     const totalFiles = files.length
     const sendData: S3.ManagedUpload.SendData[] = []
     for (const file of files) {
-      const uploadResult = await this.uploadSingleFile(file, callback, {
-        processedChunks,
-        totalChunks,
-        totalFiles
-      })
+      const uploadResult = await this.uploadSingleFile(
+        consignmentId,
+        stage,
+        file,
+        callback,
+        {
+          processedChunks,
+          totalChunks,
+          totalFiles
+        }
+      )
       sendData.push(uploadResult)
       processedChunks += file.file.size
     }

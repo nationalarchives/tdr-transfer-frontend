@@ -63,12 +63,14 @@ test("a single file upload returns the correct key", async () => {
   const s3Upload = new S3Upload("identityId")
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     [{ fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", file }],
     jest.fn(),
+    "",
     1
   )
   expect(result[0].Key).toEqual(
-    "identityId/1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
+    "identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
   )
 })
 
@@ -78,8 +80,10 @@ test("a single file upload calls the callback correctly", async () => {
   const s3Upload = new S3Upload("identityId")
   s3Upload.s3 = new MockSuccessfulS3()
   await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     [{ fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", file }],
     callback,
+    "",
     1
   )
   checkCallbackCalls(callback, 1, [20, 40, 60, 80, 100])
@@ -105,11 +109,24 @@ test("multiple file uploads return the correct keys", async () => {
   ]
   const s3Upload = new S3Upload("identityId")
   s3Upload.s3 = new MockSuccessfulS3()
-  const result = await s3Upload.uploadToS3(files, callback)
-  expect(result[0].Key).toEqual(`identityId/${fileIds[0]}`)
-  expect(result[1].Key).toEqual(`identityId/${fileIds[1]}`)
-  expect(result[2].Key).toEqual(`identityId/${fileIds[2]}`)
-  expect(result[3].Key).toEqual(`identityId/${fileIds[3]}`)
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    files,
+    callback,
+    ""
+  )
+  expect(result[0].Key).toEqual(
+    `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[0]}`
+  )
+  expect(result[1].Key).toEqual(
+    `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[1]}`
+  )
+  expect(result[2].Key).toEqual(
+    `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[2]}`
+  )
+  expect(result[3].Key).toEqual(
+    `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[3]}`
+  )
 })
 
 test("multiple file uploads call the callback correctly", async () => {
@@ -122,7 +139,13 @@ test("multiple file uploads call the callback correctly", async () => {
   const callback = jest.fn()
   const s3Upload = new S3Upload("identityId")
   s3Upload.s3 = new MockSuccessfulS3()
-  await s3Upload.uploadToS3(files, callback, 1)
+  await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    files,
+    callback,
+    "",
+    1
+  )
   checkCallbackCalls(callback, 4, [
     5,
     10,
@@ -152,7 +175,12 @@ test("when there is an error with the upload, an error is returned", async () =>
   const file = new File(["file1"], "file1")
   const s3Upload = new S3Upload("identityId")
   s3Upload.s3 = new MockFailedS3()
-  const result = s3Upload.uploadToS3([{ file, fileId }], jest.fn())
+  const result = s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    [{ file, fileId }],
+    jest.fn(),
+    ""
+  )
   await expect(result).rejects.toEqual("error")
 })
 
@@ -162,8 +190,10 @@ test("a single file upload calls the callback correctly with a different chunk s
   const s3Upload = new S3Upload("identityId")
   s3Upload.s3 = new MockSuccessfulS3(2)
   await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     [{ fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", file }],
     callback,
+    "",
     2
   )
   checkCallbackCalls(callback, 1, [20, 60, 100])
