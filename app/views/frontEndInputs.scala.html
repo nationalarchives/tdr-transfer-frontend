@@ -1,0 +1,8 @@
+@import viewsapi.FrontEndInfo
+@(frontEndInfo: FrontEndInfo)
+
+<input type="hidden" class="api-url" value="@frontEndInfo.apiUrl">
+<input type="hidden" class="identity-provider-name" value="@frontEndInfo.identityProviderName">
+<input type="hidden" class="identity-pool-id" value="@frontEndInfo.identityPoolId">
+<input type="hidden" class="stage" value="@frontEndInfo.stage">
+<input type="hidden" class="region" value="@frontEndInfo.region">

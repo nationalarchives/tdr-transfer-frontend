@@ -6,7 +6,7 @@ import java.util
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
-import configuration.KeycloakConfiguration
+import configuration.{FrontEndInfoConfiguration, KeycloakConfiguration}
 import org.keycloak.representations.AccessToken
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
@@ -27,16 +27,19 @@ import org.pac4j.play.http.PlayHttpActionAdapter
 import org.pac4j.play.scala.SecurityComponents
 import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures.{PatienceConfig, scaled}
+import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
-import play.api.Application
+import play.api.{Application, Configuration}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
 import uk.gov.nationalarchives.tdr.keycloak.Token
+import viewsapi.FrontEndInfo
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -44,10 +47,18 @@ import scala.concurrent.{Await, Future}
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach {
 
+  implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = scaled(Span(100, Millis)))
+
   implicit class AwaitFuture[T](future: Future[T]) {
     def await(timeout: Duration = 2.seconds): T = {
       Await.result(future, timeout)
     }
+  }
+
+  def frontEndInfoConfiguration = {
+    val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
+    when(frontEndInfoConfiguration.frontEndInfo).thenReturn(new FrontEndInfo("", "", "", "", ""))
+    frontEndInfoConfiguration
   }
 
   override def fakeApplication(): Application = {
