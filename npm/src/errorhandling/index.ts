@@ -2,9 +2,16 @@ export function handleUploadError(
   error: Error,
   additionalLoggingInfo: string = "Upload failed"
 ) {
+  const uploadForm: HTMLFormElement | null = document.querySelector(
+    "#file-upload-form"
+  )
   const uploadFormError: HTMLDivElement | null = document.querySelector(
     ".govuk-error-summary"
   )
+
+  if (uploadForm) {
+    uploadForm.classList.add("hide")
+  }
 
   if (uploadFormError) {
     uploadFormError.classList.remove("hide")

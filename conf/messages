@@ -42,6 +42,8 @@ upload.selectFolder=Select a folder
 upload.fileExtensionTitle=Which file extensions are not permitted?
 upload.fileExtensionSummary=Cannot upload the following file extensions: .zip, thumbs.db, .exe
 upload.continueLink=Continue
+upload.error.title=There is a problem
+upload.error.failure=Some or all of your files failed to upload
 records.header=Records
 records.title=Records
 
