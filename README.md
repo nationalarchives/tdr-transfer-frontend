@@ -100,7 +100,7 @@ If you want to upload to the aws s3 bucket, you can no longer use your local key
 - API_URL=http://localhost:8080/graphql
 - AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
 - AUTH_SECRET=\<insert the secret for the tdr client in the integration account\>
-- TDR_IDENTITY_POOL_ID=secret-from-/intg/cognito/identitypool in the management account
+- IDENTITY_POOL_ID=secret-from-/mgmt/identitypoolid_intg in the management account
 
 You will also need to set the AUTH_URL environment variable for your locally running API project to:
 -  AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk/auth
