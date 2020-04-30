@@ -73,5 +73,5 @@ function setupErrorHtml() {
 }
 
 function setupNonErrorHtml() {
-  document.body.innerHTML = 'div class="some-class">' + "</div>"
+  document.body.innerHTML = '<div class="some-class">' + "</div>"
 }
