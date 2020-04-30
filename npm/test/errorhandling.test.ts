@@ -34,9 +34,6 @@ test("handleUploadError function displays error message and throws error without
 test("handleUploadError function throws error and does not display error message if error HTML not present", () => {
   setupNonErrorHtml()
   const mockError = new Error("some error")
-  const mockErrorMessageElement: HTMLParagraphElement | null = document.querySelector(
-    ".errorMessage"
-  )
 
   expect(() => {
     handleUploadError(mockError)
@@ -44,36 +41,32 @@ test("handleUploadError function throws error and does not display error message
 })
 
 function checkExpectedErrorHtmlState(expectedRenderedErrorMessage: string) {
-  const mockFormElement: HTMLFormElement | null = document.querySelector(
+  const formElement: HTMLFormElement | null = document.querySelector(
     "#file-upload-form"
   )
-  const mockErrorElement: HTMLDivElement | null = document.querySelector(
+  const errorElement: HTMLDivElement | null = document.querySelector(
     ".govuk-error-summary"
   )
-  const mockErrorMessageElement: HTMLParagraphElement | null = document.querySelector(
-    ".errorMessage"
+  const errorMessageElement: HTMLParagraphElement | null = document.querySelector(
+    ".upload-error__message"
   )
 
-  if (mockFormElement) {
-    expect(mockFormElement.classList.toString()).toEqual("hide")
-  }
+  expect(formElement && formElement.classList.toString()).toEqual("hide")
 
-  if (mockErrorElement) {
-    expect(mockErrorElement.classList.toString()).toEqual("govuk-error-summary")
-  }
+  expect(errorElement && errorElement.classList.toString()).toEqual(
+    "govuk-error-summary upload-error"
+  )
 
-  if (mockErrorMessageElement) {
-    expect(mockErrorMessageElement.textContent).toEqual(
-      expectedRenderedErrorMessage
-    )
-  }
+  expect(errorMessageElement && errorMessageElement.textContent).toEqual(
+    expectedRenderedErrorMessage
+  )
 }
 
 function setupErrorHtml() {
   document.body.innerHTML =
     '<form id="file-upload-form">' +
-    '<div class="govuk-error-summary hide">' +
-    '<p class="errorMessage">' +
+    '<div class="govuk-error-summary upload-error hide">' +
+    '<p class="upload-error__message">' +
     "</p>" +
     "</div>" +
     "</form>"

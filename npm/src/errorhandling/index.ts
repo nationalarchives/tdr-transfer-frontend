@@ -23,7 +23,7 @@ export function handleUploadError(
 
 function renderErrorMessage(message: string) {
   const errorMessage: HTMLParagraphElement | null = document.querySelector(
-    ".errorMessage"
+    ".upload-error__message"
   )
   if (errorMessage) {
     errorMessage.textContent = message
