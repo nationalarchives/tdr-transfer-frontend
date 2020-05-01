@@ -10,6 +10,19 @@
         @frontEndInputs(frontEndInfo)
 
         <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
+        <div id="upload-error" class="govuk-error-summary upload-error hide" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
+        <h2 class="govuk-error-summary__title" id="error-summary-title">
+            @Messages("upload.error.title")
+        </h2>
+        <div class="govuk-error-summary__body">
+            <ul class="govuk-list govuk-error-summary__list">
+                <li>
+                    <p>@Messages("upload.error.failure")</p>
+                    <p class="upload-error__message"></p>
+                </li>
+            </ul>
+        </div>
+    </div>
         <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <label class="govuk-label" for="file-selection">
