@@ -39,17 +39,19 @@
   },
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
+    "@nationalarchives/file-information": "1.0.4",
+    "@nationalarchives/tdr-generated-graphql": "1.0.12",
+    "@types/mocha": "^7.0.2",
+    "ajv": "^6.12.2",
     "apollo-boost": "^0.4.7",
     "aws-sdk": "^2.656.0",
     "govuk-frontend": "^3.6.0",
     "graphql": "^14.6.0",
     "keycloak-js": "9.0.0",
-    "@nationalarchives/tdr-generated-graphql": "1.0.12",
-    "@nationalarchives/file-information": "1.0.4",
     "unfetch": "^4.1.0"
   },
   "devDependencies": {
-    "@types/jest": "^25.1.4",
+    "@types/jest": "^25.2.1",
     "@typescript-eslint/eslint-plugin": "^2.23.0",
     "@typescript-eslint/parser": "^2.23.0",
     "copyfiles": "^2.2.0",

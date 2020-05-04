@@ -89,6 +89,12 @@ class ClientFileUploadMetadataFailure {
   }
 }
 
+class MockClientFileProcessing {
+  updateProgressBar(element: HTMLDivElement | null, progress: number): void {
+    return
+  }
+}
+
 class ClientFileExtractMetadataFailure {
   extract: (files: TdrFile[]) => Promise<IFileMetadata[]> = async (
     files: TdrFile[]
@@ -132,7 +138,34 @@ const mockMetadataExtractFailure: () => void = () => {
   })
 }
 
+function setupUploadPageHTML() {
+  document.body.innerHTML =
+    '<div id="file-upload" class="govuk-grid-row"></div>' +
+    '<div id="progress-bar" class="govuk-grid-row hide">'
+}
+
+function checkExpectedPageState() {
+  setupUploadPageHTML()
+
+  const fileUpload: HTMLDivElement | null = document.querySelector(
+    "#file-upload"
+  )
+  const progressBar: HTMLDivElement | null = document.querySelector(
+    "#progress-bar"
+  )
+
+  expect(progressBar && progressBar.classList.toString()).toEqual(
+    "govuk-grid-row hide"
+  )
+
+  expect(fileUpload && fileUpload.classList.toString()).toEqual(
+    "govuk-grid-row"
+  )
+}
+
 test("client file metadata successfully uploaded", async () => {
+  checkExpectedPageState()
+
   mockMetadataExtractSuccess()
   mockMetadataUploadSuccess()
 
@@ -162,6 +195,7 @@ test("file successfully uploaded to s3", async () => {
   await expect(
     fileProcessing.processClientFiles("1", [], jest.fn(), "")
   ).resolves.not.toThrow()
+
   expect(s3UploadMock.uploadToS3).toHaveBeenCalledTimes(1)
 })
 
