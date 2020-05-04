@@ -1,5 +1,6 @@
 import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { ClientFileExtractMetadata } from "../clientfileextractmetadata"
+import { handleUploadError } from "../errorhandling"
 import {
   IFileMetadata,
   TdrFile,
@@ -22,6 +23,12 @@ export class ClientFileProcessing {
     this.s3Upload = s3Upload
   }
 
+  updateProgressBar(element: HTMLDivElement | null, progress: number): void {
+    if (element && progress < 50) {
+      element.setAttribute("value", progress.toString())
+    }
+  }
+
   async processClientFiles(
     consignmentId: string,
     files: TdrFile[],
@@ -36,11 +43,12 @@ export class ClientFileProcessing {
       const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
         files,
         //Temporary function until s3 upload in place
-        function(progressInformation: IProgressInformation) {
+        (progressInformation: IProgressInformation) => {
           console.log(
             "Percent of metadata extracted: " +
               progressInformation.percentageProcessed
           )
+
           const fileUpload: HTMLDivElement | null = document.querySelector(
             "#file-upload"
           )
@@ -48,23 +56,18 @@ export class ClientFileProcessing {
             "#progress-bar"
           )
           const progressBarElement: HTMLDivElement | null = document.querySelector(
-            ".progress-bar"
+            ".progress-display"
           )
 
           if (fileUpload && progressBar) {
-            fileUpload.style.display = "none"
-            progressBar.style.visibility = "visible"
+            fileUpload.classList.add("hide")
+            progressBar.classList.remove("hide")
           }
 
-          if (
-            progressBarElement &&
-            progressInformation.percentageProcessed < 50
-          ) {
-            progressBarElement.setAttribute(
-              "value",
-              progressInformation.percentageProcessed.toString()
-            )
-          }
+          this.updateProgressBar(
+            progressBarElement,
+            progressInformation.percentageProcessed
+          )
         }
       )
       const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
@@ -73,7 +76,7 @@ export class ClientFileProcessing {
       )
       this.s3Upload.uploadToS3(consignmentId, tdrFiles, callback, stage)
     } catch (e) {
-      throw Error("Processing client files failed: " + e.message)
+      handleUploadError(e, "Processing client files failed")
     }
   }
 }

@@ -4,13 +4,26 @@
     "noImplicitAny": true,
     "module": "es6",
     "target": "es2016",
-    "lib": ["es2017", "dom"],
+    "lib": [
+      "es2017",
+      "dom"
+    ],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "sourceMap": true,
     "moduleResolution": "node",
     "strict": true
   },
-  "include": ["src/*"],
-  "exclude": ["dist/**"]
+  "typeAcquisition": {
+    "enable": true,
+    "include": [
+      "jest"
+    ]
+  },
+  "include": [
+    "src/*"
+  ],
+  "exclude": [
+    "dist/**"
+  ]
 }
