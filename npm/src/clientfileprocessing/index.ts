@@ -23,9 +23,32 @@ export class ClientFileProcessing {
     this.s3Upload = s3Upload
   }
 
-  updateProgressBar(element: HTMLDivElement | null, progress: number): void {
-    if (element && progress < 50) {
-      element.setAttribute("value", progress.toString())
+  progressCallback(progressInformation: IProgressInformation) {
+    console.log(
+      "Percent of metadata extracted: " +
+        progressInformation.percentageProcessed
+    )
+
+    const fileUpload: HTMLDivElement | null = document.querySelector(
+      "#file-upload"
+    )
+    const progressBar: HTMLDivElement | null = document.querySelector(
+      "#progress-bar"
+    )
+    const progressBarElement: HTMLDivElement | null = document.querySelector(
+      ".progress-display"
+    )
+
+    if (fileUpload && progressBar) {
+      fileUpload.classList.add("hide")
+      progressBar.classList.remove("hide")
+    }
+
+    if (progressBarElement && progressInformation.percentageProcessed < 50) {
+      progressBarElement.setAttribute(
+        "value",
+        progressInformation.percentageProcessed.toString()
+      )
     }
   }
 
@@ -43,32 +66,7 @@ export class ClientFileProcessing {
       const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
         files,
         //Temporary function until s3 upload in place
-        (progressInformation: IProgressInformation) => {
-          console.log(
-            "Percent of metadata extracted: " +
-              progressInformation.percentageProcessed
-          )
-
-          const fileUpload: HTMLDivElement | null = document.querySelector(
-            "#file-upload"
-          )
-          const progressBar: HTMLDivElement | null = document.querySelector(
-            "#progress-bar"
-          )
-          const progressBarElement: HTMLDivElement | null = document.querySelector(
-            ".progress-display"
-          )
-
-          if (fileUpload && progressBar) {
-            fileUpload.classList.add("hide")
-            progressBar.classList.remove("hide")
-          }
-
-          this.updateProgressBar(
-            progressBarElement,
-            progressInformation.percentageProcessed
-          )
-        }
+        this.progressCallback
       )
       const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
         fileIds,

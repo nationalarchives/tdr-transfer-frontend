@@ -4,7 +4,8 @@ import { ClientFileProcessing } from "../src/clientfileprocessing"
 import {
   IFileMetadata,
   TdrFile,
-  TProgressFunction
+  TProgressFunction,
+  IProgressInformation
 } from "@nationalarchives/file-information"
 import { ClientFileExtractMetadata } from "../src/clientfileextractmetadata"
 import { S3Upload, ITdrFile } from "../src/s3upload"
@@ -89,12 +90,6 @@ class ClientFileUploadMetadataFailure {
   }
 }
 
-class MockClientFileProcessing {
-  updateProgressBar(element: HTMLDivElement | null, progress: number): void {
-    return
-  }
-}
-
 class ClientFileExtractMetadataFailure {
   extract: (files: TdrFile[]) => Promise<IFileMetadata[]> = async (
     files: TdrFile[]
@@ -138,34 +133,10 @@ const mockMetadataExtractFailure: () => void = () => {
   })
 }
 
-function setupUploadPageHTML() {
-  document.body.innerHTML =
-    '<div id="file-upload" class="govuk-grid-row"></div>' +
-    '<div id="progress-bar" class="govuk-grid-row hide">'
-}
-
-function checkExpectedPageState() {
-  setupUploadPageHTML()
-
-  const fileUpload: HTMLDivElement | null = document.querySelector(
-    "#file-upload"
-  )
-  const progressBar: HTMLDivElement | null = document.querySelector(
-    "#progress-bar"
-  )
-
-  expect(progressBar && progressBar.classList.toString()).toEqual(
-    "govuk-grid-row hide"
-  )
-
-  expect(fileUpload && fileUpload.classList.toString()).toEqual(
-    "govuk-grid-row"
-  )
-}
+test("kljdals", async () => {})
 
 test("client file metadata successfully uploaded", async () => {
-  checkExpectedPageState()
-
+  setupUploadPageHTML()
   mockMetadataExtractSuccess()
   mockMetadataUploadSuccess()
 
@@ -173,6 +144,13 @@ test("client file metadata successfully uploaded", async () => {
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
+
+  const progressInformation: IProgressInformation = {
+    totalFiles: 1,
+    percentageProcessed: 30,
+    processedFiles: 0
+  }
+
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
     new S3UploadMock("")
@@ -180,6 +158,10 @@ test("client file metadata successfully uploaded", async () => {
   await expect(
     fileProcessing.processClientFiles("1", [], jest.fn(), "")
   ).resolves.not.toThrow()
+
+  fileProcessing.progressCallback(progressInformation)
+
+  checkExpectedPageState("30")
 })
 
 test("file successfully uploaded to s3", async () => {
@@ -262,3 +244,36 @@ test("Error thrown if extracting file metadata fails", async () => {
     )
   )
 })
+
+function setupUploadPageHTML() {
+  document.body.innerHTML =
+    '<div id="file-upload" class="govuk-grid-row"></div>' +
+    '<div id="progress-bar" class="govuk-grid-row hide">' +
+    '<div> <progress class="progress-display" value="" max="50"></progress> </div>' +
+    "</div>"
+}
+
+function checkExpectedPageState(percentage: String) {
+  const fileUpload: HTMLDivElement | null = document.querySelector(
+    "#file-upload"
+  )
+  const progressBar: HTMLDivElement | null = document.querySelector(
+    "#progress-bar"
+  )
+
+  const progressBarElement: HTMLDivElement | null = document.querySelector(
+    ".progress-display"
+  )
+
+  expect(progressBar && progressBar.classList.toString()).toEqual(
+    "govuk-grid-row"
+  )
+
+  expect(fileUpload && fileUpload.classList.toString()).toEqual(
+    "govuk-grid-row hide"
+  )
+
+  expect(
+    progressBarElement && progressBarElement.getAttribute("value")
+  ).toEqual(percentage)
+}
