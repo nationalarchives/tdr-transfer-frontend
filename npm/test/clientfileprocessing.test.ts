@@ -134,7 +134,6 @@ const mockMetadataExtractFailure: () => void = () => {
 }
 
 test("client file metadata successfully uploaded", async () => {
-  setupUploadPageHTML()
   mockMetadataExtractSuccess()
   mockMetadataUploadSuccess()
 
@@ -143,12 +142,6 @@ test("client file metadata successfully uploaded", async () => {
     client
   )
 
-  const progressInformation: IProgressInformation = {
-    totalFiles: 1,
-    percentageProcessed: 30,
-    processedFiles: 0
-  }
-
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
     new S3UploadMock("")
@@ -156,10 +149,84 @@ test("client file metadata successfully uploaded", async () => {
   await expect(
     fileProcessing.processClientFiles("1", [], jest.fn(), "")
   ).resolves.not.toThrow()
+})
+
+test("progressCallback function updates the progress bar with the percentage processed", () => {
+  setupUploadPageHTML()
+  mockMetadataExtractSuccess()
+  mockMetadataUploadSuccess()
+
+  const progressInformation: IProgressInformation = {
+    totalFiles: 1,
+    percentageProcessed: 30,
+    processedFiles: 0
+  }
+
+  const client = new GraphqlClient("test", mockKeycloakInstance)
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
+    client
+  )
+
+  const fileProcessing = new ClientFileProcessing(
+    metadataUpload,
+    new S3UploadMock("")
+  )
 
   fileProcessing.progressCallback(progressInformation)
 
   checkExpectedPageState("30")
+})
+
+test("progressCallback function does not update progress bar if percentage processed is over 50", () => {
+  setupUploadPageHTML()
+  mockMetadataExtractSuccess()
+  mockMetadataUploadSuccess()
+
+  const progressInformation: IProgressInformation = {
+    totalFiles: 1,
+    percentageProcessed: 51,
+    processedFiles: 0
+  }
+
+  const client = new GraphqlClient("test", mockKeycloakInstance)
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
+    client
+  )
+
+  const fileProcessing = new ClientFileProcessing(
+    metadataUpload,
+    new S3UploadMock("")
+  )
+
+  fileProcessing.progressCallback(progressInformation)
+
+  checkExpectedPageState("") // this field is not populated because % > 50
+})
+
+test("progressCallback function does not change the HTML state if no progress bar present", () => {
+  setupUploadPageHTMLWithoutProgressBar()
+  mockMetadataExtractSuccess()
+  mockMetadataUploadSuccess()
+
+  const progressInformation: IProgressInformation = {
+    totalFiles: 1,
+    percentageProcessed: 30,
+    processedFiles: 0
+  }
+
+  const client = new GraphqlClient("test", mockKeycloakInstance)
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
+    client
+  )
+
+  const fileProcessing = new ClientFileProcessing(
+    metadataUpload,
+    new S3UploadMock("")
+  )
+
+  fileProcessing.progressCallback(progressInformation)
+
+  checkNoPageStateChangeExpected()
 })
 
 test("file successfully uploaded to s3", async () => {
@@ -244,14 +311,20 @@ test("Error thrown if extracting file metadata fails", async () => {
 })
 
 function setupUploadPageHTML() {
-  document.body.innerHTML =
-    '<div id="file-upload" class="govuk-grid-row"></div>' +
-    `<div id="upload-error" class="govuk-error-summary upload-error hide" aria-labelledby="error-summary-title"
+  document.body.innerHTML = `<div id="file-upload" class="govuk-grid-row"></div>
+   <div id="upload-error" class="govuk-error-summary upload-error hide" aria-labelledby="error-summary-title"
             role="alert" tabindex="-1" data-module="govuk-error-summary">
-            <h2 class="govuk-error-summary__title" id="error-summary-title"></h2></div>` +
-    '<div id="progress-bar" class="govuk-grid-row hide">' +
-    '<div> <progress class="progress-display" value="" max="50"></progress> </div>' +
-    "</div>"
+            <h2 class="govuk-error-summary__title" id="error-summary-title"></h2></div>
+    <div id="progress-bar" class="govuk-grid-row hide">
+    <div> <progress class="progress-display" value="" max="50"></progress> </div>
+    </div>`
+}
+
+function setupUploadPageHTMLWithoutProgressBar() {
+  document.body.innerHTML = `<div id="file-upload" class="govuk-grid-row"></div>
+  <div id="upload-error" class="govuk-error-summary upload-error hide" aria-labelledby="error-summary-title
+          role="alert" tabindex="-1" data-module="govuk-error-summary">
+          <h2 class="govuk-error-summary__title" id="error-summary-title"></h2></div>`
 }
 
 function checkExpectedPageState(percentage: String) {
@@ -285,4 +358,14 @@ function checkExpectedPageState(percentage: String) {
   expect(
     progressBarElement && progressBarElement.getAttribute("value")
   ).toEqual(percentage)
+}
+
+function checkNoPageStateChangeExpected() {
+  const fileUpload: HTMLDivElement | null = document.querySelector(
+    "#file-upload"
+  )
+
+  expect(fileUpload && fileUpload.classList.toString()).toEqual(
+    "govuk-grid-row"
+  )
 }
