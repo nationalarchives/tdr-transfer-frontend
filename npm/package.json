@@ -41,8 +41,6 @@
   "dependencies": {
     "@nationalarchives/file-information": "1.0.4",
     "@nationalarchives/tdr-generated-graphql": "1.0.12",
-    "@types/mocha": "^7.0.2",
-    "ajv": "^6.12.2",
     "apollo-boost": "^0.4.7",
     "aws-sdk": "^2.656.0",
     "govuk-frontend": "^3.6.0",

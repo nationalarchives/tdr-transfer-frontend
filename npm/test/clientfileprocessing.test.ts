@@ -133,8 +133,6 @@ const mockMetadataExtractFailure: () => void = () => {
   })
 }
 
-test("kljdals", async () => {})
-
 test("client file metadata successfully uploaded", async () => {
   setupUploadPageHTML()
   mockMetadataExtractSuccess()
@@ -248,6 +246,9 @@ test("Error thrown if extracting file metadata fails", async () => {
 function setupUploadPageHTML() {
   document.body.innerHTML =
     '<div id="file-upload" class="govuk-grid-row"></div>' +
+    `<div id="upload-error" class="govuk-error-summary upload-error hide" aria-labelledby="error-summary-title"
+            role="alert" tabindex="-1" data-module="govuk-error-summary">
+            <h2 class="govuk-error-summary__title" id="error-summary-title"></h2></div>` +
     '<div id="progress-bar" class="govuk-grid-row hide">' +
     '<div> <progress class="progress-display" value="" max="50"></progress> </div>' +
     "</div>"
@@ -265,12 +266,20 @@ function checkExpectedPageState(percentage: String) {
     ".progress-display"
   )
 
+  const uploadError: HTMLDivElement | null = document.querySelector(
+    "#upload-error"
+  )
+
   expect(progressBar && progressBar.classList.toString()).toEqual(
     "govuk-grid-row"
   )
 
   expect(fileUpload && fileUpload.classList.toString()).toEqual(
     "govuk-grid-row hide"
+  )
+
+  expect(uploadError && uploadError.classList.toString()).toEqual(
+    "govuk-error-summary upload-error hide"
   )
 
   expect(
