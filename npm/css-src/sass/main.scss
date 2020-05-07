@@ -18,7 +18,7 @@ $position: relative;
     box-shadow: $boxShadow;
     color: govuk-colour("blue", $legacy: "govuk-blue");
     position: $position;
-    margin: 0 0 1.5em;
+    margin: 0.1px;
 }
 
 .progress-display[value]::-webkit-progress-bar {
