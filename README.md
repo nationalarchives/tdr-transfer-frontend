@@ -128,6 +128,9 @@ You will also need to set the AUTH_URL environment variable for your locally run
 
 * run  `npm install` then `npm run build`
 
+If you're working on the Sass files and just want to regenerate the CSS without rebuilding all the JavaScript code, you
+can run `npm run sass-watch` to monitor and rebuild the CSS files, or run `npm run build-css` to run a single build.
+
 ## Generated GraphQL classes
 
 There is a separate repository which contains the generated case classes needed to query the consignment API. 
