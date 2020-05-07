@@ -153,8 +153,6 @@ test("client file metadata successfully uploaded", async () => {
 
 test("progressCallback function updates the progress bar with the percentage processed", () => {
   setupUploadPageHTML()
-  mockMetadataExtractSuccess()
-  mockMetadataUploadSuccess()
 
   const progressInformation: IProgressInformation = {
     totalFiles: 1,
@@ -179,8 +177,6 @@ test("progressCallback function updates the progress bar with the percentage pro
 
 test("progressCallback function does not update progress bar if percentage processed is over 50", () => {
   setupUploadPageHTML()
-  mockMetadataExtractSuccess()
-  mockMetadataUploadSuccess()
 
   const progressInformation: IProgressInformation = {
     totalFiles: 1,
@@ -205,8 +201,6 @@ test("progressCallback function does not update progress bar if percentage proce
 
 test("progressCallback function does not change the HTML state if no progress bar present", () => {
   setupUploadPageHTMLWithoutProgressBar()
-  mockMetadataExtractSuccess()
-  mockMetadataUploadSuccess()
 
   const progressInformation: IProgressInformation = {
     totalFiles: 1,
