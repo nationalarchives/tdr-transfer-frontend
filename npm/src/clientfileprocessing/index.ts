@@ -23,6 +23,35 @@ export class ClientFileProcessing {
     this.s3Upload = s3Upload
   }
 
+  progressCallback(progressInformation: IProgressInformation) {
+    console.log(
+      "Percent of metadata extracted: " +
+        progressInformation.percentageProcessed
+    )
+
+    const fileUpload: HTMLDivElement | null = document.querySelector(
+      "#file-upload"
+    )
+    const progressBar: HTMLDivElement | null = document.querySelector(
+      "#progress-bar"
+    )
+    const progressBarElement: HTMLDivElement | null = document.querySelector(
+      ".progress-display"
+    )
+
+    if (fileUpload && progressBar) {
+      fileUpload.classList.add("hide")
+      progressBar.classList.remove("hide")
+    }
+
+    if (progressBarElement && progressInformation.percentageProcessed < 50) {
+      progressBarElement.setAttribute(
+        "value",
+        progressInformation.percentageProcessed.toString()
+      )
+    }
+  }
+
   async processClientFiles(
     consignmentId: string,
     files: TdrFile[],
@@ -37,12 +66,7 @@ export class ClientFileProcessing {
       const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
         files,
         //Temporary function until s3 upload in place
-        function(progressInformation: IProgressInformation) {
-          console.log(
-            "Percent of metadata extracted: " +
-              progressInformation.percentageProcessed
-          )
-        }
+        this.progressCallback
       )
       const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
         fileIds,
