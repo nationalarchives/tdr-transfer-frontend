@@ -1,6 +1,5 @@
 # https://www.playframework.com/documentation/latest/ScalaI18N
 
-main.logo=GOV.UK
 main.header=Transfer Digital Records
 home.header=Welcome
 home.title=Transfer Digital Records
