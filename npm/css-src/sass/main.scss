@@ -1,6 +1,8 @@
 @import "node_modules/govuk-frontend/govuk/all";
 @import "overrides/all";
 
+@import "header";
+
 /* Variables for repeated blocks */
 $borderRadius: 10px;
 $boxShadow: 0 2px 3px govuk-colour("black", $legacy: "black") inset;
