@@ -5,7 +5,8 @@ import java.util.UUID
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
-import play.api.Configuration
+import play.api.data.Form
+import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import validation.ValidatedActions
@@ -22,4 +23,11 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
   def uploadPage(consignmentId: UUID): Action[AnyContent] = transferAgreementExistsAction(consignmentId) { implicit request: Request[AnyContent] =>
     Ok(views.html.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo))
   }
+
+  def uploadRedirect(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
+    Redirect(routes.RecordsController.recordsPage(consignmentId))
+  }
+
 }
+
+case class UploadData(consignmentId: UUID)
