@@ -31,8 +31,12 @@ export class UploadFiles {
       "#file-upload-form"
     )
 
+    const uploadDataFormRedirect: HTMLFormElement | null = document.querySelector(
+      "#upload-data-form"
+    )
+
     if (uploadForm) {
-      uploadForm.addEventListener("submit", ev => {
+      uploadForm.addEventListener("submit", async ev => {
         ev.preventDefault()
         const consignmentId: string | null = uploadForm.getAttribute(
           "data-consignment-id"
@@ -51,12 +55,15 @@ export class UploadFiles {
             throw Error("No files selected")
           }
 
-          this.clientFileProcessing.processClientFiles(
+          await this.clientFileProcessing.processClientFiles(
             consignmentId,
             files,
             progress => console.log(progress.percentageProcessed),
             this.stage
           )
+          if (uploadDataFormRedirect) {
+            uploadDataFormRedirect.submit()
+          }
         } catch (e) {
           //For now console log errors
           console.error("Client file upload failed: " + e.message)

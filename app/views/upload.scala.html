@@ -1,6 +1,7 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
-@(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit messages: Messages)
+@import helper._
+@(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
 
 @main(Messages("upload.header")) {
 <div id="file-upload" class="govuk-grid-row">
@@ -24,6 +25,9 @@
                 </ul>
             </div>
         </div>
+        @form(routes.UploadController.uploadRedirect(consignmentId), Symbol("id") -> "upload-data-form") {
+            @CSRF.formField
+        }
         <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <label class="govuk-label" for="file-selection">
