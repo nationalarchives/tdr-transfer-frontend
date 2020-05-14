@@ -16,6 +16,6 @@ class RecordsController @Inject()(val controllerComponents: SecurityComponents,
                                  ) extends OidcSecurity with I18nSupport {
 
   def recordsPage(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
-    Ok(views.html.records())
+    Ok(views.html.records(consignmentId))
   }
 }

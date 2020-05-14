@@ -1,4 +1,5 @@
-@()(implicit messages: Messages)
+@import java.util.UUID
+@(consignmentId: UUID)(implicit messages: Messages)
 
 @main(Messages("records.header")) {
 <h1 class="govuk-heading-xl">@Messages("records.title")</h1>
