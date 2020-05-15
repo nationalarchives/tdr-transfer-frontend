@@ -54,15 +54,15 @@ pipeline {
   }
   post {
     success {
-        script {
-            if (params.STAGE == "intg"){
-                build(
-                    job: "TDRAcceptanceTest",
-                    parameters: [ string(name: "STAGE", value: "intg") ],
-                    wait: false
-                )
-            }
+      script {
+        if (params.STAGE == "intg"){
+          build(
+            job: "TDRAcceptanceTest",
+            parameters: [ string(name: "STAGE", value: "intg") ],
+            wait: false
+          )
         }
+      }
     }
   }
 }
