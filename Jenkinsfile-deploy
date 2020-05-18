@@ -59,6 +59,7 @@ pipeline {
           build(
             job: "TDRAcceptanceTest",
             parameters: [ string(name: "STAGE", value: "intg") ],
+            quietPeriod: 300,
             wait: false
           )
         }
