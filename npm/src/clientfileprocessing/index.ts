@@ -52,6 +52,16 @@ export class ClientFileProcessing {
     }
   }
 
+  progressS3Callback() {
+    const progressBarElement: HTMLDivElement | null = document.querySelector(
+      ".progress-display"
+    )
+
+    if (progressBarElement) {
+      progressBarElement.setAttribute("value", "100")
+    }
+  }
+
   async processClientFiles(
     consignmentId: string,
     files: TdrFile[],
@@ -72,7 +82,12 @@ export class ClientFileProcessing {
         fileIds,
         metadata
       )
-      this.s3Upload.uploadToS3(consignmentId, tdrFiles, callback, stage)
+      this.s3Upload.uploadToS3(
+        consignmentId,
+        tdrFiles,
+        this.progressS3Callback,
+        stage
+      )
     } catch (e) {
       handleUploadError(e, "Processing client files failed")
     }
