@@ -105,11 +105,13 @@ If you want to upload to the aws s3 bucket, you can no longer use your local key
 You will also need to set the AUTH_URL environment variable for your locally running API project to:
 -  AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk/auth
 
+- Set up another [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients) called tdr-fe. This will be a
+  public client as the configuration is available publicly in the browser. This means there are no client credentials.
+  - Set "Valid redirect URIs" to `http://localhost:9000/*`
+  - Set "Web Origins" to `http://localhost:9000`
+  - Leave everything else on the defaults
+
 #### Frontend project
-
-* Set up another [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients) called tdr-fe. This will be a public client as the configuration is available publicly in the browser. This means there are no client credentials.
-
-* Set "Valid redirect URIs" to `http://localhost:9000/*` Leave everything else on the defaults.
 
 * Start redis locally.
 
