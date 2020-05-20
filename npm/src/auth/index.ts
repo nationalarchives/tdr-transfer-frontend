@@ -48,6 +48,14 @@ export const authenticateAndGetIdentityId: (
   const token = await refreshOrReturnToken(keycloak)
   const { identityProviderName, identityPoolId, region } = frontEndInfo
 
+  console.log("Setting cognito endpoint 4600")
+  AWS.config.cognitoidentity = { endpoint: "http://localhost:4600" }
+  console.log("Setting S3 endpoint to 9444/s3 and only s3ForcePathStyle")
+  AWS.config.s3 = {
+    endpoint: "http://localhost:9444/s3",
+    s3ForcePathStyle: true
+  }
+
   const credentials = new CognitoIdentityCredentials({
     IdentityPoolId: identityPoolId,
     Logins: {
