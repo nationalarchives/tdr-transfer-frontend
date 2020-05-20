@@ -151,7 +151,7 @@ test("client file metadata successfully uploaded", async () => {
   ).resolves.not.toThrow()
 })
 
-test("progressCallback function updates the progress bar with the percentage processed", () => {
+test("progressBarSwitcher function updates the progress bar with the percentage processed", () => {
   setupUploadPageHTML()
 
   const progressInformation: IProgressInformation = {
@@ -170,12 +170,12 @@ test("progressCallback function updates the progress bar with the percentage pro
     new S3UploadMock("")
   )
 
-  fileProcessing.progressCallback(progressInformation)
+  fileProcessing.progressBarSwitcher(progressInformation)
 
   checkExpectedPageState("30")
 })
 
-test("progressCallback function does not update progress bar if percentage processed is over 50", () => {
+test("progressBarSwitcher function does not update progress bar if percentage processed is over 50", () => {
   setupUploadPageHTML()
 
   const progressInformation: IProgressInformation = {
@@ -194,12 +194,12 @@ test("progressCallback function does not update progress bar if percentage proce
     new S3UploadMock("")
   )
 
-  fileProcessing.progressCallback(progressInformation)
+  fileProcessing.progressBarSwitcher(progressInformation)
 
   checkExpectedPageState("") // this field is not populated because % > 50
 })
 
-test("progressCallback function does not change the HTML state if no progress bar present", () => {
+test("progressBarSwitcher function does not change the HTML state if no progress bar present", () => {
   setupUploadPageHTMLWithoutProgressBar()
 
   const progressInformation: IProgressInformation = {
@@ -218,7 +218,7 @@ test("progressCallback function does not change the HTML state if no progress ba
     new S3UploadMock("")
   )
 
-  fileProcessing.progressCallback(progressInformation)
+  fileProcessing.progressBarSwitcher(progressInformation)
 
   checkNoPageStateChangeExpected()
 })
