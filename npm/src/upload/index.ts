@@ -26,13 +26,35 @@ export class UploadFiles {
     )
     this.stage = stage
   }
+
+  retrieveFiles(target: HTMLInputTarget | null): TdrFile[] {
+    const files: TdrFile[] = target!.files!.files!
+    if (files === null || files.length === 0) {
+      throw Error("No files selected")
+    }
+    return files
+  }
+
+  uploadFilesSuccess(): void {
+    const uploadDataFormRedirect: HTMLFormElement | null = document.querySelector(
+      "#upload-data-form"
+    )
+    if (uploadDataFormRedirect) {
+      uploadDataFormRedirect.submit()
+    }
+  }
+
   upload(): void {
     const uploadForm: HTMLFormElement | null = document.querySelector(
       "#file-upload-form"
     )
 
+    const uploadDataFormRedirect: HTMLFormElement | null = document.querySelector(
+      "#upload-data-form"
+    )
+
     if (uploadForm) {
-      uploadForm.addEventListener("submit", ev => {
+      uploadForm.addEventListener("submit", async ev => {
         ev.preventDefault()
         const consignmentId: string | null = uploadForm.getAttribute(
           "data-consignment-id"
@@ -44,19 +66,15 @@ export class UploadFiles {
           if (!consignmentId) {
             throw Error("No consignment provided")
           }
+          const files = this.retrieveFiles(target)
 
-          const files: TdrFile[] = target!.files!.files!
-
-          if (files === null || files.length === 0) {
-            throw Error("No files selected")
-          }
-
-          this.clientFileProcessing.processClientFiles(
+          await this.clientFileProcessing.processClientFiles(
             consignmentId,
             files,
             progress => console.log(progress.percentageProcessed),
             this.stage
           )
+          this.uploadFilesSuccess()
         } catch (e) {
           //For now console log errors
           console.error("Client file upload failed: " + e.message)
