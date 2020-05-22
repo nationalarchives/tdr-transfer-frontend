@@ -109,6 +109,7 @@ You will also need to set the AUTH_URL environment variable for your locally run
   public client as the configuration is available publicly in the browser. This means there are no client credentials.
   - Set "Valid redirect URIs" to `http://localhost:9000/*`
   - Set "Web Origins" to `http://localhost:9000`
+  - Configure a mapping for `user_id` as you did for the tdr client above
   - Leave everything else on the defaults
 
 #### Frontend project
