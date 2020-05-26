@@ -19,6 +19,10 @@ jest.mock("../src/s3upload")
 beforeEach(() => jest.resetModules())
 
 class S3UploadMock extends S3Upload {
+  constructor() {
+    super("some Cognito user ID")
+  }
+
   uploadToS3: (
     consignmentId: string,
     files: ITdrFile[],
@@ -144,7 +148,7 @@ test("client file metadata successfully uploaded", async () => {
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
   await expect(
     fileProcessing.processClientFiles("1", [], jest.fn(), "")
@@ -167,7 +171,7 @@ test("progressCallback function updates the progress bar with the percentage pro
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   fileProcessing.progressCallback(progressInformation)
@@ -191,7 +195,7 @@ test("progressCallback function does not update progress bar if percentage proce
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   fileProcessing.progressCallback(progressInformation)
@@ -215,7 +219,7 @@ test("progressCallback function does not change the HTML state if no progress ba
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   fileProcessing.progressCallback(progressInformation)
@@ -231,7 +235,7 @@ test("file successfully uploaded to s3", async () => {
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
-  const s3UploadMock = new S3UploadMock("")
+  const s3UploadMock = new S3UploadMock()
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3UploadMock)
   await expect(
     fileProcessing.processClientFiles("1", [], jest.fn(), "")
@@ -250,7 +254,7 @@ test("Error thrown if processing files fails", async () => {
   )
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   await expect(
@@ -272,7 +276,7 @@ test("Error thrown if processing file metadata fails", async () => {
   )
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   await expect(
@@ -292,7 +296,7 @@ test("Error thrown if extracting file metadata fails", async () => {
   )
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   await expect(
