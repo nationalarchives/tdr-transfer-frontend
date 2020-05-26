@@ -137,6 +137,23 @@ const mockMetadataExtractFailure: () => void = () => {
   })
 }
 
+const mockS3UploadFailure: (message: string) => void = (message: string) => {
+  const s3UploadMock = S3Upload as jest.Mock
+  s3UploadMock.mockImplementation(() => {
+    return {
+      uploadToS3: (
+        consignmentId: string,
+        files: ITdrFile[],
+        callback: TProgressFunction,
+        stage: string,
+        chunkSize?: number
+      ) => {
+        return Promise.reject(new Error(message))
+      }
+    }
+  })
+}
+
 test("client file metadata successfully uploaded", async () => {
   mockMetadataExtractSuccess()
   mockMetadataUploadSuccess()
@@ -305,6 +322,25 @@ test("Error thrown if extracting file metadata fails", async () => {
     Error(
       "Processing client files failed: client file metadata extraction error"
     )
+  )
+})
+
+test("Error thrown if S3 upload fails", async () => {
+  mockMetadataExtractSuccess()
+  mockMetadataUploadSuccess()
+  mockS3UploadFailure("Some S3 error")
+
+  const client = new GraphqlClient("test", mockKeycloakInstance)
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
+    client
+  )
+  const s3Upload = new S3Upload("some Cognito user ID")
+  const fileProcessing = new ClientFileProcessing(metadataUpload, s3Upload)
+
+  await expect(
+    fileProcessing.processClientFiles("1", [], jest.fn(), "")
+  ).rejects.toStrictEqual(
+    Error("Processing client files failed: Some S3 error")
   )
 })
 
