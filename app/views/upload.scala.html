@@ -1,6 +1,7 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
-@(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit messages: Messages)
+@import helper._
+@(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
 
 @main(Messages("upload.header")) {
 <div id="file-upload" class="govuk-grid-row">
@@ -47,6 +48,8 @@
                 </button>
             </div>
         </form>
+<!--        Form to redirect user once upload has completed. It sends consignmentId to record processing placeholder page -->
+        @form(routes.RecordsController.recordsPage(consignmentId), Symbol("id") -> "upload-data-form") { }
     </div>
 </div>
 <div id="progress-bar" class="govuk-grid-row hide">

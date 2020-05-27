@@ -52,6 +52,20 @@ pipeline {
       }
     }
   }
+  post {
+    success {
+      script {
+        if (params.STAGE == "intg"){
+          build(
+            job: "TDRAcceptanceTest",
+            parameters: [ string(name: "STAGE", value: "intg") ],
+            quietPeriod: 300,
+            wait: false
+          )
+        }
+      }
+    }
+  }
 }
 
 def getAccountNumberFromStage() {
