@@ -23,31 +23,15 @@ export class ClientFileProcessing {
     this.s3Upload = s3Upload
   }
 
-  /**
-   * Updates a progress bar with a given percentage
-   * @param percent The percentage to update the progress bar with  of type {@link Number}
-   */
-  updateProgressBarPercentage(percent: Number) {
-    const progressBarElement: HTMLDivElement | null = document.querySelector(
-      ".progress-display"
-    )
-
-    if (progressBarElement) {
-      progressBarElement.setAttribute("value", percent.toString())
-    }
-  }
-
-  progressBarSwitcher = (progressInformation: IProgressInformation) => {
-    console.log(
-      "Percent of metadata extracted: " +
-        progressInformation.percentageProcessed
-    )
-
+  progressMetadataCallback(progressInformation: IProgressInformation) {
     const fileUpload: HTMLDivElement | null = document.querySelector(
       "#file-upload"
     )
     const progressBar: HTMLDivElement | null = document.querySelector(
       "#progress-bar"
+    )
+    const progressBarElement: HTMLDivElement | null = document.querySelector(
+      ".progress-display"
     )
 
     if (fileUpload && progressBar) {
@@ -55,8 +39,21 @@ export class ClientFileProcessing {
       progressBar.classList.remove("hide")
     }
 
-    if (progressInformation.percentageProcessed < 50) {
-      this.updateProgressBarPercentage(progressInformation.percentageProcessed)
+    if (progressBarElement && progressInformation.percentageProcessed < 50) {
+      progressBarElement.setAttribute(
+        "value",
+        progressInformation.percentageProcessed.toString()
+      )
+    }
+  }
+
+  progressS3Callback() {
+    const progressBarElement: HTMLDivElement | null = document.querySelector(
+      ".progress-display"
+    )
+
+    if (progressBarElement) {
+      progressBarElement.setAttribute("value", "100")
     }
   }
 
@@ -73,7 +70,7 @@ export class ClientFileProcessing {
       )
       const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
         files,
-        this.progressBarSwitcher
+        this.progressMetadataCallback
       )
       const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
         fileIds,
@@ -82,7 +79,7 @@ export class ClientFileProcessing {
       this.s3Upload.uploadToS3(
         consignmentId,
         tdrFiles,
-        () => this.updateProgressBarPercentage(100), // Update to 100 as we have finished at this point.
+        this.progressS3Callback,
         stage
       )
     } catch (e) {
