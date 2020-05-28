@@ -19,6 +19,10 @@ jest.mock("../src/s3upload")
 beforeEach(() => jest.resetModules())
 
 class S3UploadMock extends S3Upload {
+  constructor() {
+    super("some Cognito user ID")
+  }
+
   uploadToS3: (
     consignmentId: string,
     files: ITdrFile[],
@@ -133,6 +137,23 @@ const mockMetadataExtractFailure: () => void = () => {
   })
 }
 
+const mockS3UploadFailure: (message: string) => void = (message: string) => {
+  const s3UploadMock = S3Upload as jest.Mock
+  s3UploadMock.mockImplementation(() => {
+    return {
+      uploadToS3: (
+        consignmentId: string,
+        files: ITdrFile[],
+        callback: TProgressFunction,
+        stage: string,
+        chunkSize?: number
+      ) => {
+        return Promise.reject(new Error(message))
+      }
+    }
+  })
+}
+
 test("client file metadata successfully uploaded", async () => {
   mockMetadataExtractSuccess()
   mockMetadataUploadSuccess()
@@ -144,7 +165,7 @@ test("client file metadata successfully uploaded", async () => {
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
   await expect(
     fileProcessing.processClientFiles("1", [], jest.fn(), "")
@@ -167,7 +188,7 @@ test("progressCallback function updates the progress bar with the percentage pro
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   fileProcessing.progressCallback(progressInformation)
@@ -191,7 +212,7 @@ test("progressCallback function does not update progress bar if percentage proce
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   fileProcessing.progressCallback(progressInformation)
@@ -215,7 +236,7 @@ test("progressCallback function does not change the HTML state if no progress ba
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   fileProcessing.progressCallback(progressInformation)
@@ -231,7 +252,7 @@ test("file successfully uploaded to s3", async () => {
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
-  const s3UploadMock = new S3UploadMock("")
+  const s3UploadMock = new S3UploadMock()
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3UploadMock)
   await expect(
     fileProcessing.processClientFiles("1", [], jest.fn(), "")
@@ -250,7 +271,7 @@ test("Error thrown if processing files fails", async () => {
   )
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   await expect(
@@ -272,7 +293,7 @@ test("Error thrown if processing file metadata fails", async () => {
   )
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   await expect(
@@ -292,7 +313,7 @@ test("Error thrown if extracting file metadata fails", async () => {
   )
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
-    new S3UploadMock("")
+    new S3UploadMock()
   )
 
   await expect(
@@ -301,6 +322,25 @@ test("Error thrown if extracting file metadata fails", async () => {
     Error(
       "Processing client files failed: client file metadata extraction error"
     )
+  )
+})
+
+test("Error thrown if S3 upload fails", async () => {
+  mockMetadataExtractSuccess()
+  mockMetadataUploadSuccess()
+  mockS3UploadFailure("Some S3 error")
+
+  const client = new GraphqlClient("test", mockKeycloakInstance)
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
+    client
+  )
+  const s3Upload = new S3Upload("some Cognito user ID")
+  const fileProcessing = new ClientFileProcessing(metadataUpload, s3Upload)
+
+  await expect(
+    fileProcessing.processClientFiles("1", [], jest.fn(), "")
+  ).rejects.toStrictEqual(
+    Error("Processing client files failed: Some S3 error")
   )
 })
 
