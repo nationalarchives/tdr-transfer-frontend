@@ -24,6 +24,8 @@ export class ClientFileProcessing {
   }
 
   progressMetadataCallback(progressInformation: IProgressInformation) {
+    const weightedPercent = progressInformation.percentageProcessed / 2
+
     const fileUpload: HTMLDivElement | null = document.querySelector(
       "#file-upload"
     )
@@ -39,21 +41,20 @@ export class ClientFileProcessing {
       progressBar.classList.remove("hide")
     }
 
-    if (progressBarElement && progressInformation.percentageProcessed < 50) {
-      progressBarElement.setAttribute(
-        "value",
-        progressInformation.percentageProcessed.toString()
-      )
+    if (progressBarElement) {
+      progressBarElement.setAttribute("value", weightedPercent.toString())
     }
   }
 
-  progressS3Callback() {
+  s3ProgressCallback(progressInformation: IProgressInformation) {
+    const weightedPercent = 50 + progressInformation.percentageProcessed / 2
+
     const progressBarElement: HTMLDivElement | null = document.querySelector(
       ".progress-display"
     )
 
     if (progressBarElement) {
-      progressBarElement.setAttribute("value", "100")
+      progressBarElement.setAttribute("value", weightedPercent.toString())
     }
   }
 
@@ -79,7 +80,7 @@ export class ClientFileProcessing {
       await this.s3Upload.uploadToS3(
         consignmentId,
         tdrFiles,
-        this.progressS3Callback,
+        this.s3ProgressCallback,
         stage
       )
     } catch (e) {
