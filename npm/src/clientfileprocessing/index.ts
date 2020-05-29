@@ -76,7 +76,7 @@ export class ClientFileProcessing {
         fileIds,
         metadata
       )
-      this.s3Upload.uploadToS3(
+      await this.s3Upload.uploadToS3(
         consignmentId,
         tdrFiles,
         this.progressS3Callback,
