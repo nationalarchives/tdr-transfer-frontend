@@ -23,7 +23,7 @@ export class ClientFileProcessing {
     this.s3Upload = s3Upload
   }
 
-  progressMetadataCallback(progressInformation: IProgressInformation) {
+  metadataProgressCallback(progressInformation: IProgressInformation) {
     const weightedPercent = progressInformation.percentageProcessed / 2
 
     const fileUpload: HTMLDivElement | null = document.querySelector(
@@ -71,7 +71,7 @@ export class ClientFileProcessing {
       )
       const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
         files,
-        this.progressMetadataCallback
+        this.metadataProgressCallback
       )
       const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
         fileIds,
