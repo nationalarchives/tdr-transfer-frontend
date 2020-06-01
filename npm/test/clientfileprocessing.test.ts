@@ -172,7 +172,7 @@ test("client file metadata successfully uploaded", async () => {
   ).resolves.not.toThrow()
 })
 
-test("progressBarSwitcher function updates the progress bar with the percentage processed", () => {
+test("progressBarSwitcher function updates the progress bar with the percentage processed / 2", () => {
   setupUploadPageHTML()
 
   const progressInformation: IProgressInformation = {
@@ -193,31 +193,7 @@ test("progressBarSwitcher function updates the progress bar with the percentage 
 
   fileProcessing.progressMetadataCallback(progressInformation)
 
-  checkExpectedPageState("30")
-})
-
-test("progressBarSwitcher function does not update progress bar if percentage processed is over 50", () => {
-  setupUploadPageHTML()
-
-  const progressInformation: IProgressInformation = {
-    totalFiles: 1,
-    percentageProcessed: 51,
-    processedFiles: 0
-  }
-
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
-
-  const fileProcessing = new ClientFileProcessing(
-    metadataUpload,
-    new S3UploadMock()
-  )
-
-  fileProcessing.progressMetadataCallback(progressInformation)
-
-  checkExpectedPageState("") // this field is not populated because % > 50
+  checkExpectedPageState("15")
 })
 
 test("progressBarSwitcher function does not change the HTML state if no progress bar present", () => {
