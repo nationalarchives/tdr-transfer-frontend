@@ -4,7 +4,6 @@ import { handleUploadError } from "../errorhandling"
 import {
   IFileMetadata,
   TdrFile,
-  TProgressFunction,
   IProgressInformation
 } from "@nationalarchives/file-information"
 import { ITdrFile, S3Upload } from "../s3upload"
@@ -61,7 +60,6 @@ export class ClientFileProcessing {
   async processClientFiles(
     consignmentId: string,
     files: TdrFile[],
-    callback: TProgressFunction,
     stage: string
   ): Promise<void> {
     try {
