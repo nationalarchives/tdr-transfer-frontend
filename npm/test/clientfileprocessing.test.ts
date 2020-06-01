@@ -196,7 +196,7 @@ test("metadataProgressBarCallback function updates the progress bar to a maximum
   checkExpectedPageState("50")
 })
 
-test("metadataProgress function does not change the HTML state if no progress bar present", () => {
+test("metadataProgressCallback function does not change the HTML state if no progress bar present", () => {
   setupUploadPageHTMLWithoutProgressBar()
 
   const progressInformation: IProgressInformation = {
@@ -266,7 +266,7 @@ test("s3ProgressBarCallback function updates the progress bar with the percentag
 
   const progressInformation: IProgressInformation = {
     totalFiles: 1,
-    percentageProcessed: 100,
+    percentageProcessed: 75,
     processedFiles: 0
   }
 
@@ -282,7 +282,7 @@ test("s3ProgressBarCallback function updates the progress bar with the percentag
 
   fileProcessing.s3ProgressCallback(progressInformation)
 
-  checkS3ExpectedPageState("100")
+  checkS3UploadProgressBarState("87.5")
 })
 
 test("s3ProgressBarCallback function updates progress bar from a minimum of 50 percent", () => {
@@ -306,7 +306,7 @@ test("s3ProgressBarCallback function updates progress bar from a minimum of 50 p
 
   fileProcessing.s3ProgressCallback(progressInformation)
 
-  checkS3ExpectedPageState("50")
+  checkS3UploadProgressBarState("50")
 })
 
 test("s3ProgressBarCallback function updates the progress bar to a maximum of 100 percent", () => {
@@ -330,7 +330,7 @@ test("s3ProgressBarCallback function updates the progress bar to a maximum of 10
 
   fileProcessing.s3ProgressCallback(progressInformation)
 
-  checkS3ExpectedPageState("100")
+  checkS3UploadProgressBarState("100")
 })
 
 test("Error thrown if processing files fails", async () => {
@@ -466,7 +466,7 @@ function checkExpectedPageState(percentage: String) {
   ).toEqual(percentage)
 }
 
-function checkS3ExpectedPageState(percentage: String) {
+function checkS3UploadProgressBarState(percentage: String) {
   const progressBarElement: HTMLDivElement | null = document.querySelector(
     ".progress-display"
   )
