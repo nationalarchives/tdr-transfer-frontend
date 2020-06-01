@@ -172,12 +172,12 @@ test("client file metadata successfully uploaded", async () => {
   ).resolves.not.toThrow()
 })
 
-test("progressBarSwitcher function updates the progress bar with the percentage processed / 2", () => {
+test("metadataProgressBarCallback function updates the progress bar to a maximum of 50 percent", () => {
   setupUploadPageHTML()
 
   const progressInformation: IProgressInformation = {
     totalFiles: 1,
-    percentageProcessed: 30,
+    percentageProcessed: 100,
     processedFiles: 0
   }
 
@@ -191,12 +191,12 @@ test("progressBarSwitcher function updates the progress bar with the percentage 
     new S3UploadMock()
   )
 
-  fileProcessing.progressMetadataCallback(progressInformation)
+  fileProcessing.metadataProgressCallback(progressInformation)
 
-  checkExpectedPageState("15")
+  checkExpectedPageState("50")
 })
 
-test("progressBarSwitcher function does not change the HTML state if no progress bar present", () => {
+test("metadataProgress function does not change the HTML state if no progress bar present", () => {
   setupUploadPageHTMLWithoutProgressBar()
 
   const progressInformation: IProgressInformation = {
@@ -215,9 +215,33 @@ test("progressBarSwitcher function does not change the HTML state if no progress
     new S3UploadMock()
   )
 
-  fileProcessing.progressMetadataCallback(progressInformation)
+  fileProcessing.metadataProgressCallback(progressInformation)
 
   checkNoPageStateChangeExpected()
+})
+
+test("metadataProgressBarCallback function updates the progress bar with the percentage processed", () => {
+  setupUploadPageHTML()
+
+  const progressInformation: IProgressInformation = {
+    totalFiles: 1,
+    percentageProcessed: 30,
+    processedFiles: 0
+  }
+
+  const client = new GraphqlClient("test", mockKeycloakInstance)
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
+    client
+  )
+
+  const fileProcessing = new ClientFileProcessing(
+    metadataUpload,
+    new S3UploadMock()
+  )
+
+  fileProcessing.metadataProgressCallback(progressInformation)
+
+  checkExpectedPageState("15")
 })
 
 test("file successfully uploaded to s3", async () => {
@@ -235,6 +259,78 @@ test("file successfully uploaded to s3", async () => {
   ).resolves.not.toThrow()
 
   expect(s3UploadMock.uploadToS3).toHaveBeenCalledTimes(1)
+})
+
+test("s3ProgressBarCallback function updates the progress bar with the percentage processed", () => {
+  setupUploadPageHTML()
+
+  const progressInformation: IProgressInformation = {
+    totalFiles: 1,
+    percentageProcessed: 100,
+    processedFiles: 0
+  }
+
+  const client = new GraphqlClient("test", mockKeycloakInstance)
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
+    client
+  )
+
+  const fileProcessing = new ClientFileProcessing(
+    metadataUpload,
+    new S3UploadMock()
+  )
+
+  fileProcessing.s3ProgressCallback(progressInformation)
+
+  checkS3ExpectedPageState("100")
+})
+
+test("s3ProgressBarCallback function updates progress bar from a minimum of 50 percent", () => {
+  setupUploadPageHTML()
+
+  const progressInformation: IProgressInformation = {
+    totalFiles: 1,
+    percentageProcessed: 0,
+    processedFiles: 0
+  }
+
+  const client = new GraphqlClient("test", mockKeycloakInstance)
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
+    client
+  )
+
+  const fileProcessing = new ClientFileProcessing(
+    metadataUpload,
+    new S3UploadMock()
+  )
+
+  fileProcessing.s3ProgressCallback(progressInformation)
+
+  checkS3ExpectedPageState("50")
+})
+
+test("s3ProgressBarCallback function updates the progress bar to a maximum of 100 percent", () => {
+  setupUploadPageHTML()
+
+  const progressInformation: IProgressInformation = {
+    totalFiles: 1,
+    percentageProcessed: 100,
+    processedFiles: 0
+  }
+
+  const client = new GraphqlClient("test", mockKeycloakInstance)
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
+    client
+  )
+
+  const fileProcessing = new ClientFileProcessing(
+    metadataUpload,
+    new S3UploadMock()
+  )
+
+  fileProcessing.s3ProgressCallback(progressInformation)
+
+  checkS3ExpectedPageState("100")
 })
 
 test("Error thrown if processing files fails", async () => {
@@ -363,6 +459,16 @@ function checkExpectedPageState(percentage: String) {
 
   expect(uploadError && uploadError.classList.toString()).toEqual(
     "govuk-error-summary upload-error hide"
+  )
+
+  expect(
+    progressBarElement && progressBarElement.getAttribute("value")
+  ).toEqual(percentage)
+}
+
+function checkS3ExpectedPageState(percentage: String) {
+  const progressBarElement: HTMLDivElement | null = document.querySelector(
+    ".progress-display"
   )
 
   expect(
