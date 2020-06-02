@@ -171,7 +171,7 @@ test("client file metadata successfully uploaded", async () => {
   ).resolves.not.toThrow()
 })
 
-test("metadataProgressBarCallback function updates the progress bar to a maximum of 50 percent", () => {
+test("metadataProgressCallback function updates the progress bar to a maximum of 50 percent", () => {
   setupUploadPageHTML()
 
   const progressInformation: IProgressInformation = {
@@ -219,7 +219,7 @@ test("metadataProgressCallback function does not change the HTML state if no pro
   checkNoPageStateChangeExpected()
 })
 
-test("metadataProgressBarCallback function updates the progress bar with the percentage processed", () => {
+test("metadataProgressCallback function updates the progress bar with the percentage processed", () => {
   setupUploadPageHTML()
 
   const progressInformation: IProgressInformation = {
@@ -260,7 +260,7 @@ test("file successfully uploaded to s3", async () => {
   expect(s3UploadMock.uploadToS3).toHaveBeenCalledTimes(1)
 })
 
-test("s3ProgressBarCallback function updates the progress bar with the percentage processed", () => {
+test("s3ProgressCallback function updates the progress bar with the percentage processed", () => {
   setupUploadPageHTML()
 
   const progressInformation: IProgressInformation = {
@@ -284,7 +284,7 @@ test("s3ProgressBarCallback function updates the progress bar with the percentag
   checkS3UploadProgressBarState("87.5")
 })
 
-test("s3ProgressBarCallback function updates progress bar from a minimum of 50 percent", () => {
+test("s3ProgressCallback function updates progress bar from a minimum of 50 percent", () => {
   setupUploadPageHTML()
 
   const progressInformation: IProgressInformation = {
@@ -308,7 +308,7 @@ test("s3ProgressBarCallback function updates progress bar from a minimum of 50 p
   checkS3UploadProgressBarState("50")
 })
 
-test("s3ProgressBarCallback function updates the progress bar to a maximum of 100 percent", () => {
+test("s3ProgressCallback function updates the progress bar to a maximum of 100 percent", () => {
   setupUploadPageHTML()
 
   const progressInformation: IProgressInformation = {
