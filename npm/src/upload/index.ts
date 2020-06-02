@@ -71,7 +71,6 @@ export class UploadFiles {
           await this.clientFileProcessing.processClientFiles(
             consignmentId,
             files,
-            progress => console.log(progress.percentageProcessed),
             this.stage
           )
           this.uploadFilesSuccess()
