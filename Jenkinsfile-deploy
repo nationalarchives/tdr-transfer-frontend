@@ -1,3 +1,5 @@
+library("tdr-jenkinslib")
+
 def releaseBranch = "release-${env.STAGE}"
 
 pipeline {
@@ -34,7 +36,7 @@ pipeline {
       }
       steps {
         script {
-          def accountNumber = getAccountNumberFromStage()
+          def accountNumber = tdr.getAccountNumberFromStage(params.STAGE)
           sh "python3 /update_service.py ${accountNumber} ${params.STAGE} frontend"
           slackSend color: "good", message: "*Transfer frontend* :arrow_up: The app has been updated in ECS in the *${params.STAGE}* environment", channel: "#tdr-releases"
         }
@@ -56,24 +58,9 @@ pipeline {
     success {
       script {
         if (params.STAGE == "intg"){
-          build(
-            job: "TDRAcceptanceTest",
-            parameters: [ string(name: "STAGE", value: "intg") ],
-            quietPeriod: 300,
-            wait: false
-          )
+            tdr.runEndToEndTests(300, "params.STAGE")
         }
       }
     }
   }
-}
-
-def getAccountNumberFromStage() {
-  def stageToAccountMap = [
-      "intg": env.INTG_ACCOUNT,
-      "staging": env.STAGING_ACCOUNT,
-      "prod": env.PROD_ACCOUNT
-  ]
-
-  return stageToAccountMap.get(params.STAGE)
 }
