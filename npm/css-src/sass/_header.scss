@@ -1,8 +1,16 @@
 .govuk-header__tna-logo {
-    width: 33.33%;
+    width: 220px;
     float: left;
 }
 
 .govuk-header__tna-logo-image {
     width: 220px;
+}
+
+.govuk-header__tna-content  {
+    width: 300px; 
+    position: relative;
+    align-self: center;
+    top: 5;
+    margin: 0 auto;
 }
