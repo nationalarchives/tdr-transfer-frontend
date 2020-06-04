@@ -58,7 +58,7 @@ pipeline {
     success {
       script {
         if (params.STAGE == "intg"){
-            tdr.runEndToEndTests(300, "params.STAGE")
+            tdr.runEndToEndTests(300, "params.STAGE", BUILD_URL)
         }
       }
     }
