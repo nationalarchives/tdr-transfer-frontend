@@ -48,12 +48,14 @@
                 </button>
             </div>
         </form>
-<!--        Form to redirect user once upload has completed. It sends consignmentId to record processing placeholder page -->
+        <!--        Form to redirect user once upload has completed. It sends consignmentId to record processing placeholder page -->
         @form(routes.RecordsController.recordsPage(consignmentId), Symbol("id") -> "upload-data-form") { }
     </div>
 </div>
 <div id="progress-bar" class="govuk-grid-row hide">
     <div class="govuk-grid-column-two-thirds">
+        <a href="@routes.DashboardController.dashboard" class="govuk-back-link">Back</a>
+        @progressIndicator(Messages("upload.progress"))
         <h1 class="govuk-heading-xl">@Messages("fileProgress.header")</h1>
         <p class="govuk-body">@Messages("fileProgress.title")</p>
         <div>
