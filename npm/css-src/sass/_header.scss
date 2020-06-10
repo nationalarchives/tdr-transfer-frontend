@@ -1,3 +1,5 @@
+$govuk-header-link: govuk-colour("white");
+
 .govuk-header__tna-logo {
     width: 220px;
     float: left;
@@ -10,7 +12,57 @@
 .govuk-header__tna-content {
     width: 290px;
     position: relative;
-    align-self: center;
     top: 5;
     margin: 0 auto;
 }
+
+.govuk-header__tna_link {
+    text-decoration: none;
+
+    &:link,
+    &:visited {
+      color: $govuk-header-link;
+    }
+
+    &:focus {
+      @include govuk-focused-text;
+    }
+
+    // alphagov/govuk_template includes a specific a:link:focus selector
+    // designed to make unvisited links a slightly darker blue when focussed, so
+    // we need to override the text colour for that combination of selectors.
+    @include govuk-compatibility(govuk_template) {
+      &:link:focus {
+        @include govuk-text-colour;
+      }
+    }
+  }
+
+  .govuk-header__tna_link--homepage {
+    // Font size needs to be set on the link so that the box sizing is correct
+    // in Firefox
+    @include govuk-font($size: false, $weight: bold);
+
+    display: inline-block;
+    font-size: 30px; // We don't have a mixin that produces 30px font size
+    line-height: 1;
+
+    &:link,
+    &:visited {
+      text-decoration: none;
+    }
+
+    &:active {
+      // Negate the added border
+      margin-bottom: -1px;
+      // Omitting colour will use default value of currentColor – if we
+      // specified currentColor explicitly IE8 would ignore this rule.
+      border-bottom: 1px solid;
+    }
+
+    // Remove any borders that show when focused and hovered.
+    &:focus {
+      margin-bottom: 0;
+      border-bottom: 0;
+    }
+  }
