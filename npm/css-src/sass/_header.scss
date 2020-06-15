@@ -50,12 +50,4 @@ $govuk-header-link: govuk-colour("white");
     &:visited {
       text-decoration: none;
     }
-
-    &:active {
-      box-sizing: border-box;
-    }
-
-    &:focus {
-      box-sizing: border-box;
-    }
   }
