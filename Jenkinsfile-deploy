@@ -1,66 +1,9 @@
 library("tdr-jenkinslib")
 
-def releaseBranch = "release-${env.STAGE}"
-
-pipeline {
-  agent {
-    label "master"
-  }
-  parameters {
-    choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are building the front end for")
-    string(name: "TO_DEPLOY", description: "The git tag, branch or commit reference to deploy, e.g. 'v123'")
-  }
-  stages {
-    stage("Docker") {
-      agent {
-        label "master"
-      }
-      steps {
-        script {
-          docker.withRegistry('', 'docker') {
-            sh "docker pull nationalarchives/tdr-transfer-frontend:${params.TO_DEPLOY}"
-            sh "docker tag nationalarchives/tdr-transfer-frontend:${params.TO_DEPLOY} nationalarchives/tdr-transfer-frontend:${params.STAGE}"
-            sh "docker push nationalarchives/tdr-transfer-frontend:${params.STAGE}"
-
-            slackSend color: "good", message: "*Transfer frontend* :whale: The '${params.TO_DEPLOY}' image has been tagged with '${params.STAGE}' in Docker Hub", channel: "#tdr-releases"
-          }
-        }
-      }
-    }
-    stage("Update ECS container") {
-      agent {
-        ecs {
-          inheritFrom "aws"
-          taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsNodeRole${params.STAGE.capitalize()}"
-        }
-      }
-      steps {
-        script {
-          def accountNumber = tdr.getAccountNumberFromStage(params.STAGE)
-          sh "python3 /update_service.py ${accountNumber} ${params.STAGE} frontend"
-          slackSend color: "good", message: "*Transfer frontend* :arrow_up: The app has been updated in ECS in the *${params.STAGE}* environment", channel: "#tdr-releases"
-        }
-      }
-    }
-    stage("Update release branch") {
-      agent {
-        label "master"
-      }
-      steps {
-        sh "git branch -f ${releaseBranch} HEAD"
-        sshagent(['github-jenkins']) {
-          sh("git push -f origin ${releaseBranch}")
-        }
-      }
-    }
-  }
-  post {
-    success {
-      script {
-        if (params.STAGE == "intg"){
-            tdr.runEndToEndTests(300, params.STAGE, BUILD_URL)
-        }
-      }
-    }
-  }
-}
+ecsDeployJob(
+    imageName: "tdr-transfer-frontend",
+    toDeploy: params.TO_DEPLOY,
+    ecsService: "frontend",
+    stage: params.STAGE,
+    testDelaySeconds: 300
+)
