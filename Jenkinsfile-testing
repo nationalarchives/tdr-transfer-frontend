@@ -60,7 +60,7 @@ pipeline {
             script {
               docker.withRegistry('', 'docker') {
                 docker.build("nationalarchives/tdr-transfer-frontend:${versionTag}").push()
-                slackSend color: "good", message: "*Transfer frontend* :whale: Pushed version ${versionTag} to Docker Hub", channel: "#tdr-releases"
+                tdr.postToDaTdrSlackChannel(colour: "good", message: "*Transfer frontend* :whale: Pushed version ${versionTag} to Docker Hub")
               }
             }
           }
