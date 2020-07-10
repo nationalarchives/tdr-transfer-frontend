@@ -23,7 +23,7 @@ class DashboardControllerSpec extends FrontEndTestHelper {
       val controller = new DashboardController(getUnauthorisedSecurityComponents)
       val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
       redirectLocation(dashboardPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
-      status(dashboardPage) mustBe FOUND
+      status(dashboardPage) mustBe NOT_FOUND
     }
   }
 }
