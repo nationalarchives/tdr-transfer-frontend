@@ -10,7 +10,9 @@ export const getKeycloakInstance: () => Promise<
   )
   const authenticated: boolean = await keycloakInstance.init({
     promiseType: "native",
-    onLoad: "check-sso"
+    onLoad: "check-sso",
+    silentCheckSsoRedirectUri:
+      window.location.origin + "/assets/html/silent-check-sso.html"
   })
 
   if (authenticated) {
