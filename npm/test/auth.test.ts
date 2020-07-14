@@ -45,7 +45,6 @@ test("Redirects user to login page and returns a new token if the user is not lo
     return new MockKeycloakUnauthenticated()
   })
 
-  console.log(window.location.href)
   await expect(getKeycloakInstance()).resolves.toEqual({
     token: "fake-auth-login-token"
   })
