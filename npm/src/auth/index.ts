@@ -8,18 +8,23 @@ export const getKeycloakInstance: () => Promise<
   const keycloakInstance: Keycloak.KeycloakInstance<"native"> = Keycloak(
     `${window.location.origin}/keycloak.json`
   )
-  const authenticated: boolean = await keycloakInstance.init({
+
+  const authenticated = await keycloakInstance.init({
     promiseType: "native",
     onLoad: "check-sso",
     silentCheckSsoRedirectUri:
       window.location.origin + "/assets/html/silent-check-sso.html"
   })
 
-  if (authenticated) {
-    return keycloakInstance
-  } else {
-    throw "User is not authenticated"
+  if (!authenticated) {
+    console.log("User is not authenticated. Redirecting to login page")
+    await keycloakInstance.login({
+      redirectUri: window.location.href,
+      prompt: "login"
+    })
   }
+
+  return keycloakInstance
 }
 
 export const refreshOrReturnToken: (
