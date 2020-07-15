@@ -40,7 +40,7 @@ beforeEach(() => {
   jest.resetModules()
 })
 
-test("Redirects user to login page and returns a new token if the user is not logged in", async () => {
+test("Redirects user to login page and returns a new token if the user is not authenticated", async () => {
   ;(Keycloak as jest.Mock).mockImplementation(() => {
     return new MockKeycloakUnauthenticated()
   })
