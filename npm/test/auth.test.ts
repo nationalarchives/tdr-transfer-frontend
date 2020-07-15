@@ -19,8 +19,14 @@ class MockKeycloakAuthenticated {
   }
 }
 class MockKeycloakUnauthenticated {
+  token: string = "fake-auth-login-token"
+
   init() {
     return new Promise((resolve, _) => resolve(false))
+  }
+
+  login() {
+    return new Promise((resolve, _) => resolve(true))
   }
 }
 class MockKeycloakError {
@@ -34,13 +40,14 @@ beforeEach(() => {
   jest.resetModules()
 })
 
-test("Returns an error if the user is not logged in", async () => {
+test("Redirects user to login page and returns a new token if the user is not authenticated", async () => {
   ;(Keycloak as jest.Mock).mockImplementation(() => {
     return new MockKeycloakUnauthenticated()
   })
-  await expect(getKeycloakInstance()).rejects.toEqual(
-    "User is not authenticated"
-  )
+
+  await expect(getKeycloakInstance()).resolves.toEqual({
+    token: "fake-auth-login-token"
+  })
 })
 
 test("Returns a token if the user is logged in", async () => {
