@@ -44,17 +44,17 @@ upload.continueLink=Continue
 fileProgress.header=Uploading Records...
 fileProgress.title=Please wait. Do not close your browser window while your files are being uploaded. This could take a few minutes.
 checkingRecords.header=Checking your records
-checkingRecords.title=We are now checking your records. It is safe to close the browser if you wish, otherwise please wait and you will be redirected automatically once complete.
+checkingRecords.title=Checking your records
+checkingRecords.description=We are now checking your records. It is safe to close the browser if you wish, otherwise please wait and you will be redirected automatically once complete.
+
 # Upload.error messages placeholder wording
 upload.error.title=There is a problem
 upload.error.failure=Some or all of your files failed to upload
-records.header=Records
-records.title=Records
 
 # Progress indicator step numbers
 seriesDetails.progress=1
 transferAgreement.progress=2
 upload.progress=3
 fileProgress.progress=4
-records.progress=5
+checkingRecords.progress=5
 progress.totalSteps=5
