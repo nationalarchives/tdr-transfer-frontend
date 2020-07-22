@@ -6,3 +6,11 @@
 <input type="hidden" class="identity-pool-id" value="@frontEndInfo.identityPoolId">
 <input type="hidden" class="stage" value="@frontEndInfo.stage">
 <input type="hidden" class="region" value="@frontEndInfo.region">
+
+@if(frontEndInfo.cognitoEndpointOverride.isDefined) {
+    <input type="hidden" class="cognito-endpoint-override" value="@frontEndInfo.cognitoEndpointOverride">
+}
+
+@if(frontEndInfo.s3EndpointOverride.isDefined) {
+    <input type="hidden" class="s3-endpoint-override" value="@frontEndInfo.s3EndpointOverride">
+}

@@ -13,6 +13,8 @@ export interface IFrontEndInfo {
   identityPoolId: string
   stage: string
   region: string
+  cognitoEndpointOverride?: string
+  s3EndpointOverride?: string
 }
 
 const getFrontEndInfo: () => IFrontEndInfo = () => {
@@ -29,11 +31,17 @@ const getFrontEndInfo: () => IFrontEndInfo = () => {
   const regionElement: HTMLInputElement | null = document.querySelector(
     ".region"
   )
+  const cognitoEndpointOverrideElement: HTMLInputElement | null = document.querySelector(
+    ".cognito-endpoint-override"
+  )
+  const s3EndpointOverrideElement: HTMLInputElement | null = document.querySelector(
+    ".s3-endpoint-override"
+  )
 
   if (
-    identityPoolElement &&
     apiUrlElement &&
     identityProviderNameElement &&
+    identityPoolElement &&
     stageElement &&
     regionElement
   ) {
@@ -42,7 +50,9 @@ const getFrontEndInfo: () => IFrontEndInfo = () => {
       identityProviderName: identityProviderNameElement.value,
       identityPoolId: identityPoolElement.value,
       stage: stageElement.value,
-      region: regionElement.value
+      region: regionElement.value,
+      cognitoEndpointOverride: cognitoEndpointOverrideElement?.value,
+      s3EndpointOverride: s3EndpointOverrideElement?.value
     }
   } else {
     throw "The front end information is missing"

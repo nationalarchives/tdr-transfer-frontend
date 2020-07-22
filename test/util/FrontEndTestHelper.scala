@@ -55,9 +55,18 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     }
   }
 
-  def frontEndInfoConfiguration = {
+  def frontEndInfoConfiguration: FrontEndInfoConfiguration = {
     val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
-    when(frontEndInfoConfiguration.frontEndInfo).thenReturn(new FrontEndInfo("", "", "", "", ""))
+    when(frontEndInfoConfiguration.frontEndInfo).thenReturn(
+      new FrontEndInfo(
+        "",
+        None,
+        "",
+        "",
+        None,
+        "",
+        ""
+      ))
     frontEndInfoConfiguration
   }
 
