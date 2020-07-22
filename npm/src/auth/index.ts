@@ -48,12 +48,23 @@ export const authenticateAndGetIdentityId: (
   const token = await refreshOrReturnToken(keycloak)
   const { identityProviderName, identityPoolId, region } = frontEndInfo
 
-  console.log("Setting cognito endpoint 4600")
-  AWS.config.cognitoidentity = { endpoint: "http://localhost:4600" }
-  console.log("Setting S3 endpoint to 9444/s3 and only s3ForcePathStyle")
-  AWS.config.s3 = {
-    endpoint: "http://localhost:9444/s3",
-    s3ForcePathStyle: true
+  // TODO: Should S3 and Cognito override be done elsewhere?
+  if (frontEndInfo.s3EndpointOverride) {
+    console.log(
+      `Overriding S3 endpoint with '${frontEndInfo.s3EndpointOverride}'`
+    )
+    AWS.config.s3 = {
+      endpoint: frontEndInfo.s3EndpointOverride,
+      s3ForcePathStyle: true
+    }
+  }
+  if (frontEndInfo.cognitoEndpointOverride) {
+    console.log(
+      `Overriding Cognito endpoint with '${frontEndInfo.cognitoEndpointOverride}'`
+    )
+    AWS.config.cognitoidentity = {
+      endpoint: frontEndInfo.cognitoEndpointOverride
+    }
   }
 
   const credentials = new CognitoIdentityCredentials({
