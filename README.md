@@ -50,53 +50,25 @@ updating the frontend.
 
 -  Start the auth server
   ```
-  docker run -d  --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin nationalarchives/tdr-auth-server:intg
+  docker run -d --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -e KEYCLOAK_IMPORT=/tmp/tdr-realm.json -e CLIENT_SECRET=[some value] -e BACKEND_CHECKS_CLIENT_SECRET=[some value] -e KEYCLOAK_CONFIGURATION_PROPERTIES=intg_properties.json nationalarchives/tdr-auth-server:intg
   ```
-- Go to `http://localhost:8081/auth/admin` and log in with username admin and password admin.
-- Set up a [realm](https://www.keycloak.org/docs/latest/getting_started/index.html#creating-a-realm-and-user) called tdr. You can set the display name to something else if you want as this will show on the login page.
-- Set up a [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients) called tdr:
-  - In the client settings, change the "Login Theme" to govuk.
-  - Set "Access Type" to `confidential`
-  - Set "Root URL" to `http://localhost:9000`
-  - Set "Valid redirect URIs" to `http://localhost:9000/*`
-  - Click Save
-  - In newly appeared "Credentials" tab, generate a [secret](https://www.keycloak.org/docs/latest/server_admin/#_client-credentials)
-- Configure the token mappers for the client
-  - In the tdr client settings, click the Mappers tab
-  - Add two mappings:
-    - User ID mapping:
-      - Name = `user_id`
-      - Mapper Type = User Property
-      - Property = `id`
-      - Token Claim Name = `user_id`
-      - Claim JSON Type = String
-    - Transferring body mapping:
-      - Name = `body`
-      - Mapper Type = User Attribute
-      - Property = `body`
-      - Token Claim Name = `body`
-      - Claim JSON Type = String 
-- Configure the roles:
-  - Click Roles in the menu on the left
-  - Add a new role called `tdr_user`
-- Create a user:
+- Go to `http://localhost:8081/auth/admin` and log in with username admin and password admin.  
+- Create a transferring body user:
   - Click Users in the menu on the left
   - Click Add User
   - Set a Username (all the other fields are optional) and click Save
-  - Click the Role Mappings tab
-  - Move the `tdr_user` role into the Assigned Roles
-  - Click the Attributes tab
-  - Add an attribute called `body` with value matching one of the transferring bodies in the database, e.g.
-    `MOCK1 Department`
+  - Click the Groups tab
+  - In the "Available Groups" box select the `Mock 1 Department` sub-group, and click `Join`
+    The `transferring_body_user/Mock 1 Department` group should now appear in the "Group Membership" box
   - Click the Credentials tab
   - Set a non-temporary password for the user
 - Set AUTH_SECRET as an environment variable in IntelliJ and/or the command line (depending on how you plan to run the
   frontend project) with the secret as its value:
   ```
-  AUTH_SECRET=[secret value]
+  AUTH_SECRET=[CLIENT_SECRET value from the docker run command]
   ```
   
-If you want to upload to the aws s3 bucket, you can no longer use your local keycloak instance so you'll have to set at least these environment variables
+If you want to upload to the aws s3 bucket, you can no longer use your local keycloak instance, so you'll have to set at least these environment variables
 - API_URL=http://localhost:8080/graphql
 - AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
 - AUTH_SECRET=\<insert the secret for the tdr client in the integration account\>
