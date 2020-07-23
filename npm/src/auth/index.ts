@@ -48,25 +48,6 @@ export const authenticateAndGetIdentityId: (
   const token = await refreshOrReturnToken(keycloak)
   const { identityProviderName, identityPoolId, region } = frontEndInfo
 
-  // TODO: Should S3 and Cognito override be done elsewhere?
-  if (frontEndInfo.s3EndpointOverride) {
-    console.log(
-      `Overriding S3 endpoint with '${frontEndInfo.s3EndpointOverride}'`
-    )
-    AWS.config.s3 = {
-      endpoint: frontEndInfo.s3EndpointOverride,
-      s3ForcePathStyle: true
-    }
-  }
-  if (frontEndInfo.cognitoEndpointOverride) {
-    console.log(
-      `Overriding Cognito endpoint with '${frontEndInfo.cognitoEndpointOverride}'`
-    )
-    AWS.config.cognitoidentity = {
-      endpoint: frontEndInfo.cognitoEndpointOverride
-    }
-  }
-
   const credentials = new CognitoIdentityCredentials({
     IdentityPoolId: identityPoolId,
     Logins: {
