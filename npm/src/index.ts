@@ -1,3 +1,4 @@
+import { configureAws } from "./aws-config"
 import { GraphqlClient } from "./graphql"
 import { getKeycloakInstance, authenticateAndGetIdentityId } from "./auth"
 import { UploadFiles } from "./upload"
@@ -65,6 +66,9 @@ export const renderModules = () => {
   )
   if (uploadContainer) {
     const frontEndInfo = getFrontEndInfo()
+
+    configureAws(frontEndInfo)
+
     getKeycloakInstance().then(keycloak => {
       const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
       authenticateAndGetIdentityId(keycloak, frontEndInfo).then(identityId => {
