@@ -46,7 +46,7 @@ When you log into the site, you will need to log in as a user from the Integrati
 Follow these instructions if you want to make changes to the API, database and/or auth system at the same time as
 updating the frontend.
 
-#### Auth server
+#### Local auth server
 
 -  Start the auth server
   ```
@@ -95,21 +95,48 @@ updating the frontend.
   ```
   AUTH_SECRET=[secret value]
   ```
-  
-If you want to upload to the aws s3 bucket, you can no longer use your local keycloak instance so you'll have to set at least these environment variables
-- API_URL=http://localhost:8080/graphql
-- AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
-- AUTH_SECRET=\<insert the secret for the tdr client in the integration account\>
-- IDENTITY_POOL_ID=secret-from-/mgmt/identitypoolid_intg in the management account
 
-You will also need to set the AUTH_URL environment variable for your locally running API project to:
--  AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk/auth
+- Set up another [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients) called tdr-fe. This will be a
+  public client as the configuration is available publicly in the browser. This means there are no client credentials.
+  - Set "Valid redirect URIs" to `http://localhost:9000/*`
+  - Set "Web Origins" to `http://localhost:9000`
+  - Configure a mapping for `user_id` as you did for the tdr client above
+  - Leave everything else on the defaults
+
+#### Local API
+
+Clone and run the [tdr-consignment-api] project.
+
+[tdr-consignment-api]: https://github.com/nationalarchives/tdr-consignment-api
+
+#### Local S3 emulator
+
+Run an [S3 ninja] Docker container, specifying a local directory in which to save the files:
+
+```
+docker run -d -p 9444:9000 -v <some directory path>:/home/sirius/data --name=s3ninja scireum/s3-ninja:6.4
+```
+
+Set the `S3_ENDPOINT_OVERRIDE` environment variable to the upload URL of the emulator, in this case
+`http://localhost:9444/s3`.
+
+Requests to S3 ninja need to be authenticated with a Cognito token. To emulate this endpoint, clone the
+[tdr-local-aws] project and follow the instructions there to run the `FakeCognitoServer` application.
+
+Set the `COGNITO_ENDPOINT_OVERRIDE` environment variable to the URL of the fake Cognito token provider.
+The default is `http://localhost:4600`.
+
+[S3 ninja]: https://s3ninja.net/
+[tdr-local-aws]: https://github.com/nationalarchives/tdr-local-aws
+
+#### Local backend checks
+
+Follow the instructions in [tdr-local-aws] to run the `FakeBackendChecker` application, making sure you set
+the environment variable for the monitored folder to the same path as the mount directory that you set in
+the `docker run` command when you started the S3 ninja container. This lets the fake backend checker detect
+and scan files as they are uploaded to the S3 emulator.
 
 #### Frontend project
-
-* Set up another [client](https://www.keycloak.org/docs/latest/server_admin/#oidc-clients) called tdr-fe. This will be a public client as the configuration is available publicly in the browser. This means there are no client credentials.
-
-* Set "Valid redirect URIs" to `http://localhost:9000/*` Leave everything else on the defaults.
 
 * Start redis locally.
 
