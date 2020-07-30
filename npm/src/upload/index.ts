@@ -36,10 +36,12 @@ export class UploadFiles {
   }
 
   uploadFilesSuccess(): void {
+    // Should this be called redirect
     const uploadDataFormRedirect: HTMLFormElement | null = document.querySelector(
       "#upload-data-form"
     )
     if (uploadDataFormRedirect) {
+      // There is no else clause; if there is no form, an error should be thrown
       uploadDataFormRedirect.submit()
     }
   }
@@ -51,11 +53,20 @@ export class UploadFiles {
 
     const uploadDataFormRedirect: HTMLFormElement | null = document.querySelector(
       "#upload-data-form"
+      // This is not used
     )
 
     if (uploadForm) {
+      // There is no "else", should there be?
       uploadForm.addEventListener("submit", async ev => {
         ev.preventDefault()
+        const pageUnloadAction: (e: BeforeUnloadEvent) => void = function(
+          e: BeforeUnloadEvent
+        ) {
+          e.preventDefault()
+          e.returnValue = ""
+        }
+        window.addEventListener("beforeunload", pageUnloadAction)
         const consignmentId: string | null = uploadForm.getAttribute(
           "data-consignment-id"
         )
@@ -73,7 +84,10 @@ export class UploadFiles {
             files,
             this.stage
           )
+          // In order to prevent exit confirmation when page redirects to Records page
+          window.removeEventListener("beforeunload", pageUnloadAction)
           this.uploadFilesSuccess()
+          // Rename to something like uploadAndRedirect or submitAndRedirect?
         } catch (e) {
           //For now console log errors
           console.error("Client file upload failed: " + e.message)
