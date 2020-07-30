@@ -52,9 +52,7 @@ export class UploadFiles {
     if (uploadForm) {
       uploadForm.addEventListener("submit", async ev => {
         ev.preventDefault()
-        const pageUnloadAction: (e: BeforeUnloadEvent) => void = function(
-          e: BeforeUnloadEvent
-        ) {
+        const pageUnloadAction: (e: BeforeUnloadEvent) => void = e => {
           e.preventDefault()
           e.returnValue = ""
         }
