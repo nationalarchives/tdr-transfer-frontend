@@ -51,11 +51,6 @@ export class UploadFiles {
       "#file-upload-form"
     )
 
-    const uploadDataFormRedirect: HTMLFormElement | null = document.querySelector(
-      "#upload-data-form"
-      // This is not used
-    )
-
     if (uploadForm) {
       // There is no "else", should there be?
       uploadForm.addEventListener("submit", async ev => {
