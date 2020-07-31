@@ -71,8 +71,8 @@ test("upload function submits redirect form on upload files success", async () =
       return [dummyFile]
     })
 
-  const mockUploadFilesSuccess = jest
-    .spyOn(uploadFiles, "uploadFilesSuccess")
+  const mockGoToNextPage = jest
+    .spyOn(uploadFiles, "goToNextPage")
     .mockImplementation(() => {})
   uploadFiles.upload()
 
@@ -86,13 +86,13 @@ test("upload function submits redirect form on upload files success", async () =
   if (uploadForm && uploadDataForm) {
     await uploadForm.submit()
     expect(mockRetrieveFiles).toBeCalledTimes(1)
-    expect(mockUploadFilesSuccess).toBeCalledTimes(1)
+    expect(mockGoToNextPage).toBeCalledTimes(1)
   }
 
   expect(consoleErrorSpy).not.toHaveBeenCalled()
 
   mockRetrieveFiles.mockRestore()
-  mockUploadFilesSuccess.mockRestore()
+  mockGoToNextPage.mockRestore()
   consoleErrorSpy.mockRestore()
 })
 
@@ -111,8 +111,8 @@ test("upload function console logs error when upload fails", async () => {
       return [dummyFile]
     })
 
-  const mockUploadFilesSuccess = jest
-    .spyOn(uploadFiles, "uploadFilesSuccess")
+  const mockGoToNextPage = jest
+    .spyOn(uploadFiles, "goToNextPage")
     .mockImplementation(() => {})
 
   const uploadForm: HTMLFormElement | null = document.querySelector(
@@ -126,13 +126,13 @@ test("upload function console logs error when upload fails", async () => {
   if (uploadForm && uploadDataForm) {
     await uploadForm.submit()
     expect(mockRetrieveFiles).toBeCalledTimes(1)
-    expect(mockUploadFilesSuccess).toBeCalledTimes(0)
+    expect(mockGoToNextPage).toBeCalledTimes(0)
   }
 
   expect(consoleErrorSpy).toHaveBeenCalled()
 
   mockRetrieveFiles.mockRestore()
-  mockUploadFilesSuccess.mockRestore()
+  mockGoToNextPage.mockRestore()
   consoleErrorSpy.mockRestore()
 })
 
@@ -148,8 +148,8 @@ test("upload function console logs error when no consignment id provided", async
       return [dummyFile]
     })
 
-  const mockUploadFilesSuccess = jest
-    .spyOn(uploadFiles, "uploadFilesSuccess")
+  const mockGoToNextPage = jest
+    .spyOn(uploadFiles, "goToNextPage")
     .mockImplementation(() => {})
   document.body.innerHTML =
     '<div class="govuk-file-upload">' +
@@ -165,13 +165,13 @@ test("upload function console logs error when no consignment id provided", async
   if (uploadForm) {
     await uploadForm.submit()
     expect(mockRetrieveFiles).toBeCalledTimes(0)
-    expect(mockUploadFilesSuccess).toBeCalledTimes(0)
+    expect(mockGoToNextPage).toBeCalledTimes(0)
   }
 
   expect(consoleErrorSpy).toHaveBeenCalled()
 
   mockRetrieveFiles.mockRestore()
-  mockUploadFilesSuccess.mockRestore()
+  mockGoToNextPage.mockRestore()
   consoleErrorSpy.mockRestore()
 })
 
