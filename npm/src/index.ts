@@ -3,6 +3,7 @@ import { GraphqlClient } from "./graphql"
 import { getKeycloakInstance, authenticateAndGetIdentityId } from "./auth"
 import { UploadFiles } from "./upload"
 import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
+import { goToNextPage } from "./upload/next-page-redirect"
 
 window.onload = function() {
   renderModules()
@@ -76,7 +77,8 @@ export const renderModules = () => {
         new UploadFiles(
           clientFileProcessing,
           identityId,
-          frontEndInfo.stage
+          frontEndInfo.stage,
+          goToNextPage
         ).upload()
       })
     })
