@@ -25,7 +25,7 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       .map{
         fileCheckProgress => (
           fileCheckProgress.totalFiles,
-          ((fileCheckProgress.fileChecks.antivirusProgress.filesProcessed.toFloat / fileCheckProgress.totalFiles) * 100).toInt
+          (fileCheckProgress.fileChecks.antivirusProgress.filesProcessed.toFloat * 100.0 / fileCheckProgress.totalFiles).toInt
         )
       }
   }
