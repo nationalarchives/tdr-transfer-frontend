@@ -9,10 +9,8 @@
             @progressIndicator(Messages("checkingRecords.progress"))
             <h1 class="govuk-heading-xl">@Messages("checkingRecords.title")</h1>
             <p class="govuk-body">@Messages("checkingRecords.description")</p>
-            <div>
-                <p class="govuk-body">Anti-virus scanning</p>
-                <progress class="progress-display" value="@avMetadataPercentage" max="100"></progress>
-            </div>
+            <p class="govuk-body">@Messages("checkingRecords.antivirus")</p>
+            <progress class="progress-display" value="@avMetadataPercentage" max="100"></progress>
         </div>
     </div>
     }

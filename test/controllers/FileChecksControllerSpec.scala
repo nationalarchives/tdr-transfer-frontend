@@ -17,10 +17,10 @@ import util.FrontEndTestHelper
 
 import scala.concurrent.ExecutionContext
 
-class RecordsControllerSpec extends FrontEndTestHelper {
+class FileChecksControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  val totalFiles: Int = 15
+  val totalFiles: Int = 40
   val consignmentId: UUID = UUID.fromString("b5bbe4d6-01a7-4305-99ef-9fce4a67917a")
 
   val wiremockServer = new WireMockServer(9006)
@@ -36,12 +36,12 @@ class RecordsControllerSpec extends FrontEndTestHelper {
 
   "RecordsController GET" should {
 
-    "render the records page with progress bar after initial upload is complete and user clicks continue" in {
+    "render the records page with progress bar" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
 
-      val filesProcessed = 1
+      val filesProcessed = 6
       val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessed);
       val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress)
       val data: client.GraphqlData = client.GraphqlData(Some(fileCheck.Data(Some(fileCheck.GetConsignment(totalFiles, fileChecks)))))
@@ -50,31 +50,33 @@ class RecordsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val recordsController = new RecordsController(
+      val recordsController = new FileChecksController(
         getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration,
         consignmentService
       )
 
-      val recordsPage = recordsController.recordsPage(consignmentId).apply(FakeRequest(GET, s"consignment/${consignmentId}/records"))
+      val recordsPage = recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"consignment/${consignmentId}/records"))
 
       playStatus(recordsPage) mustBe OK
       contentType(recordsPage) mustBe Some("text/html")
       contentAsString(recordsPage) must include("checkingRecords.header")
       contentAsString(recordsPage) must include("checkingRecords.title")
       contentAsString(recordsPage) must include("progress")
+      contentAsString(recordsPage) must include("<progress class=\"progress-display\" value=\"15\" max=\"100\"></progress>")
     }
 
 
     "return a redirect to the auth server with an unauthenticated user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new RecordsController(getUnauthorisedSecurityComponents,
+      val controller = new FileChecksController(getUnauthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService)
-      val recordsPage = controller.recordsPage(UUID.randomUUID()).apply(FakeRequest(GET, s"/consignment/${consignmentId}/records"))
-      redirectLocation(recordsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/${consignmentId}/records"))
+
       playStatus(recordsPage) mustBe FOUND
+      redirectLocation(recordsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
   }
