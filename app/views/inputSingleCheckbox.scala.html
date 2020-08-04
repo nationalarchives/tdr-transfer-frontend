@@ -10,7 +10,7 @@ args: (Symbol, Any)*
 @label = {@elements.args.get(Symbol("_label"))}
 @isSelected = {@elements.args.selectedInput(value.toString)}
 
-<div class="govuk-form-group @elements.setErrorClass">
+<div class="govuk-form-group @elements.setErrorClass()">
     @errorMessage(elements)
     <div class="govuk-checkboxes">
         <div class='govuk-checkboxes__item @if(elements.args.contains(Symbol("_smallCheckbox"))){govuk-checkboxes--small}'>
