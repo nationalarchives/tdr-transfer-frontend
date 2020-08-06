@@ -20,24 +20,25 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
                                     )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   private def getRecordProcessingProgress(request: Request[AnyContent], consignmentId: UUID)
-                                         (implicit requestHeader: RequestHeader): Future[(Int, Int)] = {
+                                         (implicit requestHeader: RequestHeader): Future[FileChecksProgress] = {
     consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       .map{
-        fileCheckProgress => (
-          fileCheckProgress.totalFiles,
-          fileCheckProgress.fileChecks.antivirusProgress.filesProcessed * 100 / fileCheckProgress.totalFiles
-        )
+        fileCheckProgress => {
+          FileChecksProgress(fileCheckProgress.totalFiles, fileCheckProgress.fileChecks.antivirusProgress.filesProcessed * 100 / fileCheckProgress.totalFiles)
+        }
       }
   }
 
   def recordProcessingPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     getRecordProcessingProgress(request, consignmentId)
       .map {
-        case (totalFiles, avMetadataPercentage) => Ok(views.html.fileChecksProgress(
+        fileChecks => Ok(views.html.fileChecksProgress(
           consignmentId,
-          totalFiles,
-          avMetadataPercentage
+          fileChecks.totalFiles,
+          fileChecks.avMetadataProgressPercentage
         ))
       }
   }
 }
+
+case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int)
