@@ -1,0 +1,17 @@
+@import java.util.UUID
+@(consignmentId: UUID, totalFiles: Int, avMetadataPercentage: Int)(implicit messages: Messages)
+
+@main(Messages("checkingRecords.header")) {
+    @defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <a href="@routes.DashboardController.dashboard" class="govuk-back-link">Back</a>
+            @progressIndicator(Messages("checkingRecords.progress"))
+            <h1 class="govuk-heading-xl">@Messages("checkingRecords.title")</h1>
+            <p class="govuk-body">@Messages("checkingRecords.description")</p>
+            <p class="govuk-body">@Messages("checkingRecords.antivirus")</p>
+            <progress class="progress-display" value="@avMetadataPercentage" max="100"></progress>
+        </div>
+    </div>
+    }
+}
