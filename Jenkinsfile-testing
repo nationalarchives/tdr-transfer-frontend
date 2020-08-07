@@ -4,12 +4,11 @@ def versionTag = "v${env.BUILD_NUMBER}"
 def repo = "tdr-transfer-frontend"
 
 pipeline {
-  agent none
+  agent {
+    label "master"
+  }
   stages {
     stage("Run git secrets") {
-      agent {
-        label "master"
-      }
       steps {
         script {
           tdr.runGitSecrets(repo)
@@ -31,9 +30,6 @@ pipeline {
       }
     }
     stage('Post-build') {
-      agent {
-        label "master"
-      }
       when {
         expression { env.BRANCH_NAME == "master"}
       }
@@ -61,9 +57,6 @@ pipeline {
           }
         }
         stage("Push Docker image") {
-          agent {
-            label "master"
-          }
           steps {
             unstash "tdr-transfer-frontend-zip"
             unstash "Dockerfile"
