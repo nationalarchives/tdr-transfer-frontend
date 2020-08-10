@@ -5,7 +5,7 @@
     @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            <a href="@routes.DashboardController.dashboard" class="govuk-back-link">Back</a>
+            <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
             @progressIndicator(Messages("checkingRecords.progress"))
             <h1 class="govuk-heading-xl">@Messages("checkingRecords.title")</h1>
             <p class="govuk-body">@Messages("checkingRecords.description")</p>
