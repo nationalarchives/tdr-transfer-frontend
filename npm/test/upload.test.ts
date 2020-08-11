@@ -86,7 +86,7 @@ test("upload function console logs error when upload fails", async () => {
   await uploadFiles.uploadFiles([dummyFile], "12345")
 
   expect(consoleErrorSpy).toHaveBeenCalled()
-  expect(mockGoToNextPage).toBeCalledTimes(0)
+  expect(mockGoToNextPage).not.toHaveBeenCalled()
 
   mockGoToNextPage.mockRestore()
   consoleErrorSpy.mockRestore()
