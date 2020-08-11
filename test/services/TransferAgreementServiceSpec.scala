@@ -13,6 +13,7 @@ import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
 import sttp.client.HttpError
+import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.{NotAuthorisedError, UnknownGraphQlError}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
@@ -65,7 +66,7 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
 
   "transferAgreementExists" should "throw an error if the API call fails" in {
     when(graphQlClient.getResult(token, document, Some(variables)))
-      .thenReturn(Future.failed(new HttpError("something went wrong")))
+      .thenReturn(Future.failed(new HttpError("something went wrong", StatusCode.InternalServerError)))
 
     transferAgreementService.transferAgreementExists(consignmentId, token).failed.futureValue shouldBe a[HttpError]
   }
