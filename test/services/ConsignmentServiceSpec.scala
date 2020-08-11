@@ -14,6 +14,7 @@ import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
 import org.scalatestplus.mockito.MockitoSugar
 import sttp.client.HttpError
+import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
@@ -64,7 +65,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
 
     "Return an error when the API has an error" in {
       when(getConsignmentClient.getResult(token, gc.document, Some(gc.Variables(consignmentId))))
-        .thenReturn(Future.failed(HttpError("something went wrong")))
+        .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
       val results = consignmentService.consignmentExists(consignmentId, token)
       results.failed.futureValue shouldBe a[HttpError]
@@ -106,7 +107,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
 
     "Return an error when the API has an error" in {
       when(addConsignmentClient.getResult(token, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId)))))
-        .thenReturn(Future.failed(HttpError("something went wrong")))
+        .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
       val results = consignmentService.createConsignment(seriesId, token)
 
