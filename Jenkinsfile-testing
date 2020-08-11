@@ -23,7 +23,7 @@ pipeline {
       }
       steps {
         script {
-            tdr.reportStartOfBuildToGitHub(repo)
+            tdr.reportStartOfBuildToGitHub(repo, env.GIT_COMMIT)
         }
         checkout scm
         sh 'sbt -no-colors test scalastyle'
@@ -86,14 +86,14 @@ pipeline {
     failure {
         node('master') {
             script {
-                tdr.reportFailedBuildToGitHub(repo)
+                tdr.reportFailedBuildToGitHub(repo, env.GIT_COMMIT)
             }
          }
     }
     success {
         node('master') {
             script {
-                tdr.reportSuccessfulBuildToGitHub(repo)
+                tdr.reportSuccessfulBuildToGitHub(repo, env.GIT_COMMIT)
             }
         }
     }
