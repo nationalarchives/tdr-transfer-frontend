@@ -1,5 +1,4 @@
 import { TdrFile } from "@nationalarchives/file-information"
-import { stringType } from "aws-sdk/clients/iam"
 
 interface InputElement {
   files?: TdrFile[]

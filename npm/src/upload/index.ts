@@ -40,7 +40,7 @@ export class UploadFiles {
         this.stage
       )
       // In order to prevent exit confirmation when page redirects to Records page
-      window.removeEventListener("beforeunload", pageUnloadAction) // Move to the goToNextPage method?
+      window.removeEventListener("beforeunload", pageUnloadAction)
       this.goToNextPage()
     } catch (e) {
       //For now console log errors
