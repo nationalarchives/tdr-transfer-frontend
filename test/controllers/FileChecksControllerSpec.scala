@@ -34,9 +34,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  "RecordsController GET" should {
+  "FileChecksController GET" should {
 
-    "render the records page with progress bar" in {
+    "render the fileChecks page with progress bar" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
@@ -64,7 +64,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       contentAsString(recordsPage) must include("checkingRecords.header")
       contentAsString(recordsPage) must include("checkingRecords.title")
       contentAsString(recordsPage) must include("progress")
-      contentAsString(recordsPage) must include("<progress class=\"progress-display\" value=\"15\" max=\"100\"></progress>")
+      contentAsString(recordsPage) must include("<progress id=\"av-metadata-progress-bar\" class=\"progress-display\" value=\"15\" max=\"100\"></progress>")
     }
 
 
