@@ -64,7 +64,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       contentAsString(recordsPage) must include("checkingRecords.header")
       contentAsString(recordsPage) must include("checkingRecords.title")
       contentAsString(recordsPage) must include("progress")
-      contentAsString(recordsPage) must include("<progress class=\"progress-display\" value=\"15\" max=\"100\"></progress>")
+      contentAsString(recordsPage) must include("<progress class=\"progress-display\" value=\"52\" max=\"100\"></progress>")
     }
 
 
