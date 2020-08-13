@@ -68,12 +68,6 @@ updating the frontend.
   ```
   AUTH_SECRET=[CLIENT_SECRET value from the docker run command]
   ```
-  
-If you want to upload to the aws s3 bucket, you can no longer use your local keycloak instance, so you'll have to set at least these environment variables
-- API_URL=http://localhost:8080/graphql
-- AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
-- AUTH_SECRET=\<insert the secret for the tdr client in the integration account\>
-- IDENTITY_POOL_ID=secret-from-/mgmt/identitypoolid_intg in the management account
 
 #### Local API
 
