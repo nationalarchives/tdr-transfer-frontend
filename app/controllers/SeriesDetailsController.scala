@@ -40,7 +40,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
   }
 
   def seriesSubmit(): Action[AnyContent] =  secureAction.async { implicit request: Request[AnyContent] =>
-    val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest
+    val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest()
 
     val errorFunction: Form[SelectedSeriesData] => Future[Result] = { formWithErrors: Form[SelectedSeriesData] =>
       getSeriesDetails(request, BadRequest, formWithErrors)
