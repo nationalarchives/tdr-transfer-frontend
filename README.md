@@ -50,9 +50,9 @@ updating the frontend.
 
 -  Start the auth server
   ```
-  docker run -d --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -e KEYCLOAK_IMPORT=/tmp/tdr-realm.json -e CLIENT_SECRET=[some value] -e BACKEND_CHECKS_CLIENT_SECRET=[some value] -e KEYCLOAK_CONFIGURATION_PROPERTIES=intg_properties.json nationalarchives/tdr-auth-server:intg
+  docker run -d --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -e KEYCLOAK_IMPORT=/tmp/tdr-realm.json -e CLIENT_SECRET=[some value] -e BACKEND_CHECKS_CLIENT_SECRET=[some value] -e REALM_ADMIN_CLIENT_SECRET=[some value] -e KEYCLOAK_CONFIGURATION_PROPERTIES=intg_properties.json nationalarchives/tdr-auth-server:intg
   ```
-- Go to `http://localhost:8081/auth/admin` and log in with username admin and password admin.  
+- Go to `http://localhost:8081/auth/admin` and log in with username *admin* and password *admin*.  
 - Create a transferring body user:
   - Click Users in the menu on the left
   - Click Add User
@@ -62,6 +62,7 @@ updating the frontend.
     The `transferring_body_user/Mock 1 Department` group should now appear in the "Group Membership" box
   - Click the Credentials tab
   - Set a non-temporary password for the user
+  - For full details about managing transferring body users and transferring body groups see: [Tdr User Administrator Manual](https://github.com/nationalarchives/tdr-dev-documentation/blob/master/tdr-admins/tdr-user-administrator.md)
 - Set AUTH_SECRET as an environment variable in IntelliJ and/or the command line (depending on how you plan to run the
   frontend project) with the secret as its value:
   ```
