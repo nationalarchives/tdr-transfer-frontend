@@ -5,7 +5,17 @@ import play.api.Configuration
 import viewsapi.FrontEndInfo
 
 class FrontEndInfoConfiguration @Inject ()(configuration: Configuration) {
+
   private def get(location: String) = configuration.get[String](location)
-  def frontEndInfo: FrontEndInfo = FrontEndInfo(get("consignmentapi.url"), get("cognito.identityProviderName"),
-    get("cognito.identitypool"), get("environment"), get("region"))
+  private def getOptional(location: String) = configuration.getOptional[String](location)
+
+  def frontEndInfo: FrontEndInfo = FrontEndInfo(
+    get("consignmentapi.url"),
+    getOptional("s3.endpointOverride"),
+    get("cognito.identityProviderName"),
+    get("cognito.identitypool"),
+    getOptional("cognito.endpointOverride"),
+    get("environment"),
+    get("region")
+  )
 }

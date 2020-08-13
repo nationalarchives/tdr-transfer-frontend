@@ -1,3 +1,11 @@
 package viewsapi
 
-case class FrontEndInfo(apiUrl: String, identityProviderName: String, identityPoolId: String, stage: String, region: String)
+case class FrontEndInfo(
+                         apiUrl: String,
+                         s3EndpointOverride: Option[String],
+                         identityProviderName: String,
+                         identityPoolId: String,
+                         cognitoEndpointOverride: Option[String],
+                         stage: String,
+                         region: String
+                       )

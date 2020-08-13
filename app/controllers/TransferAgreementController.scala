@@ -69,7 +69,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
     }
 
-    val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest
+    val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest()
 
     formValidationResult.fold(
       errorFunction,

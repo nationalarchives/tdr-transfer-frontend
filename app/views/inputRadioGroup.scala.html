@@ -8,7 +8,7 @@ args: (Symbol, Any)*
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
 
-<div class="govuk-form-group @elements.setErrorClass">
+<div class="govuk-form-group @elements.setErrorClass()">
     <label class="govuk-label">
         @elements.args.get(Symbol("_name"))
     </label>

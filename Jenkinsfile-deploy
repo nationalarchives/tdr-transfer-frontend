@@ -1,9 +1,10 @@
 library("tdr-jenkinslib")
 
 ecsDeployJob(
-    imageName: "tdr-transfer-frontend",
-    toDeploy: params.TO_DEPLOY,
-    ecsService: "frontend",
-    stage: params.STAGE,
-    testDelaySeconds: 300
+  imageName: "tdr-transfer-frontend",
+  toDeploy: params.TO_DEPLOY,
+  ecsService: "frontend",
+  stage: params.STAGE,
+  testDelaySeconds: 300
 )
+

@@ -14,6 +14,7 @@ import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
 import sttp.client.HttpError
+import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
@@ -56,7 +57,7 @@ class SeriesServiceSpec extends FlatSpec with Matchers with MockitoSugar with Be
 
   "getSeriesForUser" should "return an error if the API call fails" in {
     when(graphQlClient.getResult(token.bearerAccessToken, getSeries.document, Some(getSeries.Variables(bodyName))))
-      .thenReturn(Future.failed(new HttpError("something went wrong")))
+      .thenReturn(Future.failed(new HttpError("something went wrong", StatusCode.InternalServerError)))
 
     seriesService.getSeriesForUser(token).failed.futureValue shouldBe a[HttpError]
   }

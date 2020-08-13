@@ -4,15 +4,15 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /                                                  controllers.HomeController.index
-GET     /dashboard                                         controllers.DashboardController.dashboard
-GET     /series                                            controllers.SeriesDetailsController.seriesDetails
-POST    /series                                            controllers.SeriesDetailsController.seriesSubmit
+GET     /                                                  controllers.HomeController.index()
+GET     /dashboard                                         controllers.DashboardController.dashboard()
+GET     /series                                            controllers.SeriesDetailsController.seriesDetails()
+POST    /series                                            controllers.SeriesDetailsController.seriesSubmit()
 GET     /consignment/:consignmentId/transfer-agreement     controllers.TransferAgreementController.transferAgreement(consignmentId: java.util.UUID)
 POST    /consignment/:consignmentId/transfer-agreement     controllers.TransferAgreementController.transferAgreementSubmit(consignmentId: java.util.UUID)
 GET     /consignment/:consignmentId/upload                 controllers.UploadController.uploadPage(consignmentId: java.util.UUID)
-GET     /consignment/:consignmentId/records                controllers.RecordsController.recordsPage(consignmentId: java.util.UUID)
-GET     /keycloak.json                                     controllers.KeycloakConfigurationController.keycloak
+GET     /consignment/:consignmentId/records                controllers.FileChecksController.recordProcessingPage(consignmentId: java.util.UUID)
+GET     /keycloak.json                                     controllers.KeycloakConfigurationController.keycloak()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
