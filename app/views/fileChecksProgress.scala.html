@@ -1,5 +1,5 @@
 @import java.util.UUID
-@(consignmentId: UUID, totalFiles: Int, avMetadataPercentage: Int)(implicit messages: Messages)
+@(consignmentId: UUID, totalFiles: Int, avMetadataPercentage: Int, checksumPercentage: Int)(implicit messages: Messages)
 
 @main(Messages("checkingRecords.header")) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -11,6 +11,9 @@
             <p class="govuk-body">@Messages("checkingRecords.description")</p>
             <p class="govuk-body">@Messages("checkingRecords.antivirus")</p>
             <progress id="av-metadata-progress-bar" class="progress-display" value="@avMetadataPercentage" max="100"></progress>
+            <p></p>
+            <p class="govuk-body">@Messages("checkingRecords.checksum")</p>
+            <progress id="checksum-progress-bar" class="progress-display" value="@checksumPercentage" max="100"></progress>
         </div>
     </div>
     }

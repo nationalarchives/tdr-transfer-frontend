@@ -24,7 +24,9 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
     consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       .map{
         fileCheckProgress => {
-          FileChecksProgress(fileCheckProgress.totalFiles, fileCheckProgress.fileChecks.antivirusProgress.filesProcessed * 100 / fileCheckProgress.totalFiles)
+          FileChecksProgress(fileCheckProgress.totalFiles,
+                            fileCheckProgress.fileChecks.antivirusProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
+                            fileCheckProgress.fileChecks.checksumProgress.filesProcessed * 100 / fileCheckProgress.totalFiles)
         }
       }
   }
@@ -35,10 +37,11 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
         fileChecks => Ok(views.html.fileChecksProgress(
           consignmentId,
           fileChecks.totalFiles,
-          fileChecks.avMetadataProgressPercentage
+          fileChecks.avMetadataProgressPercentage,
+          fileChecks.checksumProgressPercentage
         ))
       }
   }
 }
 
-case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int)
+case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int, checksumProgressPercentage: Int)

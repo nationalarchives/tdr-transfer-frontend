@@ -42,8 +42,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
 
       val filesProcessed = 6
-      val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessed);
-      val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress)
+      val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessed)
+      val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessed)
+      val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress)
       val data: client.GraphqlData = client.GraphqlData(Some(fileCheck.Data(Some(fileCheck.GetConsignment(totalFiles, fileChecks)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
