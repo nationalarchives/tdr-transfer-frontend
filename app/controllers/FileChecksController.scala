@@ -36,9 +36,7 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       .map {
         fileChecks => Ok(views.html.fileChecksProgress(
           consignmentId,
-          fileChecks.totalFiles,
-          fileChecks.avMetadataProgressPercentage,
-          fileChecks.checksumProgressPercentage
+          fileChecks
         ))
       }
   }
