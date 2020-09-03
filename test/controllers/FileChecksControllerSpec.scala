@@ -41,9 +41,10 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
 
-      val filesProcessed = 6
-      val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessed)
-      val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessed)
+      val filesProcessedWithAntivirus = 6
+      val filesProcessedWithChecksum = 12
+      val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessedWithAntivirus)
+      val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)
       val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress)
       val data: client.GraphqlData = client.GraphqlData(Some(fileCheck.Data(Some(fileCheck.GetConsignment(totalFiles, fileChecks)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
@@ -65,9 +66,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       contentAsString(recordsPage) must include("checkingRecords.header")
       contentAsString(recordsPage) must include("checkingRecords.title")
       contentAsString(recordsPage) must include("progress")
-      contentAsString(recordsPage) must include("<progress id=\"av-metadata-progress-bar\" class=\"progress-display\" value=\"15\" max=\"100\"></progress>")
+      contentAsString(recordsPage) must include("<progress id=\"av-metadata-progress-bar\" class=\"file-check-progress__progress-bar\" value=\"15\" max=\"100\"></progress>")
+      contentAsString(recordsPage) must include("<progress id=\"checksum-progress-bar\" class=\"file-check-progress__progress-bar\" value=\"30\" max=\"100\"></progress>")
     }
-
 
     "return a redirect to the auth server with an unauthenticated user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
