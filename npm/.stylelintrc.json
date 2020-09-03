@@ -1,3 +1,12 @@
 {
-  "extends": "stylelint-config-sass-guidelines"
+  "extends": "stylelint-config-sass-guidelines",
+  "rules": {
+    "selector-class-pattern": [
+      "^[a-z0-9\\-|_]+$",
+      {
+        "message":
+        "Selector should be written in lowercase with hyphens or underscores (selector-class-pattern)"
+      }
+    ]
+  }
 }
