@@ -115,14 +115,18 @@ and scan files as they are uploaded to the S3 emulator.
 * If npm is not installed install [nvm](https://github.com/nvm-sh/nvm) in root directory.
 
 * Once nvm is installed:
-    `nvm install 13.6`
-
+    `nvm install 14.9`
+    
 * `cd` into tdr-transfer-frontend in terminal
 
 * run  `npm install` then `npm run build`
 
 If you're working on the Sass files and just want to regenerate the CSS without rebuilding all the JavaScript code, you
 can run `npm run sass-watch` to monitor and rebuild the CSS files, or run `npm run build-css` to run a single build.
+
+To run the sass linter (stylelint) before commits, run the following command: from the npm folder `npx stylelint **/*.scss`
+
+Full details of stylelint are available here: https://stylelint.io/
 
 ## Generated GraphQL classes
 
