@@ -59,15 +59,16 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
         consignmentService
       )
 
-      val recordsPage = recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"consignment/${consignmentId}/records"))
+      val recordsPage = recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"consignment/$consignmentId/records"))
+      val recordsPageAsString = contentAsString(recordsPage)
 
       playStatus(recordsPage) mustBe OK
       contentType(recordsPage) mustBe Some("text/html")
-      contentAsString(recordsPage) must include("checkingRecords.header")
-      contentAsString(recordsPage) must include("checkingRecords.title")
-      contentAsString(recordsPage) must include("progress")
-      contentAsString(recordsPage) must include("<progress id=\"av-metadata-progress-bar\" class=\"file-check-progress__progress-bar\" value=\"15\" max=\"100\"></progress>")
-      contentAsString(recordsPage) must include("<progress id=\"checksum-progress-bar\" class=\"file-check-progress__progress-bar\" value=\"30\" max=\"100\"></progress>")
+      recordsPageAsString must include("checkingRecords.header")
+      recordsPageAsString must include("checkingRecords.title")
+      recordsPageAsString must include("progress")
+      recordsPageAsString must include("""<progress id="av-metadata-progress-bar" class="file-check-progress__progress-bar" value="15" max="100"></progress>""")
+      recordsPageAsString must include("""<progress id="checksum-progress-bar" class="file-check-progress__progress-bar" value="30" max="100"></progress>""")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -75,7 +76,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new FileChecksController(getUnauthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService)
-      val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/${consignmentId}/records"))
+      val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
 
       playStatus(recordsPage) mustBe FOUND
       redirectLocation(recordsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
