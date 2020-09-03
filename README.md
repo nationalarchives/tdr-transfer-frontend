@@ -50,7 +50,7 @@ updating the frontend.
 
 -  Start the auth server
   ```
-  docker run -d --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -e KEYCLOAK_IMPORT=/tmp/tdr-realm.json -e CLIENT_SECRET=[some value] -e BACKEND_CHECKS_CLIENT_SECRET=[some value] -e REALM_ADMIN_CLIENT_SECRET=[some value] -e KEYCLOAK_CONFIGURATION_PROPERTIES=intg_properties.json nationalarchives/tdr-auth-server:intg
+  docker run -d --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -e KEYCLOAK_IMPORT=/tmp/tdr-realm.json -e CLIENT_SECRET=[some value] -e BACKEND_CHECKS_CLIENT_SECRET=[some value] -e REALM_ADMIN_CLIENT_SECRET=[some value] -e KEYCLOAK_CONFIGURATION_PROPERTIES=intg_properties.json -e USER_ADMIN_CLIENT_SECRET=[some value] nationalarchives/tdr-auth-server:intg
   ```
 - Go to `http://localhost:8081/auth/admin` and log in with username *admin* and password *admin*.  
 - Create a transferring body user:
