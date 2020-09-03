@@ -5,8 +5,8 @@ Repository for TDR transfer code
 
 There are two ways to develop this project:
 
-- Frontend development only, using the AWS integration environment for everything else
-- Full stack local development, using a local dev copy of the API, Keycloak, etc.
+- Frontend development only, using the AWS integration environment for everything else. This is the default
+- Full stack local development, using a local dev copy of the API, Keycloak, etc
 
 ### Prerequisites
 
@@ -24,15 +24,39 @@ development environment for the other TDR services.
   ```
   docker run -d --name redis -p 6379:6379 redis
   ```
-- Get the TDR client secret for integration by logging into the [Keycloak admin site][auth-admin], and going to Clients,
-  then "tdr", then Credentials, and copying the UUID in the Secret field
+- If you don't already have an admin user account for the [Integration Keycloak][auth-admin] site, ask another member of
+  the TDR development team to create one for you
+- Look up the integration environment variables in the AWS Integration account:
+  - Keycloak client secret
+    - In the AWS console:
+      - Go the Systems Manager service
+      - Go the Parameter Store in the left-hand menu
+      - Find the `/intg/auth/secret` parameter
+      - Copy the parameter's value
+    - With the AWS CLI:
+      - Run:
+        ```
+        aws ssm get-parameter --name "/intg/auth/secret" --with-decryption
+        ```
+      - Copy the `Value` from the object returned
+  - Cognito identity pool ID
+    - In the AWS console:
+      - Go to the Cognito service
+      - Click "Manage Identity Pools"
+      - Click on the TDR Frontend identity pool
+      - Click "Edit identity pool"
+      - Copy the full identity pool ID, including the AWS region prefix
+    - With the AWS CLI:
+      - Run:
+        ```
+        aws cognito-identity list-identity-pools --max-results 20
+        ```
+      - Copy the `IdentityPoolId` of the pool named "TDR Frontend Identity Intg"
 - In IntelliJ, create a new sbt run configuration:
   - Set the Tasks parameter to `run`
-  - Configure environment variables:
-    - AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
-    - AUTH_SECRET=\<insert the secret for the tdr client that you copied above\>
-    - API_URL=https://api.tdr-integration.nationalarchives.gov.uk/graphql
-    - TDR_IDENTITY_POOL_ID=secret-from-/mgmt/identitypoolid_intg in the management account
+  - Configure the environment variables:
+    - AUTH_SECRET=\<the secret for the Keycloak client that you copied above\>
+    - IDENTITY_POOL_ID=\<the identity pool ID you copied above\>
 - Follow the Static Assets steps below to build the CSS and JS
 - Run the project from IntelliJ
 - Visit `http://localhost:9000`
@@ -83,14 +107,8 @@ Run an [S3 ninja] Docker container, specifying a local directory in which to sav
 docker run -d -p 9444:9000 -v <some directory path>:/home/sirius/data --name=s3ninja scireum/s3-ninja:6.4
 ```
 
-Set the `S3_ENDPOINT_OVERRIDE` environment variable to the upload URL of the emulator, in this case
-`http://localhost:9444/s3`.
-
 Requests to S3 ninja need to be authenticated with a Cognito token. To emulate this endpoint, clone the
 [tdr-local-aws] project and follow the instructions there to run the `FakeCognitoServer` application.
-
-Set the `COGNITO_ENDPOINT_OVERRIDE` environment variable to the URL of the fake Cognito token provider.
-The default is `http://localhost:4600`.
 
 [S3 ninja]: https://s3ninja.net/
 [tdr-local-aws]: https://github.com/nationalarchives/tdr-local-aws
@@ -107,7 +125,13 @@ and scan files as they are uploaded to the S3 emulator.
 * Start redis locally.
 
     `docker run -d --name redis -p 6379:6379 redis`
-* Run the frontend with `sbt run` from IntelliJ or the command line
+* Ensure you have set the `AUTH_SECRET` environment variable, as described above. Set it in the command line or in the
+  IntelliJ run configuration
+* Run the frontend, specifying the local full stack configuration file:
+  ```
+  sbt -Dconfig.file=conf/application.local-full-stack.conf run
+  ```
+  or set the IntelliJ SBT run configuration to `-Dconfig.file=conf/application.local-full-stack.conf run`
 * Visit `http://localhost:9000`
 
 ### Static assets
