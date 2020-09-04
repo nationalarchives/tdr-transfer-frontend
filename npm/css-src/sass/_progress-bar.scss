@@ -1,0 +1,38 @@
+@mixin progress-bar($selector) {
+  /* Variables for repeated blocks */
+  $_border-radius: 10px;
+  $_box-shadow: 0 2px 3px govuk-colour('black', $legacy: 'black') inset;
+  $_position: relative;
+
+  #{$selector}[value] {
+    /* Get rid of the default appearance */
+    appearance: none;
+    background-color: govuk-colour('light-grey', $legacy: 'grey-1');
+    border: none;
+    border-radius: $_border-radius;
+    box-shadow: $_box-shadow;
+    color: govuk-colour('blue', $legacy: 'govuk-blue');
+    height: 20px;
+    margin: 0.1px;
+    position: $_position;
+    width: 100%;
+  }
+
+  #{$selector}[value]::-webkit-progress-bar {
+    background-color: govuk-colour('light-grey', $legacy: 'grey-1');
+    border-radius: $_border-radius;
+    box-shadow: $_box-shadow;
+  }
+
+  #{$selector}[value]::-webkit-progress-value {
+    background-color: govuk-colour('dark-grey', $legacy: 'grey-3');
+    border-radius: $_border-radius;
+    position: $_position;
+  }
+
+  #{$selector}[value]::-moz-progress-bar {
+    background-color: govuk-colour('dark-grey', $legacy: 'grey-3');
+    background-size: 35px 20px, 100% 100%, 100% 100%;
+    border-radius: $_border-radius;
+  }
+}
