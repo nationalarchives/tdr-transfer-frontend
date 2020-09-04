@@ -47,6 +47,7 @@ checkingRecords.header=Checking your records
 checkingRecords.title=Checking your records
 checkingRecords.description=We are now checking your records. It is safe to close the browser if you wish, otherwise please wait and you will be redirected automatically once complete.
 checkingRecords.antivirus=Anti-virus scanning
+checkingRecords.checksum=Validating data integrity
 
 # Upload.error messages placeholder wording
 upload.error.title=There is a problem
