@@ -26,6 +26,10 @@ pipeline {
             tdr.reportStartOfBuildToGitHub(repo, env.GIT_COMMIT)
         }
         checkout scm
+        dir("npm") {
+          sh "npm install"
+          sh "npx stylelint **/*.scss"
+        }
         sh 'sbt -no-colors test scalastyle'
       }
     }
