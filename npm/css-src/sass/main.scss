@@ -1,16 +1,16 @@
-@import "node_modules/govuk-frontend/govuk/all";
-@import "overrides/all";
+@import 'node_modules/govuk-frontend/govuk/all';
+@import 'overrides/all';
 
-@import "header";
-@import "progress-bar";
+@import 'header';
+@import 'progress-bar';
 
 .file-check-progress {
-    margin-bottom: 30px;
+  margin-bottom: 30px;
 }
 
-@include progress-bar(".progress-display")
-@include progress-bar(".file-check-progress__progress-bar")
+@include progress-bar('.progress-display')
+  @include progress-bar('.file-check-progress__progress-bar')
 
-.hide {
-    display: none;
+  .hide {
+  display: none;
 }
