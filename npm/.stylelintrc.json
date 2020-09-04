@@ -1,0 +1,35 @@
+{
+  "extends": "stylelint-config-sass-guidelines",
+  "rules": {
+    "declaration-property-value-disallowed-list": {},
+    "order/order": [
+      [
+        "custom-properties",
+        "dollar-variables",
+        {
+          "type": "at-rule",
+          "name": "extend"
+        },
+        {
+          "type": "at-rule",
+          "name": "include",
+          "hasBlock": false
+        },
+        "declarations",
+        {
+          "type": "at-rule",
+          "name": "include",
+          "hasBlock": false
+        },
+        "rules"
+      ]
+    ],
+    "selector-class-pattern": [
+      "^[a-z0-9\\-|_]+$",
+      {
+        "message":
+        "Selector should be written in lowercase with hyphens or underscores (selector-class-pattern)"
+      }
+    ]
+  }
+}

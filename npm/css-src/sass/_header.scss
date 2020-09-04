@@ -1,8 +1,8 @@
-$govuk-header-link: govuk-colour("white");
+$govuk-header-link: govuk-colour('white');
 
 .govuk-header__tna-logo {
-  width: 220px;
   float: left;
+  width: 220px;
 }
 
 .govuk-header__tna-logo-image {
@@ -10,9 +10,9 @@ $govuk-header-link: govuk-colour("white");
 }
 
 .govuk-header__tna-content {
-  width: 290px;
-  position: relative;
   margin: 0 auto;
+  position: relative;
+  width: 290px;
 }
 
 .govuk-header__tna_link {
