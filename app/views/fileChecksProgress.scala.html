@@ -1,5 +1,6 @@
 @import java.util.UUID
-@(consignmentId: UUID, fileChecks: FileChecksProgress)(implicit messages: Messages)
+@import viewsapi.FrontEndInfo
+@(consignmentId: UUID, fileChecks: FileChecksProgress, frontEndInfo: FrontEndInfo)(implicit messages: Messages)
 
 @main(Messages("checkingRecords.header")) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -7,8 +8,10 @@
         <div class="govuk-grid-column-two-thirds">
             <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
             @progressIndicator(Messages("checkingRecords.progress"))
+            @frontEndInputs(frontEndInfo)
             <h1 class="govuk-heading-xl">@Messages("checkingRecords.title")</h1>
             <p class="govuk-body">@Messages("checkingRecords.description")</p>
+            <input id="consignmentId" type="hidden" value="@consignmentId">
             <div class="file-check-progress">
                 <label for="av-metadata-progress-bar" class="govuk-label">@Messages("checkingRecords.antivirus")</label>
                 <progress id="av-metadata-progress-bar" class="file-check-progress__progress-bar" value="@fileChecks.avMetadataProgressPercentage" max="100"></progress>
