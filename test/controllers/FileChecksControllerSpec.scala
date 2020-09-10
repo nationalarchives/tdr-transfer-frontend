@@ -56,7 +56,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
         getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration,
-        consignmentService
+        consignmentService,
+        frontEndInfoConfiguration
       )
 
       val recordsPage = recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"consignment/$consignmentId/records"))
@@ -75,7 +76,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new FileChecksController(getUnauthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
       val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
 
       playStatus(recordsPage) mustBe FOUND
