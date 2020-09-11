@@ -27,12 +27,12 @@
         </div>
         <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
-                <div class="moj-multi-file-upload">
+                <div class="drag-and-drop">
                     <div class="govuk-summary-list"></div>
                     <div>
                         <div class="govuk-form-group">
-                            <div class="moj-multi-file-upload__dropzone">
-                            <input type="file" id="file-selection" name="files" class="govuk-file-upload moj-multi-file-upload__input" webkitdirectory>
+                            <div class="drag-and-drop__dropzone">
+                            <input type="file" id="file-selection" name="files" class="govuk-file-upload drag-and-drop__input" webkitdirectory>
                                 <p class="govuk-body">@Messages("upload.dragAndDropHintText")</p>
                                 <label for="file-selection" class="govuk-button govuk-button--secondary">@Messages("upload.chooseFolderLink")</label>
                             </div>
