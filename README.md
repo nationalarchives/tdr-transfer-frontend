@@ -8,6 +8,11 @@ There are two ways to develop this project:
 - Frontend development only, using the AWS integration environment for everything else. This is the default
 - Full stack local development, using a local dev copy of the API, Keycloak, etc
 
+
+- When moving between full local and frontend only development you should clear your browsers' cookies and local storage as the browser can cache the local Cognito ID, which is incompatible with non-local Cognito. An example of the error you will see if this happens is below:
+
+![Cognito error example](public/images/Cognito-error-example-screenshot.png)
+
 ### Prerequisites
 
 Regardless of how you set up the development environment, you will need:
