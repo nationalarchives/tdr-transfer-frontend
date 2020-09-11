@@ -2,6 +2,7 @@
 @import 'overrides/all';
 
 @import 'header';
+@import 'drag-and-drop';
 @import 'progress-bar';
 
 .file-check-progress {
@@ -13,42 +14,4 @@
 
   .hide {
   display: none;
-}
-
-.drag-and-drop {
-  margin-bottom: 40px;
-}
-
-.drag-and-drop__dropzone {
-  display: flex;
-  outline: 3px dashed #0b0c0c;
-  padding: 60px 15px;
-  text-align: center;
-  transition: outline-offset 0.1s ease-in-out, background-color 0.1s linear;
-}
-
-.drag-and-drop__dropzone [type=file] {
-  display: none;
-  left: 10.1em;
-  position: relative;
-}
-
-.drag-and-drop__dropzone p {
-  margin-bottom: 0;
-  margin-right: 10px;
-  padding-top: 7px;
-}
-
-.drag-and-drop__dropzone label {
-  display: inline-block;
-  margin-bottom: 0;
-  width: auto;
-}
-
-.file-warning-message {
-  margin-top: 20px;
-}
-
-.file-warning-text {
-  font-weight: normal;
 }
