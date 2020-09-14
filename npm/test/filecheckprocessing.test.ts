@@ -134,7 +134,7 @@ test("getConsignmentId returns the correct id when the hidden input is present",
   expect(getConsignmentId()).toBe(consignmentId)
 })
 
-test("getConsignmentId returns the correct id when the hidden input is absent", () => {
+test("getConsignmentId throws an error when the hidden input is absent", () => {
   document.body.innerHTML = ""
   expect(() => getConsignmentId()).toThrowError("No consignment provided")
 })
