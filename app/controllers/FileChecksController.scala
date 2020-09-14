@@ -27,7 +27,8 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
         fileCheckProgress => {
           FileChecksProgress(fileCheckProgress.totalFiles,
                             fileCheckProgress.fileChecks.antivirusProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
-                            fileCheckProgress.fileChecks.checksumProgress.filesProcessed * 100 / fileCheckProgress.totalFiles)
+                            fileCheckProgress.fileChecks.checksumProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
+                            fileCheckProgress.fileChecks.ffidProgress.filesProcessed * 100 / fileCheckProgress.totalFiles)
         }
       }
   }
@@ -44,4 +45,4 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
   }
 }
 
-case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int, checksumProgressPercentage: Int)
+case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int, checksumProgressPercentage: Int, ffidMetadataProgressPercentage: Int)
