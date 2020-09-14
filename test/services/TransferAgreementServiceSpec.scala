@@ -12,7 +12,8 @@ import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
-import sttp.client.HttpError
+import sttp.client.asynchttpclient.future.AsyncHttpClientFutureBackend
+import sttp.client.{HttpError, NothingT, SttpBackend}
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.{NotAuthorisedError, UnknownGraphQlError}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
@@ -22,6 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
+  implicit val backend: SttpBackend[Future, Nothing, NothingT] = AsyncHttpClientFutureBackend()
 
   private val graphQlConfig = mock[GraphQLConfiguration]
   private val graphQlClient = mock[GraphQLClient[taComplete.Data, taComplete.Variables]]

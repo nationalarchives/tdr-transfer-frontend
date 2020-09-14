@@ -13,7 +13,8 @@ import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
-import sttp.client.HttpError
+import sttp.client.asynchttpclient.future.AsyncHttpClientFutureBackend
+import sttp.client.{HttpError, NothingT, SttpBackend}
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -24,6 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SeriesServiceSpec extends FlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
+  implicit val backend: SttpBackend[Future, Nothing, NothingT] = AsyncHttpClientFutureBackend()
 
   private val graphQlConfig = mock[GraphQLConfiguration]
   private val graphQlClient = mock[GraphQLClient[getSeries.Data, getSeries.Variables]]
