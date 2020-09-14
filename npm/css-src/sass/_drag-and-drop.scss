@@ -1,0 +1,30 @@
+.drag-and-drop {
+  margin-bottom: 40px;
+}
+
+.drag-and-drop__dropzone {
+  display: flex;
+  margin-bottom: 20px;
+  outline: 3px dashed $govuk-input-border-colour;
+  padding: 60px 15px;
+  text-align: center;
+  transition: outline-offset 0.1s ease-in-out, background-color 0.1s linear;
+}
+
+.drag-and-drop__dropzone [type=file] {
+  display: none;
+  left: 10.1em;
+  position: relative;
+}
+
+.drag-and-drop__dropzone p {
+  margin-bottom: 0;
+  margin-right: 10px;
+  padding-top: 7px;
+}
+
+.drag-and-drop__dropzone label {
+  display: inline-block;
+  margin-bottom: 0;
+  width: auto;
+}
