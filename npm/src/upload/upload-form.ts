@@ -10,9 +10,11 @@ interface HTMLInputTarget extends EventTarget {
 
 export class UploadForm {
   formElement: HTMLFormElement
+  folderRetriever: HTMLInputElement
 
-  constructor(formElement: HTMLFormElement) {
+  constructor(formElement: HTMLFormElement, folderRetriever: HTMLInputElement) {
     this.formElement = formElement
+    this.folderRetriever = folderRetriever
   }
 
   consignmentId: () => string = () => {
@@ -23,6 +25,36 @@ export class UploadForm {
       throw Error("No consignment provided")
     }
     return value
+  }
+
+  addFolderListener() {
+    this.folderRetriever.addEventListener("change", ev => {
+      const target: HTMLInputTarget | null = this.formElement
+      const files = this.retrieveFiles(target)
+      const folderName: string = this.getParentFolderName(files)
+      const folderSize: string = String(files.length)
+
+      const folderNameElement: HTMLElement | null = document.querySelector(
+        ".folder-name"
+      )
+      const folderSizeElement: HTMLElement | null = document.querySelector(
+        ".folder-size"
+      )
+
+      if (folderNameElement && folderSizeElement) {
+        folderNameElement.innerText = folderName
+        folderSizeElement.innerText = folderSize
+        const successMessage: HTMLElement | null = document.querySelector(
+          ".govuk-summary-list__value"
+        )
+        successMessage?.classList.add("drag-and-drop__success")
+
+        const successMesssageSection: HTMLElement | null = document.querySelector(
+          ".govuk-summary-list__row"
+        )
+        successMesssageSection?.classList.remove("hide")
+      }
+    })
   }
 
   addSubmitListener(
@@ -42,5 +74,12 @@ export class UploadForm {
       throw Error("No files selected")
     }
     return files
+  }
+
+  private getParentFolderName(folder: TdrFile[]) {
+    const relativePath = folder[0].webkitRelativePath
+    const splitPath = relativePath.split("/")
+    const parentFolder = splitPath[0]
+    return parentFolder
   }
 }
