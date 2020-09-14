@@ -28,7 +28,20 @@
         <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <div class="drag-and-drop">
-                    <div class="govuk-summary-list"></div>
+                    <div class="govuk-summary-list">
+                        <div class="govuk-summary-list__row hide">
+                            <dd class="govuk-summary-list__value">
+                                <svg fill="currentColor" role="presentation" focusable="false" viewBox="0 0 25 25" height="25" width="25" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M25,6.2L8.7,23.2L0,14.1l4-4.2l4.7,4.9L21,2L25,6.2z"></path>
+                                </svg>
+                                The folder
+                                "<span class="folder-name"></span>"
+                                (containing
+                                <span class="folder-size"></span>
+                                files) has been selected
+                            </dd>
+                        </div>
+                    </div>
                     <div>
                         <div class="govuk-form-group">
                             <div class="drag-and-drop__dropzone">

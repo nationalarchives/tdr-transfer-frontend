@@ -9,6 +9,12 @@
   margin-bottom: 30px;
 }
 
+.govuk-summary-list__value svg {
+  fill: currentColor;
+  float: left;
+  margin-right: 10px;
+}
+
 @include progress-bar('.progress-display')
   @include progress-bar('.file-check-progress__progress-bar')
 
