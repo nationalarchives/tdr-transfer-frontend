@@ -41,7 +41,7 @@ test("updateFileCheckProgress updates the progress bars correctly", () => {
   mockConsignmentData({
     antivirusProcessed: 1,
     checksumProcessed: 2,
-    totalFiles: 1
+    totalFiles: 2
   })
   fileChecks.updateFileCheckProgress()
   jest.runOnlyPendingTimers()
