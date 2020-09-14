@@ -4,6 +4,7 @@ import { getKeycloakInstance, authenticateAndGetIdentityId } from "./auth"
 import { UploadFiles } from "./upload"
 import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 import { goToNextPage } from "./upload/next-page-redirect"
+import { FileChecks } from "./filechecks"
 
 window.onload = function() {
   renderModules()
@@ -65,6 +66,9 @@ export const renderModules = () => {
   const uploadContainer: HTMLDivElement | null = document.querySelector(
     ".govuk-file-upload"
   )
+  const fileChecksContainer: HTMLDivElement | null = document.querySelector(
+    ".file-check-progress"
+  )
   if (uploadContainer) {
     const frontEndInfo = getFrontEndInfo()
 
@@ -81,6 +85,13 @@ export const renderModules = () => {
           goToNextPage
         ).upload()
       })
+    })
+  }
+  if (fileChecksContainer) {
+    const frontEndInfo = getFrontEndInfo()
+    getKeycloakInstance().then(keycloak => {
+      const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
+      new FileChecks(graphqlClient).updateFileCheckProgress()
     })
   }
 }

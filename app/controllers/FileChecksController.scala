@@ -3,7 +3,7 @@ package controllers
 import java.util.UUID
 
 import auth.TokenSecurity
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
@@ -16,7 +16,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class FileChecksController @Inject()(val controllerComponents: SecurityComponents,
                                      val graphqlConfiguration: GraphQLConfiguration,
                                      val keycloakConfiguration: KeycloakConfiguration,
-                                     consignmentService: ConsignmentService
+                                     val consignmentService: ConsignmentService,
+                                     val frontEndInfoConfiguration: FrontEndInfoConfiguration
                                     )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   private def getRecordProcessingProgress(request: Request[AnyContent], consignmentId: UUID)
@@ -36,7 +37,8 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       .map {
         fileChecks => Ok(views.html.fileChecksProgress(
           consignmentId,
-          fileChecks
+          fileChecks,
+          frontEndInfoConfiguration.frontEndInfo
         ))
       }
   }
