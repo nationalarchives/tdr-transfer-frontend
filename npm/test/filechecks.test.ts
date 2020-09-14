@@ -48,13 +48,13 @@ test("updateFileCheckProgress updates the progress bars correctly", () => {
   expect(mockFileCheckProcessing.updateProgressBar).toHaveBeenNthCalledWith(
     1,
     1,
-    1,
+    2,
     "#av-metadata-progress-bar"
   )
   expect(mockFileCheckProcessing.updateProgressBar).toHaveBeenNthCalledWith(
     2,
     2,
-    1,
+    2,
     "#checksum-progress-bar"
   )
 })
