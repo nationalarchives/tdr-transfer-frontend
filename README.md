@@ -11,7 +11,11 @@ There are two ways to develop this project:
 
 - When moving between full local and frontend only development you should clear your browsers' cookies and local storage as the browser can cache the local Cognito ID, which is incompatible with non-local Cognito. An example of the error you will see if this happens is below:
 
-![Cognito error example](public/images/Cognito-error-example-screenshot.png)
+``` 
+POST https://cognito-identity.eu-west-2.amazonaws.com 400
+
+Uncaught (in promise) ValidationException: 1 validation error detected: Value 'some-fake-identity-id' at 'identityId' failed to satisfy constraint: Member must satisy regular expression pattern: [\w-]+:[0-9a-f-]+
+```
 
 ### Prerequisites
 
