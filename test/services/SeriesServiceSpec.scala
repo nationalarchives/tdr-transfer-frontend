@@ -3,6 +3,7 @@ package services
 import java.util.UUID
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.GetSeries.getSeries
@@ -25,7 +26,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class SeriesServiceSpec extends FlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
-  implicit val backend: SttpBackend[Future, Nothing, NothingT] = AsyncHttpClientFutureBackend()
 
   private val graphQlConfig = mock[GraphQLConfiguration]
   private val graphQlClient = mock[GraphQLClient[getSeries.Data, getSeries.Variables]]
