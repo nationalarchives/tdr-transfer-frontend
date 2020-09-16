@@ -19,6 +19,7 @@ export class FileChecks {
       const {
         antivirusProcessed,
         checksumProcessed,
+        ffidProcessed,
         totalFiles
       } = fileCheckProcessed
 
@@ -28,8 +29,13 @@ export class FileChecks {
         "#av-metadata-progress-bar"
       )
       updateProgressBar(checksumProcessed, totalFiles, "#checksum-progress-bar")
+      updateProgressBar(ffidProcessed, totalFiles, "#ffid-progress-bar")
 
-      if (antivirusProcessed == totalFiles && checksumProcessed == totalFiles) {
+      if (
+        antivirusProcessed == totalFiles &&
+        checksumProcessed == totalFiles &&
+        ffidProcessed == totalFiles
+      ) {
         const location = `${
           window.location.origin
         }/consignment/${getConsignmentId()}/records-results`
