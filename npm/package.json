@@ -45,7 +45,7 @@
     "aws-sdk": "^2.656.0",
     "govuk-frontend": "^3.6.0",
     "graphql": "^14.6.0",
-    "keycloak-js": "9.0.0",
+    "keycloak-js": "9.0.3",
     "unfetch": "^4.1.0"
   },
   "devDependencies": {
