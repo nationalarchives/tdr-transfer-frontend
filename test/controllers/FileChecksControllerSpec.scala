@@ -36,16 +36,18 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
 
   "FileChecksController GET" should {
 
-    "render the fileChecks page with progress bar" in {
+    "render the fileChecks page with progress bars" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
 
       val filesProcessedWithAntivirus = 6
       val filesProcessedWithChecksum = 12
+      val filesProcessedWithFFID = 8
       val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessedWithAntivirus)
       val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)
-      val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress)
+      val ffidProgress = fileCheck.GetConsignment.FileChecks.FfidProgress(filesProcessedWithFFID)
+      val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress, ffidProgress)
       val data: client.GraphqlData = client.GraphqlData(Some(fileCheck.Data(Some(fileCheck.GetConsignment(totalFiles, fileChecks)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
@@ -69,6 +71,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       recordsPageAsString must include("checkingRecords.title")
       recordsPageAsString must include("progress")
       recordsPageAsString must include("""<progress id="av-metadata-progress-bar" class="file-check-progress__progress-bar" value="15" max="100"></progress>""")
+      recordsPageAsString must include("""<progress id="ffid-progress-bar" class="file-check-progress__progress-bar" value="20" max="100"></progress>""")
       recordsPageAsString must include("""<progress id="checksum-progress-bar" class="file-check-progress__progress-bar" value="30" max="100"></progress>""")
     }
 
