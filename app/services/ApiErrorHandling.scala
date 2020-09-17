@@ -1,13 +1,12 @@
 package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import configuration.GraphQLBackend._
 import errors.{AuthorisationException, GraphQlException}
 import sangria.ast.Document
-import sttp.client.asynchttpclient.future.AsyncHttpClientFutureBackend
-import sttp.client.{NothingT, SttpBackend}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
-import configuration.GraphQLBackend._
+
 import scala.concurrent.{ExecutionContext, Future}
 
 object ApiErrorHandling {

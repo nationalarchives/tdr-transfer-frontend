@@ -14,8 +14,7 @@ import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
-import sttp.client.asynchttpclient.future.AsyncHttpClientFutureBackend
-import sttp.client.{HttpError, NothingT, SttpBackend}
+import sttp.client.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.keycloak.Token
