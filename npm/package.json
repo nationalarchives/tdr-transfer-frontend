@@ -78,6 +78,6 @@
   },
   "lint-staged": {
     "./**/*.{ts,md}": "eslint",
-    "**/*.scss": "stylelint"
+    "css-src/sass/**/*.scss": "stylelint"
   }
 }
