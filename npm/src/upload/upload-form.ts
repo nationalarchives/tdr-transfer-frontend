@@ -35,10 +35,10 @@ export class UploadForm {
       const folderSize: string = String(files.length)
 
       const folderNameElement: HTMLElement | null = document.querySelector(
-        ".folder-name"
+        "#folder-name"
       )
       const folderSizeElement: HTMLElement | null = document.querySelector(
-        ".folder-size"
+        "#folder-size"
       )
 
       if (folderNameElement && folderSizeElement) {
