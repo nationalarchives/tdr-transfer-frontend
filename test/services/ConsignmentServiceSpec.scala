@@ -25,7 +25,6 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-
   private val graphQlConfig = mock[GraphQLConfiguration]
   private val getConsignmentClient = mock[GraphQLClient[gc.Data, gc.Variables]]
   private val addConsignmentClient = mock[GraphQLClient[addConsignment.Data, addConsignment.Variables]]
