@@ -11,19 +11,19 @@
   transition: outline-offset 0.1s ease-in-out, background-color 0.1s linear;
 }
 
-.drag-and-drop__dropzone [type='file'] {
+.drag-and-drop__input {
   display: none;
   left: 10.1em;
   position: relative;
 }
 
-.drag-and-drop__dropzone p {
+.drag-and-drop__hint-text {
   margin-bottom: 0;
   margin-right: 10px;
   padding-top: 7px;
 }
 
-.drag-and-drop__dropzone label {
+.drag-and-drop__button {
   display: inline-block;
   margin-bottom: 0;
   width: auto;
