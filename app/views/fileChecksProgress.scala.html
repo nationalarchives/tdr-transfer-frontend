@@ -17,6 +17,10 @@
                 <progress id="av-metadata-progress-bar" class="file-check-progress__progress-bar" value="@fileChecks.avMetadataProgressPercentage" max="100"></progress>
             </div>
             <div class="file-check-progress">
+                <label for="ffid-progress-bar" class="govuk-label">@Messages("checkingRecords.ffid")</label>
+                <progress id="ffid-progress-bar" class="file-check-progress__progress-bar" value="@fileChecks.ffidMetadataProgressPercentage" max="100"></progress>
+            </div>
+            <div class="file-check-progress">
                 <label for="checksum-progress-bar" class="govuk-label">@Messages("checkingRecords.checksum")</label>
                 <progress id="checksum-progress-bar" class="file-check-progress__progress-bar" value="@fileChecks.checksumProgressPercentage" max="100"></progress>
             </div>
