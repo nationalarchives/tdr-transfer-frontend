@@ -50,6 +50,7 @@ checkingRecords.title=Checking your records
 checkingRecords.description=We are now checking your records. It is safe to close the browser if you wish, otherwise please wait and you will be redirected automatically once complete.
 checkingRecords.antivirus=Anti-virus scanning
 checkingRecords.checksum=Validating data integrity
+checkingRecords.ffid=Identifying file formats
 fileChecksResults.header=Record check results
 fileChecksResults.title=Record check results
 fileChecksResults.description=Here are your results
