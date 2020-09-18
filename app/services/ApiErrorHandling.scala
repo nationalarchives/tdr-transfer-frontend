@@ -1,6 +1,7 @@
 package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import configuration.GraphQLBackend._
 import errors.{AuthorisationException, GraphQlException}
 import sangria.ast.Document
 import uk.gov.nationalarchives.tdr.GraphQLClient

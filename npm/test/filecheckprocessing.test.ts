@@ -30,6 +30,7 @@ class GraphqlClientSuccess {
         totalFiles: 10,
         fileChecks: {
           antivirusProgress: { filesProcessed: 2 },
+          ffidProgress: { filesProcessed: 4 },
           checksumProgress: { filesProcessed: 3 }
         }
       }
@@ -90,6 +91,7 @@ test("getConsignmentData returns the correct consignment data with a successful 
   ) => void = fileCheckProcessed => {
     expect(fileCheckProcessed!.antivirusProcessed).toBe(2)
     expect(fileCheckProcessed!.checksumProcessed).toBe(3)
+    expect(fileCheckProcessed!.ffidProcessed).toBe(4)
     expect(fileCheckProcessed!.totalFiles).toBe(10)
     done()
   }
