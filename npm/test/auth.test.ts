@@ -1,37 +1,59 @@
-import { refreshOrReturnToken, authenticateAndGetIdentityId } from "../src/auth"
-import { getKeycloakInstance } from "../src/auth"
-jest.mock("keycloak-js")
+const keycloakMock = {
+  __esModule: true,
+  namedExport: jest.fn(),
+  default: jest.fn()
+}
+
+jest.mock("keycloak-js", () => keycloakMock)
 jest.mock("aws-sdk")
 
-import Keycloak, { KeycloakInstance } from "keycloak-js"
+import { KeycloakInitOptions, KeycloakInstance } from "keycloak-js"
+import { refreshOrReturnToken, authenticateAndGetIdentityId } from "../src/auth"
+import { getKeycloakInstance } from "../src/auth"
 import AWS from "aws-sdk"
 import { IFrontEndInfo } from "../src"
 
 class MockKeycloakAuthenticated {
   token: string = "fake-auth-token"
 
-  isTokenExpired() {
+  isTokenExpired = () => {
     return false
   }
-
-  init() {
-    return new Promise((resolve, _) => resolve(true))
+  init = (_: KeycloakInitOptions) => {
+    return new Promise(function(resolve, _) {
+      resolve(true)
+    })
   }
 }
+
 class MockKeycloakUnauthenticated {
   token: string = "fake-auth-login-token"
 
-  init() {
-    return new Promise((resolve, _) => resolve(false))
+  isTokenExpired = () => {
+    return false
   }
-
-  login() {
-    return new Promise((resolve, _) => resolve(true))
+  init = (_: KeycloakInitOptions) => {
+    return new Promise(function(resolve, _) {
+      resolve(false)
+    })
+  }
+  login = (_: KeycloakInitOptions) => {
+    return new Promise((resolve, _) => {
+      resolve(true)
+    })
   }
 }
+
 class MockKeycloakError {
-  init() {
-    return new Promise((_, reject) => reject("There has been an error"))
+  token: string = "fake-auth-token"
+
+  isTokenExpired = () => {
+    return false
+  }
+  init = (_: KeycloakInitOptions) => {
+    return new Promise(function(_, reject) {
+      reject("There has been an error")
+    })
   }
 }
 
@@ -41,37 +63,28 @@ beforeEach(() => {
 })
 
 test("Redirects user to login page and returns a new token if the user is not authenticated", async () => {
-  ;(Keycloak as jest.Mock).mockImplementation(() => {
-    return new MockKeycloakUnauthenticated()
-  })
-
-  await expect(getKeycloakInstance()).resolves.toEqual({
-    token: "fake-auth-login-token"
-  })
+  keycloakMock.default.mockImplementation(
+    () => new MockKeycloakUnauthenticated()
+  )
+  const instance = await getKeycloakInstance()
+  expect(instance.token).toEqual("fake-auth-login-token")
 })
 
 test("Returns a token if the user is logged in", async () => {
-  ;(Keycloak as jest.Mock).mockImplementation(() => {
-    return new MockKeycloakAuthenticated()
-  })
-  await expect(getKeycloakInstance()).resolves.toEqual({
-    token: "fake-auth-token"
-  })
+  keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
+  const instance = await getKeycloakInstance()
+  expect(instance.token).toEqual("fake-auth-token")
 })
 
 test("Returns an error if login attempt fails", async () => {
-  ;(Keycloak as jest.Mock).mockImplementation(() => {
-    return new MockKeycloakError()
-  })
+  keycloakMock.default.mockImplementation(() => new MockKeycloakError())
   await expect(getKeycloakInstance()).rejects.toEqual("There has been an error")
 })
 
 test("Calls the correct authentication update", async () => {
   const config = AWS.config.update as jest.Mock
   const token = "testtoken"
-  ;(Keycloak as jest.Mock).mockImplementation(() => {
-    return new MockKeycloakAuthenticated()
-  })
+  keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
   const keycloak = await getKeycloakInstance()
   const frontEndInfo: IFrontEndInfo = {
     stage: "",
@@ -88,7 +101,7 @@ test("Calls the correct authentication update", async () => {
 test("Calls refresh token if the token is expired", async () => {
   const isTokenExpired = jest.fn().mockImplementation(() => true)
   const updateToken = jest.fn()
-  const mockKeycloak: KeycloakInstance<"native"> = {
+  const mockKeycloak: KeycloakInstance = {
     init: jest.fn(),
     login: jest.fn(),
     logout: jest.fn(),
@@ -116,7 +129,7 @@ test("Calls refresh token if the token is expired", async () => {
 test("Doesn't call refresh token if the token is not expired", async () => {
   const isTokenExpired = jest.fn().mockImplementation(() => false)
   const updateToken = jest.fn()
-  const mockKeycloak: KeycloakInstance<"native"> = {
+  const mockKeycloak: KeycloakInstance = {
     init: jest.fn(),
     login: jest.fn(),
     logout: jest.fn(),
