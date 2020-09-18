@@ -20,11 +20,17 @@ const fileChecks = new FileChecks(client)
 const mockConsignmentData: (
   fileChecks: IFileCheckProcessed
 ) => void = fileChecks => {
-  const { antivirusProcessed, checksumProcessed, totalFiles } = fileChecks
+  const {
+    antivirusProcessed,
+    checksumProcessed,
+    ffidProcessed,
+    totalFiles
+  } = fileChecks
   mockFileCheckProcessing.getConsignmentData.mockImplementation((_, callback) =>
     callback({
       antivirusProcessed,
       checksumProcessed,
+      ffidProcessed,
       totalFiles
     })
   )
@@ -41,6 +47,7 @@ test("updateFileCheckProgress updates the progress bars correctly", () => {
   mockConsignmentData({
     antivirusProcessed: 1,
     checksumProcessed: 2,
+    ffidProcessed: 1,
     totalFiles: 2
   })
   fileChecks.updateFileCheckProgress()
@@ -57,6 +64,12 @@ test("updateFileCheckProgress updates the progress bars correctly", () => {
     2,
     "#checksum-progress-bar"
   )
+  expect(mockFileCheckProcessing.updateProgressBar).toHaveBeenNthCalledWith(
+    3,
+    1,
+    2,
+    "#ffid-progress-bar"
+  )
 })
 
 test("updateFileCheckProgress redirects if all checks are complete", () => {
@@ -67,6 +80,7 @@ test("updateFileCheckProgress redirects if all checks are complete", () => {
   mockConsignmentData({
     antivirusProcessed: 2,
     checksumProcessed: 2,
+    ffidProcessed: 2,
     totalFiles: 2
   })
   delete window.location
@@ -90,6 +104,7 @@ test("updateFileCheckProgress does not redirect if the checks are in progress", 
   mockConsignmentData({
     antivirusProcessed: 1,
     checksumProcessed: 2,
+    ffidProcessed: 1,
     totalFiles: 2
   })
   delete window.location
