@@ -1,6 +1,6 @@
 import { KeycloakInstance } from "keycloak-js"
 
-export const mockKeycloakInstance: KeycloakInstance<"native"> = {
+export const mockKeycloakInstance: KeycloakInstance = {
   init: jest.fn(),
   login: jest.fn(),
   logout: jest.fn(),
