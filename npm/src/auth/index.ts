@@ -3,14 +3,13 @@ import AWS, { CognitoIdentityCredentials } from "aws-sdk"
 import { IFrontEndInfo } from ".."
 
 export const getKeycloakInstance: () => Promise<
-  Keycloak.KeycloakInstance<"native">
+  Keycloak.KeycloakInstance
 > = async () => {
-  const keycloakInstance: Keycloak.KeycloakInstance<"native"> = Keycloak(
+  const keycloakInstance: Keycloak.KeycloakInstance = Keycloak(
     `${window.location.origin}/keycloak.json`
   )
 
   const authenticated = await keycloakInstance.init({
-    promiseType: "native",
     onLoad: "check-sso",
     silentCheckSsoRedirectUri:
       window.location.origin + "/assets/html/silent-check-sso.html"
@@ -28,7 +27,7 @@ export const getKeycloakInstance: () => Promise<
 }
 
 export const refreshOrReturnToken: (
-  keycloak: Keycloak.KeycloakInstance<"native">,
+  keycloak: Keycloak.KeycloakInstance,
   tokenMinValidityInSecs?: number
 ) => Promise<string> = async (keycloak, tokenMinValidityInSecs = 30) => {
   if (keycloak.isTokenExpired(tokenMinValidityInSecs)) {
@@ -42,7 +41,7 @@ export const refreshOrReturnToken: (
 }
 
 export const authenticateAndGetIdentityId: (
-  keycloak: Keycloak.KeycloakInstance<"native">,
+  keycloak: Keycloak.KeycloakInstance,
   frontEndInfo: IFrontEndInfo
 ) => Promise<string> = async (keycloak, frontEndInfo) => {
   const token = await refreshOrReturnToken(keycloak)
