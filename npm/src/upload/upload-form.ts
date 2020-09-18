@@ -42,8 +42,8 @@ export class UploadForm {
       )
 
       if (folderNameElement && folderSizeElement) {
-        folderNameElement.innerText = folderName
-        folderSizeElement.innerText = folderSize
+        folderNameElement.textContent = folderName
+        folderSizeElement.textContent = folderSize
         const successMessage: HTMLElement | null = document.querySelector(
           ".govuk-summary-list__value"
         )
