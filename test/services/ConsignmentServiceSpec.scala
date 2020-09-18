@@ -3,10 +3,11 @@ package services
 import java.util.UUID
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
-import graphql.codegen.GetConsignment.{getConsignment => gc}
 import graphql.codegen.AddConsignment.addConsignment
+import graphql.codegen.GetConsignment.{getConsignment => gc}
 import graphql.codegen.types.AddConsignmentInput
 import org.mockito.Mockito
 import org.mockito.Mockito._

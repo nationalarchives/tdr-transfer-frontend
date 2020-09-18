@@ -3,6 +3,7 @@ package services
 import java.util.UUID
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import errors.{AuthorisationException, GraphQlException}
 import graphql.codegen.IsTransferAgreementComplete.isTransferAgreementComplete._
