@@ -5,7 +5,7 @@ jest.mock("../src/auth")
 import { getKeycloakInstance, authenticateAndGetIdentityId } from "../src/auth"
 beforeEach(() => jest.resetModules())
 
-const mockKeycloak: KeycloakInstance<"native"> = {
+const mockKeycloak: KeycloakInstance = {
   init: jest.fn(),
   login: jest.fn(),
   logout: jest.fn(),
