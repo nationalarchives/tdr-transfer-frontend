@@ -28,7 +28,7 @@ export class UploadForm {
   }
 
   addFolderListener() {
-    this.folderRetriever.addEventListener("change", ev => {
+    this.folderRetriever.addEventListener("change", () => {
       const form: HTMLFormElement | null = this.formElement
       const files = this.retrieveFiles(form)
       const folderName: string = this.getParentFolderName(files)
