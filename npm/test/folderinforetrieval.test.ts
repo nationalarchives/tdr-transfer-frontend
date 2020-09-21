@@ -2,9 +2,7 @@ import { TdrFile } from "@nationalarchives/file-information"
 import { String } from "aws-sdk/clients/acm"
 import { UploadForm } from "../src/upload/upload-form"
 
-class MockHTMLForm {
-  html: String = `
-  <form id="file-upload-form" data-consignment-id="@consignmentId">
+const mockFormHTML = `  <form id="file-upload-form" data-consignment-id="@consignmentId">
     <div class="govuk-form-group">
         <div class="drag-and-drop">
             <div class="govuk-summary-list">
@@ -32,9 +30,6 @@ class MockHTMLForm {
     </div>
   </form>`
 
-  constructor() {}
-}
-
 const triggerInputEvent: (element: HTMLInputElement) => void = (
   element: HTMLInputElement
 ) => {
@@ -55,8 +50,7 @@ const mockTriggerInputEvent: (form: HTMLFormElement) => any = (
 }
 
 test("folder retriever updates the page with correct folder information if there are 1 or more files", () => {
-  const mockForm = new MockHTMLForm()
-  document.body.innerHTML = mockForm.html
+  document.body.innerHTML = mockFormHTML
 
   const dummyFile = {
     webkitRelativePath: "Parent_Folder/testfile"
@@ -96,8 +90,7 @@ test("folder retriever updates the page with correct folder information if there
 })
 
 test("folder retriever does not update the page with correct folder information if there are no files", () => {
-  const mockForm = new MockHTMLForm()
-  document.body.innerHTML = mockForm.html
+  document.body.innerHTML = mockFormHTML
 
   const dummyFile = {
     webkitRelativePath: "Parent_Folder/testfile"
