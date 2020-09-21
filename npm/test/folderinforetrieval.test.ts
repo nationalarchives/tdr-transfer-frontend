@@ -43,9 +43,16 @@ const triggerInputEvent: (element: HTMLInputElement) => void = (
   element.dispatchEvent(event)
 }
 
-const mockTriggerInputEvent: (element: HTMLInputElement) => void = (
-  element: HTMLInputElement
-) => {}
+const mockTriggerInputEvent: (form: HTMLFormElement) => any = (
+  form: HTMLFormElement
+) => {
+  const target: HTMLFormElement | null = form
+  const files: TdrFile[] = target!.files!.files!
+  if (files === null || files.length === 0) {
+    throw Error("No files selected")
+  }
+  return files
+}
 
 test("folder retriever updates the page with correct folder information if there are 1 or more files", () => {
   const mockForm = new MockHTMLForm()
@@ -107,7 +114,9 @@ test("folder retriever does not update the page with correct folder information 
     uploadForm.files = { files: [] }
     const form = new UploadForm(uploadForm, folderRetriever)
     form.addFolderListener()
-    mockTriggerInputEvent(folderRetriever)
+    expect(() => {
+      mockTriggerInputEvent(uploadForm)
+    }).toThrow("No files selected")
 
     const folderNameElement: HTMLElement | null = document.querySelector(
       "#folder-name"
