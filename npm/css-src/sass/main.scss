@@ -9,10 +9,12 @@
   margin-bottom: 30px;
 }
 
-.govuk-summary-list__value svg {
+.green-tick-mark {
   fill: currentColor;
   float: left;
+  height: 25px;
   margin-right: 10px;
+  width: 25px;
 }
 
 @include progress-bar('.progress-display')
