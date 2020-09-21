@@ -19,9 +19,9 @@ const tokenMinValidityInSecs: number = 30
 
 export class GraphqlClient {
   client: ApolloClient<NormalizedCacheObject>
-  keycloak: KeycloakInstance<"native">
+  keycloak: KeycloakInstance
 
-  constructor(uri: string, keycloak: Keycloak.KeycloakInstance<"native">) {
+  constructor(uri: string, keycloak: Keycloak.KeycloakInstance) {
     this.keycloak = keycloak
 
     const link = createHttpLink({

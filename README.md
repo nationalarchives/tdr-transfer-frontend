@@ -110,11 +110,24 @@ Clone and run the [tdr-consignment-api] project.
 
 #### Local S3 emulator
 
+Create a new empty directory that the S3 emulator will save files in.
+
+**If you are running Linux**, change the owner of this directory to user 2000, to give the user in the S3 ninja Docker
+container permission to save files there. Do not do this on a Mac, because Docker handles file permissions differently
+on Linux and Mac OS, and this step will prevent uploads from working.
+
+```
+sudo chown 2000:2000 /your/new/upload/directory
+```
+
 Run an [S3 ninja] Docker container, specifying a local directory in which to save the files:
 
 ```
-docker run -d -p 9444:9000 -v <some directory path>:/home/sirius/data --name=s3ninja scireum/s3-ninja:6.4
+docker run -d -p 9444:9000 -v /your/new/upload/directory:/home/sirius/data --name=s3ninja scireum/s3-ninja:6.4
 ```
+
+Visit http://localhost:9444/ui and check you can create a bucket and upload a test file through the S3 ninja UI. Check
+that the file appears in the folder that you mounted.
 
 Requests to S3 ninja need to be authenticated with a Cognito token. To emulate this endpoint, clone the
 [tdr-local-aws] project and follow the instructions there to run the `FakeCognitoServer` application.
