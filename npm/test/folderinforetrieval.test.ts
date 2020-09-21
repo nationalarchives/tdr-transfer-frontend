@@ -1,19 +1,20 @@
 import { TdrFile } from "@nationalarchives/file-information"
-import { String } from "aws-sdk/clients/acm"
 import { UploadForm } from "../src/upload/upload-form"
 
-const mockFormHTML = `  <form id="file-upload-form" data-consignment-id="@consignmentId">
+const mockFormHTML = `  <form id="file-upload-form" data-consignment-id="95d81f57-b8a8-44aa-883b-d66a3037511b">
     <div class="govuk-form-group">
         <div class="drag-and-drop">
             <div class="govuk-summary-list">
                 <div class="govuk-summary-list__row hide">
                     <dd class="govuk-summary-list__value">
-                        @greenTickMark()
-                        The folder
-                        "<span id="folder-name"></span>"
-                        (containing
-                        <span id="folder-size"></span>
-                        files) has been selected
+                      <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M25,6.2L8.7,23.2L0,14.1l4-4.2l4.7,4.9L21,2L25,6.2z"></path>
+                      </svg>
+                      The folder
+                      "<span id="folder-name"></span>"
+                      (containing
+                      <span id="folder-size"></span>
+                      files) has been selected
                     </dd>
                 </div>
             </div>
@@ -21,8 +22,8 @@ const mockFormHTML = `  <form id="file-upload-form" data-consignment-id="@consig
                 <div class="govuk-form-group">
                     <div class="drag-and-drop__dropzone">
                         <input type="file" id="file-selection" name="files" class="govuk-file-upload drag-and-drop__input" webkitdirectory>
-                        <p class="govuk-body drag-and-drop__hint-text">@Messages("upload.dragAndDropHintText")</p>
-                        <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">@Messages("upload.chooseFolderLink")</label>
+                        <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single folder here or</p>
+                        <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">Choose folder</label>
                     </div>
                 </div>
             </div>
