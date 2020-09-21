@@ -1,7 +1,8 @@
 import { TdrFile } from "@nationalarchives/file-information"
 import { UploadForm } from "../src/upload/upload-form"
 
-const mockFormHTML = `  <form id="file-upload-form" data-consignment-id="95d81f57-b8a8-44aa-883b-d66a3037511b">
+const mockFormHTML = `
+  <form id="file-upload-form" data-consignment-id="95d81f57-b8a8-44aa-883b-d66a3037511b">
     <div class="govuk-form-group">
         <div class="drag-and-drop">
             <div class="govuk-summary-list">
