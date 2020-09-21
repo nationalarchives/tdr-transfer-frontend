@@ -9,6 +9,7 @@ import { GraphqlClient } from "../graphql"
 export interface IFileCheckProcessed {
   antivirusProcessed: number
   checksumProcessed: number
+  ffidProcessed: number
   totalFiles: number
 }
 
@@ -48,9 +49,11 @@ export const getConsignmentData: (
           const totalFiles = getConsignment.totalFiles
           const antivirusProcessed = fileChecks.antivirusProgress.filesProcessed
           const checksumProcessed = fileChecks.checksumProgress.filesProcessed
+          const ffidProcessed = fileChecks.ffidProgress.filesProcessed
           callback({
             antivirusProcessed,
             checksumProcessed,
+            ffidProcessed,
             totalFiles
           })
         } else {
