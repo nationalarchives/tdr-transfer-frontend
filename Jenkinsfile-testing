@@ -65,7 +65,7 @@ pipeline {
             unstash "tdr-transfer-frontend-zip"
             unstash "Dockerfile"
             script {
-              tdr.pushToECR("transfer-frontend", params.STAGE)
+              tdr.buildAndPushImage("transfer-frontend", params.STAGE)
               tdr.postToDaTdrSlackChannel(colour: "good", message: "*Transfer frontend* :whale: Pushed version ${versionTag} to Docker Hub")
             }
           }
