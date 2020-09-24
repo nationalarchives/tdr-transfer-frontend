@@ -1,5 +1,10 @@
+import "@testing-library/jest-dom"
 import { TdrFile } from "@nationalarchives/file-information"
-import { UploadForm } from "../src/upload/upload-form"
+import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
+import { GraphqlClient } from "../src/graphql"
+import { UploadFiles } from "../src/upload"
+import { InputElement, UploadForm } from "../src/upload/upload-form"
+import { mockKeycloakInstance } from "./utils"
 
 const mockFormHTML = `
   <form id="file-upload-form" data-consignment-id="95d81f57-b8a8-44aa-883b-d66a3037511b">
@@ -32,23 +37,13 @@ const mockFormHTML = `
     </div>
   </form>`
 
+const mockGoToNextPage = jest.fn()
+
 const triggerInputEvent: (element: HTMLInputElement) => void = (
   element: HTMLInputElement
 ) => {
-  const event = document.createEvent("Event")
-  event.initEvent("change", true, true)
+  const event = new CustomEvent("change")
   element.dispatchEvent(event)
-}
-
-const mockTriggerInputEvent: (form: HTMLFormElement) => any = (
-  form: HTMLFormElement
-) => {
-  const target: HTMLFormElement | null = form
-  const files: TdrFile[] = target!.files!.files!
-  if (files === null || files.length === 0) {
-    throw Error("No files selected")
-  }
-  return files
 }
 
 test("folder retriever updates the page with correct folder information if there are 1 or more files", () => {
@@ -65,63 +60,29 @@ test("folder retriever updates the page with correct folder information if there
     "#file-selection"
   )
 
-  if (uploadForm && folderRetriever) {
-    uploadForm.files = { files: [dummyFile] }
-    const form = new UploadForm(uploadForm, folderRetriever)
-    form.addFolderListener()
-    triggerInputEvent(folderRetriever)
+  uploadForm!.files = { files: [dummyFile] }
+  const uploadFiles = setUpUploadFiles()
+  uploadFiles.upload()
 
-    const folderNameElement: HTMLElement | null = document.querySelector(
-      "#folder-name"
-    )
-    const folderSizeElement: HTMLElement | null = document.querySelector(
-      "#folder-size"
-    )
+  triggerInputEvent(folderRetriever!)
 
-    if (folderNameElement && folderSizeElement) {
-      expect(folderNameElement.textContent).toStrictEqual("Parent_Folder")
-      expect(Number(folderSizeElement.textContent)).toStrictEqual(1)
-    } else {
-      Error("Either the folder name or size element is missing from the page")
-    }
-  } else {
-    Error(
-      "Either the form is missing from the page or the folder input is missing from the form"
-    )
-  }
-})
-
-test("folder retriever does not update the page with correct folder information if there are no files", () => {
-  document.body.innerHTML = mockFormHTML
-
-  const dummyFile = {
-    webkitRelativePath: "Parent_Folder/testfile"
-  } as TdrFile
-
-  const uploadForm: HTMLFormElement | null = document.querySelector(
-    "#file-upload-form"
+  const folderSummaryElement: HTMLElement | null = document.querySelector(
+    ".govuk-summary-list__row"
   )
-  const folderRetriever: HTMLInputElement | null = document.querySelector(
-    "#file-selection"
+  const folderNameElement: HTMLElement | null = document.querySelector(
+    "#folder-name"
+  )
+  const folderSizeElement: HTMLElement | null = document.querySelector(
+    "#folder-size"
   )
 
-  if (uploadForm && folderRetriever) {
-    uploadForm.files = { files: [] }
-    const form = new UploadForm(uploadForm, folderRetriever)
-    form.addFolderListener()
-    expect(() => {
-      mockTriggerInputEvent(uploadForm)
-    }).toThrow("No files selected")
-
-    const folderNameElement: HTMLElement | null = document.querySelector(
-      "#folder-name"
-    )
-    const folderSizeElement: HTMLElement | null = document.querySelector(
-      "#folder-size"
-    )
-    if (folderNameElement && folderSizeElement) {
-      expect(folderNameElement.textContent).toStrictEqual("")
-      expect(Number(folderSizeElement.textContent)).toStrictEqual(0)
-    }
-  }
+  expect(folderSummaryElement!).not.toHaveClass("hide")
+  expect(folderNameElement!.textContent).toStrictEqual("Parent_Folder")
+  expect(Number(folderSizeElement!.textContent)).toStrictEqual(1)
 })
+
+function setUpUploadFiles(): UploadFiles {
+  const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
+  const uploadMetadata = new ClientFileMetadataUpload(client)
+  return new UploadFiles(uploadMetadata, "identityId", "test", mockGoToNextPage)
+}

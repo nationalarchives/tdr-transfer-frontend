@@ -1,6 +1,6 @@
 import { TdrFile } from "@nationalarchives/file-information"
 
-interface InputElement {
+export interface InputElement extends EventTarget {
   files?: TdrFile[]
 }
 
@@ -28,9 +28,10 @@ export class UploadForm {
   }
 
   addFolderListener() {
-    this.folderRetriever.addEventListener("change", () => {
+    this.folderRetriever.addEventListener("change", (ev: Event) => {
       const form: HTMLFormElement | null = this.formElement
       const files = this.retrieveFiles(form)
+
       const folderName: string = this.getParentFolderName(files)
       const folderSize: string = String(files.length)
 
@@ -49,10 +50,10 @@ export class UploadForm {
         )
         successMessage?.classList.add("drag-and-drop__success")
 
-        const successMesssageSection: HTMLElement | null = document.querySelector(
+        const successMessageSection: HTMLElement | null = document.querySelector(
           ".govuk-summary-list__row"
         )
-        successMesssageSection?.classList.remove("hide")
+        successMessageSection?.classList.remove("hide")
       }
     })
   }
@@ -70,6 +71,14 @@ export class UploadForm {
 
   private retrieveFiles(target: HTMLInputTarget | null): TdrFile[] {
     const files: TdrFile[] = target!.files!.files!
+    if (files === null || files.length === 0) {
+      throw Error("No files selected")
+    }
+    return files
+  }
+
+  private retrieveDragAndDropFiles(target: InputElement | null): TdrFile[] {
+    const files: TdrFile[] = target!.files!
     if (files === null || files.length === 0) {
       throw Error("No files selected")
     }
