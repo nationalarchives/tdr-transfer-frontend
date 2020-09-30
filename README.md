@@ -81,9 +81,11 @@ updating the frontend.
 
 #### Local auth server
 
--  Start the auth server
+-  Log into docker with credentials from ECR and start the auth server. This will need AWS CLI version 2 to work.
   ```
-  docker run -d --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -e KEYCLOAK_IMPORT=/tmp/tdr-realm.json -e CLIENT_SECRET=[some value] -e BACKEND_CHECKS_CLIENT_SECRET=[some value] -e REALM_ADMIN_CLIENT_SECRET=[some value] -e KEYCLOAK_CONFIGURATION_PROPERTIES=intg_properties.json -e USER_ADMIN_CLIENT_SECRET=[some value] nationalarchives/tdr-auth-server:intg
+  export MANAGEMENT_ACCOUNT=management_account_number
+  aws ecr get-login-password --region eu-west-2 --profile management | docker login --username AWS --password-stdin $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com
+  docker run -d --name keycloak -p 8081:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin -e KEYCLOAK_IMPORT=/tmp/tdr-realm.json -e CLIENT_SECRET=[some value] -e BACKEND_CHECKS_CLIENT_SECRET=[some value] -e REALM_ADMIN_CLIENT_SECRET=[some value] -e KEYCLOAK_CONFIGURATION_PROPERTIES=intg_properties.json -e USER_ADMIN_CLIENT_SECRET=[some value] $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/auth-server:intg
   ```
 - Go to `http://localhost:8081/auth/admin` and log in with username *admin* and password *admin*.  
 - Create a transferring body user:
