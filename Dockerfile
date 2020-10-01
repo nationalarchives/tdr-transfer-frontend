@@ -1,4 +1,4 @@
-FROM openjdk:8-slim
+FROM openjdk:15-slim
 WORKDIR play
 COPY target/universal/tdr-transfer-frontend*.zip .
 RUN apt-get update && apt-get install unzip && unzip -qq tdr-transfer-frontend-*.zip
