@@ -46,7 +46,7 @@
     "govuk-frontend": "^3.9.1",
     "graphql": "^14.7.0",
     "keycloak-js": "9.0.3",
-    "unfetch": "^4.1.0"
+    "unfetch": "^4.2.0"
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",
