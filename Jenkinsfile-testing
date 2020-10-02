@@ -65,10 +65,8 @@ pipeline {
             unstash "tdr-transfer-frontend-zip"
             unstash "Dockerfile"
             script {
-              docker.withRegistry('', 'docker') {
-                docker.build("nationalarchives/tdr-transfer-frontend:${versionTag}").push()
-                tdr.postToDaTdrSlackChannel(colour: "good", message: "*Transfer frontend* :whale: Pushed version ${versionTag} to Docker Hub")
-              }
+              tdr.buildAndPushImage("transfer-frontend", versionTag)
+              tdr.postToDaTdrSlackChannel(colour: "good", message: "*Transfer frontend* :whale: Pushed version ${versionTag} to AWS ECR")
             }
           }
         }
