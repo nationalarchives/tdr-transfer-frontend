@@ -11,10 +11,16 @@ interface HTMLInputTarget extends EventTarget {
 export class UploadForm {
   formElement: HTMLFormElement
   folderRetriever: HTMLInputElement
+  dropzone: HTMLElement
 
-  constructor(formElement: HTMLFormElement, folderRetriever: HTMLInputElement) {
+  constructor(
+    formElement: HTMLFormElement,
+    folderRetriever: HTMLInputElement,
+    dropzone: HTMLElement
+  ) {
     this.formElement = formElement
     this.folderRetriever = folderRetriever
+    this.dropzone = dropzone
   }
 
   consignmentId: () => string = () => {
@@ -41,7 +47,22 @@ export class UploadForm {
     })
   }
 
+  addDropzoneHighlighter() {
+    this.dropzone?.addEventListener("dragover", ev => {
+      ev.preventDefault()
+      this.dropzone?.classList.add("drag-and-drop--dragover")
+    })
+
+    this.dropzone?.addEventListener("dragleave", () => {
+      this.dropzone?.classList.remove("drag-and-drop--dragover")
+    })
+  }
+
   addFolderListener() {
+    this.dropzone.addEventListener("drop", ev => {
+      ev.preventDefault()
+    })
+
     this.folderRetriever.addEventListener("change", () => {
       const form: HTMLFormElement | null = this.formElement
       const files = this.retrieveFiles(form)
