@@ -2,6 +2,19 @@
   margin-bottom: 40px;
 }
 
+.drag-and-drop__button {
+  display: inline-block;
+  margin-bottom: 0;
+  width: auto;
+}
+
+.drag-and-drop__button--highlight {
+  background-color: $govuk-focus-colour;
+  box-shadow: 0 -2px $govuk-focus-colour, 0 4px govuk-colour('black');
+  color: $govuk-text-colour;
+  outline: none;
+}
+
 .drag-and-drop__dropzone {
   display: flex;
   margin-bottom: 20px;
@@ -11,29 +24,16 @@
   transition: outline-offset 0.1s ease-in-out, background-color 0.1s linear;
 }
 
-.drag-and-drop__input {
-  opacity: 0;
-  position: relative;
-  width: 0;
-}
-
 .drag-and-drop__hint-text {
   margin-bottom: 0;
   margin-right: 10px;
   padding-top: 7px;
 }
 
-.drag-and-drop__button {
-  display: inline-block;
-  margin-bottom: 0;
-  width: auto;
-}
-
-.drag-and-drop__button-highlight {
-  background-color: $govuk-focus-colour;
-  box-shadow: 0 -2px $govuk-focus-colour, 0 4px govuk-colour('black');
-  color: $govuk-text-colour;
-  outline: none;
+.drag-and-drop__input {
+  opacity: 0;
+  position: relative;
+  width: 0;
 }
 
 .drag-and-drop__success {
