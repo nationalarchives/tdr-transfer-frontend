@@ -40,6 +40,7 @@ export class UploadForm {
       folderRetrieverLabel.classList.remove("drag-and-drop__button-highlight")
     })
   }
+
   addFolderListener() {
     this.folderRetriever.addEventListener("change", () => {
       const form: HTMLFormElement | null = this.formElement
