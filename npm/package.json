@@ -49,6 +49,7 @@
     "unfetch": "^4.1.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^5.11.4",
     "@types/jest": "^25.2.1",
     "@typescript-eslint/eslint-plugin": "^2.34.0",
     "@typescript-eslint/parser": "^2.34.0",
@@ -78,6 +79,6 @@
   },
   "lint-staged": {
     "./**/*.{ts,md}": "eslint",
-    "**/*.scss": "stylelint"
+    "css-src/sass/**/*.scss": "stylelint"
   }
 }
