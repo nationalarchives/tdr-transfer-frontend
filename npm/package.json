@@ -73,7 +73,7 @@
     "typescript": "^3.8.3",
     "webpack": "^4.42.0",
     "webpack-cli": "^3.3.11",
-    "stylelint": "^13.7.0",
+    "stylelint": "^13.7.2",
     "stylelint-config-sass-guidelines": "^7.1.0"
   },
   "lint-staged": {
