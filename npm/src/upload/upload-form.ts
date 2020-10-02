@@ -27,6 +27,19 @@ export class UploadForm {
     return value
   }
 
+  addButtonHighlighter() {
+    this.folderRetriever.addEventListener("focus", () => {
+      const folderRetrieverLabel: HTMLLabelElement = this.folderRetriever
+        .labels![0]
+      folderRetrieverLabel.classList.add("drag-and-drop__button-highlight")
+    })
+
+    this.folderRetriever.addEventListener("blur", () => {
+      const folderRetrieverLabel: HTMLLabelElement = this.folderRetriever
+        .labels![0]
+      folderRetrieverLabel.classList.remove("drag-and-drop__button-highlight")
+    })
+  }
   addFolderListener() {
     this.folderRetriever.addEventListener("change", () => {
       const form: HTMLFormElement | null = this.formElement

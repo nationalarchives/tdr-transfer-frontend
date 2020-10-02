@@ -60,6 +60,7 @@ export class UploadFiles {
     if (uploadForm && folderRetriever) {
       const form = new UploadForm(uploadForm, folderRetriever)
       form.addFolderListener()
+      form.addButtonHighlighter()
       form.addSubmitListener(this.uploadFiles)
     }
   }
