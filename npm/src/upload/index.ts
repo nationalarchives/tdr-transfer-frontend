@@ -53,8 +53,13 @@ export class UploadFiles {
       "#file-upload-form"
     )
 
-    if (uploadForm) {
-      const form = new UploadForm(uploadForm)
+    const folderRetriever: HTMLInputElement | null = document.querySelector(
+      "#file-selection"
+    )
+
+    if (uploadForm && folderRetriever) {
+      const form = new UploadForm(uploadForm, folderRetriever)
+      form.addFolderListener()
       form.addSubmitListener(this.uploadFiles)
     }
   }
