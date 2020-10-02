@@ -29,6 +29,13 @@
   width: auto;
 }
 
+.drag-and-drop__button-highlight {
+  background-color: $govuk-focus-colour;
+  box-shadow: 0 -2px $govuk-focus-colour, 0 4px govuk-colour('black');
+  color: $govuk-text-colour;
+  outline: none;
+}
+
 .drag-and-drop__success {
   color: govuk-colour('green');
   font-weight: bold;
