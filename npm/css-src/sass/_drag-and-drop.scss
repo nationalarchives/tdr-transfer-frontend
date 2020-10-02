@@ -12,9 +12,9 @@
 }
 
 .drag-and-drop__input {
-  display: none;
-  left: 10.1em;
+  opacity: 0;
   position: relative;
+  width: 0;
 }
 
 .drag-and-drop__hint-text {
