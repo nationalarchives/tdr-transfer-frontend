@@ -40,7 +40,7 @@ export class S3Upload {
       Bucket: `tdr-upload-files-dirty-${stage}`
     })
     const { processedChunks, totalChunks, totalFiles } = progressInfo
-    progress.on("httpUploadProgress", ev => {
+    progress.on("httpUploadProgress", (ev) => {
       const chunks = ev.loaded + processedChunks
       const percentageProcessed = Math.round((chunks / totalChunks) * 100)
       const processedFiles = Math.floor((chunks / totalChunks) * totalFiles)
@@ -64,7 +64,7 @@ export class S3Upload {
     chunkSize = 5 * 1024 * 1024
   ) => {
     const totalChunks: number = files
-      .map(file => file.file.size)
+      .map((file) => file.file.size)
       .reduce((prev, curr) => prev + curr)
     let processedChunks = 0
     const totalFiles = files.length

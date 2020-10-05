@@ -28,6 +28,7 @@ pipeline {
         checkout scm
         dir("npm") {
           sh "npm install"
+          sh "npx eslint src/**/*.ts"
           sh "npx stylelint **/*.scss"
         }
         sh 'sbt -no-colors test scalastyle'
