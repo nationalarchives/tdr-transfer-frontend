@@ -27,7 +27,7 @@ export class UploadFiles {
     files: TdrFile[],
     consignmentId: string
   ) => Promise<void> = async (files: TdrFile[], consignmentId: string) => {
-    const pageUnloadAction: (e: BeforeUnloadEvent) => void = e => {
+    const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
       e.preventDefault()
       e.returnValue = ""
     }

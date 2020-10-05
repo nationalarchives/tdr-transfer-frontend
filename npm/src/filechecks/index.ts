@@ -12,9 +12,9 @@ export class FileChecks {
     this.client = client
   }
 
-  dataCallback: (
-    fileChecksProcessed: IFileCheckProcessed | null
-  ) => void = fileCheckProcessed => {
+  dataCallback: (fileChecksProcessed: IFileCheckProcessed | null) => void = (
+    fileCheckProcessed
+  ) => {
     if (fileCheckProcessed) {
       const {
         antivirusProcessed,
