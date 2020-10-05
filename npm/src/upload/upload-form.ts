@@ -37,32 +37,28 @@ export class UploadForm {
     this.folderRetriever.addEventListener("focus", () => {
       const folderRetrieverLabel: HTMLLabelElement = this.folderRetriever
         .labels![0]
-      folderRetrieverLabel.classList.add("drag-and-drop__button-highlight")
+      folderRetrieverLabel.classList.add("drag-and-drop__button--highlight")
     })
 
     this.folderRetriever.addEventListener("blur", () => {
       const folderRetrieverLabel: HTMLLabelElement = this.folderRetriever
         .labels![0]
-      folderRetrieverLabel.classList.remove("drag-and-drop__button-highlight")
+      folderRetrieverLabel.classList.remove("drag-and-drop__button--highlight")
     })
   }
 
   addDropzoneHighlighter() {
-    this.dropzone?.addEventListener("dragover", ev => {
+    this.dropzone.addEventListener("dragover", ev => {
       ev.preventDefault()
-      this.dropzone?.classList.add("drag-and-drop--dragover")
+      this.dropzone.classList.add("drag-and-drop--dragover")
     })
 
-    this.dropzone?.addEventListener("dragleave", () => {
-      this.dropzone?.classList.remove("drag-and-drop--dragover")
+    this.dropzone.addEventListener("dragleave", () => {
+      this.dropzone.classList.remove("drag-and-drop--dragover")
     })
   }
 
   addFolderListener() {
-    this.dropzone.addEventListener("drop", ev => {
-      ev.preventDefault()
-    })
-
     this.folderRetriever.addEventListener("change", () => {
       const form: HTMLFormElement | null = this.formElement
       const files = this.retrieveFiles(form)
@@ -89,6 +85,7 @@ export class UploadForm {
           ".govuk-summary-list__row"
         )
         successMessageSection?.classList.remove("hide")
+        this.dropzone.classList.remove("drag-and-drop--dragover")
       }
     })
   }
@@ -107,6 +104,7 @@ export class UploadForm {
   private retrieveFiles(target: HTMLInputTarget | null): TdrFile[] {
     const files: TdrFile[] = target!.files!.files!
     if (files === null || files.length === 0) {
+      this.dropzone.classList.remove("drag-and-drop--dragover")
       throw Error("No files selected")
     }
     return files
