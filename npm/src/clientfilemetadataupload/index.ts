@@ -59,7 +59,7 @@ export class ClientFileMetadataUpload {
   ): Promise<ITdrFile[]> {
     const metadataInputs: AddClientFileMetadataInput[] = []
     const files: ITdrFile[] = []
-    this.generateClientFileData(fileIds, metadata).forEach(value => {
+    this.generateClientFileData(fileIds, metadata).forEach((value) => {
       metadataInputs.push(value.metadataInput)
       files.push(value.tdrFile)
     })
