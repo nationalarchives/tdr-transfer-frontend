@@ -112,14 +112,6 @@ export class UploadForm {
     return files
   }
 
-  private retrieveDragAndDropFiles(target: InputElement | null): TdrFile[] {
-    const files: TdrFile[] = target!.files!
-    if (files === null || files.length === 0) {
-      throw Error("No files selected")
-    }
-    return files
-  }
-
   private getParentFolderName(folder: TdrFile[]) {
     const relativePath = folder[0].webkitRelativePath
     const splitPath = relativePath.split("/")
