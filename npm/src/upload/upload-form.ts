@@ -48,7 +48,7 @@ export class UploadForm {
   }
 
   addDropzoneHighlighter() {
-    this.dropzone.addEventListener("dragover", ev => {
+    this.dropzone.addEventListener("dragover", (ev) => {
       ev.preventDefault()
       this.dropzone.classList.add("drag-and-drop--dragover")
     })
@@ -93,7 +93,7 @@ export class UploadForm {
   addSubmitListener(
     uploadFiles: (files: TdrFile[], consignmentId: string) => void
   ) {
-    this.formElement.addEventListener("submit", ev => {
+    this.formElement.addEventListener("submit", (ev) => {
       ev.preventDefault()
       const target: HTMLInputTarget | null = ev.currentTarget
       const files = this.retrieveFiles(target)
