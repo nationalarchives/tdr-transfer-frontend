@@ -60,12 +60,6 @@ export class UploadForm {
 
   addFolderListener() {
     this.folderRetriever.addEventListener("change", () => {
-      const form: HTMLFormElement | null = this.formElement
-      const files = this.retrieveFiles(form)
-
-      const folderName: string = this.getParentFolderName(files)
-      const folderSize: string = String(files.length)
-
       const folderNameElement: HTMLElement | null = document.querySelector(
         "#folder-name"
       )
@@ -74,8 +68,14 @@ export class UploadForm {
       )
 
       if (folderNameElement && folderSizeElement) {
+        const form: HTMLFormElement | null = this.formElement
+        const files = this.retrieveFiles(form)
+        const folderName: string = this.getParentFolderName(files)
+        const folderSize: number = files.length
+
         folderNameElement.textContent = folderName
-        folderSizeElement.textContent = folderSize
+        folderSizeElement.textContent =
+          folderSize === 1 ? `${folderSize} file` : `${folderSize} files`
         const successMessage: HTMLElement | null = document.querySelector(
           ".govuk-summary-list__value"
         )
