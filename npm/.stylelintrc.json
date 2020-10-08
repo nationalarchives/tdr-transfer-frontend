@@ -31,5 +31,6 @@
         "Selector should be written in lowercase with hyphens or underscores (selector-class-pattern)"
       }
     ]
-  }
+  },
+  "ignoreFiles": ["npm/node_modules/**/*"]
 }

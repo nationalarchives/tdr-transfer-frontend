@@ -9,6 +9,14 @@
   margin-bottom: 30px;
 }
 
+.green-tick-mark {
+  fill: currentColor;
+  float: left;
+  height: 25px;
+  margin-right: 10px;
+  width: 25px;
+}
+
 @include progress-bar('.progress-display')
   @include progress-bar('.file-check-progress__progress-bar')
 

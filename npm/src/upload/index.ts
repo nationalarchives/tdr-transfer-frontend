@@ -27,7 +27,7 @@ export class UploadFiles {
     files: TdrFile[],
     consignmentId: string
   ) => Promise<void> = async (files: TdrFile[], consignmentId: string) => {
-    const pageUnloadAction: (e: BeforeUnloadEvent) => void = e => {
+    const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
       e.preventDefault()
       e.returnValue = ""
     }
@@ -53,8 +53,13 @@ export class UploadFiles {
       "#file-upload-form"
     )
 
-    if (uploadForm) {
-      const form = new UploadForm(uploadForm)
+    const folderRetriever: HTMLInputElement | null = document.querySelector(
+      "#file-selection"
+    )
+
+    if (uploadForm && folderRetriever) {
+      const form = new UploadForm(uploadForm, folderRetriever)
+      form.addFolderListener()
       form.addSubmitListener(this.uploadFiles)
     }
   }
