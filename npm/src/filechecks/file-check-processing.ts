@@ -36,7 +36,7 @@ export const getConsignmentData: (
   >> = client.mutation(GetFileCheckProgress, variables)
 
   resultPromise
-    .then(result => {
+    .then((result) => {
       if (!result.data || result.errors) {
         const errorMessage: string = result.errors
           ? result.errors.toString()
