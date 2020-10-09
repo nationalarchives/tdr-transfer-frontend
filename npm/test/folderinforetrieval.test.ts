@@ -50,7 +50,7 @@ test("folder retriever updates the page with correct folder information if there
   document.body.innerHTML = mockFormHTML
 
   const dummyFile = {
-    webkitRelativePath: "Parent_Folder/testfile"
+    webkitRelativePath: "Parent_Folder/testfile",
   } as TdrFile
 
   const uploadForm: HTMLFormElement | null = document.querySelector(
@@ -78,7 +78,7 @@ test("folder retriever updates the page with correct folder information if there
 
   expect(folderSummaryElement!).not.toHaveClass("hide")
   expect(folderNameElement!.textContent).toStrictEqual("Parent_Folder")
-  expect(Number(folderSizeElement!.textContent)).toStrictEqual(1)
+  expect(folderSizeElement!.textContent).toStrictEqual("1 file")
 })
 
 function setUpUploadFiles(): UploadFiles {
