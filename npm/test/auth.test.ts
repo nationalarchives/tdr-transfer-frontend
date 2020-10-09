@@ -12,6 +12,7 @@ import { refreshOrReturnToken, authenticateAndGetIdentityId } from "../src/auth"
 import { getKeycloakInstance } from "../src/auth"
 import AWS from "aws-sdk"
 import { IFrontEndInfo } from "../src"
+import { LoggedOutError } from "../src/errorhandling"
 
 class MockKeycloakAuthenticated {
   token: string = "fake-auth-token"
@@ -20,7 +21,7 @@ class MockKeycloakAuthenticated {
     return false
   }
   init = (_: KeycloakInitOptions) => {
-    return new Promise(function(resolve, _) {
+    return new Promise(function (resolve, _) {
       resolve(true)
     })
   }
@@ -33,7 +34,7 @@ class MockKeycloakUnauthenticated {
     return false
   }
   init = (_: KeycloakInitOptions) => {
-    return new Promise(function(resolve, _) {
+    return new Promise(function (resolve, _) {
       resolve(false)
     })
   }
@@ -51,7 +52,7 @@ class MockKeycloakError {
     return false
   }
   init = (_: KeycloakInitOptions) => {
-    return new Promise(function(_, reject) {
+    return new Promise(function (_, reject) {
       reject("There has been an error")
     })
   }
@@ -152,4 +153,32 @@ test("Doesn't call refresh token if the token is not expired", async () => {
   await refreshOrReturnToken(mockKeycloak)
 
   expect(updateToken).not.toHaveBeenCalled()
+})
+
+test("Throws an error if the access token and refresh token have expired", async () => {
+  const isTokenExpired = jest.fn().mockImplementation(() => true)
+  const mockKeycloak: KeycloakInstance = {
+    refreshTokenParsed: { exp: new Date().getTime() / 1000 - 1000 },
+    init: jest.fn(),
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+    accountManagement: jest.fn(),
+    createLoginUrl: jest.fn(),
+    createLogoutUrl: jest.fn(),
+    createRegisterUrl: jest.fn(),
+    createAccountUrl: jest.fn(),
+    isTokenExpired,
+    updateToken: jest.fn(),
+    clearToken: jest.fn(),
+    hasRealmRole: jest.fn(),
+    hasResourceRole: jest.fn(),
+    loadUserInfo: jest.fn(),
+    loadUserProfile: jest.fn(),
+    token: "fake-auth-token"
+  }
+
+  await expect(refreshOrReturnToken(mockKeycloak)).rejects.toEqual(
+    new LoggedOutError("", "User is logged out")
+  )
 })
