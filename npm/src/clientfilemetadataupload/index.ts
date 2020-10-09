@@ -97,8 +97,6 @@ export class ClientFileMetadataUpload {
         fileSize: value.size,
         originalPath: value.path,
         checksum: value.checksum,
-        //For now add current time
-        createdDate: Date.now(),
         //Unclear what this field is meant to represent
         datetime: Date.now()
       }
