@@ -17,10 +17,18 @@
                 @Messages("upload.error.title")
             </h2>
             <div class="govuk-error-summary__body">
+                <p>@Messages("upload.error.failure")</p>
+            </div>
+        </div>
+        <div id="logged-out-error" class="govuk-error-summary logged-out-error hide" aria-labelledby="logged-out-error-title"
+             role="alert" tabindex="-1" data-module="govuk-error-summary">
+            <h2 class="govuk-error-summary__title logged-out-title" id="logged-out-error-title">
+                @Messages("loggedOut.error.title")
+            </h2>
+            <div class="govuk-error-summary__body logged-out-body">
                 <ul class="govuk-list govuk-error-summary__list">
                     <li>
-                        <p>@Messages("upload.error.failure")</p>
-                        <p class="upload-error__message"></p>
+                        <p><a class="logged-out-error-link">@Messages("loggedOut.error.linkText")</a></p>
                     </li>
                 </ul>
             </div>
