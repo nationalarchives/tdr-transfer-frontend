@@ -36,13 +36,18 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
   def recordProcessingPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     getRecordProcessingProgress(request, consignmentId)
       .map {
-        fileChecks => Ok(views.html.fileChecksProgress(
-          consignmentId,
-          fileChecks,
-          frontEndInfoConfiguration.frontEndInfo
-        ))
+        fileChecks => {
+          if(fileChecks.isComplete) {
+            Redirect(routes.FileChecksResultsController.results(consignmentId))
+          } else {
+            Ok(views.html.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo))
+          }
+
+        }
       }
   }
 }
 
-case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int, checksumProgressPercentage: Int, ffidMetadataProgressPercentage: Int)
+case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int, checksumProgressPercentage: Int, ffidMetadataProgressPercentage: Int) {
+  def isComplete = avMetadataProgressPercentage == 100 && checksumProgressPercentage == 100 && ffidMetadataProgressPercentage == 100
+}
