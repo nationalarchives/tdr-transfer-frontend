@@ -59,7 +59,7 @@ export class ClientFileMetadataUpload {
   ): Promise<ITdrFile[]> {
     const metadataInputs: AddClientFileMetadataInput[] = []
     const files: ITdrFile[] = []
-    this.generateClientFileData(fileIds, metadata).forEach(value => {
+    this.generateClientFileData(fileIds, metadata).forEach((value) => {
       metadataInputs.push(value.metadataInput)
       files.push(value.tdrFile)
     })
@@ -97,8 +97,6 @@ export class ClientFileMetadataUpload {
         fileSize: value.size,
         originalPath: value.path,
         checksum: value.checksum,
-        //For now add current time
-        createdDate: Date.now(),
         //Unclear what this field is meant to represent
         datetime: Date.now()
       }

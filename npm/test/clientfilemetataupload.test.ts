@@ -237,7 +237,6 @@ function generateMockMetadataInput(): AddClientFileMetadataInput {
     fileSize: 10,
     originalPath: "path",
     checksum: "checksum",
-    createdDate: Date.now(),
     datetime: Date.now()
   }
 }
