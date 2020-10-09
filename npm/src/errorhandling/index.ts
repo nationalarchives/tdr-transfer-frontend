@@ -1,23 +1,34 @@
+export class LoggedOutError extends Error {
+  loginUrl: string
+  constructor(loginUrl: string, message?: string) {
+    super(message)
+    this.loginUrl = loginUrl
+  }
+}
+
 export function handleUploadError(
   error: Error,
   additionalLoggingInfo: string = "Upload failed"
 ) {
-  const uploadForm: HTMLFormElement | null = document.querySelector(
-    "#file-upload-form"
-  )
-  const uploadFormError: HTMLDivElement | null = document.querySelector(
-    ".govuk-error-summary"
-  )
+  if (error instanceof LoggedOutError) {
+    showLoggedOutError(error.loginUrl)
+  } else {
+    const uploadForm: HTMLFormElement | null = document.querySelector(
+      "#file-upload-form"
+    )
+    const uploadFormError: HTMLDivElement | null = document.querySelector(
+      ".govuk-error-summary.upload-error"
+    )
 
-  if (uploadForm) {
-    uploadForm.classList.add("hide")
+    if (uploadForm) {
+      uploadForm.classList.add("hide")
+    }
+
+    if (uploadFormError) {
+      uploadFormError.classList.remove("hide")
+      renderErrorMessage(error.message)
+    }
   }
-
-  if (uploadFormError) {
-    uploadFormError.classList.remove("hide")
-    renderErrorMessage(error.message)
-  }
-
   throw Error(additionalLoggingInfo + ": " + error.message)
 }
 
@@ -27,5 +38,25 @@ function renderErrorMessage(message: string) {
   )
   if (errorMessage) {
     errorMessage.textContent = message
+  }
+}
+
+function showLoggedOutError(login: string) {
+  const uploadForm: HTMLFormElement | null = document.querySelector(
+    "#file-upload-form"
+  )
+  const loggedOutError: HTMLDivElement | null = document.querySelector(
+    ".govuk-error-summary.logged-out-error"
+  )
+  const loginLink: HTMLAnchorElement | null = document.querySelector(
+    ".logged-out-error-link"
+  )
+  if (uploadForm) {
+    uploadForm.classList.add("hide")
+  }
+
+  if (loggedOutError && loginLink) {
+    loggedOutError.classList.remove("hide")
+    loginLink.href = login
   }
 }
