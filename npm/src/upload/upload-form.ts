@@ -11,10 +11,16 @@ interface HTMLInputTarget extends EventTarget {
 export class UploadForm {
   formElement: HTMLFormElement
   folderRetriever: HTMLInputElement
+  dropzone: HTMLElement
 
-  constructor(formElement: HTMLFormElement, folderRetriever: HTMLInputElement) {
+  constructor(
+    formElement: HTMLFormElement,
+    folderRetriever: HTMLInputElement,
+    dropzone: HTMLElement
+  ) {
     this.formElement = formElement
     this.folderRetriever = folderRetriever
+    this.dropzone = dropzone
   }
 
   consignmentId: () => string = () => {
@@ -27,14 +33,33 @@ export class UploadForm {
     return value
   }
 
+  addButtonHighlighter() {
+    this.folderRetriever.addEventListener("focus", () => {
+      const folderRetrieverLabel: HTMLLabelElement = this.folderRetriever
+        .labels![0]
+      folderRetrieverLabel.classList.add("drag-and-drop__button--highlight")
+    })
+
+    this.folderRetriever.addEventListener("blur", () => {
+      const folderRetrieverLabel: HTMLLabelElement = this.folderRetriever
+        .labels![0]
+      folderRetrieverLabel.classList.remove("drag-and-drop__button--highlight")
+    })
+  }
+
+  addDropzoneHighlighter() {
+    this.dropzone.addEventListener("dragover", (ev) => {
+      ev.preventDefault()
+      this.dropzone.classList.add("drag-and-drop--dragover")
+    })
+
+    this.dropzone.addEventListener("dragleave", () => {
+      this.dropzone.classList.remove("drag-and-drop--dragover")
+    })
+  }
+
   addFolderListener() {
     this.folderRetriever.addEventListener("change", () => {
-      const form: HTMLFormElement | null = this.formElement
-      const files = this.retrieveFiles(form)
-
-      const folderName: string = this.getParentFolderName(files)
-      const folderSize: string = String(files.length)
-
       const folderNameElement: HTMLElement | null = document.querySelector(
         "#folder-name"
       )
@@ -43,8 +68,14 @@ export class UploadForm {
       )
 
       if (folderNameElement && folderSizeElement) {
+        const form: HTMLFormElement | null = this.formElement
+        const files = this.retrieveFiles(form)
+        const folderName: string = this.getParentFolderName(files)
+        const folderSize: number = files.length
+
         folderNameElement.textContent = folderName
-        folderSizeElement.textContent = folderSize
+        folderSizeElement.textContent =
+          folderSize === 1 ? `${folderSize} file` : `${folderSize} files`
         const successMessage: HTMLElement | null = document.querySelector(
           ".govuk-summary-list__value"
         )
@@ -54,6 +85,7 @@ export class UploadForm {
           ".govuk-summary-list__row"
         )
         successMessageSection?.classList.remove("hide")
+        this.dropzone.classList.remove("drag-and-drop--dragover")
       }
     })
   }
@@ -72,14 +104,7 @@ export class UploadForm {
   private retrieveFiles(target: HTMLInputTarget | null): TdrFile[] {
     const files: TdrFile[] = target!.files!.files!
     if (files === null || files.length === 0) {
-      throw Error("No files selected")
-    }
-    return files
-  }
-
-  private retrieveDragAndDropFiles(target: InputElement | null): TdrFile[] {
-    const files: TdrFile[] = target!.files!
-    if (files === null || files.length === 0) {
+      this.dropzone.classList.remove("drag-and-drop--dragover")
       throw Error("No files selected")
     }
     return files

@@ -57,10 +57,16 @@ export class UploadFiles {
       "#file-selection"
     )
 
-    if (uploadForm && folderRetriever) {
-      const form = new UploadForm(uploadForm, folderRetriever)
+    const dropzone: HTMLElement | null = document.querySelector(
+      ".drag-and-drop__dropzone"
+    )
+
+    if (uploadForm && folderRetriever && dropzone) {
+      const form = new UploadForm(uploadForm, folderRetriever, dropzone)
       form.addFolderListener()
       form.addSubmitListener(this.uploadFiles)
+      form.addButtonHighlighter()
+      form.addDropzoneHighlighter()
     }
   }
 }
