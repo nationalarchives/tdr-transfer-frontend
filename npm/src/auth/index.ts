@@ -1,5 +1,6 @@
-import Keycloak from "keycloak-js"
+import Keycloak, { KeycloakTokenParsed } from "keycloak-js"
 import AWS, { CognitoIdentityCredentials } from "aws-sdk"
+import { LoggedOutError } from "../errorhandling"
 import { IFrontEndInfo } from ".."
 
 export const getKeycloakInstance: () => Promise<
@@ -26,11 +27,21 @@ export const getKeycloakInstance: () => Promise<
   return keycloakInstance
 }
 
+const isRefreshTokenExpired: (
+  token: KeycloakTokenParsed | undefined
+) => boolean = (token) => {
+  const now = Math.round(new Date().getTime() / 1000)
+  return token != undefined && token.exp != undefined && token.exp < now
+}
+
 export const refreshOrReturnToken: (
   keycloak: Keycloak.KeycloakInstance,
   tokenMinValidityInSecs?: number
 ) => Promise<string> = async (keycloak, tokenMinValidityInSecs = 30) => {
   if (keycloak.isTokenExpired(tokenMinValidityInSecs)) {
+    if (isRefreshTokenExpired(keycloak.refreshTokenParsed)) {
+      throw new LoggedOutError(keycloak.createLoginUrl(), "User is logged out")
+    }
     await keycloak.updateToken(tokenMinValidityInSecs)
   }
   if (keycloak.token) {
