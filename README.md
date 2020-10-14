@@ -160,21 +160,38 @@ and scan files as they are uploaded to the S3 emulator.
 
 ### Static assets
 
+The TDR static assets, including the sass, are stored in a separate repo to allow for reuse by different applications: https://github.com/nationalarchives/tdr-frontend-styles
+
+To enable local development of the sass and other static assets:
+1. Clone the TDR Frontend Style repo locally
+
+2. Navigate to the root of the TDR Frontend Styles repo and run the following command:
+```
+[tdr-frontend-styles root] $ npm link
+```
+* From the output of this command copy the following line: `@nationalarchives/tdr-frontend-styles`.
+
+3. Navigate to the npm directory of this repo
+
 * If npm is not installed install [nvm](https://github.com/nvm-sh/nvm) in root directory.
 
-* Once nvm is installed:
+4. Once nvm is installed run:
     `nvm install 14.9`
-    
-* `cd` into tdr-transfer-frontend in terminal
 
-* run  `npm install` then `npm run build`
+5. Run the following commands in the npm directory  `npm install` then `npm run build`
 
-If you're working on the Sass files and just want to regenerate the CSS without rebuilding all the JavaScript code, you
-can run `npm run sass-watch` to monitor and rebuild the CSS files, or run `npm run build-css` to run a single build.
+6. Run the following command in the npm directory: `npm link @nationalarchives/tdr-frontend-styles`
 
-To run the sass linter (stylelint) before commits, run the following command: from the npm folder `npx stylelint **/*.scss`
+* This creates a symbolic link to the version of tdr-frontend-styles library on your machine.
 
-Full details of stylelint are available here: https://stylelint.io/
+7. Run the following command: `npm run sass-watch`
+
+8. Make changes to the sass files in the src directory of the tdr-frontend-styles: tdr-frontend-styles/src/tdr/sass
+* Changes made in the tdr-frontend-styles src will be picked up in the locally running application
+
+9. Once any changes have been made to the sass, you can create a new version of the tdr-frontend-styles package and publish following the instructions in tdr-frontend-style repo:  https://github.com/nationalarchives/tdr-frontend-styles/blob/main/README.md
+
+See the following blog post for more information on npm link and instructions to undo the symbolic link: https://medium.com/@alexishevia/the-magic-behind-npm-link-d94dcb3a81af 
 
 ## Generated GraphQL classes
 

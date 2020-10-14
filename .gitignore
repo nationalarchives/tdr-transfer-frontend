@@ -4,7 +4,7 @@ target
 project/target
 node_modules
 public/fonts/*
-public/images/govuk-*
+public/images/*
 public/javascripts/
 public/stylesheets/*
 npm/css-src/*.css
