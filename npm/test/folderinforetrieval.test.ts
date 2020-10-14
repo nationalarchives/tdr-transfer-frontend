@@ -88,7 +88,7 @@ test("folder retriever updates the page with correct folder information if there
 
   triggerInputEvent(folderRetriever!)
 
-  const folderSummaryElement: HTMLElement | null = document.querySelector(
+  const folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
     ".drag-and-drop__success"
   )
   const folderNameElement: HTMLElement | null = document.querySelector(
@@ -98,7 +98,7 @@ test("folder retriever updates the page with correct folder information if there
     "#folder-size"
   )
 
-  expect(folderSummaryElement!).not.toHaveClass("hide")
+  expect(folderRetrievalSuccessMessage!).not.toHaveClass("hide")
   expect(folderNameElement!.textContent).toStrictEqual("Parent_Folder")
   expect(folderSizeElement!.textContent).toStrictEqual("1 file")
 })
