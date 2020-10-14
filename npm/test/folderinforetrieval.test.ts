@@ -61,10 +61,11 @@ const mockFormHTML = `
 
 const mockGoToNextPage = jest.fn()
 
-const triggerInputEvent: (element: HTMLInputElement) => void = (
-  element: HTMLInputElement
-) => {
-  const event = new CustomEvent("change")
+const triggerInputEvent: (
+  element: HTMLInputElement,
+  domEvent: string
+) => void = (element: HTMLInputElement, domEvent: string) => {
+  const event = new CustomEvent(domEvent)
   element.dispatchEvent(event)
 }
 
@@ -86,10 +87,14 @@ test("folder retriever updates the page with correct folder information if there
   const uploadFiles = setUpUploadFiles()
   uploadFiles.upload()
 
-  triggerInputEvent(folderRetriever!)
+  triggerInputEvent(folderRetriever!, "change")
 
   const folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
     ".drag-and-drop__success"
+  )
+
+  const folderRetrievalfailureMessage: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__failure"
   )
   const folderNameElement: HTMLElement | null = document.querySelector(
     "#folder-name"
@@ -99,6 +104,7 @@ test("folder retriever updates the page with correct folder information if there
   )
 
   expect(folderRetrievalSuccessMessage!).not.toHaveClass("hide")
+  expect(folderRetrievalfailureMessage!).toHaveClass("hide")
   expect(folderNameElement!.textContent).toStrictEqual("Parent_Folder")
   expect(folderSizeElement!.textContent).toStrictEqual("1 file")
 })
