@@ -14,14 +14,15 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: [".ts", ".js"]
+    extensions: [".ts", ".js"],
+    fallback: { util: require.resolve("util/") }
   },
   plugins: [
-       new webpack.DefinePlugin({
-             METADATA_UPLOAD_BATCH_SIZE: JSON.stringify(
-               `${process.env.METADATA_UPLOAD_BATCH_SIZE || 250}`
-             )
-           })
+    new webpack.DefinePlugin({
+      METADATA_UPLOAD_BATCH_SIZE: JSON.stringify(
+        `${process.env.METADATA_UPLOAD_BATCH_SIZE || 250}`
+      )
+    })
   ],
   output: {
     filename: "main.js",
@@ -30,8 +31,8 @@ module.exports = {
 }
 
 function DtsBundlePlugin() {}
-DtsBundlePlugin.prototype.apply = function(compiler) {
-  compiler.plugin("done", function() {
+DtsBundlePlugin.prototype.apply = function (compiler) {
+  compiler.plugin("done", function () {
     var dts = require("dts-bundle")
 
     dts.bundle({
