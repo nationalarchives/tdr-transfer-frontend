@@ -36,6 +36,11 @@
   outline-color: govuk-colour('dark-grey');
 }
 
+.drag-and-drop__failure {
+  color: govuk-colour('red');
+  font-weight: bold;
+}
+
 .drag-and-drop__hint-text {
   margin-bottom: 0;
   margin-right: 10px;

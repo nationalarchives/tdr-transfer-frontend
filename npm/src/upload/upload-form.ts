@@ -50,15 +50,24 @@ export class UploadForm {
   addDropzoneHighlighter() {
     this.dropzone.addEventListener("dragover", (ev) => {
       ev.preventDefault()
-      this.dropzone.classList.add("drag-and-drop--dragover")
+      this.dropzone.classList.add("drag-and-drop__dropzone--dragover")
     })
 
     this.dropzone.addEventListener("dragleave", () => {
-      this.dropzone.classList.remove("drag-and-drop--dragover")
+      this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
     })
   }
 
   addFolderListener() {
+    this.dropzone.addEventListener("drop", (e) => {
+      const droppedObject: File | null = e.dataTransfer!.files[0] // Since we do not allow multiple objects to be dropped, there is always only one file
+
+      if (droppedObject?.type !== "") {
+        const form: HTMLFormElement | null = this.formElement
+        this.retrieveFiles(form) // if object has type send in empty form to invoke fail message
+      }
+    })
+
     this.folderRetriever.addEventListener("change", () => {
       const folderNameElement: HTMLElement | null = document.querySelector(
         "#folder-name"
@@ -76,16 +85,15 @@ export class UploadForm {
         folderNameElement.textContent = folderName
         folderSizeElement.textContent =
           folderSize === 1 ? `${folderSize} file` : `${folderSize} files`
+        const warningMessage: HTMLElement | null = document.querySelector(
+          ".drag-and-drop__failure"
+        )
+        warningMessage?.classList.add("hide")
         const successMessage: HTMLElement | null = document.querySelector(
-          ".govuk-summary-list__value"
+          ".drag-and-drop__success"
         )
-        successMessage?.classList.add("drag-and-drop__success")
-
-        const successMessageSection: HTMLElement | null = document.querySelector(
-          ".govuk-summary-list__row"
-        )
-        successMessageSection?.classList.remove("hide")
-        this.dropzone.classList.remove("drag-and-drop--dragover")
+        successMessage?.classList.remove("hide")
+        this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
       }
     })
   }
@@ -104,7 +112,15 @@ export class UploadForm {
   private retrieveFiles(target: HTMLInputTarget | null): TdrFile[] {
     const files: TdrFile[] = target!.files!.files!
     if (files === null || files.length === 0) {
-      this.dropzone.classList.remove("drag-and-drop--dragover")
+      this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
+      const successMessage: HTMLElement | null = document.querySelector(
+        ".drag-and-drop__success"
+      )
+      successMessage?.classList.add("hide")
+      const warningMessage: HTMLElement | null = document.querySelector(
+        ".drag-and-drop__failure"
+      )
+      warningMessage?.classList.remove("hide")
       throw Error("No files selected")
     }
     return files
