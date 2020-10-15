@@ -37,6 +37,7 @@ transferAgreement.continueLink=Continue
 inputDropdown.choose=Please choose...
 upload.header=Upload Records
 upload.title=Upload Records
+upload.dragAndDropError=You can only drop a single folder
 upload.dragAndDropHintText=Drag and drop a single folder here or
 upload.chooseFolderLink=Choose folder
 upload.fileExtensionWarning=You may have to start again if your folder contains files that we cannot accept.
