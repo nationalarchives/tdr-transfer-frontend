@@ -40,21 +40,17 @@ export class GraphqlClient {
   ) => Promise<
     CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>
   > = async <V>(variables: V) => {
-    try {
-      const token = await refreshOrReturnToken(
-        this.keycloak,
-        tokenMinValidityInSecs
-      )
-      return {
-        variables,
-        context: {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+    const token = await refreshOrReturnToken(
+      this.keycloak,
+      tokenMinValidityInSecs
+    )
+    return {
+      variables,
+      context: {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       }
-    } catch (e) {
-      throw Error(e)
     }
   }
 

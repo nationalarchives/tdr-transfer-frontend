@@ -60,6 +60,9 @@ fileChecksResults.description=Here are your results
 upload.error.title=There is a problem
 upload.error.failure=Some or all of your files failed to upload
 
+loggedOut.error.title=You have been logged out due to inactivity
+loggedOut.error.linkText=Log in
+
 # Progress indicator step numbers
 seriesDetails.progress=1
 transferAgreement.progress=2
