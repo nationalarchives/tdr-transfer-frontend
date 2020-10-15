@@ -38,14 +38,18 @@
             <div class="govuk-form-group">
                 <div class="drag-and-drop">
                     <div class="govuk-summary-list">
-                        <div class="govuk-summary-list__row hide">
-                            <dd class="govuk-summary-list__value">
+                        <div class="govuk-summary-list__row">
+                            <dd class="govuk-summary-list__value drag-and-drop__success hide">
                                 @greenTickMark()
                                 The folder
                                 "<span id="folder-name"></span>"
                                 (containing
                                 <span id="folder-size"></span>)
                                 has been selected
+                            </dd>
+                            <dd class="govuk-summary-list__value drag-and-drop__failure hide">
+                                @redWarningSign()
+                                @Messages("upload.dragAndDropError")
                             </dd>
                         </div>
                     </div>
