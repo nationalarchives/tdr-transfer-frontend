@@ -55,6 +55,9 @@ checkingRecords.ffid=Identifying file formats
 fileChecksResults.header=Record check results
 fileChecksResults.title=Record check results
 fileChecksResults.description=Here are your results
+transferConfirmation.header=Review and Confirm
+transferConfirmation.title=Review and Confirm
+transferConfirmation.transferLink=Transfer
 
 # Upload.error messages placeholder wording
 upload.error.title=There is a problem
@@ -69,4 +72,5 @@ transferAgreement.progress=2
 upload.progress=3
 uploadProgress.progress=4
 checkingRecords.progress=5
-progress.totalSteps=5
+transferConfirmation.progress=8
+progress.totalSteps=8
