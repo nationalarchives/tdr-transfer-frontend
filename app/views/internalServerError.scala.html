@@ -1,0 +1,16 @@
+@*
+* This is a placeholder to allow us to write unit tests which return an error page.
+* It will be replaced once we have a properly designed error page
+*@
+@(errorMessage: String)(implicit messages: Messages)
+
+@main(Messages("error.header")) {
+    @defining(play.core.PlayVersion.current) { version =>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <h1 class="govuk-heading-l">Sorry, there is a problem with the service</h1>
+                <p class="govuk-body"> Try again later.</p>
+              </div>
+        </div>
+    }
+}
