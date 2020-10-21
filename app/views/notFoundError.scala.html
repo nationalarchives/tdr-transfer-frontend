@@ -4,13 +4,10 @@
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">Page not found</h1>
-        <p class="govuk-body">If you typed a web address, check it is correct.</p>
-        <p class="govuk-body">If you pasted the web address, check you copied the entire address.</p>
-        <p class="govuk-body">
-            If the web address is correct or you selected a link or button, <a class="govuk-link" href="#">contact The
-                National Archives</a> if you need to speak to someone about your transfers.
-        </p>
+        <h1 class="govuk-heading-l">@Messages("notFoundError.header")</h1>
+        <p class="govuk-body">@Messages("notFoundError.body1")</p>
+        <p class="govuk-body">@Messages("notFoundError.body2")</p>
+        <p class="govuk-body">@Messages("notFoundError.body3")</p>
     </div>
 </div>
 }

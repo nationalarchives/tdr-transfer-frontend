@@ -55,6 +55,16 @@ checkingRecords.ffid=Identifying file formats
 fileChecksResults.header=Record check results
 fileChecksResults.title=Record check results
 fileChecksResults.description=Here are your results
+forbiddenError.header=You are not permitted to see this page
+forbiddenError.body=This page is restricted to certain users only.
+internalServerError.header=Sorry, there is a problem with the service
+internalServerError.body=Try again later.
+unauthenticatedError.header=You must be logged in to see this page
+unauthenticatedError.body=Please login to continue.
+notFoundError.header=Page not found
+notFoundError.body1=If you typed a web address, check it is correct.
+notFoundError.body2=If you pasted the web address, check you copied the entire address.
+notFoundError.body3=If the web address is correct or you selected a link or button, contact The National Archives if you need to speak to someone about your transfers.
 
 # Upload.error messages placeholder wording
 upload.error.title=There is a problem
