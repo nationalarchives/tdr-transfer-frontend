@@ -25,8 +25,13 @@ export class UploadFiles {
 
   uploadFiles: (
     files: TdrFile[],
-    consignmentId: string
-  ) => Promise<void> = async (files: TdrFile[], consignmentId: string) => {
+    consignmentId: string,
+    parentFolder: string
+  ) => Promise<void> = async (
+    files: TdrFile[],
+    consignmentId: string,
+    parentFolder: string
+  ) => {
     const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
       e.preventDefault()
       e.returnValue = ""
@@ -37,6 +42,7 @@ export class UploadFiles {
       await this.clientFileProcessing.processClientFiles(
         consignmentId,
         files,
+        parentFolder,
         this.stage
       )
       // In order to prevent exit confirmation when page redirects to Records page

@@ -60,12 +60,14 @@ export class ClientFileProcessing {
   async processClientFiles(
     consignmentId: string,
     files: TdrFile[],
+    parentFolder: string,
     stage: string
   ): Promise<void> {
     try {
       const fileIds: string[] = await this.clientFileMetadataUpload.saveFileInformation(
         consignmentId,
-        files.length
+        files.length,
+        parentFolder
       )
       const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
         files,

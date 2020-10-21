@@ -99,13 +99,18 @@ export class UploadForm {
   }
 
   addSubmitListener(
-    uploadFiles: (files: TdrFile[], consignmentId: string) => void
+    uploadFiles: (
+      files: TdrFile[],
+      consignmentId: string,
+      parentFolder: string
+    ) => void
   ) {
     this.formElement.addEventListener("submit", (ev) => {
       ev.preventDefault()
       const target: HTMLInputTarget | null = ev.currentTarget
       const files = this.retrieveFiles(target)
-      uploadFiles(files, this.consignmentId())
+      const parentFolder = this.getParentFolderName(files)
+      uploadFiles(files, this.consignmentId(), parentFolder)
     })
   }
 
