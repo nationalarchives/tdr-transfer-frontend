@@ -66,7 +66,7 @@ test("upload function submits redirect form on upload files success", async () =
     .spyOn(console, "error")
     .mockImplementation(() => {})
 
-  await uploadFiles.uploadFiles([dummyFile], "12345")
+  await uploadFiles.uploadFiles([dummyFile], "12345", "TEST PARENT FOLDER NAME")
 
   expect(consoleErrorSpy).not.toHaveBeenCalled()
   expect(mockGoToNextPage).toHaveBeenCalled()
@@ -83,7 +83,7 @@ test("upload function console logs error when upload fails", async () => {
     .spyOn(console, "error")
     .mockImplementation(() => {})
 
-  await uploadFiles.uploadFiles([dummyFile], "12345")
+  await uploadFiles.uploadFiles([dummyFile], "12345", "TEST PARENT FOLDER NAME")
 
   expect(consoleErrorSpy).toHaveBeenCalled()
   expect(mockGoToNextPage).not.toHaveBeenCalled()
