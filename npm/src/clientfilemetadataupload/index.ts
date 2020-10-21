@@ -29,12 +29,14 @@ export class ClientFileMetadataUpload {
 
   async saveFileInformation(
     consignmentId: string,
-    numberOfFiles: number
+    numberOfFiles: number,
+    parentFolder: string
   ): Promise<string[]> {
     const variables: AddFilesMutationVariables = {
       addFilesInput: {
         consignmentId: consignmentId,
-        numberOfFiles: numberOfFiles
+        numberOfFiles: numberOfFiles,
+        parentFolder: parentFolder
       }
     }
 
