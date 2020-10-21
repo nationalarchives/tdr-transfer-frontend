@@ -1,20 +1,17 @@
-@*
-* This is a placeholder to allow us to write unit tests which return an error page.
-* It will be replaced once we have a properly designed error page
-*@
 @(errorMessage: String)(implicit messages: Messages)
 
 @main(Messages("error.header")) {
-    @defining(play.core.PlayVersion.current) { version =>
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-two-thirds">
-                <h1 class="govuk-heading-l">Page not found</h1>
-                <p class="govuk-body">If you typed a web address, check it is correct.</p>
-                <p class="govuk-body">If you pasted the web address, check you copied the entire address.</p>
-                <p class="govuk-body">
-                  If the web address is correct or you selected a link or button, <a class="govuk-link" href="#">contact The National Archives</a> if you need to speak to someone about your transfers.
-                </p>
-            </div>
-        </div>
-    }
+@defining(play.core.PlayVersion.current) { version =>
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">Page not found</h1>
+        <p class="govuk-body">If you typed a web address, check it is correct.</p>
+        <p class="govuk-body">If you pasted the web address, check you copied the entire address.</p>
+        <p class="govuk-body">
+            If the web address is correct or you selected a link or button, <a class="govuk-link" href="#">contact The
+                National Archives</a> if you need to speak to someone about your transfers.
+        </p>
+    </div>
+</div>
+}
 }
