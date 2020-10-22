@@ -4,6 +4,11 @@ export interface InputElement extends EventTarget {
   files?: TdrFile[]
 }
 
+export interface FileUploadInfo {
+  consignmentId: string
+  parentFolder: string
+}
+
 interface HTMLInputTarget extends EventTarget {
   files?: InputElement
 }
@@ -99,18 +104,18 @@ export class UploadForm {
   }
 
   addSubmitListener(
-    uploadFiles: (
-      files: TdrFile[],
-      consignmentId: string,
-      parentFolder: string
-    ) => void
+    uploadFiles: (files: TdrFile[], uploadFilesInfo: FileUploadInfo) => void
   ) {
     this.formElement.addEventListener("submit", (ev) => {
       ev.preventDefault()
       const target: HTMLInputTarget | null = ev.currentTarget
       const files = this.retrieveFiles(target)
       const parentFolder = this.getParentFolderName(files)
-      uploadFiles(files, this.consignmentId(), parentFolder)
+      const uploadFilesInfo: FileUploadInfo = {
+        consignmentId: this.consignmentId(),
+        parentFolder: parentFolder
+      }
+      uploadFiles(files, uploadFilesInfo)
     })
   }
 

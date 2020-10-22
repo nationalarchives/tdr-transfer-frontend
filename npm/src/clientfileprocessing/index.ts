@@ -7,6 +7,7 @@ import {
   IProgressInformation
 } from "@nationalarchives/file-information"
 import { ITdrFile, S3Upload } from "../s3upload"
+import { FileUploadInfo } from "../upload/upload-form"
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
@@ -58,16 +59,14 @@ export class ClientFileProcessing {
   }
 
   async processClientFiles(
-    consignmentId: string,
     files: TdrFile[],
-    parentFolder: string,
+    uploadFilesInfo: FileUploadInfo,
     stage: string
   ): Promise<void> {
     try {
       const fileIds: string[] = await this.clientFileMetadataUpload.saveFileInformation(
-        consignmentId,
         files.length,
-        parentFolder
+        uploadFilesInfo
       )
       const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
         files,
@@ -78,7 +77,7 @@ export class ClientFileProcessing {
         metadata
       )
       await this.s3Upload.uploadToS3(
-        consignmentId,
+        uploadFilesInfo.consignmentId,
         tdrFiles,
         this.s3ProgressCallback,
         stage
