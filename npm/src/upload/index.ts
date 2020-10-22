@@ -2,7 +2,7 @@ import { TdrFile } from "@nationalarchives/file-information"
 import { ClientFileProcessing } from "../clientfileprocessing"
 import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
-import { UploadForm } from "./upload-form"
+import { FileUploadInfo, UploadForm } from "./upload-form"
 
 export class UploadFiles {
   clientFileProcessing: ClientFileProcessing
@@ -25,12 +25,10 @@ export class UploadFiles {
 
   uploadFiles: (
     files: TdrFile[],
-    consignmentId: string,
-    parentFolder: string
+    uploadFilesInfo: FileUploadInfo
   ) => Promise<void> = async (
     files: TdrFile[],
-    consignmentId: string,
-    parentFolder: string
+    uploadFilesInfo: FileUploadInfo
   ) => {
     const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
       e.preventDefault()
@@ -40,9 +38,8 @@ export class UploadFiles {
 
     try {
       await this.clientFileProcessing.processClientFiles(
-        consignmentId,
         files,
-        parentFolder,
+        uploadFilesInfo,
         this.stage
       )
       // In order to prevent exit confirmation when page redirects to Records page
