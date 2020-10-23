@@ -95,7 +95,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
 
       playStatus(transferAgreementPage) mustBe NOT_FOUND
-      contentAsString(transferAgreementPage) must include ("This page doesn't exist")
+      contentAsString(transferAgreementPage) must include ("check it is correct")
     }
 
     "throws an authorisation exception when the user does not have permission to see a consignment's transfer agreement" in {
