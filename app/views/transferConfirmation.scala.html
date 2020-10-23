@@ -5,47 +5,23 @@
             <div class="govuk-grid-column-two-thirds">
                 <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
                 @progressIndicator(Messages("transferConfirmation.progress"))
-                <h1 class="govuk-heading-xl">@Messages("transferConfirmation.title")</h1>
-                <table class="govuk-table">
-                <!--        Should we add a caption and header?    -->
-                <!--    <caption class="govuk-table__caption">Dates and amounts</caption>-->
-                <!--    <thead class="govuk-table__head">-->
-                <!--    <tr class="govuk-table__row">-->
-                <!--        <th scope="col" class="govuk-table__header">Date</th>-->
-                <!--        <th scope="col" class="govuk-table__header">Amount</th>-->
-                <!--    </tr>-->
-                <!--    </thead>-->
-                    <tbody class="govuk-table__body">
-                    <tr class="govuk-table__row">
-                        <th scope="row" class="govuk-table__header">Series reference</th>
-                        <td class="govuk-table__cell"></td>
-                    </tr>
-                    <tr class="govuk-table__row">
-                        <th scope="row" class="govuk-table__header">Consignment reference</th>
-                        <td class="govuk-table__cell"></td>
-                    </tr>
-                    <tr class="govuk-table__row">
-                        <th scope="row" class="govuk-table__header">Transferring body</th>
-                        <td class="govuk-table__cell"></td>
-                    </tr>
-                    <tr class="govuk-table__row">
-                        <th scope="row" class="govuk-table__header">Records Officer</th>
-                        <td class="govuk-table__cell"></td>
-                    </tr>
-                    <tr class="govuk-table__row">
-                        <th scope="row" class="govuk-table__header">Files uploaded for transfer</th>
-                        <td class="govuk-table__cell"></td>
-                    </tr>
-                    </tbody>
-                </table>
-                <fieldset class="govuk-fieldset" aria-describedby="transfer-confirmation">
-                    <!-- Open records & transfer legal ownership -->
-                </fieldset>
+                <div class="govuk-panel govuk-panel--confirmation">
+                    <h1 class="govuk-panel__title">
+                        @Messages("transferConfirmation.transferComplete")
+                    </h1>
+                    <div class="govuk-panel__body">
+                        @Messages("transferConfirmation.yourTransferIsComplete")
+                    </div>
+                </div>
                 <div>
-                    <!-- Transfer -->
-                    <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                        @Messages("transferConfirmation.transferLink")
+                    <!-- Dashboard -->
+                    <button class="govuk-button" data-module="govuk-button">
+                        @Messages("transferConfirmation.dashboardLink")
                     </button>
+                    <!-- Logout -->
+                    <a href="" class="govuk-button govuk-button--secondary" data-module="govuk-button" role="button" draggable="false">
+                        @Messages("transferConfirmation.logoutLink")
+                    </a>
                 </div>
             </div>
         </div>
