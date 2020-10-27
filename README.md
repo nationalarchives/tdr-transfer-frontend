@@ -40,12 +40,12 @@ development environment for the other TDR services.
     - In the AWS console:
       - Go the Systems Manager service
       - Go the Parameter Store in the left-hand menu
-      - Find the `/intg/auth/secret` parameter
+      - Find the `/intg/keycloak/client/secret` parameter
       - Copy the parameter's value
     - With the AWS CLI:
       - Run:
         ```
-        aws ssm get-parameter --name "/intg/auth/secret" --with-decryption
+        aws ssm get-parameter --name "/intg/keycloak/client/secret" --with-decryption
         ```
       - Copy the `Value` from the object returned
   - Cognito identity pool ID
