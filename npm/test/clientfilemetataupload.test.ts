@@ -146,7 +146,10 @@ test("saveFileInformation returns list of file ids", async () => {
 
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
-  const result = await uploadMetadata.saveFileInformation("1", 3)
+  const result = await uploadMetadata.saveFileInformation(3, {
+    consignmentId: "1",
+    parentFolder: "TEST PARENT FOLDER NAME"
+  })
 
   expect(result).toEqual([1, 2, 3])
 })
@@ -156,7 +159,10 @@ test("saveFileInformation returns error if no data returned", async () => {
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
   await expect(
-    uploadMetadata.saveFileInformation("1", 3)
+    uploadMetadata.saveFileInformation(3, {
+      consignmentId: "1",
+      parentFolder: "TEST PARENT FOLDER NAME"
+    })
   ).rejects.toStrictEqual(Error("Add files failed: no data"))
 })
 
@@ -165,7 +171,10 @@ test("saveFileInformation returns error if returned data contains errors", async
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
   await expect(
-    uploadMetadata.saveFileInformation("1", 3)
+    uploadMetadata.saveFileInformation(3, {
+      consignmentId: "1",
+      parentFolder: "TEST PARENT FOLDER NAME"
+    })
   ).rejects.toStrictEqual(Error("Add files failed: error 1,error 2"))
 })
 
