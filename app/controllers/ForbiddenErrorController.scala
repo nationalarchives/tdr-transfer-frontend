@@ -15,5 +15,4 @@ class ForbiddenErrorController @Inject()(val controllerComponents: SecurityCompo
   def forbiddenError(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.forbiddenError(consignmentId.toString))
   }
-
 }

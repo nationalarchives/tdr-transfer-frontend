@@ -15,5 +15,4 @@ class InternalServerErrorController @Inject()(val controllerComponents: Security
   def internalServerError(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.internalServerError(consignmentId.toString))
   }
-
 }
