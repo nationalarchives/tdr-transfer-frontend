@@ -15,5 +15,4 @@ class UnauthenticatedErrorController @Inject()(val controllerComponents: Securit
   def unauthenticatedError(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.unauthenticatedError(consignmentId.toString))
   }
-
 }

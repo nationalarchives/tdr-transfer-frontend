@@ -15,5 +15,4 @@ class FileNotFoundController @Inject()(val controllerComponents: SecurityCompone
   def notFoundError(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.notFoundError(consignmentId.toString))
   }
-
 }
