@@ -1,7 +1,7 @@
-FROM openjdk:8-slim
+FROM openjdk:16-alpine
 WORKDIR play
 COPY target/universal/tdr-transfer-frontend*.zip .
-RUN apt-get update && apt-get install unzip && unzip -qq tdr-transfer-frontend-*.zip
+RUN apk update && apk add bash unzip && unzip -qq tdr-transfer-frontend-*.zip
 CMD  tdr-transfer-frontend-*/bin/tdr-transfer-frontend \
                         -Dplay.http.secret.key=$PLAY_SECRET_KEY \
                         -Dconfig.resource=application.$ENVIRONMENT.conf \
