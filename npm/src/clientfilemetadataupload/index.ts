@@ -12,6 +12,7 @@ import {
 
 import { FetchResult } from "apollo-boost"
 import { ITdrFile } from "../s3upload"
+import { FileUploadInfo } from "../upload/upload-form"
 
 declare var METADATA_UPLOAD_BATCH_SIZE: number
 
@@ -28,13 +29,14 @@ export class ClientFileMetadataUpload {
   }
 
   async saveFileInformation(
-    consignmentId: string,
-    numberOfFiles: number
+    numberOfFiles: number,
+    uploadFilesInfo: FileUploadInfo
   ): Promise<string[]> {
     const variables: AddFilesMutationVariables = {
       addFilesInput: {
-        consignmentId: consignmentId,
-        numberOfFiles: numberOfFiles
+        consignmentId: uploadFilesInfo.consignmentId,
+        numberOfFiles: numberOfFiles,
+        parentFolder: uploadFilesInfo.parentFolder
       }
     }
 
