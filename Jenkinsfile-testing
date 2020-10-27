@@ -87,18 +87,14 @@ pipeline {
   }
   post {
     failure {
-        node('master') {
-            script {
-                tdr.reportFailedBuildToGitHub(repo, env.GIT_COMMIT)
-            }
-         }
+      script {
+        tdr.reportFailedBuildToGitHub(repo, env.GIT_COMMIT)
+      }
     }
     success {
-        node('master') {
-            script {
-                tdr.reportSuccessfulBuildToGitHub(repo, env.GIT_COMMIT)
-            }
-        }
+      script {
+        tdr.reportSuccessfulBuildToGitHub(repo, env.GIT_COMMIT)
+      }
     }
   }
 }
