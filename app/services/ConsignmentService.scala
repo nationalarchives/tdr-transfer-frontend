@@ -7,8 +7,9 @@ import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
+import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.types.AddConsignmentInput
-import graphql.codegen.{AddConsignment, GetConsignment, GetFileCheckProgress}
+import graphql.codegen.{AddConsignment, GetConsignment, GetConsignmentFolderDetails, GetFileCheckProgress}
 import javax.inject.{Inject, Singleton}
 import services.ApiErrorHandling._
 
