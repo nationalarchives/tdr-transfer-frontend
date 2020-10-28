@@ -2,21 +2,18 @@ package controllers
 
 import java.util.UUID
 
-import akka.util.ByteString
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
-import graphql.codegen.AddTransferAgreement.{AddTransferAgreement => ata}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
+import org.scalatest.concurrent.ScalaFutures._
 import play.api.Play.materializer
 import play.api.i18n.Langs
-import play.api.libs.streams.Accumulator
-import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
@@ -81,7 +78,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       playStatus(transferSummaryPage) mustBe FOUND
     }
 
-    "return a not found error page if the transfer agreement is not assigned to an existing consignment" in {
+    "return a not found error page if an existing consignment does not have a transfer summary yet" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(None)), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
@@ -92,14 +89,14 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, langs)
 
-      val transferSummaryPage: Accumulator[ByteString, Result] = controller.transferSummary(consignmentId)
+      val transferSummaryPage = controller.transferSummary(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
 
       playStatus(transferSummaryPage) mustBe NOT_FOUND
       contentAsString(transferSummaryPage) must include("404")
     }
 
-    "throws an authorisation exception when the user does not have permission to see a consignment's transfer agreement" in {
+    "throws an authorisation exception when the user does not have permission to see a consignment's transfer summary" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(None)), List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
@@ -112,10 +109,8 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
 
       val transferSummaryPage = controller.transferSummary(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
-      Thread.sleep(5000)
-      print(transferSummaryPage.failed)
 
-      val failure: Any = transferSummaryPage.failed
+      val failure: Throwable = transferSummaryPage.failed.futureValue
 
       failure mustBe an[AuthorisationException]
     }
