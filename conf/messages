@@ -65,7 +65,7 @@ notFoundError.header=This page doesn't exist
 notFoundError.body1=If you typed a web address, check it is correct.
 notFoundError.body2=If you pasted the web address, check you copied the entire address.
 notFoundError.body3=If the web address is correct or you selected a link or button, contact <a href= "#">The National Archives Help Desk<a/> to speak to someone about your transfers.
-notFoundError.body4=Alternatively, you can <a href= "/dashboard">return</a> to the home page.
+notFoundError.body4=Alternatively, you can <a href= "/dashboard">return to the home page</a>.
 
 # Upload.error messages placeholder wording
 upload.error.title=There is a problem
