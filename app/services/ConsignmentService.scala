@@ -47,10 +47,10 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       .map(data => data.getConsignment.get)
   }
 
-  def getConsignmentFolderInfo(consignmentId: UUID, token: BearerAccessToken): Future[Option[getConsignmentFolderDetails.GetConsignment]] = {
+  def getConsignmentFolderInfo(consignmentId: UUID, token: BearerAccessToken): Future[getConsignmentFolderDetails.GetConsignment] = {
     val variables: getConsignmentFolderDetails.Variables = new getConsignmentFolderDetails.Variables(consignmentId)
 
     sendApiRequest(getConsignmentFolderDetailsClient, getConsignmentFolderDetails.document, token, variables)
-      .map(data => data.getConsignment)
+      .map(data => data.getConsignment.get)
   }
 }
