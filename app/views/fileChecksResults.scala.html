@@ -11,11 +11,15 @@
                 @Messages("fileChecksResults.title")
             </h1>
             <div class="govuk-panel__body">
-                @Messages("fileChecksResults.description")
+                @Messages("fileChecksResults.description", consignmentInfo.parentFolder, consignmentInfo.numberOfFiles)
             </div>
         </div>
-        <p>@consignmentInfo.numberOfFiles</p>
-        <p>@consignmentInfo.parentFolder</p>
+        <button class="govuk-button govuk-button--secondary" data-module="govuk-button">
+            @Messages("fileChecksResults.dashboard")
+        </button>
+        <button class="govuk-button" data-module="govuk-button">
+            @Messages("fileChecksResults.continueLink")
+        </button>
     </div>
 </div>
 
