@@ -24,7 +24,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
                                          (implicit requestHeader: RequestHeader): Future[ConsignmentFolderInfo] = {
 
     consignmentService.getConsignmentFolderInfo(consignmentId, request.token.bearerAccessToken)
-      .map(consignmentInfo => ConsignmentFolderInfo(consignmentInfo.totalFiles, consignmentInfo.parentFolder))
+      .map(consignmentInfo => ConsignmentFolderInfo(consignmentInfo.totalFiles, consignmentInfo.parentFolder.get))
   }
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
@@ -33,4 +33,4 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
 
 }
 
-case class ConsignmentFolderInfo(numberOfFiles: Int, parentFolder: Option[String])
+case class ConsignmentFolderInfo(numberOfFiles: Int, parentFolder: String)
