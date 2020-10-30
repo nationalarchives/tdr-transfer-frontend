@@ -78,10 +78,6 @@ transferSummary.transferLegalOwnership=I confirm that I am transferring legal ow
 transferSummary.transferLegalOwnership.error=Transferral of legal ownership of all records must be confirmed before proceeding
 transferSummary.transferLink=Transfer your records
 transferConfirmation.header=Transfer Complete
-transferConfirmation.transferComplete=Transfer Complete
-transferConfirmation.yourTransferIsComplete=Your transfer of digital records is now complete.
-transferConfirmation.dashboardLink=Dashboard
-transferConfirmation.logoutLink=Log out
 
 # Upload.error messages placeholder wording
 upload.error.title=There is a problem
