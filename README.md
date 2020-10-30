@@ -160,6 +160,9 @@ and scan files as they are uploaded to the S3 emulator.
 
 ### Static assets
 
+**Note:** The TDR static assets are used by the TDR Auth Server. When updating the static assets, including the sass, ensure that any changes are also implemented in the tdr-auth-server repo: https://github.com/nationalarchives/tdr-auth-server
+* This includes any changes to the `.stylelintrc.json`
+
 * If npm is not installed install [nvm](https://github.com/nvm-sh/nvm) in root directory.
 
 * Once nvm is installed:
