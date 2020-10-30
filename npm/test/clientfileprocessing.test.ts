@@ -167,7 +167,11 @@ test("client file metadata successfully uploaded", async () => {
     new S3UploadMock()
   )
   await expect(
-    fileProcessing.processClientFiles("1", [], "")
+    fileProcessing.processClientFiles(
+      [],
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      ""
+    )
   ).resolves.not.toThrow()
 })
 
@@ -254,7 +258,11 @@ test("file successfully uploaded to s3", async () => {
   const s3UploadMock = new S3UploadMock()
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3UploadMock)
   await expect(
-    fileProcessing.processClientFiles("1", [], "")
+    fileProcessing.processClientFiles(
+      [],
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      ""
+    )
   ).resolves.not.toThrow()
 
   expect(s3UploadMock.uploadToS3).toHaveBeenCalledTimes(1)
@@ -346,7 +354,11 @@ test("Error thrown if processing files fails", async () => {
   )
 
   await expect(
-    fileProcessing.processClientFiles("1", [], "")
+    fileProcessing.processClientFiles(
+      [],
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      ""
+    )
   ).rejects.toStrictEqual(
     Error(
       "Processing client files failed: upload client file information error"
@@ -368,7 +380,11 @@ test("Error thrown if processing file metadata fails", async () => {
   )
 
   await expect(
-    fileProcessing.processClientFiles("1", [], "")
+    fileProcessing.processClientFiles(
+      [],
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      ""
+    )
   ).rejects.toStrictEqual(
     Error("Processing client files failed: upload client file metadata error")
   )
@@ -388,7 +404,11 @@ test("Error thrown if extracting file metadata fails", async () => {
   )
 
   await expect(
-    fileProcessing.processClientFiles("1", [], "")
+    fileProcessing.processClientFiles(
+      [],
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      ""
+    )
   ).rejects.toStrictEqual(
     Error(
       "Processing client files failed: client file metadata extraction error"
@@ -409,7 +429,11 @@ test("Error thrown if S3 upload fails", async () => {
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3Upload)
 
   await expect(
-    fileProcessing.processClientFiles("1", [], "")
+    fileProcessing.processClientFiles(
+      [],
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      ""
+    )
   ).rejects.toStrictEqual(
     Error("Processing client files failed: Some S3 error")
   )
