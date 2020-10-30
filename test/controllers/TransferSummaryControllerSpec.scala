@@ -89,7 +89,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
 
       playStatus(transferSummaryPage) mustBe NOT_FOUND
-      contentAsString(transferSummaryPage) must include("404")
+      contentAsString(transferSummaryPage) must include("This page doesn't exist")
     }
 
     "throws an authorisation exception when the user does not have permission to see a consignment's transfer summary" in {
