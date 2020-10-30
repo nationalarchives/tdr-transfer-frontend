@@ -96,7 +96,8 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
 
     "throws an authorisation exception when the user does not have permission to see a consignment's transfer summary" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(None)), List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
+      val graphQlError = GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))
+      val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(None)), List(graphQlError))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
