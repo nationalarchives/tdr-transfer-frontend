@@ -38,11 +38,11 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
   }
 
   val langs: Langs = new EnglishLang
+  val consignmentId = UUID.randomUUID()
 
   "TransferSummaryController GET" should {
 
     "render the transfer summary page with an authenticated user" in {
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
 
@@ -67,7 +67,6 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new TransferSummaryController(getUnauthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, langs)
       val transferSummaryPage = controller.transferSummary(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-summary"))
@@ -83,7 +82,6 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val consignmentId = UUID.randomUUID()
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, langs)
 
@@ -102,7 +100,6 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val consignmentId = UUID.randomUUID()
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, langs)
 
@@ -115,7 +112,6 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
 
     "display errors when an invalid form is submitted" in {
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, langs)
 
