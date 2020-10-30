@@ -53,10 +53,8 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-
       val transferSummaryPage = controller.transferSummary(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
-
 
       playStatus(transferSummaryPage) mustBe OK
       contentType(transferSummaryPage) mustBe Some("text/html")
@@ -128,5 +126,4 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       contentAsString(transferSummarySubmit) must include("error")
     }
   }
-
 }
