@@ -1,0 +1,74 @@
+@import java.util.UUID
+@import viewsapi.FormFunctions._
+@import helper.{inputRadioGroup => _, _}
+
+@(consignmentId: UUID, transferSummaryForm: Form[TransferSummaryData])(implicit request: RequestHeader, messages: Messages)
+@main(Messages("transferSummary.header")) {
+@defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
+            @progressIndicator(Messages("transferSummary.progress"))
+            <h1 class="govuk-heading-xl">@Messages("transferSummary.title")</h1>
+            <dl class="govuk-summary-list">
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        @Messages("transferSummary.seriesReference")
+                    </dt>
+                    <dd class="govuk-summary-list__value summary-list__right-column">
+
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        @Messages("transferSummary.transferringBody")
+                    </dt>
+                    <dd class="govuk-summary-list__value summary-list__right-column">
+
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        @Messages("transferSummary.filesUploadedForTransfer")
+                    </dt>
+                    <dd class="govuk-summary-list__value summary-list__right-column">
+
+                    </dd>
+                </div>
+
+            </dl>
+            @form(
+            routes.TransferSummaryController.transferSummarySubmit(consignmentId),
+            (Symbol("novalidate"), "")
+            ) {
+                @CSRF.formField
+                <fieldset class="govuk-fieldset" aria-describedby="transfer-summary">
+                    <!-- Open records & transfer legal ownership -->
+                    @inputSingleCheckbox(
+                    transferSummaryForm("openRecords"),
+                    Symbol("_label") -> Messages("transferSummary.openRecords"),
+                    Symbol("_value") -> "true",
+                    Symbol("_smallCheckbox") -> true,
+                    Symbol("_checkedOption") -> transferSummaryForm.data.getOrElse("openRecords", ""),
+                    Symbol("_requiredOption") -> true
+                    )
+                    @inputSingleCheckbox(
+                    transferSummaryForm("transferLegalOwnership"),
+                    Symbol("_label") -> Messages("transferSummary.transferLegalOwnership"),
+                    Symbol("_value") -> "true",
+                    Symbol("_smallCheckbox") -> true,
+                    Symbol("_checkedOption") -> transferSummaryForm.data.getOrElse("transferLegalOwnership", ""),
+                    Symbol("_requiredOption") -> true
+                    )
+                </fieldset>
+                <div>
+                    <!-- Transfer -->
+                    <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                        @Messages("transferSummary.transferLink")
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+}
