@@ -1,0 +1,12 @@
+@()(implicit messages: Messages)
+@main(Messages("transferConfirmation.header")) {
+    @defining(play.core.PlayVersion.current) { version =>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
+                @progressIndicator(Messages("transferConfirmation.progress"))
+                <p>Placeholder page</p>
+            </div>
+        </div>
+    }
+}
