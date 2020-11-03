@@ -1,6 +1,6 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
-@(consignmentInfo: ConsignmentFolderInfo)(implicit messages: Messages)
+@(consignmentInfo: ConsignmentFolderInfo, consignmentId: java.util.UUID)(implicit messages: Messages)
 
 @main(Messages("fileChecksResults.header")) {
 <div class="govuk-grid-row">
@@ -21,9 +21,9 @@
         <button class="govuk-button govuk-button--secondary" data-module="govuk-button">
             @Messages("fileChecksResults.dashboard")
         </button>
-        <button class="govuk-button" data-module="govuk-button">
+        <a href="/consignment/@consignmentId/custom-metadata" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
             @Messages("fileChecksResults.continueLink")
-        </button>
+        </a>
     </div>
 </div>
 
