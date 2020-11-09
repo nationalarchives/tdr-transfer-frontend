@@ -7,8 +7,9 @@ import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
+import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.types.AddConsignmentInput
-import graphql.codegen.{AddConsignment, GetConsignment, GetFileCheckProgress}
+import graphql.codegen.{AddConsignment, GetConsignment, GetConsignmentFolderDetails, GetFileCheckProgress}
 import javax.inject.{Inject, Singleton}
 import services.ApiErrorHandling._
 
@@ -21,6 +22,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
   private val addConsignmentClient = graphqlConfiguration.getClient[addConsignment.Data, addConsignment.Variables]()
   private val getConsignmentFileCheckClient = graphqlConfiguration.getClient[getFileCheckProgress.Data, getFileCheckProgress.Variables]()
+  private val getConsignmentFolderDetailsClient = graphqlConfiguration.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()
 
   def consignmentExists(consignmentId: UUID,
                         token: BearerAccessToken): Future[Boolean] = {
@@ -42,6 +44,13 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
     val variables: getFileCheckProgress.Variables = new GetFileCheckProgress.getFileCheckProgress.Variables(consignmentId)
 
     sendApiRequest(getConsignmentFileCheckClient, getFileCheckProgress.document, token, variables)
+      .map(data => data.getConsignment.get)
+  }
+
+  def getConsignmentFolderInfo(consignmentId: UUID, token: BearerAccessToken): Future[getConsignmentFolderDetails.GetConsignment] = {
+    val variables: getConsignmentFolderDetails.Variables = new getConsignmentFolderDetails.Variables(consignmentId)
+
+    sendApiRequest(getConsignmentFolderDetailsClient, getConsignmentFolderDetails.document, token, variables)
       .map(data => data.getConsignment.get)
   }
 }
