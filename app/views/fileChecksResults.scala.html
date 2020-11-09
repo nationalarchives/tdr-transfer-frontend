@@ -1,11 +1,29 @@
 @import java.util.UUID
-@()(implicit messages: Messages)
+@import viewsapi.FrontEndInfo
+@(consignmentInfo: ConsignmentFolderInfo)(implicit messages: Messages)
+
 @main(Messages("fileChecksResults.header")) {
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
-        <h1 class="govuk-heading-xl">@Messages("fileChecksResults.title")</h1>
-        <p class="govuk-body">@Messages("fileChecksResults.description")</p>
+        <div class="govuk-panel govuk-panel--confirmation">
+            <h1 class="govuk-panel__title">
+                @Messages("fileChecksResults.title")
+            </h1>
+            <div class="govuk-panel__body">
+                @if(consignmentInfo.numberOfFiles > 1) {
+                    @Messages("fileChecksResults.description.plural", consignmentInfo.parentFolder, consignmentInfo.numberOfFiles)
+                } else {
+                    @Messages("fileChecksResults.description.singular", consignmentInfo.parentFolder, consignmentInfo.numberOfFiles)
+                }
+            </div>
+        </div>
+        <button class="govuk-button govuk-button--secondary" data-module="govuk-button">
+            @Messages("fileChecksResults.dashboard")
+        </button>
+        <button class="govuk-button" data-module="govuk-button">
+            @Messages("fileChecksResults.continueLink")
+        </button>
     </div>
 </div>
 

@@ -8,6 +8,8 @@ import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.{getConsignment => gc}
+import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
+import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.GetConsignment
 import graphql.codegen.types.AddConsignmentInput
 import org.mockito.Mockito
 import org.mockito.Mockito._
@@ -28,8 +30,10 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
   private val graphQlConfig = mock[GraphQLConfiguration]
   private val getConsignmentClient = mock[GraphQLClient[gc.Data, gc.Variables]]
   private val addConsignmentClient = mock[GraphQLClient[addConsignment.Data, addConsignment.Variables]]
+  private val getConsignmentFolderInfoClient = mock[GraphQLClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]]
   when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(getConsignmentClient)
   when(graphQlConfig.getClient[addConsignment.Data, addConsignment.Variables]()).thenReturn(addConsignmentClient)
+  when(graphQlConfig.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()).thenReturn(getConsignmentFolderInfoClient)
 
   private val consignmentService = new ConsignmentService(graphQlConfig)
 
@@ -123,5 +127,44 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
       val results = consignmentService.createConsignment(seriesId, token).failed.futureValue
       results shouldBe a[AuthorisationException]
     }
+  }
+
+  "getConsignmentFolderInfo" should {
+    "return information about a consignment when given a consignment ID" in {
+      val response = GraphQlResponse[getConsignmentFolderDetails
+      .Data](Some(getConsignmentFolderDetails
+        .Data(Some(getConsignmentFolderDetails
+          .GetConsignment(3, Some("Test Parent Folder"))))), Nil)
+
+      when(getConsignmentFolderInfoClient.getResult(token, getConsignmentFolderDetails.document, Some(getConsignmentFolderDetails.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
+
+      val getConsignmentDetails = consignmentService.getConsignmentFolderInfo(consignmentId, token).futureValue
+
+      getConsignmentDetails should be(GetConsignment(3, Some("Test Parent Folder")))
+    }
+  }
+
+  "return an error if the API returns an error" in {
+    when(getConsignmentFolderInfoClient.getResult(token, getConsignmentFolderDetails.document, Some(getConsignmentFolderDetails.Variables(consignmentId))))
+      .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+    val getConsignmentDetails = consignmentService.getConsignmentFolderInfo(consignmentId, token).failed.futureValue
+
+    getConsignmentDetails shouldBe a[HttpError]
+  }
+
+  "return an empty object if there are no consignment details" in {
+    val response = GraphQlResponse[getConsignmentFolderDetails
+    .Data](Some(getConsignmentFolderDetails
+      .Data(Some(getConsignmentFolderDetails
+        .GetConsignment(0, None)))), Nil)
+
+    when(getConsignmentFolderInfoClient.getResult(token, getConsignmentFolderDetails.document, Some(getConsignmentFolderDetails.Variables(consignmentId))))
+      .thenReturn(Future.successful(response))
+
+    val getConsignmentDetails = consignmentService.getConsignmentFolderInfo(consignmentId, token).futureValue
+
+    getConsignmentDetails should be(GetConsignment(0, None))
   }
 }
