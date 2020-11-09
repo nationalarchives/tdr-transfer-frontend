@@ -58,17 +58,9 @@ fileChecksResults.description.singular=Your folder ''{0}'' containing ''{1}'' it
 fileChecksResults.description.plural=Your folder ''{0}'' containing ''{1}'' items has been successfully checked and uploaded. Please click ''Continue'' to proceed with your transfer.
 fileChecksResults.dashboard=Dashboard
 fileChecksResults.continueLink=Continue
-forbiddenError.header=You are not permitted to see this page
-forbiddenError.body=This page is restricted to certain users only.
-internalServerError.header=Sorry, there is a problem with the service
-internalServerError.body=Try again later.
-unauthenticatedError.header=You must be logged in to see this page
-unauthenticatedError.body=Please <a href= "#">login</a> to continue.
-notFoundError.header=This page doesn't exist
-notFoundError.body1=If you typed a web address, check it is correct.
-notFoundError.body2=If you pasted the web address, check you copied the entire address.
-notFoundError.body3=If the web address is correct or you selected a link or button, contact <a href= "#">The National Archives Help Desk<a/> to speak to someone about your transfers.
-notFoundError.body4=Alternatively, you can <a href= "/dashboard">return to the home page</a>.
+customMetadata.header=Custom Metadata
+customMetadata.title=Custom Metadata
+customMetadata.description=This is a placeholder page for the custom metadata page.
 transferSummary.header=Transfer Summary
 transferSummary.title=Transfer Summary
 transferSummary.seriesReference=Series reference
@@ -81,6 +73,17 @@ transferSummary.transferLegalOwnership=I confirm that I am transferring legal ow
 transferSummary.transferLegalOwnership.error=Transferral of legal ownership of all records must be confirmed before proceeding
 transferSummary.transferLink=Transfer your records
 transferConfirmation.header=Transfer Complete
+forbiddenError.header=You are not permitted to see this page
+forbiddenError.body=This page is restricted to certain users only.
+internalServerError.header=Sorry, there is a problem with the service
+internalServerError.body=Try again later.
+unauthenticatedError.header=You must be logged in to see this page
+unauthenticatedError.body=Please <a href= "#">login</a> to continue.
+notFoundError.header=This page doesn't exist
+notFoundError.body1=If you typed a web address, check it is correct.
+notFoundError.body2=If you pasted the web address, check you copied the entire address.
+notFoundError.body3=If the web address is correct or you selected a link or button, contact <a href= "#">The National Archives Help Desk<a/> to speak to someone about your transfers.
+notFoundError.body4=Alternatively, you can <a href= "/dashboard">return to the home page</a>.
 
 # Upload.error messages placeholder wording
 upload.error.title=There is a problem

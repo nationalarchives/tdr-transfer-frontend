@@ -28,7 +28,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
   }
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-    getConsignmentFolderDetails(request, consignmentId).map(consignmentInfo => Ok(views.html.fileChecksResults(consignmentInfo)))
+    getConsignmentFolderDetails(request, consignmentId).map(consignmentInfo => Ok(views.html.fileChecksResults(consignmentInfo, consignmentId)))
   }
 }
 
