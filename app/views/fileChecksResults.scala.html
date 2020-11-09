@@ -11,7 +11,11 @@
                 @Messages("fileChecksResults.title")
             </h1>
             <div class="govuk-panel__body">
-                @Messages("fileChecksResults.description", consignmentInfo.parentFolder, consignmentInfo.numberOfFiles)
+                @if(consignmentInfo.numberOfFiles > 1) {
+                    @Messages("fileChecksResults.description.plural", consignmentInfo.parentFolder, consignmentInfo.numberOfFiles)
+                } else {
+                    @Messages("fileChecksResults.description.singular", consignmentInfo.parentFolder, consignmentInfo.numberOfFiles)
+                }
             </div>
         </div>
         <button class="govuk-button govuk-button--secondary" data-module="govuk-button">
