@@ -21,7 +21,7 @@ abstract class ValidatedActions() extends TokenSecurity with I18nSupport {
     val consignmentExists = consignmentService.consignmentExists(consignmentId, request.token.bearerAccessToken)
     consignmentExists.map {
       case true => f(request)
-      case false => NotFound(views.html.notFoundError("The consignment you are trying to access does not exist"))
+      case false => NotFound(views.html.notFoundError())
     }
   }
 
