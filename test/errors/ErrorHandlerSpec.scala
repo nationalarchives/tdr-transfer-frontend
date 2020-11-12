@@ -5,10 +5,20 @@ import org.scalatest.{FlatSpec, Matchers}
 import play.api.http.Status
 import play.api.i18n.DefaultMessagesApi
 import play.api.test.FakeRequest
+import scala.concurrent.ExecutionContext
 
 class ErrorHandlerSpec extends FlatSpec with Matchers {
 
+  implicit val ec: ExecutionContext = ExecutionContext.global
   val errorHandler = new ErrorHandler(new DefaultMessagesApi())
+
+  "client error handler" should "return a 404 Not Found response if the requested page does not exist" in {
+
+    val request = FakeRequest()
+    val response = errorHandler.onClientError(request, 404)
+
+    response.onComplete(r => r.get.header.status should equal(Status.NOT_FOUND))
+  }
 
   "server error handler" should "return a 403 Forbidden response if an authorisation exception is thrown" in {
     val request = FakeRequest()
