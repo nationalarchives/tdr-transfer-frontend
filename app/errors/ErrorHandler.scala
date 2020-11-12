@@ -14,9 +14,14 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi) extends HttpErrorHan
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     logger.error(s"Client error with status code $statusCode at path '${request.path}' with message: '$message'")
 
-    Future.successful(
-      Status(statusCode)("A client error occurred: " + message)
-    )
+    val response = statusCode match {
+      case 404 =>
+        NotFound(views.html.notFoundError()(request2Messages(request)))
+      case _ =>
+        Status(statusCode)(views.html.internalServerError()(request2Messages(request)))
+    }
+
+    Future.successful(response)
   }
 
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
