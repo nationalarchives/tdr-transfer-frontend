@@ -26,7 +26,7 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi) extends HttpErrorHan
       case authException: AuthorisationException =>
         Forbidden(views.html.error(s"Not authorised: ${authException.getMessage}")(request2Messages(request)))
       case e =>
-        InternalServerError(views.html.error(s"A server error occurred: ${e.getMessage}")(request2Messages(request)))
+        InternalServerError(views.html.internalServerError()(request2Messages(request)))
     }
 
     Future.successful(response)
