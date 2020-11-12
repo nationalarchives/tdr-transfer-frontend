@@ -17,6 +17,8 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi) extends HttpErrorHan
     val response = statusCode match {
       case 404 =>
         NotFound(views.html.notFoundError()(request2Messages(request)))
+      case _ =>
+        Status(statusCode)(views.html.internalServerError()(request2Messages(request)))
     }
 
     Future.successful(response)
