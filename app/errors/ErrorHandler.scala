@@ -15,6 +15,8 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi) extends HttpErrorHan
     logger.error(s"Client error with status code $statusCode at path '${request.path}' with message: '$message'")
 
     val response = statusCode match {
+      case 401 =>
+        Unauthorized(views.html.unauthenticatedError()(request2Messages(request)))
       case 403 =>
         Forbidden(views.html.forbiddenError()(request2Messages(request)))
       case 404 =>
