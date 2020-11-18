@@ -3,7 +3,7 @@ package controllers
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, serverError, urlEqualTo}
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.GetConsignment.{getConsignment => gc}
@@ -12,39 +12,54 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
+import play.api.Configuration
 import play.api.Play.materializer
 import play.api.i18n.Langs
+import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
+import play.api.test.WsTestClient.InternalWSClient
+import services.ConsignmentExportService
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import util.{EnglishLang, FrontEndTestHelper}
 
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 class TransferSummaryControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val wiremockServer = new WireMockServer(9006)
+  val wiremockExportServer = new WireMockServer(9007)
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
+    wiremockExportServer.start()
   }
 
   override def afterEach(): Unit = {
     wiremockServer.resetAll()
+    wiremockExportServer.resetAll()
     wiremockServer.stop()
+    wiremockExportServer.stop()
   }
 
   val langs: Langs = new EnglishLang
   val consignmentId = UUID.randomUUID()
 
+  def exportService(configuration: Configuration): ConsignmentExportService = {
+    val wsClient = new InternalWSClient("http", 9007)
+    new ConsignmentExportService(wsClient, configuration)
+  }
+
   "TransferSummaryController GET" should {
 
     "render the transfer summary page with an authenticated user" in {
+
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, exportService(app.configuration), langs)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
       val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), UUID.randomUUID())
@@ -68,7 +83,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
 
     "return a redirect to the auth server with an unauthenticated user" in {
       val controller = new TransferSummaryController(getUnauthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, langs)
+        getValidKeycloakConfiguration, exportService(app.configuration), langs)
       val transferSummaryPage = controller.transferSummary(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-summary"))
 
       redirectLocation(transferSummaryPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -83,7 +98,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, langs)
+        getValidKeycloakConfiguration, exportService(app.configuration), langs)
 
       val transferSummaryPage = controller.transferSummary(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
@@ -101,7 +116,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, langs)
+        getValidKeycloakConfiguration, exportService(app.configuration), langs)
 
       val transferSummaryPage = controller.transferSummary(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
@@ -113,7 +128,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
 
     "display errors when an invalid form is submitted" in {
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, langs)
+        getValidKeycloakConfiguration, exportService(app.configuration), langs)
 
       val transferSummarySubmit = controller.transferSummarySubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
@@ -121,6 +136,55 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       playStatus(transferSummarySubmit) mustBe BAD_REQUEST
       contentAsString(transferSummarySubmit) must include("govuk-error-message")
       contentAsString(transferSummarySubmit) must include("error")
+    }
+
+    "redirects when a valid form is submitted" in {
+      wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
+        .willReturn(okJson("{}")))
+
+      val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
+        getValidKeycloakConfiguration, exportService(app.configuration), langs)
+
+      val transferSummarySubmit: Result = controller.transferSummarySubmit(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+          .withFormUrlEncodedBody(("openRecords", "true"), ("transferLegalOwnership", "true"))
+          .withCSRFToken
+        ).futureValue
+
+      transferSummarySubmit.header.status should equal(303)
+    }
+
+    "redirects correctly when the call to the export api fails" in {
+      wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
+        .willReturn(serverError()))
+
+      val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
+        getValidKeycloakConfiguration, exportService(app.configuration), langs)
+
+      val transferSummarySubmit: Result = controller.transferSummarySubmit(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+          .withFormUrlEncodedBody(("openRecords", "true"), ("transferLegalOwnership", "true"))
+          .withCSRFToken
+        ).futureValue
+
+      transferSummarySubmit.header.status should equal(303)
+      transferSummarySubmit.header.headers("Location").contains("exportTriggered=false") should be(true)
+    }
+
+    "calls the export api when a valid form is submitted" in {
+      wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
+        .willReturn(okJson("{}")))
+
+      val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
+        getValidKeycloakConfiguration, exportService(app.configuration), langs)
+
+      controller.transferSummarySubmit(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+          .withFormUrlEncodedBody(("openRecords", "true"), ("transferLegalOwnership", "true"))
+          .withCSRFToken
+        ).futureValue
+
+      wiremockExportServer.getAllServeEvents.size() should equal(1)
     }
   }
 }
