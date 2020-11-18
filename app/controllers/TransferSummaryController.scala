@@ -9,6 +9,7 @@ import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, Result}
+import services.ConsignmentExportService
 import validation.ValidatedActions
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,6 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferSummaryController @Inject()(val controllerComponents: SecurityComponents,
                                           val graphqlConfiguration: GraphQLConfiguration,
                                           val keycloakConfiguration: KeycloakConfiguration,
+                                          val consignmentExportService: ConsignmentExportService,
                                           langs: Langs)
                                          (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
@@ -38,9 +40,11 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
       Future.successful(BadRequest(views.html.transferSummary(consignmentId, formWithErrors)))
     }
 
-    val successFunction: TransferSummaryData => Future[Result] = { formData: TransferSummaryData =>
-      Future(Ok(views.html.transferConfirmation()))
-      //Code here will be replaced with a mutation to database
+    val successFunction: TransferSummaryData => Future[Result] = { _: TransferSummaryData =>
+      for {
+        exportTriggered <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
+        res <- Future(Redirect(routes.TransferConfirmationController.transferConfirmation(consignmentId, exportTriggered)))
+      } yield res
     }
 
     val formValidationResult: Form[TransferSummaryData] = transferSummaryForm.bindFromRequest()
