@@ -18,6 +18,14 @@ class ErrorHandlerSpec extends FlatSpec with Matchers {
     response.header.status should equal(unhandledStatusCode)
   }
 
+  "client error handler" should "return a 401 Unauthorized response if user is unauthorized" in {
+
+    val request = FakeRequest()
+    val response = errorHandler.onClientError(request, 401).futureValue
+
+    response.header.status should equal(Status.UNAUTHORIZED)
+  }
+
   "client error handler" should "return a 403 Forbidden response if access is denied" in {
 
     val request = FakeRequest()
