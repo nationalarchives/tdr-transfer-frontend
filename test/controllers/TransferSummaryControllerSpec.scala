@@ -17,6 +17,7 @@ import play.api.i18n.Langs
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
+import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import util.{EnglishLang, FrontEndTestHelper}
@@ -38,15 +39,21 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
   }
 
   val langs: Langs = new EnglishLang
+
   val consignmentId = UUID.randomUUID()
 
   "TransferSummaryController GET" should {
 
     "render the transfer summary page with an authenticated user" in {
-      val controller = new TransferSummaryController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val controller = new TransferSummaryController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService, langs)
+
+
       val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), UUID.randomUUID())
       val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(Some(consignmentResponse))), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
@@ -67,8 +74,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new TransferSummaryController(getUnauthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, langs)
+        getValidKeycloakConfiguration, consignmentService, langs)
       val transferSummaryPage = controller.transferSummary(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-summary"))
 
       redirectLocation(transferSummaryPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -81,9 +90,11 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
 
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, langs)
+        getValidKeycloakConfiguration, consignmentService, langs)
 
       val transferSummaryPage = controller.transferSummary(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
@@ -100,8 +111,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, langs)
+        getValidKeycloakConfiguration, consignmentService, langs)
 
       val transferSummaryPage = controller.transferSummary(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
@@ -112,8 +125,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
 
     "display errors when an invalid form is submitted" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, langs)
+        getValidKeycloakConfiguration, consignmentService, langs)
 
       val transferSummarySubmit = controller.transferSummarySubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
