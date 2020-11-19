@@ -10,10 +10,16 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ConsignmentExportService @Inject()(val ws: WSClient, val configuration: Configuration)(implicit val executionContext: ExecutionContext) {
 
-  def triggerExport(consignmentId: UUID, token: String): Future[Boolean] =
-    ws.url(s"${configuration.get[String]("export.baseUrl")}/export/$consignmentId")
+  def updateTransferInititated(consignmentId: UUID, token: String) = {
+
+  }
+
+  def triggerExport(consignmentId: UUID, token: String): Future[Boolean] = {
+    val url = s"${configuration.get[String]("export.baseUrl")}/export/$consignmentId"
+    ws.url(url)
       .addHttpHeaders(("Authorization", token), ("Content-Type", "application/json"))
       .post("{}")
       .map(r => r.status == 200)
       .recover(_ => false)
+  }
 }
