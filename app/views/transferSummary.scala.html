@@ -1,8 +1,9 @@
 @import java.util.UUID
 @import viewsapi.FormFunctions._
+@import graphql.codegen.GetConsignmentSummary.getConsignmentSummary._
 @import helper.{inputRadioGroup => _, _}
 
-@(consignmentId: UUID, transferSummaryForm: Form[TransferSummaryData])(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, summary: GetConsignment, transferSummaryForm: Form[TransferSummaryData])(implicit request: RequestHeader, messages: Messages)
 @main(Messages("transferSummary.header")) {
 @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
@@ -16,7 +17,7 @@
                         @Messages("transferSummary.seriesReference")
                     </dt>
                     <dd class="govuk-summary-list__value summary-list__right-column">
-
+                        summary.series.get.code
                     </dd>
                 </div>
                 <div class="govuk-summary-list__row">
@@ -24,7 +25,7 @@
                         @Messages("transferSummary.transferringBody")
                     </dt>
                     <dd class="govuk-summary-list__value summary-list__right-column">
-
+                        summary.transferringBody.get.name
                     </dd>
                 </div>
                 <div class="govuk-summary-list__row">
@@ -38,7 +39,7 @@
 
             </dl>
             @form(
-            routes.TransferSummaryController.transferSummarySubmit(consignmentId),
+            routes.TransferSummaryController.transferSummarySubmit(consignmentId, summary),
             (Symbol("novalidate"), "")
             ) {
                 @CSRF.formField
