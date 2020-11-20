@@ -51,7 +51,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
-    new ConsignmentExportService(wsClient, configuration)
+    new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
   }
 
   "TransferSummaryController GET" should {
