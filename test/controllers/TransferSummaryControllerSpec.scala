@@ -7,6 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, serverErro
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.GetConsignment.{getConsignment => gc}
+import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -185,6 +186,43 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         ).futureValue
 
       wiremockExportServer.getAllServeEvents.size() should equal(1)
+    }
+
+    "redirects correctly when the call to the graphql api fails" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(serverError()))
+
+      val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
+        getValidKeycloakConfiguration, exportService(app.configuration), langs)
+
+      val transferSummarySubmit: Result = controller.transferSummarySubmit(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+          .withFormUrlEncodedBody(("openRecords", "true"), ("transferLegalOwnership", "true"))
+          .withCSRFToken
+        ).futureValue
+
+      transferSummarySubmit.header.status should equal(303)
+      transferSummarySubmit.header.headers("Location").contains("exportTriggered=false") should be(true)
+    }
+
+    "calls the graphql api when a valid form is submitted" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(Some(ut.Data(Option(1))), List())
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
+      val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
+        getValidKeycloakConfiguration, exportService(app.configuration), langs)
+
+      controller.transferSummarySubmit(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+          .withFormUrlEncodedBody(("openRecords", "true"), ("transferLegalOwnership", "true"))
+          .withCSRFToken
+        ).futureValue
+
+      wiremockServer.getAllServeEvents.size() should equal(1)
     }
   }
 }
