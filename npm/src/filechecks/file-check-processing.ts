@@ -31,9 +31,9 @@ export const getConsignmentData: (
   const variables: GetFileCheckProgressQueryVariables = {
     consignmentId
   }
-  const resultPromise: Promise<FetchResult<
-    GetFileCheckProgressQuery
-  >> = client.mutation(GetFileCheckProgress, variables)
+  const resultPromise: Promise<
+    FetchResult<GetFileCheckProgressQuery>
+  > = client.mutation(GetFileCheckProgress, variables)
 
   resultPromise
     .then((result) => {
