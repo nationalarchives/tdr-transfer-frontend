@@ -42,8 +42,9 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
 
     val successFunction: TransferSummaryData => Future[Result] = { _: TransferSummaryData =>
       for {
+        transferInitiated <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
         exportTriggered <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
-        res <- Future(Redirect(routes.TransferConfirmationController.transferConfirmation(consignmentId, exportTriggered)))
+        res <- Future(Redirect(routes.TransferConfirmationController.transferConfirmation(consignmentId, exportTriggered && transferInitiated)))
       } yield res
     }
 
