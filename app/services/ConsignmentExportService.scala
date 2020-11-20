@@ -12,7 +12,8 @@ import graphql.codegen.UpdateTransferInitiated.updateTransferInitiated._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ConsignmentExportService @Inject()(val ws: WSClient, val configuration: Configuration, graphQLConfiguration: GraphQLConfiguration)(implicit val executionContext: ExecutionContext) {
+class ConsignmentExportService @Inject()(val ws: WSClient, val configuration: Configuration, graphQLConfiguration: GraphQLConfiguration)
+                                        (implicit val executionContext: ExecutionContext) {
 
   def updateTransferInititated(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
     val client = graphQLConfiguration.getClient[Data, Variables]()
