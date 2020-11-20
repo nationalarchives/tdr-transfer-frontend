@@ -24,7 +24,12 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
                                          (implicit requestHeader: RequestHeader): Future[ConsignmentFolderInfo] = {
 
     consignmentService.getConsignmentFolderInfo(consignmentId, request.token.bearerAccessToken)
-      .map(consignmentInfo => ConsignmentFolderInfo(consignmentInfo.totalFiles, consignmentInfo.parentFolder.get))
+      .map({consignmentInfo =>
+        ConsignmentFolderInfo(
+          consignmentInfo.totalFiles,
+          consignmentInfo.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
+        )
+      })
   }
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
