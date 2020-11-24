@@ -5,27 +5,41 @@ import org.scalatest.{FlatSpec, Matchers}
 import play.api.http.Status
 import play.api.i18n.DefaultMessagesApi
 import play.api.test.FakeRequest
-import scala.concurrent.ExecutionContext
 
 class ErrorHandlerSpec extends FlatSpec with Matchers {
 
-  implicit val ec: ExecutionContext = ExecutionContext.global
   val errorHandler = new ErrorHandler(new DefaultMessagesApi())
 
   "client error handler" should "return a Default response for any status code not explicitly handled" in {
     val request = FakeRequest()
     val unhandledStatusCode = 499
-    val response = errorHandler.onClientError(request, unhandledStatusCode)
+    val response = errorHandler.onClientError(request, unhandledStatusCode).futureValue
 
-    response.onComplete(r => r.get.header.status should equal(unhandledStatusCode))
+    response.header.status should equal(unhandledStatusCode)
+  }
+
+  "client error handler" should "return a 401 Unauthorized response if user is unauthorized" in {
+
+    val request = FakeRequest()
+    val response = errorHandler.onClientError(request, 401).futureValue
+
+    response.header.status should equal(Status.UNAUTHORIZED)
+  }
+
+  "client error handler" should "return a 403 Forbidden response if access is denied" in {
+
+    val request = FakeRequest()
+    val response = errorHandler.onClientError(request, 403).futureValue
+
+    response.header.status should equal(Status.FORBIDDEN)
   }
 
   "client error handler" should "return a 404 Not Found response if the requested page does not exist" in {
 
     val request = FakeRequest()
-    val response = errorHandler.onClientError(request, 404)
+    val response = errorHandler.onClientError(request, 404).futureValue
 
-    response.onComplete(r => r.get.header.status should equal(Status.NOT_FOUND))
+    response.header.status should equal(Status.NOT_FOUND)
   }
 
   "server error handler" should "return a 403 Forbidden response if an authorisation exception is thrown" in {
