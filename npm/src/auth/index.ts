@@ -3,9 +3,7 @@ import AWS, { CognitoIdentityCredentials } from "aws-sdk"
 import { LoggedOutError } from "../errorhandling"
 import { IFrontEndInfo } from ".."
 
-export const getKeycloakInstance: () => Promise<
-  Keycloak.KeycloakInstance
-> = async () => {
+export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> = async () => {
   const keycloakInstance: Keycloak.KeycloakInstance = Keycloak(
     `${window.location.origin}/keycloak.json`
   )
