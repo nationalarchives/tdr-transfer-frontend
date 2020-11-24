@@ -43,7 +43,7 @@
     "@nationalarchives/tdr-generated-graphql": "1.0.31",
     "apollo-boost": "^0.4.9",
     "aws-sdk": "^2.798.0",
-    "govuk-frontend": "^3.9.1",
+    "govuk-frontend": "^3.10.0",
     "graphql": "^14.7.0",
     "keycloak-js": "11.0.3",
     "unfetch": "^4.1.0",
