@@ -22,7 +22,7 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
                                          (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
   implicit val language: Lang = langs.availables.head
-  val transferSummaryForm: Form[TransferConfirmationData] = Form(
+  val transferConfirmationForm: Form[TransferConfirmationData] = Form(
     mapping(
       "openRecords" -> boolean
         .verifying(messagesApi("transferSummary.openRecords.error"), b => b),
@@ -44,7 +44,7 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
   def transferSummary(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     getConsignmentSummary(request, consignmentId)
       .map{ consignmentSummary =>
-        Ok(views.html.transferSummary(consignmentId, consignmentSummary, transferSummaryForm))
+        Ok(views.html.transferSummary(consignmentId, consignmentSummary, transferConfirmationForm))
       }
   }
 
@@ -61,7 +61,7 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
       //Code here will be replaced with a mutation to database
     }
 
-    val formValidationResult: Form[TransferConfirmationData] = transferSummaryForm.bindFromRequest()
+    val formValidationResult: Form[TransferConfirmationData] = transferConfirmationForm.bindFromRequest()
     formValidationResult.fold(
       errorFunction,
       successFunction
