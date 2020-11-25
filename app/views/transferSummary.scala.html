@@ -32,7 +32,7 @@
                         @Messages("transferSummary.filesUploadedForTransfer")
                     </dt>
                     <dd class="govuk-summary-list__value summary-list__right-column">
-                        @summary.totalFiles @if(summary.totalFiles != 1) {files} else {file} uploaded
+                        @summary.totalFiles @if(summary.totalFiles == 1) {file} else {files} uploaded
                     </dd>
                 </div>
 
