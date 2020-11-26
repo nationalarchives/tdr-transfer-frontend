@@ -18,7 +18,7 @@
             </h2>
             <div class="govuk-error-summary__body">
                 <p>@Messages("upload.error.failure")</p>
-		<p class="upload-error__message"></p>
+                <p class="upload-error__message"></p>
             </div>
         </div>
         <div id="logged-out-error" class="govuk-error-summary logged-out-error hide" aria-labelledby="logged-out-error-title"
@@ -41,15 +41,11 @@
                         <div class="govuk-summary-list__row">
                             <dd class="govuk-summary-list__value drag-and-drop__success hide">
                                 @greenTickMark()
-                                The folder
-                                "<span id="folder-name"></span>"
-                                (containing
-                                <span id="folder-size"></span>)
-                                has been selected
+                                @Html(Messages("upload.dragAndDropSuccessMessage"))
                             </dd>
                             <dd class="govuk-summary-list__value drag-and-drop__failure hide">
                                 @redWarningSign()
-                                @Messages("upload.dragAndDropError")
+                                @Messages("upload.dragAndDropErrorMessage")
                             </dd>
                         </div>
                     </div>
