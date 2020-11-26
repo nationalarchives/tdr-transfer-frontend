@@ -1,6 +1,6 @@
 import { ClientFileProcessing } from "../src/clientfileprocessing"
-import { TdrFile, TProgressFunction } from "@nationalarchives/file-information"
-import { UploadFiles } from "../src/upload"
+import { IFileWithPath, TProgressFunction } from "@nationalarchives/file-information"
+import { FileUploader } from "../src/upload"
 import { mockKeycloakInstance } from "./utils"
 import { GraphqlClient } from "../src/graphql"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
@@ -98,8 +98,8 @@ test("upload function console logs error when upload fails", async () => {
   consoleErrorSpy.mockRestore()
 })
 
-function setUpUploadFiles(): UploadFiles {
+function setUpUploadFiles(): FileUploader {
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
-  return new UploadFiles(uploadMetadata, "identityId", "test", mockGoToNextPage)
+  return new FileUploader(uploadMetadata, "identityId", "test", mockGoToNextPage)
 }

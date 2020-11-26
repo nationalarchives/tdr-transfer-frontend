@@ -1,12 +1,12 @@
 import "@testing-library/jest-dom"
-import { TdrFile } from "@nationalarchives/file-information"
+import { IFileWithPath } from "@nationalarchives/file-information"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { GraphqlClient } from "../src/graphql"
-import { UploadFiles } from "../src/upload"
+import { FileUploader } from "../src/upload"
 import { InputElement, UploadForm } from "../src/upload/upload-form"
 import { mockKeycloakInstance } from "./utils"
 
-const mockFormHTML = `
+document.body.innerHTML = `
 <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <div class="drag-and-drop">
@@ -109,8 +109,10 @@ test("folder retriever updates the page with correct folder information if there
   expect(folderSizeElement!.textContent).toStrictEqual("1 file")
 })
 
-function setUpUploadFiles(): UploadFiles {
+function setUpUploadFiles(): FileUploader {
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
-  return new UploadFiles(uploadMetadata, "identityId", "test", mockGoToNextPage)
+  return new FileUploader(uploadMetadata, "identityId", "test", mockGoToNextPage)
 }
+
+;("dropzone updates the page with an error if a non-folder has been dropped")

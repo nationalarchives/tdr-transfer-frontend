@@ -4,7 +4,7 @@ import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo, UploadForm } from "./upload-form"
 
-export class UploadFiles {
+export class FileUploader {
   clientFileProcessing: ClientFileProcessing
   stage: string
   goToNextPage: () => void
@@ -51,7 +51,7 @@ export class UploadFiles {
     }
   }
 
-  upload(): void {
+  initialiseFormListeners(): void {
     const uploadForm: HTMLFormElement | null = document.querySelector(
       "#file-upload-form"
     )
