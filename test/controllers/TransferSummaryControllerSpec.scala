@@ -55,7 +55,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
   }
 
-  "TransferSummaryController GET" should {
+  "TransferSnummaryController GET" should {
 
     "render the transfer summary page with an authenticated user" in {
 
