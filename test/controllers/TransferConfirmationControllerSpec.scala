@@ -11,7 +11,7 @@ class TransferConfirmationControllerSpec extends FrontEndTestHelper {
 
   "TransferConfirmationController GET" should {
     "render the success page if the export was triggered successfully" in {
-      checkConfirmationPage(exportTriggered = true, "Export complete placeholder page")
+      checkConfirmationPage(exportTriggered = true, "transferConfirmation.complete")
     }
 
     "render the error page if the export was not triggered successfully" in {
