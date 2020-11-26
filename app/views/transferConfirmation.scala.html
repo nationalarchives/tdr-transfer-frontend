@@ -6,14 +6,15 @@
                 <div class="govuk-grid-column-two-thirds">
                     <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
                     @progressIndicator(Messages("transferConfirmation.progress"))
-                    <p>Export complete placeholder page</p>
+                    <h1 class="govuk-heading-xl">@Messages("transferConfirmation.title")</h1>
+                    <p>@Messages("transferConfirmation.complete")</p>
                 </div>
             </div>
         } else {
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-two-thirds">
                     <span id="general-error" class="govuk-error-message">
-                        The export failed, contact us
+                        @Messages("transferConfirmation.error")
                     </span>
                 </div>
             </div>
