@@ -15,7 +15,7 @@
                     <dt class="govuk-summary-list__key">
                         @Messages("transferSummary.seriesReference")
                     </dt>
-                    <dd class="govuk-summary-list__value summary-list__right-column">
+                    <dd class="govuk-summary-list__value">
                         @summary.seriesCode
                     </dd>
                 </div>
@@ -23,7 +23,7 @@
                     <dt class="govuk-summary-list__key">
                         @Messages("transferSummary.transferringBody")
                     </dt>
-                    <dd class="govuk-summary-list__value summary-list__right-column">
+                    <dd class="govuk-summary-list__value">
                         @summary.transferringBody
                     </dd>
                 </div>
@@ -31,7 +31,7 @@
                     <dt class="govuk-summary-list__key">
                         @Messages("transferSummary.filesUploadedForTransfer")
                     </dt>
-                    <dd class="govuk-summary-list__value summary-list__right-column">
+                    <dd class="govuk-summary-list__value">
                         @summary.totalFiles @if(summary.totalFiles == 1) {file} else {files} uploaded
                     </dd>
                 </div>
