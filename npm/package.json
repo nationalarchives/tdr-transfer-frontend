@@ -54,7 +54,7 @@
     "@types/jest": "^26.0.15",
     "@typescript-eslint/eslint-plugin": "^2.34.0",
     "@typescript-eslint/parser": "^2.34.0",
-    "copyfiles": "^2.4.0",
+    "copyfiles": "^2.4.1",
     "dts-bundle": "^0.7.3",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.15.0",
