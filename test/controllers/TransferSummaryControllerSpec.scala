@@ -101,28 +101,11 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new TransferSummaryController(getUnauthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, consignmentService, exportService(app.configuration) langs)
+        getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
       val transferSummaryPage = controller.transferSummary(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-summary"))
 
       redirectLocation(transferSummaryPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(transferSummaryPage) mustBe FOUND
-    }
-
-    "return a not found error page if an existing consignment does not have a transfer summary yet" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(None)), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
-
-      val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
-
-      val transferSummaryPage = controller.transferSummary(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
-
-      playStatus(transferSummaryPage) mustBe NOT_FOUND
-      contentAsString(transferSummaryPage) must include("This page doesn't exist")
     }
 
     "throws an authorisation exception when the user does not have permission to see a consignment's transfer summary" in {
@@ -173,6 +156,8 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
 
     "redirects when a valid form is submitted" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
@@ -189,6 +174,8 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
 
     "redirects correctly when the call to the export api fails" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(serverError()))
 
@@ -206,6 +193,8 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
 
     "calls the export api when a valid form is submitted" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
@@ -222,6 +211,8 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
 
     "redirects correctly when the call to the graphql api fails" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
       val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(serverError()))
@@ -240,6 +231,8 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
 
     "calls the graphql api when a valid form is submitted" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
       val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Some(ut.Data(Option(1))), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
