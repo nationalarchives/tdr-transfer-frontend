@@ -10,6 +10,7 @@ import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
 import services.ConsignmentService
+import services.ConsignmentExportService
 import validation.ValidatedActions
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -18,6 +19,7 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
                                           val graphqlConfiguration: GraphQLConfiguration,
                                           val keycloakConfiguration: KeycloakConfiguration,
                                           consignmentService: ConsignmentService,
+                                          val consignmentExportService: ConsignmentExportService,
                                           langs: Langs)
                                          (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
@@ -32,12 +34,12 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
   )
 
   private def getConsignmentSummary(request: Request[AnyContent], consignmentId: UUID)
-                                      (implicit requestHeader: RequestHeader): Future[ConsignmentSummaryData] = {
+                                   (implicit requestHeader: RequestHeader): Future[ConsignmentSummaryData] = {
     consignmentService.getConsignmentTransferSummary(consignmentId, request.token.bearerAccessToken)
       .map{summary =>
         ConsignmentSummaryData(summary.series.get.code,
-                              summary.transferringBody.get.name,
-                              summary.totalFiles)
+          summary.transferringBody.get.name,
+          summary.totalFiles)
       }
   }
 
@@ -50,15 +52,18 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
 
   def transferSummarySubmit(consignmentId: UUID): Action[AnyContent] =
     secureAction.async { implicit request: Request[AnyContent] =>
-    val errorFunction: Form[TransferConfirmationData] => Future[Result] = { formWithErrors: Form[TransferConfirmationData] =>
-      getConsignmentSummary(request, consignmentId).map{summary =>
-        BadRequest(views.html.transferSummary(consignmentId, summary, formWithErrors))
+      val errorFunction: Form[TransferConfirmationData] => Future[Result] = { formWithErrors: Form[TransferConfirmationData] =>
+        getConsignmentSummary(request, consignmentId).map{summary =>
+          BadRequest(views.html.transferSummary(consignmentId, summary, formWithErrors))
+        }
       }
-    }
 
-    val successFunction: TransferConfirmationData => Future[Result] = { formData: TransferConfirmationData =>
-      Future(Ok(views.html.transferConfirmation()))
-      //Code here will be replaced with a mutation to database
+    val successFunction: TransferConfirmationData => Future[Result] = { _: TransferConfirmationData  =>
+      for {
+        transferInitiated <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
+        exportTriggered <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
+        res <- Future(Redirect(routes.TransferConfirmationController.transferConfirmation(consignmentId, exportTriggered && transferInitiated)))
+      } yield res
     }
 
     val formValidationResult: Form[TransferConfirmationData] = transferConfirmationForm.bindFromRequest()
