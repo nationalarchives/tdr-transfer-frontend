@@ -152,7 +152,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       contentAsString(transferSummarySubmit) must include("error")
     }
 
-    "redirects when a valid form is submitted" in {
+    "redirects to the transfer confirmation page when a valid form is submitted" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
@@ -170,7 +170,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       transferSummarySubmit.header.status should equal(303)
     }
 
-    "redirects correctly when the call to the export api fails" in {
+    "redirects to the transfer confirmation page when the call to the export api fails" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
@@ -207,7 +207,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockExportServer.getAllServeEvents.size() should equal(1)
     }
 
-    "redirects correctly when the call to the graphql api fails" in {
+    "redirects to the transfer confirmation page when the call to the graphql api fails" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
