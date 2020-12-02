@@ -57,9 +57,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
   }
 
   "TransferSummaryController GET" should {
-
     "render the transfer summary page with an authenticated user" in {
-
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -130,7 +128,6 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
 
     "display errors when an invalid form is submitted" in {
-
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
