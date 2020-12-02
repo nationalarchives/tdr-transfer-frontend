@@ -60,6 +60,6 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
     val variables: getConsignmentSummary.Variables = new getConsignmentSummary.Variables(consignmentId)
 
     sendApiRequest(getConsignmentSummaryClient, getConsignmentSummary.document, token, variables)
-      .map(_.getConsignment.get)
+      .map(data => data.getConsignment.get)
   }
 }
