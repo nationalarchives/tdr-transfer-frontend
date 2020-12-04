@@ -1,7 +1,7 @@
 @import views.html.helper._
 @(elements: FieldElements)(implicit messages: Messages)
 @if(elements.hasErrors) {
-    <span class="govuk-error-message">
+    <span class="govuk-error-message" id="error-@elements.id">
         <span class="govuk-visually-hidden">@Messages("screenReader.error")</span>
         @elements.errors.mkString(", ")
     </span>
