@@ -1,4 +1,3 @@
-@* dropdownOptions as Tuple until data model clearer *@
 @(field: Field,
         args: (Symbol, Any)*
 )(implicit messages: Messages)
@@ -26,21 +25,3 @@
         </div>
     </div>
 }
-@*<div class="govuk-form-group @elements.setErrorClass()">*@
-@* <label class="govuk-label" for="@elements.id">*@
-@* @elements.args.get(Symbol("_label"))*@
-@* @elements.args.requiredLabelSuffix()*@
-@* </label>*@
-@* <select*@
-@* class="govuk-select"*@
-@* id="@elements.id"*@
-@* name="@elements.id"*@
-@* @elements.args.requiredInput()>*@
-@* <option value="" selected>@Messages("inputDropdown.choose")</option>*@
-
-@* @for(dropdownOption <- dropdownOptions) {*@
-@* <option value="@dropdownOption._1">@dropdownOption._2</option>*@
-@* }*@
-@* </select>*@
-@* @errorMessage(elements)*@
-@*</div>*@
