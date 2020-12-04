@@ -3,7 +3,7 @@
 
 @(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit request: RequestHeader, messages: Messages)
 
-@main(Messages("seriesDetails.header")) {
+@main(Messages("seriesDetails.header"), hasError = seriesDetailsForm("series").hasErrors) {
 @defining(play.core.PlayVersion.current) { version =>
 
 <!-- Back -->
@@ -14,6 +14,7 @@
         @progressIndicator(Messages("seriesDetails.progress"))
 
         <h1 class="govuk-heading-xl">@Messages("seriesDetails.title")</h1>
+        @errorSummary(seriesDetailsForm("series"))
 
         @form(routes.SeriesDetailsController.seriesSubmit(), (Symbol("novalidate"), "")) {
             @CSRF.formField
