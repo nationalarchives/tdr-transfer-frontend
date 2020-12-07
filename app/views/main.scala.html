@@ -5,12 +5,17 @@
 * object to insert into the body of the page.
 *@
 
-@(title: String)(content: Html)(implicit messages: Messages)
+@(title: String, hasError: Boolean = false)(content: Html)(implicit messages: Messages)
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>@title</title>
+    @if(hasError) {
+      <title>Error: @title</title>
+    } else {
+      <title>@title</title>
+    }
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
     <link rel="shortcut icon" type="image/ico" href="@routes.Assets.versioned("images/favicon.ico")">
