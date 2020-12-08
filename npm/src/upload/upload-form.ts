@@ -149,8 +149,8 @@ export class UploadForm {
     const items: DataTransferItemList = ev.dataTransfer?.items!
     const webkitEntry = items[0].webkitGetAsEntry()
     const files = await getAllFiles(webkitEntry, [])
-
     this.selectedFiles = files
+    this.checkIfFolderHasFiles(files)
     const folderSize = files.length
     const folderName = droppedItems.item(0)!.name
     this.updateFolderSelectionStatus(folderName, folderSize)
@@ -194,11 +194,16 @@ export class UploadForm {
     return parentFolder
   }
 
-  private retrieveFiles(target: HTMLInputTarget | null): IFileWithPath[] {
-    const files: File[] = target!.files!.files!
+  private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void {
     if (files === null || files.length === 0) {
       this.rejectUserItemSelection()
     }
+  }
+
+  private retrieveFiles(target: HTMLInputTarget | null): IFileWithPath[] {
+    const files: File[] = target!.files!.files!
+    this.checkIfFolderHasFiles(files)
+
     return [...files].map((file) => ({
       file,
       path: (file as FileWithRelativePath).webkitRelativePath
