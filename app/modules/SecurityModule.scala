@@ -1,15 +1,23 @@
 package modules
 
+import java.lang
+
 import com.google.inject.{AbstractModule, Provides}
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
+import org.pac4j.core.engine.{AbstractExceptionAwareLogic, CallbackLogic, DefaultSecurityLogic, SecurityGrantedAccessAdapter}
+import org.pac4j.core.http.adapter.HttpActionAdapter
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.oidc.client.OidcClient
 import org.pac4j.oidc.config.OidcConfiguration
 import org.pac4j.play.scala.{DefaultSecurityComponents, Pac4jScalaTemplateHelper, SecurityComponents}
 import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
-import org.pac4j.play.{CallbackController, LogoutController}
+import org.pac4j.play.{CallbackController, LogoutController, PlayWebContext}
+import play.mvc.Result
 import play.api.{Configuration, Environment}
+
+import scala.jdk.OptionConverters.RichOptional
+import scala.util.Try
 
 
 class SecurityModule extends AbstractModule {
@@ -56,6 +64,7 @@ class SecurityModule extends AbstractModule {
   def provideConfig(oidcClient: OidcClient[OidcConfiguration]): Config = {
     val clients = new Clients(oidcClient)
     val config = new Config(clients)
+
     config.setHttpActionAdapter(new FrontendHttpActionAdaptor())
     config
   }
