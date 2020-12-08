@@ -1,5 +1,8 @@
 import { ClientFileProcessing } from "../src/clientfileprocessing"
-import { IFileWithPath, TProgressFunction } from "@nationalarchives/file-information"
+import {
+  IFileWithPath,
+  TProgressFunction
+} from "@nationalarchives/file-information"
 import { FileUploader } from "../src/upload"
 import { mockKeycloakInstance } from "./utils"
 import { GraphqlClient } from "../src/graphql"
@@ -10,17 +13,17 @@ beforeEach(() => jest.resetModules())
 
 const dummyFile = {
   webkitRelativePath: "relativePath"
-} as TdrFile
+} as IFileWithPath
 
 class ClientFileProcessingSuccess {
   processClientFiles: (
     consignmentId: string,
-    files: TdrFile[],
+    files: IFileWithPath[],
     callback: TProgressFunction,
     stage: string
   ) => Promise<void> = async (
     consignmentId: string,
-    files: TdrFile[],
+    files: IFileWithPath[],
     callback: TProgressFunction,
     stage: string
   ) => {}
@@ -29,12 +32,12 @@ class ClientFileProcessingSuccess {
 class ClientFileProcessingFailure {
   processClientFiles: (
     consignmentId: string,
-    files: TdrFile[],
+    files: IFileWithPath[],
     callback: TProgressFunction,
     stage: string
   ) => Promise<void> = async (
     consignmentId: string,
-    files: TdrFile[],
+    files: IFileWithPath[],
     callback: TProgressFunction,
     stage: string
   ) => {
@@ -61,7 +64,7 @@ const mockGoToNextPage = jest.fn()
 test("upload function submits redirect form on upload files success", async () => {
   mockUploadSuccess()
 
-  const uploadFiles = setUpUploadFiles()
+  const uploadFiles = setUpFileUploader()
   const consoleErrorSpy = jest
     .spyOn(console, "error")
     .mockImplementation(() => {})
@@ -81,7 +84,7 @@ test("upload function submits redirect form on upload files success", async () =
 test("upload function console logs error when upload fails", async () => {
   mockUploadFailure()
 
-  const uploadFiles = setUpUploadFiles()
+  const uploadFiles = setUpFileUploader()
   const consoleErrorSpy = jest
     .spyOn(console, "error")
     .mockImplementation(() => {})
@@ -98,8 +101,13 @@ test("upload function console logs error when upload fails", async () => {
   consoleErrorSpy.mockRestore()
 })
 
-function setUpUploadFiles(): FileUploader {
+function setUpFileUploader(): FileUploader {
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
-  return new FileUploader(uploadMetadata, "identityId", "test", mockGoToNextPage)
+  return new FileUploader(
+    uploadMetadata,
+    "identityId",
+    "test",
+    mockGoToNextPage
+  )
 }

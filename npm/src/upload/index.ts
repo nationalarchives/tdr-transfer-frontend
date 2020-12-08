@@ -1,8 +1,8 @@
-import { TdrFile } from "@nationalarchives/file-information"
 import { ClientFileProcessing } from "../clientfileprocessing"
 import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo, UploadForm } from "./upload-form"
+import { IFileWithPath } from "@nationalarchives/file-information"
 
 export class FileUploader {
   clientFileProcessing: ClientFileProcessing
@@ -24,10 +24,10 @@ export class FileUploader {
   }
 
   uploadFiles: (
-    files: TdrFile[],
+    files: IFileWithPath[],
     uploadFilesInfo: FileUploadInfo
   ) => Promise<void> = async (
-    files: TdrFile[],
+    files: IFileWithPath[],
     uploadFilesInfo: FileUploadInfo
   ) => {
     const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {

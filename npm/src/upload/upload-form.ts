@@ -1,7 +1,7 @@
-import { TdrFile } from "@nationalarchives/file-information"
+import { IFileWithPath } from "@nationalarchives/file-information"
 
-export interface InputElement extends EventTarget {
-  files?: TdrFile[]
+interface FileWithRelativePath extends File {
+  webkitRelativePath: string
 }
 
 export interface FileUploadInfo {
@@ -9,14 +9,84 @@ export interface FileUploadInfo {
   parentFolder: string
 }
 
+export interface InputElement extends EventTarget {
+  files?: File[]
+}
+
 interface HTMLInputTarget extends EventTarget {
   files?: InputElement
+}
+
+export interface IReader {
+  readEntries: (callbackFunction: (entry: IWebkitEntry[]) => void) => void
+}
+
+export interface IWebkitEntry extends DataTransferItem {
+  createReader: () => IReader
+  isFile: boolean
+  isDirectory: boolean
+  fullPath: string
+  file: (success: (file: File) => void) => void
+}
+
+const getAllFiles: (
+  entry: IWebkitEntry,
+  fileInfoInput: IFileWithPath[]
+) => Promise<IFileWithPath[]> = async (entry, fileInfoInput) => {
+  const reader: IReader = entry.createReader()
+  const entries: IWebkitEntry[] = await getEntriesFromReader(reader)
+  for (const entry of entries) {
+    if (entry.isDirectory) {
+      await getAllFiles(entry, fileInfoInput)
+    } else {
+      const file: IFileWithPath = await getFileFromEntry(entry)
+      fileInfoInput.push(file)
+    }
+  }
+  return fileInfoInput
+}
+
+const getEntriesFromReader: (
+  reader: IReader
+) => Promise<IWebkitEntry[]> = async (reader) => {
+  let allEntries: IWebkitEntry[] = []
+
+  let nextBatch = await getEntryBatch(reader)
+
+  while (nextBatch.length > 0) {
+    allEntries = allEntries.concat(nextBatch)
+    nextBatch = await getEntryBatch(reader)
+  }
+
+  return allEntries
+}
+
+const getFileFromEntry: (entry: IWebkitEntry) => Promise<IFileWithPath> = (
+  entry
+) => {
+  return new Promise<IFileWithPath>((resolve) => {
+    entry.file((file) =>
+      resolve({
+        file,
+        path: entry.fullPath
+      })
+    )
+  })
+}
+
+const getEntryBatch: (reader: IReader) => Promise<IWebkitEntry[]> = (
+  reader
+) => {
+  return new Promise<IWebkitEntry[]>((resolve) => {
+    reader.readEntries((entries) => resolve(entries))
+  })
 }
 
 export class UploadForm {
   formElement: HTMLFormElement
   folderRetriever: HTMLInputElement
   dropzone: HTMLElement
+  selectedFiles: IFileWithPath[]
 
   constructor(
     formElement: HTMLFormElement,
@@ -26,6 +96,7 @@ export class UploadForm {
     this.formElement = formElement
     this.folderRetriever = folderRetriever
     this.dropzone = dropzone
+    this.selectedFiles = []
   }
 
   consignmentId: () => string = () => {
@@ -63,83 +134,112 @@ export class UploadForm {
     })
   }
 
-  addFolderListener() {
-    this.dropzone.addEventListener("drop", (e) => {
-      const droppedObject: File | null = e.dataTransfer!.files[0] // Since we do not allow multiple objects to be dropped, there is always only one file
+  handleDropppedItems: (ev: DragEvent) => any = async (ev) => {
+    const droppedItems: FileList | null = ev.dataTransfer!.files // THIS HAS TO BE A FILELIST
+    ev.preventDefault()
 
-      if (droppedObject?.type !== "") {
-        const form: HTMLFormElement | null = this.formElement
-        this.retrieveFiles(form) // if object has type send in empty form to invoke fail message
-      }
-    })
+    if (droppedItems.length > 1) {
+      this.rejectUserItemSelection()
+    }
+    const droppedItem: File | null = droppedItems.item(0)
+
+    if (droppedItem?.type !== "") {
+      this.rejectUserItemSelection()
+    }
+    const items: DataTransferItemList = ev.dataTransfer?.items!
+    const webkitEntry = items[0].webkitGetAsEntry()
+    const files = await getAllFiles(webkitEntry, [])
+
+    this.selectedFiles = files
+    const folderSize = files.length
+    const folderName = droppedItems.item(0)!.name
+    this.updateFolderSelectionStatus(folderName, folderSize)
+  }
+
+  addFolderListener() {
+    this.dropzone.addEventListener("drop", this.handleDropppedItems)
 
     this.folderRetriever.addEventListener("change", () => {
-      const folderNameElement: HTMLElement | null = document.querySelector(
-        "#folder-name"
-      )
-      const folderSizeElement: HTMLElement | null = document.querySelector(
-        "#folder-size"
-      )
-
-      if (folderNameElement && folderSizeElement) {
-        const form: HTMLFormElement | null = this.formElement
-        const files = this.retrieveFiles(form)
-        const folderName: string = this.getParentFolderName(files)
-        const folderSize: number = files.length
-
-        folderNameElement.textContent = folderName
-        folderSizeElement.textContent =
-          folderSize === 1 ? `${folderSize} file` : `${folderSize} files`
-        const warningMessage: HTMLElement | null = document.querySelector(
-          ".drag-and-drop__failure"
-        )
-        warningMessage?.classList.add("hide")
-        const successMessage: HTMLElement | null = document.querySelector(
-          ".drag-and-drop__success"
-        )
-        successMessage?.classList.remove("hide")
-        this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
-      }
+      const form: HTMLFormElement | null = this.formElement
+      const files = this.retrieveFiles(form)
+      this.selectedFiles = files
+      const parentFolder = this.getParentFolderName(this.selectedFiles)
+      this.updateFolderSelectionStatus(parentFolder, files.length)
     })
   }
 
   addSubmitListener(
-    uploadFiles: (files: TdrFile[], uploadFilesInfo: FileUploadInfo) => void
+    uploadFiles: (
+      files: IFileWithPath[],
+      uploadFilesInfo: FileUploadInfo
+    ) => void
   ) {
     this.formElement.addEventListener("submit", (ev) => {
       ev.preventDefault()
-      const target: HTMLInputTarget | null = ev.currentTarget
-      const files = this.retrieveFiles(target)
-      const parentFolder = this.getParentFolderName(files)
+      const parentFolder = this.getParentFolderName(this.selectedFiles)
       const uploadFilesInfo: FileUploadInfo = {
         consignmentId: this.consignmentId(),
         parentFolder: parentFolder
       }
-      uploadFiles(files, uploadFilesInfo)
+      uploadFiles(this.selectedFiles, uploadFilesInfo)
     })
   }
 
-  private retrieveFiles(target: HTMLInputTarget | null): TdrFile[] {
-    const files: TdrFile[] = target!.files!.files!
+  private getParentFolderName(folder: IFileWithPath[]) {
+    const firstItem: FileWithRelativePath = folder[0]
+      .file as FileWithRelativePath
+    const relativePath: string = firstItem.webkitRelativePath
+    const splitPath: string[] = relativePath.split("/")
+    const parentFolder: string = splitPath[0]
+    return parentFolder
+  }
+
+  private retrieveFiles(target: HTMLInputTarget | null): IFileWithPath[] {
+    const files: File[] = target!.files!.files!
     if (files === null || files.length === 0) {
-      this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
-      const successMessage: HTMLElement | null = document.querySelector(
-        ".drag-and-drop__success"
-      )
-      successMessage?.classList.add("hide")
+      this.rejectUserItemSelection()
+    }
+    return [...files].map((file) => ({
+      file,
+      path: (file as FileWithRelativePath).webkitRelativePath
+    }))
+  }
+
+  private rejectUserItemSelection() {
+    this.dropzone.classList.remove("drag-and-drop__dropzone--dragover") // Extract this into its own method to do with file selection
+    const successMessage: HTMLElement | null = document.querySelector(
+      ".drag-and-drop__success"
+    )
+    successMessage?.classList.add("hide")
+    const warningMessage: HTMLElement | null = document.querySelector(
+      ".drag-and-drop__failure"
+    )
+    warningMessage?.classList.remove("hide")
+    throw new Error("No files selected")
+  }
+
+  private updateFolderSelectionStatus(folderName: string, folderSize: number) {
+    const folderNameElement: HTMLElement | null = document.querySelector(
+      "#folder-name"
+    )
+    const folderSizeElement: HTMLElement | null = document.querySelector(
+      "#folder-size"
+    )
+
+    if (folderNameElement && folderSizeElement) {
+      folderNameElement.textContent = folderName
+      folderSizeElement.textContent = `${folderSize} ${
+        folderSize === 1 ? "file" : "files"
+      }`
       const warningMessage: HTMLElement | null = document.querySelector(
         ".drag-and-drop__failure"
       )
-      warningMessage?.classList.remove("hide")
-      throw Error("No files selected")
+      warningMessage?.classList.add("hide")
+      const successMessage: HTMLElement | null = document.querySelector(
+        ".drag-and-drop__success"
+      )
+      successMessage?.classList.remove("hide")
+      this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
     }
-    return files
-  }
-
-  private getParentFolderName(folder: TdrFile[]) {
-    const relativePath = folder[0].webkitRelativePath
-    const splitPath = relativePath.split("/")
-    const parentFolder = splitPath[0]
-    return parentFolder
   }
 }
