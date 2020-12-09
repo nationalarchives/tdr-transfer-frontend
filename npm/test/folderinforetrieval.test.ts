@@ -6,39 +6,7 @@ import { FileUploader } from "../src/upload"
 import { UploadForm, IReader, IWebkitEntry } from "../src/upload/upload-form"
 import { mockKeycloakInstance } from "./utils"
 
-const dataTransferItemFields = {
-  fullPath: "something", // add this to the fileEntry and directoryEntry object
-  file: (success: any) => success(dummyFile),
-  kind: "",
-  type: "",
-  getAsFile: jest.fn(),
-  getAsString: jest.fn()
-}
-const fileEntry: IWebkitEntry = {
-  ...dataTransferItemFields,
-  createReader: () => reader,
-  type: "pdf", // overwrite default "type" value "" as files must have a non-empty value
-  isFile: true,
-  isDirectory: false,
-  webkitGetAsEntry: jest.fn()
-}
-const directoryEntry: IWebkitEntry = {
-  ...dataTransferItemFields,
-  createReader: jest.fn(),
-  isFile: false,
-  isDirectory: true,
-  webkitGetAsEntry: () => fileEntry
-}
-const entries = [[], [fileEntry, fileEntry]]
-let count = 2
-const reader: IReader = {
-  readEntries: (cb) => {
-    count = count - 1
-    cb(entries[count])
-  }
-}
-
-const mockFileList = (file: File[]) => {
+const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
     length: file.length,
     item: (index: number) => {
@@ -47,7 +15,10 @@ const mockFileList = (file: File[]) => {
   } as FileList
 }
 
-const mockItemsList = (entry: IWebkitEntry, itemLength: number) => {
+const mockDataTransferItemList: (
+  entry: DataTransferItem,
+  itemLength: number
+) => DataTransferItemList = (entry: DataTransferItem, itemLength: number) => {
   return {
     add: jest.fn(),
     length: itemLength,
@@ -55,28 +26,6 @@ const mockItemsList = (entry: IWebkitEntry, itemLength: number) => {
     0: entry,
     remove: jest.fn()
   } as DataTransferItemList
-}
-
-const addFilesToDragEvent = (
-  folderToDrop: File[],
-  itemsToDropEntryType: IWebkitEntry
-) => {
-  return class MockDragEvent extends MouseEvent {
-    constructor() {
-      super("drag")
-    }
-    dataTransfer = {
-      files: mockFileList(folderToDrop),
-      dropEffect: "",
-      effectAllowed: "",
-      items: mockItemsList(itemsToDropEntryType, folderToDrop.length),
-      types: [],
-      clearData: jest.fn(),
-      getData: jest.fn(),
-      setData: jest.fn(),
-      setDragImage: jest.fn()
-    }
-  }
 }
 
 class MockDom {
@@ -130,6 +79,91 @@ class MockDom {
                 </div>
             </div>
         </form>`)
+
+  dataTransferItemFields = {
+    fullPath: "something", // add this to the fileEntry and directoryEntry object
+    file: (success: any) => success(dummyFile),
+    kind: "",
+    type: "",
+    getAsFile: jest.fn(),
+    getAsString: jest.fn()
+  }
+  fileEntry: IWebkitEntry = {
+    ...this.dataTransferItemFields,
+    createReader: () => this.reader,
+    type: "pdf", // overwrite default "type" value "" as files must have a non-empty value
+    isFile: true,
+    isDirectory: false,
+    webkitGetAsEntry: jest.fn()
+  }
+  directoryEntry: IWebkitEntry = {
+    ...this.dataTransferItemFields,
+    createReader: () => this.reader,
+    isFile: false,
+    isDirectory: true,
+    webkitGetAsEntry: () => this.fileEntry
+  }
+
+  dataTransferItem: DataTransferItem = {
+    ...this.dataTransferItemFields,
+    webkitGetAsEntry: () => this.directoryEntry
+  }
+
+  entries: IWebkitEntry[][] = [[], [this.fileEntry, this.fileEntry]]
+  batchCount = this.entries.length
+  reader: IReader = {
+    readEntries: (cb) => {
+      this.batchCount = this.batchCount - 1
+      cb(this.entries[this.batchCount])
+    }
+  }
+
+  mockFileList: (file: File[]) => FileList = (file: File[]) => {
+    return {
+      length: file.length,
+      item: (index: number) => {
+        return file[index]
+      }
+    } as FileList
+  }
+
+  mockDataTransferItemList: (
+    entry: DataTransferItem,
+    itemLength: number
+  ) => DataTransferItemList = (entry: DataTransferItem, itemLength: number) => {
+    return {
+      add: jest.fn(),
+      length: itemLength,
+      clear: jest.fn(),
+      0: entry,
+      remove: jest.fn()
+    } as DataTransferItemList
+  }
+
+  addFilesToDragEvent = (
+    folderToDrop: File[],
+    itemsToDropEntryType: DataTransferItem
+  ) => {
+    return class MockDragEvent extends MouseEvent {
+      constructor() {
+        super("drag")
+      }
+      dataTransfer = {
+        files: mockFileList(folderToDrop),
+        dropEffect: "",
+        effectAllowed: "",
+        items: mockDataTransferItemList(
+          itemsToDropEntryType,
+          folderToDrop.length
+        ),
+        types: [],
+        clearData: jest.fn(),
+        getData: jest.fn(),
+        setData: jest.fn(),
+        setDragImage: jest.fn()
+      }
+    }
+  }
 
   dropzone: HTMLElement | null = document.querySelector(
     ".drag-and-drop__dropzone"
@@ -199,7 +233,7 @@ const dummyIFileWithPath = {
   webkitRelativePath: "Parent_Folder"
 } as IFileWithPath
 
-test("folder retriever updates the page with correct folder information if there are 1 or more files in folder", () => {
+test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
   mockDom.fileUploader.initialiseFormListeners()
   mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
@@ -218,9 +252,69 @@ test("drop event is triggerable", () => {
 
 test("dropzone updates the page with correct folder information if there are 1 or more files in folder", async () => {
   const mockDom = new MockDom()
-  const dragEventClass = addFilesToDragEvent([dummyFolder], directoryEntry)
-  const dropEvent = new dragEventClass()
-  await mockDom.form.handleDropppedItems(dropEvent)
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.dataTransferItem
+  )
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDropppedItems(dragEvent)
+
+  expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveClass("hide")
+  expect(mockDom.folderRetrievalfailureMessage!).toHaveClass("hide")
+  expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
+  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
+})
+
+test("dropzone updates the page with an error if there are no files in folder", async () => {
+  const mockDom = new MockDom()
+  mockDom.entries.pop() // remove entries from previous test
+  mockDom.batchCount = mockDom.entries.length
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.dataTransferItem
+  )
+  const dragEvent = new dragEventClass()
+  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+    Error("No files selected")
+  )
+
+  expect(mockDom.folderRetrievalSuccessMessage!).toHaveClass("hide")
+  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveClass("hide")
+  expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
+  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
+})
+
+test("dropzone updates the page with correct folder information if there is a nested folder of files in the main folder", async () => {
+  const mockDom = new MockDom()
+
+  const dataTransferItemWithNestedDirectory: DataTransferItem = {
+    ...mockDom.dataTransferItemFields,
+    webkitGetAsEntry: () => nestedDirectoryEntry
+  }
+
+  const nestedDirectoryEntry: IWebkitEntry = {
+    ...mockDom.dataTransferItemFields,
+    createReader: () => nestedDirectoryEntryReader,
+    isFile: false,
+    isDirectory: true,
+    webkitGetAsEntry: () => mockDom.fileEntry
+  }
+
+  const mockNestedEntries: IWebkitEntry[][] = [[], [mockDom.directoryEntry]] // have to create an entry here to act as top-level directory
+  let nestedDirectoryBatchCount = mockDom.entries.length
+  const nestedDirectoryEntryReader: IReader = {
+    readEntries: (cb) => {
+      nestedDirectoryBatchCount = nestedDirectoryBatchCount - 1
+      cb(mockNestedEntries[nestedDirectoryBatchCount])
+    }
+  }
+
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    dataTransferItemWithNestedDirectory
+  )
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDropppedItems(dragEvent)
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveClass("hide")
   expect(mockDom.folderRetrievalfailureMessage!).toHaveClass("hide")
@@ -230,9 +324,9 @@ test("dropzone updates the page with correct folder information if there are 1 o
 
 test("dropzone updates the page with an error if more than 1 item (2 folders) has been dropped", async () => {
   const mockDom = new MockDom()
-  const dragEventClass = addFilesToDragEvent(
+  const dragEventClass = mockDom.addFilesToDragEvent(
     [dummyFolder, dummyFolder],
-    directoryEntry
+    mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
@@ -247,9 +341,9 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
 
 test("dropzone updates the page with an error if more than 1 item (folder and file) has been dropped", async () => {
   const mockDom = new MockDom()
-  const dragEventClass = addFilesToDragEvent(
+  const dragEventClass = mockDom.addFilesToDragEvent(
     [dummyFolder, dummyFile],
-    directoryEntry
+    mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
@@ -264,7 +358,10 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
 
 test("dropzone updates the page with an error if 1 non-folder has been dropped", async () => {
   const mockDom = new MockDom()
-  const dragEventClass = addFilesToDragEvent([dummyFile], fileEntry)
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFile],
+    mockDom.fileEntry
+  )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
