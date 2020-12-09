@@ -2,7 +2,9 @@ package util
 
 import java.io.File
 import java.net.URI
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util
+import java.util.Date
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
@@ -21,7 +23,7 @@ import org.pac4j.core.profile.UserProfile
 import org.pac4j.core.util.Pac4jConstants
 import org.pac4j.oidc.client.OidcClient
 import org.pac4j.oidc.config.OidcConfiguration
-import org.pac4j.oidc.profile.OidcProfile
+import org.pac4j.oidc.profile.{OidcProfile, OidcProfileDefinition}
 import org.pac4j.oidc.redirect.OidcRedirectionActionBuilder
 import org.pac4j.play.PlayWebContext
 import org.pac4j.play.http.PlayHttpActionAdapter
@@ -112,6 +114,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     //Create the profile and add to the map
     val profile: OidcProfile = new OidcProfile()
     profile.setAccessToken(new BearerAccessToken("faketoken"))
+    profile.addAttribute(OidcProfileDefinition.EXPIRATION, Date.from(LocalDateTime.now().plusDays(10).toInstant(ZoneOffset.UTC)))
 
     val profileMap: java.util.LinkedHashMap[String, OidcProfile] = new java.util.LinkedHashMap[String, OidcProfile]
     profileMap.put("OidcClient", profile)
