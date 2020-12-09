@@ -11,7 +11,6 @@ import org.keycloak.representations.AccessToken
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.pac4j.core.authorization.authorizer.Authorizer
-import org.pac4j.core.authorization.checker.AuthorizationChecker
 import org.pac4j.core.client.{Client, Clients}
 import org.pac4j.core.config.Config
 import org.pac4j.core.context.WebContext
@@ -34,7 +33,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
-import play.api.{Application, Configuration}
+import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{BodyParsers, ControllerComponents}
