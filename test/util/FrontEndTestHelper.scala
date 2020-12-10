@@ -2,7 +2,9 @@ package util
 
 import java.io.File
 import java.net.URI
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util
+import java.util.Date
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
@@ -11,16 +13,17 @@ import org.keycloak.representations.AccessToken
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.pac4j.core.authorization.authorizer.Authorizer
-import org.pac4j.core.client.Clients
+import org.pac4j.core.client.{Client, Clients}
 import org.pac4j.core.config.Config
 import org.pac4j.core.context.WebContext
+import org.pac4j.core.credentials.Credentials
 import org.pac4j.core.engine.DefaultSecurityLogic
 import org.pac4j.core.http.ajax.AjaxRequestResolver
 import org.pac4j.core.profile.UserProfile
 import org.pac4j.core.util.Pac4jConstants
 import org.pac4j.oidc.client.OidcClient
 import org.pac4j.oidc.config.OidcConfiguration
-import org.pac4j.oidc.profile.OidcProfile
+import org.pac4j.oidc.profile.{OidcProfile, OidcProfileDefinition}
 import org.pac4j.oidc.redirect.OidcRedirectionActionBuilder
 import org.pac4j.play.PlayWebContext
 import org.pac4j.play.http.PlayHttpActionAdapter
@@ -32,7 +35,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
-import play.api.{Application, Configuration}
+import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{BodyParsers, ControllerComponents}
@@ -43,6 +46,7 @@ import viewsapi.FrontEndInfo
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.language.existentials
 
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach {
@@ -110,6 +114,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     //Create the profile and add to the map
     val profile: OidcProfile = new OidcProfile()
     profile.setAccessToken(new BearerAccessToken("faketoken"))
+    profile.addAttribute(OidcProfileDefinition.EXPIRATION, Date.from(LocalDateTime.now().plusDays(10).toInstant(ZoneOffset.UTC)))
 
     val profileMap: java.util.LinkedHashMap[String, OidcProfile] = new java.util.LinkedHashMap[String, OidcProfile]
     profileMap.put("OidcClient", profile)
@@ -123,7 +128,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     //Return true on the isAuthorized method
     val logic = DefaultSecurityLogic.INSTANCE
-    logic.setAuthorizationChecker((_: WebContext, _: util.List[UserProfile], _: String, _: util.Map[String, Authorizer[_ <: UserProfile]]) => true)
+    logic.setAuthorizationChecker((_: WebContext, _: util.List[UserProfile], _: String, _: util.Map[String, Authorizer[_ <: UserProfile]], _: util.List[Client[_$1]] forSome {type _$1 <: Credentials}) => true)
     testConfig.setSecurityLogic(logic)
 
     //There is a null check for the action adaptor.
@@ -153,7 +158,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     val testConfig = new Config()
     val logic = DefaultSecurityLogic.INSTANCE
-    logic setAuthorizationChecker ((_: WebContext, _: util.List[UserProfile], _: String, _: util.Map[String, Authorizer[_ <: UserProfile]]) => false)
+    logic setAuthorizationChecker((_: WebContext, _: util.List[UserProfile], _: String, _: util.Map[String, Authorizer[_ <: UserProfile]], _: util.List[Client[_$1]] forSome {type _$1 <: Credentials}) => false)
     testConfig.setSecurityLogic(logic)
 
     //There is a null check for the action adaptor.
