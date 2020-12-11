@@ -9,7 +9,7 @@ import {
   MutationOptions,
   FetchResult
 } from "apollo-boost"
-import fetch from "unfetch"
+import "unfetch/polyfill"
 import { KeycloakInstance } from "keycloak-js"
 import { refreshOrReturnToken } from "../auth"
 
