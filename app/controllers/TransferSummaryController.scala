@@ -8,7 +8,8 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
+import services.ConsignmentService
 import services.ConsignmentExportService
 import validation.ValidatedActions
 
@@ -17,30 +18,47 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferSummaryController @Inject()(val controllerComponents: SecurityComponents,
                                           val graphqlConfiguration: GraphQLConfiguration,
                                           val keycloakConfiguration: KeycloakConfiguration,
+                                          consignmentService: ConsignmentService,
                                           val consignmentExportService: ConsignmentExportService,
                                           langs: Langs)
                                          (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
   implicit val language: Lang = langs.availables.head
-  val transferSummaryForm: Form[TransferSummaryData] = Form(
+  val transferConfirmationForm: Form[TransferConfirmationData] = Form(
     mapping(
       "openRecords" -> boolean
         .verifying(messagesApi("transferSummary.openRecords.error"), b => b),
       "transferLegalOwnership" -> boolean
         .verifying(messagesApi("transferSummary.transferLegalOwnership.error"), b => b)
-    )(TransferSummaryData.apply)(TransferSummaryData.unapply)
+    )(TransferConfirmationData.apply)(TransferConfirmationData.unapply)
   )
 
-  def transferSummary(consignmentId: UUID): Action[AnyContent] = consignmentExists(consignmentId) { implicit request: Request[AnyContent] =>
-    Ok(views.html.transferSummary(consignmentId, transferSummaryForm))
+  private def getConsignmentSummary(request: Request[AnyContent], consignmentId: UUID)
+                                   (implicit requestHeader: RequestHeader): Future[ConsignmentSummaryData] = {
+    consignmentService.getConsignmentTransferSummary(consignmentId, request.token.bearerAccessToken)
+      .map{summary =>
+        ConsignmentSummaryData(summary.series.get.code,
+          summary.transferringBody.get.name,
+          summary.totalFiles)
+      }
   }
 
-  def transferSummarySubmit(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-    val errorFunction: Form[TransferSummaryData] => Future[Result] = { formWithErrors: Form[TransferSummaryData] =>
-      Future.successful(BadRequest(views.html.transferSummary(consignmentId, formWithErrors)))
-    }
+  def transferSummary(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    getConsignmentSummary(request, consignmentId)
+      .map{ consignmentSummary =>
+        Ok(views.html.transferSummary(consignmentId, consignmentSummary, transferConfirmationForm))
+      }
+  }
 
-    val successFunction: TransferSummaryData => Future[Result] = { _: TransferSummaryData =>
+  def transferSummarySubmit(consignmentId: UUID): Action[AnyContent] =
+    secureAction.async { implicit request: Request[AnyContent] =>
+      val errorFunction: Form[TransferConfirmationData] => Future[Result] = { formWithErrors: Form[TransferConfirmationData] =>
+        getConsignmentSummary(request, consignmentId).map{summary =>
+          BadRequest(views.html.transferSummary(consignmentId, summary, formWithErrors))
+        }
+      }
+
+    val successFunction: TransferConfirmationData => Future[Result] = { _: TransferConfirmationData  =>
       for {
         transferInitiated <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
         exportTriggered <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
@@ -48,7 +66,7 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
       } yield res
     }
 
-    val formValidationResult: Form[TransferSummaryData] = transferSummaryForm.bindFromRequest()
+    val formValidationResult: Form[TransferConfirmationData] = transferConfirmationForm.bindFromRequest()
     formValidationResult.fold(
       errorFunction,
       successFunction
@@ -56,5 +74,9 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
   }
 }
 
-case class TransferSummaryData(openRecords: Boolean,
+case class ConsignmentSummaryData(seriesCode: Option[String],
+                                  transferringBody: Option[String],
+                                  totalFiles: Int)
+
+case class TransferConfirmationData(openRecords: Boolean,
                                transferLegalOwnership: Boolean)

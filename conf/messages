@@ -17,6 +17,7 @@ seriesDetails.header=Series Details
 seriesDetails.title=Series Details
 seriesDetails.chooseSeries=Choose an existing series reference
 seriesDetails.continueLink=Continue
+seriesDetails.nonEmpty=Select a series reference
 transferAgreement.title=Transfer Agreement
 transferAgreement.header=Transfer Agreement
 screenReader.error=Error:
