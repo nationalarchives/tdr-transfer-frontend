@@ -170,6 +170,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       playStatus(seriesSubmit) mustBe BAD_REQUEST
       contentAsString(seriesSubmit) must include("govuk-error-message")
       contentAsString(seriesSubmit) must include("error.required")
+      contentAsString(seriesSubmit) must include("govuk-error-summary")
+      contentAsString(seriesSubmit) must include("<title>Error: ")
     }
 
     "will send the correct body if it is present on the user" in {

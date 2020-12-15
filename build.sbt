@@ -16,15 +16,15 @@ scalaVersion := "2.13.3"
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test
 
-val playPac4jVersion = "9.0.0-RC3"
-val pac4jVersion = "4.0.0-RC3"
+val playPac4jVersion = "10.0.2"
+val pac4jVersion = "4.2.0"
 val akkaVersion = "2.6.3"
 val sttpVersion = "2.2.4"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
-  "org.pac4j" % "pac4j-http" % pac4jVersion,
-  "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude("commons-io", "commons-io"),
+  "org.pac4j" % "pac4j-http" % pac4jVersion exclude("com.fasterxml.jackson.core", "jackson-databind"),
+  "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude("commons-io", "commons-io") exclude("com.fasterxml.jackson.core", "jackson-databind"),
   "org.apache.shiro" % "shiro-core" % "1.4.0",
   "net.bytebuddy" % "byte-buddy" % "1.9.7",
   "io.circe" %% "circe-core" % "0.13.0",
