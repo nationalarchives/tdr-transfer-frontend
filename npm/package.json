@@ -42,7 +42,7 @@
     "@nationalarchives/file-information": "1.0.19",
     "@nationalarchives/tdr-generated-graphql": "1.0.35",
     "apollo-boost": "^0.4.9",
-    "aws-sdk": "^2.810.0",
+    "aws-sdk": "^2.811.0",
     "govuk-frontend": "^3.10.1",
     "graphql": "^14.7.0",
     "keycloak-js": "11.0.3",
@@ -73,7 +73,7 @@
     "ts-jest": "^25.5.1",
     "ts-loader": "^8.0.12",
     "typescript": "^3.9.7",
-    "webpack": "^5.10.0",
+    "webpack": "^5.10.3",
     "webpack-cli": "^4.2.0",
     "stylelint": "^13.8.0",
     "stylelint-config-sass-guidelines": "^7.1.0"
