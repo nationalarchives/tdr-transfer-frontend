@@ -34,7 +34,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
       "crownCopyright" -> boolean
         .verifying(messagesApi("transferAgreement.crownCopyright.error"), b => b),
       "english" -> boolean
-        .verifying(messagesApi("transferAgreement.digital.error"), b => b),
+        .verifying(messagesApi("transferAgreement.english.error"), b => b),
       "droAppraisalSelection" -> boolean
         .verifying(messagesApi("transferAgreement.droAppraisalSelection.error"), b => b),
       "droSensitivity" -> boolean
