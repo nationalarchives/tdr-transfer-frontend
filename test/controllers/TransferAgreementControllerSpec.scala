@@ -65,7 +65,6 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       contentAsString(transferAgreementPage) must include("transferAgreement.publicRecord")
       contentAsString(transferAgreementPage) must include("transferAgreement.crownCopyright")
       contentAsString(transferAgreementPage) must include("transferAgreement.english")
-      contentAsString(transferAgreementPage) must include("transferAgreement.digital")
       contentAsString(transferAgreementPage) must include("transferAgreement.droAppraisalSelection")
       contentAsString(transferAgreementPage) must include("transferAgreement.droSensitivity")
     }
@@ -123,7 +122,6 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
       val addTransferAgreementResponse: ata.AddTransferAgreement = new ata.AddTransferAgreement(
         consignmentId,
-        Some(true),
         Some(true),
         Some(true),
         Some(true),
@@ -191,7 +189,6 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       ("publicRecord", true.toString),
       ("crownCopyright", true.toString),
       ("english", true.toString),
-      ("digital", true.toString),
       ("droAppraisalSelection", true.toString),
       ("droSensitivity", true.toString)
     )

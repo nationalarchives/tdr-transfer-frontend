@@ -35,8 +35,6 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         .verifying(messagesApi("transferAgreement.crownCopyright.error"), b => b),
       "english" -> boolean
         .verifying(messagesApi("transferAgreement.english.error"), b => b),
-      "digital" -> boolean
-        .verifying(messagesApi("transferAgreement.digital.error"), b => b),
       "droAppraisalSelection" -> boolean
         .verifying(messagesApi("transferAgreement.droAppraisalSelection.error"), b => b),
       "droSensitivity" -> boolean
@@ -58,7 +56,6 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         Some(formData.publicRecord),
         Some(formData.crownCopyright),
         Some(formData.english),
-        None,
         Some(formData.droAppraisalSelection),
         Some(formData.droSensitivity)
       )
@@ -81,6 +78,5 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 case class TransferAgreementData(publicRecord: Boolean,
                                  crownCopyright: Boolean,
                                  english: Boolean,
-                                 digital: Boolean,
                                  droAppraisalSelection: Boolean,
                                  droSensitivity: Boolean)
