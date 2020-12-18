@@ -56,7 +56,14 @@
                     <div>
                         <div class="govuk-form-group">
                             <div class="drag-and-drop__dropzone">
-                                <input type="file" id="file-selection" name="files" class="govuk-file-upload drag-and-drop__input" webkitdirectory>
+                                <input type="file" id="file-selection" name="files"
+                                    class="govuk-file-upload drag-and-drop__input" webkitdirectory
+                                    @* Specify an arbitrary type in the 'accept' attribute to work around a bug in
+                                    Safari 14.0.1, which does not let the user browse for files if the 'accept'
+                                    attribute is missing. The actual value of the attribute is ignored because
+                                    'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
+                                    accept="image/jpeg"
+                                >
                                 <p class="govuk-body drag-and-drop__hint-text">@Messages("upload.dragAndDropHintText")</p>
                                 <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">@Messages("upload.chooseFolderLink")</label>
                             </div>
