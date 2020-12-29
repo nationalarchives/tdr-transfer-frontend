@@ -3,7 +3,7 @@ FROM openjdk:16-alpine
 RUN addgroup --system frontendgroup && adduser --system frontenduser -G frontendgroup
 WORKDIR play
 COPY target/universal/tdr-transfer-frontend*.zip .
-RUN apk update && apk add bash unzip && unzip -qq tdr-transfer-frontend-*.zip
+RUN apk update && apk upgrade p11-kit && apk add bash unzip && unzip -qq tdr-transfer-frontend-*.zip
 RUN chown -R frontenduser /play
 
 USER frontenduser
