@@ -118,16 +118,14 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
     "create a transfer agreement when a valid form is submitted and the api response is successful" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val transferAgreementId = Some(UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68"))
-
+      
       val addTransferAgreementResponse: ata.AddTransferAgreement = new ata.AddTransferAgreement(
         consignmentId,
         Some(true),
         Some(true),
         Some(true),
         Some(true),
-        Some(true),
-        transferAgreementId
+        Some(true)
       )
       stubTransferAgreementResponse(Some(addTransferAgreementResponse))
 
