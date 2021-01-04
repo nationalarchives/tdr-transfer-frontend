@@ -2,6 +2,7 @@ import { GraphqlClient } from "../graphql"
 import {
   getConsignmentData,
   updateProgressBar,
+  updateSpanProgress,
   IFileCheckProcessed,
   getConsignmentId
 } from "./file-check-processing"
@@ -30,6 +31,22 @@ export class FileChecks {
       )
       updateProgressBar(checksumProcessed, totalFiles, "#checksum-progress-bar")
       updateProgressBar(ffidProcessed, totalFiles, "#ffid-progress-bar")
+
+      updateSpanProgress(
+        antivirusProcessed,
+        totalFiles,
+        "#av-status-screen-reader"
+      )
+      updateSpanProgress(
+        checksumProcessed,
+        totalFiles,
+        "#checksum-status-screen-reader"
+      )
+      updateSpanProgress(
+        ffidProcessed,
+        totalFiles,
+        "#ffid-status-screen-reader"
+      )
 
       if (
         antivirusProcessed == totalFiles &&
