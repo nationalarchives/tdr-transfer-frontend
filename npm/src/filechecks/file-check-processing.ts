@@ -83,3 +83,14 @@ export const updateProgressBar: (
     progressBar.value = progress
   }
 }
+
+export const updateProgressSpan: (
+  processed: number,
+  total: number,
+  selector: string
+) => void = (processed, total, selector) => {
+  const progressSpan: HTMLSpanElement | null = document.querySelector(selector)
+  if (progressSpan) {
+    progressSpan.innerText = ` ${processed}/${total} files processed`
+  }
+}
