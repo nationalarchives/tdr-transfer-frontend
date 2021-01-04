@@ -13,15 +13,15 @@
             <p class="govuk-body">@Messages("checkingRecords.description")</p>
             <input id="consignmentId" type="hidden" value="@consignmentId">
             <div class="file-check-progress">
-                <label for="av-metadata-progress-bar" class="govuk-label">@Messages("checkingRecords.antivirus")<span id="av-status-screen-reader"></span></label>
+                <label for="av-metadata-progress-bar" class="govuk-label">@Messages("checkingRecords.antivirus")<span id="av-status-screen-reader" role="status" aria-live="polite"></span></label>
                 <progress id="av-metadata-progress-bar" class="file-check-progress__progress-bar" value="@fileChecks.avMetadataProgressPercentage" max="100"></progress>
             </div>
             <div class="file-check-progress">
-                <label for="ffid-progress-bar" class="govuk-label">@Messages("checkingRecords.ffid")<span id="ffid-status-screen-reader"></span></label>
+                <label for="ffid-progress-bar" class="govuk-label">@Messages("checkingRecords.ffid")<span id="ffid-status-screen-reader" role="status" aria-live="polite"></span></label>
                 <progress id="ffid-progress-bar" class="file-check-progress__progress-bar" value="@fileChecks.ffidMetadataProgressPercentage" max="100"></progress>
             </div>
             <div class="file-check-progress">
-                <label for="checksum-progress-bar" class="govuk-label">@Messages("checkingRecords.checksum")<span id="checksum-status-screen-reader"></span></label>
+                <label for="checksum-progress-bar" class="govuk-label">@Messages("checkingRecords.checksum")<span id="checksum-status-screen-reader" role="status" aria-live="polite"></span></label>
                 <progress id="checksum-progress-bar" class="file-check-progress__progress-bar" value="@fileChecks.checksumProgressPercentage" max="100"></progress>
             </div>
         </div>
