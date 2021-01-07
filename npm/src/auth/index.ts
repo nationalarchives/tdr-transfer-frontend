@@ -1,7 +1,8 @@
 import Keycloak, { KeycloakTokenParsed } from "keycloak-js"
-import AWS, { CognitoIdentityCredentials } from "aws-sdk"
+import AWS, { CognitoIdentity, Credentials } from "aws-sdk"
 import { LoggedOutError } from "../errorhandling"
 import { IFrontEndInfo } from ".."
+import { GetIdInput } from "aws-sdk/clients/cognitoidentity"
 
 export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> = async () => {
   const keycloakInstance: Keycloak.KeycloakInstance = Keycloak(
@@ -56,14 +57,41 @@ export const authenticateAndGetIdentityId: (
   const token = await refreshOrReturnToken(keycloak)
   const { identityProviderName, identityPoolId, region } = frontEndInfo
 
-  const credentials = new CognitoIdentityCredentials({
+  const cognitoIdentity = new CognitoIdentity({ region })
+  const options: GetIdInput = {
     IdentityPoolId: identityPoolId,
-    Logins: {
-      [identityProviderName]: token
-    }
+    Logins: { [identityProviderName]: token }
+  }
+
+  const id = await cognitoIdentity.getId(options).promise()
+
+  const openIdToken = await cognitoIdentity
+    .getOpenIdToken({
+      IdentityId: id.IdentityId!,
+      Logins: { [identityProviderName]: token }
+    })
+    .promise()
+
+  const sts = new AWS.STS({ region: "eu-west-2" })
+  const response = sts
+    .assumeRoleWithWebIdentity({
+      DurationSeconds: 12 * 60 * 60,
+      RoleArn: frontEndInfo.cognitoRoleArn,
+      RoleSessionName: "Bob",
+      WebIdentityToken: openIdToken.Token!
+    })
+    .promise()
+
+  const assumeRole = await response
+  const creds = assumeRole.Credentials!
+
+  AWS.config.update({
+    credentials: new Credentials({
+      accessKeyId: creds.AccessKeyId,
+      secretAccessKey: creds.SecretAccessKey,
+      sessionToken: creds.SessionToken
+    })
   })
-  AWS.config.update({ region, credentials })
-  await credentials.getPromise()
-  const { identityId } = credentials
-  return identityId
+
+  return id.IdentityId!
 }
