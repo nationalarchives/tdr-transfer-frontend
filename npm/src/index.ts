@@ -5,6 +5,7 @@ import { UploadFiles } from "./upload"
 import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 import { goToNextPage } from "./upload/next-page-redirect"
 import { FileChecks } from "./filechecks"
+import { CognitoIdentity, STS } from "aws-sdk"
 
 window.onload = function () {
   renderModules()
@@ -82,19 +83,23 @@ export const renderModules = () => {
 
     getKeycloakInstance().then((keycloak) => {
       const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
-      authenticateAndGetIdentityId(keycloak, frontEndInfo).then(
-        (identityId) => {
-          const clientFileProcessing = new ClientFileMetadataUpload(
-            graphqlClient
-          )
-          new UploadFiles(
-            clientFileProcessing,
-            identityId,
-            frontEndInfo.stage,
-            goToNextPage
-          ).upload()
-        }
-      )
+      const cognitoIdentity = new CognitoIdentity({
+        region: frontEndInfo.region
+      })
+      authenticateAndGetIdentityId(
+        keycloak,
+        frontEndInfo,
+        cognitoIdentity,
+        new STS({ region: frontEndInfo.region })
+      ).then((identityId) => {
+        const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
+        new UploadFiles(
+          clientFileProcessing,
+          identityId,
+          frontEndInfo.stage,
+          goToNextPage
+        ).upload()
+      })
     })
   }
   if (fileChecksContainer) {

@@ -52,46 +52,56 @@ export const refreshOrReturnToken: (
 
 export const authenticateAndGetIdentityId: (
   keycloak: Keycloak.KeycloakInstance,
-  frontEndInfo: IFrontEndInfo
-) => Promise<string> = async (keycloak, frontEndInfo) => {
+  frontEndInfo: IFrontEndInfo,
+  cognitoIdentity: CognitoIdentity,
+  sts: AWS.STS
+) => Promise<string> = async (keycloak, frontEndInfo, cognitoIdentity, sts) => {
   const token = await refreshOrReturnToken(keycloak)
   const { identityProviderName, identityPoolId, region } = frontEndInfo
 
-  const cognitoIdentity = new CognitoIdentity({ region })
   const options: GetIdInput = {
     IdentityPoolId: identityPoolId,
     Logins: { [identityProviderName]: token }
   }
-
   const id = await cognitoIdentity.getId(options).promise()
+  if (id.IdentityId) {
+    const identityId = id.IdentityId
+    const openIdToken = await cognitoIdentity
+      .getOpenIdToken({
+        IdentityId: identityId,
+        Logins: { [identityProviderName]: token }
+      })
+      .promise()
 
-  const openIdToken = await cognitoIdentity
-    .getOpenIdToken({
-      IdentityId: id.IdentityId!,
-      Logins: { [identityProviderName]: token }
-    })
-    .promise()
+    if (openIdToken.Token) {
+      const response = sts
+        .assumeRoleWithWebIdentity({
+          DurationSeconds: 60 * 60 * 3,
+          RoleArn: frontEndInfo.cognitoRoleArn,
+          RoleSessionName: identityId.split(":")[1], //Cognito user uuid. Can see who did what in cloudtrail
+          WebIdentityToken: openIdToken.Token
+        })
+        .promise()
 
-  const sts = new AWS.STS({ region: "eu-west-2" })
-  const response = sts
-    .assumeRoleWithWebIdentity({
-      DurationSeconds: 12 * 60 * 60,
-      RoleArn: frontEndInfo.cognitoRoleArn,
-      RoleSessionName: "Bob",
-      WebIdentityToken: openIdToken.Token!
-    })
-    .promise()
+      const assumeRole = await response
+      if (assumeRole.Credentials) {
+        const creds = assumeRole.Credentials
 
-  const assumeRole = await response
-  const creds = assumeRole.Credentials!
-
-  AWS.config.update({
-    credentials: new Credentials({
-      accessKeyId: creds.AccessKeyId,
-      secretAccessKey: creds.SecretAccessKey,
-      sessionToken: creds.SessionToken
-    })
-  })
-
-  return id.IdentityId!
+        AWS.config.update({
+          credentials: new Credentials({
+            accessKeyId: creds.AccessKeyId,
+            secretAccessKey: creds.SecretAccessKey,
+            sessionToken: creds.SessionToken
+          })
+        })
+      } else {
+        throw new Error("Cannot get credentials from sts")
+      }
+    } else {
+      throw new Error("Cannot get an openid token from cognito")
+    }
+    return id.IdentityId
+  } else {
+    throw new Error("Cannot get cognito identity id")
+  }
 }
