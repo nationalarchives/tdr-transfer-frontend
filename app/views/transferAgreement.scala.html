@@ -42,14 +42,6 @@
             Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("english", ""),
             Symbol("_disabledOption") -> "false"
             )
-            @inputRadioGroup(
-            transferAgreementForm("digital"),
-            agreementOptions,
-            Symbol("_name") -> Messages("transferAgreement.digital"),
-            Symbol("_requiredOption") -> true,
-            Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("digital", ""),
-            Symbol("_disabledOption") -> "false"
-            )
         </fieldset>
         <!-- DRO confirmation -->
         <fieldset class="govuk-fieldset" aria-describedby="transfer-agreement-checks">
