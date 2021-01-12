@@ -16,6 +16,7 @@ class FrontEndInfoConfiguration @Inject ()(configuration: Configuration) {
     get("cognito.identitypool"),
     getOptional("cognito.endpointOverride"),
     get("environment"),
-    get("region")
+    get("region"),
+    get("cognito.roleArn")
   )
 }
