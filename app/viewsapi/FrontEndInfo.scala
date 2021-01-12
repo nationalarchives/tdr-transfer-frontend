@@ -7,5 +7,6 @@ case class FrontEndInfo(
                          identityPoolId: String,
                          cognitoEndpointOverride: Option[String],
                          stage: String,
-                         region: String
+                         region: String,
+                         cognitoRoleArn: String
                        )
