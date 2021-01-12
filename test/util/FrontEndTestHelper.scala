@@ -69,6 +69,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         "",
         None,
         "",
+        "",
         ""
       ))
     frontEndInfoConfiguration
