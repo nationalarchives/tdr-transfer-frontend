@@ -45,3 +45,5 @@ libraryDependencies += play.sbt.PlayImport.cacheApi
 libraryDependencies += "com.github.karelcemus" %% "play-redis" % "2.6.0"
 
 pipelineStages := Seq(digest)
+
+envVars in Test := Map("COGNITO_ROLE_ARN" -> "roleArn")
