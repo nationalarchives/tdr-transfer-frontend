@@ -5,8 +5,9 @@ import { UploadFiles } from "./upload"
 import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 import { goToNextPage } from "./upload/next-page-redirect"
 import { FileChecks } from "./filechecks"
+import { CognitoIdentity, STS } from "aws-sdk"
 
-window.onload = function() {
+window.onload = function () {
   renderModules()
 }
 
@@ -18,6 +19,7 @@ export interface IFrontEndInfo {
   region: string
   cognitoEndpointOverride?: string
   s3EndpointOverride?: string
+  cognitoRoleArn: string
 }
 
 const getFrontEndInfo: () => IFrontEndInfo = () => {
@@ -40,13 +42,17 @@ const getFrontEndInfo: () => IFrontEndInfo = () => {
   const s3EndpointOverrideElement: HTMLInputElement | null = document.querySelector(
     ".s3-endpoint-override"
   )
+  const cogitoRoleArnElement: HTMLInputElement | null = document.querySelector(
+    ".cognito-role-arn"
+  )
 
   if (
     apiUrlElement &&
     identityProviderNameElement &&
     identityPoolElement &&
     stageElement &&
-    regionElement
+    regionElement &&
+    cogitoRoleArnElement
   ) {
     return {
       apiUrl: apiUrlElement.value,
@@ -55,7 +61,8 @@ const getFrontEndInfo: () => IFrontEndInfo = () => {
       stage: stageElement.value,
       region: regionElement.value,
       cognitoEndpointOverride: cognitoEndpointOverrideElement?.value,
-      s3EndpointOverride: s3EndpointOverrideElement?.value
+      s3EndpointOverride: s3EndpointOverrideElement?.value,
+      cognitoRoleArn: cogitoRoleArnElement.value
     }
   } else {
     throw "The front end information is missing"
@@ -74,9 +81,17 @@ export const renderModules = () => {
 
     configureAws(frontEndInfo)
 
-    getKeycloakInstance().then(keycloak => {
+    getKeycloakInstance().then((keycloak) => {
       const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
-      authenticateAndGetIdentityId(keycloak, frontEndInfo).then(identityId => {
+      const cognitoIdentity = new CognitoIdentity({
+        region: frontEndInfo.region
+      })
+      authenticateAndGetIdentityId(
+        keycloak,
+        frontEndInfo,
+        cognitoIdentity,
+        new STS({ region: frontEndInfo.region })
+      ).then((identityId) => {
         const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
         new UploadFiles(
           clientFileProcessing,
@@ -89,7 +104,7 @@ export const renderModules = () => {
   }
   if (fileChecksContainer) {
     const frontEndInfo = getFrontEndInfo()
-    getKeycloakInstance().then(keycloak => {
+    getKeycloakInstance().then((keycloak) => {
       const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
       new FileChecks(graphqlClient).updateFileCheckProgress()
     })
