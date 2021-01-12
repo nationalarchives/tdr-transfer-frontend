@@ -12,7 +12,8 @@ jest.mock("../src/clientfileprocessing")
 beforeEach(() => jest.resetModules())
 
 const dummyFile = {
-  webkitRelativePath: "relativePath"
+  file: new File([], ""),
+  path: "relativePath"
 } as IFileWithPath
 
 class ClientFileProcessingSuccess {
