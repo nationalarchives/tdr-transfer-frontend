@@ -20,6 +20,8 @@ const mockDataTransferItemList: (
   itemLength: number
 ) => DataTransferItemList = (entry: DataTransferItem, itemLength: number) => {
   return {
+    item: jest.fn(),
+    [Symbol.iterator]: jest.fn(),
     add: jest.fn(),
     length: itemLength,
     clear: jest.fn(),
@@ -132,6 +134,8 @@ class MockDom {
     itemLength: number
   ) => DataTransferItemList = (entry: DataTransferItem, itemLength: number) => {
     return {
+      item: jest.fn(),
+      [Symbol.iterator]: jest.fn(),
       add: jest.fn(),
       length: itemLength,
       clear: jest.fn(),
