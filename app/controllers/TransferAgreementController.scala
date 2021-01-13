@@ -55,12 +55,12 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 
     val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
       val addTransferAgreementInput: AddTransferAgreementInput = AddTransferAgreementInput(consignmentId,
-        Some(formData.publicRecord),
-        Some(formData.crownCopyright),
-        Some(formData.english),
-        Some(formData.droAppraisalSelection),
-        Some(formData.droSensitivity),
-        Some(formData.openRecords)
+        formData.publicRecord,
+        formData.crownCopyright,
+        formData.english,
+        formData.droAppraisalSelection,
+        Some(formData.openRecords),
+        formData.droSensitivity
       )
 
       val variables: AddTransferAgreement.Variables = AddTransferAgreement.Variables(addTransferAgreementInput)
