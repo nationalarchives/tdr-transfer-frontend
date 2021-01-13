@@ -42,7 +42,7 @@
     "@nationalarchives/file-information": "1.0.19",
     "@nationalarchives/tdr-generated-graphql": "1.0.36",
     "apollo-boost": "^0.4.9",
-    "aws-sdk": "^2.825.0",
+    "aws-sdk": "^2.826.0",
     "govuk-frontend": "^3.10.2",
     "graphql": "^14.7.0",
     "keycloak-js": "11.0.3",
