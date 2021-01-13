@@ -31,7 +31,13 @@ const mockDataTransferItemList: (
 }
 
 class MockDom {
-  constructor() {}
+  constructor(numberOfFiles: number = 2) {
+    if (numberOfFiles === 0) {
+      this.entries = [[]]
+    } else {
+      this.entries = [[], Array(numberOfFiles).fill(this.fileEntry)]
+    }
+  }
 
   html = (document.body.innerHTML = `
   <form id="file-upload-form" data-consignment-id="@consignmentId">
@@ -270,8 +276,7 @@ test("dropzone updates the page with correct folder information if there are 1 o
 })
 
 test("dropzone updates the page with an error if there are no files in folder", async () => {
-  const mockDom = new MockDom()
-  mockDom.entries.pop() // remove entries from previous test
+  const mockDom = new MockDom(0)
   mockDom.batchCount = mockDom.entries.length
   const dragEventClass = mockDom.addFilesToDragEvent(
     [dummyFolder],
