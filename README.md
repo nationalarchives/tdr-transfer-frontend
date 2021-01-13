@@ -61,11 +61,14 @@ development environment for the other TDR services.
         aws cognito-identity list-identity-pools --max-results 20
         ```
       - Copy the `IdentityPoolId` of the pool named "TDR Frontend Identity Intg"
+  - Cognito role ARN
+    - For integration this is `arn:aws:iam::${intg_account_number}:role/TDRCognitoAuthorisedRoleIntg` You can get the intg_account_number from the SSO account selection page or from your `~/.aws/config` file if you're using the CLI with SSO.
 - In IntelliJ, create a new sbt run configuration:
   - Set the Tasks parameter to `run`
   - Configure the environment variables:
     - AUTH_SECRET=\<the secret for the Keycloak client that you copied above\>
     - IDENTITY_POOL_ID=\<the identity pool ID you copied above\>
+    - COGNITO_ROLE_ARN=\<the cognito role arn described above\>
 - Follow the Static Assets steps below to build the CSS and JS
 - Run the project from IntelliJ
 - Visit `http://localhost:9000`
