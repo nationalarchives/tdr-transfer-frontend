@@ -131,7 +131,7 @@ export class UploadForm {
     })
 
     this.dropzone.addEventListener("dragleave", () => {
-      this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
+      this.removeDragover()
     })
   }
 
@@ -211,8 +211,12 @@ export class UploadForm {
     }))
   }
 
+  private removeDragover(): void {
+    this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
+  }
+
   private rejectUserItemSelection() {
-    this.dropzone.classList.remove("drag-and-drop__dropzone--dragover") // Extract this into its own method to do with file selection
+    this.removeDragover()
     const successMessage: HTMLElement | null = document.querySelector(
       ".drag-and-drop__success"
     )
