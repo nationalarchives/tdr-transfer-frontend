@@ -37,6 +37,7 @@ const getFrontEndInfoHtml: () => string = () => {
     <input type="hidden" class="identity-pool-id">
     <input type="hidden" class="stage">
     <input type="hidden" class="region">
+    <input type="hidden" class="cognito-role-arn">
   `.toString()
 }
 
