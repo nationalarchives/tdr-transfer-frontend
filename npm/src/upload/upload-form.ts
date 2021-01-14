@@ -26,6 +26,7 @@ export interface IWebkitEntry extends DataTransferItem {
   isFile: boolean
   isDirectory: boolean
   fullPath: string
+  name?: string
   file: (success: (file: File) => void) => void
 }
 
@@ -136,24 +137,21 @@ export class UploadForm {
   }
 
   handleDropppedItems: (ev: DragEvent) => any = async (ev) => {
-    const droppedItems: FileList | null = ev.dataTransfer!.files // THIS HAS TO BE A FILELIST
     ev.preventDefault()
-
-    if (droppedItems.length > 1) {
-      this.rejectUserItemSelection()
-    }
-    const droppedItem: File | null = droppedItems.item(0)
-
-    if (droppedItem?.type !== "") {
-      this.rejectUserItemSelection()
-    }
     const items: DataTransferItemList = ev.dataTransfer?.items!
-    const webkitEntry = items[0].webkitGetAsEntry()
+    if (items.length > 1) {
+      this.rejectUserItemSelection()
+    }
+    const droppedItem: DataTransferItem | null = items[0]
+    const webkitEntry = droppedItem.webkitGetAsEntry()
+    if (webkitEntry!.isFile) {
+      this.rejectUserItemSelection()
+    }
     const files = await getAllFiles(webkitEntry, [])
     this.selectedFiles = files
     this.checkIfFolderHasFiles(files)
     const folderSize = files.length
-    const folderName = droppedItems.item(0)!.name
+    const folderName = webkitEntry.name
     this.updateFolderSelectionStatus(folderName, folderSize)
   }
 
