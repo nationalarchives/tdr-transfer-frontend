@@ -102,13 +102,16 @@ class MockDom {
     type: "pdf", // overwrite default "type" value "" as files must have a non-empty value
     isFile: true,
     isDirectory: false,
-    webkitGetAsEntry: jest.fn()
+    webkitGetAsEntry: () => ({
+      isFile: true
+    })
   }
   directoryEntry: IWebkitEntry = {
     ...this.dataTransferItemFields,
     createReader: () => this.reader,
     isFile: false,
     isDirectory: true,
+    name: "Mock Folder",
     webkitGetAsEntry: () => this.fileEntry
   }
 
@@ -199,7 +202,10 @@ class MockDom {
   fileUploader = this.setUpFileUploader()
 
   setUpFileUploader(): FileUploader {
-    const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
+    const client = new GraphqlClient(
+      "https://example.com",
+      mockKeycloakInstance
+    )
     const uploadMetadata = new ClientFileMetadataUpload(client)
     return new FileUploader(
       uploadMetadata,
@@ -306,6 +312,7 @@ test("dropzone updates the page with correct folder information if there is a ne
     createReader: () => nestedDirectoryEntryReader,
     isFile: false,
     isDirectory: true,
+    name: "Mock Folder",
     webkitGetAsEntry: () => mockDom.fileEntry
   }
 
