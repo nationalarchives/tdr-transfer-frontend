@@ -199,7 +199,7 @@ class MockDom {
   fileUploader = this.setUpFileUploader()
 
   setUpFileUploader(): FileUploader {
-    const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
+    const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
     const uploadMetadata = new ClientFileMetadataUpload(client)
     return new FileUploader(
       uploadMetadata,
