@@ -1,3 +1,6 @@
+[hidden] {
+  display: none !important;
+}
 .drag-and-drop {
   margin-bottom: 40px;
 }
@@ -16,7 +19,7 @@
 
 .drag-and-drop__button--highlight {
   background-color: $govuk-focus-colour;
-  box-shadow: 0 -2px $govuk-focus-colour, 0 4px govuk-colour('black');
+  box-shadow: 0 -2px $govuk-focus-colour, 0 4px govuk-colour("black");
   color: $govuk-text-colour;
   outline: none;
 }
@@ -32,13 +35,16 @@
 }
 
 .drag-and-drop__dropzone--dragover {
-  background: govuk-colour('mid-grey');
-  outline-color: govuk-colour('dark-grey');
+  background: govuk-colour("mid-grey");
+  outline-color: govuk-colour("dark-grey");
 }
 
 .drag-and-drop__failure {
-  color: govuk-colour('red');
+  color: govuk-colour("red");
   font-weight: bold;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
 }
 
 .drag-and-drop__hint-text {
@@ -57,6 +63,6 @@
 }
 
 .drag-and-drop__success {
-  color: govuk-colour('green');
+  color: govuk-colour("green");
   font-weight: bold;
 }

@@ -11,7 +11,7 @@
         @frontEndInputs(frontEndInfo)
 
         <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
-        <div id="upload-error" class="govuk-error-summary upload-error hide" aria-labelledby="error-summary-title"
+        <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
             role="alert" tabindex="-1" data-module="govuk-error-summary">
             <h2 class="govuk-error-summary__title" id="error-summary-title">
                 @Messages("upload.error.title")
@@ -21,7 +21,7 @@
                 <p class="upload-error__message"></p>
             </div>
         </div>
-        <div id="logged-out-error" class="govuk-error-summary logged-out-error hide" aria-labelledby="logged-out-error-title"
+        <div id="logged-out-error" class="govuk-error-summary logged-out-error" hidden aria-labelledby="logged-out-error-title"
              role="alert" tabindex="-1" data-module="govuk-error-summary">
             <h2 class="govuk-error-summary__title logged-out-title" id="logged-out-error-title">
                 @Messages("loggedOut.error.title")
@@ -39,13 +39,15 @@
                 <div class="drag-and-drop">
                     <div class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
-                            <dd class="govuk-summary-list__value drag-and-drop__success hide">
-                                @greenTickMark()
-                                @Html(Messages("upload.dragAndDropSuccessMessage"))
+                            <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="dialog" aria-describedby="successMessageText">
+			        <div>
+                                    @greenTickMark()
+				    <p id="successMessageText" >@Html(Messages("upload.dragAndDropSuccessMessage"))</p>
+				</div>
                             </dd>
-                            <dd class="govuk-summary-list__value drag-and-drop__failure hide">
+                            <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
                                 @redWarningSign()
-                                @Messages("upload.dragAndDropErrorMessage")
+                              <p id="failureMessageText">@Messages("upload.dragAndDropErrorMessage")</p>
                             </dd>
                         </div>
                     </div>
@@ -76,7 +78,7 @@
                                         @Messages("upload.fileExtensionTitle")
                                     </span>
                                 </summary>
-                                <div class="govuk-details__text">
+                                <div class="govuk-details__text" tabindex="0">
                                     @Messages("upload.fileExtensionSummary")
                                 </div>
                             </details>
@@ -92,7 +94,7 @@
         @form(routes.FileChecksController.recordProcessingPage(consignmentId), Symbol("id") -> "upload-data-form") { }
     </div>
 </div>
-<div id="progress-bar" class="govuk-grid-row hide">
+<div id="progress-bar" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds">
         <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
         @progressIndicator(Messages("upload.progress"))

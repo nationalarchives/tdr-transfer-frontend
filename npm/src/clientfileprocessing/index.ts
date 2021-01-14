@@ -37,8 +37,8 @@ export class ClientFileProcessing {
     )
 
     if (fileUpload && progressBar) {
-      fileUpload.classList.add("hide")
-      progressBar.classList.remove("hide")
+      fileUpload.setAttribute("hidden", "true")
+      progressBar.removeAttribute("hidden")
     }
 
     if (progressBarElement) {
