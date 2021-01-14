@@ -218,11 +218,11 @@ export class UploadForm {
     const successMessage: HTMLElement | null = document.querySelector(
       ".drag-and-drop__success"
     )
-    successMessage?.classList.add("hide")
+    successMessage?.setAttribute("hidden", "true")
     const warningMessage: HTMLElement | null = document.querySelector(
       ".drag-and-drop__failure"
     )
-    warningMessage?.classList.remove("hide")
+    warningMessage?.removeAttribute("hidden")
     throw new Error("No files selected")
   }
 
@@ -242,11 +242,11 @@ export class UploadForm {
       const warningMessage: HTMLElement | null = document.querySelector(
         ".drag-and-drop__failure"
       )
-      warningMessage?.classList.add("hide")
+      warningMessage?.setAttribute("hidden", "true")
       const successMessage: HTMLElement | null = document.querySelector(
         ".drag-and-drop__success"
       )
-      successMessage?.classList.remove("hide")
+      successMessage?.removeAttribute("hidden")
       this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
     }
   }
