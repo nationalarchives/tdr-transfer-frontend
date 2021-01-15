@@ -3,7 +3,7 @@ import { ClientFileExtractMetadata } from "../clientfileextractmetadata"
 import { handleUploadError } from "../errorhandling"
 import {
   IFileMetadata,
-  TdrFile,
+  IFileWithPath,
   IProgressInformation
 } from "@nationalarchives/file-information"
 import { ITdrFile, S3Upload } from "../s3upload"
@@ -59,7 +59,7 @@ export class ClientFileProcessing {
   }
 
   async processClientFiles(
-    files: TdrFile[],
+    files: IFileWithPath[],
     uploadFilesInfo: FileUploadInfo,
     stage: string
   ): Promise<void> {

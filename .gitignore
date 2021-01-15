@@ -9,3 +9,4 @@ public/javascripts/
 public/stylesheets/*
 npm/css-src/*.css
 npm/dist
+npm/.history

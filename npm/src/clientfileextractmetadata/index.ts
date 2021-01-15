@@ -1,13 +1,13 @@
 import {
   extractFileMetadata,
   IFileMetadata,
-  TdrFile,
+  IFileWithPath,
   TProgressFunction
 } from "@nationalarchives/file-information"
 
 export class ClientFileExtractMetadata {
   async extract(
-    files: TdrFile[],
+    files: IFileWithPath[],
     callBack: TProgressFunction
   ): Promise<IFileMetadata[]> {
     try {
