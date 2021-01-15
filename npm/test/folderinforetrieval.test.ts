@@ -42,6 +42,9 @@ class MockDom {
   html = (document.body.innerHTML = `
   <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
+                <div hidden="" id="folder-empty-error-message">The folder you have selected is empty</div>
+                <div hidden="" id="multiple-folders-selected-error-message">You can only drop a single folder</div>
+                <div hidden="" id="file-selected-error-message">You have selected a file. Please select a folder</div>
                 <div class="drag-and-drop">
                     <div class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
@@ -255,8 +258,14 @@ test("Input button updates the page with correct folder information if there are
   mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
   mockDom.selectFolderViaButton()
 
-  expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveClass("hide")
-  expect(mockDom.folderRetrievalfailureMessage!).toHaveClass("hide")
+  expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(mockDom.folderRetrievalfailureMessage!).toHaveAttribute(
+    "hidden",
+    "true"
+  )
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("1 file")
 })
@@ -275,8 +284,14 @@ test("dropzone updates the page with correct folder information if there are 1 o
   const dragEvent = new dragEventClass()
   await mockDom.form.handleDropppedItems(dragEvent)
 
-  expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveClass("hide")
-  expect(mockDom.folderRetrievalfailureMessage!).toHaveClass("hide")
+  expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(mockDom.folderRetrievalfailureMessage!).toHaveAttribute(
+    "hidden",
+    "true"
+  )
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
 })
@@ -290,11 +305,17 @@ test("dropzone updates the page with an error if there are no files in folder", 
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
-    Error("No files selected")
+    Error("The file selection has been rejected")
   )
 
-  expect(mockDom.folderRetrievalSuccessMessage!).toHaveClass("hide")
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveClass("hide")
+  expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+    "hidden",
+    "true"
+  )
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })
@@ -332,8 +353,14 @@ test("dropzone updates the page with correct folder information if there is a ne
   const dragEvent = new dragEventClass()
   await mockDom.form.handleDropppedItems(dragEvent)
 
-  expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveClass("hide")
-  expect(mockDom.folderRetrievalfailureMessage!).toHaveClass("hide")
+  expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(mockDom.folderRetrievalfailureMessage!).toHaveAttribute(
+    "hidden",
+    "true"
+  )
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
 })
@@ -346,11 +373,17 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
-    Error("No files selected")
+    Error("The file selection has been rejected")
   )
 
-  expect(mockDom.folderRetrievalSuccessMessage!).toHaveClass("hide")
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveClass("hide")
+  expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+    "hidden",
+    "true"
+  )
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })
@@ -363,11 +396,17 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
-    Error("No files selected")
+    Error("The file selection has been rejected")
   )
 
-  expect(mockDom.folderRetrievalSuccessMessage!).toHaveClass("hide")
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveClass("hide")
+  expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+    "hidden",
+    "true"
+  )
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })
@@ -380,11 +419,17 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
-    Error("No files selected")
+    Error("The file selection has been rejected")
   )
 
-  expect(mockDom.folderRetrievalSuccessMessage!).toHaveClass("hide")
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveClass("hide")
+  expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+    "hidden",
+    "true"
+  )
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })

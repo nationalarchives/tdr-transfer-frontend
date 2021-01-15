@@ -9,6 +9,9 @@
         <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
         @progressIndicator(Messages("upload.progress"))
         @frontEndInputs(frontEndInfo)
+        <div hidden id="folder-empty-error-message">@Messages("upload.dragAndDropFolderEmptyErrorMessage")</div>
+        <div hidden id="multiple-folders-selected-error-message">@Messages("upload.dragAndDropMultipleFoldersErrorMessage")</div>
+        <div hidden id="file-selected-error-message">@Messages("upload.dragAndDropFileSelectedErrorMessage")</div>
 
         <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
         <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
@@ -47,7 +50,7 @@
                             </dd>
                             <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
                                 @redWarningSign()
-                              <p id="failureMessageText">@Messages("upload.dragAndDropErrorMessage")</p>
+                              <p id="failureMessageText"></p>
                             </dd>
                         </div>
                     </div>

@@ -54,7 +54,7 @@ function checkExpectedErrorHtmlState(expectedRenderedErrorMessage: string) {
   expect(formElement && formElement.classList.toString()).toEqual("hide")
 
   expect(errorElement && errorElement.classList.toString()).toEqual(
-    "govuk-error-summary upload-error"
+    "govuk-error-summary upload-error hide"
   )
 
   expect(errorMessageElement && errorMessageElement.textContent).toEqual(

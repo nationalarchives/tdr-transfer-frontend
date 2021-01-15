@@ -473,11 +473,11 @@ function checkExpectedPageState(percentage: String) {
   )
 
   expect(progressBar && progressBar.classList.toString()).toEqual(
-    "govuk-grid-row"
+    "govuk-grid-row hide"
   )
 
   expect(fileUpload && fileUpload.classList.toString()).toEqual(
-    "govuk-grid-row hide"
+    "govuk-grid-row"
   )
 
   expect(uploadError && uploadError.classList.toString()).toEqual(
