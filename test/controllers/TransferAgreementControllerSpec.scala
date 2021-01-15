@@ -122,12 +122,12 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       
       val addTransferAgreementResponse: ata.AddTransferAgreement = new ata.AddTransferAgreement(
         consignmentId,
-        Some(true),
-        Some(true),
-        Some(true),
-        Some(true),
-        Some(true),
-        Some(true)
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
       )
       stubTransferAgreementResponse(Some(addTransferAgreementResponse))
 
