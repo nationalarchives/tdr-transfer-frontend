@@ -38,7 +38,9 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
       "droAppraisalSelection" -> boolean
         .verifying(messagesApi("transferAgreement.droAppraisalSelection.error"), b => b),
       "droSensitivity" -> boolean
-        .verifying(messagesApi("transferAgreement.droSensitivity.error"), b => b)
+        .verifying(messagesApi("transferAgreement.droSensitivity.error"), b => b),
+      "openRecords" -> boolean
+        .verifying(messagesApi("transferAgreement.openRecords.error"), b => b)
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
@@ -53,11 +55,12 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 
     val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
       val addTransferAgreementInput: AddTransferAgreementInput = AddTransferAgreementInput(consignmentId,
-        Some(formData.publicRecord),
-        Some(formData.crownCopyright),
-        Some(formData.english),
-        Some(formData.droAppraisalSelection),
-        Some(formData.droSensitivity)
+        formData.publicRecord,
+        formData.crownCopyright,
+        formData.english,
+        formData.droAppraisalSelection,
+        Some(formData.openRecords),
+        formData.droSensitivity
       )
 
       val variables: AddTransferAgreement.Variables = AddTransferAgreement.Variables(addTransferAgreementInput)
@@ -79,4 +82,5 @@ case class TransferAgreementData(publicRecord: Boolean,
                                  crownCopyright: Boolean,
                                  english: Boolean,
                                  droAppraisalSelection: Boolean,
-                                 droSensitivity: Boolean)
+                                 droSensitivity: Boolean,
+                                 openRecords: Boolean)
