@@ -61,6 +61,14 @@
             Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("droSensitivity", ""),
             Symbol("_requiredOption") -> true
             )
+            @inputSingleCheckbox(
+                transferAgreementForm("openRecords"),
+                Symbol("_label") -> Messages("transferAgreement.openRecords"),
+                Symbol("_value") -> "true",
+                Symbol("_smallCheckbox") -> true,
+                Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("openRecords", ""),
+                Symbol("_requiredOption") -> true
+            )
         </fieldset>
         <!-- Buttons -->
         <div>
