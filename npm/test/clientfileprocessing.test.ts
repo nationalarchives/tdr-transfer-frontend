@@ -3,9 +3,9 @@ import { GraphqlClient } from "../src/graphql"
 import { ClientFileProcessing } from "../src/clientfileprocessing"
 import {
   IFileMetadata,
-  TdrFile,
   TProgressFunction,
-  IProgressInformation
+  IProgressInformation,
+  IFileWithPath
 } from "@nationalarchives/file-information"
 import { ClientFileExtractMetadata } from "../src/clientfileextractmetadata"
 import { S3Upload, ITdrFile } from "../src/s3upload"
@@ -51,8 +51,8 @@ class ClientFileUploadSuccess {
 }
 
 class ClientFileExtractMetadataSuccess {
-  extract: (files: TdrFile[]) => Promise<IFileMetadata[]> = async (
-    files: TdrFile[]
+  extract: (files: IFileWithPath[]) => Promise<IFileMetadata[]> = async (
+    files: IFileWithPath[]
   ) => {
     return Promise.resolve([])
   }
@@ -95,8 +95,8 @@ class ClientFileUploadMetadataFailure {
 }
 
 class ClientFileExtractMetadataFailure {
-  extract: (files: TdrFile[]) => Promise<IFileMetadata[]> = async (
-    files: TdrFile[]
+  extract: (files: IFileWithPath[]) => Promise<IFileMetadata[]> = async (
+    files: IFileWithPath[]
   ) => {
     return Promise.reject(Error("client file metadata extraction error"))
   }
