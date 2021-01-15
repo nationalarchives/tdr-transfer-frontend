@@ -59,7 +59,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         formData.crownCopyright,
         formData.english,
         formData.droAppraisalSelection,
-        Some(formData.openRecords),
+        formData.openRecords,
         formData.droSensitivity
       )
 
