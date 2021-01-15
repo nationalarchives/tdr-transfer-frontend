@@ -1,7 +1,7 @@
 import { configureAws } from "./aws-config"
 import { GraphqlClient } from "./graphql"
 import { getKeycloakInstance, authenticateAndGetIdentityId } from "./auth"
-import { UploadFiles } from "./upload"
+import { FileUploader } from "./upload"
 import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 import { goToNextPage } from "./upload/next-page-redirect"
 import { FileChecks } from "./filechecks"
@@ -93,12 +93,12 @@ export const renderModules = () => {
         new STS({ region: frontEndInfo.region })
       ).then((identityId) => {
         const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
-        new UploadFiles(
+        new FileUploader(
           clientFileProcessing,
           identityId,
           frontEndInfo.stage,
           goToNextPage
-        ).upload()
+        ).initialiseFormListeners()
       })
     })
   }
