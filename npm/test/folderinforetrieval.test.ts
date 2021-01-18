@@ -42,9 +42,6 @@ class MockDom {
   html = (document.body.innerHTML = `
   <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
-                <div hidden="" id="folder-empty-error-message">The folder you have selected is empty</div>
-                <div hidden="" id="multiple-folders-selected-error-message">You can only drop a single folder</div>
-                <div hidden="" id="file-selected-error-message">You have selected a file. Please select a folder</div>
                 <div class="drag-and-drop">
                     <div class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
