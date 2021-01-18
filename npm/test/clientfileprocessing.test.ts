@@ -441,17 +441,17 @@ test("Error thrown if S3 upload fails", async () => {
 
 function setupUploadPageHTML() {
   document.body.innerHTML = `<div id="file-upload" class="govuk-grid-row"></div>
-   <div id="upload-error" class="govuk-error-summary upload-error hide" aria-labelledby="error-summary-title"
+   <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
             role="alert" tabindex="-1" data-module="govuk-error-summary">
             <h2 class="govuk-error-summary__title" id="error-summary-title"></h2></div>
-    <div id="progress-bar" class="govuk-grid-row hide">
+    <div id="progress-bar" class="govuk-grid-row" hidden>
     <div> <progress class="progress-display" value="" max="50"></progress> </div>
     </div>`
 }
 
 function setupUploadPageHTMLWithoutProgressBar() {
   document.body.innerHTML = `<div id="file-upload" class="govuk-grid-row"></div>
-  <div id="upload-error" class="govuk-error-summary upload-error hide" aria-labelledby="error-summary-title
+  <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title
           role="alert" tabindex="-1" data-module="govuk-error-summary">
           <h2 class="govuk-error-summary__title" id="error-summary-title"></h2></div>`
 }
@@ -476,12 +476,12 @@ function checkExpectedPageState(percentage: String) {
     "govuk-grid-row"
   )
 
-  expect(fileUpload && fileUpload.classList.toString()).toEqual(
-    "govuk-grid-row hide"
+  expect(fileUpload && fileUpload.getAttribute("hidden")).toEqual(
+    "true"
   )
 
-  expect(uploadError && uploadError.classList.toString()).toEqual(
-    "govuk-error-summary upload-error hide"
+  expect(uploadError && uploadError.getAttribute("hidden")).toEqual(
+    ""
   )
 
   expect(
