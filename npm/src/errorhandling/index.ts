@@ -25,7 +25,7 @@ export function handleUploadError(
     }
 
     if (uploadFormError) {
-      uploadFormError.classList.remove("hide")
+      uploadFormError.setAttribute("hidden", "true")
       renderErrorMessage(error.message)
     }
   }
@@ -56,7 +56,7 @@ function showLoggedOutError(login: string) {
   }
 
   if (loggedOutError && loginLink) {
-    loggedOutError.classList.remove("hide")
+    loggedOutError.setAttribute("hidden", "true")
     loginLink.href = login
   }
 }
