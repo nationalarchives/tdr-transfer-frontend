@@ -140,12 +140,12 @@ export class UploadForm {
     ev.preventDefault()
     const items: DataTransferItemList = ev.dataTransfer?.items!
     if (items.length > 1) {
-      this.rejectUserItemSelection("multiple-folders-selected-error-message")
+      this.rejectUserItemSelection()
     }
     const droppedItem: DataTransferItem | null = items[0]
     const webkitEntry = droppedItem.webkitGetAsEntry()
     if (webkitEntry!.isFile) {
-      this.rejectUserItemSelection("file-selected-error-message")
+      this.rejectUserItemSelection()
     }
     const files = await getAllFiles(webkitEntry, [])
     this.selectedFiles = files
@@ -195,7 +195,7 @@ export class UploadForm {
 
   private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void {
     if (files === null || files.length === 0) {
-      this.rejectUserItemSelection("folder-empty-error-message")
+      this.rejectUserItemSelection()
     }
   }
 
@@ -213,11 +213,8 @@ export class UploadForm {
     this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
   }
 
-  private rejectUserItemSelection(errorId: String) {
+  private rejectUserItemSelection() {
     this.removeDragover()
-    const errorMessage: HTMLDivElement | null = document.querySelector(
-      `#${errorId}`
-    )
     const successMessage: HTMLElement | null = document.querySelector(
       ".drag-and-drop__success"
     )
@@ -226,14 +223,7 @@ export class UploadForm {
       ".drag-and-drop__failure"
     )
     warningMessage?.removeAttribute("hidden")
-    const errorText: HTMLParagraphElement | null = document.querySelector(
-      "#failureMessageText"
-    )
-    if (errorText && errorMessage) {
-      errorText.innerHTML = errorMessage?.innerHTML
-    }
-
-    throw new Error("The file selection has been rejected")
+    throw new Error("No files selected")
   }
 
   private updateFolderSelectionStatus(folderName: string, folderSize: number) {
