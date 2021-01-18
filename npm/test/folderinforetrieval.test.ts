@@ -305,7 +305,7 @@ test("dropzone updates the page with an error if there are no files in folder", 
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
-    Error("The file selection has been rejected")
+    Error("No files selected")
   )
 
   expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
@@ -373,7 +373,7 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
-    Error("The file selection has been rejected")
+    Error("No files selected")
   )
 
   expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
@@ -396,7 +396,7 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
-    Error("The file selection has been rejected")
+    Error("No files selected")
   )
 
   expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
@@ -419,7 +419,7 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
-    Error("The file selection has been rejected")
+    Error("No files selected")
   )
 
   expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
