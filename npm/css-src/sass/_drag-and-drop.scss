@@ -1,3 +1,7 @@
+[hidden] {
+  display: none !important;
+}
+
 .drag-and-drop {
   margin-bottom: 40px;
 }
@@ -37,7 +41,10 @@
 }
 
 .drag-and-drop__failure {
+  align-items: flex-end;
   color: govuk-colour('red');
+  display: flex;
+  flex-direction: row;
   font-weight: bold;
 }
 
