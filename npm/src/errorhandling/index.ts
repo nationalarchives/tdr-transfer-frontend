@@ -25,7 +25,7 @@ export function handleUploadError(
     }
 
     if (uploadFormError) {
-      uploadFormError.setAttribute("hidden", "true")
+      uploadFormError.removeAttribute("hidden")
       renderErrorMessage(error.message)
     }
   }
