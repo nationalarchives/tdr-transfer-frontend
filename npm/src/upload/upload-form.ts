@@ -223,6 +223,7 @@ export class UploadForm {
       ".drag-and-drop__failure"
     )
     warningMessage?.removeAttribute("hidden")
+    warningMessage?.focus()
     throw new Error("No files selected")
   }
 
@@ -247,6 +248,7 @@ export class UploadForm {
         ".drag-and-drop__success"
       )
       successMessage?.removeAttribute("hidden")
+      successMessage?.focus()
       this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
     }
   }
