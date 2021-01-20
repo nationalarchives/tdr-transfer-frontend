@@ -74,7 +74,7 @@ transferSummary.openRecords.error=All records must be confirmed as open before p
 transferSummary.transferLegalOwnership=I confirm that I am transferring legal ownership of these records to The National Archives
 transferSummary.transferLegalOwnership.error=Transferral of legal ownership of all records must be confirmed before proceeding
 transferSummary.transferLink=Transfer your records
-transferConfirmation.header=Transfer Complete
+transferComplete.header=Transfer Complete
 forbiddenError.header=You are not permitted to see this page
 forbiddenError.body=This page is restricted to certain users only.
 internalServerError.header=Sorry, there is a problem with the service
@@ -86,9 +86,12 @@ notFoundError.body1=If you typed a web address, check it is correct.
 notFoundError.body2=If you pasted the web address, check you copied the entire address.
 notFoundError.body3=If the web address is correct or you selected a link or button, contact <a href= "#">The National Archives Help Desk<a/> to speak to someone about your transfers.
 notFoundError.body4=Alternatively, you can <a href= "/dashboard">return to the home page</a>.
-transferConfirmation.title=Transfer Confirmation
-transferConfirmation.complete=Your transfer is complete
-transferConfirmation.error=There has been an error, contact us.
+transferComplete.title=Transfer Complete
+transferComplete.error=There has been an error, contact us.
+transferComplete.body=Your transfer of digital records is now complete.
+transferComplete.heading=What happens next
+transferComplete.body.notify=We’ve received your transfer and will notify you when your records are in our archive.
+transferComplete.body.delete=Please do not delete any records until then.
 
 # Upload.error messages placeholder wording
 upload.error.title=There is a problem
@@ -104,5 +107,5 @@ upload.progress=3
 uploadProgress.progress=4
 checkingRecords.progress=5
 transferSummary.progress=8
-transferConfirmation.progress=9
+transferComplete.progress=9
 progress.totalSteps=9
