@@ -74,7 +74,6 @@ transferSummary.openRecords.error=All records must be confirmed as open before p
 transferSummary.transferLegalOwnership=I confirm that I am transferring legal ownership of these records to The National Archives
 transferSummary.transferLegalOwnership.error=Transferral of legal ownership of all records must be confirmed before proceeding
 transferSummary.transferLink=Transfer your records
-transferComplete.header=Transfer Complete
 forbiddenError.header=You are not permitted to see this page
 forbiddenError.body=This page is restricted to certain users only.
 internalServerError.header=Sorry, there is a problem with the service
