@@ -16,7 +16,7 @@ GET     /consignment/:consignmentId/records-results        controllers.FileCheck
 GET     /consignment/:consignmentId/transfer-summary       controllers.TransferSummaryController.transferSummary(consignmentId: java.util.UUID)
 POST    /consignment/:consignmentId/transfer-summary       controllers.TransferSummaryController.transferSummarySubmit(consignmentId: java.util.UUID)
 GET     /keycloak.json                                     controllers.KeycloakConfigurationController.keycloak()
-GET     /consignment/:consignmentId/transfer-confirmation  controllers.TransferConfirmationController.transferConfirmation(consignmentId: java.util.UUID, exportTriggered: Boolean)
+GET     /consignment/:consignmentId/transfer-complete      controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

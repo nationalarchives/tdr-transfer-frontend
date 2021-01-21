@@ -1,0 +1,29 @@
+@()(implicit messages: Messages)
+@main(Messages("transferComplete.title")) {
+@defining(play.core.PlayVersion.current) { version =>
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
+        @progressIndicator(Messages("transferComplete.progress"))
+        <div class="govuk-panel govuk-panel--confirmation">
+            <h1 class="govuk-panel__title">
+                @Messages("transferComplete.title")
+            </h1>
+            <div class="govuk-panel__body">
+                @Messages("transferComplete.body")
+            </div>
+        </div>
+        <p class="govuk-heading-l">@Messages("transferComplete.heading")</p>
+
+        <p class="govuk-body">@Messages("transferComplete.body.notify")</p>
+
+        <p class="govuk-body">@Messages("transferComplete.body.delete")</p>
+
+        <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button">
+            @Messages("dashboard.header")
+        </a>
+    </div>
+
+</div>
+}
+}
