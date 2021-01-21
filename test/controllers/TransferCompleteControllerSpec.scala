@@ -9,7 +9,7 @@ import util.FrontEndTestHelper
 
 class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
-  "TransferConfirmationController GET" should {
+  "TransferCompleteController GET" should {
     "render the success page if the export was triggered successfully" in {
       val consignmentId = UUID.randomUUID()
       val controller = new TransferCompleteController(getAuthorisedSecurityComponents, getValidKeycloakConfiguration)
