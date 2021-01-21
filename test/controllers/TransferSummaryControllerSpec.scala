@@ -3,7 +3,7 @@ package controllers
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, serverError, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{ok, okJson, post, serverError, urlEqualTo}
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcs}
@@ -152,9 +152,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       contentAsString(transferSummarySubmit) must include("error")
     }
 
-    "redirects to the transfer confirmation page when a valid form is submitted" in {
+    "redirects to the transfer complete page when a valid form is submitted" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      mockGraphqlResponse
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
@@ -170,23 +171,27 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       transferSummarySubmit.header.status should equal(303)
     }
 
-    "redirects to the transfer confirmation page when the call to the export api fails" in {
+    "return an error when the call to the export api fails" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(Some(ut.Data(Option(1))), List())
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(serverError()))
 
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
 
-      val transferSummarySubmit: Result = controller.transferSummarySubmit(consignmentId)
+      val transferSummarySubmitError: Throwable = controller.transferSummarySubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
           .withFormUrlEncodedBody(("openRecords", "true"), ("transferLegalOwnership", "true"))
           .withCSRFToken
-        ).futureValue
+        ).failed.futureValue
 
-      transferSummarySubmit.header.status should equal(303)
-      transferSummarySubmit.header.headers("Location").contains("exportTriggered=false") should be(true)
+      transferSummarySubmitError.getMessage should equal(s"Call to export API has returned a non 200 response for consignment $consignmentId")
     }
 
     "calls the export api when a valid form is submitted" in {
@@ -194,7 +199,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
-
+      mockGraphqlResponse
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
 
@@ -207,7 +212,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockExportServer.getAllServeEvents.size() should equal(1)
     }
 
-    "redirects to the transfer confirmation page when the call to the graphql api fails" in {
+    "return an error when the call to the graphql api fails" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
@@ -217,24 +222,21 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
 
-      val transferSummarySubmit: Result = controller.transferSummarySubmit(consignmentId)
+      val transferSummarySubmitError: Throwable = controller.transferSummarySubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
           .withFormUrlEncodedBody(("openRecords", "true"), ("transferLegalOwnership", "true"))
           .withCSRFToken
-        ).futureValue
+        ).failed.futureValue
 
-      transferSummarySubmit.header.status should equal(303)
-      transferSummarySubmit.header.headers("Location").contains("exportTriggered=false") should be(true)
+      transferSummarySubmitError.getMessage should startWith("Unexpected response from GraphQL API")
     }
 
     "calls the graphql api when a valid form is submitted" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(ut.Data(Option(1))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      mockGraphqlResponse
+      wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
+        .willReturn(ok()))
 
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
@@ -247,5 +249,13 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
 
       wiremockServer.getAllServeEvents.size() should equal(1)
     }
+  }
+
+  private def mockGraphqlResponse = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
+    val data: client.GraphqlData = client.GraphqlData(Some(ut.Data(Option(1))), List())
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .willReturn(okJson(dataString)))
   }
 }
