@@ -152,7 +152,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       contentAsString(transferSummarySubmit) must include("error")
     }
 
-    "redirects to the transfer confirmation page when a valid form is submitted" in {
+    "redirects to the transfer complete page when a valid form is submitted" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       mockGraphqlResponse
