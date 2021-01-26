@@ -23,7 +23,7 @@ export function handleUploadError(
       )
 
       if (uploadForm) {
-        uploadForm.classList.add("hide")
+        uploadForm.setAttribute("hidden", "true")
       }
 
       if (uploadFormError) {
@@ -52,6 +52,7 @@ export function handleUploadError(
       const uploadProgressErrorMessage: HTMLParagraphElement | null = document.querySelector(
         `.upload-progress-error-${getErrorMessageSuffix(error.name)}__message`
       )
+
       if (uploadProgressErrorMessage) {
         uploadProgressErrorMessage.removeAttribute("hidden")
       }
