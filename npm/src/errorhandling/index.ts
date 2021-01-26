@@ -14,19 +14,47 @@ export function handleUploadError(
     showLoggedOutError(error.loginUrl)
   } else {
     const uploadForm: HTMLFormElement | null = document.querySelector(
-      "#file-upload-form"
+      "#file-upload"
     )
-    const uploadFormError: HTMLDivElement | null = document.querySelector(
-      ".govuk-error-summary.upload-error"
-    )
+    //User is still on upload form
+    if (uploadForm && !uploadForm.hasAttribute("hidden")) {
+      const uploadFormError: HTMLDivElement | null = document.querySelector(
+        ".govuk-error-summary.upload-error"
+      )
 
-    if (uploadForm) {
-      uploadForm.classList.add("hide")
-    }
+      if (uploadForm) {
+        uploadForm.classList.add("hide")
+      }
 
-    if (uploadFormError) {
-      uploadFormError.removeAttribute("hidden")
-      renderErrorMessage(error.message)
+      if (uploadFormError) {
+        uploadFormError.removeAttribute("hidden")
+        renderErrorMessage(error.message)
+      }
+    } else {
+      //User is seeing progress bar
+      const uploadProgressError: HTMLDivElement | null = document.querySelector(
+        "#upload-progress-error"
+      )
+      if (uploadProgressError) {
+        uploadProgressError.removeAttribute("hidden")
+      }
+      const getErrorMessageSuffix: (errorName: string) => string = (
+        errorName
+      ) => {
+        if (errorName === "TimeoutError") {
+          return "timeout"
+        } else if (errorName === "AccessDenied") {
+          return "authentication"
+        } else {
+          return "general"
+        }
+      }
+      const uploadProgressErrorMessage: HTMLParagraphElement | null = document.querySelector(
+        `.upload-progress-error-${getErrorMessageSuffix(error.name)}__message`
+      )
+      if (uploadProgressErrorMessage) {
+        uploadProgressErrorMessage.removeAttribute("hidden")
+      }
     }
   }
   throw Error(additionalLoggingInfo + ": " + error.message)
