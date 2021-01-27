@@ -3,18 +3,15 @@ package controllers
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, okJson, post, unauthorized, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
-import org.apache.shiro.authz.{AuthorizationException, UnauthorizedException}
+import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.ConsignmentService
 import util.FrontEndTestHelper
-import org.scalatest.RecoverMethods._
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-import play.api.mvc.Result
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
