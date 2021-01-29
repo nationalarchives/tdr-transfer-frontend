@@ -12,6 +12,14 @@
         @progressIndicator(Messages("transferAgreement.progress"))
 
         <h1 class="govuk-heading-xl">@Messages("transferAgreement.title")</h1>
+        @errorSummary(
+            transferAgreementForm("publicRecord"),
+            transferAgreementForm("crownCopyright"),
+            transferAgreementForm("english"),
+            transferAgreementForm("droAppraisalSelection"),
+            transferAgreementForm("droSensitivity"),
+            transferAgreementForm("openRecords"),
+        )
         @form(
             routes.TransferAgreementController.transferAgreementSubmit(consignmentId),
             (Symbol("novalidate"), "")
