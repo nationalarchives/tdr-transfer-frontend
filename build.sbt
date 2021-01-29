@@ -25,8 +25,6 @@ libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
   "org.pac4j" % "pac4j-http" % pac4jVersion exclude("com.fasterxml.jackson.core", "jackson-databind"),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude("commons-io", "commons-io") exclude("com.fasterxml.jackson.core", "jackson-databind"),
-  "org.apache.shiro" % "shiro-core" % "1.4.0",
-  "net.bytebuddy" % "byte-buddy" % "1.9.7",
   "io.circe" %% "circe-core" % "0.13.0",
   "io.circe" %% "circe-generic" % "0.13.0",
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
