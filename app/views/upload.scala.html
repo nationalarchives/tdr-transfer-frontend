@@ -100,6 +100,20 @@
         @progressIndicator(Messages("upload.progress"))
         <h1 class="govuk-heading-xl">@Messages("uploadProgress.header")</h1>
         <p class="govuk-body">@Messages("uploadProgress.title")</p>
+        <div id="upload-progress-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
+            role="alert" tabindex="-1" data-module="govuk-error-summary">
+            <div id="upload-progress-error">
+                <h2 class="govuk-error-summary__title" id="error-summary-title">
+                    @Messages("upload.error.title")
+                </h2>
+                <div class="govuk-error-summary__body">
+                    <p>@Messages("upload.error.failure")</p>
+                    <p class="upload-progress-error-timeout__message" hidden>@Html(Messages("upload.progress.error.timeout"))</p>
+                    <p class="upload-progress-error-authentication__message" hidden>@Html(Messages("upload.progress.error.authentication"))</p>
+                    <p class="upload-progress-error-general__message" hidden>@Html(Messages("upload.progress.error.general"))</p>
+                </div>
+            </div>
+        </div>
         <div>
             <progress class="progress-display" value="" max="100"></progress>
         </div>
