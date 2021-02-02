@@ -13,13 +13,16 @@ export function handleUploadError(
   if (error instanceof LoggedOutError) {
     showLoggedOutError(error.loginUrl)
   } else {
-    const uploadForm: HTMLFormElement | null = document.querySelector(
+    const uploadFormContainer: HTMLFormElement | null = document.querySelector(
       "#file-upload"
     )
     //User is still on upload form
-    if (uploadForm && !uploadForm.hasAttribute("hidden")) {
+    if (uploadFormContainer && !uploadFormContainer.hasAttribute("hidden")) {
       const uploadFormError: HTMLDivElement | null = document.querySelector(
         ".govuk-error-summary.upload-error"
+      )
+      const uploadForm: HTMLDivElement | null = document.querySelector(
+        "#file-upload-form"
       )
 
       if (uploadForm) {

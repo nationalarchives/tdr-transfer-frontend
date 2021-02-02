@@ -42,7 +42,7 @@ test("handleUploadError function throws error and does not display error message
 
 function checkExpectedErrorHtmlState(expectedRenderedErrorMessage: string) {
   const formElement: HTMLFormElement | null = document.querySelector(
-    "#file-upload"
+    "#file-upload-form"
   )
   const errorElement: HTMLDivElement | null = document.querySelector(
     ".govuk-error-summary.upload-error"
