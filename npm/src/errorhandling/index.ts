@@ -13,20 +13,52 @@ export function handleUploadError(
   if (error instanceof LoggedOutError) {
     showLoggedOutError(error.loginUrl)
   } else {
-    const uploadForm: HTMLFormElement | null = document.querySelector(
-      "#file-upload-form"
+    const uploadFormContainer: HTMLFormElement | null = document.querySelector(
+      "#file-upload"
     )
-    const uploadFormError: HTMLDivElement | null = document.querySelector(
-      ".govuk-error-summary.upload-error"
-    )
+    //User is still on upload form
+    if (uploadFormContainer && !uploadFormContainer.hasAttribute("hidden")) {
+      const uploadFormError: HTMLDivElement | null = document.querySelector(
+        ".govuk-error-summary.upload-error"
+      )
+      const uploadForm: HTMLDivElement | null = document.querySelector(
+        "#file-upload-form"
+      )
 
-    if (uploadForm) {
-      uploadForm.classList.add("hide")
-    }
+      if (uploadForm) {
+        uploadForm.setAttribute("hidden", "true")
+      }
 
-    if (uploadFormError) {
-      uploadFormError.removeAttribute("hidden")
-      renderErrorMessage(error.message)
+      if (uploadFormError) {
+        uploadFormError.removeAttribute("hidden")
+        renderErrorMessage(error.message)
+      }
+    } else {
+      //User is seeing progress bar
+      const uploadProgressError: HTMLDivElement | null = document.querySelector(
+        "#upload-progress-error"
+      )
+      if (uploadProgressError) {
+        uploadProgressError.removeAttribute("hidden")
+      }
+      const getErrorMessageSuffix: (errorName: string) => string = (
+        errorName
+      ) => {
+        if (errorName === "TimeoutError") {
+          return "timeout"
+        } else if (errorName === "AccessDenied") {
+          return "authentication"
+        } else {
+          return "general"
+        }
+      }
+      const uploadProgressErrorMessage: HTMLParagraphElement | null = document.querySelector(
+        `.upload-progress-error-${getErrorMessageSuffix(error.name)}__message`
+      )
+
+      if (uploadProgressErrorMessage) {
+        uploadProgressErrorMessage.removeAttribute("hidden")
+      }
     }
   }
   throw Error(additionalLoggingInfo + ": " + error.message)
