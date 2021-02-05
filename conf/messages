@@ -99,6 +99,16 @@ upload.progress.error.general=Something has gone wrong, click <a href="/series">
 loggedOut.error.title=You have been logged out due to inactivity
 loggedOut.error.linkText=Log in
 
+# Wording for the links in the footer
+help.header=Help
+help.title=Help using Transfer Digital Records
+help.description=Find out how to use this service
+accessibility.header=Accessibility statement
+accessibility.title=Accessibility statement for Transfer Digital Records
+accessibility.body1=This accessibility statement applies to [scope of statement, example website or domain to which the statement applies].
+cookies.header=Cookies policy
+cookies.title=Cookies policy
+cookies.description=Cookies on Transfer Digital Records
 # Progress indicator step numbers
 seriesDetails.progress=1
 transferAgreement.progress=2

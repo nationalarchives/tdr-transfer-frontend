@@ -1,0 +1,12 @@
+@()(implicit messages: Messages)
+
+@main(Messages("help.header")) {
+@defining(play.core.PlayVersion.current) { version =>
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-xl">@Messages("help.title")</h1>
+    <p class="govuk-body">@Messages("help.description")</p>
+  </div>
+</div>
+}
+}
