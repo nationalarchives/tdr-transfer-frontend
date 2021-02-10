@@ -6,7 +6,7 @@
 @main(Messages("upload.header")) {
 <div id="file-upload" class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds govuk-file-upload">
-        <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
+        <a href="@routes.TransferAgreementController.transferAgreement(consignmentId: java.util.UUID)" class="govuk-back-link">Back</a>
         @progressIndicator(Messages("upload.progress"))
         @frontEndInputs(frontEndInfo)
 
