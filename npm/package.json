@@ -71,7 +71,7 @@
     "postcss-cli": "^7.1.2",
     "prettier": "2.2.1",
     "ts-jest": "^25.5.1",
-    "ts-loader": "^8.0.16",
+    "ts-loader": "^8.0.17",
     "typescript": "^3.9.9",
     "webpack": "^5.21.2",
     "webpack-cli": "^4.5.0",
