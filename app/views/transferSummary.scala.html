@@ -2,7 +2,7 @@
 @import viewsapi.FormFunctions._
 @import helper.{inputRadioGroup => _, _}
 
-@(consignmentId: UUID, summary: ConsignmentSummaryData, transferConfirmationForm: Form[TransferConfirmationData])(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData])(implicit request: RequestHeader, messages: Messages)
 @main(Messages("transferSummary.header")) {
 @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
@@ -44,19 +44,19 @@
                 <fieldset class="govuk-fieldset" aria-describedby="transfer-summary">
                     <!-- Open records & transfer legal ownership -->
                     @inputSingleCheckbox(
-                    transferConfirmationForm("openRecords"),
+                    finalTransferConfirmationForm("openRecords"),
                     Symbol("_label") -> Messages("transferSummary.openRecords"),
                     Symbol("_value") -> "true",
                     Symbol("_smallCheckbox") -> true,
-                    Symbol("_checkedOption") -> transferConfirmationForm.data.getOrElse("openRecords", ""),
+                    Symbol("_checkedOption") -> finalTransferConfirmationForm.data.getOrElse("openRecords", ""),
                     Symbol("_requiredOption") -> true
                     )
                     @inputSingleCheckbox(
-                    transferConfirmationForm("transferLegalOwnership"),
+                    finalTransferConfirmationForm("transferLegalOwnership"),
                     Symbol("_label") -> Messages("transferSummary.transferLegalOwnership"),
                     Symbol("_value") -> "true",
                     Symbol("_smallCheckbox") -> true,
-                    Symbol("_checkedOption") -> transferConfirmationForm.data.getOrElse("transferLegalOwnership", ""),
+                    Symbol("_checkedOption") -> finalTransferConfirmationForm.data.getOrElse("transferLegalOwnership", ""),
                     Symbol("_requiredOption") -> true
                     )
                 </fieldset>
