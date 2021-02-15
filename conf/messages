@@ -1,6 +1,8 @@
 # https://www.playframework.com/documentation/latest/ScalaI18N
 
 main.header=Transfer Digital Records
+main.banner=beta
+main.banner.info=This is a new service – your feedback will help us to improve it.
 home.header=Welcome
 home.title=Transfer Digital Records
 home.use.transfer.header=Use this service to:
