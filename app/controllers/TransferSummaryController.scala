@@ -56,7 +56,7 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
       }
   }
 
-  def transferSummarySubmit(consignmentId: UUID): Action[AnyContent] =
+  def finalTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
     secureAction.async { implicit request: Request[AnyContent] =>
       val errorFunction: Form[FinalTransferConfirmationData] => Future[Result] = { formWithErrors: Form[FinalTransferConfirmationData] =>
         getConsignmentSummary(request, consignmentId).map { summary =>

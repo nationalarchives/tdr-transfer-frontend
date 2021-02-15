@@ -36,7 +36,7 @@
                 </div>
             </dl>
             @form(
-            routes.TransferSummaryController.transferSummarySubmit(consignmentId),
+            routes.TransferSummaryController.finalTransferConfirmationSubmit(consignmentId),
             (Symbol("novalidate"), "")
             ) {
                 @CSRF.formField
