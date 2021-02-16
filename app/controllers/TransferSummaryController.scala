@@ -71,9 +71,8 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
 
         val variables: AddFinalTransferConfirmation.Variables = AddFinalTransferConfirmation.Variables(addFinalTransferConfirmationInput)
 
-        sendApiRequest(addFinalTransferConfirmationClient, AddFinalTransferConfirmation.document, request.token.bearerAccessToken, variables)
-
         for {
+          _ <- sendApiRequest(addFinalTransferConfirmationClient, AddFinalTransferConfirmation.document, request.token.bearerAccessToken, variables)
           _ <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
           _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
           res <- Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))

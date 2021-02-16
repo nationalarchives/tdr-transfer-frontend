@@ -3,7 +3,7 @@ package controllers
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{ok, okJson, post, serverError, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, ok, okJson, post, serverError, urlEqualTo}
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcs}
@@ -156,15 +156,12 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     "add a final transfer confirmation when a valid form is submitted and the api response is successful" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
+      stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
+      mockUpdateTransferInitiatedResponse
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
-
-      val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = new aftc.AddFinalTransferConfirmation(
-        consignmentId,
-        finalOpenRecordsConfirmed = true,
-        legalOwnershipTransferConfirmed = true
-      )
-      stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
 
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
@@ -214,7 +211,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     "redirects to the transfer complete page when a valid form is submitted" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      mockGraphqlResponse
+
+      val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
+      stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
+      mockUpdateTransferInitiatedResponse
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
@@ -233,11 +233,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     "return an error when the call to the export api fails" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(ut.Data(Option(1))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+
+      val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
+      stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
+      mockUpdateTransferInitiatedResponse
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(serverError()))
 
@@ -256,9 +255,13 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     "calls the export api when a valid form is submitted" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
+      stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
+      mockUpdateTransferInitiatedResponse
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
-      mockGraphqlResponse
+
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
 
@@ -293,7 +296,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     "calls the graphql api twice when a valid form is submitted" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      mockGraphqlResponse
+
+      val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
+      stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
+      mockUpdateTransferInitiatedResponse
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(ok()))
 
@@ -318,21 +324,44 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     )
   }
 
+  private def createFinalTransferConfirmationResponse = new aftc.AddFinalTransferConfirmation(
+    consignmentId,
+    finalOpenRecordsConfirmed = true,
+    legalOwnershipTransferConfirmed = true
+  )
+
   private def stubFinalTransferConfirmationResponse(finalTransferConfirmation: Option[aftc.AddFinalTransferConfirmation] = None,
                                                     errors: List[GraphQLClient.Error] = Nil): Unit = {
     val client = new GraphQLConfiguration(app.configuration).getClient[aftc.Data, aftc.Variables]()
 
     val data: client.GraphqlData = client.GraphqlData(finalTransferConfirmation.map(ftc => aftc.Data(ftc)), errors)
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+    val query = s"""{"query":"mutation AddFinalTransferConfirmation($$input:AddFinalTransferConfirmationInput!)
+                                      {addFinalTransferConfirmation(addFinalTransferConfirmationInput:$$input)
+                                      {consignmentId finalOpenRecordsConfirmed legalOwnershipTransferConfirmed}}",
+                             "variables":{
+                                            "input":{
+                                                     "consignmentId":"${consignmentId.toString}",
+                                                     "finalOpenRecordsConfirmed":true,
+                                                     "legalOwnershipTransferConfirmed":true
+                                                    }
+                                         }
+                             }""".stripMargin.replaceAll("\n\\s*", "")
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(equalToJson(query))
       .willReturn(okJson(dataString)))
   }
 
-  private def mockGraphqlResponse = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
-    val data: client.GraphqlData = client.GraphqlData(Some(ut.Data(Option(1))), List())
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+  private def mockUpdateTransferInitiatedResponse = {
+    val utClient = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
+    val utData: utClient.GraphqlData = utClient.GraphqlData(Some(ut.Data(Option(1))), List())
+    val utDataString: String = utData.asJson.printWith(Printer(dropNullValues = false, ""))
+    val utQuery = s"""{"query":"mutation updateTransferInitiated($$consignmentId:UUID!)
+                     |         {updateTransferInitiated(consignmentid:$$consignmentId)}",
+                     | "variables":{"consignmentId": "${consignmentId.toString}"}
+                     | }""".stripMargin.replaceAll("\n\\s*", "")
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .willReturn(okJson(dataString)))
+      .withRequestBody(equalToJson(utQuery))
+      .willReturn(okJson(utDataString)))
   }
 }
