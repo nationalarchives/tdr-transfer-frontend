@@ -68,7 +68,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       val seriesCode = Some(gcs.GetConsignment.Series(Some("Mock Series")))
       val transferringBodyName = Some(gcs.GetConsignment.TransferringBody(Some("MockBody")))
       val totalFiles: Int = 3
-      val consignmentReference = Option("TEST-TDR-2021-MTB")
+      val consignmentReference = Some("TEST-TDR-2021-MTB")
 
       val consignmentResponse: gcs.GetConsignment = new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentResponse))), List())
