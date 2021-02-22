@@ -68,8 +68,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       val seriesCode = Some(gcs.GetConsignment.Series(Some("Mock Series")))
       val transferringBodyName = Some(gcs.GetConsignment.TransferringBody(Some("MockBody")))
       val totalFiles: Int = 3
+      val consignmentReference = Some("TEST-TDR-2021-MTB")
 
-      val consignmentResponse: gcs.GetConsignment = new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles)
+      val consignmentResponse: gcs.GetConsignment = new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentResponse))), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
@@ -90,6 +91,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
 
       contentAsString(transferSummaryPage) must include("transferSummary.filesUploadedForTransfer")
       contentAsString(transferSummaryPage) must include(s"$totalFiles files uploaded")
+
+      contentAsString(transferSummaryPage) must include("transferSummary.consignmentReference")
+      contentAsString(transferSummaryPage) must include(consignmentReference.get)
 
       contentAsString(transferSummaryPage) must include("transferSummary.openRecords")
       contentAsString(transferSummaryPage) must include("transferSummary.transferLegalOwnership")
@@ -133,8 +137,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       val seriesCode = Some(gcs.GetConsignment.Series(Some("Mock Series 2")))
       val transferringBodyName = Some(gcs.GetConsignment.TransferringBody(Some("MockBody 2")))
       val totalFiles: Int = 4
+      val consignmentReference = Option("TEST-TDR-2021-GB")
 
-      val consignmentResponse: gcs.GetConsignment = new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles)
+      val consignmentResponse: gcs.GetConsignment = new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentResponse))), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
