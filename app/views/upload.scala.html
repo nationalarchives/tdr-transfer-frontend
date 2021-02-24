@@ -38,11 +38,11 @@
                 <div class="drag-and-drop">
                     <div class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
-                            <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="dialog" aria-describedby="successMessageText">
-			        <div>
+                            <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="successMessageText">
+                                <div>
                                     @greenTickMark()
-				    <p id="successMessageText" >@Html(Messages("upload.dragAndDropSuccessMessage"))</p>
-				</div>
+                                    <p id="successMessageText" >@Html(Messages("upload.dragAndDropSuccessMessage"))</p>
+                                </div>
                             </dd>
                             <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
                                 @redWarningSign()
