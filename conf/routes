@@ -19,6 +19,7 @@ GET     /keycloak.json                                     controllers.KeycloakC
 GET     /consignment/:consignmentId/transfer-complete      controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
 GET     /help-guide                                        controllers.HelpGuideController.helpGuide()
 GET     /accessibility-statement                           controllers.AccessibilityController.accessibilityStatement()
+GET     /faq                                               controllers.FAQController.FAQ()
 
 
 # Map static resources from the /public folder to the /assets URL path
