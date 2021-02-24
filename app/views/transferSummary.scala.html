@@ -14,7 +14,7 @@
               finalTransferConfirmationForm("openRecords"),
               finalTransferConfirmationForm("transferLegalOwnership")
             )
-            <dl class="govuk-summary-list">
+            <dl class="govuk-summary-list" aria-label="transfer summary">
                 <div class="govuk-summary-list__row">
                     <dt class="govuk-summary-list__key">
                         @Messages("transferSummary.seriesReference")
@@ -53,7 +53,7 @@
             (Symbol("novalidate"), "")
             ) {
                 @CSRF.formField
-                <fieldset class="govuk-fieldset" aria-describedby="transfer-summary">
+                <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
                     <!-- Open records & transfer legal ownership -->
                     @inputSingleCheckbox(
                     finalTransferConfirmationForm("openRecords"),
