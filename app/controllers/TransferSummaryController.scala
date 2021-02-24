@@ -45,7 +45,8 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
       .map { summary =>
         ConsignmentSummaryData(summary.series.get.code,
           summary.transferringBody.get.name,
-          summary.totalFiles)
+          summary.totalFiles,
+          summary.consignmentReference)
       }
   }
 
@@ -89,7 +90,8 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
 
 case class ConsignmentSummaryData(seriesCode: Option[String],
                                   transferringBody: Option[String],
-                                  totalFiles: Int)
+                                  totalFiles: Int,
+                                  consignmentReference: Option[String])
 
 case class FinalTransferConfirmationData(openRecords: Boolean,
                                          transferLegalOwnership: Boolean)
