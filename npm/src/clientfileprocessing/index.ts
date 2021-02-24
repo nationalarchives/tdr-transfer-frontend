@@ -43,6 +43,10 @@ export class ClientFileProcessing {
 
     if (progressBarElement) {
       progressBarElement.setAttribute("value", weightedPercent.toString())
+      progressBarElement.setAttribute(
+        "aria-valuenow",
+        weightedPercent.toString()
+      )
     }
   }
 
@@ -55,6 +59,10 @@ export class ClientFileProcessing {
 
     if (progressBarElement) {
       progressBarElement.setAttribute("value", weightedPercent.toString())
+      progressBarElement.setAttribute(
+        "aria-valuenow",
+        weightedPercent.toString()
+      )
     }
   }
 
