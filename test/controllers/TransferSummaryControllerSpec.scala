@@ -132,7 +132,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       failure mustBe an[AuthorisationException]
     }
 
-    "display errors when an invalid form is submitted" in {
+    "display correct errors when an empty final transfer confirmation form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val seriesCode = Some(gcs.GetConsignment.Series(Some("Mock Series 2")))
       val transferringBodyName = Some(gcs.GetConsignment.TransferringBody(Some("MockBody 2")))
@@ -151,11 +151,83 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = false, transferLegalOwnershipValue = false): _*)
+          .withCSRFToken)
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
       contentAsString(finalTransferConfirmationSubmitResult) must include("govuk-error-message")
       contentAsString(finalTransferConfirmationSubmitResult) must include("error")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("There is a problem")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("#error-openRecords")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("#error-transferLegalOwnership")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("transferSummary.openRecords.error")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("transferSummary.transferLegalOwnership.error")
+    }
+
+    "display correct error when only the open records option is selected and the final transfer confirmation form is submitted" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val seriesCode = Some(gcs.GetConsignment.Series(Some("Mock Series 2")))
+      val transferringBodyName = Some(gcs.GetConsignment.TransferringBody(Some("MockBody 2")))
+      val totalFiles: Int = 4
+      val consignmentReference = Option("TEST-TDR-2021-GB")
+
+      val consignmentResponse: gcs.GetConsignment = new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
+      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentResponse))), List())
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
+        getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
+      val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = false): _*)
+          .withCSRFToken)
+
+      playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
+      print(contentAsString(finalTransferConfirmationSubmitResult))
+      contentAsString(finalTransferConfirmationSubmitResult) must include("govuk-error-message")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("error")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("There is a problem")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("#error-transferLegalOwnership")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("transferSummary.transferLegalOwnership.error")
+    }
+
+    "display correct error when only the transfer legal ownership option is selected and the final transfer confirmation form is submitted" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val seriesCode = Some(gcs.GetConsignment.Series(Some("Mock Series 2")))
+      val transferringBodyName = Some(gcs.GetConsignment.TransferringBody(Some("MockBody 2")))
+      val totalFiles: Int = 4
+      val consignmentReference = Option("TEST-TDR-2021-GB")
+
+      val consignmentResponse: gcs.GetConsignment = new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
+      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentResponse))), List())
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val controller = new TransferSummaryController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
+        getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
+      val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = false, transferLegalOwnershipValue = true): _*)
+          .withCSRFToken)
+
+      playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
+      print(contentAsString(finalTransferConfirmationSubmitResult))
+
+      contentAsString(finalTransferConfirmationSubmitResult) must include("govuk-error-message")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("error")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("There is a problem")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("#error-openRecords")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("transferSummary.openRecords.error")
     }
 
     "add a final transfer confirmation when a valid form is submitted and the api response is successful" in {
@@ -172,7 +244,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest()
-          .withFormUrlEncodedBody(completedFinalTransferConfirmationForm: _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken)
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe SEE_OTHER
@@ -189,7 +261,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
-          .withFormUrlEncodedBody(completedFinalTransferConfirmationForm: _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken)
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
@@ -206,7 +278,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
-          .withFormUrlEncodedBody(completedFinalTransferConfirmationForm: _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken)
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
@@ -228,7 +300,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
       val finalTransferConfirmationSubmitResult: Result = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
-          .withFormUrlEncodedBody(completedFinalTransferConfirmationForm: _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken
         ).futureValue
 
@@ -249,7 +321,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
-          .withFormUrlEncodedBody(completedFinalTransferConfirmationForm: _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -270,7 +342,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
       controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
-          .withFormUrlEncodedBody(completedFinalTransferConfirmationForm: _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken
         ).futureValue
 
@@ -289,7 +361,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
-          .withFormUrlEncodedBody(completedFinalTransferConfirmationForm: _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -310,7 +382,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
         getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
       controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
-          .withFormUrlEncodedBody(completedFinalTransferConfirmationForm: _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken
         ).futureValue
 
@@ -318,10 +390,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def completedFinalTransferConfirmationForm: Seq[(String, String)] = {
+  private def finalTransferConfirmationForm(openRecordsValue: Boolean, transferLegalOwnershipValue: Boolean): Seq[(String, String)] = {
     Seq(
-      ("openRecords", true.toString),
-      ("transferLegalOwnership", true.toString)
+      ("openRecords", openRecordsValue.toString),
+      ("transferLegalOwnership", transferLegalOwnershipValue.toString)
     )
   }
 
