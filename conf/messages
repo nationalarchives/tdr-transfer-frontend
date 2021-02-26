@@ -9,6 +9,7 @@ home.use.transfer.header=Use this service to:
 home.use.transfer.records=Transfer digital records to The National Archives
 home.use.transfer.resume=Resume a transfer
 home.use.transfer.history=View your transfer history
+home.startLink=Start now
 home.heading=Before you start
 home.body=This service is in private beta. Please see our guide for information about how this may impact how you use this service.
 dashboard.header=Welcome Page
