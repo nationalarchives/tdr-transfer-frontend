@@ -10,8 +10,8 @@
         @frontEndInputs(frontEndInfo)
 
         <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
-        <p class="govuk-body">@Messages("upload.body1")</p>
-        <p class="govuk-body">@Messages("upload.body2")</p>
+        <p class="govuk-body">@Messages("upload.body.transferRecords")</p>
+        <p class="govuk-body">@Messages("upload.body.fileSizeLimit")</p>
         <div class="govuk-inset-text">
             @Messages("upload.fileExtensionWarning")
         </div>
@@ -69,7 +69,7 @@
                                 <p class="govuk-body drag-and-drop__hint-text">@Messages("upload.dragAndDropHintText")</p>
                                 <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">@Messages("upload.chooseFolderLink")</label>
                             </div>
-                            <p class="govuk-body">@Messages("upload.body3")</p>
+                            <p class="govuk-body">@Messages("upload.body.capturedMetadata")</p>
                             <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
                                 @Messages("upload.continueLink")
                             </button>
