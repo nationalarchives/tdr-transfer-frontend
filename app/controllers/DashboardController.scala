@@ -8,6 +8,9 @@ import play.api.mvc.{Action, AnyContent, Request}
 
 @Singleton
 class DashboardController @Inject()(val controllerComponents: SecurityComponents) extends OidcSecurity with I18nSupport  {
+
+  val testGitSecretsFAKEAwsAccessKey = "AKIAICKMZTVXEHBPKCYA"
+
   def dashboard(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     Ok(views.html.dashboard())
   }
