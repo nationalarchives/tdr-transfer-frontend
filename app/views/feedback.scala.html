@@ -1,0 +1,18 @@
+@()(implicit messages: Messages)
+
+@main(Messages("feedback.header")) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-xl">@Messages("feedback.title")</h1>
+
+            <p class="govuk-body">@Messages("feedback.paragraph")</p>
+                <p class="govuk-body">@Messages("feedback.email")
+@*                    <a class="govuk-link" href="mailto:tdr@nationalarchives.gov.uk" data-hsupport="email">tdr@nationalarchives.gov.uk</a>*@
+                </p>
+
+            <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button">
+                @Messages("feedback.BackToDashboardLink")
+            </a>
+        </div>
+    </div>
+}
