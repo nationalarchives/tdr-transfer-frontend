@@ -10,6 +10,7 @@
             @progressIndicator(Messages("transferSummary.progress"))
 
             <h1 class="govuk-heading-xl">@Messages("transferSummary.title")</h1>
+            <p class="govuk-body">@Messages("transferSummary.body")</p>
             @errorSummary(
               finalTransferConfirmationForm("openRecords"),
               finalTransferConfirmationForm("transferLegalOwnership")
@@ -21,6 +22,14 @@
                     </dt>
                     <dd class="govuk-summary-list__value">
                         @summary.seriesCode
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        @Messages("transferSummary.consignmentReference")
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        @summary.consignmentReference
                     </dd>
                 </div>
                 <div class="govuk-summary-list__row">
@@ -37,14 +46,6 @@
                     </dt>
                     <dd class="govuk-summary-list__value">
                         @summary.totalFiles @if(summary.totalFiles == 1) {file} else {files} uploaded
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key">
-                        @Messages("transferSummary.consignmentReference")
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @summary.consignmentReference
                     </dd>
                 </div>
             </dl>
