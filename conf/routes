@@ -6,7 +6,7 @@
 # An example controller showing a sample home page
 GET     /                                                  controllers.HomeController.index()
 GET     /dashboard                                         controllers.DashboardController.dashboard()
-GET     /feedback                                          controllers.FeedbackController.feedback()
+GET     /contact                                           controllers.ContactController.contact()
 GET     /series                                            controllers.SeriesDetailsController.seriesDetails()
 POST    /series                                            controllers.SeriesDetailsController.seriesSubmit()
 GET     /consignment/:consignmentId/transfer-agreement     controllers.TransferAgreementController.transferAgreement(consignmentId: java.util.UUID)
