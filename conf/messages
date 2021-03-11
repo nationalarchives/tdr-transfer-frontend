@@ -2,12 +2,12 @@
 
 main.header=Transfer Digital Records
 main.banner=beta
-main.banner.info=This is a new service – you can help us improve it with your
-feedback.header=Feedback
-feedback.title=Get in touch
-feedback.paragraph=If you have got feedback, ideas or questions get in touch with the Transfer Digital Records team.
-feedback.email=Email the Transfer Digital Records team on tdr@nationalarchives.gov.uk
-feedback.BackToDashboardLink=Dashboard
+main.banner.info=This is a new service – your feedback will help us to improve it. Please
+main.banner.link=get in touch (opens in new tab).
+contact.header=Contact
+contact.title=Get in touch
+contact.paragraph=If you have got feedback, ideas or questions get in touch with the Transfer Digital Records team by emailing
+contact.email=tdr@nationalarchives.gov.uk
 home.header=Welcome
 home.title=Transfer Digital Records
 home.use.transfer.header=Use this service to:
