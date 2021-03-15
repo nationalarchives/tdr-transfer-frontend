@@ -71,7 +71,7 @@ const getFrontEndInfo: () => IFrontEndInfo = () => {
 
 export const renderModules = () => {
   const uploadContainer: HTMLDivElement | null = document.querySelector(
-    ".govuk-file-upload"
+    "#file-upload"
   )
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
