@@ -5,7 +5,7 @@
 
 @main(Messages("upload.header")) {
 <div id="file-upload" class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds govuk-file-upload">
+    <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("upload.progress"))
         @frontEndInputs(frontEndInfo)
 
@@ -41,7 +41,7 @@
         <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <div class="drag-and-drop">
-                    <div class="govuk-summary-list">
+                    <div class="govuk-summary-list govuk-file-upload">
                         <div class="govuk-summary-list__row">
                             <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="successMessageText">
                                 <div>
