@@ -5,11 +5,16 @@
 
 @main(Messages("upload.header")) {
 <div id="file-upload" class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds govuk-file-upload">
+    <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("upload.progress"))
         @frontEndInputs(frontEndInfo)
 
         <h1 class="govuk-heading-xl">@Messages("upload.title")</h1>
+        <p class="govuk-body">@Messages("upload.body.transferRecords")</p>
+        <p class="govuk-body">@Messages("upload.body.fileSizeLimit")</p>
+        <div class="govuk-inset-text">
+            @Messages("upload.fileExtensionWarning")
+        </div>
         <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
             role="alert" tabindex="-1" data-module="govuk-error-summary">
             <h2 class="govuk-error-summary__title" id="error-summary-title">
@@ -36,13 +41,13 @@
         <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <div class="drag-and-drop">
-                    <div class="govuk-summary-list">
+                    <div class="govuk-summary-list govuk-file-upload">
                         <div class="govuk-summary-list__row">
-                            <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="dialog" aria-describedby="successMessageText">
-			        <div>
+                            <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="successMessageText">
+                                <div>
                                     @greenTickMark()
-				    <p id="successMessageText" >@Html(Messages("upload.dragAndDropSuccessMessage"))</p>
-				</div>
+                                    <p id="successMessageText" >@Html(Messages("upload.dragAndDropSuccessMessage"))</p>
+                                </div>
                             </dd>
                             <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
                                 @redWarningSign()
@@ -59,28 +64,14 @@
                                     Safari 14.0.1, which does not let the user browse for files if the 'accept'
                                     attribute is missing. The actual value of the attribute is ignored because
                                     'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
-                                    accept="image/jpeg"
+                                    accept="image/jpeg" aria-hidden="true"
                                 >
                                 <p class="govuk-body drag-and-drop__hint-text">@Messages("upload.dragAndDropHintText")</p>
-                                <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">@Messages("upload.chooseFolderLink")</label>
+                                <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
+                                @Messages("upload.chooseFolderLink")
+                                </label>
                             </div>
-                            <div class="govuk-warning-text">
-                                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                                <strong class="govuk-warning-text__text">
-                                    <span class="govuk-warning-text__assistive">Warning</span>
-                                    @Messages("upload.fileExtensionWarning")
-                                </strong>
-                            </div>
-                            <details class="govuk-details" data-module="govuk-details">
-                                <summary class="govuk-details__summary">
-                                    <span class="govuk-details__summary-text">
-                                        @Messages("upload.fileExtensionTitle")
-                                    </span>
-                                </summary>
-                                <div class="govuk-details__text" tabindex="0">
-                                    @Messages("upload.fileExtensionSummary")
-                                </div>
-                            </details>
+                            <p class="govuk-body">@Messages("upload.body.capturedMetadata")</p>
                             <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
                                 @Messages("upload.continueLink")
                             </button>
