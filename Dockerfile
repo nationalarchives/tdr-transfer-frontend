@@ -1,4 +1,4 @@
-FROM openjdk:15-alpine
+FROM openjdk:16-alpine
 #For alpine versions need to create a group before adding a user to the image
 RUN addgroup --system frontendgroup && adduser --system frontenduser -G frontendgroup
 WORKDIR play
