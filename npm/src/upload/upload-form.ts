@@ -1,4 +1,4 @@
-import { IFileWithPath } from "@nationalarchives/file-information"
+import {IFileWithPath} from "@nationalarchives/file-information"
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
@@ -175,6 +175,8 @@ export class UploadForm {
   ) {
     this.formElement.addEventListener("submit", (ev) => {
       ev.preventDefault()
+
+      this.disableButtonsAndDropzone()
       const parentFolder = this.getParentFolderName(this.selectedFiles)
       const uploadFilesInfo: FileUploadInfo = {
         consignmentId: this.consignmentId(),
@@ -197,6 +199,16 @@ export class UploadForm {
     if (files === null || files.length === 0) {
       this.rejectUserItemSelection()
     }
+  }
+
+  private disableButtonsAndDropzone() {
+    const submitAndLabelButtons = document.querySelectorAll(".govuk-button")
+    submitAndLabelButtons.forEach(button => button.setAttribute("disabled", "true"))
+
+    const hiddenInputButton = document.querySelector("#file-selection")
+    hiddenInputButton?.setAttribute("disabled", "true")
+
+    this.dropzone.removeEventListener("drop", this.handleDropppedItems)
   }
 
   private retrieveFiles(target: HTMLInputTarget | null): IFileWithPath[] {
