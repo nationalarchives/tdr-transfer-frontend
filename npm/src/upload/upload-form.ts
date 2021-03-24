@@ -1,4 +1,4 @@
-import {IFileWithPath} from "@nationalarchives/file-information"
+import { IFileWithPath } from "@nationalarchives/file-information"
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
@@ -203,7 +203,9 @@ export class UploadForm {
 
   private disableButtonsAndDropzone() {
     const submitAndLabelButtons = document.querySelectorAll(".govuk-button")
-    submitAndLabelButtons.forEach(button => button.setAttribute("disabled", "true"))
+    submitAndLabelButtons.forEach((button) =>
+      button.setAttribute("disabled", "true")
+    )
 
     const hiddenInputButton = document.querySelector("#file-selection")
     hiddenInputButton?.setAttribute("disabled", "true")
