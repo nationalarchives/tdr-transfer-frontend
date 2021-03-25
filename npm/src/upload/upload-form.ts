@@ -173,17 +173,22 @@ export class UploadForm {
       uploadFilesInfo: FileUploadInfo
     ) => void
   ) {
-    this.formElement.addEventListener("submit", (ev) => {
-      ev.preventDefault()
+    this.formElement.addEventListener(
+      "submit",
+      (ev) => {
+        ev.preventDefault()
 
-      this.disableButtonsAndDropzone()
-      const parentFolder = this.getParentFolderName(this.selectedFiles)
-      const uploadFilesInfo: FileUploadInfo = {
-        consignmentId: this.consignmentId(),
-        parentFolder: parentFolder
-      }
-      uploadFiles(this.selectedFiles, uploadFilesInfo)
-    })
+        this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
+        this.disableButtonsAndDropzone()
+        const parentFolder = this.getParentFolderName(this.selectedFiles)
+        const uploadFilesInfo: FileUploadInfo = {
+          consignmentId: this.consignmentId(),
+          parentFolder: parentFolder
+        }
+        uploadFiles(this.selectedFiles, uploadFilesInfo)
+      },
+      { once: true }
+    )
   }
 
   private getParentFolderName(folder: IFileWithPath[]) {
