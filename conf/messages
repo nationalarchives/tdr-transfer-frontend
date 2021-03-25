@@ -2,7 +2,12 @@
 
 main.header=Transfer Digital Records
 main.banner=beta
-main.banner.info=This is a new service – your feedback will help us to improve it.
+main.banner.info=This is a new service – your feedback will help us to improve it. Please
+main.banner.link=get in touch (opens in new tab).
+contact.header=Contact
+contact.title=Get in touch
+contact.paragraph=If you have got feedback, ideas or questions get in touch with the Transfer Digital Records team by emailing
+contact.email=tdr@nationalarchives.gov.uk
 home.header=Welcome
 home.title=The National Archives Transfer Digital Records
 home.use.transfer.header=Use this service to:
@@ -89,7 +94,7 @@ unauthenticatedError.body=Please <a href= "#">login</a> to continue.
 notFoundError.header=This page doesn't exist
 notFoundError.body1=If you typed a web address, check it is correct.
 notFoundError.body2=If you pasted the web address, check you copied the entire address.
-notFoundError.body3=If the web address is correct or you selected a link or button, contact <a href= "#">The National Archives Help Desk<a/> to speak to someone about your transfers.
+notFoundError.body3=If the web address is correct, please get in touch with us via our <a href= "/contact">contact<a/> page.
 notFoundError.body4=Alternatively, you can <a href= "/dashboard">return to the home page</a>.
 transferComplete.title=Transfer complete
 transferComplete.error=There has been an error, contact us.
