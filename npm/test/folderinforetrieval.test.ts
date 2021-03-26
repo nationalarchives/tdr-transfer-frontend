@@ -40,53 +40,55 @@ class MockDom {
   }
 
   html = (document.body.innerHTML = `
-  <form id="file-upload-form" data-consignment-id="@consignmentId">
-            <div class="govuk-form-group">
-                <div class="drag-and-drop">
-                    <div class="govuk-summary-list">
-                        <div class="govuk-summary-list__row">
-                            <dd class="govuk-summary-list__value drag-and-drop__success hide">
-                                @greenTickMark()
-                                The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected
-                            </dd>
-                            <dd class="govuk-summary-list__value drag-and-drop__failure hide">
-                                @redWarningSign()
-                                @Messages("upload.dragAndDropErrorMessage")
-                            </dd>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="govuk-form-group">
-                            <div class="drag-and-drop__dropzone">
-                                <input type="file" id="file-selection" name="files" class="govuk-file-upload drag-and-drop__input" webkitdirectory>
-                                <p class="govuk-body drag-and-drop__hint-text">@Messages("upload.dragAndDropHintText")</p>
-                                <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">@Messages("upload.chooseFolderLink")</label>
-                            </div>
-                            <div class="govuk-warning-text">
-                                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                                <strong class="govuk-warning-text__text">
-                                    <span class="govuk-warning-text__assistive">Warning</span>
-                                    @Messages("upload.fileExtensionWarning")
-                                </strong>
-                            </div>
-                            <details class="govuk-details" data-module="govuk-details">
-                                <summary class="govuk-details__summary">
-                                    <span class="govuk-details__summary-text">
-                                        @Messages("upload.fileExtensionTitle")
-                                    </span>
-                                </summary>
-                                <div class="govuk-details__text">
-                                    @Messages("upload.fileExtensionSummary")
-                                </div>
-                            </details>
-                            <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                                @Messages("upload.continueLink")
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>`)
+      <div id="file-upload" class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+              <form id="file-upload-form" data-consignment-id="@consignmentId">
+                  <div class="govuk-form-group">
+                      <div class="drag-and-drop">
+                          <div class="govuk-summary-list govuk-file-upload">
+                              <div class="govuk-summary-list__row">
+                                  <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="successMessageText">
+                                      <div>
+                                          @greenTickMark()
+                                          <p id="successMessageText" >The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
+                                      </div>
+                                  </dd>
+                                  <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
+                                      @redWarningSign()
+                                    <p id="failureMessageText">@Messages("upload.dragAndDropErrorMessage")</p>
+                                  </dd>
+                              </div>
+                          </div>
+                          <div>
+                              <div class="govuk-form-group">
+                                  <div class="drag-and-drop__dropzone">
+                                      <input type="file" id="file-selection" name="files"
+                                          class="govuk-file-upload drag-and-drop__input" webkitdirectory
+                                          @* Specify an arbitrary type in the 'accept' attribute to work around a bug in
+                                          Safari 14.0.1, which does not let the user browse for files if the 'accept'
+                                          attribute is missing. The actual value of the attribute is ignored because
+                                          'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
+                                          accept="image/jpeg" aria-hidden="true"
+                                      >
+                                      <p class="govuk-body drag-and-drop__hint-text">@Messages("upload.dragAndDropHintText")</p>
+                                      <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
+                                      @Messages("upload.chooseFolderLink")
+                                      </label>
+                                  </div>
+                                  <p class="govuk-body">@Messages("upload.body.capturedMetadata")</p>
+                                  <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                                      @Messages("upload.continueLink")
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </form>
+                      <!--        Form to redirect user once upload has completed. It sends consignmentId to record processing placeholder page -->
+              @form(routes.FileChecksController.recordProcessingPage(consignmentId), Symbol("id") -> "upload-data-form") { }
+          </div>
+      </div>
+      <div id="progress-bar" class="govuk-grid-row" hidden>`)
 
   dataTransferItemFields = {
     fullPath: "something", // add this to the fileEntry and directoryEntry object
