@@ -201,9 +201,27 @@ class MockDom {
   folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
 
   form = new UploadForm(this.uploadForm!, this.folderRetriever!, this.dropzone!)
+
+  progressBar: HTMLElement | null = document.querySelector("#progress-bar")
+
+  selectFolderViaButton: () => void = () => {
+    triggerInputEvent(this.folderRetriever!, "change")
+  }
+
+  clickSubmitButton: () => void = () => {
+    triggerInputEvent(this.getSubmitButton()!, "submit")
+  }
+
   fileUploader = this.setUpFileUploader()
 
-  setUpFileUploader(): FileUploader {
+  private getSubmitButton: () => HTMLButtonElement | null = () => {
+    const button = document.getElementsByTagName(
+      "BUTTON"
+    )[0] as HTMLButtonElement
+    return button.type === "submit" ? button : null
+  }
+
+  private setUpFileUploader(): FileUploader {
     const client = new GraphqlClient(
       "https://example.com",
       mockKeycloakInstance
@@ -215,9 +233,6 @@ class MockDom {
       "test",
       mockGoToNextPage
     )
-  }
-  selectFolderViaButton: () => void = () => {
-    triggerInputEvent(this.folderRetriever!, "change")
   }
 }
 
@@ -250,6 +265,12 @@ const dummyIFileWithPath = {
   path: "Parent_Folder",
   webkitRelativePath: "Parent_Folder"
 } as IFileWithPath
+
+test("progress bar should not appear if a folder isn't selected and continue button is clicked", () => {
+  const mockDom = new MockDom()
+  mockDom.clickSubmitButton()
+  expect(mockDom.progressBar!.hidden).toEqual(true)
+})
 
 test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
