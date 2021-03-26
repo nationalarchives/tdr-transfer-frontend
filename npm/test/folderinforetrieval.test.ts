@@ -194,7 +194,7 @@ class MockDom {
     ".drag-and-drop__success"
   )
 
-  folderRetrievalfailureMessage: HTMLElement | null = document.querySelector(
+  folderRetrievalFailureMessage: HTMLElement | null = document.querySelector(
     ".drag-and-drop__failure"
   )
   folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
@@ -261,7 +261,7 @@ test("Input button updates the page with correct folder information if there are
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).toHaveAttribute(
     "hidden",
     "true"
   )
@@ -287,7 +287,7 @@ test("dropzone updates the page with correct folder information if there are 1 o
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).toHaveAttribute(
     "hidden",
     "true"
   )
@@ -311,7 +311,7 @@ test("dropzone updates the page with an error if there are no files in folder", 
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
@@ -356,7 +356,7 @@ test("dropzone updates the page with correct folder information if there is a ne
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).toHaveAttribute(
     "hidden",
     "true"
   )
@@ -379,7 +379,7 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
@@ -402,7 +402,7 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
@@ -425,7 +425,7 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
