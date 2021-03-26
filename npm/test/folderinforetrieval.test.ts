@@ -223,12 +223,12 @@ class MockDom {
 
 const mockGoToNextPage = jest.fn()
 
-const triggerInputEvent: (element: HTMLElement, domEvent: string) => boolean = (
+const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
   element: HTMLElement,
   domEvent: string
 ) => {
   const event = new CustomEvent(domEvent)
-  return element.dispatchEvent(event)
+  element.dispatchEvent(event)
 }
 
 const dummyFolder = {
@@ -267,11 +267,6 @@ test("Input button updates the page with correct folder information if there are
   )
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("1 file")
-})
-
-test("drop event is triggerable", () => {
-  const mockDom = new MockDom()
-  expect(triggerInputEvent(mockDom.dropzone!, "drop")).toBe(true)
 })
 
 test("dropzone updates the page with correct folder information if there are 1 or more files in folder", async () => {
