@@ -131,30 +131,6 @@ class MockDom {
     }
   }
 
-  mockFileList: (file: File[]) => FileList = (file: File[]) => {
-    return {
-      length: file.length,
-      item: (index: number) => {
-        return file[index]
-      }
-    } as FileList
-  }
-
-  mockDataTransferItemList: (
-    entry: DataTransferItem,
-    itemLength: number
-  ) => DataTransferItemList = (entry: DataTransferItem, itemLength: number) => {
-    return {
-      item: jest.fn(),
-      [Symbol.iterator]: jest.fn(),
-      add: jest.fn(),
-      length: itemLength,
-      clear: jest.fn(),
-      0: entry,
-      remove: jest.fn()
-    } as DataTransferItemList
-  }
-
   addFilesToDragEvent = (
     folderToDrop: File[],
     itemsToDropEntryType: DataTransferItem
