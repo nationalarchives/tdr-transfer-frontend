@@ -49,13 +49,19 @@ class MockDom {
                               <div class="govuk-summary-list__row">
                                   <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="successMessageText">
                                       <div>
-                                          @greenTickMark()
+                                          <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                            <path d="M25,6.2L8.7,23.2L0,14.1l4-4.2l4.7,4.9L21,2L25,6.2z"></path>
+                                          </svg>
                                           <p id="successMessageText" >The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
                                       </div>
                                   </dd>
                                   <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
-                                      @redWarningSign()
-                                    <p id="failureMessageText">@Messages("upload.dragAndDropErrorMessage")</p>
+                                      <span class="drag-and-drop__error">
+                                        <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                            <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"/>
+                                        </svg>
+                                    </span>
+                                    <p id="failureMessageText">You can only drop a single folder</p>
                                   </dd>
                               </div>
                           </div>
@@ -64,20 +70,16 @@ class MockDom {
                                   <div class="drag-and-drop__dropzone">
                                       <input type="file" id="file-selection" name="files"
                                           class="govuk-file-upload drag-and-drop__input" webkitdirectory
-                                          @* Specify an arbitrary type in the 'accept' attribute to work around a bug in
-                                          Safari 14.0.1, which does not let the user browse for files if the 'accept'
-                                          attribute is missing. The actual value of the attribute is ignored because
-                                          'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
                                           accept="image/jpeg" aria-hidden="true"
                                       >
-                                      <p class="govuk-body drag-and-drop__hint-text">@Messages("upload.dragAndDropHintText")</p>
+                                      <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single folder here or</p>
                                       <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
-                                      @Messages("upload.chooseFolderLink")
+                                      Choose folder
                                       </label>
                                   </div>
-                                  <p class="govuk-body">@Messages("upload.body.capturedMetadata")</p>
+                                  <p class="govuk-body">For more information on what metadata will be captured during the upload please visit our FAQ’s page</p>
                                   <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                                      @Messages("upload.continueLink")
+                                      Start upload
                                   </button>
                               </div>
                           </div>
