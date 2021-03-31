@@ -12,7 +12,7 @@
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("seriesDetails.progress"))
 
-        <h1 class="govuk-heading-xl">@Messages("seriesDetails.title")</h1>
+        <h1 class="govuk-heading-l">@Messages("seriesDetails.title")</h1>
         @errorSummary(seriesDetailsForm("series"))
 
         @form(routes.SeriesDetailsController.seriesSubmit(), (Symbol("novalidate"), "")) {
