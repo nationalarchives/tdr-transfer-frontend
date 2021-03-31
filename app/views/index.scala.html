@@ -6,7 +6,7 @@
   <div class="govuk-grid-column-two-thirds">
 
     <!-- Headline -->
-    <h1 class="govuk-heading-xl">@Messages("home.title")</h1>
+    <h1 class="govuk-heading-l">@Messages("home.title")</h1>
 
     <p class="govuk-body">@Messages("home.use.transfer.header")</p>
     <ul class="govuk-list govuk-list--bullet">
@@ -15,14 +15,14 @@
       <li>@Messages("home.use.transfer.history")</li>
     </ul>
 
-    <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button govuk-button--start" data-module="govuk-button">
+    <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button govuk-button--start govuk-!-margin-top-2 govuk-!-margin-bottom-8" data-module="govuk-button">
       @Messages("home.startLink")
       <svg class="govuk-button__start-icon" xmlns="http://www.w3.org/2000/svg" width="17.5" height="19" viewBox="0 0 33 40" aria-hidden="true" focusable="false">
         <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
       </svg>
     </a>
 
-    <p class="govuk-heading-l">@Messages("home.heading")</p>
+    <h2 class="govuk-heading-m">@Messages("home.heading")</h2>
     <p class="govuk-body">@Messages("home.body")</p>
 
   </div>

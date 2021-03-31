@@ -97,7 +97,7 @@ notFoundError.body1=If you typed a web address, check it is correct.
 notFoundError.body2=If you pasted the web address, check you copied the entire address.
 notFoundError.body3=If the web address is correct, please get in touch with us via our <a href= "/contact">contact<a/> page.
 notFoundError.body4=Alternatively, you can <a href= "/dashboard">return to the home page</a>.
-transferComplete.title=Transfer Complete
+transferComplete.title=Transfer complete
 transferComplete.error=There has been an error, contact us.
 transferComplete.body=Your records have now been transferred to The National Archives
 transferComplete.heading=What happens next
