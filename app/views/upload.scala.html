@@ -64,7 +64,7 @@
                                     Safari 14.0.1, which does not let the user browse for files if the 'accept'
                                     attribute is missing. The actual value of the attribute is ignored because
                                     'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
-                                    accept="image/jpeg" aria-hidden="true"
+                                    accept="image/jpeg" aria-hidden="false"
                                 >
                                 <p class="govuk-body drag-and-drop__hint-text">@Messages("upload.dragAndDropHintText")</p>
                                 <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
@@ -105,7 +105,7 @@
             </div>
         </div>
         <div>
-            <progress class="progress-display" value="" max="100"></progress>
+            <progress class="progress-display" value="" max="100" role="status" aria-live="polite"></progress>
         </div>
     </div>
 </div>
