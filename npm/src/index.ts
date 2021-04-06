@@ -6,8 +6,11 @@ import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 import { goToNextPage } from "./upload/next-page-redirect"
 import { FileChecks } from "./filechecks"
 import { CognitoIdentity, STS } from "aws-sdk"
+import { initAll } from 'govuk-frontend'
 
 window.onload = function () {
+  initAll()
+
   renderModules()
 }
 
