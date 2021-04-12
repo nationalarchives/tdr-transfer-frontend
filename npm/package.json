@@ -73,7 +73,7 @@
     "ts-jest": "^25.5.1",
     "ts-loader": "^8.1.0",
     "typescript": "^3.9.9",
-    "webpack": "^5.31.0",
+    "webpack": "^5.31.2",
     "webpack-cli": "^4.6.0",
     "stylelint": "^13.12.0",
     "stylelint-config-sass-guidelines": "^8.0.0"
