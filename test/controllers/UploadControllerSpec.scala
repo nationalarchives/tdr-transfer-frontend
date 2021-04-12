@@ -1,16 +1,16 @@
 package controllers
 
 import java.util.UUID
-
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
 import graphql.codegen.IsTransferAgreementComplete.{isTransferAgreementComplete => itac}
+import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
-import play.api.Configuration
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
@@ -31,13 +31,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  "UploadController GET" should {
+  "UploadController GET upload" should {
     "redirect to the transfer agreement page if the transfer agreement for that consignment has not been signed" in {
       implicit val ec: ExecutionContext = ExecutionContext.global
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, frontEndInfoConfiguration)
 
+      stubGetConsignmentStatusResponse()
       stubGetTransferAgreementResponse(Option.empty)
 
       val uploadPage = controller.uploadPage(consignmentId)
@@ -53,6 +54,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, frontEndInfoConfiguration)
 
+      stubGetConsignmentStatusResponse()
       stubGetTransferAgreementResponse(Some(new itac.GetTransferAgreement(false)))
 
       val uploadPage = controller.uploadPage(consignmentId)
@@ -67,11 +69,43 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, frontEndInfoConfiguration)
 
+      stubGetConsignmentStatusResponse()
       stubGetTransferAgreementResponse(Some(new itac.GetTransferAgreement(true)))
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
       status(uploadPage) mustBe OK
+    }
+
+    "redirect to the upload in progress page if the upload is in progress" in {
+      implicit val ec: ExecutionContext = ExecutionContext.global
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, frontEndInfoConfiguration)
+
+      stubGetConsignmentStatusResponse(Option("InProgress"))
+      stubGetTransferAgreementResponse(Some(new itac.GetTransferAgreement(true)))
+
+      val uploadPage = controller.uploadPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+
+      status(uploadPage) mustBe SEE_OTHER
+      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/upload-in-progress")
+    }
+  }
+
+  "UploadController GET uploadInProgress" should {
+    "render the upload in progress error message" in {
+      implicit val ec: ExecutionContext = ExecutionContext.global
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, frontEndInfoConfiguration)
+      val uploadInProgressPage = controller.uploadInProgress(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload-in-progress").withCSRFToken)
+
+      contentAsString(uploadInProgressPage) must include("govuk-error-summary__body")
+      contentAsString(uploadInProgressPage) must include("upload.error.inProgress")
     }
   }
 
@@ -79,7 +113,26 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val client = new GraphQLConfiguration(app.configuration).getClient[itac.Data, itac.Variables]()
     val data: client.GraphqlData = client.GraphqlData(Some(itac.Data(agreement)), List())
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+    val body = "{\"query\":\"query isTransferAgreementComplete($consignmentId:UUID!)" +
+      "{getTransferAgreement(consignmentid:$consignmentId){isAgreementComplete}}\"," +
+      "\"variables\":{\"consignmentId\":\"c2efd3e6-6664-4582-8c28-dcf891f60e68\"}}"
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+
+      .withRequestBody(equalToJson(body))
       .willReturn(okJson(dataString)))
   }
+
+  private def stubGetConsignmentStatusResponse(uploadStatus: Option[String] = None)(implicit ec: ExecutionContext) = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+    val data = client.GraphqlData(Option(gcs.Data(Option(gcs.GetConsignment(CurrentStatus(uploadStatus))))), List())
+    val dataString = data.asJson.printWith(Printer(dropNullValues = false, ""))
+    val body = "{\"query\":\"query getConsignmentStatus($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId)" +
+      "{currentStatus{upload}}}\",\"variables\":{\"consignmentId\":\"c2efd3e6-6664-4582-8c28-dcf891f60e68\"}}"
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(equalToJson(body))
+      .willReturn(okJson(dataString))
+    )
+  }
+
 }
