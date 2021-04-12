@@ -12,6 +12,7 @@ POST    /series                                            controllers.SeriesDet
 GET     /consignment/:consignmentId/transfer-agreement     controllers.TransferAgreementController.transferAgreement(consignmentId: java.util.UUID)
 POST    /consignment/:consignmentId/transfer-agreement     controllers.TransferAgreementController.transferAgreementSubmit(consignmentId: java.util.UUID)
 GET     /consignment/:consignmentId/upload                 controllers.UploadController.uploadPage(consignmentId: java.util.UUID)
+GET     /consignment/:consignmentId/upload-in-progress     controllers.UploadController.uploadInProgress(consignmentId: java.util.UUID)
 GET     /consignment/:consignmentId/records                controllers.FileChecksController.recordProcessingPage(consignmentId: java.util.UUID)
 GET     /consignment/:consignmentId/records-results        controllers.FileChecksResultsController.fileCheckResultsPage(consignmentId: java.util.UUID)
 GET     /consignment/:consignmentId/transfer-summary       controllers.TransferSummaryController.transferSummary(consignmentId: java.util.UUID)

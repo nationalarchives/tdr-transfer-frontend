@@ -18,8 +18,12 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
                                  val frontEndInfoConfiguration: FrontEndInfoConfiguration)
                                 (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
-  def uploadPage(consignmentId: UUID): Action[AnyContent] = transferAgreementExistsAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def uploadPage(consignmentId: UUID): Action[AnyContent] = uploadPermitted(consignmentId) { implicit request: Request[AnyContent] =>
     Ok(views.html.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo))
+  }
+
+  def uploadInProgress(consignmentId: UUID) : Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
+    Ok(views.html.uploadInProgress(consignmentId))
   }
 
 }
