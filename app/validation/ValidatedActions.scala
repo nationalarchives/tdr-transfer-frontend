@@ -1,13 +1,13 @@
+
 package validation
 
 import java.util.UUID
-
 import auth.TokenSecurity
 import configuration.GraphQLConfiguration
 import controllers.routes
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.{ConsignmentService, TransferAgreementService}
+import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
 
 import scala.concurrent.ExecutionContext
 
@@ -25,13 +25,24 @@ abstract class ValidatedActions() extends TokenSecurity with I18nSupport {
     }
   }
 
-  def transferAgreementExistsAction(consignmentId: UUID)(f: Request[AnyContent] => Result): Action[AnyContent]
-  = secureAction.async { implicit request: Request[AnyContent] =>
+  def uploadPermitted(consignmentId: UUID)(f: Request[AnyContent] => Result): Action[AnyContent] = secureAction.async {
+    implicit request: Request[AnyContent] =>
     val transferAgreementService = new TransferAgreementService(graphqlConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
-    transferAgreementService.transferAgreementExists(consignmentId, request.token.bearerAccessToken) map {
-      case true => f(request)
-      case false => Redirect(routes.TransferAgreementController.transferAgreement(consignmentId))
+    for {
+      transferAgreementExists <- transferAgreementService.transferAgreementExists(consignmentId, request.token.bearerAccessToken)
+      status <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      val uploadInProgress: Boolean = status.flatMap(_.upload.map(_ == "InProgress")).getOrElse(false)
+
+      if(!transferAgreementExists) {
+        Redirect(routes.TransferAgreementController.transferAgreement(consignmentId))
+      } else if(uploadInProgress) {
+        Redirect(routes.UploadController.uploadInProgress(consignmentId))
+      } else {
+        f(request)
+      }
     }
   }
 }
