@@ -20,6 +20,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
 
   def uploadPage(consignmentId: UUID): Action[AnyContent] = uploadPermitted(consignmentId) { implicit request: Request[AnyContent] =>
     Ok(views.html.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo))
+      .withHeaders("Cache-Control" -> "no-store, must-revalidate")
   }
 
   def uploadInProgress(consignmentId: UUID) : Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
