@@ -29,8 +29,9 @@ class SecurityModule extends AbstractModule {
 
     // logout
     val logoutController = new LogoutController()
-    logoutController.setDefaultUrl("/")
-    logoutController.setLocalLogout(false)
+    val configuration = Configuration.load(Environment.simple())
+    logoutController.setDefaultUrl(configuration.get[String]("logout.url"))
+    logoutController.setLocalLogout(true)
     logoutController.setCentralLogout(true)
     bind(classOf[LogoutController]).toInstance(logoutController)
   }
