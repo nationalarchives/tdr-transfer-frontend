@@ -1,4 +1,3 @@
-
 package validation
 
 import java.util.UUID
@@ -17,12 +16,12 @@ abstract class ValidatedActions() extends TokenSecurity with I18nSupport {
 
   def consignmentExists(consignmentId: UUID)(f: Request[AnyContent] => Result): Action[AnyContent] = secureAction.async {
     implicit request: Request[AnyContent] =>
-    val consignmentService = new ConsignmentService(graphqlConfiguration)
-    val consignmentExists = consignmentService.consignmentExists(consignmentId, request.token.bearerAccessToken)
-    consignmentExists.map {
-      case true => f(request)
-      case false => NotFound(views.html.notFoundError())
-    }
+      val consignmentService = new ConsignmentService(graphqlConfiguration)
+      val consignmentExists = consignmentService.consignmentExists(consignmentId, request.token.bearerAccessToken)
+      consignmentExists.map {
+        case true => f(request)
+        case false => NotFound(views.html.notFoundError())
+      }
   }
 
   def uploadPermitted(consignmentId: UUID)(f: Request[AnyContent] => Result): Action[AnyContent] = secureAction.async {
