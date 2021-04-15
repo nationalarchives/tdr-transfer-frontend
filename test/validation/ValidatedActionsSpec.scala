@@ -54,7 +54,7 @@ class ValidatedActionsSpec extends FrontEndTestHelper {
     graphqlConfigurationMock
   }
 
-  def mockConsignmentExistsGraphqlResponse(getConsignmentData: gc.Data) = {
+  def mockConsignmentExistsGraphqlResponse(getConsignmentData: gc.Data): GraphQLConfiguration = {
     val graphqlConfigurationMock: GraphQLConfiguration = mock[GraphQLConfiguration]
     val client = mock[GraphQLClient[gc.Data, gc.Variables]]
 
