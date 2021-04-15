@@ -30,7 +30,7 @@ class ConsignmentStatusServiceSpec extends WordSpec with Matchers with MockitoSu
     Mockito.reset(getConsignmentStatusClient)
   }
 
-  "consignmentStatus" should {
+  "consignmentStatus function" should {
     "return the consignment status" in {
       val data = Option(gcs.Data(Option(gcs.GetConsignment(CurrentStatus(Option("TestStatus"))))))
       val response = GraphQlResponse(data, Nil)
