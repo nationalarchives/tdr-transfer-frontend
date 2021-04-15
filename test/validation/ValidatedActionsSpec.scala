@@ -124,6 +124,4 @@ class ValidatedActionsSpec extends FrontEndTestHelper {
       response.header.headers("Location") must equal(s"/consignment/$consignmentId/upload-in-progress")
     }
   }
-
-
 }
