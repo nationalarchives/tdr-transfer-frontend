@@ -16,5 +16,4 @@ class UnauthenticatedController @Inject ()(val controllerComponents: SecurityCom
       profileManager.get(true).isPresent
     }
   }
-
 }
