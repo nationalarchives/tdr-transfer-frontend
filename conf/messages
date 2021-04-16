@@ -124,3 +124,7 @@ checkingRecords.progress=4
 fileChecksResults.progress=4
 transferSummary.progress=5
 progress.totalSteps=5
+
+signOut.header=Signed out
+signOut.title=You have signed out
+signOut.signInLink=Sign in again
