@@ -5,7 +5,7 @@
 * object to insert into the body of the page.
 *@
 
-@(title: String, hasError: Boolean = false)(content: Html)(implicit messages: Messages)
+@(title: String, hasError: Boolean = false, isLoggedIn: Boolean = true)(content: Html)(implicit messages: Messages)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -38,13 +38,15 @@
                     @Messages("main.header")
                 </a>
             </div>
-            <ul class="govuk-header__navigation govuk-header__navigation--end">
-                <li class="govuk-header__navigation-item">
-                    <a href="/logout" class="govuk-header__link">
-                        Sign out
-                    </a>
-                </li>
-            </ul>
+            @if(isLoggedIn) {
+                <ul class="govuk-header__navigation govuk-header__navigation--end">
+                    <li class="govuk-header__navigation-item">
+                        <a href="/logout" class="govuk-header__link">
+                            Sign out
+                        </a>
+                    </li>
+                </ul>
+            }
         </div>
     </header>
 

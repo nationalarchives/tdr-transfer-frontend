@@ -1,5 +1,8 @@
 package controllers
 
+import auth.UnauthenticatedController
+import org.pac4j.play.scala.SecurityComponents
+
 import javax.inject._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
@@ -10,9 +13,9 @@ import play.api.mvc._
  */
 
 @Singleton
-class HomeController @Inject()(cc: ControllerComponents) extends AbstractController(cc) with I18nSupport {
+class HomeController @Inject()(securityComponents: SecurityComponents) extends UnauthenticatedController(securityComponents) with I18nSupport {
 
   def index(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.index())
+    Ok(views.html.index(request.isLoggedIn))
   }
 }
