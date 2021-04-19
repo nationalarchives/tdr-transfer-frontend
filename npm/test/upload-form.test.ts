@@ -1,17 +1,15 @@
 import "@testing-library/jest-dom"
-import { IFileWithPath } from "@nationalarchives/file-information"
-import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
-import { GraphqlClient } from "../src/graphql"
-import { FileUploader } from "../src/upload"
-import { UploadForm, IReader, IWebkitEntry } from "../src/upload/upload-form"
-import { mockKeycloakInstance } from "./utils"
+import {IFileWithPath} from "@nationalarchives/file-information"
+import {ClientFileMetadataUpload} from "../src/clientfilemetadataupload"
+import {GraphqlClient} from "../src/graphql"
+import {FileUploader} from "../src/upload"
+import {UploadForm, IReader, IWebkitEntry} from "../src/upload/upload-form"
+import {mockKeycloakInstance} from "./utils"
 
 const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
     length: file.length,
-    item: (index: number) => {
-      return file[index]
-    }
+    item: (index: number) => file[index]
   } as FileList
 }
 
@@ -141,6 +139,7 @@ class MockDom {
       constructor() {
         super("drag")
       }
+
       dataTransfer = {
         files: mockFileList(folderToDrop),
         dropEffect: "",
@@ -194,6 +193,7 @@ class MockDom {
       mockGoToNextPage
     )
   }
+
   selectFolderViaButton: () => void = () => {
     triggerInputEvent(this.folderRetriever!, "change")
   }
@@ -232,7 +232,7 @@ const dummyIFileWithPath = {
 test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
   mockDom.fileUploader.initialiseFormListeners()
-  mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
+  mockDom.uploadForm!.files = {files: [dummyIFileWithPath]}
   mockDom.selectFolderViaButton()
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
