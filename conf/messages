@@ -73,8 +73,9 @@ fileChecksResults.description.plural=Your folder ''{0}'' containing {1} items ha
 fileChecksResults.dashboard=Return to start
 fileChecksResults.continueLink=Continue
 transferSummary.header=Transfer summary
-transferSummary.title=Transfer summary
-transferSummary.body=Please check the details of your files are correct before transferring ownership of your records to The National Archives. You cannot amend submitted files once the transfer has started.
+transferSummary.title=Confirm transfer
+transferSummary.body=Here is a summary of the records you have uploaded.
+transferSummary.bodyBelow=Please confirm you would like to transfer ownership of the records to The National Archives.
 transferSummary.seriesReference=Series reference
 transferSummary.transferringBody=Transferring body
 transferSummary.download=Download
@@ -100,8 +101,8 @@ transferComplete.title=Transfer complete
 transferComplete.error=There has been an error, contact us.
 transferComplete.body=Your records have now been transferred to The National Archives
 transferComplete.heading=What happens next
-transferComplete.body.notify=We have now received your records. Please do not delete the original files you uploaded until you are notified that your records have been preserved. We will contact you via email within 90 days.
-transferComplete.body.contact=If you do not receive an email, please contact us.
+transferComplete.body.notify=We have now received your records. Please do not delete the original files you uploaded until you are notified that your records have been preserved.
+transferComplete.body.contact=We will contact you via email within 90 days. If you do not receive an email, please contact us.
 transferComplete.return=Return to start
 
 # Upload.error messages placeholder wording
