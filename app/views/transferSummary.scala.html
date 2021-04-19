@@ -49,6 +49,7 @@
                     </dd>
                 </div>
             </dl>
+        <p class="govuk-body">@Messages("transferSummary.bodyBelow")</p>
             @form(
             routes.TransferSummaryController.finalTransferConfirmationSubmit(consignmentId),
             (Symbol("novalidate"), "")
