@@ -84,8 +84,6 @@ class MockDom {
                       </div>
                   </div>
               </form>
-                      <!--        Form to redirect user once upload has completed. It sends consignmentId to record processing placeholder page -->
-              @form(routes.FileChecksController.recordProcessingPage(consignmentId), Symbol("id") -> "upload-data-form") { }
           </div>
       </div>
       <div id="progress-bar" class="govuk-grid-row" hidden>`)
