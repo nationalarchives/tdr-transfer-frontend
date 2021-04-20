@@ -7,7 +7,7 @@ import play.api.mvc.{AnyContent, Request}
 
 import javax.inject.Inject
 
-class UnauthenticatedController @Inject ()(val controllerComponents: SecurityComponents) extends Security[CommonProfile] {
+class UnprotectedPageController @Inject ()(val controllerComponents: SecurityComponents) extends Security[CommonProfile] {
 
   implicit class RequestUtils(request: Request[AnyContent]) {
     def isLoggedIn: Boolean = {
