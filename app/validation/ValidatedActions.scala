@@ -38,7 +38,7 @@ abstract class ValidatedActions() extends TokenSecurity with I18nSupport {
       if(!transferAgreementExists) {
         Redirect(routes.TransferAgreementController.transferAgreement(consignmentId))
       } else if(uploadInProgress) {
-        Redirect(routes.UploadController.uploadInProgress(consignmentId))
+        Ok(views.html.uploadInProgress(consignmentId))
       } else {
         f(request)
       }

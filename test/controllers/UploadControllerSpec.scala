@@ -94,21 +94,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  "UploadController GET uploadInProgress" should {
-    "render the upload in progress error message" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-
-      val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, frontEndInfoConfiguration)
-      val uploadInProgressPage = controller.uploadInProgress(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload-in-progress").withCSRFToken)
-
-      contentAsString(uploadInProgressPage) must include("govuk-error-summary__body")
-      contentAsString(uploadInProgressPage) must include("upload.error.inProgress")
-    }
-  }
-
   private def stubGetTransferAgreementResponse(agreement: Option[itac.GetTransferAgreement])(implicit ec: ExecutionContext) = {
     val client = new GraphQLConfiguration(app.configuration).getClient[itac.Data, itac.Variables]()
     val data: client.GraphqlData = client.GraphqlData(Some(itac.Data(agreement)), List())
