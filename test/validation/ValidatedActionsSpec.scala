@@ -11,12 +11,14 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import play.api.http.Status.OK
 import play.api.mvc.{AnyContent, Request, Result}
 import play.api.test.FakeRequest
 import sangria.ast.Document
 import sttp.client.{NothingT, SttpBackend}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 import util.FrontEndTestHelper
+import play.api.test.Helpers.{contentAsString, status => playStatus, _}
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
@@ -111,17 +113,17 @@ class ValidatedActionsSpec extends FrontEndTestHelper {
       response.header.headers("Location") must equal(s"/consignment/$consignmentId/transfer-agreement")
     }
 
-    "return a redirect to the upload in progress page if the upload is in progress" in {
+    "render the upload in progress page if the upload is in progress" in {
       val consignmentId = UUID.randomUUID()
 
       val graphqlConfigurationMock = mockUploadPermittedGraphqlResponse(itac.Data(Option(itac.GetTransferAgreement(true))), gcs.Data(Option(GetConsignment(CurrentStatus(Option("InProgress"))))))
       val functionMock = mock[Request[AnyContent] => Result]
 
-      val response = new MockValidatedActions(graphqlConfigurationMock).uploadPermitted(consignmentId)(functionMock)(FakeRequest()).futureValue
+      val response = new MockValidatedActions(graphqlConfigurationMock).uploadPermitted(consignmentId)(functionMock)(FakeRequest())
 
       verify(functionMock, times(0)).apply(any[Request[AnyContent]])
-      response.header.status must equal(303)
-      response.header.headers("Location") must equal(s"/consignment/$consignmentId/upload-in-progress")
+      playStatus(response) must equal(OK)
+      contentAsString(response) must include("uploadProgress.header")
     }
   }
 }
