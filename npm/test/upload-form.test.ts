@@ -211,15 +211,17 @@ const dummyFolder = {
   lastModified: 2147483647,
   name: "Mock Folder",
   size: 0,
-  type: ""
-} as File
+  type: "",
+  webkitRelativePath: ""
+} as unknown as File
 
 const dummyFile = {
   lastModified: 2147483647,
   name: "Mock File",
   size: 3008,
-  type: "pdf"
-} as File
+  type: "pdf",
+  webkitRelativePath: "Parent_Folder"
+} as unknown as File
 
 const dummyIFileWithPath = {
   file: dummyFile,
