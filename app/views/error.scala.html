@@ -2,7 +2,7 @@
 * This is a placeholder to allow us to write unit tests which show the redirect to the error page.
 * It will be replaced once we have a properly designed error page
 *@
-@(errorMessage: String)(implicit messages: Messages)
+@(errorMessage: String)(implicit messages: Messages, request: RequestHeader)
 
 @main(Messages("error.header")) {
 @defining(play.core.PlayVersion.current) { version =>
