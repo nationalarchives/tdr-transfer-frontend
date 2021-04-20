@@ -77,7 +77,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
     }
 
-    "redirect to the upload in progress page if the upload is in progress" in {
+    "render the upload in progress page if the upload is in progress" in {
       implicit val ec: ExecutionContext = ExecutionContext.global
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
@@ -89,8 +89,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
 
-      status(uploadPage) mustBe SEE_OTHER
-      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/upload-in-progress")
+      status(uploadPage) mustBe OK
+      contentAsString(uploadPage) must include("uploadProgress.header")
     }
   }
 
