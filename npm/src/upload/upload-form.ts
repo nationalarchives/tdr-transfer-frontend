@@ -1,4 +1,4 @@
-import {IFileWithPath} from "@nationalarchives/file-information"
+import { IFileWithPath } from "@nationalarchives/file-information"
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
@@ -190,11 +190,9 @@ export class UploadForm {
   }
 
   addSubmitListener() {
-    this.formElement.addEventListener(
-      "submit",
-      this.handleFormSubmission,
-      {once: true}
-    )
+    this.formElement.addEventListener("submit", this.handleFormSubmission, {
+      once: true
+    })
   }
 
   private getParentFolderName(folder: IFileWithPath[]) {

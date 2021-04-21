@@ -1,13 +1,13 @@
 import "@testing-library/jest-dom"
-import {IFileWithPath} from "@nationalarchives/file-information"
-import {ClientFileMetadataUpload} from "../src/clientfilemetadataupload"
-import {GraphqlClient} from "../src/graphql"
-import {FileUploader} from "../src/upload"
-import {UploadForm, IReader, IWebkitEntry} from "../src/upload/upload-form"
-import {mockKeycloakInstance} from "./utils"
+import { IFileWithPath } from "@nationalarchives/file-information"
+import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
+import { GraphqlClient } from "../src/graphql"
+import { FileUploader } from "../src/upload"
+import { UploadForm, IReader, IWebkitEntry } from "../src/upload/upload-form"
+import { mockKeycloakInstance } from "./utils"
 
 interface SubmitEvent extends Event {
-  submitter: HTMLElement;
+  submitter: HTMLElement
 }
 
 const mockFileList: (file: File[]) => FileList = (file: File[]) => {
@@ -42,21 +42,21 @@ const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
   element.dispatchEvent(event)
 }
 
-const dummyFolder = {
+const dummyFolder = ({
   lastModified: 2147483647,
   name: "Mock Folder",
   size: 0,
   type: "",
   webkitRelativePath: ""
-} as unknown as File
+} as unknown) as File
 
-const dummyFile = {
+const dummyFile = ({
   lastModified: 2147483647,
   name: "Mock File",
   size: 3008,
   type: "pdf",
   webkitRelativePath: "Parent_Folder"
-} as unknown as File
+} as unknown) as File
 
 const dummyIFileWithPath = {
   file: dummyFile,
@@ -195,40 +195,36 @@ class MockDom {
     const submitButton = this.submitButton
 
     class MockSubmitEvent implements SubmitEvent {
-      readonly AT_TARGET: number = 0;
-      readonly BUBBLING_PHASE: number = 0;
-      readonly CAPTURING_PHASE: number = 0;
-      readonly NONE: number = 0;
-      readonly bubbles: boolean = true;
-      cancelBubble: boolean = true;
-      readonly cancelable: boolean = true;
-      readonly composed: boolean = true;
-      readonly currentTarget: EventTarget | null = null;
-      readonly defaultPrevented: boolean = true;
-      readonly eventPhase: number = 0;
-      readonly isTrusted: boolean = true;
-      returnValue: boolean = true;
-      readonly srcElement: EventTarget | null = null;
-      readonly target: EventTarget | null = null;
-      readonly timeStamp: number = 2147483647;
-      readonly type: string = "submit";
+      readonly AT_TARGET: number = 0
+      readonly BUBBLING_PHASE: number = 0
+      readonly CAPTURING_PHASE: number = 0
+      readonly NONE: number = 0
+      readonly bubbles: boolean = true
+      cancelBubble: boolean = true
+      readonly cancelable: boolean = true
+      readonly composed: boolean = true
+      readonly currentTarget: EventTarget | null = null
+      readonly defaultPrevented: boolean = true
+      readonly eventPhase: number = 0
+      readonly isTrusted: boolean = true
+      returnValue: boolean = true
+      readonly srcElement: EventTarget | null = null
+      readonly target: EventTarget | null = null
+      readonly timeStamp: number = 2147483647
+      readonly type: string = "submit"
       submitter: HTMLElement = submitButton!
 
       composedPath(): EventTarget[] {
-        return [];
+        return []
       }
 
-      initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void {
-      }
+      initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void {}
 
-      preventDefault(): void {
-      }
+      preventDefault(): void {}
 
-      stopImmediatePropagation(): void {
-      }
+      stopImmediatePropagation(): void {}
 
-      stopPropagation(): void {
-      }
+      stopPropagation(): void {}
     }
 
     return new MockSubmitEvent()
@@ -271,13 +267,22 @@ class MockDom {
   folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
   folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
 
-  hiddenInputButton: HTMLElement | null = document.querySelector("#file-selection")
+  hiddenInputButton: HTMLElement | null = document.querySelector(
+    "#file-selection"
+  )
 
-  submitButton: HTMLElement | null = document.querySelector("input[type=submit]")
+  submitButton: HTMLElement | null = document.querySelector(
+    "input[type=submit]"
+  )
 
   fileUploader = this.setUpFileUploader()
 
-  form = new UploadForm(this.uploadForm!, this.folderRetriever!, this.dropzone!, this.setUpFileUploader)
+  form = new UploadForm(
+    this.uploadForm!,
+    this.folderRetriever!,
+    this.dropzone!,
+    this.setUpFileUploader
+  )
 
   submitAndLabelButtons = document.querySelectorAll(".govuk-button")
 }
@@ -285,7 +290,7 @@ class MockDom {
 test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
   mockDom.fileUploader.initialiseFormListeners()
-  mockDom.uploadForm!.files = {files: [dummyIFileWithPath]}
+  mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
   mockDom.selectFolderViaButton()
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
@@ -472,14 +477,10 @@ test("Clicking the Submit button disables the buttons on the page", async () => 
   await mockDom.form.handleFormSubmission(submitEvent)
 
   mockDom.submitAndLabelButtons.forEach((button) =>
-    expect(button).toHaveAttribute("disabled",
-      "true"
-    )
+    expect(button).toHaveAttribute("disabled", "true")
   )
 
-  expect(mockDom.hiddenInputButton).toHaveAttribute("disabled",
-    "true"
-  )
+  expect(mockDom.hiddenInputButton).toHaveAttribute("disabled", "true")
 
   /*There is currently no way in Javascript to check if an event has been removed from an element,
    therefore it is not possible to see if the submission code removed the drop event from the dropzone
