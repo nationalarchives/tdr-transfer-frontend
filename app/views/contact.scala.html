@@ -1,4 +1,4 @@
-@(isLoggedIn: Boolean)(implicit messages: Messages)
+@(isLoggedIn: Boolean)(implicit messages: Messages, request: RequestHeader)
 
 @main(Messages("contact.header"), isLoggedIn = isLoggedIn) {
     <div class="govuk-grid-row">

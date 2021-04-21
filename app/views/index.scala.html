@@ -1,4 +1,4 @@
-@(isLoggedIn: Boolean)(implicit messages: Messages)
+@(isLoggedIn: Boolean)(implicit messages: Messages, request: RequestHeader)
 
 @main(Messages("home.header"), isLoggedIn = isLoggedIn) {
 @defining(play.core.PlayVersion.current) { version =>
