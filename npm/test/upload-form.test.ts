@@ -458,3 +458,30 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })
+
+test("Clicking the Submit button disables the buttons on the page", async () => {
+  const mockDom = new MockDom()
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.dataTransferItem
+  )
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDropppedItems(dragEvent)
+
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
+
+  mockDom.submitAndLabelButtons.forEach((button) =>
+    expect(button).toHaveAttribute("disabled",
+      "true"
+    )
+  )
+
+  expect(mockDom.hiddenInputButton).toHaveAttribute("disabled",
+    "true"
+  )
+
+  /*There is currently no way in Javascript to check if an event has been removed from an element,
+   therefore it is not possible to see if the submission code removed the drop event from the dropzone
+   */
+})
