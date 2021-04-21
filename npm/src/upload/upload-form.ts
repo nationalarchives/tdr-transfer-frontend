@@ -1,4 +1,4 @@
-import { IFileWithPath } from "@nationalarchives/file-information"
+import {IFileWithPath} from "@nationalarchives/file-information"
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
@@ -89,16 +89,25 @@ export class UploadForm {
   folderRetriever: HTMLInputElement
   dropzone: HTMLElement
   selectedFiles: IFileWithPath[]
+  folderUploader: (
+    files: IFileWithPath[],
+    uploadFilesInfo: FileUploadInfo
+  ) => void
 
   constructor(
     formElement: HTMLFormElement,
     folderRetriever: HTMLInputElement,
-    dropzone: HTMLElement
+    dropzone: HTMLElement,
+    folderUploader: (
+      files: IFileWithPath[],
+      uploadFilesInfo: FileUploadInfo
+    ) => void
   ) {
     this.formElement = formElement
     this.folderRetriever = folderRetriever
     this.dropzone = dropzone
     this.selectedFiles = []
+    this.folderUploader = folderUploader
   }
 
   consignmentId: () => string = () => {
@@ -167,27 +176,24 @@ export class UploadForm {
     })
   }
 
-  addSubmitListener(
-    uploadFiles: (
-      files: IFileWithPath[],
-      uploadFilesInfo: FileUploadInfo
-    ) => void
-  ) {
+  handleFormSubmission: (ev: Event) => void = (ev: Event) => {
+    ev.preventDefault()
+
+    this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
+    this.disableButtonsAndDropzone()
+    const parentFolder = this.getParentFolderName(this.selectedFiles)
+    const uploadFilesInfo: FileUploadInfo = {
+      consignmentId: this.consignmentId(),
+      parentFolder: parentFolder
+    }
+    this.folderUploader(this.selectedFiles, uploadFilesInfo)
+  }
+
+  addSubmitListener() {
     this.formElement.addEventListener(
       "submit",
-      (ev) => {
-        ev.preventDefault()
-
-        this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
-        this.disableButtonsAndDropzone()
-        const parentFolder = this.getParentFolderName(this.selectedFiles)
-        const uploadFilesInfo: FileUploadInfo = {
-          consignmentId: this.consignmentId(),
-          parentFolder: parentFolder
-        }
-        uploadFiles(this.selectedFiles, uploadFilesInfo)
-      },
-      { once: true }
+      this.handleFormSubmission,
+      {once: true}
     )
   }
 
