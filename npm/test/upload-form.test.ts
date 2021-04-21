@@ -1,17 +1,15 @@
 import "@testing-library/jest-dom"
-import { IFileWithPath } from "@nationalarchives/file-information"
-import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
-import { GraphqlClient } from "../src/graphql"
-import { FileUploader } from "../src/upload"
-import { UploadForm, IReader, IWebkitEntry } from "../src/upload/upload-form"
-import { mockKeycloakInstance } from "./utils"
+import {IFileWithPath} from "@nationalarchives/file-information"
+import {ClientFileMetadataUpload} from "../src/clientfilemetadataupload"
+import {GraphqlClient} from "../src/graphql"
+import {FileUploader} from "../src/upload"
+import {UploadForm, IReader, IWebkitEntry} from "../src/upload/upload-form"
+import {mockKeycloakInstance} from "./utils"
 
 const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
     length: file.length,
-    item: (index: number) => {
-      return file[index]
-    }
+    item: (index: number) => file[index]
   } as FileList
 }
 
@@ -40,53 +38,55 @@ class MockDom {
   }
 
   html = (document.body.innerHTML = `
-  <form id="file-upload-form" data-consignment-id="@consignmentId">
-            <div class="govuk-form-group">
-                <div class="drag-and-drop">
-                    <div class="govuk-summary-list">
-                        <div class="govuk-summary-list__row">
-                            <dd class="govuk-summary-list__value drag-and-drop__success hide">
-                                @greenTickMark()
-                                The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected
-                            </dd>
-                            <dd class="govuk-summary-list__value drag-and-drop__failure hide">
-                                @redWarningSign()
-                                @Messages("upload.dragAndDropErrorMessage")
-                            </dd>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="govuk-form-group">
-                            <div class="drag-and-drop__dropzone">
-                                <input type="file" id="file-selection" name="files" class="govuk-file-upload drag-and-drop__input" webkitdirectory>
-                                <p class="govuk-body drag-and-drop__hint-text">@Messages("upload.dragAndDropHintText")</p>
-                                <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">@Messages("upload.chooseFolderLink")</label>
-                            </div>
-                            <div class="govuk-warning-text">
-                                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                                <strong class="govuk-warning-text__text">
-                                    <span class="govuk-warning-text__assistive">Warning</span>
-                                    @Messages("upload.fileExtensionWarning")
-                                </strong>
-                            </div>
-                            <details class="govuk-details" data-module="govuk-details">
-                                <summary class="govuk-details__summary">
-                                    <span class="govuk-details__summary-text">
-                                        @Messages("upload.fileExtensionTitle")
+      <div id="file-upload" class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+              <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
+                  <div class="govuk-form-group">
+                      <div class="drag-and-drop">
+                          <div class="govuk-summary-list govuk-file-upload">
+                              <div class="govuk-summary-list__row">
+                                  <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="successMessageText">
+                                      <div>
+                                          <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                            <path d="M25,6.2L8.7,23.2L0,14.1l4-4.2l4.7,4.9L21,2L25,6.2z"></path>
+                                          </svg>
+                                          <p id="successMessageText" >The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
+                                      </div>
+                                  </dd>
+                                  <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
+                                      <span class="drag-and-drop__error">
+                                        <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                            <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"/>
+                                        </svg>
                                     </span>
-                                </summary>
-                                <div class="govuk-details__text">
-                                    @Messages("upload.fileExtensionSummary")
-                                </div>
-                            </details>
-                            <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                                @Messages("upload.continueLink")
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>`)
+                                    <p id="failureMessageText">You can only drop a single folder</p>
+                                  </dd>
+                              </div>
+                          </div>
+                          <div>
+                              <div class="govuk-form-group">
+                                  <div class="drag-and-drop__dropzone">
+                                      <input type="file" id="file-selection" name="files"
+                                          class="govuk-file-upload drag-and-drop__input" webkitdirectory
+                                          accept="image/jpeg" aria-hidden="true"
+                                      >
+                                      <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single folder here or</p>
+                                      <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
+                                      Choose folder
+                                      </label>
+                                  </div>
+                                  <p class="govuk-body">For more information on what metadata will be captured during the upload please visit our FAQ’s page</p>
+                                  <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                                      Start upload
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </form>
+          </div>
+      </div>
+      <div id="progress-bar" class="govuk-grid-row" hidden>`)
 
   dataTransferItemFields = {
     fullPath: "something", // add this to the fileEntry and directoryEntry object
@@ -129,30 +129,6 @@ class MockDom {
     }
   }
 
-  mockFileList: (file: File[]) => FileList = (file: File[]) => {
-    return {
-      length: file.length,
-      item: (index: number) => {
-        return file[index]
-      }
-    } as FileList
-  }
-
-  mockDataTransferItemList: (
-    entry: DataTransferItem,
-    itemLength: number
-  ) => DataTransferItemList = (entry: DataTransferItem, itemLength: number) => {
-    return {
-      item: jest.fn(),
-      [Symbol.iterator]: jest.fn(),
-      add: jest.fn(),
-      length: itemLength,
-      clear: jest.fn(),
-      0: entry,
-      remove: jest.fn()
-    } as DataTransferItemList
-  }
-
   addFilesToDragEvent = (
     folderToDrop: File[],
     itemsToDropEntryType: DataTransferItem
@@ -161,6 +137,7 @@ class MockDom {
       constructor() {
         super("drag")
       }
+
       dataTransfer = {
         files: mockFileList(folderToDrop),
         dropEffect: "",
@@ -192,7 +169,7 @@ class MockDom {
     ".drag-and-drop__success"
   )
 
-  folderRetrievalfailureMessage: HTMLElement | null = document.querySelector(
+  folderRetrievalFailureMessage: HTMLElement | null = document.querySelector(
     ".drag-and-drop__failure"
   )
   folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
@@ -214,6 +191,7 @@ class MockDom {
       mockGoToNextPage
     )
   }
+
   selectFolderViaButton: () => void = () => {
     triggerInputEvent(this.folderRetriever!, "change")
   }
@@ -221,27 +199,29 @@ class MockDom {
 
 const mockGoToNextPage = jest.fn()
 
-const triggerInputEvent: (element: HTMLElement, domEvent: string) => boolean = (
+const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
   element: HTMLElement,
   domEvent: string
 ) => {
   const event = new CustomEvent(domEvent)
-  return element.dispatchEvent(event)
+  element.dispatchEvent(event)
 }
 
 const dummyFolder = {
   lastModified: 2147483647,
   name: "Mock Folder",
   size: 0,
-  type: ""
-} as File
+  type: "",
+  webkitRelativePath: ""
+} as unknown as File
 
 const dummyFile = {
   lastModified: 2147483647,
   name: "Mock File",
   size: 3008,
-  type: "pdf"
-} as File
+  type: "pdf",
+  webkitRelativePath: "Parent_Folder"
+} as unknown as File
 
 const dummyIFileWithPath = {
   file: dummyFile,
@@ -252,24 +232,19 @@ const dummyIFileWithPath = {
 test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
   mockDom.fileUploader.initialiseFormListeners()
-  mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
+  mockDom.uploadForm!.files = {files: [dummyIFileWithPath]}
   mockDom.selectFolderViaButton()
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).toHaveAttribute(
     "hidden",
     "true"
   )
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("1 file")
-})
-
-test("drop event is triggerable", () => {
-  const mockDom = new MockDom()
-  expect(triggerInputEvent(mockDom.dropzone!, "drop")).toBe(true)
 })
 
 test("dropzone updates the page with correct folder information if there are 1 or more files in folder", async () => {
@@ -285,7 +260,7 @@ test("dropzone updates the page with correct folder information if there are 1 o
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).toHaveAttribute(
     "hidden",
     "true"
   )
@@ -309,7 +284,7 @@ test("dropzone updates the page with an error if there are no files in folder", 
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
@@ -354,7 +329,7 @@ test("dropzone updates the page with correct folder information if there is a ne
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).toHaveAttribute(
     "hidden",
     "true"
   )
@@ -377,7 +352,7 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
@@ -400,7 +375,7 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
@@ -423,7 +398,7 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalfailureMessage!).not.toHaveAttribute(
+  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
