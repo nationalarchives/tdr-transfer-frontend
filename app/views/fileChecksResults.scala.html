@@ -1,6 +1,6 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
-@(consignmentInfo: ConsignmentFolderInfo, consignmentId: java.util.UUID)(implicit messages: Messages)
+@(consignmentInfo: ConsignmentFolderInfo, consignmentId: java.util.UUID)(implicit messages: Messages, request: RequestHeader)
 
 @main(Messages("fileChecksResults.header")) {
 <div class="govuk-grid-row">
