@@ -1,8 +1,8 @@
-import {ClientFileProcessing} from "../clientfileprocessing"
-import {ClientFileMetadataUpload} from "../clientfilemetadataupload"
-import {S3Upload} from "../s3upload"
-import {FileUploadInfo, UploadForm} from "./upload-form"
-import {IFileWithPath} from "@nationalarchives/file-information"
+import { ClientFileProcessing } from "../clientfileprocessing"
+import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
+import { S3Upload } from "../s3upload"
+import { FileUploadInfo, UploadForm } from "./upload-form"
+import { IFileWithPath } from "@nationalarchives/file-information"
 
 export class FileUploader {
   clientFileProcessing: ClientFileProcessing
@@ -65,7 +65,12 @@ export class FileUploader {
     )
 
     if (uploadForm && folderRetriever && dropzone) {
-      const form = new UploadForm(uploadForm, folderRetriever, dropzone, this.uploadFiles)
+      const form = new UploadForm(
+        uploadForm,
+        folderRetriever,
+        dropzone,
+        this.uploadFiles
+      )
       form.addFolderListener()
       form.addSubmitListener()
       form.addButtonHighlighter()
