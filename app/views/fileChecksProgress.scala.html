@@ -1,6 +1,6 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
-@(consignmentId: UUID, fileChecks: FileChecksProgress, frontEndInfo: FrontEndInfo)(implicit messages: Messages)
+@(consignmentId: UUID, fileChecks: FileChecksProgress, frontEndInfo: FrontEndInfo)(implicit messages: Messages, request: RequestHeader)
 
 @main(Messages("checkingRecords.header")) {
     @defining(play.core.PlayVersion.current) { version =>
