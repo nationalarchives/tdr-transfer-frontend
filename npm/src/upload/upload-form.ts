@@ -145,7 +145,7 @@ export class UploadForm {
     })
   }
 
-  handleDropppedItems: (ev: DragEvent) => any = async (ev) => {
+  handleDroppedItems: (ev: DragEvent) => any = async (ev) => {
     ev.preventDefault()
     const items: DataTransferItemList = ev.dataTransfer?.items!
     if (items.length > 1) {
@@ -165,7 +165,7 @@ export class UploadForm {
   }
 
   addFolderListener() {
-    this.dropzone.addEventListener("drop", this.handleDropppedItems)
+    this.dropzone.addEventListener("drop", this.handleDroppedItems)
 
     this.folderRetriever.addEventListener("change", () => {
       const form: HTMLFormElement | null = this.formElement
@@ -221,7 +221,7 @@ export class UploadForm {
     const hiddenInputButton = document.querySelector("#file-selection")
     hiddenInputButton?.setAttribute("disabled", "true")
 
-    this.dropzone.removeEventListener("drop", this.handleDropppedItems)
+    this.dropzone.removeEventListener("drop", this.handleDroppedItems)
   }
 
   private retrieveFiles(target: HTMLInputTarget | null): IFileWithPath[] {
