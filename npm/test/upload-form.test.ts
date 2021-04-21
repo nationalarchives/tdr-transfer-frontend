@@ -6,6 +6,10 @@ import {FileUploader} from "../src/upload"
 import {UploadForm, IReader, IWebkitEntry} from "../src/upload/upload-form"
 import {mockKeycloakInstance} from "./utils"
 
+interface SubmitEvent extends Event {
+  submitter: HTMLElement;
+}
+
 const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
     length: file.length,
@@ -187,6 +191,49 @@ class MockDom {
     }
   }
 
+  createSubmitEvent = () => {
+    const submitButton = this.submitButton
+
+    class MockSubmitEvent implements SubmitEvent {
+      readonly AT_TARGET: number = 0;
+      readonly BUBBLING_PHASE: number = 0;
+      readonly CAPTURING_PHASE: number = 0;
+      readonly NONE: number = 0;
+      readonly bubbles: boolean = true;
+      cancelBubble: boolean = true;
+      readonly cancelable: boolean = true;
+      readonly composed: boolean = true;
+      readonly currentTarget: EventTarget | null = null;
+      readonly defaultPrevented: boolean = true;
+      readonly eventPhase: number = 0;
+      readonly isTrusted: boolean = true;
+      returnValue: boolean = true;
+      readonly srcElement: EventTarget | null = null;
+      readonly target: EventTarget | null = null;
+      readonly timeStamp: number = 2147483647;
+      readonly type: string = "submit";
+      submitter: HTMLElement = submitButton!
+
+      composedPath(): EventTarget[] {
+        return [];
+      }
+
+      initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void {
+      }
+
+      preventDefault(): void {
+      }
+
+      stopImmediatePropagation(): void {
+      }
+
+      stopPropagation(): void {
+      }
+    }
+
+    return new MockSubmitEvent()
+  }
+
   selectFolderViaButton: () => void = () => {
     triggerInputEvent(this.folderRetriever!, "change")
   }
@@ -223,6 +270,10 @@ class MockDom {
   )
   folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
   folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
+
+  hiddenInputButton: HTMLElement | null = document.querySelector("#file-selection")
+
+  submitButton: HTMLElement | null = document.querySelector("input[type=submit]")
 
   fileUploader = this.setUpFileUploader()
 
