@@ -11,8 +11,7 @@ export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> = asy
 
   const authenticated = await keycloakInstance.init({
     onLoad: "check-sso",
-    silentCheckSsoRedirectUri:
-      window.location.origin + "/assets/html/silent-check-sso.html"
+    silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login"
   })
 
   if (!authenticated) {

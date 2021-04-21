@@ -16,13 +16,13 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi) extends HttpErrorHan
 
     val response = statusCode match {
       case 401 =>
-        Unauthorized(views.html.unauthenticatedError()(request2Messages(request)))
+        Unauthorized(views.html.unauthenticatedError()(request2Messages(request), request))
       case 403 =>
-        Forbidden(views.html.forbiddenError()(request2Messages(request)))
+        Forbidden(views.html.forbiddenError()(request2Messages(request), request))
       case 404 =>
-        NotFound(views.html.notFoundError()(request2Messages(request)))
+        NotFound(views.html.notFoundError()(request2Messages(request), request))
       case _ =>
-        Status(statusCode)(views.html.internalServerError()(request2Messages(request)))
+        Status(statusCode)(views.html.internalServerError()(request2Messages(request), request))
     }
 
     Future.successful(response)
@@ -33,9 +33,9 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi) extends HttpErrorHan
 
     val response = exception match {
       case authException: AuthorisationException =>
-        Forbidden(views.html.forbiddenError()(request2Messages(request)))
+        Forbidden(views.html.forbiddenError()(request2Messages(request), request))
       case e =>
-        InternalServerError(views.html.internalServerError()(request2Messages(request)))
+        InternalServerError(views.html.internalServerError()(request2Messages(request), request))
     }
 
     Future.successful(response)
