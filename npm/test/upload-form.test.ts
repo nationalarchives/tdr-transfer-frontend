@@ -28,6 +28,38 @@ const mockDataTransferItemList: (
   } as DataTransferItemList
 }
 
+const mockGoToNextPage = jest.fn()
+
+const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
+  element: HTMLElement,
+  domEvent: string
+) => {
+  const event = new CustomEvent(domEvent)
+  element.dispatchEvent(event)
+}
+
+const dummyFolder = {
+  lastModified: 2147483647,
+  name: "Mock Folder",
+  size: 0,
+  type: "",
+  webkitRelativePath: ""
+} as unknown as File
+
+const dummyFile = {
+  lastModified: 2147483647,
+  name: "Mock File",
+  size: 3008,
+  type: "pdf",
+  webkitRelativePath: "Parent_Folder"
+} as unknown as File
+
+const dummyIFileWithPath = {
+  file: dummyFile,
+  path: "Parent_Folder",
+  webkitRelativePath: "Parent_Folder"
+} as IFileWithPath
+
 class MockDom {
   constructor(numberOfFiles: number = 2) {
     if (numberOfFiles === 0) {
@@ -155,28 +187,9 @@ class MockDom {
     }
   }
 
-  dropzone: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__dropzone"
-  )
-  uploadForm: HTMLFormElement | null = document.querySelector(
-    "#file-upload-form"
-  )
-  folderRetriever: HTMLInputElement | null = document.querySelector(
-    "#file-selection"
-  )
-
-  folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__success"
-  )
-
-  folderRetrievalFailureMessage: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__failure"
-  )
-  folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
-  folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
-
-  form = new UploadForm(this.uploadForm!, this.folderRetriever!, this.dropzone!)
-  fileUploader = this.setUpFileUploader()
+  selectFolderViaButton: () => void = () => {
+    triggerInputEvent(this.folderRetriever!, "change")
+  }
 
   setUpFileUploader(): FileUploader {
     const client = new GraphqlClient(
@@ -192,42 +205,31 @@ class MockDom {
     )
   }
 
-  selectFolderViaButton: () => void = () => {
-    triggerInputEvent(this.folderRetriever!, "change")
-  }
+  dropzone: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__dropzone"
+  )
+  uploadForm: HTMLFormElement | null = document.querySelector(
+    "#file-upload-form"
+  )
+  folderRetriever: HTMLInputElement | null = document.querySelector(
+    "#file-selection"
+  )
+
+  folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__success"
+  )
+  folderRetrievalFailureMessage: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__failure"
+  )
+  folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
+  folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
+
+  fileUploader = this.setUpFileUploader()
+
+  form = new UploadForm(this.uploadForm!, this.folderRetriever!, this.dropzone!, this.setUpFileUploader)
+
+  submitAndLabelButtons = document.querySelectorAll(".govuk-button")
 }
-
-const mockGoToNextPage = jest.fn()
-
-const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
-  element: HTMLElement,
-  domEvent: string
-) => {
-  const event = new CustomEvent(domEvent)
-  element.dispatchEvent(event)
-}
-
-const dummyFolder = {
-  lastModified: 2147483647,
-  name: "Mock Folder",
-  size: 0,
-  type: "",
-  webkitRelativePath: ""
-} as unknown as File
-
-const dummyFile = {
-  lastModified: 2147483647,
-  name: "Mock File",
-  size: 3008,
-  type: "pdf",
-  webkitRelativePath: "Parent_Folder"
-} as unknown as File
-
-const dummyIFileWithPath = {
-  file: dummyFile,
-  path: "Parent_Folder",
-  webkitRelativePath: "Parent_Folder"
-} as IFileWithPath
 
 test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
