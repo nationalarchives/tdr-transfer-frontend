@@ -91,7 +91,7 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
 case class ConsignmentSummaryData(seriesCode: Option[String],
                                   transferringBody: Option[String],
                                   totalFiles: Int,
-                                  consignmentReference: Option[String])
+                                  consignmentReference: String)
 
 case class FinalTransferConfirmationData(openRecords: Boolean,
                                          transferLegalOwnership: Boolean)
