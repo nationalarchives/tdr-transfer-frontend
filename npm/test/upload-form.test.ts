@@ -307,7 +307,7 @@ test("dropzone updates the page with correct folder information if there are 1 o
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await mockDom.form.handleDropppedItems(dragEvent)
+  await mockDom.form.handleDroppedItems(dragEvent)
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
     "hidden",
@@ -329,7 +329,7 @@ test("dropzone updates the page with an error if there are no files in folder", 
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
@@ -376,7 +376,7 @@ test("dropzone updates the page with correct folder information if there is a ne
     dataTransferItemWithNestedDirectory
   )
   const dragEvent = new dragEventClass()
-  await mockDom.form.handleDropppedItems(dragEvent)
+  await mockDom.form.handleDroppedItems(dragEvent)
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
     "hidden",
@@ -397,7 +397,7 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
@@ -420,7 +420,7 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
@@ -443,7 +443,7 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
     mockDom.fileEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
@@ -466,7 +466,7 @@ test("Clicking the Submit button disables the buttons on the page", async () => 
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await mockDom.form.handleDropppedItems(dragEvent)
+  await mockDom.form.handleDroppedItems(dragEvent)
 
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
