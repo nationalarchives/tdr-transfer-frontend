@@ -10,7 +10,7 @@ class SignOutControllerSpec extends FrontEndTestHelper {
   "SignOutController" should {
     "render the sign out page" in {
       val controller = new SignOutController(stubControllerComponents())
-      val signOutPage = controller.signedOut()(FakeRequest(GET, "/sign-out"))
+      val signOutPage = controller.signedOut()(FakeRequest(GET, "/signed-out"))
 
       status(signOutPage) mustBe OK
       contentType(signOutPage) mustBe Some("text/html")
