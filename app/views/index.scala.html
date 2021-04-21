@@ -1,6 +1,6 @@
-@()(implicit messages: Messages, request: RequestHeader)
+@(isLoggedIn: Boolean)(implicit messages: Messages, request: RequestHeader)
 
-@main(Messages("home.header")) {
+@main(Messages("home.header"), isLoggedIn = isLoggedIn) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">

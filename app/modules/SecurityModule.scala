@@ -29,8 +29,11 @@ class SecurityModule extends AbstractModule {
 
     // logout
     val logoutController = new LogoutController()
-    logoutController.setDefaultUrl("/")
-    logoutController.setLocalLogout(false)
+    val configuration = Configuration.load(Environment.simple())
+    logoutController.setDefaultUrl(configuration.get[String]("logout.url"))
+    //Logs out of the pac4j session. It does this by updating the pac4j class stored in redis
+    logoutController.setLocalLogout(true)
+    //Logs out of the keycloak session
     logoutController.setCentralLogout(true)
     bind(classOf[LogoutController]).toInstance(logoutController)
   }
