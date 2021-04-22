@@ -16,10 +16,10 @@ type TdrS3 = Pick<S3, "upload">
 export class S3Upload {
   s3: TdrS3
   identityId: string
-  constructor(identityId: string) {
+  constructor(identityId: string, region: string) {
     const timeout = 20 * 60 * 1000
     const connectTimeout = 20 * 60 * 1000
-    this.s3 = new S3({ httpOptions: { timeout, connectTimeout } })
+    this.s3 = new S3({ region, httpOptions: { timeout, connectTimeout } })
     this.identityId = identityId
   }
   private uploadSingleFile: (
