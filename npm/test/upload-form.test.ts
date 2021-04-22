@@ -1,10 +1,11 @@
 import "@testing-library/jest-dom"
-import {IFileWithPath} from "@nationalarchives/file-information"
-import {ClientFileMetadataUpload} from "../src/clientfilemetadataupload"
-import {GraphqlClient} from "../src/graphql"
-import {FileUploader} from "../src/upload"
-import {UploadForm, IReader, IWebkitEntry} from "../src/upload/upload-form"
-import {mockKeycloakInstance} from "./utils"
+import { IFileWithPath } from "@nationalarchives/file-information"
+import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
+import { GraphqlClient } from "../src/graphql"
+import { FileUploader } from "../src/upload"
+import { UploadForm, IReader, IWebkitEntry } from "../src/upload/upload-form"
+import { mockKeycloakInstance } from "./utils"
+import { IFrontEndInfo } from "../src"
 
 const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
@@ -183,11 +184,19 @@ class MockDom {
       "https://example.com",
       mockKeycloakInstance
     )
+    const frontendInfo: IFrontEndInfo = {
+      apiUrl: "",
+      cognitoRoleArn: "",
+      identityPoolId: "",
+      identityProviderName: "",
+      region: "",
+      stage: "test"
+    }
     const uploadMetadata = new ClientFileMetadataUpload(client)
     return new FileUploader(
       uploadMetadata,
       "identityId",
-      "test",
+      frontendInfo,
       mockGoToNextPage
     )
   }
@@ -207,21 +216,21 @@ const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
   element.dispatchEvent(event)
 }
 
-const dummyFolder = {
+const dummyFolder = ({
   lastModified: 2147483647,
   name: "Mock Folder",
   size: 0,
   type: "",
   webkitRelativePath: ""
-} as unknown as File
+} as unknown) as File
 
-const dummyFile = {
+const dummyFile = ({
   lastModified: 2147483647,
   name: "Mock File",
   size: 3008,
   type: "pdf",
   webkitRelativePath: "Parent_Folder"
-} as unknown as File
+} as unknown) as File
 
 const dummyIFileWithPath = {
   file: dummyFile,
@@ -232,7 +241,7 @@ const dummyIFileWithPath = {
 test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
   mockDom.fileUploader.initialiseFormListeners()
-  mockDom.uploadForm!.files = {files: [dummyIFileWithPath]}
+  mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
   mockDom.selectFolderViaButton()
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
