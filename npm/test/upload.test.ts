@@ -7,6 +7,7 @@ import { FileUploader } from "../src/upload"
 import { mockKeycloakInstance } from "./utils"
 import { GraphqlClient } from "../src/graphql"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
+import { IFrontEndInfo } from "../src"
 jest.mock("../src/clientfileprocessing")
 
 beforeEach(() => jest.resetModules())
@@ -105,10 +106,18 @@ test("upload function console logs error when upload fails", async () => {
 function setUpFileUploader(): FileUploader {
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
+  const frontendInfo: IFrontEndInfo = {
+    apiUrl: "",
+    cognitoRoleArn: "",
+    identityPoolId: "",
+    identityProviderName: "",
+    region: "",
+    stage: "test"
+  }
   return new FileUploader(
     uploadMetadata,
     "identityId",
-    "test",
+    frontendInfo,
     mockGoToNextPage
   )
 }
