@@ -5,6 +5,7 @@ import { GraphqlClient } from "../src/graphql"
 import { FileUploader } from "../src/upload"
 import { UploadForm, IReader, IWebkitEntry } from "../src/upload/upload-form"
 import { mockKeycloakInstance } from "./utils"
+import { IFrontEndInfo } from "../src"
 
 interface SubmitEvent extends Event {
   submitter: HTMLElement
@@ -261,6 +262,7 @@ class MockDom {
   folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
     ".drag-and-drop__success"
   )
+
   folderRetrievalFailureMessage: HTMLElement | null = document.querySelector(
     ".drag-and-drop__failure"
   )

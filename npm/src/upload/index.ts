@@ -3,6 +3,7 @@ import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo, UploadForm } from "./upload-form"
 import { IFileWithPath } from "@nationalarchives/file-information"
+import { IFrontEndInfo } from "../index"
 
 export class FileUploader {
   clientFileProcessing: ClientFileProcessing
@@ -12,14 +13,14 @@ export class FileUploader {
   constructor(
     clientFileProcessing: ClientFileMetadataUpload,
     identityId: string,
-    stage: string,
+    frontendInfo: IFrontEndInfo,
     goToNextPage: () => void
   ) {
     this.clientFileProcessing = new ClientFileProcessing(
       clientFileProcessing,
-      new S3Upload(identityId)
+      new S3Upload(identityId, frontendInfo.region)
     )
-    this.stage = stage
+    this.stage = frontendInfo.stage
     this.goToNextPage = goToNextPage
   }
 
