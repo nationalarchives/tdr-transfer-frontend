@@ -7,6 +7,7 @@ import { FetchResult } from "apollo-boost"
 import { GraphqlClient } from "../graphql"
 
 export interface IFileCheckProcessed {
+  allChecksSucceeded: boolean
   antivirusProcessed: number
   checksumProcessed: number
   ffidProcessed: number
@@ -50,11 +51,13 @@ export const getConsignmentData: (
           const antivirusProcessed = fileChecks.antivirusProgress.filesProcessed
           const checksumProcessed = fileChecks.checksumProgress.filesProcessed
           const ffidProcessed = fileChecks.ffidProgress.filesProcessed
+          const allChecksSucceeded = getConsignment.allChecksSucceeded
           callback({
             antivirusProcessed,
             checksumProcessed,
             ffidProcessed,
-            totalFiles
+            totalFiles,
+            allChecksSucceeded
           })
         } else {
           console.log(
