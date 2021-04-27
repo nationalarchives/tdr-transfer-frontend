@@ -28,6 +28,7 @@ class GraphqlClientSuccess {
     const data: GetFileCheckProgressQuery = {
       getConsignment: {
         totalFiles: 10,
+        allChecksSucceeded: true,
         fileChecks: {
           antivirusProgress: { filesProcessed: 2 },
           ffidProgress: { filesProcessed: 4 },
@@ -79,16 +80,16 @@ test.each`
   }
 )
 
-test("getConsignmentData returns the correct consignment data with a successful api call", done => {
+test("getConsignmentData returns the correct consignment data with a successful api call", (done) => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientSuccess())
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  const callback: (
-    fileCheckProcessed: IFileCheckProcessed | null
-  ) => void = fileCheckProcessed => {
+  const callback: (fileCheckProcessed: IFileCheckProcessed | null) => void = (
+    fileCheckProcessed
+  ) => {
     expect(fileCheckProcessed!.antivirusProcessed).toBe(2)
     expect(fileCheckProcessed!.checksumProcessed).toBe(3)
     expect(fileCheckProcessed!.ffidProcessed).toBe(4)
@@ -98,32 +99,32 @@ test("getConsignmentData returns the correct consignment data with a successful 
   getConsignmentData(client, callback)
 })
 
-test("getConsignmentData returns null with a failed api call", done => {
+test("getConsignmentData returns null with a failed api call", (done) => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientFailure())
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  const callback: (
-    fileCheckProcessed: IFileCheckProcessed | null
-  ) => void = fileCheckProcessed => {
+  const callback: (fileCheckProcessed: IFileCheckProcessed | null) => void = (
+    fileCheckProcessed
+  ) => {
     expect(fileCheckProcessed).toBeNull()
     done()
   }
   getConsignmentData(client, callback)
 })
 
-test("getConsignmentData returns null with empty data from a successful api call", done => {
+test("getConsignmentData returns null with empty data from a successful api call", (done) => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientEmptyData())
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  const callback: (
-    fileCheckProcessed: IFileCheckProcessed | null
-  ) => void = fileCheckProcessed => {
+  const callback: (fileCheckProcessed: IFileCheckProcessed | null) => void = (
+    fileCheckProcessed
+  ) => {
     expect(fileCheckProcessed).toBeNull()
     done()
   }

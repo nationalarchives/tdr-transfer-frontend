@@ -17,21 +17,23 @@ jest.useFakeTimers()
 const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
 const fileChecks = new FileChecks(client)
 
-const mockConsignmentData: (
-  fileChecks: IFileCheckProcessed
-) => void = fileChecks => {
+const mockConsignmentData: (fileChecks: IFileCheckProcessed) => void = (
+  fileChecks
+) => {
   const {
     antivirusProcessed,
     checksumProcessed,
     ffidProcessed,
-    totalFiles
+    totalFiles,
+    allChecksSucceeded
   } = fileChecks
   mockFileCheckProcessing.getConsignmentData.mockImplementation((_, callback) =>
     callback({
       antivirusProcessed,
       checksumProcessed,
       ffidProcessed,
-      totalFiles
+      totalFiles,
+      allChecksSucceeded
     })
   )
 }
@@ -48,7 +50,8 @@ test("updateFileCheckProgress updates the progress bars correctly", () => {
     antivirusProcessed: 1,
     checksumProcessed: 2,
     ffidProcessed: 1,
-    totalFiles: 2
+    totalFiles: 2,
+    allChecksSucceeded: true
   })
   fileChecks.updateFileCheckProgress()
   jest.runOnlyPendingTimers()
@@ -72,7 +75,7 @@ test("updateFileCheckProgress updates the progress bars correctly", () => {
   )
 })
 
-test("updateFileCheckProgress redirects if all checks are complete", () => {
+test("updateFileCheckProgress redirects if all checks are complete and successful", () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
   mockFileCheckProcessing.getConsignmentId.mockImplementation(
     () => consignmentId
@@ -81,7 +84,8 @@ test("updateFileCheckProgress redirects if all checks are complete", () => {
     antivirusProcessed: 2,
     checksumProcessed: 2,
     ffidProcessed: 2,
-    totalFiles: 2
+    totalFiles: 2,
+    allChecksSucceeded: true
   })
   delete window.location
   window.location = {
@@ -96,6 +100,31 @@ test("updateFileCheckProgress redirects if all checks are complete", () => {
   )
 })
 
+test("updateFileCheckProgress redirects if all checks are complete but some have failed", () => {
+  const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
+  mockFileCheckProcessing.getConsignmentId.mockImplementation(
+    () => consignmentId
+  )
+  mockConsignmentData({
+    antivirusProcessed: 2,
+    checksumProcessed: 2,
+    ffidProcessed: 2,
+    totalFiles: 2,
+    allChecksSucceeded: false
+  })
+  delete window.location
+  window.location = {
+    ...window.location,
+    origin: "testorigin",
+    href: "originalHref"
+  }
+  fileChecks.updateFileCheckProgress()
+  jest.runOnlyPendingTimers()
+  expect(window.location.href).toBe(
+    `testorigin/consignment/${consignmentId}/checks-failed`
+  )
+})
+
 test("updateFileCheckProgress does not redirect if the checks are in progress", () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
   mockFileCheckProcessing.getConsignmentId.mockImplementation(
@@ -105,7 +134,8 @@ test("updateFileCheckProgress does not redirect if the checks are in progress", 
     antivirusProcessed: 1,
     checksumProcessed: 2,
     ffidProcessed: 1,
-    totalFiles: 2
+    totalFiles: 2,
+    allChecksSucceeded: true
   })
   delete window.location
   window.location = {
