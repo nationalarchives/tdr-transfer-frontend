@@ -35,6 +35,13 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     getConsignmentFolderDetails(request, consignmentId).map(consignmentInfo => Ok(views.html.fileChecksResults(consignmentInfo, consignmentId)))
   }
+
+  //noinspection ScalaUnusedSymbol
+  //Consignment id is unused but if we want to keep the url as /consignment/:consignmentId/checks-failure which I think we do, it needs to be here
+  def fileCheckFailurePage(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
+    Ok(views.html.fileChecksFailed())
+  }
+
 }
 
 case class ConsignmentFolderInfo(numberOfFiles: Int, parentFolder: String)
