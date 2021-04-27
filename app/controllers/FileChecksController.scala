@@ -28,7 +28,8 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
           FileChecksProgress(fileCheckProgress.totalFiles,
                             fileCheckProgress.fileChecks.antivirusProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
                             fileCheckProgress.fileChecks.checksumProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
-                            fileCheckProgress.fileChecks.ffidProgress.filesProcessed * 100 / fileCheckProgress.totalFiles)
+                            fileCheckProgress.fileChecks.ffidProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
+                            fileCheckProgress.allChecksSucceeded)
         }
       }
   }
@@ -38,16 +39,19 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       .map {
         fileChecks => {
           if(fileChecks.isComplete) {
-            Redirect(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId))
+            if(fileChecks.allChecksSucceeded) {
+              Redirect(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId))
+            } else {
+              Redirect(routes.FileChecksResultsController.fileCheckFailurePage(consignmentId))
+            }
           } else {
             Ok(views.html.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo))
           }
-
         }
       }
   }
 }
 
-case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int, checksumProgressPercentage: Int, ffidMetadataProgressPercentage: Int) {
+case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int, checksumProgressPercentage: Int, ffidMetadataProgressPercentage: Int, allChecksSucceeded: Boolean) {
   def isComplete: Boolean = avMetadataProgressPercentage == 100 && checksumProgressPercentage == 100 && ffidMetadataProgressPercentage == 100
 }
