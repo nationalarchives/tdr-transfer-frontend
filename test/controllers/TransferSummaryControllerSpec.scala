@@ -84,7 +84,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       contentAsString(transferSummaryPage) must include(s"${consignmentSummaryResponse.totalFiles} files uploaded")
 
       contentAsString(transferSummaryPage) must include("transferSummary.consignmentReference")
-      contentAsString(transferSummaryPage) must include(consignmentSummaryResponse.consignmentReference.get)
+      contentAsString(transferSummaryPage) must include(consignmentSummaryResponse.consignmentReference)
 
       contentAsString(transferSummaryPage) must include("transferSummary.openRecords")
       contentAsString(transferSummaryPage) must include("transferSummary.transferLegalOwnership")
@@ -335,7 +335,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     val seriesCode = Some(gcs.GetConsignment.Series(Some("Mock Series 2")))
     val transferringBodyName = Some(gcs.GetConsignment.TransferringBody(Some("MockBody 2")))
     val totalFiles: Int = 4
-    val consignmentReference = Option("TEST-TDR-2021-GB")
+    val consignmentReference = "TEST-TDR-2021-GB"
     new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
   }
 

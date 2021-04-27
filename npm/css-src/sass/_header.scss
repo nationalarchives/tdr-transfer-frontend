@@ -15,7 +15,10 @@ $govuk-header-link: govuk-colour('white');
 .govuk-header__tna-content {
   margin: 0 auto;
   position: relative;
-  width: 290px;
+}
+
+.tna-header {
+  display: flex;
 }
 
 .govuk-header__tna_link {

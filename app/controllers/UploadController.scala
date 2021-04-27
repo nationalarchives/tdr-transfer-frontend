@@ -18,8 +18,8 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
                                  val frontEndInfoConfiguration: FrontEndInfoConfiguration)
                                 (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
-  def uploadPage(consignmentId: UUID): Action[AnyContent] = transferAgreementExistsAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def uploadPage(consignmentId: UUID): Action[AnyContent] = uploadPermitted(consignmentId) { implicit request: Request[AnyContent] =>
     Ok(views.html.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo))
+      .withHeaders("Cache-Control" -> "no-store, must-revalidate")
   }
-
 }
