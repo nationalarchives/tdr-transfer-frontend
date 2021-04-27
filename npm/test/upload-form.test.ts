@@ -240,11 +240,19 @@ class MockDom {
       "https://example.com",
       mockKeycloakInstance
     )
+    const frontendInfo: IFrontEndInfo = {
+      apiUrl: "",
+      cognitoRoleArn: "",
+      identityPoolId: "",
+      identityProviderName: "",
+      region: "",
+      stage: "test"
+    }
     const uploadMetadata = new ClientFileMetadataUpload(client)
     return new FileUploader(
       uploadMetadata,
       "identityId",
-      "test",
+      frontendInfo,
       mockGoToNextPage
     )
   }
