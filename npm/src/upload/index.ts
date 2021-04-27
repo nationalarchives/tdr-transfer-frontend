@@ -5,6 +5,11 @@ import { FileUploadInfo, UploadForm } from "./upload-form"
 import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
 
+export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
+  e.preventDefault()
+  e.returnValue = ""
+}
+
 export class FileUploader {
   clientFileProcessing: ClientFileProcessing
   stage: string
@@ -31,10 +36,6 @@ export class FileUploader {
     files: IFileWithPath[],
     uploadFilesInfo: FileUploadInfo
   ) => {
-    const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
-      e.preventDefault()
-      e.returnValue = ""
-    }
     window.addEventListener("beforeunload", pageUnloadAction)
 
     try {
