@@ -6,7 +6,7 @@ import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 import { goToNextPage } from "./upload/next-page-redirect"
 import { FileChecks } from "./filechecks"
 import { CognitoIdentity, STS } from "aws-sdk"
-import { initAll } from 'govuk-frontend'
+import { initAll } from "govuk-frontend"
 
 window.onload = function () {
   initAll()
@@ -99,7 +99,7 @@ export const renderModules = () => {
         new FileUploader(
           clientFileProcessing,
           identityId,
-          frontEndInfo.stage,
+          frontEndInfo,
           goToNextPage
         ).initialiseFormListeners()
       })

@@ -1,0 +1,27 @@
+@import java.util.UUID
+@(consignmentId: UUID)(implicit request: RequestHeader, messages: Messages)
+
+  @main(Messages("upload.header")) {
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        @progressIndicator(Messages("upload.progress"))
+        <h1 class="govuk-heading-l">@Messages("uploadProgress.header")</h1>
+
+        <div id="upload-progress-error" class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"
+        role="alert" data-module="govuk-error-summary" tabindex="-1">
+          <div id="upload-progress-error">
+            <h2 class="govuk-error-summary__title" id="error-summary-title">
+            @Messages("upload.error.title")
+            </h2>
+            <div class="govuk-error-summary__body">
+              <p>@Messages("upload.error.inProgress")</p>
+              <p>@Messages("upload.error.restart")</p>
+            </div>
+          </div>
+        </div>
+        <button class="govuk-button govuk-button--primary" data-module="govuk-button">
+        @Messages("upload.error.return")
+        </button>
+      </div>
+    </div>
+  }
