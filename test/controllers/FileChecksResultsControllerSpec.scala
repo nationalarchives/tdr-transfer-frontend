@@ -28,7 +28,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  "FileChecksResultsController GET" should {
+  "FileChecksResultsController fileCheckResultsPage GET" should {
 
     "render the fileChecksResults page with the confirmation box" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -105,6 +105,25 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       ).failed.futureValue
 
       results.getMessage mustBe("User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '0a3f617c-04e8-41c2-9f24-99622a779528'")
+    }
+  }
+
+  "FileChecksResultsController fileCheckResultsPage GET" should {
+    "render the file checks failure page" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val fileCheckResultsController = new FileChecksResultsController(
+        getAuthorisedSecurityComponents,
+        getValidKeycloakConfiguration,
+        new GraphQLConfiguration(app.configuration),
+        consignmentService,
+        frontEndInfoConfiguration
+      )
+      val recordCheckFailurePage = fileCheckResultsController.fileCheckFailurePage(consignmentId).apply(
+        FakeRequest(GET, s"consignment/$consignmentId/checks-failed")
+      )
+      contentAsString(recordCheckFailurePage) must include("fileChecksFailure.error.title")
     }
   }
 }
