@@ -84,17 +84,17 @@
             )
         </fieldset>
         <!-- Buttons -->
-        <div>
+        <div class="govuk-button-group">
+            <!-- Continue -->
+            <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
+              @Messages("transferAgreement.continueLink")
+            </button>
+
             <!-- Cancel -->
             <a href="@routes.DashboardController.dashboard()" role="button" draggable="false"
                class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                @Messages("transferAgreement.cancelLink")
+              @Messages("transferAgreement.cancelLink")
             </a>
-
-            <!-- Continue -->
-            <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                @Messages("transferAgreement.continueLink")
-            </button>
         </div>
         }
     </div>
