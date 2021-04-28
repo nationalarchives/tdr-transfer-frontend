@@ -91,7 +91,7 @@ function showLoggedOutError(login: string) {
   }
 
   if (loggedOutError && loginLink) {
-    loggedOutError.setAttribute("hidden", "true")
+    loggedOutError.removeAttribute("hidden")
     loginLink.href = login
   }
 }
