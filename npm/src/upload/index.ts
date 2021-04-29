@@ -67,9 +67,14 @@ export class FileUploader {
     )
 
     if (uploadForm && folderRetriever && dropzone) {
-      const form = new UploadForm(uploadForm, folderRetriever, dropzone)
+      const form = new UploadForm(
+        uploadForm,
+        folderRetriever,
+        dropzone,
+        this.uploadFiles
+      )
       form.addFolderListener()
-      form.addSubmitListener(this.uploadFiles)
+      form.addSubmitListener()
       form.addButtonHighlighter()
       form.addDropzoneHighlighter()
     }
