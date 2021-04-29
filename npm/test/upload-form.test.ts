@@ -7,6 +7,10 @@ import { UploadForm, IReader, IWebkitEntry } from "../src/upload/upload-form"
 import { mockKeycloakInstance } from "./utils"
 import { IFrontEndInfo } from "../src"
 
+interface SubmitEvent extends Event {
+  submitter: HTMLElement
+}
+
 const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
     length: file.length,
@@ -28,6 +32,38 @@ const mockDataTransferItemList: (
     remove: jest.fn()
   } as DataTransferItemList
 }
+
+const mockGoToNextPage = jest.fn()
+
+const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
+  element: HTMLElement,
+  domEvent: string
+) => {
+  const event = new CustomEvent(domEvent)
+  element.dispatchEvent(event)
+}
+
+const dummyFolder = ({
+  lastModified: 2147483647,
+  name: "Mock Folder",
+  size: 0,
+  type: "",
+  webkitRelativePath: ""
+} as unknown) as File
+
+const dummyFile = ({
+  lastModified: 2147483647,
+  name: "Mock File",
+  size: 3008,
+  type: "pdf",
+  webkitRelativePath: "Parent_Folder"
+} as unknown) as File
+
+const dummyIFileWithPath = {
+  file: dummyFile,
+  path: "Parent_Folder",
+  webkitRelativePath: "Parent_Folder"
+} as IFileWithPath
 
 class MockDom {
   constructor(numberOfFiles: number = 2) {
@@ -156,28 +192,48 @@ class MockDom {
     }
   }
 
-  dropzone: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__dropzone"
-  )
-  uploadForm: HTMLFormElement | null = document.querySelector(
-    "#file-upload-form"
-  )
-  folderRetriever: HTMLInputElement | null = document.querySelector(
-    "#file-selection"
-  )
+  createSubmitEvent = () => {
+    const submitButton = this.submitButton
 
-  folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__success"
-  )
+    class MockSubmitEvent implements SubmitEvent {
+      readonly AT_TARGET: number = 0
+      readonly BUBBLING_PHASE: number = 0
+      readonly CAPTURING_PHASE: number = 0
+      readonly NONE: number = 0
+      readonly bubbles: boolean = true
+      cancelBubble: boolean = true
+      readonly cancelable: boolean = true
+      readonly composed: boolean = true
+      readonly currentTarget: EventTarget | null = null
+      readonly defaultPrevented: boolean = true
+      readonly eventPhase: number = 0
+      readonly isTrusted: boolean = true
+      returnValue: boolean = true
+      readonly srcElement: EventTarget | null = null
+      readonly target: EventTarget | null = null
+      readonly timeStamp: number = 2147483647
+      readonly type: string = "submit"
+      submitter: HTMLElement = submitButton!
 
-  folderRetrievalFailureMessage: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__failure"
-  )
-  folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
-  folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
+      composedPath(): EventTarget[] {
+        return []
+      }
 
-  form = new UploadForm(this.uploadForm!, this.folderRetriever!, this.dropzone!)
-  fileUploader = this.setUpFileUploader()
+      initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void {}
+
+      preventDefault(): void {}
+
+      stopImmediatePropagation(): void {}
+
+      stopPropagation(): void {}
+    }
+
+    return new MockSubmitEvent()
+  }
+
+  selectFolderViaButton: () => void = () => {
+    triggerInputEvent(this.folderRetriever!, "change")
+  }
 
   setUpFileUploader(): FileUploader {
     const client = new GraphqlClient(
@@ -201,42 +257,45 @@ class MockDom {
     )
   }
 
-  selectFolderViaButton: () => void = () => {
-    triggerInputEvent(this.folderRetriever!, "change")
-  }
+  dropzone: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__dropzone"
+  )
+  uploadForm: HTMLFormElement | null = document.querySelector(
+    "#file-upload-form"
+  )
+  folderRetriever: HTMLInputElement | null = document.querySelector(
+    "#file-selection"
+  )
+
+  folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__success"
+  )
+
+  folderRetrievalFailureMessage: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__failure"
+  )
+  folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
+  folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
+
+  hiddenInputButton: HTMLElement | null = document.querySelector(
+    "#file-selection"
+  )
+
+  submitButton: HTMLElement | null = document.querySelector(
+    "input[type=submit]"
+  )
+
+  fileUploader = this.setUpFileUploader()
+
+  form = new UploadForm(
+    this.uploadForm!,
+    this.folderRetriever!,
+    this.dropzone!,
+    this.setUpFileUploader
+  )
+
+  submitAndLabelButtons = document.querySelectorAll(".govuk-button")
 }
-
-const mockGoToNextPage = jest.fn()
-
-const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
-  element: HTMLElement,
-  domEvent: string
-) => {
-  const event = new CustomEvent(domEvent)
-  element.dispatchEvent(event)
-}
-
-const dummyFolder = ({
-  lastModified: 2147483647,
-  name: "Mock Folder",
-  size: 0,
-  type: "",
-  webkitRelativePath: ""
-} as unknown) as File
-
-const dummyFile = ({
-  lastModified: 2147483647,
-  name: "Mock File",
-  size: 3008,
-  type: "pdf",
-  webkitRelativePath: "Parent_Folder"
-} as unknown) as File
-
-const dummyIFileWithPath = {
-  file: dummyFile,
-  path: "Parent_Folder",
-  webkitRelativePath: "Parent_Folder"
-} as IFileWithPath
 
 test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
@@ -263,7 +322,7 @@ test("dropzone updates the page with correct folder information if there are 1 o
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await mockDom.form.handleDropppedItems(dragEvent)
+  await mockDom.form.handleDroppedItems(dragEvent)
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
     "hidden",
@@ -285,7 +344,7 @@ test("dropzone updates the page with an error if there are no files in folder", 
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
@@ -332,7 +391,7 @@ test("dropzone updates the page with correct folder information if there is a ne
     dataTransferItemWithNestedDirectory
   )
   const dragEvent = new dragEventClass()
-  await mockDom.form.handleDropppedItems(dragEvent)
+  await mockDom.form.handleDroppedItems(dragEvent)
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
     "hidden",
@@ -353,7 +412,7 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
@@ -376,7 +435,7 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
@@ -399,7 +458,7 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
     mockDom.fileEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
@@ -413,4 +472,27 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
   )
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
+})
+
+test("Clicking the Submit button disables the buttons on the page", async () => {
+  const mockDom = new MockDom()
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.dataTransferItem
+  )
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDroppedItems(dragEvent)
+
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
+
+  mockDom.submitAndLabelButtons.forEach((button) =>
+    expect(button).toHaveAttribute("disabled", "true")
+  )
+
+  expect(mockDom.hiddenInputButton).toHaveAttribute("disabled", "true")
+
+  /*There is currently no way in Javascript to check if an event has been removed from an element,
+   therefore it is not possible to see if the submission code removed the drop event from the dropzone
+   */
 })
