@@ -52,6 +52,10 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
   }
 }
 
-case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int, checksumProgressPercentage: Int, ffidMetadataProgressPercentage: Int, allChecksSucceeded: Boolean) {
+case class FileChecksProgress(totalFiles: Int,
+                              avMetadataProgressPercentage: Int,
+                              checksumProgressPercentage: Int,
+                              ffidMetadataProgressPercentage: Int,
+                              allChecksSucceeded: Boolean) {
   def isComplete: Boolean = avMetadataProgressPercentage == 100 && checksumProgressPercentage == 100 && ffidMetadataProgressPercentage == 100
 }
