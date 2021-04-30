@@ -128,7 +128,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
     val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)
     val ffidProgress = fileCheck.GetConsignment.FileChecks.FfidProgress(filesProcessedWithFFID)
     val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress, ffidProgress)
-    val data: client.GraphqlData = client.GraphqlData(Some(fileCheck.Data(Some(fileCheck.GetConsignment(allChecksSucceeded, totalFiles, fileChecks)))))
+    val data: client.GraphqlData = client.GraphqlData(Some(fileCheck.Data(Some(fileCheck.GetConsignment(allChecksSucceeded, Option(""), totalFiles, fileChecks)))))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     dataString
   }
