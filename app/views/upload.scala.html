@@ -43,14 +43,14 @@
                 <div class="drag-and-drop">
                     <div class="govuk-summary-list govuk-file-upload">
                         <div class="govuk-summary-list__row">
-                            <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="successMessageText">
+                            <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="success-message-text">
                                 <div>
                                     @greenTickMark()
-                                    <p id="successMessageText" >@Html(Messages("upload.dragAndDropSuccessMessage"))</p>
+                                    <p id="success-message-text" >@Html(Messages("upload.dragAndDropSuccessMessage"))</p>
                                 </div>
                             </dd>
-                            <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
-                                <div id="failureMessageText">
+                            <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failure-message-text">
+                                <div id="failure-message-text">
                                     @redWarningSign()
                                     <p id="no-folder-selected-message-text" hidden>@Messages("upload.dragAndDropErrorMessage")</p>
                                     <p id="submission-without-a-folder-message-text" hidden>@Messages("upload.submissionWithoutAFolderMessageText")</p>
