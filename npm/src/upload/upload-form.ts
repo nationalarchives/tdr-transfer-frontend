@@ -89,16 +89,25 @@ export class UploadForm {
   folderRetriever: HTMLInputElement
   dropzone: HTMLElement
   selectedFiles: IFileWithPath[]
+  folderUploader: (
+    files: IFileWithPath[],
+    uploadFilesInfo: FileUploadInfo
+  ) => void
 
   constructor(
     formElement: HTMLFormElement,
     folderRetriever: HTMLInputElement,
-    dropzone: HTMLElement
+    dropzone: HTMLElement,
+    folderUploader: (
+      files: IFileWithPath[],
+      uploadFilesInfo: FileUploadInfo
+    ) => void
   ) {
     this.formElement = formElement
     this.folderRetriever = folderRetriever
     this.dropzone = dropzone
     this.selectedFiles = []
+    this.folderUploader = folderUploader
   }
 
   consignmentId: () => string = () => {
@@ -136,7 +145,7 @@ export class UploadForm {
     })
   }
 
-  handleDropppedItems: (ev: DragEvent) => any = async (ev) => {
+  handleDroppedItems: (ev: DragEvent) => any = async (ev) => {
     ev.preventDefault()
     const items: DataTransferItemList = ev.dataTransfer?.items!
     if (items.length > 1) {
@@ -156,7 +165,7 @@ export class UploadForm {
   }
 
   addFolderListener() {
-    this.dropzone.addEventListener("drop", this.handleDropppedItems)
+    this.dropzone.addEventListener("drop", this.handleDroppedItems)
 
     this.folderRetriever.addEventListener("change", () => {
       const form: HTMLFormElement | null = this.formElement
@@ -167,20 +176,22 @@ export class UploadForm {
     })
   }
 
-  addSubmitListener(
-    uploadFiles: (
-      files: IFileWithPath[],
-      uploadFilesInfo: FileUploadInfo
-    ) => void
-  ) {
-    this.formElement.addEventListener("submit", (ev) => {
-      ev.preventDefault()
-      const parentFolder = this.getParentFolderName(this.selectedFiles)
-      const uploadFilesInfo: FileUploadInfo = {
-        consignmentId: this.consignmentId(),
-        parentFolder: parentFolder
-      }
-      uploadFiles(this.selectedFiles, uploadFilesInfo)
+  handleFormSubmission: (ev: Event) => void = (ev: Event) => {
+    ev.preventDefault()
+
+    this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
+    this.disableButtonsAndDropzone()
+    const parentFolder = this.getParentFolderName(this.selectedFiles)
+    const uploadFilesInfo: FileUploadInfo = {
+      consignmentId: this.consignmentId(),
+      parentFolder: parentFolder
+    }
+    this.folderUploader(this.selectedFiles, uploadFilesInfo)
+  }
+
+  addSubmitListener() {
+    this.formElement.addEventListener("submit", this.handleFormSubmission, {
+      once: true
     })
   }
 
@@ -197,6 +208,18 @@ export class UploadForm {
     if (files === null || files.length === 0) {
       this.rejectUserItemSelection()
     }
+  }
+
+  private disableButtonsAndDropzone() {
+    const submitAndLabelButtons = document.querySelectorAll(".govuk-button")
+    submitAndLabelButtons.forEach((button) =>
+      button.setAttribute("disabled", "true")
+    )
+
+    const hiddenInputButton = document.querySelector("#file-selection")
+    hiddenInputButton?.setAttribute("disabled", "true")
+
+    this.dropzone.removeEventListener("drop", this.handleDroppedItems)
   }
 
   private retrieveFiles(target: HTMLInputTarget | null): IFileWithPath[] {
