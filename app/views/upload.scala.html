@@ -50,8 +50,11 @@
                                 </div>
                             </dd>
                             <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
-                                @redWarningSign()
-                              <p id="failureMessageText">@Messages("upload.dragAndDropErrorMessage")</p>
+                                <div id="failureMessageText">
+                                    @redWarningSign()
+                                    <p id="no-folder-selected-message-text" hidden>@Messages("upload.dragAndDropErrorMessage")</p>
+                                    <p id="submission-without-a-folder-message-text" hidden>@Messages("upload.submissionWithoutAFolderMessageText")</p>
+                                </div>
                             </dd>
                         </div>
                     </div>

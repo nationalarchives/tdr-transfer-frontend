@@ -62,6 +62,7 @@ upload.dragAndDropHintText=Drag and drop a single folder here or
 upload.dragAndDropSuccessMessage=The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected
 upload.chooseFolderLink=Choose folder
 upload.continueLink=Start upload
+upload.submissionWithoutAFolderMessageText=Select a folder to upload.
 uploadProgress.header=Uploading records
 uploadProgress.title=Do not close your browser window while your files are being uploaded. This could take a few minutes.
 upload.error.inProgress=Your upload was interrupted and could not be completed.
