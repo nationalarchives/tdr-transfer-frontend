@@ -1,3 +1,5 @@
+import { pageUnloadAction } from "../upload"
+
 export class LoggedOutError extends Error {
   loginUrl: string
   constructor(loginUrl: string, message?: string) {
@@ -10,6 +12,7 @@ export function handleUploadError(
   error: Error,
   additionalLoggingInfo: string = "Upload failed"
 ) {
+  window.removeEventListener("beforeunload", pageUnloadAction)
   if (error instanceof LoggedOutError) {
     showLoggedOutError(error.loginUrl)
   } else {
@@ -88,7 +91,7 @@ function showLoggedOutError(login: string) {
   }
 
   if (loggedOutError && loginLink) {
-    loggedOutError.setAttribute("hidden", "true")
+    loggedOutError.removeAttribute("hidden")
     loginLink.href = login
   }
 }
