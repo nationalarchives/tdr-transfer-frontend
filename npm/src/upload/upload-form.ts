@@ -195,16 +195,21 @@ export class UploadForm {
     })
   }
 
-  private getSuccessMessage() : HTMLElement | null {
-    return document.querySelector(
-      ".drag-and-drop__success"
-    )
+  private getSuccessMessage(): HTMLElement | null {
+    return document.querySelector(".drag-and-drop__success")
   }
 
-  private getWarningMessage() : {[s: string]: HTMLElement | null} {
-    return {"warningMessageContainer": document.querySelector(".drag-and-drop__failure"),
-            "noFolderSelectedMessage": document.querySelector("#no-folder-selected-message-text"),
-            "submissionWithoutAFolderSelectedMessage": document.querySelector("#submission-without-a-folder-message-text")
+  private getWarningMessage(): { [s: string]: HTMLElement | null } {
+    return {
+      warningMessageContainer: document.querySelector(
+        ".drag-and-drop__failure"
+      ),
+      noFolderSelectedMessage: document.querySelector(
+        "#no-folder-selected-message-text"
+      ),
+      submissionWithoutAFolderSelectedMessage: document.querySelector(
+        "#submission-without-a-folder-message-text"
+      )
     }
   }
 
@@ -252,10 +257,15 @@ export class UploadForm {
   private rejectUserItemSelection() {
     this.removeDragover()
 
-    const warningMessages: {[s: string]: HTMLElement | null} = this.getWarningMessage()
+    const warningMessages: {
+      [s: string]: HTMLElement | null
+    } = this.getWarningMessage()
     const successMessage: HTMLElement | null = this.getSuccessMessage()
 
-    warningMessages.submissionWithoutAFolderSelectedMessage?.setAttribute("hidden", "true")
+    warningMessages.submissionWithoutAFolderSelectedMessage?.setAttribute(
+      "hidden",
+      "true"
+    )
     successMessage?.setAttribute("hidden", "true")
 
     warningMessages.noFolderSelectedMessage?.removeAttribute("hidden")
@@ -279,11 +289,14 @@ export class UploadForm {
         folderSize === 1 ? "file" : "files"
       }`
 
-      const warningMessages: {[s: string]: HTMLElement | null} = this.getWarningMessage()
+      const warningMessages: {
+        [s: string]: HTMLElement | null
+      } = this.getWarningMessage()
       Object.values(warningMessages).forEach(
         (warningMessageElement: HTMLElement | null) => {
           warningMessageElement?.setAttribute("hidden", "true")
-        })
+        }
+      )
 
       const successMessage: HTMLElement | null = this.getSuccessMessage()
       successMessage?.removeAttribute("hidden")
