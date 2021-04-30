@@ -195,6 +195,19 @@ export class UploadForm {
     })
   }
 
+  private getSuccessMessage() : HTMLElement | null {
+    return document.querySelector(
+      ".drag-and-drop__success"
+    )
+  }
+
+  private getWarningMessage() : {[s: string]: HTMLElement | null} {
+    return {"warningMessageContainer": document.querySelector(".drag-and-drop__failure"),
+            "noFolderSelectedMessage": document.querySelector("#no-folder-selected-message-text"),
+            "submissionWithoutAFolderSelectedMessage": document.querySelector("#submission-without-a-folder-message-text")
+    }
+  }
+
   private getParentFolderName(folder: IFileWithPath[]) {
     const firstItem: FileWithRelativePath = folder[0]
       .file as FileWithRelativePath
@@ -238,15 +251,17 @@ export class UploadForm {
 
   private rejectUserItemSelection() {
     this.removeDragover()
-    const successMessage: HTMLElement | null = document.querySelector(
-      ".drag-and-drop__success"
-    )
+
+    const warningMessages: {[s: string]: HTMLElement | null} = this.getWarningMessage()
+    const successMessage: HTMLElement | null = this.getSuccessMessage()
+
+    warningMessages.submissionWithoutAFolderSelectedMessage?.setAttribute("hidden", "true")
     successMessage?.setAttribute("hidden", "true")
-    const warningMessage: HTMLElement | null = document.querySelector(
-      ".drag-and-drop__failure"
-    )
-    warningMessage?.removeAttribute("hidden")
-    warningMessage?.focus()
+
+    warningMessages.noFolderSelectedMessage?.removeAttribute("hidden")
+    warningMessages.warningMessageContainer?.removeAttribute("hidden")
+    warningMessages.warningMessageContainer?.focus()
+
     throw new Error("No files selected")
   }
 
@@ -263,13 +278,14 @@ export class UploadForm {
       folderSizeElement.textContent = `${folderSize} ${
         folderSize === 1 ? "file" : "files"
       }`
-      const warningMessage: HTMLElement | null = document.querySelector(
-        ".drag-and-drop__failure"
-      )
-      warningMessage?.setAttribute("hidden", "true")
-      const successMessage: HTMLElement | null = document.querySelector(
-        ".drag-and-drop__success"
-      )
+
+      const warningMessages: {[s: string]: HTMLElement | null} = this.getWarningMessage()
+      Object.values(warningMessages).forEach(
+        (warningMessageElement: HTMLElement | null) => {
+          warningMessageElement?.setAttribute("hidden", "true")
+        })
+
+      const successMessage: HTMLElement | null = this.getSuccessMessage()
       successMessage?.removeAttribute("hidden")
       successMessage?.focus()
       this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
