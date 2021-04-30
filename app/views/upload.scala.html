@@ -43,13 +43,15 @@
                 <div class="drag-and-drop">
                     <div class="govuk-summary-list govuk-file-upload">
                         <div class="govuk-summary-list__row">
-                            <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="success-message-text">
+                            <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden
+                                tabindex="-1" role="alert" aria-describedby="success-message-text">
                                 <div>
                                     @greenTickMark()
                                     <p id="success-message-text" >@Html(Messages("upload.dragAndDropSuccessMessage"))</p>
                                 </div>
                             </dd>
-                            <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failure-message-text">
+                            <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden
+                                tabindex="-1" role="alert" aria-describedby="failure-message-text">
                                 <div id="failure-message-text">
                                     @redWarningSign()
                                     <p id="no-folder-selected-message-text" hidden>@Messages("upload.dragAndDropErrorMessage")</p>
@@ -71,7 +73,7 @@
                                 >
                                 <p class="govuk-body drag-and-drop__hint-text">@Messages("upload.dragAndDropHintText")</p>
                                 <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
-                                @Messages("upload.chooseFolderLink")
+                                    @Messages("upload.chooseFolderLink")
                                 </label>
                             </div>
                             <p class="govuk-body">@Messages("upload.body.capturedMetadata")</p>
