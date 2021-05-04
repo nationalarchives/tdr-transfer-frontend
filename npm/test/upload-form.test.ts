@@ -277,12 +277,10 @@ class MockDom {
   folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
   folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
 
-   warningMessages: {
+  warningMessages: {
     [s: string]: HTMLElement | null
   } = {
-    warningMessageContainer: document.querySelector(
-      ".drag-and-drop__failure"
-    ),
+    warningMessageContainer: document.querySelector(".drag-and-drop__failure"),
     nonFolderSelectedMessage: document.querySelector(
       "#non-folder-selected-message-text"
     ),
@@ -330,12 +328,22 @@ test("Clicking the Submit button, without selecting a folder, displays an warnin
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
 
-  expect(mockDom.warningMessages.warningMessageContainer).not.toHaveAttribute("hidden", "true")
-  expect(mockDom.warningMessages.submissionWithoutAFolderSelectedMessage).not.toHaveAttribute("hidden", "true")
+  expect(mockDom.warningMessages.warningMessageContainer).not.toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(
+    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+  ).not.toHaveAttribute("hidden", "true")
 
-  expect(mockDom.warningMessages.nonFolderSelectedMessage).toHaveAttribute("hidden", "true")
-  expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
-
+  expect(mockDom.warningMessages.nonFolderSelectedMessage).toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute(
+    "hidden",
+    "true"
+  )
 })
 
 test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
@@ -349,11 +357,13 @@ test("Input button updates the page with correct folder information if there are
     "true"
   )
 
-  Object.values(mockDom.warningMessages.warningMessageContainer!).forEach(
-    (warningMessageElement: HTMLElement | null) => expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
-        "hidden",
-        "true"
-      )
+  Object.values(
+    mockDom.warningMessages.warningMessageContainer!
+  ).forEach((warningMessageElement: HTMLElement | null) =>
+    expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
+      "hidden",
+      "true"
+    )
   )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
@@ -374,8 +384,10 @@ test("dropzone updates the page with correct folder information if there are 1 o
     "true"
   )
 
-  Object.values(mockDom.warningMessages.warningMessageContainer!).forEach(
-    (warningMessageElement: HTMLElement | null) => expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
+  Object.values(
+    mockDom.warningMessages.warningMessageContainer!
+  ).forEach((warningMessageElement: HTMLElement | null) =>
+    expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
       "hidden",
       "true"
     )
@@ -400,8 +412,10 @@ test("dropzone updates the page with an error if there are no files in folder", 
     "hidden",
     "true"
   )
-  Object.values(mockDom.warningMessages.warningMessageContainer!).forEach(
-    (warningMessageElement: HTMLElement | null) => expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
+  Object.values(
+    mockDom.warningMessages.warningMessageContainer!
+  ).forEach((warningMessageElement: HTMLElement | null) =>
+    expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
       "hidden",
       "true"
     )
@@ -447,8 +461,10 @@ test("dropzone updates the page with correct folder information if there is a ne
     "hidden",
     "true"
   )
-  Object.values(mockDom.warningMessages.warningMessageContainer!).forEach(
-    (warningMessageElement: HTMLElement | null) => expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
+  Object.values(
+    mockDom.warningMessages.warningMessageContainer!
+  ).forEach((warningMessageElement: HTMLElement | null) =>
+    expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
       "hidden",
       "true"
     )
@@ -472,8 +488,10 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     "hidden",
     "true"
   )
-  Object.values(mockDom.warningMessages.warningMessageContainer!).forEach(
-    (warningMessageElement: HTMLElement | null) => expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
+  Object.values(
+    mockDom.warningMessages.warningMessageContainer!
+  ).forEach((warningMessageElement: HTMLElement | null) =>
+    expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
       "hidden",
       "true"
     )
@@ -497,8 +515,10 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     "hidden",
     "true"
   )
-  Object.values(mockDom.warningMessages.warningMessageContainer!).forEach(
-    (warningMessageElement: HTMLElement | null) => expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
+  Object.values(
+    mockDom.warningMessages.warningMessageContainer!
+  ).forEach((warningMessageElement: HTMLElement | null) =>
+    expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
       "hidden",
       "true"
     )
@@ -522,8 +542,10 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
     "hidden",
     "true"
   )
-  Object.values(mockDom.warningMessages.warningMessageContainer!).forEach(
-    (warningMessageElement: HTMLElement | null) => expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
+  Object.values(
+    mockDom.warningMessages.warningMessageContainer!
+  ).forEach((warningMessageElement: HTMLElement | null) =>
+    expect(mockDom.warningMessages.warningMessageContainer!).toHaveAttribute(
       "hidden",
       "true"
     )

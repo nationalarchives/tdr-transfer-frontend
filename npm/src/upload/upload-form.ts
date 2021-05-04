@@ -180,7 +180,7 @@ export class UploadForm {
     ev.preventDefault()
     const folderSelected: IFileWithPath | undefined = this.selectedFiles[0]
 
-    if(folderSelected) {
+    if (folderSelected) {
       this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
       this.disableButtonsAndDropzone()
 
@@ -190,13 +190,17 @@ export class UploadForm {
         parentFolder: parentFolder
       }
       this.folderUploader(this.selectedFiles, uploadFilesInfo)
-    }
-    else {
+    } else {
       this.successMessage?.setAttribute("hidden", "true")
-      this.warningMessages.nonFolderSelectedMessage?.setAttribute("hidden", "true")
+      this.warningMessages.nonFolderSelectedMessage?.setAttribute(
+        "hidden",
+        "true"
+      )
 
       this.warningMessages.warningMessageContainer?.removeAttribute("hidden")
-      this.warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute("hidden")
+      this.warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute(
+        "hidden"
+      )
 
       this.warningMessages.warningMessageContainer?.focus()
       this.addSubmitListener() // Readd submit listener as we've set it to be removed after one form submission
@@ -212,9 +216,7 @@ export class UploadForm {
   readonly warningMessages: {
     [s: string]: HTMLElement | null
   } = {
-    warningMessageContainer: document.querySelector(
-      ".drag-and-drop__failure"
-    ),
+    warningMessageContainer: document.querySelector(".drag-and-drop__failure"),
     nonFolderSelectedMessage: document.querySelector(
       "#non-folder-selected-message-text"
     ),
@@ -222,9 +224,9 @@ export class UploadForm {
       "#submission-without-a-folder-message-text"
     )
   }
-  readonly successMessage: HTMLElement | null =
-    document.querySelector(".drag-and-drop__success")
-
+  readonly successMessage: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__success"
+  )
 
   private getWarningMessage(): { [s: string]: HTMLElement | null } {
     return {
