@@ -82,7 +82,8 @@ class MockDom {
                       <div class="drag-and-drop">
                           <div class="govuk-summary-list govuk-file-upload">
                               <div class="govuk-summary-list__row">
-                                  <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="successMessageText">
+                                  <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden
+                                      tabindex="-1" role="alert" aria-describedby="success-message-text">
                                       <div>
                                           <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
                                             <path d="M25,6.2L8.7,23.2L0,14.1l4-4.2l4.7,4.9L21,2L25,6.2z"></path>
@@ -90,13 +91,15 @@ class MockDom {
                                           <p id="successMessageText" >The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
                                       </div>
                                   </dd>
-                                  <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
-                                      <span class="drag-and-drop__error">
-                                        <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
-                                            <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"/>
-                                        </svg>
-                                    </span>
-                                    <p id="failureMessageText">You can only drop a single folder</p>
+                                  <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden
+                                      tabindex="-1" role="alert" aria-describedby="failure-message-text">
+                                      <div id="failure-message-text">
+                                          <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"/>
+                                          </svg>
+                                          <p id="non-folder-selected-message-text" hidden>You can only drop a single folder</p>
+                                          <p id="submission-without-a-folder-message-text" hidden>Select a folder to upload.</p>
+                                      </div>
                                   </dd>
                               </div>
                           </div>
