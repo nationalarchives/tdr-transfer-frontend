@@ -274,11 +274,22 @@ class MockDom {
     ".drag-and-drop__success"
   )
 
-  folderRetrievalFailureMessage: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__failure"
-  )
   folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
   folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
+
+   warningMessages: {
+    [s: string]: HTMLElement | null
+  } = {
+    warningMessageContainer: document.querySelector(
+      ".drag-and-drop__failure"
+    ),
+    nonFolderSelectedMessage: document.querySelector(
+      "#non-folder-selected-message-text"
+    ),
+    submissionWithoutAFolderSelectedMessage: document.querySelector(
+      "#submission-without-a-folder-message-text"
+    )
+  }
 
   hiddenInputButton: HTMLElement | null = document.querySelector(
     "#file-selection"
@@ -299,6 +310,33 @@ class MockDom {
 
   submitAndLabelButtons = document.querySelectorAll(".govuk-button")
 }
+
+test("Clicking the Submit button, without selecting a folder, doesn't disable the buttons on the page", async () => {
+  const mockDom = new MockDom()
+
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
+
+  mockDom.submitAndLabelButtons.forEach((button) =>
+    expect(button).not.toHaveAttribute("disabled", "true")
+  )
+
+  expect(mockDom.hiddenInputButton).not.toHaveAttribute("disabled", "true")
+})
+
+test("Clicking the Submit button, without selecting a folder, displays an warning message to the user", async () => {
+  const mockDom = new MockDom()
+
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
+
+  expect(mockDom.warningMessages.warningMessageContainer).not.toHaveAttribute("hidden", "true")
+  expect(mockDom.warningMessages.submissionWithoutAFolderSelectedMessage).not.toHaveAttribute("hidden", "true")
+
+  expect(mockDom.warningMessages.nonFolderSelectedMessage).toHaveAttribute("hidden", "true")
+  expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+
+})
 
 test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
