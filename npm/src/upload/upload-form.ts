@@ -178,15 +178,33 @@ export class UploadForm {
 
   handleFormSubmission: (ev: Event) => void = (ev: Event) => {
     ev.preventDefault()
+    const folderSelected: IFileWithPath | undefined = this.selectedFiles[0]
 
-    this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
-    this.disableButtonsAndDropzone()
-    const parentFolder = this.getParentFolderName(this.selectedFiles)
-    const uploadFilesInfo: FileUploadInfo = {
-      consignmentId: this.consignmentId(),
-      parentFolder: parentFolder
+    if(folderSelected) {
+      this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
+      this.disableButtonsAndDropzone()
+      const parentFolder = this.getParentFolderName(this.selectedFiles)
+      const uploadFilesInfo: FileUploadInfo = {
+        consignmentId: this.consignmentId(),
+        parentFolder: parentFolder
+      }
+      this.folderUploader(this.selectedFiles, uploadFilesInfo)
     }
-    this.folderUploader(this.selectedFiles, uploadFilesInfo)
+    else {
+      const warningMessages: {
+        [s: string]: HTMLElement | null
+      } = this.getWarningMessage()
+      const successMessage: HTMLElement | null = this.getSuccessMessage()
+
+      successMessage?.setAttribute("hidden", "true")
+      warningMessages.noFolderSelectedMessage?.setAttribute("hidden", "true")
+
+      warningMessages.warningMessageContainer?.removeAttribute("hidden")
+      warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute("hidden")
+
+      warningMessages.warningMessageContainer?.focus()
+      this.addSubmitListener() // Readd submit listener as we've set it to be removed after one form submission
+    }
   }
 
   addSubmitListener() {
