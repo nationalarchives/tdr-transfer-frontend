@@ -193,7 +193,7 @@ export class UploadForm {
     }
     else {
       this.successMessage?.setAttribute("hidden", "true")
-      this.warningMessages.noFolderSelectedMessage?.setAttribute("hidden", "true")
+      this.warningMessages.nonFolderSelectedMessage?.setAttribute("hidden", "true")
 
       this.warningMessages.warningMessageContainer?.removeAttribute("hidden")
       this.warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute("hidden")
@@ -215,8 +215,8 @@ export class UploadForm {
     warningMessageContainer: document.querySelector(
       ".drag-and-drop__failure"
     ),
-    noFolderSelectedMessage: document.querySelector(
-      "#no-folder-selected-message-text"
+    nonFolderSelectedMessage: document.querySelector(
+      "#non-folder-selected-message-text"
     ),
     submissionWithoutAFolderSelectedMessage: document.querySelector(
       "#submission-without-a-folder-message-text"
@@ -231,8 +231,8 @@ export class UploadForm {
       warningMessageContainer: document.querySelector(
         ".drag-and-drop__failure"
       ),
-      noFolderSelectedMessage: document.querySelector(
-        "#no-folder-selected-message-text"
+      nonFolderSelectedMessage: document.querySelector(
+        "#non-folder-selected-message-text"
       ),
       submissionWithoutAFolderSelectedMessage: document.querySelector(
         "#submission-without-a-folder-message-text"
