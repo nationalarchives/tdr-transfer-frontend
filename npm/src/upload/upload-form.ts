@@ -183,6 +183,7 @@ export class UploadForm {
     if(folderSelected) {
       this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
       this.disableButtonsAndDropzone()
+
       const parentFolder = this.getParentFolderName(this.selectedFiles)
       const uploadFilesInfo: FileUploadInfo = {
         consignmentId: this.consignmentId(),
@@ -191,18 +192,13 @@ export class UploadForm {
       this.folderUploader(this.selectedFiles, uploadFilesInfo)
     }
     else {
-      const warningMessages: {
-        [s: string]: HTMLElement | null
-      } = this.getWarningMessage()
-      const successMessage: HTMLElement | null = this.getSuccessMessage()
+      this.successMessage?.setAttribute("hidden", "true")
+      this.warningMessages.noFolderSelectedMessage?.setAttribute("hidden", "true")
 
-      successMessage?.setAttribute("hidden", "true")
-      warningMessages.noFolderSelectedMessage?.setAttribute("hidden", "true")
+      this.warningMessages.warningMessageContainer?.removeAttribute("hidden")
+      this.warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute("hidden")
 
-      warningMessages.warningMessageContainer?.removeAttribute("hidden")
-      warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute("hidden")
-
-      warningMessages.warningMessageContainer?.focus()
+      this.warningMessages.warningMessageContainer?.focus()
       this.addSubmitListener() // Readd submit listener as we've set it to be removed after one form submission
     }
   }
@@ -213,9 +209,22 @@ export class UploadForm {
     })
   }
 
-  private getSuccessMessage(): HTMLElement | null {
-    return document.querySelector(".drag-and-drop__success")
+  readonly warningMessages: {
+    [s: string]: HTMLElement | null
+  } = {
+    warningMessageContainer: document.querySelector(
+      ".drag-and-drop__failure"
+    ),
+    noFolderSelectedMessage: document.querySelector(
+      "#no-folder-selected-message-text"
+    ),
+    submissionWithoutAFolderSelectedMessage: document.querySelector(
+      "#submission-without-a-folder-message-text"
+    )
   }
+  readonly successMessage: HTMLElement | null =
+    document.querySelector(".drag-and-drop__success")
+
 
   private getWarningMessage(): { [s: string]: HTMLElement | null } {
     return {
@@ -275,20 +284,15 @@ export class UploadForm {
   private rejectUserItemSelection() {
     this.removeDragover()
 
-    const warningMessages: {
-      [s: string]: HTMLElement | null
-    } = this.getWarningMessage()
-    const successMessage: HTMLElement | null = this.getSuccessMessage()
-
-    warningMessages.submissionWithoutAFolderSelectedMessage?.setAttribute(
+    this.warningMessages.submissionWithoutAFolderSelectedMessage?.setAttribute(
       "hidden",
       "true"
     )
-    successMessage?.setAttribute("hidden", "true")
+    this.successMessage?.setAttribute("hidden", "true")
 
-    warningMessages.noFolderSelectedMessage?.removeAttribute("hidden")
-    warningMessages.warningMessageContainer?.removeAttribute("hidden")
-    warningMessages.warningMessageContainer?.focus()
+    this.warningMessages.noFolderSelectedMessage?.removeAttribute("hidden")
+    this.warningMessages.warningMessageContainer?.removeAttribute("hidden")
+    this.warningMessages.warningMessageContainer?.focus()
 
     throw new Error("No files selected")
   }
@@ -307,18 +311,14 @@ export class UploadForm {
         folderSize === 1 ? "file" : "files"
       }`
 
-      const warningMessages: {
-        [s: string]: HTMLElement | null
-      } = this.getWarningMessage()
-      Object.values(warningMessages).forEach(
+      Object.values(this.warningMessages).forEach(
         (warningMessageElement: HTMLElement | null) => {
           warningMessageElement?.setAttribute("hidden", "true")
         }
       )
 
-      const successMessage: HTMLElement | null = this.getSuccessMessage()
-      successMessage?.removeAttribute("hidden")
-      successMessage?.focus()
+      this.successMessage?.removeAttribute("hidden")
+      this.successMessage?.focus()
       this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
     }
   }
