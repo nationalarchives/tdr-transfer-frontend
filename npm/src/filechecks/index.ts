@@ -20,8 +20,7 @@ export class FileChecks {
         antivirusProcessed,
         checksumProcessed,
         ffidProcessed,
-        totalFiles,
-        allChecksSucceeded
+        totalFiles
       } = fileCheckProcessed
 
       updateProgressBar(
@@ -37,18 +36,10 @@ export class FileChecks {
         checksumProcessed == totalFiles &&
         ffidProcessed == totalFiles
       ) {
-        if (allChecksSucceeded) {
-          const location = `${
-            window.location.origin
-          }/consignment/${getConsignmentId()}/records-results`
-          window.location.href = location
-        } else {
-          const location = `${
-            window.location.origin
-          }/consignment/${getConsignmentId()}/checks-failed`
-          window.location.href = location
-          window.location.href = location
-        }
+        const location = `${
+          window.location.origin
+        }/consignment/${getConsignmentId()}/records-results`
+        window.location.href = location
       }
     }
   }

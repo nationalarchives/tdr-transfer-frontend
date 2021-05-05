@@ -21,7 +21,7 @@ export class GraphqlClient {
   client: ApolloClient<NormalizedCacheObject>
   keycloak: KeycloakInstance
 
-  constructor(uri: string, keycloak: KeycloakInstance) {
+  constructor(uri: string, keycloak: Keycloak.KeycloakInstance) {
     this.keycloak = keycloak
 
     const link = createHttpLink({
