@@ -99,27 +99,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       playStatus(recordsPage) mustBe SEE_OTHER
       redirectLocation(recordsPage).get must startWith(s"/consignment/$consignmentId/records-results")
     }
-
-    "return a redirect to the results error page if the file checks are complete and some checks have failed" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val dataString: String = progressData(40, 40, 40, allChecksSucceeded = false)
-
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
-
-      val controller = new FileChecksController(
-        getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration,
-        consignmentService,
-        frontEndInfoConfiguration
-      )
-      val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
-      playStatus(recordsPage) mustBe SEE_OTHER
-      redirectLocation(recordsPage).get must startWith(s"/consignment/$consignmentId/checks-failed")
-    }
-
   }
 
   private def progressData(filesProcessedWithAntivirus: Int, filesProcessedWithChecksum: Int, filesProcessedWithFFID: Int, allChecksSucceeded: Boolean): String = {
