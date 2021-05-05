@@ -114,7 +114,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       results.getMessage mustBe("User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '0a3f617c-04e8-41c2-9f24-99622a779528'")
     }
 
-    "return a redirect to the error page if some file checks have failed" in {
+    "return the error page if some file checks have failed" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
 
@@ -137,27 +137,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         FakeRequest(GET, s"consignment/$consignmentId/records-results")
       )
 
-      status(recordCheckResultsPage) mustBe SEE_OTHER
-      redirectLocation(recordCheckResultsPage).get must equal(s"/consignment/$consignmentId/checks-failed")
-    }
-  }
-
-  "FileChecksResultsController fileCheckResultsPage GET" should {
-    "render the file checks failure page" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-
-      val fileCheckResultsController = new FileChecksResultsController(
-        getAuthorisedSecurityComponents,
-        getValidKeycloakConfiguration,
-        new GraphQLConfiguration(app.configuration),
-        consignmentService,
-        frontEndInfoConfiguration
-      )
-      val recordCheckFailurePage = fileCheckResultsController.fileCheckFailurePage(consignmentId).apply(
-        FakeRequest(GET, s"consignment/$consignmentId/checks-failed")
-      )
-      contentAsString(recordCheckFailurePage) must include("fileChecksFailure.error.title")
+      status(recordCheckResultsPage) mustBe OK
+      contentAsString(recordCheckResultsPage) must include("fileChecksFailure.error.title")
     }
   }
 }
