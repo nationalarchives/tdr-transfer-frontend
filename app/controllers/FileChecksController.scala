@@ -28,8 +28,7 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
           FileChecksProgress(fileCheckProgress.totalFiles,
                             fileCheckProgress.fileChecks.antivirusProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
                             fileCheckProgress.fileChecks.checksumProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
-                            fileCheckProgress.fileChecks.ffidProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
-                            fileCheckProgress.allChecksSucceeded)
+                            fileCheckProgress.fileChecks.ffidProgress.filesProcessed * 100 / fileCheckProgress.totalFiles)
         }
       }
   }
@@ -39,23 +38,16 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       .map {
         fileChecks => {
           if(fileChecks.isComplete) {
-            if(fileChecks.allChecksSucceeded) {
-              Redirect(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId))
-            } else {
-              Redirect(routes.FileChecksResultsController.fileCheckFailurePage(consignmentId))
-            }
+            Redirect(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId))
           } else {
             Ok(views.html.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo))
           }
+
         }
       }
   }
 }
 
-case class FileChecksProgress(totalFiles: Int,
-                              avMetadataProgressPercentage: Int,
-                              checksumProgressPercentage: Int,
-                              ffidMetadataProgressPercentage: Int,
-                              allChecksSucceeded: Boolean) {
+case class FileChecksProgress(totalFiles: Int, avMetadataProgressPercentage: Int, checksumProgressPercentage: Int, ffidMetadataProgressPercentage: Int) {
   def isComplete: Boolean = avMetadataProgressPercentage == 100 && checksumProgressPercentage == 100 && ffidMetadataProgressPercentage == 100
 }

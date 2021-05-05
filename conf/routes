@@ -14,7 +14,6 @@ POST    /consignment/:consignmentId/transfer-agreement     controllers.TransferA
 GET     /consignment/:consignmentId/upload                 controllers.UploadController.uploadPage(consignmentId: java.util.UUID)
 GET     /consignment/:consignmentId/records                controllers.FileChecksController.recordProcessingPage(consignmentId: java.util.UUID)
 GET     /consignment/:consignmentId/records-results        controllers.FileChecksResultsController.fileCheckResultsPage(consignmentId: java.util.UUID)
-GET     /consignment/:consignmentId/checks-failed          controllers.FileChecksResultsController.fileCheckFailurePage(consignmentId: java.util.UUID)
 GET     /consignment/:consignmentId/transfer-summary       controllers.TransferSummaryController.transferSummary(consignmentId: java.util.UUID)
 POST    /consignment/:consignmentId/transfer-summary       controllers.TransferSummaryController.finalTransferConfirmationSubmit(consignmentId: java.util.UUID)
 GET     /consignment/:consignmentId/transfer-complete      controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
