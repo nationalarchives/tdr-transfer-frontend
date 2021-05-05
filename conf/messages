@@ -61,6 +61,7 @@ upload.dragAndDropErrorMessage=You can only drop a single folder
 upload.dragAndDropHintText=Drag and drop a single folder here or
 upload.dragAndDropSuccessMessage=The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected
 upload.chooseFolderLink=Choose folder
+upload.cancelLink=Cancel
 upload.continueLink=Start upload
 uploadProgress.header=Uploading records
 uploadProgress.title=Do not close your browser window while your files are being uploaded. This could take a few minutes.
