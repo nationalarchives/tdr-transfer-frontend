@@ -226,17 +226,6 @@ export class UploadForm {
     ".drag-and-drop__success"
   )
 
-  private getWarningMessage(): { [s: string]: HTMLElement | null } {
-    return {
-      nonFolderSelectedMessage: document.querySelector(
-        "#non-folder-selected-message-text"
-      ),
-      submissionWithoutAFolderSelectedMessage: document.querySelector(
-        "#submission-without-a-folder-message-text"
-      )
-    }
-  }
-
   private getParentFolderName(folder: IFileWithPath[]) {
     const firstItem: FileWithRelativePath = folder[0]
       .file as FileWithRelativePath
