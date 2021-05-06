@@ -320,7 +320,7 @@ class MockDom {
   submitAndLabelButtons = document.querySelectorAll(".govuk-button")
 }
 
-test("Clicking the Submit button, without selecting a folder, doesn't disable the buttons on the page", async () => {
+test("clicking the submit button, without selecting a folder, doesn't disable the buttons on the page", async () => {
   const mockDom = new MockDom()
 
   const submitEvent = mockDom.createSubmitEvent()
@@ -333,7 +333,7 @@ test("Clicking the Submit button, without selecting a folder, doesn't disable th
   expect(mockDom.hiddenInputButton).not.toHaveAttribute("disabled", "true")
 })
 
-test("Clicking the Submit button, without selecting a folder, displays a warning message to the user", async () => {
+test("clicking the submit button, without selecting a folder, displays a warning message to the user", async () => {
   const mockDom = new MockDom()
 
   const submitEvent = mockDom.createSubmitEvent()
@@ -353,7 +353,7 @@ test("Clicking the Submit button, without selecting a folder, displays a warning
   )
 })
 
-test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
+test("input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
   mockDom.fileUploader.initialiseFormListeners()
   mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
@@ -554,7 +554,7 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })
 
-test("Clicking the Submit button, after selecting a folder, disables the buttons on the page", async () => {
+test("clicking the submit button, after selecting a folder, disables the buttons on the page", async () => {
   const mockDom = new MockDom()
   const dragEventClass = mockDom.addFilesToDragEvent(
     [dummyFolder],
