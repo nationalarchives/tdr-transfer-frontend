@@ -322,7 +322,7 @@ test("Clicking the Submit button, without selecting a folder, doesn't disable th
   expect(mockDom.hiddenInputButton).not.toHaveAttribute("disabled", "true")
 })
 
-test("Clicking the Submit button, without selecting a folder, displays an warning message to the user", async () => {
+test("Clicking the Submit button, without selecting a folder, displays a warning message to the user", async () => {
   const mockDom = new MockDom()
 
   const submitEvent = mockDom.createSubmitEvent()
