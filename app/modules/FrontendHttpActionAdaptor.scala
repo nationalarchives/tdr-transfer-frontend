@@ -19,9 +19,5 @@ class FrontendHttpActionAdaptor extends PlayHttpActionAdapter {
           super.adapt(action, context)
         }
     }
-
   }
-
-
 }
-
