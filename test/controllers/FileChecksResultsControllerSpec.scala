@@ -2,7 +2,7 @@ package controllers
 
 import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks.{AntivirusProgress, ChecksumProgress, FfidProgress}
