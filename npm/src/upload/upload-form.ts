@@ -283,7 +283,10 @@ export class UploadForm {
     throw new Error("No files selected")
   }
 
-  private displayFolderSelectionSuccessMessage(folderName: string, folderSize: number) {
+  private displayFolderSelectionSuccessMessage(
+    folderName: string,
+    folderSize: number
+  ) {
     const folderNameElement: HTMLElement | null = document.querySelector(
       "#folder-name"
     )
