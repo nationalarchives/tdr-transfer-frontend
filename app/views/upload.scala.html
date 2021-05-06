@@ -50,14 +50,8 @@
                                     <p id="success-message-text" >@Html(Messages("upload.dragAndDropSuccessMessage"))</p>
                                 </div>
                             </dd>
-                            <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden
-                                tabindex="-1" role="alert" aria-describedby="failure-message-text">
-                                <div id="failure-message-text">
-                                    @redWarningSign()
-                                    <p id="non-folder-selected-message-text" hidden>@Messages("upload.dragAndDropErrorMessage")</p>
-                                    <p id="submission-without-a-folder-message-text" hidden>@Messages("upload.submissionWithoutAFolderMessageText")</p>
-                                </div>
-                            </dd>
+                            @folderSelectionFailureMessage("drag-and-drop-failure", "non-folder-selected-message-text", "upload.dragAndDropErrorMessage")
+                            @folderSelectionFailureMessage("no-folder-submission-message", "submission-without-a-folder-message-text", "upload.submissionWithoutAFolderMessageText")
                         </div>
                     </div>
                     <div>
