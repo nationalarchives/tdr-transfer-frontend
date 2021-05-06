@@ -22,10 +22,11 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).map(fileCheck => {
+      val parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
       if(fileCheck.allChecksSucceeded) {
         val consignmentInfo = ConsignmentFolderInfo(
           fileCheck.totalFiles,
-          fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
+          parentFolder
         )
         Ok(views.html.fileChecksResults(consignmentInfo, consignmentId))
       } else {
