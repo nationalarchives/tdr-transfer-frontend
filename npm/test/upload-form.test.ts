@@ -367,10 +367,7 @@ test("Input button updates the page with correct folder information if there are
   Object.values(
     mockDom.warningMessages!
   ).forEach((warningMessageElement: HTMLElement | null) =>
-    expect(warningMessageElement!).toHaveAttribute(
-      "hidden",
-      "true"
-    )
+    expect(warningMessageElement!).toHaveAttribute("hidden", "true")
   )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
@@ -394,10 +391,7 @@ test("dropzone updates the page with correct folder information if there are 1 o
   Object.values(
     mockDom.warningMessages!
   ).forEach((warningMessageElement: HTMLElement | null) =>
-    expect(warningMessageElement!).toHaveAttribute(
-      "hidden",
-      "true"
-    )
+    expect(warningMessageElement!).toHaveAttribute("hidden", "true")
   )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
@@ -472,10 +466,7 @@ test("dropzone updates the page with correct folder information if there is a ne
   Object.values(
     mockDom.warningMessages!
   ).forEach((warningMessageElement: HTMLElement | null) =>
-    expect(warningMessageElement!).toHaveAttribute(
-      "hidden",
-      "true"
-    )
+    expect(warningMessageElement!).toHaveAttribute("hidden", "true")
   )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
