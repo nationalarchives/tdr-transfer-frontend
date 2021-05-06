@@ -5,10 +5,12 @@ import org.pac4j.core.context.session.SessionStore
 import org.pac4j.core.engine.savedrequest.SavedRequestHandler
 import org.pac4j.core.exception.http.{FoundAction, HttpAction, RedirectionActionHelper}
 import org.pac4j.core.util.Pac4jConstants
+import play.api.Logging
 
-class CustomSavedRequestHandler extends SavedRequestHandler {
+class CustomSavedRequestHandler extends SavedRequestHandler with Logging {
   override def save(context: WebContext): Unit = {
-    println("Saving webContext")
+
+    logger.info("Saving webContext")
 
     val requestedUrl = getRequestedUrl(context)
     // Need to specify the type of SessionStore so that we can pass the context into the set method
