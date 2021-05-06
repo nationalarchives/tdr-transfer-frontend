@@ -197,12 +197,11 @@ export class UploadForm {
         "true"
       )
 
-      this.warningMessages.warningMessageContainer?.removeAttribute("hidden")
       this.warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute(
         "hidden"
       )
 
-      this.warningMessages.warningMessageContainer?.focus()
+      this.warningMessages.submissionWithoutAFolderSelectedMessage?.focus()
       this.addSubmitListener() // Readd submit listener as we've set it to be removed after one form submission
     }
   }
@@ -216,12 +215,11 @@ export class UploadForm {
   readonly warningMessages: {
     [s: string]: HTMLElement | null
   } = {
-    warningMessageContainer: document.querySelector(".drag-and-drop__failure"),
     nonFolderSelectedMessage: document.querySelector(
-      "#non-folder-selected-message-text"
+      "#folder-selection-failure"
     ),
     submissionWithoutAFolderSelectedMessage: document.querySelector(
-      "#submission-without-a-folder-message-text"
+      "#no-folder-submission-message"
     )
   }
   readonly successMessage: HTMLElement | null = document.querySelector(
@@ -230,9 +228,6 @@ export class UploadForm {
 
   private getWarningMessage(): { [s: string]: HTMLElement | null } {
     return {
-      warningMessageContainer: document.querySelector(
-        ".drag-and-drop__failure"
-      ),
       nonFolderSelectedMessage: document.querySelector(
         "#non-folder-selected-message-text"
       ),
@@ -292,9 +287,8 @@ export class UploadForm {
     )
     this.successMessage?.setAttribute("hidden", "true")
 
-    this.warningMessages.noFolderSelectedMessage?.removeAttribute("hidden")
-    this.warningMessages.warningMessageContainer?.removeAttribute("hidden")
-    this.warningMessages.warningMessageContainer?.focus()
+    this.warningMessages.nonFolderSelectedMessage?.removeAttribute("hidden")
+    this.warningMessages.nonFolderSelectedMessage?.focus()
 
     throw new Error("No files selected")
   }
