@@ -1,15 +1,20 @@
 package controllers
 
 import java.util.UUID
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
+import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks
+import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks.{AntivirusProgress, ChecksumProgress, FfidProgress}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.ConsignmentService
 import util.FrontEndTestHelper
+import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.{Data, GetConsignment, Variables}
+import io.circe.Printer
+import io.circe.syntax._
+import io.circe.generic.auto._
 
 import scala.concurrent.ExecutionContext
 
@@ -28,16 +33,18 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  "FileChecksResultsController GET" should {
+  "FileChecksResultsController fileCheckResultsPage GET" should {
 
     "render the fileChecksResults page with the confirmation box" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
 
-      val exampleApiReturn = "{\"data\":{\"getConsignment\":{\"totalFiles\":12,\"parentFolder\": \"this-is-a-test\"}}}"
+      val data = Data(Option(GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))))
+      val client = graphQLConfiguration.getClient[Data, Variables ]()
+      val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(exampleApiReturn)))
+        .willReturn(okJson(fileStatusResponse)))
 
       val fileCheckResultsController = new FileChecksResultsController(
         getAuthorisedSecurityComponents,
@@ -105,6 +112,33 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       ).failed.futureValue
 
       results.getMessage mustBe("User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '0a3f617c-04e8-41c2-9f24-99622a779528'")
+    }
+
+    "return the error page if some file checks have failed" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val data = Data(Option(GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))))
+      val client = graphQLConfiguration.getClient[Data, Variables ]()
+      val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(fileStatusResponse)))
+
+      val fileCheckResultsController = new FileChecksResultsController(
+        getAuthorisedSecurityComponents,
+        getValidKeycloakConfiguration,
+        new GraphQLConfiguration(app.configuration),
+        consignmentService,
+        frontEndInfoConfiguration
+      )
+
+      val recordCheckResultsPage = fileCheckResultsController.fileCheckResultsPage(consignmentId).apply(
+        FakeRequest(GET, s"consignment/$consignmentId/records-results")
+      )
+
+      status(recordCheckResultsPage) mustBe OK
+      contentAsString(recordCheckResultsPage) must include("fileChecksFailure.error.title")
     }
   }
 }

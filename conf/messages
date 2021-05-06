@@ -80,6 +80,13 @@ fileChecksResults.description.singular=Your folder ''{0}'' containing {1} item h
 fileChecksResults.description.plural=Your folder ''{0}'' containing {1} items has been successfully checked and uploaded. Click ''Continue'' to proceed with your transfer or ''Return to start''.
 fileChecksResults.dashboard=Return to start
 fileChecksResults.continueLink=Continue
+fileChecksFailure.error.title=There is a problem
+fileChecksFailure.error.body=One or more files you uploaded have failed our checks. Please <a href= "/contact">contact<a/> us to resolve this issue.
+fileChecksFailure.error.list.title=Possible failure causes:
+fileChecksFailure.error.list.passwordProtected=Password protected files
+fileChecksFailure.error.list.zip=Zip files
+fileChecksFailure.error.list.corrupted=Corrupted files
+fileChecksFailure.return=Return to start
 transferSummary.header=Transfer summary
 transferSummary.title=Confirm transfer
 transferSummary.body=Here is a summary of the records you have uploaded.
