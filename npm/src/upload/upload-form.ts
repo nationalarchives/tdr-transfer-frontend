@@ -161,7 +161,7 @@ export class UploadForm {
     this.checkIfFolderHasFiles(files)
     const folderSize = files.length
     const folderName = webkitEntry.name
-    this.updateFolderSelectionStatus(folderName, folderSize)
+    this.displayFolderSelectionSuccessMessage(folderName, folderSize)
   }
 
   addFolderListener() {
@@ -172,7 +172,7 @@ export class UploadForm {
       const files = this.retrieveFiles(form)
       this.selectedFiles = files
       const parentFolder = this.getParentFolderName(this.selectedFiles)
-      this.updateFolderSelectionStatus(parentFolder, files.length)
+      this.displayFolderSelectionSuccessMessage(parentFolder, files.length)
     })
   }
 
@@ -282,7 +282,7 @@ export class UploadForm {
     throw new Error("No files selected")
   }
 
-  private updateFolderSelectionStatus(folderName: string, folderSize: number) {
+  private displayFolderSelectionSuccessMessage(folderName: string, folderSize: number) {
     const folderNameElement: HTMLElement | null = document.querySelector(
       "#folder-name"
     )
