@@ -162,6 +162,7 @@ export class UploadForm {
     const folderSize = files.length
     const folderName = webkitEntry.name
     this.displayFolderSelectionSuccessMessage(folderName, folderSize)
+    this.removeDragover()
   }
 
   addFolderListener() {
@@ -304,7 +305,6 @@ export class UploadForm {
 
       this.successMessage?.removeAttribute("hidden")
       this.successMessage?.focus()
-      this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
     }
   }
 }
