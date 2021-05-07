@@ -171,7 +171,7 @@ and scan files as they are uploaded to the S3 emulator.
 * Once nvm is installed:
     `nvm install 14.9`
     
-* `cd` into tdr-transfer-frontend in terminal
+* `cd` into tdr-transfer-frontend/npm in terminal
 
 * run  `npm install` then `npm run build`
 
