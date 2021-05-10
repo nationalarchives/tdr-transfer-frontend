@@ -54,13 +54,11 @@ export class FileUploader {
   }
 
   initialiseFormListeners(): void {
-    const uploadForm: HTMLFormElement | null = document.querySelector(
-      "#file-upload-form"
-    )
+    const uploadForm: HTMLFormElement | null =
+      document.querySelector("#file-upload-form")
 
-    const folderRetriever: HTMLInputElement | null = document.querySelector(
-      "#file-selection"
-    )
+    const folderRetriever: HTMLInputElement | null =
+      document.querySelector("#file-selection")
 
     const dropzone: HTMLElement | null = document.querySelector(
       ".drag-and-drop__dropzone"
