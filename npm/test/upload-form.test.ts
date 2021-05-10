@@ -85,7 +85,7 @@ class MockDom {
                                  <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden="" 
                                     tabindex="-1" role="alert" aria-describedby="success-message-text">
                                     <div>
-                                       <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                       <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
                                           <path d="M25,6.2L8.7,23.2L0,14.1l4-4.2l4.7,4.9L21,2L25,6.2z"></path>
                                        </svg>
                                        <p id="success-message-text">The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
@@ -95,7 +95,7 @@ class MockDom {
                                     tabindex="-1" role="alert" aria-describedby="non-folder-selected-message-text">
                                     <div>
                                        <span class="drag-and-drop__error">
-                                          <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                          <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
                                        </span>
@@ -106,7 +106,7 @@ class MockDom {
                                       tabindex="-1" role="alert" aria-describedby="submission-without-a-folder-message-text">
                                     <div>
                                        <span class="drag-and-drop__error">
-                                          <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                          <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
                                        </span>
