@@ -48,20 +48,19 @@ const getAllFiles: (
   return fileInfoInput
 }
 
-const getEntriesFromReader: (
-  reader: IReader
-) => Promise<IWebkitEntry[]> = async (reader) => {
-  let allEntries: IWebkitEntry[] = []
+const getEntriesFromReader: (reader: IReader) => Promise<IWebkitEntry[]> =
+  async (reader) => {
+    let allEntries: IWebkitEntry[] = []
 
-  let nextBatch = await getEntryBatch(reader)
+    let nextBatch = await getEntryBatch(reader)
 
-  while (nextBatch.length > 0) {
-    allEntries = allEntries.concat(nextBatch)
-    nextBatch = await getEntryBatch(reader)
+    while (nextBatch.length > 0) {
+      allEntries = allEntries.concat(nextBatch)
+      nextBatch = await getEntryBatch(reader)
+    }
+
+    return allEntries
   }
-
-  return allEntries
-}
 
 const getFileFromEntry: (entry: IWebkitEntry) => Promise<IFileWithPath> = (
   entry
@@ -122,14 +121,14 @@ export class UploadForm {
 
   addButtonHighlighter() {
     this.folderRetriever.addEventListener("focus", () => {
-      const folderRetrieverLabel: HTMLLabelElement = this.folderRetriever
-        .labels![0]
+      const folderRetrieverLabel: HTMLLabelElement =
+        this.folderRetriever.labels![0]
       folderRetrieverLabel.classList.add("drag-and-drop__button--highlight")
     })
 
     this.folderRetriever.addEventListener("blur", () => {
-      const folderRetrieverLabel: HTMLLabelElement = this.folderRetriever
-        .labels![0]
+      const folderRetrieverLabel: HTMLLabelElement =
+        this.folderRetriever.labels![0]
       folderRetrieverLabel.classList.remove("drag-and-drop__button--highlight")
     })
   }
@@ -287,12 +286,10 @@ export class UploadForm {
     folderName: string,
     folderSize: number
   ) {
-    const folderNameElement: HTMLElement | null = document.querySelector(
-      "#folder-name"
-    )
-    const folderSizeElement: HTMLElement | null = document.querySelector(
-      "#folder-size"
-    )
+    const folderNameElement: HTMLElement | null =
+      document.querySelector("#folder-name")
+    const folderSizeElement: HTMLElement | null =
+      document.querySelector("#folder-size")
 
     if (folderNameElement && folderSizeElement) {
       folderNameElement.textContent = folderName
