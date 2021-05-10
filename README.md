@@ -29,7 +29,7 @@ Regardless of how you set up the development environment, you will need:
 Follow these instructions if you want to make changes to the frontend application without needing to set up a full
 development environment for the other TDR services.
 
-- Run redis using Docker:
+- Run Redis using Docker:
   ```
   docker run -d --name redis -p 6379:6379 redis
   ```
@@ -84,7 +84,7 @@ updating the frontend.
 
 #### Local auth server
 
--  Log into docker with credentials from ECR and start the auth server. This will need AWS CLI version 2 to work.
+-  Log into Docker with credentials from ECR and start the auth server. This will need AWS CLI version 2 to work.
   ```
   export MANAGEMENT_ACCOUNT=management_account_number
   aws ecr get-login-password --region eu-west-2 --profile management | docker login --username AWS --password-stdin $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com
@@ -119,7 +119,7 @@ Create a new empty directory that the S3 emulator will save files in.
 
 **If you are running Linux**, change the owner of this directory to user 2000, to give the user in the S3 ninja Docker
 container permission to save files there. Do not do this on a Mac, because Docker handles file permissions differently
-on Linux and Mac OS, and this step will prevent uploads from working.
+on Linux and macOS, and this step will prevent uploads from working.
 
 ```
 sudo chown 2000:2000 /your/new/upload/directory
@@ -149,7 +149,7 @@ and scan files as they are uploaded to the S3 emulator.
 
 #### Frontend project
 
-* Start redis locally.
+* Start Redis locally.
 
     `docker run -d --name redis -p 6379:6379 redis`
 * Ensure you have set the `AUTH_SECRET` environment variable, as described above. Set it in the command line or in the
@@ -163,7 +163,7 @@ and scan files as they are uploaded to the S3 emulator.
 
 ### Static assets
 
-**Note:** The TDR static assets are used by the TDR Auth Server. When updating the static assets, including the sass, ensure that any changes are also implemented in the tdr-auth-server repo: https://github.com/nationalarchives/tdr-auth-server
+**Note:** The TDR static assets are used by the TDR Auth Server. When updating the static assets, including the Sass, ensure that any changes are also implemented in the tdr-auth-server repo: https://github.com/nationalarchives/tdr-auth-server
 * This includes any changes to the `.stylelintrc.json`
 
 * If npm is not installed install [nvm](https://github.com/nvm-sh/nvm) in root directory.
@@ -171,20 +171,20 @@ and scan files as they are uploaded to the S3 emulator.
 * Once nvm is installed:
     `nvm install 14.9`
     
-* `cd` into tdr-transfer-frontend in terminal
+* `cd` into tdr-transfer-frontend/npm in terminal
 
 * run  `npm install` then `npm run build`
 
 If you're working on the Sass files and just want to regenerate the CSS without rebuilding all the JavaScript code, you
 can run `npm run sass-watch` to monitor and rebuild the CSS files, or run `npm run build-css` to run a single build.
 
-To run the sass linter (stylelint) before commits, run the following command: from the npm folder `npx stylelint **/*.scss`
+To run the Sass linter (stylelint) before commits, run the following command: from the npm folder `npx stylelint **/*.scss`
 
 Full details of stylelint are available here: https://stylelint.io/
 
 ## Generated GraphQL classes
 
-There is a separate repository which contains the generated case classes needed to query the consignment API. 
+There is a separate repository which contains the generated case classes needed to query the Consignment API.
 These classes will be needed by more than one project which is why they are in a separate project.
 If you need to add a new query:
 
@@ -194,4 +194,4 @@ If you need to add a new query:
 * Set the version for `tdr-generated-graphql` in this projects build.sbt to be the snapshot version.
 
 ## Notes
-* Each environment has its own secret for the auth server. These cannot be generated inside aws in any way and so it's difficult to get them into the terraform scripts. At the moment, these are stored in a parameter store variable called /${env}/auth/secret although this may change.
+* Each environment has its own secret for the auth server. These cannot be generated inside AWS in any way and so it's difficult to get them into the Terraform scripts. At the moment, these are stored in a parameter store variable called /${env}/auth/secret although this may change.
