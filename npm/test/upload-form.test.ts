@@ -474,6 +474,27 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })
 
+test("dropzone clears selected files if an invalid file is dropped after a valid one", async () => {
+  const mockDom = new MockDom()
+  const validDragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.dataTransferItem
+  )
+  const validDragEvent = new validDragEventClass()
+  await mockDom.form.handleDroppedItems(validDragEvent)
+
+  const invalidDragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.directoryEntry
+  )
+  const invalidDragEvent = new invalidDragEventClass()
+
+  try {
+    await mockDom.form.handleDroppedItems(invalidDragEvent)
+  } catch {}
+  expect(mockDom.form.selectedFiles.length).toEqual(0)
+})
+
 test("Clicking the Submit button disables the buttons on the page", async () => {
   const mockDom = new MockDom()
   const dragEventClass = mockDom.addFilesToDragEvent(

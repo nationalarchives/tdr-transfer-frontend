@@ -237,6 +237,7 @@ export class UploadForm {
   }
 
   private rejectUserItemSelection() {
+    this.selectedFiles = []
     this.removeDragover()
     const successMessage: HTMLElement | null = document.querySelector(
       ".drag-and-drop__success"
