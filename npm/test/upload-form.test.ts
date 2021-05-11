@@ -43,21 +43,21 @@ const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
   element.dispatchEvent(event)
 }
 
-const dummyFolder = ({
+const dummyFolder = {
   lastModified: 2147483647,
   name: "Mock Folder",
   size: 0,
   type: "",
   webkitRelativePath: ""
-} as unknown) as File
+} as unknown as File
 
-const dummyFile = ({
+const dummyFile = {
   lastModified: 2147483647,
   name: "Mock File",
   size: 3008,
   type: "pdf",
   webkitRelativePath: "Parent_Folder"
-} as unknown) as File
+} as unknown as File
 
 const dummyIFileWithPath = {
   file: dummyFile,
@@ -275,12 +275,10 @@ class MockDom {
   dropzone: HTMLElement | null = document.querySelector(
     ".drag-and-drop__dropzone"
   )
-  uploadForm: HTMLFormElement | null = document.querySelector(
-    "#file-upload-form"
-  )
-  folderRetriever: HTMLInputElement | null = document.querySelector(
-    "#file-selection"
-  )
+  uploadForm: HTMLFormElement | null =
+    document.querySelector("#file-upload-form")
+  folderRetriever: HTMLInputElement | null =
+    document.querySelector("#file-selection")
 
   folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
     ".drag-and-drop__success"
@@ -300,13 +298,11 @@ class MockDom {
     )
   }
 
-  hiddenInputButton: HTMLElement | null = document.querySelector(
-    "#file-selection"
-  )
+  hiddenInputButton: HTMLElement | null =
+    document.querySelector("#file-selection")
 
-  submitButton: HTMLElement | null = document.querySelector(
-    "input[type=submit]"
-  )
+  submitButton: HTMLElement | null =
+    document.querySelector("input[type=submit]")
 
   fileUploader = this.setUpFileUploader()
 
@@ -364,10 +360,9 @@ test("input button updates the page with correct folder information if there are
     "true"
   )
 
-  Object.values(
-    mockDom.warningMessages!
-  ).forEach((warningMessageElement: HTMLElement | null) =>
-    expect(warningMessageElement!).toHaveAttribute("hidden", "true")
+  Object.values(mockDom.warningMessages!).forEach(
+    (warningMessageElement: HTMLElement | null) =>
+      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
   )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
@@ -388,10 +383,9 @@ test("dropzone updates the page with correct folder information if there are 1 o
     "true"
   )
 
-  Object.values(
-    mockDom.warningMessages!
-  ).forEach((warningMessageElement: HTMLElement | null) =>
-    expect(warningMessageElement!).toHaveAttribute("hidden", "true")
+  Object.values(mockDom.warningMessages!).forEach(
+    (warningMessageElement: HTMLElement | null) =>
+      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
   )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
@@ -463,10 +457,9 @@ test("dropzone updates the page with correct folder information if there is a ne
     "hidden",
     "true"
   )
-  Object.values(
-    mockDom.warningMessages!
-  ).forEach((warningMessageElement: HTMLElement | null) =>
-    expect(warningMessageElement!).toHaveAttribute("hidden", "true")
+  Object.values(mockDom.warningMessages!).forEach(
+    (warningMessageElement: HTMLElement | null) =>
+      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
   )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
@@ -552,6 +545,30 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
+})
+
+test("dropzone clears selected files if an invalid file is dropped after a valid one", async () => {
+  const mockDom = new MockDom()
+  const validDragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.dataTransferItem
+  )
+  const validDragEvent = new validDragEventClass()
+  await mockDom.form.handleDroppedItems(validDragEvent)
+
+  const invalidDragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.directoryEntry
+  )
+
+  expect(mockDom.form.selectedFiles.length).toEqual(2)
+
+  const invalidDragEvent = new invalidDragEventClass()
+
+  try {
+    await mockDom.form.handleDroppedItems(invalidDragEvent)
+  } catch {}
+  expect(mockDom.form.selectedFiles.length).toEqual(0)
 })
 
 test("clicking the submit button, after selecting a folder, disables the buttons on the page", async () => {
