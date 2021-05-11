@@ -16,17 +16,15 @@ export function handleUploadError(
   if (error instanceof LoggedOutError) {
     showLoggedOutError(error.loginUrl)
   } else {
-    const uploadFormContainer: HTMLFormElement | null = document.querySelector(
-      "#file-upload"
-    )
+    const uploadFormContainer: HTMLFormElement | null =
+      document.querySelector("#file-upload")
     //User is still on upload form
     if (uploadFormContainer && !uploadFormContainer.hasAttribute("hidden")) {
       const uploadFormError: HTMLDivElement | null = document.querySelector(
         ".govuk-error-summary.upload-error"
       )
-      const uploadForm: HTMLDivElement | null = document.querySelector(
-        "#file-upload-form"
-      )
+      const uploadForm: HTMLDivElement | null =
+        document.querySelector("#file-upload-form")
 
       if (uploadForm) {
         uploadForm.setAttribute("hidden", "true")
@@ -55,9 +53,10 @@ export function handleUploadError(
           return "general"
         }
       }
-      const uploadProgressErrorMessage: HTMLParagraphElement | null = document.querySelector(
-        `.upload-progress-error-${getErrorMessageSuffix(error.name)}__message`
-      )
+      const uploadProgressErrorMessage: HTMLParagraphElement | null =
+        document.querySelector(
+          `.upload-progress-error-${getErrorMessageSuffix(error.name)}__message`
+        )
 
       if (uploadProgressErrorMessage) {
         uploadProgressErrorMessage.removeAttribute("hidden")
@@ -77,9 +76,8 @@ function renderErrorMessage(message: string) {
 }
 
 function showLoggedOutError(login: string) {
-  const uploadForm: HTMLFormElement | null = document.querySelector(
-    "#file-upload-form"
-  )
+  const uploadForm: HTMLFormElement | null =
+    document.querySelector("#file-upload-form")
   const loggedOutError: HTMLDivElement | null = document.querySelector(
     ".govuk-error-summary.logged-out-error"
   )
