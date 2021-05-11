@@ -160,7 +160,8 @@ export class UploadForm {
     this.checkIfFolderHasFiles(files)
     const folderSize = files.length
     const folderName = webkitEntry.name
-    this.updateFolderSelectionStatus(folderName, folderSize)
+    this.displayFolderSelectionSuccessMessage(folderName, folderSize)
+    this.removeDragover()
   }
 
   addFolderListener() {
@@ -171,21 +172,38 @@ export class UploadForm {
       const files = this.retrieveFiles(form)
       this.selectedFiles = files
       const parentFolder = this.getParentFolderName(this.selectedFiles)
-      this.updateFolderSelectionStatus(parentFolder, files.length)
+      this.displayFolderSelectionSuccessMessage(parentFolder, files.length)
     })
   }
 
   handleFormSubmission: (ev: Event) => void = (ev: Event) => {
     ev.preventDefault()
+    const folderSelected: IFileWithPath | undefined = this.selectedFiles[0]
 
-    this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
-    this.disableButtonsAndDropzone()
-    const parentFolder = this.getParentFolderName(this.selectedFiles)
-    const uploadFilesInfo: FileUploadInfo = {
-      consignmentId: this.consignmentId(),
-      parentFolder: parentFolder
+    if (folderSelected) {
+      this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
+      this.disableButtonsAndDropzone()
+
+      const parentFolder = this.getParentFolderName(this.selectedFiles)
+      const uploadFilesInfo: FileUploadInfo = {
+        consignmentId: this.consignmentId(),
+        parentFolder: parentFolder
+      }
+      this.folderUploader(this.selectedFiles, uploadFilesInfo)
+    } else {
+      this.successMessage?.setAttribute("hidden", "true")
+      this.warningMessages.nonFolderSelectedMessage?.setAttribute(
+        "hidden",
+        "true"
+      )
+
+      this.warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute(
+        "hidden"
+      )
+
+      this.warningMessages.submissionWithoutAFolderSelectedMessage?.focus()
+      this.addSubmitListener() // Readd submit listener as we've set it to be removed after one form submission
     }
-    this.folderUploader(this.selectedFiles, uploadFilesInfo)
   }
 
   addSubmitListener() {
@@ -193,6 +211,20 @@ export class UploadForm {
       once: true
     })
   }
+
+  readonly warningMessages: {
+    [s: string]: HTMLElement | null
+  } = {
+    nonFolderSelectedMessage: document.querySelector(
+      "#folder-selection-failure"
+    ),
+    submissionWithoutAFolderSelectedMessage: document.querySelector(
+      "#no-folder-submission-message"
+    )
+  }
+  readonly successMessage: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__success"
+  )
 
   private getParentFolderName(folder: IFileWithPath[]) {
     const firstItem: FileWithRelativePath = folder[0]
@@ -238,19 +270,23 @@ export class UploadForm {
   private rejectUserItemSelection() {
     this.selectedFiles = []
     this.removeDragover()
-    const successMessage: HTMLElement | null = document.querySelector(
-      ".drag-and-drop__success"
+
+    this.warningMessages.submissionWithoutAFolderSelectedMessage?.setAttribute(
+      "hidden",
+      "true"
     )
-    successMessage?.setAttribute("hidden", "true")
-    const warningMessage: HTMLElement | null = document.querySelector(
-      ".drag-and-drop__failure"
-    )
-    warningMessage?.removeAttribute("hidden")
-    warningMessage?.focus()
+    this.successMessage?.setAttribute("hidden", "true")
+
+    this.warningMessages.nonFolderSelectedMessage?.removeAttribute("hidden")
+    this.warningMessages.nonFolderSelectedMessage?.focus()
+
     throw new Error("No files selected")
   }
 
-  private updateFolderSelectionStatus(folderName: string, folderSize: number) {
+  private displayFolderSelectionSuccessMessage(
+    folderName: string,
+    folderSize: number
+  ) {
     const folderNameElement: HTMLElement | null =
       document.querySelector("#folder-name")
     const folderSizeElement: HTMLElement | null =
@@ -261,16 +297,15 @@ export class UploadForm {
       folderSizeElement.textContent = `${folderSize} ${
         folderSize === 1 ? "file" : "files"
       }`
-      const warningMessage: HTMLElement | null = document.querySelector(
-        ".drag-and-drop__failure"
+
+      Object.values(this.warningMessages).forEach(
+        (warningMessageElement: HTMLElement | null) => {
+          warningMessageElement?.setAttribute("hidden", "true")
+        }
       )
-      warningMessage?.setAttribute("hidden", "true")
-      const successMessage: HTMLElement | null = document.querySelector(
-        ".drag-and-drop__success"
-      )
-      successMessage?.removeAttribute("hidden")
-      successMessage?.focus()
-      this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
+
+      this.successMessage?.removeAttribute("hidden")
+      this.successMessage?.focus()
     }
   }
 }
