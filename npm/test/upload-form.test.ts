@@ -43,21 +43,21 @@ const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
   element.dispatchEvent(event)
 }
 
-const dummyFolder = ({
+const dummyFolder = {
   lastModified: 2147483647,
   name: "Mock Folder",
   size: 0,
   type: "",
   webkitRelativePath: ""
-} as unknown) as File
+} as unknown as File
 
-const dummyFile = ({
+const dummyFile = {
   lastModified: 2147483647,
   name: "Mock File",
   size: 3008,
   type: "pdf",
   webkitRelativePath: "Parent_Folder"
-} as unknown) as File
+} as unknown as File
 
 const dummyIFileWithPath = {
   file: dummyFile,
@@ -260,12 +260,10 @@ class MockDom {
   dropzone: HTMLElement | null = document.querySelector(
     ".drag-and-drop__dropzone"
   )
-  uploadForm: HTMLFormElement | null = document.querySelector(
-    "#file-upload-form"
-  )
-  folderRetriever: HTMLInputElement | null = document.querySelector(
-    "#file-selection"
-  )
+  uploadForm: HTMLFormElement | null =
+    document.querySelector("#file-upload-form")
+  folderRetriever: HTMLInputElement | null =
+    document.querySelector("#file-selection")
 
   folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
     ".drag-and-drop__success"
@@ -277,13 +275,11 @@ class MockDom {
   folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
   folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
 
-  hiddenInputButton: HTMLElement | null = document.querySelector(
-    "#file-selection"
-  )
+  hiddenInputButton: HTMLElement | null =
+    document.querySelector("#file-selection")
 
-  submitButton: HTMLElement | null = document.querySelector(
-    "input[type=submit]"
-  )
+  submitButton: HTMLElement | null =
+    document.querySelector("input[type=submit]")
 
   fileUploader = this.setUpFileUploader()
 
@@ -487,6 +483,9 @@ test("dropzone clears selected files if an invalid file is dropped after a valid
     [dummyFolder],
     mockDom.directoryEntry
   )
+
+  expect(mockDom.form.selectedFiles.length).toEqual(2)
+
   const invalidDragEvent = new invalidDragEventClass()
 
   try {
