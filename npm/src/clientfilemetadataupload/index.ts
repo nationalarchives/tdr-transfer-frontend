@@ -66,9 +66,8 @@ export class ClientFileMetadataUpload {
       files.push(value.tdrFile)
     })
 
-    const metadataBatches: AddClientFileMetadataInput[][] = this.createMetadataInputBatches(
-      metadataInputs
-    )
+    const metadataBatches: AddClientFileMetadataInput[][] =
+      this.createMetadataInputBatches(metadataInputs)
 
     for (const metadataInputs of metadataBatches) {
       const variables = { input: metadataInputs }
