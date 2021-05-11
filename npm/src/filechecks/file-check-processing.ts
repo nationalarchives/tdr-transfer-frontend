@@ -14,9 +14,8 @@ export interface IFileCheckProcessed {
 }
 
 export const getConsignmentId: () => string = () => {
-  const consignmentIdElement: HTMLInputElement | null = document.querySelector(
-    "#consignmentId"
-  )
+  const consignmentIdElement: HTMLInputElement | null =
+    document.querySelector("#consignmentId")
   if (!consignmentIdElement) {
     throw Error("No consignment provided")
   }
@@ -31,9 +30,8 @@ export const getConsignmentData: (
   const variables: GetFileCheckProgressQueryVariables = {
     consignmentId
   }
-  const resultPromise: Promise<
-    FetchResult<GetFileCheckProgressQuery>
-  > = client.mutation(GetFileCheckProgress, variables)
+  const resultPromise: Promise<FetchResult<GetFileCheckProgressQuery>> =
+    client.mutation(GetFileCheckProgress, variables)
 
   resultPromise
     .then((result) => {
@@ -76,9 +74,8 @@ export const updateProgressBar: (
   if (total > 0) {
     progress = Math.round((processed / total) * 100)
   }
-  const progressBar: HTMLProgressElement | null = document.querySelector(
-    selector
-  )
+  const progressBar: HTMLProgressElement | null =
+    document.querySelector(selector)
   if (progressBar) {
     progressBar.value = progress
   }
