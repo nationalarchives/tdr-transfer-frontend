@@ -268,6 +268,7 @@ export class UploadForm {
   }
 
   private rejectUserItemSelection() {
+    this.selectedFiles = []
     this.removeDragover()
 
     this.warningMessages.submissionWithoutAFolderSelectedMessage?.setAttribute(
