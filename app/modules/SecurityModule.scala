@@ -1,8 +1,10 @@
 package modules
 
 import com.google.inject.{AbstractModule, Provides}
+import configuration.CustomSavedRequestHandler
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
+import org.pac4j.core.engine.{DefaultCallbackLogic, DefaultSecurityLogic}
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.oidc.client.OidcClient
 import org.pac4j.oidc.config.OidcConfiguration
@@ -60,6 +62,14 @@ class SecurityModule extends AbstractModule {
     val clients = new Clients(oidcClient)
     val config = new Config(clients)
     config.setHttpActionAdapter(new FrontendHttpActionAdaptor())
+
+    val customRequestHandler = new CustomSavedRequestHandler
+    val callbackLogic = DefaultCallbackLogic.INSTANCE
+    callbackLogic.setSavedRequestHandler(customRequestHandler)
+    config.setCallbackLogic(callbackLogic)
+    val securityLogic = DefaultSecurityLogic.INSTANCE
+    securityLogic.setSavedRequestHandler(customRequestHandler)
+
     config
   }
 }
