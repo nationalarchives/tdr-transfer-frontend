@@ -7,6 +7,10 @@ import { UploadForm, IReader, IWebkitEntry } from "../src/upload/upload-form"
 import { mockKeycloakInstance } from "./utils"
 import { IFrontEndInfo } from "../src"
 
+interface SubmitEvent extends Event {
+  submitter: HTMLElement
+}
+
 const mockFileList: (file: File[]) => FileList = (file: File[]) => {
   return {
     length: file.length,
@@ -29,6 +33,38 @@ const mockDataTransferItemList: (
   } as DataTransferItemList
 }
 
+const mockGoToNextPage = jest.fn()
+
+const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
+  element: HTMLElement,
+  domEvent: string
+) => {
+  const event = new CustomEvent(domEvent)
+  element.dispatchEvent(event)
+}
+
+const dummyFolder = {
+  lastModified: 2147483647,
+  name: "Mock Folder",
+  size: 0,
+  type: "",
+  webkitRelativePath: ""
+} as unknown as File
+
+const dummyFile = {
+  lastModified: 2147483647,
+  name: "Mock File",
+  size: 3008,
+  type: "pdf",
+  webkitRelativePath: "Parent_Folder"
+} as unknown as File
+
+const dummyIFileWithPath = {
+  file: dummyFile,
+  path: "Parent_Folder",
+  webkitRelativePath: "Parent_Folder"
+} as IFileWithPath
+
 class MockDom {
   constructor(numberOfFiles: number = 2) {
     if (numberOfFiles === 0) {
@@ -46,22 +82,37 @@ class MockDom {
                       <div class="drag-and-drop">
                           <div class="govuk-summary-list govuk-file-upload">
                               <div class="govuk-summary-list__row">
-                                  <dd id="drag-and-drop-success" class="govuk-summary-list__value drag-and-drop__success" hidden tabindex="-1" role="alert" aria-describedby="successMessageText">
-                                      <div>
-                                          <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
-                                            <path d="M25,6.2L8.7,23.2L0,14.1l4-4.2l4.7,4.9L21,2L25,6.2z"></path>
+                                 <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden="" 
+                                    tabindex="-1" role="alert" aria-describedby="success-message-text">
+                                    <div>
+                                       <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                          <path d="M25,6.2L8.7,23.2L0,14.1l4-4.2l4.7,4.9L21,2L25,6.2z"></path>
+                                       </svg>
+                                       <p id="success-message-text">The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
+                                    </div>
+                                 </dd>
+                                 <dd id="folder-selection-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden=""
+                                    tabindex="-1" role="alert" aria-describedby="non-folder-selected-message-text">
+                                    <div>
+                                       <span class="drag-and-drop__error">
+                                          <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                             <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
-                                          <p id="successMessageText" >The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
-                                      </div>
-                                  </dd>
-                                  <dd id="drag-and-drop-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden tabindex="-1" role="alert" aria-describedby="failureMessageText">
-                                      <span class="drag-and-drop__error">
-                                        <svg class="green-tick-mark" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
-                                            <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"/>
-                                        </svg>
-                                    </span>
-                                    <p id="failureMessageText">You can only drop a single folder</p>
-                                  </dd>
+                                       </span>
+                                       <p id="non-folder-selected-message-text">You can only drop a single folder</p>
+                                    </div>
+                                 </dd>
+                                 <dd id="no-folder-submission-message" class="govuk-summary-list__value drag-and-drop__failure" hidden=""
+                                      tabindex="-1" role="alert" aria-describedby="submission-without-a-folder-message-text">
+                                    <div>
+                                       <span class="drag-and-drop__error">
+                                          <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                             <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
+                                          </svg>
+                                       </span>
+                                       <p id="submission-without-a-folder-message-text">Select a folder to upload.</p>
+                                    </div>
+                                 </dd>
                               </div>
                           </div>
                           <div>
@@ -156,28 +207,48 @@ class MockDom {
     }
   }
 
-  dropzone: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__dropzone"
-  )
-  uploadForm: HTMLFormElement | null = document.querySelector(
-    "#file-upload-form"
-  )
-  folderRetriever: HTMLInputElement | null = document.querySelector(
-    "#file-selection"
-  )
+  createSubmitEvent = () => {
+    const submitButton = this.submitButton
 
-  folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__success"
-  )
+    class MockSubmitEvent implements SubmitEvent {
+      readonly AT_TARGET: number = 0
+      readonly BUBBLING_PHASE: number = 0
+      readonly CAPTURING_PHASE: number = 0
+      readonly NONE: number = 0
+      readonly bubbles: boolean = true
+      cancelBubble: boolean = true
+      readonly cancelable: boolean = true
+      readonly composed: boolean = true
+      readonly currentTarget: EventTarget | null = null
+      readonly defaultPrevented: boolean = true
+      readonly eventPhase: number = 0
+      readonly isTrusted: boolean = true
+      returnValue: boolean = true
+      readonly srcElement: EventTarget | null = null
+      readonly target: EventTarget | null = null
+      readonly timeStamp: number = 2147483647
+      readonly type: string = "submit"
+      submitter: HTMLElement = submitButton!
 
-  folderRetrievalFailureMessage: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__failure"
-  )
-  folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
-  folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
+      composedPath(): EventTarget[] {
+        return []
+      }
 
-  form = new UploadForm(this.uploadForm!, this.folderRetriever!, this.dropzone!)
-  fileUploader = this.setUpFileUploader()
+      initEvent(type: string, bubbles?: boolean, cancelable?: boolean): void {}
+
+      preventDefault(): void {}
+
+      stopImmediatePropagation(): void {}
+
+      stopPropagation(): void {}
+    }
+
+    return new MockSubmitEvent()
+  }
+
+  selectFolderViaButton: () => void = () => {
+    triggerInputEvent(this.folderRetriever!, "change")
+  }
 
   setUpFileUploader(): FileUploader {
     const client = new GraphqlClient(
@@ -201,44 +272,84 @@ class MockDom {
     )
   }
 
-  selectFolderViaButton: () => void = () => {
-    triggerInputEvent(this.folderRetriever!, "change")
+  dropzone: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__dropzone"
+  )
+  uploadForm: HTMLFormElement | null =
+    document.querySelector("#file-upload-form")
+  folderRetriever: HTMLInputElement | null =
+    document.querySelector("#file-selection")
+
+  folderRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__success"
+  )
+
+  folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
+  folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
+
+  warningMessages: {
+    [s: string]: HTMLElement | null
+  } = {
+    nonFolderSelectedMessage: document.querySelector(
+      "#folder-selection-failure"
+    ),
+    submissionWithoutAFolderSelectedMessage: document.querySelector(
+      "#no-folder-submission-message"
+    )
   }
+
+  hiddenInputButton: HTMLElement | null =
+    document.querySelector("#file-selection")
+
+  submitButton: HTMLElement | null =
+    document.querySelector("input[type=submit]")
+
+  fileUploader = this.setUpFileUploader()
+
+  form = new UploadForm(
+    this.uploadForm!,
+    this.folderRetriever!,
+    this.dropzone!,
+    this.setUpFileUploader
+  )
+
+  submitAndLabelButtons = document.querySelectorAll(".govuk-button")
 }
 
-const mockGoToNextPage = jest.fn()
+test("clicking the submit button, without selecting a folder, doesn't disable the buttons on the page", async () => {
+  const mockDom = new MockDom()
 
-const triggerInputEvent: (element: HTMLElement, domEvent: string) => void = (
-  element: HTMLElement,
-  domEvent: string
-) => {
-  const event = new CustomEvent(domEvent)
-  element.dispatchEvent(event)
-}
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
 
-const dummyFolder = ({
-  lastModified: 2147483647,
-  name: "Mock Folder",
-  size: 0,
-  type: "",
-  webkitRelativePath: ""
-} as unknown) as File
+  mockDom.submitAndLabelButtons.forEach((button) =>
+    expect(button).not.toHaveAttribute("disabled", "true")
+  )
 
-const dummyFile = ({
-  lastModified: 2147483647,
-  name: "Mock File",
-  size: 3008,
-  type: "pdf",
-  webkitRelativePath: "Parent_Folder"
-} as unknown) as File
+  expect(mockDom.hiddenInputButton).not.toHaveAttribute("disabled", "true")
+})
 
-const dummyIFileWithPath = {
-  file: dummyFile,
-  path: "Parent_Folder",
-  webkitRelativePath: "Parent_Folder"
-} as IFileWithPath
+test("clicking the submit button, without selecting a folder, displays a warning message to the user", async () => {
+  const mockDom = new MockDom()
 
-test("Input button updates the page with correct folder information if there are 1 or more files in folder", () => {
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
+
+  expect(
+    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+  ).not.toHaveAttribute("hidden", "true")
+
+  expect(mockDom.warningMessages.nonFolderSelectedMessage).toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute(
+    "hidden",
+    "true"
+  )
+})
+
+test("input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockDom()
   mockDom.fileUploader.initialiseFormListeners()
   mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
@@ -248,10 +359,12 @@ test("Input button updates the page with correct folder information if there are
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalFailureMessage!).toHaveAttribute(
-    "hidden",
-    "true"
+
+  Object.values(mockDom.warningMessages!).forEach(
+    (warningMessageElement: HTMLElement | null) =>
+      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
   )
+
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("1 file")
 })
@@ -263,16 +376,18 @@ test("dropzone updates the page with correct folder information if there are 1 o
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await mockDom.form.handleDropppedItems(dragEvent)
+  await mockDom.form.handleDroppedItems(dragEvent)
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalFailureMessage!).toHaveAttribute(
-    "hidden",
-    "true"
+
+  Object.values(mockDom.warningMessages!).forEach(
+    (warningMessageElement: HTMLElement | null) =>
+      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
   )
+
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
 })
@@ -285,18 +400,22 @@ test("dropzone updates the page with an error if there are no files in folder", 
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
-  expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
+  expect(mockDom.warningMessages.nonFolderSelectedMessage).not.toHaveAttribute(
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
+  expect(
+    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+  ).toHaveAttribute("hidden", "true")
+  expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute(
     "hidden",
     "true"
   )
+
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })
@@ -332,16 +451,17 @@ test("dropzone updates the page with correct folder information if there is a ne
     dataTransferItemWithNestedDirectory
   )
   const dragEvent = new dragEventClass()
-  await mockDom.form.handleDropppedItems(dragEvent)
+  await mockDom.form.handleDroppedItems(dragEvent)
 
   expect(mockDom.folderRetrievalSuccessMessage!).not.toHaveAttribute(
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalFailureMessage!).toHaveAttribute(
-    "hidden",
-    "true"
+  Object.values(mockDom.warningMessages!).forEach(
+    (warningMessageElement: HTMLElement | null) =>
+      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
   )
+
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
 })
@@ -353,18 +473,22 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
-  expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
+  expect(mockDom.warningMessages.nonFolderSelectedMessage).not.toHaveAttribute(
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
+  expect(
+    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+  ).toHaveAttribute("hidden", "true")
+  expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute(
     "hidden",
     "true"
   )
+
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })
@@ -376,18 +500,22 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
-  expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
+  expect(mockDom.warningMessages.nonFolderSelectedMessage).not.toHaveAttribute(
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
+  expect(
+    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+  ).toHaveAttribute("hidden", "true")
+  expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute(
     "hidden",
     "true"
   )
+
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })
@@ -399,18 +527,69 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
     mockDom.fileEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDropppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
     Error("No files selected")
   )
 
-  expect(mockDom.folderRetrievalSuccessMessage!).toHaveAttribute(
+  expect(mockDom.warningMessages.nonFolderSelectedMessage).not.toHaveAttribute(
     "hidden",
     "true"
   )
-  expect(mockDom.folderRetrievalFailureMessage!).not.toHaveAttribute(
+  expect(
+    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+  ).toHaveAttribute("hidden", "true")
+  expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute(
     "hidden",
     "true"
   )
+
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
+})
+
+test("dropzone clears selected files if an invalid file is dropped after a valid one", async () => {
+  const mockDom = new MockDom()
+  const validDragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.dataTransferItem
+  )
+  const validDragEvent = new validDragEventClass()
+  await mockDom.form.handleDroppedItems(validDragEvent)
+
+  const invalidDragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.directoryEntry
+  )
+
+  expect(mockDom.form.selectedFiles.length).toEqual(2)
+
+  const invalidDragEvent = new invalidDragEventClass()
+
+  try {
+    await mockDom.form.handleDroppedItems(invalidDragEvent)
+  } catch {}
+  expect(mockDom.form.selectedFiles.length).toEqual(0)
+})
+
+test("clicking the submit button, after selecting a folder, disables the buttons on the page", async () => {
+  const mockDom = new MockDom()
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.dataTransferItem
+  )
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDroppedItems(dragEvent)
+
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
+
+  mockDom.submitAndLabelButtons.forEach((button) =>
+    expect(button).toHaveAttribute("disabled", "true")
+  )
+
+  expect(mockDom.hiddenInputButton).toHaveAttribute("disabled", "true")
+
+  /*There is currently no way in Javascript to check if an event has been removed from an element,
+   therefore it is not possible to see if the submission code removed the drop event from the dropzone
+   */
 })

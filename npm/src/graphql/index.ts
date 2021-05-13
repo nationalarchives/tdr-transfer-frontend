@@ -37,22 +37,21 @@ export class GraphqlClient {
 
   private getOptions: <D, V>(
     variables: V
-  ) => Promise<
-    CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>
-  > = async <V>(variables: V) => {
-    const token = await refreshOrReturnToken(
-      this.keycloak,
-      tokenMinValidityInSecs
-    )
-    return {
-      variables,
-      context: {
-        headers: {
-          Authorization: `Bearer ${token}`
+  ) => Promise<CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>> =
+    async <V>(variables: V) => {
+      const token = await refreshOrReturnToken(
+        this.keycloak,
+        tokenMinValidityInSecs
+      )
+      return {
+        variables,
+        context: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
       }
     }
-  }
 
   query: <D, V>(
     query: DocumentNode,
