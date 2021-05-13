@@ -26,15 +26,12 @@ export class ClientFileProcessing {
   metadataProgressCallback(progressInformation: IProgressInformation) {
     const weightedPercent = progressInformation.percentageProcessed / 2
 
-    const fileUpload: HTMLDivElement | null = document.querySelector(
-      "#file-upload"
-    )
-    const progressBar: HTMLDivElement | null = document.querySelector(
-      "#progress-bar"
-    )
-    const progressBarElement: HTMLDivElement | null = document.querySelector(
-      ".progress-display"
-    )
+    const fileUpload: HTMLDivElement | null =
+      document.querySelector("#file-upload")
+    const progressBar: HTMLDivElement | null =
+      document.querySelector("#progress-bar")
+    const progressBarElement: HTMLDivElement | null =
+      document.querySelector(".progress-display")
 
     if (fileUpload && progressBar) {
       fileUpload.setAttribute("hidden", "true")
@@ -49,9 +46,8 @@ export class ClientFileProcessing {
   s3ProgressCallback(progressInformation: IProgressInformation) {
     const weightedPercent = 50 + progressInformation.percentageProcessed / 2
 
-    const progressBarElement: HTMLDivElement | null = document.querySelector(
-      ".progress-display"
-    )
+    const progressBarElement: HTMLDivElement | null =
+      document.querySelector(".progress-display")
 
     if (progressBarElement) {
       progressBarElement.setAttribute("value", weightedPercent.toString())
@@ -64,18 +60,21 @@ export class ClientFileProcessing {
     stage: string
   ): Promise<void> {
     try {
-      const fileIds: string[] = await this.clientFileMetadataUpload.saveFileInformation(
-        files.length,
-        uploadFilesInfo
-      )
-      const metadata: IFileMetadata[] = await this.clientFileExtractMetadata.extract(
-        files,
-        this.metadataProgressCallback
-      )
-      const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
-        fileIds,
-        metadata
-      )
+      const fileIds: string[] =
+        await this.clientFileMetadataUpload.saveFileInformation(
+          files.length,
+          uploadFilesInfo
+        )
+      const metadata: IFileMetadata[] =
+        await this.clientFileExtractMetadata.extract(
+          files,
+          this.metadataProgressCallback
+        )
+      const tdrFiles =
+        await this.clientFileMetadataUpload.saveClientFileMetadata(
+          fileIds,
+          metadata
+        )
       await this.s3Upload.uploadToS3(
         uploadFilesInfo.consignmentId,
         tdrFiles,
