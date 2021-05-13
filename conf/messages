@@ -127,6 +127,8 @@ upload.error.failure=Some or all of your files failed to upload
 upload.progress.error.timeout=Your upload has timed out, click <a href="/series">series</a> to start again.
 upload.progress.error.authentication=You have been logged out, click <a href="/series">series</a> to start again.
 upload.progress.error.general=Something has gone wrong, click <a href="/series">series</a> to start again.
+upload.noscript.enablejs=Javascript must be enabled on your browser to upload files and proceed with the transfer.
+upload.noscript.checkSettings=Please check your settings to enable Javascript and refresh the page to try again. Alternatively, you can contact your IT department to resolve this issue.
 
 loggedOut.error.title=You have been logged out due to inactivity
 loggedOut.error.linkText=Log in

@@ -4,7 +4,25 @@
 @(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
 
 @main(Messages("upload.header")) {
-<div id="file-upload" class="govuk-grid-row">
+<noscript>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            @progressIndicator(Messages("upload.progress"))
+            <h1 class="govuk-heading-l">@Messages("upload.title")</h1>
+            <div id="upload-noscript-error" class="govuk-error-summary upload-error" aria-labelledby="error-noscript-title"
+            role="alert" tabindex="0" data-module="govuk-error-summary">
+                <h2 class="govuk-error-summary__title" id="error-noscript-title">
+                @Messages("upload.error.title")
+                </h2>
+                <div class="govuk-error-summary__body">
+                    <p>@Messages("upload.noscript.enablejs")</p>
+                    <p>@Messages("upload.noscript.checkSettings")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</noscript>
+<div id="file-upload" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("upload.progress"))
         @frontEndInputs(frontEndInfo)
