@@ -145,5 +145,5 @@ progress.totalSteps=5
 
 signedOut.header=Signed out
 signedOut.title=You have successfully signed out
-signedOut.paragraph=Thanks for using the Transfer Digital Records service.
+signedOut.thankYouMessage=Thanks for using the Transfer Digital Records service.
 signedOut.signInLink=Sign in again
