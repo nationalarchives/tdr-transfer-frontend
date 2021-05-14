@@ -155,6 +155,7 @@ export class UploadForm {
     if (webkitEntry!.isFile) {
       this.rejectUserItemSelection()
     }
+    this.removeDragover()
     const files = await getAllFiles(webkitEntry, [])
     this.checkIfFolderHasFiles(files)
 
@@ -163,7 +164,6 @@ export class UploadForm {
     const folderName = webkitEntry.name
 
     this.displayFolderSelectionSuccessMessage(folderName, folderSize)
-    this.removeDragover()
   }
 
   addFolderListener() {
