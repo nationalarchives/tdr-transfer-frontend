@@ -453,22 +453,28 @@ const showUploadingRecordsPage = () => {
 }
 
 function setupUploadPageHTML() {
-  document.body.innerHTML = `<div id="file-upload" class="govuk-grid-row"></div>
-   <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
-            role="alert" tabindex="-1" data-module="govuk-error-summary">
-            <h2 class="govuk-error-summary__title" id="error-summary-title"></h2></div>
+  document.body.innerHTML =
+    `<div id="file-upload" class="govuk-grid-row"></div>
+    <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
+        role="alert" tabindex="-1" data-module="govuk-error-summary">
+        <h2 class="govuk-error-summary__title" id="error-summary-title"></h2>
+    </div>
     <div id="progress-bar" class="govuk-grid-row" hidden>
-    <div> <progress class="progress-display" value="" max="50"></progress> </div>
+        <div>
+          <progress class="progress-display" value="" max="50"></progress>
+        </div>
     </div>`
 
   showUploadingRecordsPage()
 }
 
 function setupUploadPageHTMLWithoutProgressBar() {
-  document.body.innerHTML = `<div id="file-upload" class="govuk-grid-row"></div>
-  <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title
-          role="alert" tabindex="-1" data-module="govuk-error-summary">
-          <h2 class="govuk-error-summary__title" id="error-summary-title"></h2></div>`
+  document.body.innerHTML =
+    `<div id="file-upload" class="govuk-grid-row"></div>
+    <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title
+        role="alert" tabindex="-1" data-module="govuk-error-summary">
+        <h2 class="govuk-error-summary__title" id="error-summary-title"></h2>
+    </div>`
 
   showUploadingRecordsPage()
 }
