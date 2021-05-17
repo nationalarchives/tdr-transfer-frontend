@@ -105,14 +105,14 @@ transferSummary.transferLink=Transfer your records
 forbiddenError.header=You are not permitted to see this page
 forbiddenError.body=This page is restricted to certain users only.
 internalServerError.header=Sorry, there is a problem with the service
-internalServerError.body=Try again later.
-unauthenticatedError.header=You must be logged in to see this page
-unauthenticatedError.body=Please <a href= "#">login</a> to continue.
-notFoundError.header=This page doesn't exist
+internalServerError.body=Please try again later.
+unauthenticatedError.header=You must be signed in to see this page
+unauthenticatedError.body=<a href= "#">Sign in</a> to continue.
+notFoundError.header=Page not found
 notFoundError.body1=If you typed a web address, check it is correct.
 notFoundError.body2=If you pasted the web address, check you copied the entire address.
-notFoundError.body3=If the web address is correct, please get in touch with us via our <a href= "/contact">contact<a/> page.
-notFoundError.body4=Alternatively, you can <a href= "/dashboard">return to the home page</a>.
+notFoundError.body3=If the web address is correct, please <a href= "/contact">contact<a/> us.
+notFoundError.body4=Alternatively, you can <a href= "/dashboard">return to the start</a>.
 transferComplete.title=Transfer complete
 transferComplete.error=There has been an error, contact us.
 transferComplete.body=Your records have now been transferred to The National Archives
@@ -127,6 +127,8 @@ upload.error.failure=Some or all of your files failed to upload
 upload.progress.error.timeout=Your upload has timed out, click <a href="/series">series</a> to start again.
 upload.progress.error.authentication=You have been logged out, click <a href="/series">series</a> to start again.
 upload.progress.error.general=Something has gone wrong, click <a href="/series">series</a> to start again.
+upload.noscript.enablejs=Javascript must be enabled on your browser to upload files and proceed with the transfer.
+upload.noscript.checkSettings=Please check your settings to enable Javascript and refresh the page to try again. Alternatively, you can contact your IT department to resolve this issue.
 
 loggedOut.error.title=You have been logged out due to inactivity
 loggedOut.error.linkText=Log in

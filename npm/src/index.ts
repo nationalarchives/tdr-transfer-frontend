@@ -72,6 +72,7 @@ export const renderModules = () => {
     ".file-check-progress"
   )
   if (uploadContainer) {
+    uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
 
     configureAws(frontEndInfo)
