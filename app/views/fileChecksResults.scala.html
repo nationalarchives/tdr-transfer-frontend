@@ -19,9 +19,9 @@
                 }
             </div>
         </div>
-        <button class="govuk-button govuk-button--secondary" data-module="govuk-button">
+        <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button govuk-button--secondary">
             @Messages("fileChecksResults.dashboard")
-        </button>
+        </a>
         <a href="@routes.TransferSummaryController.transferSummary(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
             @Messages("fileChecksResults.continueLink")
         </a>
