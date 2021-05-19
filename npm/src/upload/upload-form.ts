@@ -189,6 +189,8 @@ export class UploadForm {
         consignmentId: this.consignmentId(),
         parentFolder: parentFolder
       }
+
+      this.showUploadingRecordsPage()
       this.folderUploader(this.selectedFiles, uploadFilesInfo)
     } else {
       this.successMessage?.setAttribute("hidden", "true")
@@ -233,6 +235,18 @@ export class UploadForm {
     const splitPath: string[] = relativePath.split("/")
     const parentFolder: string = splitPath[0]
     return parentFolder
+  }
+
+  private showUploadingRecordsPage() {
+    const fileUpload: HTMLDivElement | null =
+      document.querySelector("#file-upload")
+    const progressBar: HTMLDivElement | null =
+      document.querySelector("#progress-bar")
+
+    if (fileUpload && progressBar) {
+      fileUpload.setAttribute("hidden", "true")
+      progressBar.removeAttribute("hidden")
+    }
   }
 
   private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void {

@@ -138,7 +138,7 @@ class MockDom {
               </form>
           </div>
       </div>
-      <div id="progress-bar" class="govuk-grid-row" hidden>`)
+      <div id="progress-bar" class="govuk-grid-row" hidden></div>`)
 
   dataTransferItemFields = {
     fullPath: "something", // add this to the fileEntry and directoryEntry object
@@ -272,6 +272,9 @@ class MockDom {
     )
   }
 
+  uploadYourRecordsSection: HTMLElement | null = document.querySelector(
+    "#file-upload"
+  )
   dropzone: HTMLElement | null = document.querySelector(
     ".drag-and-drop__dropzone"
   )
@@ -304,6 +307,8 @@ class MockDom {
   submitButton: HTMLElement | null =
     document.querySelector("input[type=submit]")
 
+  submitAndLabelButtons = document.querySelectorAll(".govuk-button")
+
   fileUploader = this.setUpFileUploader()
 
   form = new UploadForm(
@@ -313,7 +318,7 @@ class MockDom {
     this.setUpFileUploader
   )
 
-  submitAndLabelButtons = document.querySelectorAll(".govuk-button")
+  uploadingRecordsSection = document.querySelector("#progress-bar")
 }
 
 test("clicking the submit button, without selecting a folder, doesn't disable the buttons on the page", async () => {
@@ -592,4 +597,22 @@ test("clicking the submit button, after selecting a folder, disables the buttons
   /*There is currently no way in Javascript to check if an event has been removed from an element,
    therefore it is not possible to see if the submission code removed the drop event from the dropzone
    */
+})
+
+test("clicking the submit button, after selecting a folder, hides 'upload folder' section & reveals progress bar", async () => {
+  const mockDom = new MockDom()
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [dummyFolder],
+    mockDom.dataTransferItem
+  )
+  expect(mockDom.uploadingRecordsSection).toHaveAttribute("hidden")
+
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDroppedItems(dragEvent)
+
+  const submitEvent = mockDom.createSubmitEvent()
+  await mockDom.form.handleFormSubmission(submitEvent)
+
+  expect(mockDom.uploadYourRecordsSection).toHaveAttribute("hidden", "true")
+  expect(mockDom.uploadingRecordsSection).not.toHaveAttribute("hidden")
 })
