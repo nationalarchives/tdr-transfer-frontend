@@ -4,6 +4,7 @@ updates:
     directory: "/npm"
     schedule:
       interval: "daily"
+    versioning-strategy: increase
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
