@@ -19,9 +19,9 @@
             </div>
           </div>
         </div>
-        <button class="govuk-button govuk-button--primary" data-module="govuk-button">
-        @Messages("upload.error.return")
-        </button>
+        <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button govuk-button--primary">
+          @Messages("upload.error.return")
+        </a>
       </div>
     </div>
   }
