@@ -28,6 +28,7 @@ class GraphqlClientSuccess {
     const data: GetFileCheckProgressQuery = {
       getConsignment: {
         totalFiles: 10,
+        allChecksSucceeded: false,
         fileChecks: {
           antivirusProgress: { filesProcessed: 2 },
           ffidProgress: { filesProcessed: 4 },
