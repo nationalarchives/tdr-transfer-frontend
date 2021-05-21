@@ -23,7 +23,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
 
   val selectedSeriesForm = Form(
     mapping(
-      "series" -> text.verifying("seriesDetails.nonEmpty", t => !t.isEmpty)
+      "series" -> text.verifying("Select a series reference", t => !t.isEmpty)
     )(SelectedSeriesData.apply)(SelectedSeriesData.unapply)
   )
 

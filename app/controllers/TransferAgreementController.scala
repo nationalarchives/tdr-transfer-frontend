@@ -30,17 +30,17 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
   val transferAgreementForm = Form(
     mapping(
       "publicRecord" -> boolean
-        .verifying(messagesApi("transferAgreement.publicRecord.error"), b => b),
+        .verifying("All records must be confirmed as public before proceeding", b => b),
       "crownCopyright" -> boolean
-        .verifying(messagesApi("transferAgreement.crownCopyright.error"), b => b),
+        .verifying("All records must be confirmed Crown Copyright before proceeding", b => b),
       "english" -> boolean
-        .verifying(messagesApi("transferAgreement.english.error"), b => b),
+        .verifying("All records must be confirmed as English language before proceeding", b => b),
       "droAppraisalSelection" -> boolean
-        .verifying(messagesApi("transferAgreement.droAppraisalSelection.error"), b => b),
+        .verifying("DRO must have signed off the appraisal and selection decision for records", b => b),
       "droSensitivity" -> boolean
-        .verifying(messagesApi("transferAgreement.droSensitivity.error"), b => b),
+        .verifying("DRO must have signed off sensitivity review", b => b),
       "openRecords" -> boolean
-        .verifying(messagesApi("transferAgreement.openRecords.error"), b => b)
+        .verifying("All records must be OPEN", b => b)
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 

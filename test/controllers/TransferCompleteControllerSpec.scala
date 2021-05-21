@@ -15,7 +15,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       val controller = new TransferCompleteController(getAuthorisedSecurityComponents, getValidKeycloakConfiguration)
       val transferCompleteSubmit = controller.transferComplete(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-complete").withCSRFToken)
-      contentAsString(transferCompleteSubmit) must include("transferComplete.title")
+      contentAsString(transferCompleteSubmit) must include("Transfer complete")
     }
   }
 }
