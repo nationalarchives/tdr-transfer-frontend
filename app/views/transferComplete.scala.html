@@ -1,26 +1,26 @@
 @()(implicit messages: Messages, request: RequestHeader)
-@main(Messages("transferComplete.title")) {
+@main("Transfer complete") {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
 
         <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-6">
             <h1 class="govuk-panel__title">
-                @Messages("transferComplete.title")
+                Transfer complete
             </h1>
             <div class="govuk-panel__body">
-                @Messages("transferComplete.body")
+                Your records have now been transferred to The National Archives.
             </div>
         </div>
 
-        <p class="govuk-body">@Messages("transferComplete.body.notify")</p>
+        <p class="govuk-body">We have now received your records. Please do not delete the original files you uploaded until you are notified that your records have been preserved.</p>
       
-        <h2 class="govuk-heading-m govuk-!-margin-top-2">@Messages("transferComplete.heading")</h2>
+        <h2 class="govuk-heading-m govuk-!-margin-top-2">What happens next</h2>
 
-        <p class="govuk-body">@Messages("transferComplete.body.contact")</p>
+        <p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, please contact us.</p>
 
         <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button">
-            @Messages("transferComplete.return")
+            Return to start
         </a>
     </div>
 

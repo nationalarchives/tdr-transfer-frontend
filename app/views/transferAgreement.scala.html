@@ -4,19 +4,19 @@
 @import java.util.UUID
 
 @(consignmentId: UUID, transferAgreementForm: Form[TransferAgreementData], agreementOptions: Seq[(String, String)])(implicit request: RequestHeader, messages: Messages)
-@main(Messages("transferAgreement.header")) {
+@main("Transfer agreement") {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("transferAgreement.progress"))
 
-        <h1 class="govuk-heading-l">@Messages("transferAgreement.title")</h1>
-        <p class="govuk-body">@Messages("transferAgreement.body")</p>
+        <h1 class="govuk-heading-l">Transfer agreement</h1>
+        <p class="govuk-body">You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor.</p>
         <div class="govuk-warning-text">
             <span class="govuk-warning-text__icon" aria-hidden="true">!</span> <!-- "aria-hidden" was added by GDS to prevent screen reader from saying "exclamation mark"-->
             <strong class="govuk-warning-text__text">
               <span class="govuk-warning-text__assistive">Warning</span>
-              @Messages("transferAgreement.warning.text")
+                This service is in private beta. During this time, we can only accept records that are in English, are Public Records and are Crown Copyright. For more information, please see our FAQ to this service.
             </strong>
           </div>
         @errorSummary(
@@ -34,7 +34,7 @@
         @CSRF.formField
             @inputSingleCheckbox(
                 transferAgreementForm("publicRecord"),
-                Symbol("_label") -> Messages("transferAgreement.publicRecord"),
+                Symbol("_label") -> "I confirm that the records are Public Records.",
                 Symbol("_value") -> "true",
                 Symbol("_smallCheckbox") -> true,
                 Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("publicRecord", ""),
@@ -42,7 +42,7 @@
             )
             @inputSingleCheckbox(
                 transferAgreementForm("crownCopyright"),
-                Symbol("_label") -> Messages("transferAgreement.crownCopyright"),
+                Symbol("_label") -> "I confirm that the records are all Crown Copyright.",
                 Symbol("_value") -> "true",
                 Symbol("_smallCheckbox") -> true,
                 Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("crownCopyright", ""),
@@ -50,7 +50,7 @@
             )
             @inputSingleCheckbox(
                 transferAgreementForm("english"),
-                Symbol("_label") -> Messages("transferAgreement.english"),
+                Symbol("_label") -> "I confirm that the records are all in English.",
                 Symbol("_value") -> "true",
                 Symbol("_smallCheckbox") -> true,
                 Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("english", ""),
@@ -59,7 +59,7 @@
             <!-- DRO confirmation -->
             @inputSingleCheckbox(
             transferAgreementForm("droAppraisalSelection"),
-            Symbol("_label") -> Messages("transferAgreement.droAppraisalSelection"),
+            Symbol("_label") -> "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection decision.",
             Symbol("_value") -> "true",
             Symbol("_smallCheckbox") -> true,
             Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("droAppraisalSelection", ""),
@@ -67,7 +67,7 @@
             )
             @inputSingleCheckbox(
             transferAgreementForm("droSensitivity"),
-            Symbol("_label") -> Messages("transferAgreement.droSensitivity"),
+            Symbol("_label") -> "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
             Symbol("_value") -> "true",
             Symbol("_smallCheckbox") -> true,
             Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("droSensitivity", ""),
@@ -75,7 +75,7 @@
             )
             @inputSingleCheckbox(
                 transferAgreementForm("openRecords"),
-                Symbol("_label") -> Messages("transferAgreement.openRecords"),
+                Symbol("_label") -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
                 Symbol("_value") -> "true",
                 Symbol("_smallCheckbox") -> true,
                 Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("openRecords", ""),
@@ -85,11 +85,11 @@
         <div class="govuk-button-group">
             <!-- Continue -->
             <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-              @Messages("transferAgreement.continueLink")
+                Continue
             </button>
 
             <!-- Cancel -->
-            <a class="govuk-link" href="@routes.DashboardController.dashboard()">@Messages("transferAgreement.cancelLink")</a>
+            <a class="govuk-link" href="@routes.DashboardController.dashboard()">Cancel</a>
         </div>
         }
     </div>

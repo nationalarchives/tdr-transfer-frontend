@@ -72,22 +72,22 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
 
       playStatus(transferSummaryPage) mustBe OK
       contentType(transferSummaryPage) mustBe Some("text/html")
-      contentAsString(transferSummaryPage) must include("transferSummary.header")
+      contentAsString(transferSummaryPage) must include("Confirm transfer")
 
-      contentAsString(transferSummaryPage) must include("transferSummary.seriesReference")
+      contentAsString(transferSummaryPage) must include("Series reference")
       contentAsString(transferSummaryPage) must include(consignmentSummaryResponse.series.get.code.get)
 
-      contentAsString(transferSummaryPage) must include("transferSummary.transferringBody")
+      contentAsString(transferSummaryPage) must include("Transferring body")
       contentAsString(transferSummaryPage) must include(consignmentSummaryResponse.transferringBody.get.name.get)
 
-      contentAsString(transferSummaryPage) must include("transferSummary.filesUploadedForTransfer")
+      contentAsString(transferSummaryPage) must include("Files uploaded for transfer")
       contentAsString(transferSummaryPage) must include(s"${consignmentSummaryResponse.totalFiles} files uploaded")
 
-      contentAsString(transferSummaryPage) must include("transferSummary.consignmentReference")
+      contentAsString(transferSummaryPage) must include("Consignment reference")
       contentAsString(transferSummaryPage) must include(consignmentSummaryResponse.consignmentReference)
 
-      contentAsString(transferSummaryPage) must include("transferSummary.openRecords")
-      contentAsString(transferSummaryPage) must include("transferSummary.transferLegalOwnership")
+      contentAsString(transferSummaryPage) must include("I confirm that all records in the file I am transferring are open.")
+      contentAsString(transferSummaryPage) must include("I confirm that I am transferring legal ownership of these records to The National Archives.")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -137,8 +137,8 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       contentAsString(finalTransferConfirmationSubmitResult) must include("There is a problem")
       contentAsString(finalTransferConfirmationSubmitResult) must include("#error-openRecords")
       contentAsString(finalTransferConfirmationSubmitResult) must include("#error-transferLegalOwnership")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("transferSummary.openRecords.error")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("transferSummary.transferLegalOwnership.error")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("All records must be confirmed as open before proceeding")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("Transferral of legal ownership of all records must be confirmed before proceeding")
     }
 
     "display correct error when only the open records option is selected and the final transfer confirmation form is submitted" in {
@@ -162,10 +162,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
 
       contentAsString(finalTransferConfirmationSubmitResult) must include("There is a problem")
       contentAsString(finalTransferConfirmationSubmitResult) must include("#error-transferLegalOwnership")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("transferSummary.transferLegalOwnership.error")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("Transferral of legal ownership of all records must be confirmed before proceeding")
 
       contentAsString(finalTransferConfirmationSubmitResult) must not include "#error-openRecords"
-      contentAsString(finalTransferConfirmationSubmitResult) must not include "transferSummary.openRecords.error"
+      contentAsString(finalTransferConfirmationSubmitResult) must not include "All records must be confirmed as open before proceeding"
     }
 
     "display correct error when only the transfer legal ownership option is selected and the final transfer confirmation form is submitted" in {
@@ -189,10 +189,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
 
       contentAsString(finalTransferConfirmationSubmitResult) must include("There is a problem")
       contentAsString(finalTransferConfirmationSubmitResult) must include("#error-openRecords")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("transferSummary.openRecords.error")
+      contentAsString(finalTransferConfirmationSubmitResult) must include("All records must be confirmed as open before proceeding")
 
       contentAsString(finalTransferConfirmationSubmitResult) must not include "#error-transferLegalOwnership"
-      contentAsString(finalTransferConfirmationSubmitResult) must not include "transferSummary.transferLegalOwnership.error"
+      contentAsString(finalTransferConfirmationSubmitResult) must not include "Transferral of legal ownership of all records must be confirmed before"
     }
 
     "add a final transfer confirmation when a valid form is submitted and the api response is successful" in {

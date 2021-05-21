@@ -59,13 +59,13 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
-      contentAsString(transferAgreementPage) must include("transferAgreement.header")
-      contentAsString(transferAgreementPage) must include("transferAgreement.publicRecord")
-      contentAsString(transferAgreementPage) must include("transferAgreement.crownCopyright")
-      contentAsString(transferAgreementPage) must include("transferAgreement.english")
-      contentAsString(transferAgreementPage) must include("transferAgreement.droAppraisalSelection")
-      contentAsString(transferAgreementPage) must include("transferAgreement.droSensitivity")
-      contentAsString(transferAgreementPage) must include("transferAgreement.openRecords")
+      contentAsString(transferAgreementPage) must include("Transfer agreement")
+      contentAsString(transferAgreementPage) must include("I confirm that the records are Public Records.")
+      contentAsString(transferAgreementPage) must include("I confirm that the records are all Crown Copyright.")
+      contentAsString(transferAgreementPage) must include("I confirm that the records are all in English.")
+      contentAsString(transferAgreementPage) must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
+      contentAsString(transferAgreementPage) must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
+      contentAsString(transferAgreementPage) must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -93,7 +93,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
 
       playStatus(transferAgreementPage) mustBe NOT_FOUND
-      contentAsString(transferAgreementPage) must include("notFoundError.header")
+      contentAsString(transferAgreementPage) must include("Page not found")
     }
 
     "throws an authorisation exception when the user does not have permission to see a consignment's transfer agreement" in {
