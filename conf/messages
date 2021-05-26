@@ -53,10 +53,10 @@ transferAgreement.continueLink=Continue
 inputDropdown.choose=Please choose...
 upload.header=Upload your records
 upload.title=Upload your records
-upload.body.transferRecords=Please upload the records you would like to transfer. If your folder contains files that we cannot accept, you may have to start again.
-upload.body.fileSizeLimit=There are no limits to the file sizes but larger files may take longer to be uploaded and checked.
+upload.body.transferRecords=You can only upload one folder to be transferred. If your folder contains files that we cannot accept, you may have to start again.
+upload.body.fileSizeLimit=There is no limit to the size of the files but larger files may take longer to be uploaded and checked.
 upload.unwantedFilesWarning=We cannot accept files or folders which are password protected, zipped or contain slashes (/ and \) in the name. Please also try and remove any thumbnail images (thumb dbs) and executable files (.exe) from the records before uploading.
-upload.body.capturedMetadata=For more information on what metadata will be captured during the upload please visit our FAQ’s page
+upload.body.capturedMetadata=For more information on what metadata will be captured during the upload please visit our FAQ.
 upload.dragAndDropErrorMessage=You can only drop a single folder
 upload.dragAndDropHintText=Drag and drop a single folder here or
 upload.dragAndDropSuccessMessage=The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected
