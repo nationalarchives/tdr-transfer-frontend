@@ -50,6 +50,7 @@
                 </div>
             </dl>
         <p class="govuk-body">@Messages("transferSummary.bodyBelow")</p>
+        <div class="govuk-form-group ">
             @form(
             routes.TransferSummaryController.finalTransferConfirmationSubmit(consignmentId),
             (Symbol("novalidate"), "")
@@ -74,6 +75,7 @@
                     Symbol("_requiredOption") -> true
                     )
                 </fieldset>
+            </div>
                 <div>
                     <!-- Transfer -->
                     <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
