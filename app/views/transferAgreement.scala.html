@@ -31,6 +31,7 @@
             routes.TransferAgreementController.transferAgreementSubmit(consignmentId),
             (Symbol("novalidate"), "")
         ) {
+        <div class="govuk-form-group">
         @CSRF.formField
             @inputSingleCheckbox(
                 transferAgreementForm("publicRecord"),
@@ -81,6 +82,7 @@
                 Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("openRecords", ""),
                 Symbol("_requiredOption") -> true
             )
+        </div>
         <!-- Buttons -->
         <div class="govuk-button-group">
             <!-- Continue -->
