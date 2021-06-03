@@ -7,8 +7,8 @@
         <h1 class="govuk-heading-l">Page not found</h1>
         <p class="govuk-body">If you typed a web address, check it is correct.</p>
         <p class="govuk-body">If you pasted the web address, check you copied the entire address.</p>
-        <p class="govuk-body">@Html("If the web address is correct, please <a href= \"/contact\">contact<a/> us.")</p>
-        <p class="govuk-body">@Html("Alternatively, you can <a href= \"/dashboard\">return to the start</a>.")</p>
+        <p class="govuk-body">If the web address is correct, please <a class="govuk-link" href="@routes.ContactController.contact()">contact</a> us.</p>
+        <p class="govuk-body">Alternatively, you can <a class="govuk-link" href="@routes.DashboardController.dashboard()">return to the start</a>.</p>
     </div>
 </div>
 }
