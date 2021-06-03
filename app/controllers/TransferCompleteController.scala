@@ -6,13 +6,29 @@ import configuration.KeycloakConfiguration
 import javax.inject.Inject
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request}
+import play.api.mvc.{Action, AnyContent, Request, RequestHeader}
+import services.ConsignmentService
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class TransferCompleteController @Inject()(val controllerComponents: SecurityComponents,
-                                           val keycloakConfiguration: KeycloakConfiguration) extends TokenSecurity with I18nSupport {
+                                           val keycloakConfiguration: KeycloakConfiguration,
+                                           consignmentService: ConsignmentService)
+                                          (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+
+  private def getConsignmentReference(request: Request[AnyContent], consignmentId: UUID)
+                                   (implicit requestHeader: RequestHeader): Future[ConsignmentReferenceData] = {
+    consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      .map(r => ConsignmentReferenceData(r.consignmentReference))
+  }
 
   //noinspection ScalaUnusedSymbol
-  def transferComplete(consignmentId: UUID): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
-    Ok(views.html.transferComplete())
+  def transferComplete(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    getConsignmentReference(request, consignmentId)
+      .map { consignmentReference =>
+        Ok(views.html.transferComplete(consignmentReference))
+      }
   }
 }
+
+case class ConsignmentReferenceData(consignmentReference: String)

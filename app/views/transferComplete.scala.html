@@ -1,4 +1,4 @@
-@()(implicit messages: Messages, request: RequestHeader)
+@(consignmentReferenceData: ConsignmentReferenceData)(implicit messages: Messages, request: RequestHeader)
 @main(Messages("transferComplete.title")) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
@@ -8,8 +8,11 @@
             <h1 class="govuk-panel__title">
                 @Messages("transferComplete.title")
             </h1>
-            <div class="govuk-panel__body">
-                @Messages("transferComplete.body")
+            <div class="govuk-panel__body govuk-!-font-size-27">
+                <span>@Messages("transferComplete.body")</span><br/><br/>
+                <span class="govuk-!-font-size-27">Consignment reference:
+                    <span class="govuk-!-font-weight-bold">@consignmentReferenceData.consignmentReference</span>
+                </span>
             </div>
         </div>
 
