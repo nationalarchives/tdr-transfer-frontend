@@ -26,18 +26,14 @@ export class ClientFileProcessing {
   metadataProgressCallback(progressInformation: IProgressInformation) {
     const weightedPercent = progressInformation.percentageProcessed / 2
 
-    const fileUpload: HTMLDivElement | null = document.querySelector(
-      "#file-upload"
-    )
-    const progressBar: HTMLDivElement | null = document.querySelector(
-      "#progress-bar"
-    )
-    const progressBarElement: HTMLDivElement | null = document.querySelector(
-      ".progress-display"
-    )
-    const progressLabelElement: HTMLDivElement | null = document.querySelector(
-      ".progress-label"
-    )
+    const fileUpload: HTMLDivElement | null =
+      document.querySelector("#file-upload")
+    const progressBar: HTMLDivElement | null =
+      document.querySelector("#progress-bar")
+    const progressBarElement: HTMLDivElement | null =
+      document.querySelector(".progress-display")
+    const progressLabelElement: HTMLDivElement | null =
+      document.querySelector(".progress-label")
 
     if (fileUpload && progressBar) {
       fileUpload.setAttribute("hidden", "true")
@@ -45,9 +41,10 @@ export class ClientFileProcessing {
     }
 
     if (progressBarElement && progressLabelElement) {
-      var stringWeightedPercentage = weightedPercent.toString();
+      var stringWeightedPercentage = weightedPercent.toString()
       progressBarElement.setAttribute("value", weightedPercent.toString())
-      progressLabelElement.innerText = "Uploading records " + stringWeightedPercentage + "%";
+      progressLabelElement.innerText =
+        "Uploading records " + stringWeightedPercentage + "%"
     }
   }
 
@@ -57,15 +54,14 @@ export class ClientFileProcessing {
     const progressBarElement: HTMLDivElement | null =
       document.querySelector(".progress-display")
 
-    const progressLabelElement: HTMLDivElement | null = document.querySelector(
-      ".progress-label"
-    )
-
+    const progressLabelElement: HTMLDivElement | null =
+      document.querySelector(".progress-label")
 
     if (progressBarElement && progressLabelElement) {
-      var stringWeightedPercentage = weightedPercent.toString();
+      var stringWeightedPercentage = weightedPercent.toString()
       progressBarElement.setAttribute("value", stringWeightedPercentage)
-      progressLabelElement.innerText = "Uploading records " + stringWeightedPercentage + "%";
+      progressLabelElement.innerText =
+        "Uploading records " + stringWeightedPercentage + "%"
     }
   }
 
