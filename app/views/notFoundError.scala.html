@@ -1,10 +1,10 @@
-@()(implicit messages: Messages)
+@()(implicit messages: Messages, request: RequestHeader)
 
-@main(Messages("error.header")) {
+@main(Messages("404.error.header")) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">Page not found</h1>
+        <h1 class="govuk-heading-l">@Messages("notFoundError.header")</h1>
         <p class="govuk-body">@Messages("notFoundError.body1")</p>
         <p class="govuk-body">@Messages("notFoundError.body2")</p>
         <p class="govuk-body">@Html(Messages("notFoundError.body3"))</p>

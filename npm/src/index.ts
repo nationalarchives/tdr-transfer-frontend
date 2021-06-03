@@ -6,8 +6,11 @@ import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 import { goToNextPage } from "./upload/next-page-redirect"
 import { FileChecks } from "./filechecks"
 import { CognitoIdentity, STS } from "aws-sdk"
+import { initAll } from "govuk-frontend"
 
 window.onload = function () {
+  initAll()
+
   renderModules()
 }
 
@@ -23,28 +26,21 @@ export interface IFrontEndInfo {
 }
 
 const getFrontEndInfo: () => IFrontEndInfo = () => {
-  const identityPoolElement: HTMLInputElement | null = document.querySelector(
-    ".identity-pool-id"
-  )
-  const apiUrlElement: HTMLInputElement | null = document.querySelector(
-    ".api-url"
-  )
-  const identityProviderNameElement: HTMLInputElement | null = document.querySelector(
-    ".identity-provider-name"
-  )
+  const identityPoolElement: HTMLInputElement | null =
+    document.querySelector(".identity-pool-id")
+  const apiUrlElement: HTMLInputElement | null =
+    document.querySelector(".api-url")
+  const identityProviderNameElement: HTMLInputElement | null =
+    document.querySelector(".identity-provider-name")
   const stageElement: HTMLInputElement | null = document.querySelector(".stage")
-  const regionElement: HTMLInputElement | null = document.querySelector(
-    ".region"
-  )
-  const cognitoEndpointOverrideElement: HTMLInputElement | null = document.querySelector(
-    ".cognito-endpoint-override"
-  )
-  const s3EndpointOverrideElement: HTMLInputElement | null = document.querySelector(
-    ".s3-endpoint-override"
-  )
-  const cogitoRoleArnElement: HTMLInputElement | null = document.querySelector(
-    ".cognito-role-arn"
-  )
+  const regionElement: HTMLInputElement | null =
+    document.querySelector(".region")
+  const cognitoEndpointOverrideElement: HTMLInputElement | null =
+    document.querySelector(".cognito-endpoint-override")
+  const s3EndpointOverrideElement: HTMLInputElement | null =
+    document.querySelector(".s3-endpoint-override")
+  const cogitoRoleArnElement: HTMLInputElement | null =
+    document.querySelector(".cognito-role-arn")
 
   if (
     apiUrlElement &&
@@ -70,13 +66,13 @@ const getFrontEndInfo: () => IFrontEndInfo = () => {
 }
 
 export const renderModules = () => {
-  const uploadContainer: HTMLDivElement | null = document.querySelector(
-    "#file-upload"
-  )
+  const uploadContainer: HTMLDivElement | null =
+    document.querySelector("#file-upload")
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
   if (uploadContainer) {
+    uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
 
     configureAws(frontEndInfo)
@@ -96,7 +92,7 @@ export const renderModules = () => {
         new FileUploader(
           clientFileProcessing,
           identityId,
-          frontEndInfo.stage,
+          frontEndInfo,
           goToNextPage
         ).initialiseFormListeners()
       })

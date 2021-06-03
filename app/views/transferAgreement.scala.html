@@ -10,10 +10,10 @@
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("transferAgreement.progress"))
 
-        <h1 class="govuk-heading-xl">@Messages("transferAgreement.title")</h1>
+        <h1 class="govuk-heading-l">@Messages("transferAgreement.title")</h1>
         <p class="govuk-body">@Messages("transferAgreement.body")</p>
         <div class="govuk-warning-text">
-            <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+            <span class="govuk-warning-text__icon" aria-hidden="true">!</span> <!-- "aria-hidden" was added by GDS to prevent screen reader from saying "exclamation mark"-->
             <strong class="govuk-warning-text__text">
               <span class="govuk-warning-text__assistive">Warning</span>
               @Messages("transferAgreement.warning.text")
@@ -31,8 +31,8 @@
             routes.TransferAgreementController.transferAgreementSubmit(consignmentId),
             (Symbol("novalidate"), "")
         ) {
+        <div class="govuk-form-group">
         @CSRF.formField
-        <fieldset class="govuk-fieldset" aria-describedby="transfer-agreement-checks">
             @inputSingleCheckbox(
                 transferAgreementForm("publicRecord"),
                 Symbol("_label") -> Messages("transferAgreement.publicRecord"),
@@ -82,19 +82,16 @@
                 Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("openRecords", ""),
                 Symbol("_requiredOption") -> true
             )
-        </fieldset>
+        </div>
         <!-- Buttons -->
-        <div>
-            <!-- Cancel -->
-            <a href="@routes.DashboardController.dashboard()" role="button" draggable="false"
-               class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                @Messages("transferAgreement.cancelLink")
-            </a>
-
+        <div class="govuk-button-group">
             <!-- Continue -->
-            <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                @Messages("transferAgreement.continueLink")
+            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+              @Messages("transferAgreement.continueLink")
             </button>
+
+            <!-- Cancel -->
+            <a class="govuk-link" href="@routes.DashboardController.dashboard()">@Messages("transferAgreement.cancelLink")</a>
         </div>
         }
     </div>

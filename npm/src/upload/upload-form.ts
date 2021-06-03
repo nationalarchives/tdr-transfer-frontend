@@ -48,20 +48,19 @@ const getAllFiles: (
   return fileInfoInput
 }
 
-const getEntriesFromReader: (
-  reader: IReader
-) => Promise<IWebkitEntry[]> = async (reader) => {
-  let allEntries: IWebkitEntry[] = []
+const getEntriesFromReader: (reader: IReader) => Promise<IWebkitEntry[]> =
+  async (reader) => {
+    let allEntries: IWebkitEntry[] = []
 
-  let nextBatch = await getEntryBatch(reader)
+    let nextBatch = await getEntryBatch(reader)
 
-  while (nextBatch.length > 0) {
-    allEntries = allEntries.concat(nextBatch)
-    nextBatch = await getEntryBatch(reader)
+    while (nextBatch.length > 0) {
+      allEntries = allEntries.concat(nextBatch)
+      nextBatch = await getEntryBatch(reader)
+    }
+
+    return allEntries
   }
-
-  return allEntries
-}
 
 const getFileFromEntry: (entry: IWebkitEntry) => Promise<IFileWithPath> = (
   entry
@@ -89,16 +88,25 @@ export class UploadForm {
   folderRetriever: HTMLInputElement
   dropzone: HTMLElement
   selectedFiles: IFileWithPath[]
+  folderUploader: (
+    files: IFileWithPath[],
+    uploadFilesInfo: FileUploadInfo
+  ) => void
 
   constructor(
     formElement: HTMLFormElement,
     folderRetriever: HTMLInputElement,
-    dropzone: HTMLElement
+    dropzone: HTMLElement,
+    folderUploader: (
+      files: IFileWithPath[],
+      uploadFilesInfo: FileUploadInfo
+    ) => void
   ) {
     this.formElement = formElement
     this.folderRetriever = folderRetriever
     this.dropzone = dropzone
     this.selectedFiles = []
+    this.folderUploader = folderUploader
   }
 
   consignmentId: () => string = () => {
@@ -113,14 +121,14 @@ export class UploadForm {
 
   addButtonHighlighter() {
     this.folderRetriever.addEventListener("focus", () => {
-      const folderRetrieverLabel: HTMLLabelElement = this.folderRetriever
-        .labels![0]
+      const folderRetrieverLabel: HTMLLabelElement =
+        this.folderRetriever.labels![0]
       folderRetrieverLabel.classList.add("drag-and-drop__button--highlight")
     })
 
     this.folderRetriever.addEventListener("blur", () => {
-      const folderRetrieverLabel: HTMLLabelElement = this.folderRetriever
-        .labels![0]
+      const folderRetrieverLabel: HTMLLabelElement =
+        this.folderRetriever.labels![0]
       folderRetrieverLabel.classList.remove("drag-and-drop__button--highlight")
     })
   }
@@ -136,7 +144,7 @@ export class UploadForm {
     })
   }
 
-  handleDropppedItems: (ev: DragEvent) => any = async (ev) => {
+  handleDroppedItems: (ev: DragEvent) => any = async (ev) => {
     ev.preventDefault()
     const items: DataTransferItemList = ev.dataTransfer?.items!
     if (items.length > 1) {
@@ -147,42 +155,80 @@ export class UploadForm {
     if (webkitEntry!.isFile) {
       this.rejectUserItemSelection()
     }
+    this.removeDragover()
     const files = await getAllFiles(webkitEntry, [])
-    this.selectedFiles = files
     this.checkIfFolderHasFiles(files)
+
+    this.selectedFiles = files
     const folderSize = files.length
     const folderName = webkitEntry.name
-    this.updateFolderSelectionStatus(folderName, folderSize)
+
+    this.displayFolderSelectionSuccessMessage(folderName, folderSize)
   }
 
   addFolderListener() {
-    this.dropzone.addEventListener("drop", this.handleDropppedItems)
+    this.dropzone.addEventListener("drop", this.handleDroppedItems)
 
     this.folderRetriever.addEventListener("change", () => {
       const form: HTMLFormElement | null = this.formElement
       const files = this.retrieveFiles(form)
       this.selectedFiles = files
       const parentFolder = this.getParentFolderName(this.selectedFiles)
-      this.updateFolderSelectionStatus(parentFolder, files.length)
+      this.displayFolderSelectionSuccessMessage(parentFolder, files.length)
     })
   }
 
-  addSubmitListener(
-    uploadFiles: (
-      files: IFileWithPath[],
-      uploadFilesInfo: FileUploadInfo
-    ) => void
-  ) {
-    this.formElement.addEventListener("submit", (ev) => {
-      ev.preventDefault()
+  handleFormSubmission: (ev: Event) => void = (ev: Event) => {
+    ev.preventDefault()
+    const folderSelected: IFileWithPath | undefined = this.selectedFiles[0]
+
+    if (folderSelected) {
+      this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
+      this.disableButtonsAndDropzone()
+
       const parentFolder = this.getParentFolderName(this.selectedFiles)
       const uploadFilesInfo: FileUploadInfo = {
         consignmentId: this.consignmentId(),
         parentFolder: parentFolder
       }
-      uploadFiles(this.selectedFiles, uploadFilesInfo)
+
+      this.showUploadingRecordsPage()
+      this.folderUploader(this.selectedFiles, uploadFilesInfo)
+    } else {
+      this.successMessage?.setAttribute("hidden", "true")
+      this.warningMessages.nonFolderSelectedMessage?.setAttribute(
+        "hidden",
+        "true"
+      )
+
+      this.warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute(
+        "hidden"
+      )
+
+      this.warningMessages.submissionWithoutAFolderSelectedMessage?.focus()
+      this.addSubmitListener() // Readd submit listener as we've set it to be removed after one form submission
+    }
+  }
+
+  addSubmitListener() {
+    this.formElement.addEventListener("submit", this.handleFormSubmission, {
+      once: true
     })
   }
+
+  readonly warningMessages: {
+    [s: string]: HTMLElement | null
+  } = {
+    nonFolderSelectedMessage: document.querySelector(
+      "#folder-selection-failure"
+    ),
+    submissionWithoutAFolderSelectedMessage: document.querySelector(
+      "#no-folder-submission-message"
+    )
+  }
+  readonly successMessage: HTMLElement | null = document.querySelector(
+    ".drag-and-drop__success"
+  )
 
   private getParentFolderName(folder: IFileWithPath[]) {
     const firstItem: FileWithRelativePath = folder[0]
@@ -193,10 +239,34 @@ export class UploadForm {
     return parentFolder
   }
 
+  private showUploadingRecordsPage() {
+    const fileUpload: HTMLDivElement | null =
+      document.querySelector("#file-upload")
+    const progressBar: HTMLDivElement | null =
+      document.querySelector("#progress-bar")
+
+    if (fileUpload && progressBar) {
+      fileUpload.setAttribute("hidden", "true")
+      progressBar.removeAttribute("hidden")
+    }
+  }
+
   private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void {
     if (files === null || files.length === 0) {
       this.rejectUserItemSelection()
     }
+  }
+
+  private disableButtonsAndDropzone() {
+    const submitAndLabelButtons = document.querySelectorAll(".govuk-button")
+    submitAndLabelButtons.forEach((button) =>
+      button.setAttribute("disabled", "true")
+    )
+
+    const hiddenInputButton = document.querySelector("#file-selection")
+    hiddenInputButton?.setAttribute("disabled", "true")
+
+    this.dropzone.removeEventListener("drop", this.handleDroppedItems)
   }
 
   private retrieveFiles(target: HTMLInputTarget | null): IFileWithPath[] {
@@ -214,42 +284,44 @@ export class UploadForm {
   }
 
   private rejectUserItemSelection() {
+    this.selectedFiles = []
     this.removeDragover()
-    const successMessage: HTMLElement | null = document.querySelector(
-      ".drag-and-drop__success"
+
+    this.warningMessages.submissionWithoutAFolderSelectedMessage?.setAttribute(
+      "hidden",
+      "true"
     )
-    successMessage?.setAttribute("hidden", "true")
-    const warningMessage: HTMLElement | null = document.querySelector(
-      ".drag-and-drop__failure"
-    )
-    warningMessage?.removeAttribute("hidden")
-    warningMessage?.focus()
+    this.successMessage?.setAttribute("hidden", "true")
+
+    this.warningMessages.nonFolderSelectedMessage?.removeAttribute("hidden")
+    this.warningMessages.nonFolderSelectedMessage?.focus()
+
     throw new Error("No files selected")
   }
 
-  private updateFolderSelectionStatus(folderName: string, folderSize: number) {
-    const folderNameElement: HTMLElement | null = document.querySelector(
-      "#folder-name"
-    )
-    const folderSizeElement: HTMLElement | null = document.querySelector(
-      "#folder-size"
-    )
+  private displayFolderSelectionSuccessMessage(
+    folderName: string,
+    folderSize: number
+  ) {
+    const folderNameElement: HTMLElement | null =
+      document.querySelector("#folder-name")
+    const folderSizeElement: HTMLElement | null =
+      document.querySelector("#folder-size")
 
     if (folderNameElement && folderSizeElement) {
       folderNameElement.textContent = folderName
       folderSizeElement.textContent = `${folderSize} ${
         folderSize === 1 ? "file" : "files"
       }`
-      const warningMessage: HTMLElement | null = document.querySelector(
-        ".drag-and-drop__failure"
+
+      Object.values(this.warningMessages).forEach(
+        (warningMessageElement: HTMLElement | null) => {
+          warningMessageElement?.setAttribute("hidden", "true")
+        }
       )
-      warningMessage?.setAttribute("hidden", "true")
-      const successMessage: HTMLElement | null = document.querySelector(
-        ".drag-and-drop__success"
-      )
-      successMessage?.removeAttribute("hidden")
-      successMessage?.focus()
-      this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
+
+      this.successMessage?.removeAttribute("hidden")
+      this.successMessage?.focus()
     }
   }
 }

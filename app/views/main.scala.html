@@ -4,8 +4,9 @@
 * two arguments, a `String` for the title of the page and an `Html`
 * object to insert into the body of the page.
 *@
+@import views.html.helper.CSPNonce
 
-@(title: String, hasError: Boolean = false)(content: Html)(implicit messages: Messages)
+@(title: String, hasError: Boolean = false, isLoggedIn: Boolean = true)(content: Html)(implicit messages: Messages, request: RequestHeader)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,13 +20,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
     <link rel="shortcut icon" type="image/ico" href="@routes.Assets.versioned("images/favicon.ico")">
-    <script src="@routes.Assets.versioned("javascripts/all.js")" type="text/javascript"></script>
-    <script src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
+    <script @{CSPNonce.attr} src="@routes.Assets.versioned("javascripts/all.js")" type="text/javascript"></script>
+    <script @{CSPNonce.attr} src="@routes.Assets.versioned("javascripts/main.js")" type="text/javascript"></script>
 
     </head>
     <body class="govuk-template__body">
     <header class="govuk-header " role="banner" data-module="header">
-        <div class="govuk-header__container govuk-width-container">
+        <div class="govuk-header__container govuk-width-container tna-header">
 
             <div class="govuk-header__tna-logo">
                 <a href="/" class="govuk-header__tna_link govuk-header__tna_link--homepage">
@@ -38,6 +39,15 @@
                     @Messages("main.header")
                 </a>
             </div>
+            @if(isLoggedIn) {
+                <ul class="govuk-header__navigation govuk-header__navigation--end">
+                    <li class="govuk-header__navigation-item">
+                        <a href="/sign-out" class="govuk-header__link">
+                            Sign out
+                        </a>
+                    </li>
+                </ul>
+            }
         </div>
     </header>
 
@@ -76,9 +86,5 @@
             </div>
         </div>
     </footer>
-
-    <script>
-        window.GOVUKFrontend.initAll()
-    </script>
     </body>
 </html>
