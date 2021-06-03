@@ -9,7 +9,7 @@
         <div class="govuk-grid-column-two-thirds">
             @progressIndicator(Messages("transferSummary.progress"))
 
-            <h1 class="govuk-heading-xl">@Messages("transferSummary.title")</h1>
+            <h1 class="govuk-heading-l">@Messages("transferSummary.title")</h1>
             <p class="govuk-body">@Messages("transferSummary.body")</p>
             @errorSummary(
               finalTransferConfirmationForm("openRecords"),
@@ -49,6 +49,8 @@
                     </dd>
                 </div>
             </dl>
+        <p class="govuk-body">@Messages("transferSummary.bodyBelow")</p>
+        <div class="govuk-form-group ">
             @form(
             routes.TransferSummaryController.finalTransferConfirmationSubmit(consignmentId),
             (Symbol("novalidate"), "")
@@ -73,9 +75,10 @@
                     Symbol("_requiredOption") -> true
                     )
                 </fieldset>
+            </div>
                 <div>
                     <!-- Transfer -->
-                    <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                    <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
                         @Messages("transferSummary.transferLink")
                     </button>
                 </div>

@@ -43,7 +43,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
 
       val filesProcessedWithChecksum = 12
       val filesProcessedWithFFID = 8
-      val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID)
+      val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -80,10 +80,10 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       redirectLocation(recordsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
-    "return a redirect to the results page if the file checks are complete" in {
+    "return a redirect to the results page if the file checks are complete and all checks are successful" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val dataString: String = progressData(40, 40, 40)
+      val dataString: String = progressData(40, 40, 40, allChecksSucceeded = true)
 
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -99,16 +99,15 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       playStatus(recordsPage) mustBe SEE_OTHER
       redirectLocation(recordsPage).get must startWith(s"/consignment/$consignmentId/records-results")
     }
-
   }
 
-  private def progressData(filesProcessedWithAntivirus: Int, filesProcessedWithChecksum: Int, filesProcessedWithFFID: Int): String = {
+  private def progressData(filesProcessedWithAntivirus: Int, filesProcessedWithChecksum: Int, filesProcessedWithFFID: Int, allChecksSucceeded: Boolean): String = {
     val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
     val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessedWithAntivirus)
     val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)
     val ffidProgress = fileCheck.GetConsignment.FileChecks.FfidProgress(filesProcessedWithFFID)
     val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress, ffidProgress)
-    val data: client.GraphqlData = client.GraphqlData(Some(fileCheck.Data(Some(fileCheck.GetConsignment(totalFiles, fileChecks)))))
+    val data: client.GraphqlData = client.GraphqlData(Some(fileCheck.Data(Some(fileCheck.GetConsignment(allChecksSucceeded, Option(""), totalFiles, fileChecks)))))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     dataString
   }

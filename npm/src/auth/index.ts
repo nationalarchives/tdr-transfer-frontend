@@ -4,27 +4,27 @@ import { LoggedOutError } from "../errorhandling"
 import { IFrontEndInfo } from ".."
 import { GetIdInput } from "aws-sdk/clients/cognitoidentity"
 
-export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> = async () => {
-  const keycloakInstance: Keycloak.KeycloakInstance = Keycloak(
-    `${window.location.origin}/keycloak.json`
-  )
+export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
+  async () => {
+    const keycloakInstance: Keycloak.KeycloakInstance = Keycloak(
+      `${window.location.origin}/keycloak.json`
+    )
 
-  const authenticated = await keycloakInstance.init({
-    onLoad: "check-sso",
-    silentCheckSsoRedirectUri:
-      window.location.origin + "/assets/html/silent-check-sso.html"
-  })
-
-  if (!authenticated) {
-    console.log("User is not authenticated. Redirecting to login page")
-    await keycloakInstance.login({
-      redirectUri: window.location.href,
-      prompt: "login"
+    const authenticated = await keycloakInstance.init({
+      onLoad: "check-sso",
+      silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login"
     })
-  }
 
-  return keycloakInstance
-}
+    if (!authenticated) {
+      console.log("User is not authenticated. Redirecting to login page")
+      await keycloakInstance.login({
+        redirectUri: window.location.href,
+        prompt: "login"
+      })
+    }
+
+    return keycloakInstance
+  }
 
 const isRefreshTokenExpired: (
   token: KeycloakTokenParsed | undefined

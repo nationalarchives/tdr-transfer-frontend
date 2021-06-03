@@ -12,7 +12,7 @@ class HomeControllerSpec extends FrontEndTestHelper {
   "HomeController GET" should {
 
     "render the index page from a new instance of controller" in {
-      val controller = new HomeController(stubControllerComponents())
+      val controller = new HomeController(getUnauthorisedSecurityComponents)
       val home = controller.index().apply(FakeRequest(GET, "/"))
 
       status(home) mustBe OK
@@ -30,6 +30,16 @@ class HomeControllerSpec extends FrontEndTestHelper {
       contentAsString(home) must include ("Transfer Digital Records")
       contentAsString(home) must include ("Welcome")
       contentAsString(home) must include ("Start now")
+    }
+
+    "show the sign out button if the user is logged in" in {
+      val controller = new HomeController(getAuthorisedSecurityComponents)
+      val home = controller.index().apply(FakeRequest(GET, "/"))
+
+      status(home) mustBe OK
+      contentType(home) mustBe Some("text/html")
+
+      contentAsString(home) must include ("Sign out")
     }
   }
 }

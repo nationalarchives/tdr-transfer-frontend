@@ -16,8 +16,11 @@ GET     /consignment/:consignmentId/records                controllers.FileCheck
 GET     /consignment/:consignmentId/records-results        controllers.FileChecksResultsController.fileCheckResultsPage(consignmentId: java.util.UUID)
 GET     /consignment/:consignmentId/transfer-summary       controllers.TransferSummaryController.transferSummary(consignmentId: java.util.UUID)
 POST    /consignment/:consignmentId/transfer-summary       controllers.TransferSummaryController.finalTransferConfirmationSubmit(consignmentId: java.util.UUID)
-GET     /keycloak.json                                     controllers.KeycloakConfigurationController.keycloak()
 GET     /consignment/:consignmentId/transfer-complete      controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
+GET     /signed-out                                        controllers.SignOutController.signedOut()
+
+GET     /keycloak.json                                     controllers.KeycloakConfigurationController.keycloak()
+GET     /silent-sso-login                                  controllers.KeycloakController.silentSsoLogin()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
@@ -25,4 +28,4 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 # Routes necessary for play-pac4j
 GET         /callback                                @org.pac4j.play.CallbackController.callback(request: play.mvc.Http.Request)
 POST        /callback                                @org.pac4j.play.CallbackController.callback(request: play.mvc.Http.Request)
-GET         /logout                                  @org.pac4j.play.LogoutController.logout(request: play.mvc.Http.Request)
+GET         /sign-out                                @org.pac4j.play.LogoutController.logout(request: play.mvc.Http.Request)

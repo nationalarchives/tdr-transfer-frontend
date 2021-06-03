@@ -4,6 +4,10 @@ main.header=Transfer Digital Records
 main.banner=beta
 main.banner.info=This is a new service – your feedback will help us to improve it. Please
 main.banner.link=get in touch (opens in new tab).
+401.error.header=Sign-in required
+403.error.header=Page access restricted
+404.error.header=Page not found
+500.error.header=Service not available
 contact.header=Contact
 contact.title=Get in touch
 contact.paragraph=If you have got feedback, ideas or questions get in touch with the Transfer Digital Records team by emailing
@@ -50,16 +54,21 @@ inputDropdown.choose=Please choose...
 upload.header=Upload your records
 upload.title=Upload your records
 upload.body.transferRecords=Please upload the records you would like to transfer. If your folder contains files that we cannot accept, you may have to start again.
-upload.body.fileSizeLimit=There is no limit to the file size but larger files may take longer to be uploaded and checked.
-upload.fileExtensionWarning=Please check your records do not contain thumbnail images (thumb.db), executable files (.exe) or system files which you do not intend to transfer. We cannot accept password protected files or zip files.
+upload.body.fileSizeLimit=There are no limits to the file sizes but larger files may take longer to be uploaded and checked.
+upload.unwantedFilesWarning=We cannot accept files or folders which are password protected, zipped or contain slashes (/ and \) in the name. Please also try and remove any thumbnail images (thumb dbs) and executable files (.exe) from the records before uploading.
 upload.body.capturedMetadata=For more information on what metadata will be captured during the upload please visit our FAQ’s page
 upload.dragAndDropErrorMessage=You can only drop a single folder
 upload.dragAndDropHintText=Drag and drop a single folder here or
 upload.dragAndDropSuccessMessage=The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected
 upload.chooseFolderLink=Choose folder
+upload.cancelLink=Cancel
 upload.continueLink=Start upload
+upload.submissionWithoutAFolderMessageText=Select a folder to upload.
 uploadProgress.header=Uploading records
 uploadProgress.title=Do not close your browser window while your files are being uploaded. This could take a few minutes.
+upload.error.inProgress=Your upload was interrupted and could not be completed.
+upload.error.restart=Please return to the start to begin a new transfer.
+upload.error.return=Return to start
 checkingRecords.header=Checking records
 checkingRecords.title=Checking records
 checkingRecords.description=We are now checking your records. It is safe to close the browser if you wish, otherwise please wait and you will be redirected automatically once complete.
@@ -72,9 +81,17 @@ fileChecksResults.description.singular=Your folder ''{0}'' containing {1} item h
 fileChecksResults.description.plural=Your folder ''{0}'' containing {1} items has been successfully checked and uploaded. Click ''Continue'' to proceed with your transfer or ''Return to start''.
 fileChecksResults.dashboard=Return to start
 fileChecksResults.continueLink=Continue
+fileChecksFailure.error.title=There is a problem
+fileChecksFailure.error.body=One or more files you uploaded have failed our checks. Please <a href= "/contact">contact<a/> us to resolve this issue.
+fileChecksFailure.error.list.title=Possible failure causes:
+fileChecksFailure.error.list.passwordProtected=Password protected files
+fileChecksFailure.error.list.zip=Zip files
+fileChecksFailure.error.list.corrupted=Corrupted files
+fileChecksFailure.return=Return to start
 transferSummary.header=Transfer summary
-transferSummary.title=Transfer summary
-transferSummary.body=Please check the details of your files are correct before transferring ownership of your records to The National Archives. You cannot amend submitted files once the transfer has started.
+transferSummary.title=Confirm transfer
+transferSummary.body=Here is a summary of the records you have uploaded.
+transferSummary.bodyBelow=Please confirm you would like to transfer ownership of the records to The National Archives.
 transferSummary.seriesReference=Series reference
 transferSummary.transferringBody=Transferring body
 transferSummary.download=Download
@@ -88,20 +105,20 @@ transferSummary.transferLink=Transfer your records
 forbiddenError.header=You are not permitted to see this page
 forbiddenError.body=This page is restricted to certain users only.
 internalServerError.header=Sorry, there is a problem with the service
-internalServerError.body=Try again later.
-unauthenticatedError.header=You must be logged in to see this page
-unauthenticatedError.body=Please <a href= "#">login</a> to continue.
-notFoundError.header=This page doesn't exist
+internalServerError.body=Please try again later.
+unauthenticatedError.header=You must be signed in to see this page
+unauthenticatedError.body=<a href= "#">Sign in</a> to continue.
+notFoundError.header=Page not found
 notFoundError.body1=If you typed a web address, check it is correct.
 notFoundError.body2=If you pasted the web address, check you copied the entire address.
-notFoundError.body3=If the web address is correct, please get in touch with us via our <a href= "/contact">contact<a/> page.
-notFoundError.body4=Alternatively, you can <a href= "/dashboard">return to the home page</a>.
-transferComplete.title=Transfer Complete
+notFoundError.body3=If the web address is correct, please <a href= "/contact">contact<a/> us.
+notFoundError.body4=Alternatively, you can <a href= "/dashboard">return to the start</a>.
+transferComplete.title=Transfer complete
 transferComplete.error=There has been an error, contact us.
 transferComplete.body=Your records have now been transferred to The National Archives
 transferComplete.heading=What happens next
-transferComplete.body.notify=We have now received your records. Please do not delete the original files you uploaded until you are notified that your records have been preserved. We will contact you via email within 90 days.
-transferComplete.body.contact=If you do not receive an email, please contact us.
+transferComplete.body.notify=We have now received your records. Please do not delete the original files you uploaded until you are notified that your records have been preserved.
+transferComplete.body.contact=We will contact you via email within 90 days. If you do not receive an email, please contact us.
 transferComplete.return=Return to start
 
 # Upload.error messages placeholder wording
@@ -110,6 +127,8 @@ upload.error.failure=Some or all of your files failed to upload
 upload.progress.error.timeout=Your upload has timed out, click <a href="/series">series</a> to start again.
 upload.progress.error.authentication=You have been logged out, click <a href="/series">series</a> to start again.
 upload.progress.error.general=Something has gone wrong, click <a href="/series">series</a> to start again.
+upload.noscript.enablejs=Javascript must be enabled on your browser to upload files and proceed with the transfer.
+upload.noscript.checkSettings=Please check your settings to enable Javascript and refresh the page to try again. Alternatively, you can contact your IT department to resolve this issue.
 
 loggedOut.error.title=You have been logged out due to inactivity
 loggedOut.error.linkText=Log in
@@ -123,3 +142,8 @@ checkingRecords.progress=4
 fileChecksResults.progress=4
 transferSummary.progress=5
 progress.totalSteps=5
+
+signedOut.header=Signed out
+signedOut.title=You have successfully signed out
+signedOut.thankYouMessage=Thanks for using the Transfer Digital Records service.
+signedOut.signInLink=Sign in again

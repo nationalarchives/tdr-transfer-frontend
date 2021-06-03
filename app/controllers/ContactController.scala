@@ -1,14 +1,16 @@
 package controllers
 
-import auth.OidcSecurity
-import javax.inject.{Inject, Singleton}
+import auth.UnprotectedPageController
 import org.pac4j.play.scala.SecurityComponents
+
+import javax.inject.{Inject, Singleton}
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, Request}
 
 @Singleton
-class ContactController @Inject()(val controllerComponents: SecurityComponents) extends OidcSecurity with I18nSupport  {
-  def contact(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
-    Ok(views.html.contact())
+class ContactController @Inject()(securityComponents: SecurityComponents) extends UnprotectedPageController(securityComponents) with I18nSupport  {
+  def contact(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    Ok(views.html.contact(request.isLoggedIn))
   }
 }
+

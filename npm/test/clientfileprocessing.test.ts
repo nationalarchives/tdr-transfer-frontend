@@ -20,7 +20,7 @@ beforeEach(() => jest.resetModules())
 
 class S3UploadMock extends S3Upload {
   constructor() {
-    super("some Cognito user ID")
+    super("some Cognito user ID", "region")
   }
 
   uploadToS3: (
@@ -425,7 +425,7 @@ test("Error thrown if S3 upload fails", async () => {
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
-  const s3Upload = new S3Upload("some Cognito user ID")
+  const s3Upload = new S3Upload("some Cognito user ID", "region")
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3Upload)
 
   await expect(
@@ -439,21 +439,44 @@ test("Error thrown if S3 upload fails", async () => {
   )
 })
 
+const showUploadingRecordsPage = () => {
+  // At the point of the client file processing, the file-upload part should be hidden and progress bar revealed
+  const fileUpload: HTMLDivElement | null =
+    document.querySelector("#file-upload")
+  const progressBar: HTMLDivElement | null =
+    document.querySelector("#progress-bar")
+
+  if (fileUpload && progressBar) {
+    fileUpload.setAttribute("hidden", "true")
+    progressBar.removeAttribute("hidden")
+  }
+}
+
 function setupUploadPageHTML() {
-  document.body.innerHTML = `<div id="file-upload" class="govuk-grid-row"></div>
-   <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
-            role="alert" tabindex="-1" data-module="govuk-error-summary">
-            <h2 class="govuk-error-summary__title" id="error-summary-title"></h2></div>
+  document.body.innerHTML =
+    `<div id="file-upload" class="govuk-grid-row"></div>
+    <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
+        role="alert" tabindex="-1" data-module="govuk-error-summary">
+        <h2 class="govuk-error-summary__title" id="error-summary-title"></h2>
+    </div>
     <div id="progress-bar" class="govuk-grid-row" hidden>
-    <div> <progress class="progress-display" value="" max="50"></progress> </div>
+        <div>
+          <progress class="progress-display" value="" max="50"></progress>
+        </div>
     </div>`
+
+  showUploadingRecordsPage()
 }
 
 function setupUploadPageHTMLWithoutProgressBar() {
-  document.body.innerHTML = `<div id="file-upload" class="govuk-grid-row"></div>
-  <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title
-          role="alert" tabindex="-1" data-module="govuk-error-summary">
-          <h2 class="govuk-error-summary__title" id="error-summary-title"></h2></div>`
+  document.body.innerHTML =
+    `<div id="file-upload" class="govuk-grid-row"></div>
+    <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title
+        role="alert" tabindex="-1" data-module="govuk-error-summary">
+        <h2 class="govuk-error-summary__title" id="error-summary-title"></h2>
+    </div>`
+
+  showUploadingRecordsPage()
 }
 
 function checkExpectedPageState(percentage: String) {
@@ -476,13 +499,9 @@ function checkExpectedPageState(percentage: String) {
     "govuk-grid-row"
   )
 
-  expect(fileUpload && fileUpload.getAttribute("hidden")).toEqual(
-    "true"
-  )
+  expect(fileUpload && fileUpload.getAttribute("hidden")).toEqual("true")
 
-  expect(uploadError && uploadError.getAttribute("hidden")).toEqual(
-    ""
-  )
+  expect(uploadError && uploadError.getAttribute("hidden")).toEqual("")
 
   expect(
     progressBarElement && progressBarElement.getAttribute("value")
