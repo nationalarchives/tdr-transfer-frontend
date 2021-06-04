@@ -1,32 +1,33 @@
-@(consignmentReferenceData: ConsignmentReferenceData)(implicit messages: Messages, request: RequestHeader)
-@main(Messages("transferComplete.title")) {
-@defining(play.core.PlayVersion.current) { version =>
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+@import java.util.UUID
+@(consignmentReference: String)(implicit messages: Messages, request: RequestHeader)
+    @main(Messages("transferComplete.title")) {
+        @defining(play.core.PlayVersion.current) { version =>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-two-thirds">
 
-        <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-6">
-            <h1 class="govuk-panel__title">
-                @Messages("transferComplete.title")
-            </h1>
-            <div class="govuk-panel__body govuk-!-font-size-27">
-                <span>@Messages("transferComplete.body")</span><br/><br/>
-                <span class="govuk-!-font-size-27">Consignment reference:
-                    <span class="govuk-!-font-weight-bold">@consignmentReferenceData.consignmentReference</span>
-                </span>
+                    <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-6">
+                        <h1 class="govuk-panel__title">
+                            @Messages("transferComplete.title")
+                        </h1>
+                        <div class="govuk-panel__body govuk-!-font-size-27">
+                        @Messages("transferComplete.body")
+                        </div>
+                        <div class="govuk-panel__body govuk-!-font-size-27 govuk-!-margin-top-5">
+                            Consignment reference: <span class="govuk-!-font-weight-bold">@consignmentReference</span>
+                        </div>
+                    </div>
+
+                    <p class="govuk-body">@Messages("transferComplete.body.notify")</p>
+
+                    <h2 class="govuk-heading-m govuk-!-margin-top-2">@Messages("transferComplete.heading")</h2>
+
+                    <p class="govuk-body">@Messages("transferComplete.body.contact")</p>
+
+                    <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button">
+                    @Messages("transferComplete.return")
+                    </a>
+                </div>
+
             </div>
-        </div>
-
-        <p class="govuk-body">@Messages("transferComplete.body.notify")</p>
-      
-        <h2 class="govuk-heading-m govuk-!-margin-top-2">@Messages("transferComplete.heading")</h2>
-
-        <p class="govuk-body">@Messages("transferComplete.body.contact")</p>
-
-        <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button">
-            @Messages("transferComplete.return")
-        </a>
-    </div>
-
-</div>
-}
-}
+        }
+    }

@@ -1,4 +1,5 @@
 package controllers
+
 import java.util.UUID
 
 import auth.TokenSecurity
@@ -17,12 +18,11 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
                                           (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   private def getConsignmentReference(request: Request[AnyContent], consignmentId: UUID)
-                                   (implicit requestHeader: RequestHeader): Future[ConsignmentReferenceData] = {
+                                     (implicit requestHeader: RequestHeader): Future[String] = {
     consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      .map(r => ConsignmentReferenceData(r.consignmentReference))
+      .map(r => r.consignmentReference)
   }
 
-  //noinspection ScalaUnusedSymbol
   def transferComplete(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     getConsignmentReference(request, consignmentId)
       .map { consignmentReference =>
@@ -31,4 +31,3 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
   }
 }
 
-case class ConsignmentReferenceData(consignmentReference: String)
