@@ -36,7 +36,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
 
   "FileChecksController GET" should {
 
-    "render the fileChecks page with progress bars" in {
+    "render the fileChecks page with a hidden notification banner and disabled button if the checks are incomplete" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val filesProcessedWithAntivirus = 6
@@ -64,9 +64,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       recordsPageAsString must include("checkingRecords.header")
       recordsPageAsString must include("checkingRecords.title")
       recordsPageAsString must include("progress")
-      recordsPageAsString must include("""<progress id="av-metadata-progress-bar" class="file-check-progress__progress-bar" value="15" max="100"></progress>""")
-      recordsPageAsString must include("""<progress id="ffid-progress-bar" class="file-check-progress__progress-bar" value="20" max="100"></progress>""")
-      recordsPageAsString must include("""<progress id="checksum-progress-bar" class="file-check-progress__progress-bar" value="30" max="100"></progress>""")
+      recordsPageAsString must include("data-module=\"govuk-notification-banner\" hidden>")
+      recordsPageAsString must include("govuk-button--disabled")
+
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -80,7 +80,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       redirectLocation(recordsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
-    "return a redirect to the results page if the file checks are complete and all checks are successful" in {
+    "render the notification banner and enable the button if the file checks are complete and all checks are successful" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val dataString: String = progressData(40, 40, 40, allChecksSucceeded = true)
@@ -96,8 +96,30 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
         frontEndInfoConfiguration
       )
       val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
-      playStatus(recordsPage) mustBe SEE_OTHER
-      redirectLocation(recordsPage).get must startWith(s"/consignment/$consignmentId/records-results")
+      playStatus(recordsPage) mustBe OK
+      contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\" >")
+      contentAsString(recordsPage) must not include("govuk-button--disabled")
+    }
+
+    "render the notification banner and enable the button if the file checks are complete and all checks are not successful" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val dataString: String = progressData(40, 40, 40, allChecksSucceeded = false)
+
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
+      val controller = new FileChecksController(
+        getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration),
+        getValidKeycloakConfiguration,
+        consignmentService,
+        frontEndInfoConfiguration
+      )
+      val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
+      playStatus(recordsPage) mustBe OK
+      contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\" >")
+      contentAsString(recordsPage) must not include("govuk-button--disabled")
     }
   }
 
