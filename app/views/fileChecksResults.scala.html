@@ -6,18 +6,20 @@
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("fileChecksResults.progress"))
-
-        <div class="govuk-panel govuk-panel--confirmation">
-            <h1 class="govuk-panel__title">
-                @Messages("fileChecksResults.title")
-            </h1>
-            <div class="govuk-panel__body">
-                @if(consignmentInfo.numberOfFiles > 1) {
-                    @Messages("fileChecksResults.description.plural", consignmentInfo.parentFolder, consignmentInfo.numberOfFiles)
-                } else {
-                    @Messages("fileChecksResults.description.singular", consignmentInfo.parentFolder, consignmentInfo.numberOfFiles)
-                }
+        <h1>Results of your checks</h1>
+        <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+            <div class="govuk-notification-banner__header">
+                <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                    Checks successful
+                </h2>
             </div>
+            <div class="govuk-notification-banner__content">
+                <h3 class="govuk-notification-banner__heading">
+                    Your folder '@{consignmentInfo.parentFolder}' containing @{consignmentInfo.numberOfFiles} item@if(consignmentInfo.numberOfFiles > 1){s} has been successfully checked and uploaded.
+                </h3>
+                <p class="govuk-body">Click 'Continue' to proceed with your transfer or 'Return to start'.</p>
+            </div>
+
         </div>
         <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button govuk-button--secondary">
             @Messages("fileChecksResults.dashboard")
