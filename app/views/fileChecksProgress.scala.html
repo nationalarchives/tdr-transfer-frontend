@@ -4,26 +4,36 @@
 
 @main(Messages("checkingRecords.header")) {
     @defining(play.core.PlayVersion.current) { version =>
-    <div class="govuk-grid-row">
+    <div class="govuk-grid-row file-check-progress">
         <div class="govuk-grid-column-two-thirds">
 
             @progressIndicator(Messages("checkingRecords.progress"))
             @frontEndInputs(frontEndInfo)
             <h1 class="govuk-heading-l">@Messages("checkingRecords.title")</h1>
-            <p class="govuk-body">@Messages("checkingRecords.description")</p>
             <input id="consignmentId" type="hidden" value="@consignmentId">
-            <div class="file-check-progress">
-                <label for="av-metadata-progress-bar" class="govuk-label">@Messages("checkingRecords.antivirus")</label>
-                <progress id="av-metadata-progress-bar" class="file-check-progress__progress-bar" value="@fileChecks.avMetadataProgressPercentage" max="100"></progress>
+            <p class="govuk-body">Please wait while your records are being checked. This may take a few minutes</p>
+            <p class="govuk-body">The following checks are now being performed:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Anti-virus scanning</li>
+                <li>Identifying file formats</li>
+                <li>Validating data integrity</li>
+            </ul>
+            <div class="govuk-notification-banner" id="file-checks-completed-banner" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" @if(!fileChecks.isComplete) {hidden}>
+                <div class="govuk-notification-banner__header">
+                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                        Important
+                    </h2>
+                </div>
+                <div class="govuk-notification-banner__content">
+                    <p class="govuk-notification-banner__heading">
+                        Your records have been checked
+                        <p>Please click continue to see your results.</p>
+                    </p>
+                </div>
             </div>
-            <div class="file-check-progress">
-                <label for="checksum-progress-bar" class="govuk-label">@Messages("checkingRecords.checksum")</label>
-                <progress id="checksum-progress-bar" class="file-check-progress__progress-bar" value="@fileChecks.checksumProgressPercentage" max="100"></progress>
-            </div>
-            <div class="file-check-progress">
-                <label for="ffid-progress-bar" class="govuk-label">@Messages("checkingRecords.ffid")</label>
-                <progress id="ffid-progress-bar" class="file-check-progress__progress-bar" value="@fileChecks.ffidMetadataProgressPercentage" max="100"></progress>
-            </div>
+            <a href="@routes.FileChecksResultsController.fileCheckResultsPage(consignmentId)" role="button" draggable="false" id="file-checks-continue" class="govuk-button @if(!fileChecks.isComplete){govuk-button--disabled}">
+                Continue
+            </a>
         </div>
     </div>
     }
