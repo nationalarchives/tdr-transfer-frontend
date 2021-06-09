@@ -11,7 +11,7 @@
             @frontEndInputs(frontEndInfo)
             <h1 class="govuk-heading-l">@Messages("checkingRecords.title")</h1>
             <input id="consignmentId" type="hidden" value="@consignmentId">
-            <p class="govuk-body">Please wait while your records are being checked. This may take a few minutes</p>
+            <p class="govuk-body">Please wait while your records are being checked. This may take a few minutes.</p>
             <p class="govuk-body">The following checks are now being performed:</p>
             <ul class="govuk-list govuk-list--bullet">
                 <li>Anti-virus scanning</li>
@@ -25,10 +25,9 @@
                     </h2>
                 </div>
                 <div class="govuk-notification-banner__content">
-                    <p class="govuk-notification-banner__heading">
-                        Your records have been checked
-                        <p>Please click continue to see your results.</p>
-                    </p>
+                    <p class="govuk-notification-banner__heading">Your records have been checked</p>
+                    <p>Please click continue to see your results.</p>
+
                 </div>
             </div>
             <a href="@routes.FileChecksResultsController.fileCheckResultsPage(consignmentId)" role="button" draggable="false" id="file-checks-continue" class="govuk-button @if(!fileChecks.isComplete){govuk-button--disabled}">
