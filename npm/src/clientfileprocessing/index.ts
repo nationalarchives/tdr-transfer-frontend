@@ -25,11 +25,26 @@ export class ClientFileProcessing {
 
   metadataProgressCallback(progressInformation: IProgressInformation) {
     const weightedPercent = progressInformation.percentageProcessed / 2
+
+    const fileUpload: HTMLDivElement | null =
+      document.querySelector("#file-upload")
+    const progressBar: HTMLDivElement | null =
+      document.querySelector("#progress-bar")
     const progressBarElement: HTMLDivElement | null =
       document.querySelector(".progress-display")
+    const progressLabelElement: HTMLDivElement | null =
+      document.querySelector(".progress-label")
 
-    if (progressBarElement) {
+    if (fileUpload && progressBar) {
+      fileUpload.setAttribute("hidden", "true")
+      progressBar.removeAttribute("hidden")
+    }
+
+    if (progressBarElement && progressLabelElement) {
+      var stringWeightedPercentage = weightedPercent.toString()
       progressBarElement.setAttribute("value", weightedPercent.toString())
+      progressLabelElement.innerText =
+        "Uploading records " + stringWeightedPercentage + "%"
     }
   }
 
@@ -39,8 +54,14 @@ export class ClientFileProcessing {
     const progressBarElement: HTMLDivElement | null =
       document.querySelector(".progress-display")
 
-    if (progressBarElement) {
-      progressBarElement.setAttribute("value", weightedPercent.toString())
+    const progressLabelElement: HTMLDivElement | null =
+      document.querySelector(".progress-label")
+
+    if (progressBarElement && progressLabelElement) {
+      var stringWeightedPercentage = weightedPercent.toString()
+      progressBarElement.setAttribute("value", stringWeightedPercentage)
+      progressLabelElement.innerText =
+        "Uploading records " + stringWeightedPercentage + "%"
     }
   }
 
