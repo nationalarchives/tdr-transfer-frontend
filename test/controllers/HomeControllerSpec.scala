@@ -17,9 +17,9 @@ class HomeControllerSpec extends FrontEndTestHelper {
 
       status(home) mustBe OK
       contentType(home) mustBe Some("text/html")
-      contentAsString(home) must include ("home.title")
-      contentAsString(home) must include ("home.use.transfer.records")
-      contentAsString(home) must include ("home.startLink")
+      contentAsString(home) must include ("The National Archives Transfer Digital Records")
+      contentAsString(home) must include ("Use this service to transfer digital records to The National Archives.")
+      contentAsString(home) must include ("Start now")
     }
 
     "render the index page from the application" in {

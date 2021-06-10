@@ -14,8 +14,8 @@ class SignOutControllerSpec extends FrontEndTestHelper {
 
       status(signOutPage) mustBe OK
       contentType(signOutPage) mustBe Some("text/html")
-      contentAsString(signOutPage) must include ("signedOut.title")
-      contentAsString(signOutPage) must include ("signedOut.signInLink")
+      contentAsString(signOutPage) must include ("You have successfully signed out")
+      contentAsString(signOutPage) must include ("Sign in again")
     }
   }
 }

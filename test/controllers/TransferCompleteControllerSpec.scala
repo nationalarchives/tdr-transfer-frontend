@@ -50,7 +50,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val transferCompleteSubmit = controller.transferComplete(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-complete").withCSRFToken)
-      contentAsString(transferCompleteSubmit) must include("transferComplete.title")
+      contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
     }
   }

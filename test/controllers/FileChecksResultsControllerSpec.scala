@@ -61,12 +61,11 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       status(recordCheckResultsPage) mustBe 200
       contentType(recordCheckResultsPage) mustBe Some("text/html")
-      resultsPageAsString must include("fileChecksResults.header")
-      resultsPageAsString must include("fileChecksResults.title")
+      resultsPageAsString must include("Record check results")
+      resultsPageAsString must include("Checks Complete")
       resultsPageAsString must include("govuk-panel--confirmation")
       resultsPageAsString must include("fileChecksResults.description")
-      resultsPageAsString must include("fileChecksResults.dashboard")
-      resultsPageAsString must include("fileChecksResults.continueLink")
+      resultsPageAsString must include("Continue")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -138,7 +137,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       )
 
       status(recordCheckResultsPage) mustBe OK
-      contentAsString(recordCheckResultsPage) must include("fileChecksFailure.error.title")
+      contentAsString(recordCheckResultsPage) must include("There is a problem")
     }
   }
 }
