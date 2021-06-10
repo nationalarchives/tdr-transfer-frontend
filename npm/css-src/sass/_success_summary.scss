@@ -1,0 +1,97 @@
+.success-summary {
+  color: #0b0c0c;
+  padding: 15px;
+  margin-bottom: 30px;
+  border: 5px solid #00703c; }
+@media print {
+  .success-summary {
+    color: #000000; } }
+@media (min-width: 40.0625em) {
+  .success-summary {
+    padding: 20px; } }
+@media (min-width: 40.0625em) {
+  .success-summary {
+    margin-bottom: 50px; } }
+.success-summary:focus {
+  outline: 3px solid #ffdd00; }
+
+.success-summary__title {
+  font-family: Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 700;
+  font-size: 18px;
+  font-size: 1.125rem;
+  line-height: 1.11111;
+  margin-top: 0;
+  margin-bottom: 15px; }
+@media print {
+  .success-summary__title {
+    font-family: sans-serif; } }
+@media (min-width: 40.0625em) {
+  .success-summary__title {
+    font-size: 24px;
+    font-size: 1.5rem;
+    line-height: 1.25; } }
+@media print {
+  .success-summary__title {
+    font-size: 18pt;
+    line-height: 1.15; } }
+@media (min-width: 40.0625em) {
+  .success-summary__title {
+    margin-bottom: 20px; } }
+
+.success-summary__body {
+  font-family: Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  font-size: 16px;
+  font-size: 1rem;
+  line-height: 1.25; }
+@media print {
+  .success-summary__body {
+    font-family: sans-serif; } }
+@media (min-width: 40.0625em) {
+  .success-summary__body {
+    font-size: 19px;
+    font-size: 1.1875rem;
+    line-height: 1.31579; } }
+@media print {
+  .success-summary__body {
+    font-size: 14pt;
+    line-height: 1.15; } }
+.success-summary__body p {
+  margin-top: 0;
+  margin-bottom: 15px; }
+@media (min-width: 40.0625em) {
+  .success-summary__body p {
+    margin-bottom: 20px; } }
+
+.success-summary__list {
+  margin-top: 0;
+  margin-bottom: 0; }
+
+.success-summary__list a {
+  font-weight: 700;
+  font-family: Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-decoration: underline; }
+@media print {
+  .success-summary__list a {
+    font-family: sans-serif; } }
+.success-summary__list a:focus {
+  outline: 3px solid transparent;
+  color: #0b0c0c;
+  background-color: #ffdd00;
+  box-shadow: 0 -2px #ffdd00, 0 4px #0b0c0c;
+  text-decoration: none; }
+.success-summary__list a:link, .success-summary__list a:visited {
+  color: #00703c; }
+.success-summary__list a:hover {
+  color: #004e2a; }
+.success-summary__list a:active {
+  color: #00703c; }
+.success-summary__list a:focus {
+  color: #0b0c0c; }
