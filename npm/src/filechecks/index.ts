@@ -27,11 +27,12 @@ export class FileChecks {
         checksumProcessed == totalFiles &&
         ffidProcessed == totalFiles
       ) {
-        const checksCompletedBanner = document.querySelector(
+        const checksCompletedBanner: HTMLDivElement | null = document.querySelector(
           "#file-checks-completed-banner"
         )
         if (checksCompletedBanner) {
           checksCompletedBanner.removeAttribute("hidden")
+          checksCompletedBanner.focus()
         }
         const continueButton = document.querySelector("#file-checks-continue")
         if (continueButton) {
