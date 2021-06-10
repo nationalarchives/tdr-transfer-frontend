@@ -18,7 +18,7 @@
                 <li>Identifying file formats</li>
                 <li>Validating data integrity</li>
             </ul>
-            <div class="govuk-notification-banner" id="file-checks-completed-banner" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" @if(!fileChecks.isComplete) {hidden}>
+            <div class="govuk-notification-banner" id="file-checks-completed-banner" tabindex="-1" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" @if(!fileChecks.isComplete) {hidden}>
                 <div class="govuk-notification-banner__header">
                     <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
                         Important
