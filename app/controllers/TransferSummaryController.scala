@@ -33,9 +33,9 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
   val finalTransferConfirmationForm: Form[FinalTransferConfirmationData] = Form(
     mapping(
       "openRecords" -> boolean
-        .verifying(messagesApi("transferSummary.openRecords.error"), b => b),
+        .verifying("All records must be confirmed as open before proceeding", b => b),
       "transferLegalOwnership" -> boolean
-        .verifying(messagesApi("transferSummary.transferLegalOwnership.error"), b => b)
+        .verifying("Transferral of legal ownership of all records must be confirmed before proceeding", b => b)
     )(FinalTransferConfirmationData.apply)(FinalTransferConfirmationData.unapply)
   )
 

@@ -1,28 +1,28 @@
 @()(implicit request: RequestHeader, messages: Messages)
 
-@main(Messages("checkingRecords.header")) {
+@main("Checking records") {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       @progressIndicator(Messages("checkingRecords.progress"))
-      <h1 class="govuk-heading-l">@Messages("checkingRecords.header")</h1>
+      <h1 class="govuk-heading-l">Checking records</h1>
 
       <div id="upload-progress-error" class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"
       role="alert" data-module="govuk-error-summary" tabindex="-1">
           <h2 class="govuk-error-summary__title" id="error-summary-title">
-          @Messages("fileChecksFailure.error.title")
+              There is a problem
           </h2>
           <div class="govuk-error-summary__body">
-            <p>@Html(Messages("fileChecksFailure.error.body"))</p>
-            @Messages("fileChecksFailure.error.list.title")
+            <p>One or more files you uploaded have failed our checks. Please <a href= "/contact">contact<a/> us to resolve this issue.</p>
+              Possible failure causes:
             <ul class="govuk-error-summary__list">
-              <li>@Messages("fileChecksFailure.error.list.passwordProtected")</li>
-              <li>@Messages("fileChecksFailure.error.list.zip")</li>
-              <li>@Messages("fileChecksFailure.error.list.corrupted")</li>
+              <li>Password protected files</li>
+              <li>Zip files</li>
+              <li>Corrupted files</li>
             </ul>
           </div>
       </div>
       <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button govuk-button--primary">
-      @Messages("fileChecksFailure.return")
+          Return to start
       </a>
     </div>
   </div>

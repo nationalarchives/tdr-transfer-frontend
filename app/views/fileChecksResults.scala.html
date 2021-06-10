@@ -2,7 +2,7 @@
 @import viewsapi.FrontEndInfo
 @(consignmentInfo: ConsignmentFolderInfo, consignmentId: java.util.UUID)(implicit messages: Messages, request: RequestHeader)
 
-@main(Messages("fileChecksResults.header")) {
+@main("Record check results") {
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("fileChecksResults.progress"))
@@ -21,11 +21,8 @@
             </div>
 
         </div>
-        <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button govuk-button--secondary">
-            @Messages("fileChecksResults.dashboard")
-        </a>
         <a href="@routes.TransferSummaryController.transferSummary(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-            @Messages("fileChecksResults.continueLink")
+            Continue
         </a>
     </div>
 </div>

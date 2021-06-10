@@ -1,12 +1,12 @@
 @()(implicit messages: Messages, request: RequestHeader)
 
-@main(Messages("signedOut.header"), isLoggedIn = false) {
+@main("Signed out", isLoggedIn = false) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      <h1 class="govuk-heading-l">@Messages("signedOut.title")</h1>
-      <p class="govuk-body">@Messages("signedOut.thankYouMessage")</p>
+      <h1 class="govuk-heading-l">You have successfully signed out</h1>
+      <p class="govuk-body">Thanks for using the Transfer Digital Records service.</p>
       <a href="@routes.DashboardController.dashboard()" class="govuk-link">
-      @Messages("signedOut.signInLink")
+        Sign in again
       </a>
     </div>
   </div>
