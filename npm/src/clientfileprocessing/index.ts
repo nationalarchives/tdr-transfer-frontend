@@ -42,9 +42,9 @@ export class ClientFileProcessing {
 
     if (progressBarElement && progressLabelElement) {
       var stringWeightedPercentage = weightedPercent.toString()
-      progressBarElement.setAttribute("value", weightedPercent.toString())
+      progressBarElement.setAttribute("value", stringWeightedPercentage)
       progressLabelElement.innerText =
-        "Uploading records " + stringWeightedPercentage + "%"
+        `Uploading records ${stringWeightedPercentage}%`
     }
   }
 
@@ -61,7 +61,7 @@ export class ClientFileProcessing {
       var stringWeightedPercentage = weightedPercent.toString()
       progressBarElement.setAttribute("value", stringWeightedPercentage)
       progressLabelElement.innerText =
-        "Uploading records " + stringWeightedPercentage + "%"
+        `Uploading records ${stringWeightedPercentage}%`
     }
   }
 
