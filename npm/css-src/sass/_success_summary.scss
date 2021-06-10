@@ -1,30 +1,31 @@
 .success-summary {
+  border: 5px solid #00703c;
   color: #0b0c0c;
-  padding: 15px;
   margin-bottom: 30px;
-  border: 5px solid #00703c; }
+  padding: 15px; }
 @media print {
   .success-summary {
-    color: #000000; } }
+    color: #000; } }
 @media (min-width: 40.0625em) {
   .success-summary {
     padding: 20px; } }
 @media (min-width: 40.0625em) {
   .success-summary {
     margin-bottom: 50px; } }
+
 .success-summary:focus {
-  outline: 3px solid #ffdd00; }
+  outline: 3px solid #fd0; }
 
 .success-summary__title {
   font-family: Arial, sans-serif;
+  font-size: 18px;
+  font-size: 1.125rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-weight: 700;
-  font-size: 18px;
-  font-size: 1.125rem;
   line-height: 1.11111;
-  margin-top: 0;
-  margin-bottom: 15px; }
+  margin-bottom: 15px;
+  margin-top: 0; }
 @media print {
   .success-summary__title {
     font-family: sans-serif; } }
@@ -43,11 +44,11 @@
 
 .success-summary__body {
   font-family: Arial, sans-serif;
+  font-size: 16px;
+  font-size: 1rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-weight: 400;
-  font-size: 16px;
-  font-size: 1rem;
   line-height: 1.25; }
 @media print {
   .success-summary__body {
@@ -61,37 +62,44 @@
   .success-summary__body {
     font-size: 14pt;
     line-height: 1.15; } }
+
 .success-summary__body p {
-  margin-top: 0;
-  margin-bottom: 15px; }
+  margin-bottom: 15px;
+  margin-top: 0; }
 @media (min-width: 40.0625em) {
   .success-summary__body p {
     margin-bottom: 20px; } }
 
 .success-summary__list {
-  margin-top: 0;
-  margin-bottom: 0; }
+  margin-bottom: 0;
+  margin-top: 0; }
 
 .success-summary__list a {
-  font-weight: 700;
   font-family: Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-weight: 700;
   text-decoration: underline; }
 @media print {
   .success-summary__list a {
     font-family: sans-serif; } }
+
 .success-summary__list a:focus {
-  outline: 3px solid transparent;
+  background-color: #fd0;
+  box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
   color: #0b0c0c;
-  background-color: #ffdd00;
-  box-shadow: 0 -2px #ffdd00, 0 4px #0b0c0c;
+  outline: 3px solid transparent;
   text-decoration: none; }
-.success-summary__list a:link, .success-summary__list a:visited {
+
+.success-summary__list a:link,
+.success-summary__list a:visited {
   color: #00703c; }
+
 .success-summary__list a:hover {
   color: #004e2a; }
+
 .success-summary__list a:active {
   color: #00703c; }
+
 .success-summary__list a:focus {
   color: #0b0c0c; }
