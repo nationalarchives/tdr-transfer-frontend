@@ -41,10 +41,9 @@ export class ClientFileProcessing {
     }
 
     if (progressBarElement && progressLabelElement) {
-      var stringWeightedPercentage = weightedPercent.toString()
+      const stringWeightedPercentage = weightedPercent.toString()
       progressBarElement.setAttribute("value", stringWeightedPercentage)
-      progressLabelElement.innerText =
-        `Uploading records ${stringWeightedPercentage}%`
+      progressLabelElement.innerText = `Uploading records ${stringWeightedPercentage}%`
     }
   }
 
@@ -58,10 +57,9 @@ export class ClientFileProcessing {
       document.querySelector(".progress-label")
 
     if (progressBarElement && progressLabelElement) {
-      var stringWeightedPercentage = weightedPercent.toString()
+      const stringWeightedPercentage = weightedPercent.toString()
       progressBarElement.setAttribute("value", stringWeightedPercentage)
-      progressLabelElement.innerText =
-        `Uploading records ${stringWeightedPercentage}%`
+      progressLabelElement.innerText = `Uploading records ${stringWeightedPercentage}%`
     }
   }
 
