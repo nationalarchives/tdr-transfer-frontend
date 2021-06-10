@@ -1,11 +1,11 @@
 @()(implicit messages: Messages, request: RequestHeader)
 
-@main(Messages("401.error.header")) {
+@main("Sign-in required") {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">@Messages("unauthenticatedError.header")</h1>
-        <p class="govuk-body">@Html(Messages("unauthenticatedError.body"))</p>
+        <h1 class="govuk-heading-l">You must be signed in to see this page</h1>
+        <p class="govuk-body"><a class="govuk-link" href="#">Sign in</a> to continue.</p>
     </div>
 </div>
 }

@@ -90,7 +90,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
 
       status(uploadPage) mustBe OK
-      contentAsString(uploadPage) must include("uploadProgress.header")
+      contentAsString(uploadPage) must include("Uploading records")
     }
   }
 

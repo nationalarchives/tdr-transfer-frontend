@@ -61,8 +61,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
 
       playStatus(recordsPage) mustBe OK
       contentType(recordsPage) mustBe Some("text/html")
-      recordsPageAsString must include("checkingRecords.header")
-      recordsPageAsString must include("checkingRecords.title")
+      recordsPageAsString must include("Checking records")
+      recordsPageAsString must include("Checking records")
       recordsPageAsString must include("progress")
       recordsPageAsString must include("data-module=\"govuk-notification-banner\" hidden>")
       recordsPageAsString must include("govuk-button--disabled")

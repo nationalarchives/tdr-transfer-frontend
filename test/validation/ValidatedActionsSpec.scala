@@ -123,7 +123,7 @@ class ValidatedActionsSpec extends FrontEndTestHelper {
 
       verify(functionMock, times(0)).apply(any[Request[AnyContent]])
       playStatus(response) must equal(OK)
-      contentAsString(response) must include("uploadProgress.header")
+      contentAsString(response) must include("Uploading records")
     }
   }
 }
