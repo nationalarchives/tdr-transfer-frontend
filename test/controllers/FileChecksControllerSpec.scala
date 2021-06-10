@@ -97,7 +97,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       )
       val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
       playStatus(recordsPage) mustBe OK
-      contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\" >")
+      contentAsString(recordsPage) must include("""data-module="govuk-notification-banner"""")
       contentAsString(recordsPage) must not include("govuk-button--disabled")
     }
 
@@ -118,7 +118,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       )
       val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
       playStatus(recordsPage) mustBe OK
-      contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\" >")
+      contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\"")
       contentAsString(recordsPage) must not include("govuk-button--disabled")
     }
   }
