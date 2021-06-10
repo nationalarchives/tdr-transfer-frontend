@@ -61,8 +61,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
 
       playStatus(recordsPage) mustBe OK
       contentType(recordsPage) mustBe Some("text/html")
-      recordsPageAsString must include("checkingRecords.header")
-      recordsPageAsString must include("checkingRecords.title")
+      recordsPageAsString must include("Checking records")
+      recordsPageAsString must include("Checking records")
       recordsPageAsString must include("progress")
       recordsPageAsString must include("""<progress id="av-metadata-progress-bar" class="file-check-progress__progress-bar" value="15" max="100"></progress>""")
       recordsPageAsString must include("""<progress id="ffid-progress-bar" class="file-check-progress__progress-bar" value="20" max="100"></progress>""")
