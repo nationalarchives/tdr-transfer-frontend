@@ -64,8 +64,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       resultsPageAsString must include("Record check results")
       resultsPageAsString must include("govuk-notification-banner__content")
       resultsPageAsString must include("has been successfully checked and uploaded")
-      resultsPageAsString must include("fileChecksResults.dashboard")
-      resultsPageAsString must include("fileChecksResults.continueLink")
+      resultsPageAsString must include("Click 'Continue' to proceed with your transfer")
       resultsPageAsString must include("Continue")
     }
 
