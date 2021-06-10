@@ -23,7 +23,20 @@ export class ClientFileProcessing {
     this.s3Upload = s3Upload
   }
 
-  metadataProgressCallback(progressInformation: IProgressInformation) {
+  renderWeightedPercent (weightedPercent: number) {
+    const progressBarElement: HTMLDivElement | null =
+      document.querySelector(".progress-display")
+    const progressLabelElement: HTMLDivElement | null =
+      document.querySelector(".progress-label")
+
+    if (progressBarElement && progressLabelElement) {
+      const stringWeightedPercentage = weightedPercent.toString()
+      progressBarElement.setAttribute("value", stringWeightedPercentage)
+      progressLabelElement.innerText = `Uploading records ${stringWeightedPercentage}%`
+    }
+  }
+
+  metadataProgressCallback = (progressInformation: IProgressInformation) => {
     const weightedPercent = progressInformation.percentageProcessed / 2
 
     const fileUpload: HTMLDivElement | null =
@@ -40,27 +53,12 @@ export class ClientFileProcessing {
       progressBar.removeAttribute("hidden")
     }
 
-    if (progressBarElement && progressLabelElement) {
-      const stringWeightedPercentage = weightedPercent.toString()
-      progressBarElement.setAttribute("value", stringWeightedPercentage)
-      progressLabelElement.innerText = `Uploading records ${stringWeightedPercentage}%`
-    }
+    this.renderWeightedPercent(weightedPercent)
   }
 
-  s3ProgressCallback(progressInformation: IProgressInformation) {
+  s3ProgressCallback = (progressInformation: IProgressInformation) => {
     const weightedPercent = 50 + progressInformation.percentageProcessed / 2
-
-    const progressBarElement: HTMLDivElement | null =
-      document.querySelector(".progress-display")
-
-    const progressLabelElement: HTMLDivElement | null =
-      document.querySelector(".progress-label")
-
-    if (progressBarElement && progressLabelElement) {
-      const stringWeightedPercentage = weightedPercent.toString()
-      progressBarElement.setAttribute("value", stringWeightedPercentage)
-      progressLabelElement.innerText = `Uploading records ${stringWeightedPercentage}%`
-    }
+    this.renderWeightedPercent(weightedPercent)
   }
 
   async processClientFiles(
