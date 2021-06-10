@@ -23,7 +23,7 @@ export class ClientFileProcessing {
     this.s3Upload = s3Upload
   }
 
-  renderWeightedPercent (weightedPercent: number) {
+  renderWeightedPercent = (weightedPercent: number) => {
     const progressBarElement: HTMLDivElement | null =
       document.querySelector(".progress-display")
     const progressLabelElement: HTMLDivElement | null =
