@@ -3,7 +3,7 @@
   @include govuk-text-colour;
   @include govuk-text-colour;
   @include govuk-responsive-padding(4);
-  @include govuk-responsive-margin(8, "bottom");
+  @include govuk-responsive-margin(8, 'bottom');
 
   border: $govuk-border-width solid $govuk-success-colour;
 
@@ -13,21 +13,21 @@
 }
 
 .success-summary__title {
+  @include govuk-responsive-margin(4, 'bottom');
   margin-top: 0;
-  @include govuk-responsive-margin(4, "bottom");
 }
 
 .success-summary__body {
   p {
+    @include govuk-responsive-margin(4, 'bottom');
     margin-top: 0;
-    @include govuk-responsive-margin(4, "bottom");
   }
 }
 
 // Cross-component class - adjusts styling of list component
 .success-summary__list {
-  margin-top: 0;
   margin-bottom: 0;
+  margin-top: 0;
 }
 
 .success-summary__list a {
