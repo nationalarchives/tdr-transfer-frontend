@@ -1,7 +1,8 @@
 @import helper._
 @import viewsapi.FormFunctions._
 
-@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit request: RequestHeader, messages: Messages)
+@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit request: RequestHeader,
+messages: Messages)
 
 @main("Series Information", hasError = seriesDetailsForm("series").hasErrors) {
 @defining(play.core.PlayVersion.current) { version =>
@@ -14,18 +15,24 @@
         @errorSummary(seriesDetailsForm("series"))
 
         @form(routes.SeriesDetailsController.seriesSubmit(), (Symbol("novalidate"), "")) {
-            @CSRF.formField
-            @inputDropdown(
-                seriesDetailsForm("series"),
-                allSeriesData,
-                Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
-                Symbol("_name") -> "Series Details",
-                Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
-            )
-        <div class="govuk-form-group">
-            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+        @CSRF.formField
+        @inputDropdown(
+        seriesDetailsForm("series"),
+        allSeriesData,
+        Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
+        Symbol("_name") -> "Series Details",
+        Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
+        )
+        <!-- Buttons -->
+        <div class="govuk-button-group">
+            <!-- Continue -->
+            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
+                role="button">
                 Continue
             </button>
+
+            <!-- Cancel -->
+            <a class="govuk-link" href="@routes.DashboardController.dashboard()">Cancel</a>
         </div>
         }
     </div>
