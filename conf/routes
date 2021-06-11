@@ -7,6 +7,7 @@
 GET     /                                                  controllers.HomeController.index()
 GET     /dashboard                                         controllers.DashboardController.dashboard()
 GET     /contact                                           controllers.ContactController.contact()
+GET     /cookies                                           controllers.CookiesController.cookies()
 GET     /series                                            controllers.SeriesDetailsController.seriesDetails()
 POST    /series                                            controllers.SeriesDetailsController.seriesSubmit()
 GET     /consignment/:consignmentId/transfer-agreement     controllers.TransferAgreementController.transferAgreement(consignmentId: java.util.UUID)
