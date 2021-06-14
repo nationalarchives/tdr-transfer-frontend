@@ -1,7 +1,6 @@
 import { GraphqlClient } from "../graphql"
 import {
   getConsignmentData,
-  updateProgressBar,
   IFileCheckProcessed,
   getConsignmentId
 } from "./file-check-processing"
@@ -23,23 +22,21 @@ export class FileChecks {
         totalFiles
       } = fileCheckProcessed
 
-      updateProgressBar(
-        antivirusProcessed,
-        totalFiles,
-        "#av-metadata-progress-bar"
-      )
-      updateProgressBar(checksumProcessed, totalFiles, "#checksum-progress-bar")
-      updateProgressBar(ffidProcessed, totalFiles, "#ffid-progress-bar")
-
       if (
         antivirusProcessed == totalFiles &&
         checksumProcessed == totalFiles &&
         ffidProcessed == totalFiles
       ) {
-        const location = `${
-          window.location.origin
-        }/consignment/${getConsignmentId()}/records-results`
-        window.location.href = location
+        const checksCompletedBanner: HTMLDivElement | null =
+          document.querySelector("#file-checks-completed-banner")
+        if (checksCompletedBanner) {
+          checksCompletedBanner.removeAttribute("hidden")
+          checksCompletedBanner.focus()
+        }
+        const continueButton = document.querySelector("#file-checks-continue")
+        if (continueButton) {
+          continueButton.classList.remove("govuk-button--disabled")
+        }
       }
     }
   }
