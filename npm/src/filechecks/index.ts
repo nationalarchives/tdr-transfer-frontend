@@ -36,6 +36,7 @@ export class FileChecks {
         const continueButton = document.querySelector("#file-checks-continue")
         if (continueButton) {
           continueButton.classList.remove("govuk-button--disabled")
+          continueButton.removeAttribute("disabled")
         }
       }
     }
