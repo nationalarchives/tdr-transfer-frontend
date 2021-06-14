@@ -64,19 +64,3 @@ export const getConsignmentData: (
     })
     .catch(() => callback(null))
 }
-
-export const updateProgressBar: (
-  processed: number,
-  total: number,
-  selector: string
-) => void = (processed, total, selector) => {
-  let progress = 0
-  if (total > 0) {
-    progress = Math.round((processed / total) * 100)
-  }
-  const progressBar: HTMLProgressElement | null =
-    document.querySelector(selector)
-  if (progressBar) {
-    progressBar.value = progress
-  }
-}
