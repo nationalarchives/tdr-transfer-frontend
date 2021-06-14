@@ -23,37 +23,27 @@ export class ClientFileProcessing {
     this.s3Upload = s3Upload
   }
 
-  metadataProgressCallback(progressInformation: IProgressInformation) {
-    const weightedPercent = progressInformation.percentageProcessed / 2
-
+  renderWeightedPercent = (weightedPercent: number) => {
     const progressBarElement: HTMLDivElement | null =
       document.querySelector(".progress-display")
     const progressLabelElement: HTMLDivElement | null =
       document.querySelector(".progress-label")
 
     if (progressBarElement && progressLabelElement) {
-      var stringWeightedPercentage = weightedPercent.toString()
-      progressBarElement.setAttribute("value", weightedPercent.toString())
-      progressLabelElement.innerText =
-        "Uploading records " + stringWeightedPercentage + "%"
+      const stringWeightedPercentage = weightedPercent.toString()
+      progressBarElement.setAttribute("value", stringWeightedPercentage)
+      progressLabelElement.innerText = `Uploading records ${stringWeightedPercentage}%`
     }
   }
 
-  s3ProgressCallback(progressInformation: IProgressInformation) {
+  metadataProgressCallback = (progressInformation: IProgressInformation) => {
+    const weightedPercent = progressInformation.percentageProcessed / 2
+    this.renderWeightedPercent(weightedPercent)
+  }
+
+  s3ProgressCallback = (progressInformation: IProgressInformation) => {
     const weightedPercent = 50 + progressInformation.percentageProcessed / 2
-
-    const progressBarElement: HTMLDivElement | null =
-      document.querySelector(".progress-display")
-
-    const progressLabelElement: HTMLDivElement | null =
-      document.querySelector(".progress-label")
-
-    if (progressBarElement && progressLabelElement) {
-      var stringWeightedPercentage = weightedPercent.toString()
-      progressBarElement.setAttribute("value", stringWeightedPercentage)
-      progressLabelElement.innerText =
-        "Uploading records " + stringWeightedPercentage + "%"
-    }
+    this.renderWeightedPercent(weightedPercent)
   }
 
   async processClientFiles(
