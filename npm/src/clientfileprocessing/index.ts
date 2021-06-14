@@ -38,21 +38,6 @@ export class ClientFileProcessing {
 
   metadataProgressCallback = (progressInformation: IProgressInformation) => {
     const weightedPercent = progressInformation.percentageProcessed / 2
-
-    const fileUpload: HTMLDivElement | null =
-      document.querySelector("#file-upload")
-    const progressBar: HTMLDivElement | null =
-      document.querySelector("#progress-bar")
-    const progressBarElement: HTMLDivElement | null =
-      document.querySelector(".progress-display")
-    const progressLabelElement: HTMLDivElement | null =
-      document.querySelector(".progress-label")
-
-    if (fileUpload && progressBar) {
-      fileUpload.setAttribute("hidden", "true")
-      progressBar.removeAttribute("hidden")
-    }
-
     this.renderWeightedPercent(weightedPercent)
   }
 
