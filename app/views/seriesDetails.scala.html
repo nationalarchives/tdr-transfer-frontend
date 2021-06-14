@@ -15,14 +15,14 @@ messages: Messages)
         @errorSummary(seriesDetailsForm("series"))
 
         @form(routes.SeriesDetailsController.seriesSubmit(), (Symbol("novalidate"), "")) {
-        @CSRF.formField
-        @inputDropdown(
-        seriesDetailsForm("series"),
-        allSeriesData,
-        Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
-        Symbol("_name") -> "Series Details",
-        Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
-        )
+            @CSRF.formField
+            @inputDropdown(
+                seriesDetailsForm("series"),
+                allSeriesData,
+                Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
+                Symbol("_name") -> "Series Details",
+                Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
+            )
         <!-- Buttons -->
         <div class="govuk-button-group">
             <!-- Continue -->
