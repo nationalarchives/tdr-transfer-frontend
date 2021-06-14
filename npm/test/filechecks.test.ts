@@ -43,7 +43,7 @@ test("updateFileCheckProgress calls setTimeout correctly", async () => {
 })
 
 test("updateFileCheckProgress shows the notification banner and an enabled continue button if all checks are complete", () => {
-  document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div><a id="file-checks-continue" class="govuk-button--disabled"></a>`
+  document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div><a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
   mockFileCheckProcessing.getConsignmentId.mockImplementation(
     () => consignmentId
@@ -74,12 +74,13 @@ test("updateFileCheckProgress shows the notification banner and an enabled conti
     expect(
       continueButton.classList.contains("govuk-button--disabled")
     ).toBeFalsy()
+    expect(continueButton.hasAttribute("disabled")).toBeFalsy()
   }
 })
 
 test("updateFileCheckProgress shows no banner and a disabled continue button if the checks are in progress", () => {
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div><a id="file-checks-continue" class="govuk-button--disabled"></a>`
+  document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div><a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
   mockFileCheckProcessing.getConsignmentId.mockImplementation(
     () => consignmentId
   )
@@ -110,5 +111,6 @@ test("updateFileCheckProgress shows no banner and a disabled continue button if 
     expect(
       continueButton.classList.contains("govuk-button--disabled")
     ).toBeTruthy()
+    expect(continueButton.hasAttribute("disabled")).toBeTruthy()
   }
 })
