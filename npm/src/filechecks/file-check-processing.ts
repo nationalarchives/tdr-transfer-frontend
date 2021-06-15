@@ -1,10 +1,10 @@
 import {
   GetFileCheckProgressQueryVariables,
-  GetFileCheckProgressQuery,
-  GetFileCheckProgress
+  GetFileCheckProgressQuery
 } from "@nationalarchives/tdr-generated-graphql"
 import { FetchResult } from "apollo-boost"
 import { GraphqlClient } from "../graphql"
+import { getGraphqlDocuments } from "../index"
 
 export interface IFileCheckProcessed {
   antivirusProcessed: number
@@ -30,37 +30,41 @@ export const getConsignmentData: (
   const variables: GetFileCheckProgressQueryVariables = {
     consignmentId
   }
-  const resultPromise: Promise<FetchResult<GetFileCheckProgressQuery>> =
-    client.mutation(GetFileCheckProgress, variables)
 
-  resultPromise
-    .then((result) => {
-      if (!result.data || result.errors) {
-        const errorMessage: string = result.errors
-          ? result.errors.toString()
-          : "no data"
-        throw Error("Add files failed: " + errorMessage)
-      } else {
-        const getConsignment = result.data.getConsignment
-        if (getConsignment) {
-          const fileChecks = getConsignment.fileChecks
-          const totalFiles = getConsignment.totalFiles
-          const antivirusProcessed = fileChecks.antivirusProgress.filesProcessed
-          const checksumProcessed = fileChecks.checksumProgress.filesProcessed
-          const ffidProcessed = fileChecks.ffidProgress.filesProcessed
-          callback({
-            antivirusProcessed,
-            checksumProcessed,
-            ffidProcessed,
-            totalFiles
-          })
+  getGraphqlDocuments().then((documents) => {
+    const resultPromise: Promise<FetchResult<GetFileCheckProgressQuery>> =
+      client.mutation(documents.GetFileCheckProgress, variables)
+
+    resultPromise
+      .then((result) => {
+        if (!result.data || result.errors) {
+          const errorMessage: string = result.errors
+            ? result.errors.toString()
+            : "no data"
+          throw Error("Add files failed: " + errorMessage)
         } else {
-          console.log(
-            `No progress metadata found for consignment ${consignmentId}`
-          )
-          callback(null)
+          const getConsignment = result.data.getConsignment
+          if (getConsignment) {
+            const fileChecks = getConsignment.fileChecks
+            const totalFiles = getConsignment.totalFiles
+            const antivirusProcessed =
+              fileChecks.antivirusProgress.filesProcessed
+            const checksumProcessed = fileChecks.checksumProgress.filesProcessed
+            const ffidProcessed = fileChecks.ffidProgress.filesProcessed
+            callback({
+              antivirusProcessed,
+              checksumProcessed,
+              ffidProcessed,
+              totalFiles
+            })
+          } else {
+            console.log(
+              `No progress metadata found for consignment ${consignmentId}`
+            )
+            callback(null)
+          }
         }
-      }
-    })
-    .catch(() => callback(null))
+      })
+      .catch(() => callback(null))
+  })
 }

@@ -6,6 +6,7 @@ import { FileUploader } from "../src/upload"
 import { UploadForm, IReader, IWebkitEntry } from "../src/upload/upload-form"
 import { mockKeycloakInstance } from "./utils"
 import { IFrontEndInfo } from "../src"
+import {UpdateConsignmentStatus} from "../src/updateconsignmentstatus";
 
 interface SubmitEvent extends Event {
   submitter: HTMLElement
@@ -264,8 +265,10 @@ class MockDom {
       stage: "test"
     }
     const uploadMetadata = new ClientFileMetadataUpload(client)
+    const updateConsignmentStatus = new UpdateConsignmentStatus(client)
     return new FileUploader(
       uploadMetadata,
+      updateConsignmentStatus,
       "identityId",
       frontendInfo,
       mockGoToNextPage
