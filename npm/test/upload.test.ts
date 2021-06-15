@@ -8,7 +8,13 @@ import { mockKeycloakInstance } from "./utils"
 import { GraphqlClient } from "../src/graphql"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
+import {UpdateConsignmentStatus} from "../src/updateconsignmentstatus";
+import {DocumentNode, FetchResult} from "apollo-boost";
+import {
+  MarkUploadAsCompletedMutation
+} from "@nationalarchives/tdr-generated-graphql";
 jest.mock("../src/clientfileprocessing")
+jest.mock("../src/graphql")
 
 beforeEach(() => jest.resetModules())
 
@@ -44,6 +50,18 @@ class ClientFileProcessingFailure {
     stage: string
   ) => {
     throw Error("Some error")
+  }
+}
+
+class GraphqlClientSuccess {
+  mutation: (
+      query: DocumentNode,
+      variables: any
+  ) => Promise<FetchResult<MarkUploadAsCompletedMutation>> = async (_, __) => {
+    const data: MarkUploadAsCompletedMutation = {
+      markUploadAsCompleted: 1
+    }
+    return { data }
   }
 }
 
@@ -104,6 +122,8 @@ test("upload function console logs error when upload fails", async () => {
 })
 
 function setUpFileUploader(): FileUploader {
+  const clientMock = GraphqlClient as jest.Mock
+  clientMock.mockImplementation(() => new GraphqlClientSuccess())
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
   const frontendInfo: IFrontEndInfo = {
@@ -114,8 +134,10 @@ function setUpFileUploader(): FileUploader {
     region: "",
     stage: "test"
   }
+  const updateConsignmentStatus = new UpdateConsignmentStatus(client)
   return new FileUploader(
     uploadMetadata,
+    updateConsignmentStatus,
     "identityId",
     frontendInfo,
     mockGoToNextPage
