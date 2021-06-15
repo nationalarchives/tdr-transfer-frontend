@@ -36,11 +36,11 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
       "english" -> boolean
         .verifying("All records must be confirmed as English language before proceeding", b => b),
       "droAppraisalSelection" -> boolean
-        .verifying("DRO must have signed off the appraisal and selection decision for records", b => b),
+        .verifying("Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records", b => b),
       "droSensitivity" -> boolean
-        .verifying("DRO must have signed off sensitivity review", b => b),
+        .verifying("Departmental Records Officer (DRO) must have signed off sensitivity review", b => b),
       "openRecords" -> boolean
-        .verifying("All records must be OPEN", b => b)
+        .verifying("All records must be open", b => b)
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
