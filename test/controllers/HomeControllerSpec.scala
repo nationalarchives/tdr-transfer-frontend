@@ -28,7 +28,7 @@ class HomeControllerSpec extends FrontEndTestHelper {
 
       status(home) mustBe OK
       contentAsString(home) must include ("Transfer Digital Records")
-      contentAsString(home) must include ("Welcome")
+      contentAsString(home) must include ("Introduction")
       contentAsString(home) must include ("Start now")
     }
 
