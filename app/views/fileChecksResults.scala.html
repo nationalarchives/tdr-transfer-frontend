@@ -13,8 +13,8 @@
                 Success
             </h2>
             <div class="success-summary__body">
-                <p>Your folder '@{consignmentInfo.parentFolder}' containing @{consignmentInfo.numberOfFiles} item@if(consignmentInfo.numberOfFiles > 1){s} has been successfully checked and uploaded.</p>
-                <p>Click 'Continue' to proceed with your transfer.</p>
+                <p class="govuk-body">Your folder '@{consignmentInfo.parentFolder}' containing @{consignmentInfo.numberOfFiles} item@if(consignmentInfo.numberOfFiles > 1){s} has been successfully checked and uploaded.</p>
+                <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
             </div>
         </div>
         <a href="@routes.TransferSummaryController.transferSummary(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
