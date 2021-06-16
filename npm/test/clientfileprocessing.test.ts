@@ -462,7 +462,7 @@ function setupUploadPageHTML() {
     <div id="progress-bar" class="govuk-grid-row" hidden>
         <div>
           <span id="upload-status-screen-reader"><label for="upload-records-progress-bar" class="govuk-label progress-label"></label></span>
-          <progress class="progress-display" value="" max="50"></progress>
+          <progress class="progress-display" value="0" max="50"></progress>
         </div>
     </div>`
 
