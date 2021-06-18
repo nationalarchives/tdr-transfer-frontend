@@ -30,7 +30,7 @@ import util.{EnglishLang, FrontEndTestHelper}
 
 import scala.concurrent.ExecutionContext
 
-class TransferSummaryControllerSpec extends FrontEndTestHelper {
+class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val wiremockServer = new WireMockServer(9006)
@@ -56,10 +56,10 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
   }
 
-  "TransferSummaryController GET" should {
+  "ConfirmTransferController GET" should {
     "render the transfer summary page with an authenticated user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
 
       val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
@@ -67,35 +67,35 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val transferSummaryPage = controller.transferSummary(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
+      val confirmTransferPage = controller.confirmTransfer(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
 
-      playStatus(transferSummaryPage) mustBe OK
-      contentType(transferSummaryPage) mustBe Some("text/html")
-      contentAsString(transferSummaryPage) must include("Confirm transfer")
+      playStatus(confirmTransferPage) mustBe OK
+      contentType(confirmTransferPage) mustBe Some("text/html")
+      contentAsString(confirmTransferPage) must include("Confirm transfer")
 
-      contentAsString(transferSummaryPage) must include("Series reference")
-      contentAsString(transferSummaryPage) must include(consignmentSummaryResponse.series.get.code.get)
+      contentAsString(confirmTransferPage) must include("Series reference")
+      contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.series.get.code.get)
 
-      contentAsString(transferSummaryPage) must include("Transferring body")
-      contentAsString(transferSummaryPage) must include(consignmentSummaryResponse.transferringBody.get.name.get)
+      contentAsString(confirmTransferPage) must include("Transferring body")
+      contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.transferringBody.get.name.get)
 
-      contentAsString(transferSummaryPage) must include("Files uploaded for transfer")
-      contentAsString(transferSummaryPage) must include(s"${consignmentSummaryResponse.totalFiles} files uploaded")
+      contentAsString(confirmTransferPage) must include("Files uploaded for transfer")
+      contentAsString(confirmTransferPage) must include(s"${consignmentSummaryResponse.totalFiles} files uploaded")
 
-      contentAsString(transferSummaryPage) must include("Consignment reference")
-      contentAsString(transferSummaryPage) must include(consignmentSummaryResponse.consignmentReference)
+      contentAsString(confirmTransferPage) must include("Consignment reference")
+      contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.consignmentReference)
 
-      contentAsString(transferSummaryPage) must include("I confirm that all records in the file I am transferring are open.")
-      contentAsString(transferSummaryPage) must include("I confirm that I am transferring legal ownership of these records to The National Archives.")
+      contentAsString(confirmTransferPage) must include("I confirm that all records in the file I am transferring are open.")
+      contentAsString(confirmTransferPage) must include("I confirm that I am transferring legal ownership of these records to The National Archives.")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = instantiateTransferSummaryController(getUnauthorisedSecurityComponents)
-      val transferSummaryPage = controller.transferSummary(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-summary"))
+      val controller = instantiateConfirmTransferController(getUnauthorisedSecurityComponents)
+      val confirmTransferPage = controller.confirmTransfer(consignmentId).apply(FakeRequest(GET, "/consignment/123/confirm-transfer"))
 
-      redirectLocation(transferSummaryPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
-      playStatus(transferSummaryPage) mustBe FOUND
+      redirectLocation(confirmTransferPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      playStatus(confirmTransferPage) mustBe FOUND
     }
 
     "throws an authorisation exception when the user does not have permission to see a consignment's transfer summary" in {
@@ -106,11 +106,11 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
-      val transferSummaryPage = controller.transferSummary(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-summary").withCSRFToken)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+      val confirmTransferPage = controller.confirmTransfer(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
 
-      val failure: Throwable = transferSummaryPage.failed.futureValue
+      val failure: Throwable = confirmTransferPage.failed.futureValue
 
       failure mustBe an[AuthorisationException]
     }
@@ -123,9 +123,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = false, transferLegalOwnershipValue = false): _*)
           .withCSRFToken)
 
@@ -149,9 +149,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = false): _*)
           .withCSRFToken)
 
@@ -176,9 +176,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = false, transferLegalOwnershipValue = true): _*)
           .withCSRFToken)
 
@@ -202,7 +202,7 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest()
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
@@ -215,9 +215,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     "render an error when a valid form is submitted but there is an error from the api" in {
       stubFinalTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken)
 
@@ -228,9 +228,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     "throws an authorisation exception when the user does not have permission to save the transfer summary" in {
       stubFinalTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken)
 
@@ -246,9 +246,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult: Result = controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken
         ).futureValue
@@ -263,9 +263,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(serverError()))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken
         ).failed.futureValue
@@ -280,9 +280,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken
         ).futureValue
@@ -295,9 +295,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(serverError()))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken
         ).failed.futureValue
@@ -312,9 +312,9 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(ok()))
 
-      val controller = instantiateTransferSummaryController(getAuthorisedSecurityComponents)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       controller.finalTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-summary")
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken
         ).futureValue
@@ -323,11 +323,11 @@ class TransferSummaryControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def instantiateTransferSummaryController(securityComponents: SecurityComponents) = {
+  private def instantiateConfirmTransferController(securityComponents: SecurityComponents) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 
-    new TransferSummaryController(securityComponents, new GraphQLConfiguration(app.configuration),
+    new ConfirmTransferController(securityComponents, new GraphQLConfiguration(app.configuration),
       getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
   }
 
