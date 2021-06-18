@@ -7,7 +7,7 @@
 @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            @progressIndicator(Messages("transferSummary.progress"))
+            @progressIndicator(Messages("confirmTransfer.progress"))
 
             <h1 class="govuk-heading-l">Confirm transfer</h1>
             <p class="govuk-body">Here is a summary of the records you have uploaded.</p>
@@ -53,7 +53,7 @@
         <p class="govuk-body">Please confirm you would like to transfer ownership of the records to The National Archives.</p>
         <div class="govuk-form-group ">
             @form(
-            routes.TransferSummaryController.finalTransferConfirmationSubmit(consignmentId),
+            routes.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId),
             (Symbol("novalidate"), "")
             ) {
                 @CSRF.formField
