@@ -49,7 +49,7 @@ export class ClientFileMetadataUpload {
       const errorMessage: string = result.errors
         ? result.errors.toString()
         : "no data"
-      throw Error("Add files failed: " + errorMessage)
+      throw Error(`Add files failed: ${errorMessage}`)
     } else {
       return result.data.addFiles.fileIds
     }
@@ -78,7 +78,7 @@ export class ClientFileMetadataUpload {
 
       if (result.errors) {
         throw Error(
-          "Add client file metadata failed: " + result.errors.toString()
+          `Add client file metadata failed: ${result.errors.toString()}`
         )
       }
     }
