@@ -16,13 +16,13 @@ export class FileUploader {
   goToNextPage: () => void
 
   constructor(
-    clientFileProcessing: ClientFileMetadataUpload,
+    clientFileMetadataUpload: ClientFileMetadataUpload,
     identityId: string,
     frontendInfo: IFrontEndInfo,
     goToNextPage: () => void
   ) {
     this.clientFileProcessing = new ClientFileProcessing(
-      clientFileProcessing,
+      clientFileMetadataUpload,
       new S3Upload(identityId, frontendInfo.region)
     )
     this.stage = frontendInfo.stage

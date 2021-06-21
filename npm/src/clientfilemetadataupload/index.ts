@@ -115,16 +115,16 @@ export class ClientFileMetadataUpload {
     })
   }
 
-  createMetadataInputBatches(metadataInput: AddClientFileMetadataInput[]) {
+  createMetadataInputBatches(metadataInputs: AddClientFileMetadataInput[]) {
     const batches: AddClientFileMetadataInput[][] = []
 
     for (
       let index = 0;
-      index < metadataInput.length;
+      index < metadataInputs.length;
       index += METADATA_UPLOAD_BATCH_SIZE
     ) {
       batches.push(
-        metadataInput.slice(index, index + METADATA_UPLOAD_BATCH_SIZE)
+        metadataInputs.slice(index, index + METADATA_UPLOAD_BATCH_SIZE)
       )
     }
 
