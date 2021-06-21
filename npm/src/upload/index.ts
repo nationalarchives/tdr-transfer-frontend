@@ -49,7 +49,7 @@ export class FileUploader {
       this.goToNextPage()
     } catch (e) {
       //For now console log errors
-      console.error("Client file upload failed: " + e.message)
+      console.error(`Client file upload failed: ${e.message}`)
     }
   }
 
