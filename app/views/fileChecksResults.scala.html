@@ -2,11 +2,11 @@
 @import viewsapi.FrontEndInfo
 @(consignmentInfo: ConsignmentFolderInfo, consignmentId: java.util.UUID)(implicit messages: Messages, request: RequestHeader)
 
-@main("Record check results") {
+@main("Result of checks") {
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("fileChecksResults.progress"))
-        <h1 class="govuk-heading-l">Results of your checks</h1>
+        <h1 class="govuk-heading-l">Result of your checks</h1>
         <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
         role="alert" data-module="success-summary" tabindex="-1">
             <h2 class="success-summary__title" id="success-summary-title">
