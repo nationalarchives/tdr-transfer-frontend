@@ -133,17 +133,17 @@ function checkExpectedUploadProgressErrorState(errorSuffix: string) {
 
 function setupErrorHtml() {
   document.body.innerHTML =
-    '<div id="file-upload">' +
-    '<form id="file-upload-form">' +
-    '<div class="govuk-error-summary upload-error hide">' +
-    '<p class="upload-error__message">' +
-    "</p>" +
-    "</div>" +
-    '<div class="govuk-error-summary logged-out-error hide">' +
-    '<a class="logged-out-error-link"></a>' +
-    "</div>" +
-    "</form>" +
-    "</div>"
+    `<div id="file-upload">
+      <form id="file-upload-form">
+        <div class="govuk-error-summary upload-error hide">
+          <p class="upload-error__message">
+          </p>
+        </div>
+        <div class="govuk-error-summary logged-out-error hide">
+          <a class="logged-out-error-link"></a>
+        </div>
+      </form>
+    </div>`
 }
 
 function setupProgressBarErrorHtml() {
