@@ -1,0 +1,108 @@
+@(isLoggedIn: Boolean)(implicit messages: Messages, request: RequestHeader)
+
+@main("Cookies", isLoggedIn = isLoggedIn) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-l">Cookies</h1>
+
+            <p class="govuk-body">
+                Cookies are small files saved on your computer, phone or tablet that allow us to store information about
+                how you use our website, such as the pages you visit or any preferences you set. They help us to provide
+                you with a better experience. Read more about cookies used on
+                <a class="govuk-link" href="https://nationalarchives.gov.uk/legal/cookies/">The National Archives</a>
+                    website.
+            </p>
+            <p class="govuk-body">
+                Within the Transfer Digital Records service, we only use cookies that are essential in order to make the
+                service work. They cannot be used to identify you personally.
+            </p>
+
+            <h2 class="govuk-heading-m">Why do we use cookies?</h2>
+            <p class="govuk-body">We use cookies to improve the services that we provide and to ensure they work for you
+                by:
+            </p>
+            <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+                <li>Enabling a service to recognise your device so you don’t have to give the same information several
+                    times during one task</li>
+                <li>Recognising that you may already have provided a username and password so you don’t need to do it
+                    for every web page requested</li>
+            </ul>
+            <p class="govuk-body">We classify the cookies we use within the Transfer Digital Records service in the
+                following categories:
+            </p>
+            <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+                <li>Analytics cookies (optional, although none are currently used within the Transfer Digital Records
+                    service)
+                </li>
+                <li>Functional (optional, although none are currently used within the Transfer Digital Records service)
+                </li>
+                <li>Essential cookies (non-optional)</li>
+            </ul>
+            <p class="govuk-body">We do not use any cookies for marketing or targeting purposes.</p>
+
+            <h2 class="govuk-heading-m">Essential cookies</h2>
+            <p class="govuk-body">These are necessary to make our site work. You can disable them by changing your
+                browser preferences. However, you should be aware that doing so will mean some parts of the website
+                will stop working for you.
+            </p>
+            <table class="govuk-table">
+                <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                        <th scope="col" class="govuk-table__header govuk-!-width-one-third">Cookie name</th>
+                        <th scope="col" class="govuk-table__header govuk-!-width-one-third">What it does/typical content</th>
+                        <th scope="col" class="govuk-table__header govuk-!-width-one-third">Duration</th>
+                    </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                    <tr class="govuk-table__row">
+                        <th scope="row" class="govuk-table__header govuk-!-font-size-14">pac4jCsrfToken</th>
+                        <td class="govuk-table__cell">A security related cookie that helps prevent certain types of malicious activity</td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <th scope="row" class="govuk-table__header govuk-!-font-size-14">PLAY_SESSION</th>
+                        <td class="govuk-table__cell">A cookie set by the web application that keeps track of your session as you use the service</td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <th scope="row" class="govuk-table__header govuk-!-font-size-14">KEYCLOAK_SESSION_LEGACY</th>
+                        <td class="govuk-table__cell">A cookie set by the authorisation component of the service that keeps track of the session as you use the service</td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <th scope="row" class="govuk-table__header govuk-!-font-size-14">KEYCLOAK_SESSION</th>
+                        <td class="govuk-table__cell">A cookie set by the authorisation component of the service that keeps track of the session as you use the service</td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <th scope="row" class="govuk-table__header govuk-!-font-size-14">KEYCLOAK_IDENTITY_LEGACY</th>
+                        <td class="govuk-table__cell">A cookie set by the authorisation component of the service that keeps track of elements related to your identity as you use the service</td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <th scope="row" class="govuk-table__header govuk-!-font-size-14">KEYCLOAK_IDENTITY</th>
+                        <td class="govuk-table__cell">A cookie set by the authorisation component of the service that keeps track of elements related to your identity as you use the service</td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <th scope="row" class="govuk-table__header govuk-!-font-size-14">AUTH_SESSION_ID_LEGACY</th>
+                        <td class="govuk-table__cell">A cookie set by the authorisation component of the service that keeps track of the session identity as you use the service</td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                    <tr class="govuk-table__row">
+                        <th scope="row" class="govuk-table__header govuk-!-font-size-14">AUTH_SESSION_ID</th>
+                        <td class="govuk-table__cell">A cookie set by the authorisation component of the service that keeps track of the session identity as you use the service</td>
+                        <td class="govuk-table__cell">Expires when you exit the browser</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 class="govuk-heading-m">Third party cookies</h2>
+            <p class="govuk-body">These are cookies set by a website other than nationalarchives.gov.uk. They are set
+                when you click on a third party link such as SmartSurvey. You cannot set your preferences for these on
+                our site, but you can block them directly from your browser.
+            </p>
+
+        </div>
+    </div>
+}
