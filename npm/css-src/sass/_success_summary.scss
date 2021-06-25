@@ -1,0 +1,37 @@
+// We have adapted this component https://design-system.service.gov.uk/components/error-summary/ from the GOV UK design system.
+.success-summary {
+  @include govuk-text-colour;
+  @include govuk-text-colour;
+  @include govuk-responsive-padding(4);
+  @include govuk-responsive-margin(8, 'bottom');
+
+  border: $govuk-border-width solid $govuk-success-colour;
+
+  &:focus {
+    outline: $govuk-focus-width solid $govuk-focus-colour;
+  }
+}
+
+.success-summary__title {
+  @include govuk-responsive-margin(4, 'bottom');
+  margin-top: 0;
+}
+
+.success-summary__body {
+  p {
+    @include govuk-responsive-margin(4, 'bottom');
+    margin-top: 0;
+  }
+}
+
+// Cross-component class - adjusts styling of list component
+.success-summary__list {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+.success-summary__list a {
+  @include govuk-typography-weight-bold;
+  @include govuk-link-common;
+  @include govuk-link-style-success;
+}

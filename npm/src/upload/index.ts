@@ -16,13 +16,13 @@ export class FileUploader {
   goToNextPage: () => void
 
   constructor(
-    clientFileProcessing: ClientFileMetadataUpload,
+    clientFileMetadataUpload: ClientFileMetadataUpload,
     identityId: string,
     frontendInfo: IFrontEndInfo,
     goToNextPage: () => void
   ) {
     this.clientFileProcessing = new ClientFileProcessing(
-      clientFileProcessing,
+      clientFileMetadataUpload,
       new S3Upload(identityId, frontendInfo.region)
     )
     this.stage = frontendInfo.stage
@@ -49,7 +49,7 @@ export class FileUploader {
       this.goToNextPage()
     } catch (e) {
       //For now console log errors
-      console.error("Client file upload failed: " + e.message)
+      console.error(`Client file upload failed: ${e.message}`)
     }
   }
 

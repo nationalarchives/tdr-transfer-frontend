@@ -19,7 +19,7 @@ import validation.ValidatedActions
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TransferSummaryController @Inject()(val controllerComponents: SecurityComponents,
+class ConfirmTransferController @Inject()(val controllerComponents: SecurityComponents,
                                           val graphqlConfiguration: GraphQLConfiguration,
                                           val keycloakConfiguration: KeycloakConfiguration,
                                           consignmentService: ConsignmentService,
@@ -41,7 +41,7 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
 
   private def getConsignmentSummary(request: Request[AnyContent], consignmentId: UUID)
                                    (implicit requestHeader: RequestHeader): Future[ConsignmentSummaryData] = {
-    consignmentService.getConsignmentTransferSummary(consignmentId, request.token.bearerAccessToken)
+    consignmentService.getConsignmentConfirmTransfer(consignmentId, request.token.bearerAccessToken)
       .map { summary =>
         ConsignmentSummaryData(summary.series.get.code,
           summary.transferringBody.get.name,
@@ -50,10 +50,10 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
       }
   }
 
-  def transferSummary(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def confirmTransfer(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     getConsignmentSummary(request, consignmentId)
       .map { consignmentSummary =>
-        Ok(views.html.transferSummary(consignmentId, consignmentSummary, finalTransferConfirmationForm))
+        Ok(views.html.confirmTransfer(consignmentId, consignmentSummary, finalTransferConfirmationForm))
       }
   }
 
@@ -61,7 +61,7 @@ class TransferSummaryController @Inject()(val controllerComponents: SecurityComp
     secureAction.async { implicit request: Request[AnyContent] =>
       val errorFunction: Form[FinalTransferConfirmationData] => Future[Result] = { formWithErrors: Form[FinalTransferConfirmationData] =>
         getConsignmentSummary(request, consignmentId).map { summary =>
-          BadRequest(views.html.transferSummary(consignmentId, summary, formWithErrors))
+          BadRequest(views.html.confirmTransfer(consignmentId, summary, formWithErrors))
         }
       }
 

@@ -49,7 +49,7 @@ export class ClientFileMetadataUpload {
       const errorMessage: string = result.errors
         ? result.errors.toString()
         : "no data"
-      throw Error("Add files failed: " + errorMessage)
+      throw Error(`Add files failed: ${errorMessage}`)
     } else {
       return result.data.addFiles.fileIds
     }
@@ -78,7 +78,7 @@ export class ClientFileMetadataUpload {
 
       if (result.errors) {
         throw Error(
-          "Add client file metadata failed: " + result.errors.toString()
+          `Add client file metadata failed: ${result.errors.toString()}`
         )
       }
     }
@@ -115,16 +115,16 @@ export class ClientFileMetadataUpload {
     })
   }
 
-  createMetadataInputBatches(metadataInput: AddClientFileMetadataInput[]) {
+  createMetadataInputBatches(metadataInputs: AddClientFileMetadataInput[]) {
     const batches: AddClientFileMetadataInput[][] = []
 
     for (
       let index = 0;
-      index < metadataInput.length;
+      index < metadataInputs.length;
       index += METADATA_UPLOAD_BATCH_SIZE
     ) {
       batches.push(
-        metadataInput.slice(index, index + METADATA_UPLOAD_BATCH_SIZE)
+        metadataInputs.slice(index, index + METADATA_UPLOAD_BATCH_SIZE)
       )
     }
 
