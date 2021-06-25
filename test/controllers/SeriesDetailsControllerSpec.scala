@@ -59,7 +59,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
       contentAsString(seriesDetailsPage) must include ("Series Information")
-      contentAsString(seriesDetailsPage) must include ("Provide series information")
+      contentAsString(seriesDetailsPage) must include ("Choose a series")
       contentAsString(seriesDetailsPage) must include ("Please choose an existing series reference for the records you would like to transfer.")
       contentAsString(seriesDetailsPage) must include ("id=\"series\"")
       contentAsString(seriesDetailsPage) must include (s"""<option value="${seriesId.toString}">code</option>""")
