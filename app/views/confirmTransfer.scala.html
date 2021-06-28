@@ -61,7 +61,7 @@
                     <!-- Open records & transfer legal ownership -->
                     @inputSingleCheckbox(
                     finalTransferConfirmationForm("openRecords"),
-                    Symbol("_label") -> "I confirm that all records in the file I am transferring are open.",
+                    Symbol("_label") -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
                     Symbol("_value") -> "true",
                     Symbol("_smallCheckbox") -> true,
                     Symbol("_checkedOption") -> finalTransferConfirmationForm.data.getOrElse("openRecords", ""),

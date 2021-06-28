@@ -11,7 +11,7 @@ messages: Messages)
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("seriesDetails.progress"))
 
-        <h1 class="govuk-heading-l">Provide series information</h1>
+        <h1 class="govuk-heading-l">Choose a series</h1>
         @errorSummary(seriesDetailsForm("series"))
 
         @form(routes.SeriesDetailsController.seriesSubmit(), (Symbol("novalidate"), "")) {
