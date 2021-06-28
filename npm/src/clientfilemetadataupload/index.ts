@@ -3,6 +3,8 @@ import { GraphqlClient } from "../graphql"
 import { IFileMetadata } from "@nationalarchives/file-information"
 
 import {
+  AddFiles,
+  AddClientFileMetadata,
   AddFilesMutation,
   AddFilesMutationVariables,
   AddClientFileMetadataInput
@@ -11,7 +13,6 @@ import {
 import { FetchResult } from "apollo-boost"
 import { ITdrFile } from "../s3upload"
 import { FileUploadInfo } from "../upload/upload-form"
-import { getGraphqlDocuments } from "../index"
 
 declare var METADATA_UPLOAD_BATCH_SIZE: number
 
@@ -40,9 +41,7 @@ export class ClientFileMetadataUpload {
     }
 
     const result: FetchResult<AddFilesMutation> = await this.client.mutation(
-      (
-        await getGraphqlDocuments()
-      ).AddFiles,
+      AddFiles,
       variables
     )
 
@@ -73,9 +72,7 @@ export class ClientFileMetadataUpload {
     for (const metadataInputs of metadataBatches) {
       const variables = { input: metadataInputs }
       const result = await this.client.mutation(
-        (
-          await getGraphqlDocuments()
-        ).AddClientFileMetadata,
+        AddClientFileMetadata,
         variables
       )
 

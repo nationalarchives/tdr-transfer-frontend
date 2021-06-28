@@ -1,13 +1,13 @@
 import { GraphqlClient } from "../graphql"
 
 import {
+  MarkUploadAsCompleted,
   MarkUploadAsCompletedMutation,
   MarkUploadAsCompletedMutationVariables
 } from "@nationalarchives/tdr-generated-graphql"
 
 import { FetchResult } from "apollo-boost"
 import { FileUploadInfo } from "../upload/upload-form"
-import { getGraphqlDocuments } from "../index"
 
 export class UpdateConsignmentStatus {
   client: GraphqlClient
@@ -24,12 +24,7 @@ export class UpdateConsignmentStatus {
     }
 
     const result: FetchResult<MarkUploadAsCompletedMutation> =
-      await this.client.mutation(
-        (
-          await getGraphqlDocuments()
-        ).MarkUploadAsCompleted,
-        variables
-      )
+      await this.client.mutation(MarkUploadAsCompleted, variables)
 
     if (!result.data || !result.data.markUploadAsCompleted || result.errors) {
       const errorMessage: string = result.errors
