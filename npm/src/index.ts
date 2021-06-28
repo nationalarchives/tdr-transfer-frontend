@@ -26,11 +26,6 @@ export interface IFrontEndInfo {
   cognitoRoleArn: string
 }
 
-export const getGraphqlDocuments: () => Promise<any> = async () => {
-  const imported: any = await import("@nationalarchives/tdr-generated-graphql")
-  return imported["tdr-generated-graphql"]
-}
-
 const getFrontEndInfo: () => IFrontEndInfo = () => {
   const identityPoolElement: HTMLInputElement | null =
     document.querySelector(".identity-pool-id")
