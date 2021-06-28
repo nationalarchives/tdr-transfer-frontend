@@ -1,7 +1,7 @@
 import { GraphqlClient } from "../graphql"
 import {
-  getConsignmentData,
-  IFileCheckProcessed
+  getFileChecksInfo,
+  IFileCheckProgress
 } from "./file-check-processing"
 
 export class FileChecks {
@@ -11,16 +11,16 @@ export class FileChecks {
     this.client = client
   }
 
-  dataCallback: (fileCheckProcessed: IFileCheckProcessed | null) => boolean = (
-    fileCheckProcessed: IFileCheckProcessed | null
+  verifyFileChecksCompletedAndDisplayBanner: (fileChecksProgress: IFileCheckProgress | null) => boolean = (
+    fileChecksProgress: IFileCheckProgress | null
   ) => {
-    if (fileCheckProcessed) {
+    if (fileChecksProgress) {
       const {
         antivirusProcessed,
         checksumProcessed,
         ffidProcessed,
         totalFiles
-      } = fileCheckProcessed
+      } = fileChecksProgress
 
       if (
         antivirusProcessed == totalFiles &&
@@ -46,13 +46,13 @@ export class FileChecks {
   }
 
   updateFileCheckProgress: () => void = () => {
-    const interval: ReturnType<typeof setInterval> = setInterval(async () => {
-      const checksCompleted = await getConsignmentData(
+    const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
+      const checksCompleted = await getFileChecksInfo(
         this.client,
-        this.dataCallback
+        this.verifyFileChecksCompletedAndDisplayBanner
       )
       if (checksCompleted) {
-        clearInterval(interval)
+        clearInterval(intervalId)
       }
     }, 2000)
   }

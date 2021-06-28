@@ -1,12 +1,12 @@
 const mockFileCheckProcessing = {
-  getConsignmentData: jest.fn(),
+  getFileChecksInfo: jest.fn(),
   getConsignmentId: jest.fn()
 }
 
 import { FileChecks } from "../src/filechecks"
 import { GraphqlClient } from "../src/graphql"
 import { mockKeycloakInstance } from "./utils"
-import { IFileCheckProcessed } from "../src/filechecks/file-check-processing"
+import { IFileCheckProgress } from "../src/filechecks/file-check-processing"
 
 jest.mock(
   "../src/filechecks/file-check-processing",
@@ -16,12 +16,12 @@ jest.useFakeTimers()
 const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
 const fileChecks = new FileChecks(client)
 
-const mockConsignmentData: (fileChecks: IFileCheckProcessed) => void = (
+const mockConsignmentData: (fileChecks: IFileCheckProgress) => void = (
   fileChecks
 ) => {
   const { antivirusProcessed, checksumProcessed, ffidProcessed, totalFiles } =
     fileChecks
-  mockFileCheckProcessing.getConsignmentData.mockImplementation((_, callback) =>
+  mockFileCheckProcessing.getFileChecksInfo.mockImplementation((_, callback) =>
     callback({
       antivirusProcessed,
       checksumProcessed,

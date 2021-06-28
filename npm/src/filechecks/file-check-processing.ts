@@ -6,7 +6,7 @@ import {
 import { FetchResult } from "apollo-boost"
 import { GraphqlClient } from "../graphql"
 
-export interface IFileCheckProcessed {
+export interface IFileCheckProgress {
   antivirusProcessed: number
   checksumProcessed: number
   ffidProcessed: number
@@ -22,9 +22,9 @@ export const getConsignmentId: () => string = () => {
   return consignmentIdElement.value
 }
 
-export const getConsignmentData: (
+export const getFileChecksInfo: (
   client: GraphqlClient,
-  callback: (fileCheckProcessed: IFileCheckProcessed | null) => boolean
+  callback: (fileChecksProgress: IFileCheckProgress | null) => boolean
 ) => Promise<boolean> = async (client, callback) => {
   const consignmentId = getConsignmentId()
   const variables: GetFileCheckProgressQueryVariables = {
