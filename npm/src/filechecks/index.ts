@@ -1,9 +1,9 @@
 import { GraphqlClient } from "../graphql"
 import {
   getConsignmentData,
-  IFileCheckProcessed,
-  getConsignmentId
+  IFileCheckProcessed
 } from "./file-check-processing"
+
 export class FileChecks {
   client: GraphqlClient
 
@@ -11,8 +11,8 @@ export class FileChecks {
     this.client = client
   }
 
-  dataCallback: (fileChecksProcessed: IFileCheckProcessed | null) => void = (
-    fileCheckProcessed
+  dataCallback: (fileCheckProcessed: IFileCheckProcessed | null) => boolean = (
+    fileCheckProcessed: IFileCheckProcessed | null
   ) => {
     if (fileCheckProcessed) {
       const {
@@ -27,6 +27,7 @@ export class FileChecks {
         checksumProcessed == totalFiles &&
         ffidProcessed == totalFiles
       ) {
+        const checkCompleted = true
         const checksCompletedBanner: HTMLDivElement | null =
           document.querySelector("#file-checks-completed-banner")
         if (checksCompletedBanner) {
@@ -38,13 +39,21 @@ export class FileChecks {
           continueButton.classList.remove("govuk-button--disabled")
           continueButton.removeAttribute("disabled")
         }
+        return checkCompleted
       }
     }
+    return false
   }
 
-  updateFileCheckProgress() {
-    const interval = setInterval(() => {
-      getConsignmentData(this.client, this.dataCallback)
+  updateFileCheckProgress: () => void = () => {
+    const interval: ReturnType<typeof setInterval> = setInterval(async () => {
+      const checksCompleted = await getConsignmentData(
+        this.client,
+        this.dataCallback
+      )
+      if (checksCompleted) {
+        clearInterval(interval)
+      }
     }, 2000)
   }
 }
