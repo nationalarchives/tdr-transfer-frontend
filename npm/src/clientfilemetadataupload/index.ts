@@ -3,8 +3,8 @@ import { GraphqlClient } from "../graphql"
 import { IFileMetadata } from "@nationalarchives/file-information"
 
 import {
-  AddClientFileMetadata,
   AddFiles,
+  AddClientFileMetadata,
   AddFilesMutation,
   AddFilesMutationVariables,
   AddClientFileMetadataInput
