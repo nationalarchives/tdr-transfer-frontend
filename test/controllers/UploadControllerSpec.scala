@@ -92,6 +92,23 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
       contentAsString(uploadPage) must include("Uploading records")
     }
+
+    "render the upload is complete page if the upload has completed" in {
+      implicit val ec: ExecutionContext = ExecutionContext.global
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, frontEndInfoConfiguration)
+
+      stubGetConsignmentStatusResponse(Option("Completed"))
+      stubGetTransferAgreementResponse(Some(new itac.GetTransferAgreement(true)))
+
+      val uploadPage = controller.uploadPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+
+      status(uploadPage) mustBe OK
+      contentAsString(uploadPage) must include("Uploading records")
+      contentAsString(uploadPage) must include("Your upload is complete and has been saved")
+    }
   }
 
   private def stubGetTransferAgreementResponse(agreement: Option[itac.GetTransferAgreement])(implicit ec: ExecutionContext) = {

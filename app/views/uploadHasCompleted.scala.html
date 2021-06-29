@@ -1,0 +1,19 @@
+@import java.util.UUID
+@(consignmentId: UUID)(implicit request: RequestHeader, messages: Messages)
+
+@main("Upload your records") {
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      @progressIndicator(Messages("upload.progress"))
+      <h1 class="govuk-heading-l">Uploading records</h1>
+
+      <div class="govuk-grid-column-two-thirds">
+        <p>Your upload is complete and has been saved. You cannot make amendments to your upload or add additional files.</p>
+        <p>Please return to the start to begin a new transfer.</p>
+      </div>
+      <a href="@routes.FileChecksResultsController.fileCheckResultsPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--primary">
+        Continue
+      </a>
+    </div>
+  </div>
+}
