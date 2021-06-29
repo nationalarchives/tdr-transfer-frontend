@@ -86,7 +86,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       contentAsString(confirmTransferPage) must include("Consignment reference")
       contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.consignmentReference)
 
-      contentAsString(confirmTransferPage) must include("I confirm that all records in the file I am transferring are open.")
+      contentAsString(confirmTransferPage) must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
       contentAsString(confirmTransferPage) must include("I confirm that I am transferring legal ownership of these records to The National Archives.")
     }
 
