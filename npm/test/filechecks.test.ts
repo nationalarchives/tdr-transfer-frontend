@@ -70,7 +70,7 @@ test("updateFileCheckProgress shows the notification banner and an enabled conti
   expect(notificationBanner).not.toBeNull()
   //Keep typescript happy
   if (notificationBanner && continueButton) {
-    expect(notificationBanner.getAttribute("hidden")).toBeFalsy()
+    expect(notificationBanner.getAttribute("hidden")).toBeNull()
     expect(
       continueButton.classList.contains("govuk-button--disabled")
     ).toBeFalsy()
