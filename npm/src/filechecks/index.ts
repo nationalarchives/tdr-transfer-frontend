@@ -1,8 +1,5 @@
 import { GraphqlClient } from "../graphql"
-import {
-  getFileChecksInfo,
-  IFileCheckProgress
-} from "./file-check-processing"
+import { getFileChecksInfo, IFileCheckProgress } from "./file-check-processing"
 
 export class FileChecks {
   client: GraphqlClient
@@ -11,9 +8,9 @@ export class FileChecks {
     this.client = client
   }
 
-  verifyFileChecksCompletedAndDisplayBanner: (fileChecksProgress: IFileCheckProgress | null) => boolean = (
+  verifyFileChecksCompletedAndDisplayBanner: (
     fileChecksProgress: IFileCheckProgress | null
-  ) => {
+  ) => boolean = (fileChecksProgress: IFileCheckProgress | null) => {
     if (fileChecksProgress) {
       const {
         antivirusProcessed,
