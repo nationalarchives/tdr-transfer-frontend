@@ -7,6 +7,7 @@
 GET         /                                                     controllers.HomeController.index()
 GET         /dashboard                                            controllers.DashboardController.dashboard()
 GET         /contact                                              controllers.ContactController.contact()
+GET         /cookies                                              controllers.CookiesController.cookies()
 GET         /faq                                                  controllers.FaqController.faq()
 GET         /series                                               controllers.SeriesDetailsController.seriesDetails()
 POST        /series                                               controllers.SeriesDetailsController.seriesSubmit()

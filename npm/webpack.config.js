@@ -10,11 +10,17 @@ module.exports = {
         test: /\.ts?$/,
         use: "ts-loader",
         exclude: /node_modules/
-      }
+      },
+      {
+        test: /\.m?js/,
+        resolve: {
+          fullySpecified: false
+        }
+      },
     ]
   },
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".js", ".mjs"],
     fallback: { util: require.resolve("util/") }
   },
   plugins: [

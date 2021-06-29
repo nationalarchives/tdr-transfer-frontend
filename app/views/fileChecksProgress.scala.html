@@ -13,11 +13,15 @@
             <input id="consignmentId" type="hidden" value="@consignmentId">
             <p class="govuk-body">Please wait while your records are being checked. This may take a few minutes.</p>
             <p class="govuk-body">The following checks are now being performed:</p>
-            <ul class="govuk-list govuk-list--bullet govuk-!-margin-bottom-7">
+            <ul class="govuk-list govuk-list--bullet">
                 <li>Anti-virus scanning</li>
                 <li>Identifying file formats</li>
                 <li>Validating data integrity</li>
             </ul>
+            <p class="govuk-body govuk-!-margin-bottom-7">For more information on these checks, please see our
+                <a href="@routes.FaqController.faq()#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in a new tab)</a> for this service.
+            </p>
+
             <div class="govuk-notification-banner" id="file-checks-completed-banner" tabindex="-1" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" @if(!fileChecks.isComplete) {hidden}>
                 <div class="govuk-notification-banner__header">
                     <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">

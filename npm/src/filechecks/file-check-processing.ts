@@ -1,7 +1,7 @@
 import {
+  GetFileCheckProgress,
   GetFileCheckProgressQueryVariables,
-  GetFileCheckProgressQuery,
-  GetFileCheckProgress
+  GetFileCheckProgressQuery
 } from "@nationalarchives/tdr-generated-graphql"
 import { FetchResult } from "apollo-boost"
 import { GraphqlClient } from "../graphql"
