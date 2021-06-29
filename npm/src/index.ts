@@ -7,6 +7,7 @@ import { goToNextPage } from "./upload/next-page-redirect"
 import { FileChecks } from "./filechecks"
 import { CognitoIdentity, STS } from "aws-sdk"
 import { initAll } from "govuk-frontend"
+import { UpdateConsignmentStatus } from "./updateconsignmentstatus"
 
 window.onload = function () {
   initAll()
@@ -89,8 +90,12 @@ export const renderModules = () => {
         new STS({ region: frontEndInfo.region })
       ).then((identityId) => {
         const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
+        const updateConsignmentStatus = new UpdateConsignmentStatus(
+          graphqlClient
+        )
         new FileUploader(
           clientFileProcessing,
+          updateConsignmentStatus,
           identityId,
           frontEndInfo,
           goToNextPage
