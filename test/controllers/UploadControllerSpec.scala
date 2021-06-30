@@ -74,7 +74,10 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+
       status(uploadPage) mustBe OK
+      contentAsString(uploadPage) must include("Uploading records")
+      contentAsString(uploadPage) must include("You can only upload one folder to be transferred")
     }
 
     "render the upload in progress page if the upload is in progress" in {
