@@ -91,6 +91,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       status(uploadPage) mustBe OK
       contentAsString(uploadPage) must include("Uploading records")
+      contentAsString(uploadPage) must include("Your upload was interrupted and could not be completed.")
     }
 
     "render the upload is complete page if the upload has completed" in {
