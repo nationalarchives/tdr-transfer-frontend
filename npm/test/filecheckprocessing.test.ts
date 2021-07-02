@@ -1,15 +1,15 @@
 const mockGraphqlClient = {
-  getConsignmentData: jest.fn(),
+  getFileChecksInfo: jest.fn(),
   getConsignmentId: jest.fn()
 }
 import {
-  IFileCheckProcessed,
-  getConsignmentData,
-  getConsignmentId
+  getFileChecksInfo,
+  getConsignmentId,
+  IFileCheckProgress
 } from "../src/filechecks/file-check-processing"
 import {
-  GetFileCheckProgressQueryVariables,
-  GetFileCheckProgressQuery
+  GetFileCheckProgressQuery,
+  GetFileCheckProgressQueryVariables
 } from "@nationalarchives/tdr-generated-graphql"
 import { GraphqlClient } from "../src/graphql"
 import { mockKeycloakInstance } from "./utils"
@@ -54,60 +54,61 @@ class GraphqlClientFailure {
   mutation: (
     query: DocumentNode,
     variables: GetFileCheckProgressQueryVariables
-  ) => Promise<FetchResult<GetFileCheckProgressQuery>> = (_, __) => {
+  ) => Promise<FetchResult<GetFileCheckProgressQuery>> = async (_, __) => {
     return Promise.reject("error")
   }
 }
 
-test("getConsignmentData returns the correct consignment data with a successful api call", done => {
+test("getFileChecksInfo returns the correct consignment data with a successful api call", (done) => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientSuccess())
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  const callback: (
-    fileCheckProcessed: IFileCheckProcessed | null
-  ) => void = fileCheckProcessed => {
-    expect(fileCheckProcessed!.antivirusProcessed).toBe(2)
-    expect(fileCheckProcessed!.checksumProcessed).toBe(3)
-    expect(fileCheckProcessed!.ffidProcessed).toBe(4)
-    expect(fileCheckProcessed!.totalFiles).toBe(10)
-    done()
-  }
-  getConsignmentData(client, callback)
+  const callback: (fileChecksProgress: IFileCheckProgress | null) => boolean =
+    (fileChecksProgress) => {
+      expect(fileChecksProgress!.antivirusProcessed).toBe(2)
+      expect(fileChecksProgress!.checksumProcessed).toBe(3)
+      expect(fileChecksProgress!.ffidProcessed).toBe(4)
+      expect(fileChecksProgress!.totalFiles).toBe(10)
+      done()
+      return true
+    }
+  getFileChecksInfo(client, callback)
 })
 
-test("getConsignmentData returns null with a failed api call", done => {
+test("getFileChecksInfo returns null with a failed api call", (done) => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientFailure())
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  const callback: (
-    fileCheckProcessed: IFileCheckProcessed | null
-  ) => void = fileCheckProcessed => {
-    expect(fileCheckProcessed).toBeNull()
-    done()
-  }
-  getConsignmentData(client, callback)
+  const callback: (fileChecksProgress: IFileCheckProgress | null) => boolean =
+    (fileChecksProgress) => {
+      expect(fileChecksProgress).toBeNull()
+      done()
+      return false
+    }
+
+  getFileChecksInfo(client, callback)
 })
 
-test("getConsignmentData returns null with empty data from a successful api call", done => {
+test("getFileChecksInfo returns null with empty data from a successful api call", (done) => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientEmptyData())
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  const callback: (
-    fileCheckProcessed: IFileCheckProcessed | null
-  ) => void = fileCheckProcessed => {
-    expect(fileCheckProcessed).toBeNull()
-    done()
-  }
-  getConsignmentData(client, callback)
+  const callback: (fileChecksProgress: IFileCheckProgress | null) => boolean =
+    (fileChecksProgress) => {
+      expect(fileChecksProgress).toBeNull()
+      done()
+      return false
+    }
+  getFileChecksInfo(client, callback)
 })
 
 test("getConsignmentId returns the correct id when the hidden input is present", () => {
