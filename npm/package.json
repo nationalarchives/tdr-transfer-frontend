@@ -41,7 +41,7 @@
     "@nationalarchives/file-information": "1.0.44",
     "@nationalarchives/tdr-generated-graphql": "1.0.75",
     "apollo-boost": "^0.4.9",
-    "aws-sdk": "^2.936.0",
+    "aws-sdk": "^2.938.0",
     "govuk-frontend": "^3.13.0",
     "graphql": "^14.7.0",
     "keycloak-js": "11.0.3",
@@ -60,7 +60,7 @@
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-jest": "^24.3.6",
     "eslint-plugin-prettier": "^3.4.0",
-    "husky": "^6.0.0",
+    "husky": "^7.0.0",
     "jest": "^25.5.4",
     "lint-staged": "^11.0.0",
     "minify": "^7.0.2",
@@ -74,7 +74,7 @@
     "ts-jest": "^25.5.1",
     "ts-loader": "^9.2.3",
     "typescript": "^3.9.10",
-    "webpack": "^5.41.0",
+    "webpack": "^5.42.0",
     "webpack-cli": "^4.7.2"
   },
   "lint-staged": {
