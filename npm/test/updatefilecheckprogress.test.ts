@@ -11,14 +11,14 @@ const mockVerifyChecksCompletedAndDisplayBanner = {
 import { FileChecks } from "../src/filechecks"
 import { GraphqlClient } from "../src/graphql"
 import { mockKeycloakInstance } from "./utils"
-import { IFileCheckProgress } from "../src/filechecks/file-check-processing"
+import { IFileCheckProgress } from "../src/filechecks/get-file-check-progress"
 import {
   displayChecksCompletedBanner,
   haveFileChecksCompleted
 } from "../src/filechecks/verify-checks-completed-and-display-banner"
 
 jest.mock(
-  "../src/filechecks/file-check-processing",
+  "../src/filechecks/get-file-check-progress",
   () => mockFileCheckProcessing
 )
 
