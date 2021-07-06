@@ -36,7 +36,7 @@ beforeEach(() => {
 const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
 const fileChecks = new FileChecks(client)
 
-const mockGetFileChecksProgress: (fileChecks: IFileCheckProgress) => void = (
+const mockGetFileChecksProgress: (fileChecks: IFileCheckProgress | null) => void = (
   fileChecks
 ) =>
   mockFileCheckProcessing.getFileChecksProgress.mockImplementation(
@@ -103,6 +103,32 @@ test("updateFileCheckProgress shows no banner and a disabled continue button if 
     ffidProcessed: 1,
     totalFiles: 2
   })
+  delete window.location
+  window.location = {
+    ...window.location,
+    origin: "testorigin",
+    href: "originalHref"
+  }
+  mockVerifyChecksCompletedAndDisplayBanner.haveFileChecksCompleted.mockImplementation(
+    () => false
+  )
+  mockDisplayChecksCompletedBanner()
+
+  fileChecks.updateFileCheckProgress()
+  await jest.runOnlyPendingTimers()
+
+  expect(haveFileChecksCompleted).toBeCalled()
+  expect(displayChecksCompletedBanner).not.toBeCalled()
+})
+
+test("updateFileCheckProgress shows no banner and a disabled continue button if no file checks information is returned", async () => {
+  const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
+  document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
+                            <a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
+  mockFileCheckProcessing.getConsignmentId.mockImplementation(
+    () => consignmentId
+  )
+  mockGetFileChecksProgress(null)
   delete window.location
   window.location = {
     ...window.location,
