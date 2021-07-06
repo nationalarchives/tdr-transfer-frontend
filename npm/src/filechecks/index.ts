@@ -3,7 +3,7 @@ import {
   displayChecksCompletedBanner,
   haveFileChecksCompleted
 } from "./verify-checks-completed-and-display-banner"
-import { getFileChecksInfo, IFileCheckProgress } from "./file-check-processing"
+import { getFileChecksProgress, IFileCheckProgress } from "./file-check-processing"
 
 export class FileChecks {
   client: GraphqlClient
@@ -15,7 +15,7 @@ export class FileChecks {
   updateFileCheckProgress: () => void = () => {
     const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
       const fileChecksProgress: IFileCheckProgress | null =
-        await getFileChecksInfo(this.client)
+        await getFileChecksProgress(this.client)
       const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
       if (checksCompleted) {
         clearInterval(intervalId)

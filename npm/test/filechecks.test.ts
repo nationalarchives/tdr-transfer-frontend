@@ -1,5 +1,5 @@
 const mockFileCheckProcessing = {
-  getFileChecksInfo: jest.fn(),
+  getFileChecksProgress: jest.fn(),
   getConsignmentId: jest.fn()
 }
 
@@ -36,10 +36,10 @@ beforeEach(() => {
 const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
 const fileChecks = new FileChecks(client)
 
-const mockConsignmentData: (fileChecks: IFileCheckProgress) => void = (
+const mockGetFileChecksProgress: (fileChecks: IFileCheckProgress) => void = (
   fileChecks
 ) =>
-  mockFileCheckProcessing.getFileChecksInfo.mockImplementation(
+  mockFileCheckProcessing.getFileChecksProgress.mockImplementation(
     (_) => fileChecks
   )
 
@@ -63,7 +63,7 @@ test("updateFileCheckProgress shows the notification banner and an enabled conti
     () => consignmentId
   )
 
-  mockConsignmentData({
+  mockGetFileChecksProgress({
     antivirusProcessed: 2,
     checksumProcessed: 2,
     ffidProcessed: 2,
@@ -97,7 +97,7 @@ test("updateFileCheckProgress shows no banner and a disabled continue button if 
   mockFileCheckProcessing.getConsignmentId.mockImplementation(
     () => consignmentId
   )
-  mockConsignmentData({
+  mockGetFileChecksProgress({
     antivirusProcessed: 1,
     checksumProcessed: 2,
     ffidProcessed: 1,
