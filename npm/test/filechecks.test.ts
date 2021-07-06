@@ -48,7 +48,7 @@ const mockDisplayChecksCompletedBanner: () => void = () =>
     () => {}
   )
 
-test("updateFileCheckProgress calls setTimeout correctly", async () => {
+test("updateFileCheckProgress calls setInterval correctly", async () => {
   jest.spyOn(global, "setInterval")
   await fileChecks.updateFileCheckProgress()
   jest.runOnlyPendingTimers()
