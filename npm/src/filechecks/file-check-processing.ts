@@ -38,7 +38,7 @@ export const getFileChecksInfo: (
       const errorMessage: string = result.errors
         ? result.errors.toString()
         : "no data"
-      throw Error("Add files failed: " + errorMessage)
+      throw Error(`Add files failed: ${errorMessage}`)
     } else {
       const getConsignment = result.data.getConsignment
 
