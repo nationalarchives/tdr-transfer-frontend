@@ -3,7 +3,7 @@ import {
   displayChecksCompletedBanner,
   haveFileChecksCompleted
 } from "./verify-checks-completed-and-display-banner"
-import { getFileChecksProgress, IFileCheckProgress } from "./file-check-processing"
+import { getFileChecksProgress, IFileCheckProgress } from "./get-file-check-progress"
 
 export class FileChecks {
   client: GraphqlClient

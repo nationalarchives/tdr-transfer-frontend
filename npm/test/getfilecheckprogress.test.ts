@@ -6,7 +6,7 @@ import {
   getConsignmentId,
   getFileChecksProgress,
   IFileCheckProgress
-} from "../src/filechecks/file-check-processing"
+} from "../src/filechecks/get-file-check-progress"
 import {
   GetFileCheckProgressQuery,
   GetFileCheckProgressQueryVariables

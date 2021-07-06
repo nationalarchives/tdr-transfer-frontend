@@ -1,4 +1,4 @@
-import { IFileCheckProgress } from "./file-check-processing"
+import { IFileCheckProgress } from "./get-file-check-progress"
 
 export const haveFileChecksCompleted: (
   fileChecksProgress: IFileCheckProgress | null
