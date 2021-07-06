@@ -44,15 +44,11 @@ export const getFileChecksProgress: (
 
       if (getConsignment) {
         const fileChecks = getConsignment.fileChecks
-        const totalFiles = getConsignment.totalFiles
-        const antivirusProcessed = fileChecks.antivirusProgress.filesProcessed
-        const checksumProcessed = fileChecks.checksumProgress.filesProcessed
-        const ffidProcessed = fileChecks.ffidProgress.filesProcessed
         return {
-          antivirusProcessed,
-          checksumProcessed,
-          ffidProcessed,
-          totalFiles
+          antivirusProcessed: fileChecks.antivirusProgress.filesProcessed,
+          checksumProcessed: fileChecks.checksumProgress.filesProcessed,
+          ffidProcessed: fileChecks.ffidProgress.filesProcessed,
+          totalFiles: getConsignment.totalFiles
         }
       } else {
         console.log(
