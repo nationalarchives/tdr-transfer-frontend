@@ -22,7 +22,7 @@ export const getConsignmentId: () => string = () => {
   return consignmentIdElement.value
 }
 
-export const getFileChecksInfo: (
+export const getFileChecksProgress: (
   client: GraphqlClient
 ) => Promise<IFileCheckProgress | null> = async (client) => {
   const consignmentId = getConsignmentId()
