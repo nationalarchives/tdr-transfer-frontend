@@ -3,14 +3,25 @@ const mockFileCheckProcessing = {
   getConsignmentId: jest.fn()
 }
 
+const mockVerifyChecksCompletedAndDisplayBanner = {
+  // displayChecksCompletedBanner: jest.fn(),
+  haveFileChecksCompleted: jest.fn()
+}
+
 import { FileChecks } from "../src/filechecks"
 import { GraphqlClient } from "../src/graphql"
 import { mockKeycloakInstance } from "./utils"
 import { IFileCheckProgress } from "../src/filechecks/file-check-processing"
+import { displayChecksCompletedBanner, haveFileChecksCompleted } from "../src/filechecks/verify-checks-completed-and-display-banner"
 
 jest.mock(
   "../src/filechecks/file-check-processing",
   () => mockFileCheckProcessing
+)
+
+jest.mock(
+  "../src/filechecks/verify-checks-completed-and-display-banner",
+  () => mockVerifyChecksCompletedAndDisplayBanner
 )
 jest.useFakeTimers()
 const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
@@ -18,18 +29,10 @@ const fileChecks = new FileChecks(client)
 
 const mockConsignmentData: (fileChecks: IFileCheckProgress) => void = (
   fileChecks
-) => {
-  const { antivirusProcessed, checksumProcessed, ffidProcessed, totalFiles } =
-    fileChecks
-  mockFileCheckProcessing.getFileChecksInfo.mockImplementation((_, callback) =>
-    callback({
-      antivirusProcessed,
-      checksumProcessed,
-      ffidProcessed,
-      totalFiles
-    })
+) =>
+  mockFileCheckProcessing.getFileChecksInfo.mockImplementation(
+    (_) => fileChecks
   )
-}
 
 test("updateFileCheckProgress calls setTimeout correctly", async () => {
   jest.spyOn(global, "setInterval")
@@ -58,9 +61,16 @@ test("updateFileCheckProgress shows the notification banner and an enabled conti
     origin: "testorigin",
     href: "originalHref"
   }
+  mockVerifyChecksCompletedAndDisplayBanner.haveFileChecksCompleted.mockImplementation(
+    () => true
+  )
 
+  // mockVerifyChecksCompletedAndDisplayBanner.displayChecksCompletedBanner.mockImplementation(
+  //   () => {console.log("AHHHHHH")}
+  // )
   fileChecks.updateFileCheckProgress()
   jest.runOnlyPendingTimers()
+  // expect(displayChecksCompletedBanner).toBeCalled()
 
   const notificationBanner = document.querySelector(
     "#file-checks-completed-banner"
@@ -96,7 +106,10 @@ test("updateFileCheckProgress shows no banner and a disabled continue button if 
     origin: "testorigin",
     href: "originalHref"
   }
-  fileChecks.updateFileCheckProgress()
+  // fileChecks.updateFileCheckProgress()
+  // jest.spyOn(mockVerifyChecksCompletedAndDisplayBanner, "displayChecksCompletedBanner")
+  // expect(displayChecksCompletedBanner).toHaveBeenCalledTimes(1);
+  expect(displayChecksCompletedBanner).toBeCalled()
   jest.runOnlyPendingTimers()
   const notificationBanner = document.querySelector(
     "#file-checks-completed-banner"

@@ -23,9 +23,8 @@ export const getConsignmentId: () => string = () => {
 }
 
 export const getFileChecksInfo: (
-  client: GraphqlClient,
-  callback: (fileChecksProgress: IFileCheckProgress | null) => boolean
-) => Promise<boolean> = async (client, callback) => {
+  client: GraphqlClient
+) => Promise<IFileCheckProgress | null> = async (client) => {
   const consignmentId = getConsignmentId()
   const variables: GetFileCheckProgressQueryVariables = {
     consignmentId
@@ -34,6 +33,7 @@ export const getFileChecksInfo: (
   try {
     const result: FetchResult<GetFileCheckProgressQuery> =
       await client.mutation(GetFileCheckProgress, variables)
+
     if (!result.data || result.errors) {
       const errorMessage: string = result.errors
         ? result.errors.toString()
@@ -41,26 +41,27 @@ export const getFileChecksInfo: (
       throw Error("Add files failed: " + errorMessage)
     } else {
       const getConsignment = result.data.getConsignment
+
       if (getConsignment) {
         const fileChecks = getConsignment.fileChecks
         const totalFiles = getConsignment.totalFiles
         const antivirusProcessed = fileChecks.antivirusProgress.filesProcessed
         const checksumProcessed = fileChecks.checksumProgress.filesProcessed
         const ffidProcessed = fileChecks.ffidProgress.filesProcessed
-        return callback({
+        return {
           antivirusProcessed,
           checksumProcessed,
           ffidProcessed,
           totalFiles
-        })
+        }
       } else {
         console.log(
           `No progress metadata found for consignment ${consignmentId}`
         )
-        return callback(null)
+        return null
       }
     }
   } catch (error) {
-    return callback(null)
+    return null
   }
 }
