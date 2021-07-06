@@ -13,11 +13,6 @@ import { mockKeycloakInstance } from "./utils"
 import { DocumentNode, GraphQLError } from "graphql"
 import { FetchResult } from "apollo-boost"
 
-const mockGraphqlClient = {
-  getFileChecksProgress: jest.fn(),
-  getConsignmentId: jest.fn()
-}
-
 jest.mock("../src/graphql")
 
 class GraphqlClientSuccess {
