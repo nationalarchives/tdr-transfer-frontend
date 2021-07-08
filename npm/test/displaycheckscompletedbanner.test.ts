@@ -1,44 +1,6 @@
 import {
-  displayChecksCompletedBanner,
-  haveFileChecksCompleted
-} from "../src/filechecks/verify-checks-completed-and-display-banner"
-
-test("haveFileChecksCompleted returns true if file checks have completed", () => {
-  const mockFileChecksResponse = {
-    antivirusProcessed: 2,
-    checksumProcessed: 2,
-    ffidProcessed: 2,
-    totalFiles: 2
-  }
-
-  const checksCompleted: boolean = haveFileChecksCompleted(
-    mockFileChecksResponse
-  )
-  expect(checksCompleted).toBe(true)
-})
-
-test("haveFileChecksCompleted returns false if file checks have not completed", () => {
-  const mockFileChecksResponse = {
-    antivirusProcessed: 1,
-    checksumProcessed: 2,
-    ffidProcessed: 1,
-    totalFiles: 2
-  }
-  const checksCompleted: boolean = haveFileChecksCompleted(
-    mockFileChecksResponse
-  )
-
-  expect(checksCompleted).toBe(false)
-})
-
-test("haveFileChecksCompleted returns false if null was passed in", () => {
-  const mockFileChecksResponse = null
-  const checksCompleted: boolean = haveFileChecksCompleted(
-    mockFileChecksResponse
-  )
-
-  expect(checksCompleted).toBe(false)
-})
+  displayChecksCompletedBanner
+} from "../src/filechecks/display-checks-completed-banner"
 
 test("displayChecksCompletedBanner unhides the button and displays banner when called", () => {
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>

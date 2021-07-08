@@ -1,8 +1,6 @@
 import { GraphqlClient } from "../graphql"
-import {
-  displayChecksCompletedBanner,
-  haveFileChecksCompleted
-} from "./verify-checks-completed-and-display-banner"
+import { haveFileChecksCompleted } from "./verify-checks-have-completed"
+import { displayChecksCompletedBanner } from "./display-checks-completed-banner"
 import {
   getFileChecksProgress,
   IFileCheckProgress

@@ -1,30 +1,37 @@
-const mockFileCheckProcessing = {
+const mockGetFileCheckProgress = {
   getFileChecksProgress: jest.fn(),
   getConsignmentId: jest.fn()
 }
 
-const mockVerifyChecksCompletedAndDisplayBanner = {
+const mockVerifyChecksHaveCompleted = {
   displayChecksCompletedBanner: jest.fn(),
   haveFileChecksCompleted: jest.fn()
+}
+
+const mockDisplayChecksCompletedBanner = {
+  displayChecksCompletedBanner: jest.fn()
 }
 
 import { FileChecks } from "../src/filechecks"
 import { GraphqlClient } from "../src/graphql"
 import { mockKeycloakInstance } from "./utils"
 import { IFileCheckProgress } from "../src/filechecks/get-file-check-progress"
-import {
-  displayChecksCompletedBanner,
-  haveFileChecksCompleted
-} from "../src/filechecks/verify-checks-completed-and-display-banner"
+import { haveFileChecksCompleted } from "../src/filechecks/verify-checks-have-completed"
+import { displayChecksCompletedBanner } from "../src/filechecks/display-checks-completed-banner"
 
 jest.mock(
   "../src/filechecks/get-file-check-progress",
-  () => mockFileCheckProcessing
+  () => mockGetFileCheckProgress
 )
 
 jest.mock(
-  "../src/filechecks/verify-checks-completed-and-display-banner",
-  () => mockVerifyChecksCompletedAndDisplayBanner
+  "../src/filechecks/verify-checks-have-completed",
+  () => mockVerifyChecksHaveCompleted
+)
+
+jest.mock(
+  "../src/filechecks/display-checks-completed-banner",
+  () => mockDisplayChecksCompletedBanner
 )
 
 jest.useFakeTimers()
@@ -36,15 +43,15 @@ beforeEach(() => {
 const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
 const fileChecks = new FileChecks(client)
 
-const mockGetFileChecksProgress: (fileChecks: IFileCheckProgress | null) => void = (
-  fileChecks
-) =>
-  mockFileCheckProcessing.getFileChecksProgress.mockImplementation(
+const mockGetFileChecksProgress: (
+  fileChecks: IFileCheckProgress | null
+) => void = (fileChecks) =>
+  mockGetFileCheckProgress.getFileChecksProgress.mockImplementation(
     (_) => fileChecks
   )
 
-const mockDisplayChecksCompletedBanner: () => void = () =>
-  mockVerifyChecksCompletedAndDisplayBanner.displayChecksCompletedBanner.mockImplementation(
+const mockDisplayChecksHaveCompletedBanner: () => void = () =>
+  mockVerifyChecksHaveCompleted.displayChecksCompletedBanner.mockImplementation(
     () => {}
   )
 
@@ -59,7 +66,7 @@ test("updateFileCheckProgress shows the notification banner and an enabled conti
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
                             <a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockFileCheckProcessing.getConsignmentId.mockImplementation(
+  mockGetFileCheckProgress.getConsignmentId.mockImplementation(
     () => consignmentId
   )
 
@@ -77,11 +84,11 @@ test("updateFileCheckProgress shows the notification banner and an enabled conti
     href: "originalHref"
   }
 
-  mockVerifyChecksCompletedAndDisplayBanner.haveFileChecksCompleted.mockImplementation(
+  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
     () => true
   )
 
-  mockDisplayChecksCompletedBanner()
+  mockDisplayChecksHaveCompletedBanner()
 
   fileChecks.updateFileCheckProgress()
   await jest.runOnlyPendingTimers()
@@ -94,7 +101,7 @@ test("updateFileCheckProgress shows no banner and a disabled continue button if 
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
                             <a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
-  mockFileCheckProcessing.getConsignmentId.mockImplementation(
+  mockGetFileCheckProgress.getConsignmentId.mockImplementation(
     () => consignmentId
   )
   mockGetFileChecksProgress({
@@ -109,10 +116,10 @@ test("updateFileCheckProgress shows no banner and a disabled continue button if 
     origin: "testorigin",
     href: "originalHref"
   }
-  mockVerifyChecksCompletedAndDisplayBanner.haveFileChecksCompleted.mockImplementation(
+  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
     () => false
   )
-  mockDisplayChecksCompletedBanner()
+  mockDisplayChecksHaveCompletedBanner()
 
   fileChecks.updateFileCheckProgress()
   await jest.runOnlyPendingTimers()
@@ -125,7 +132,7 @@ test("updateFileCheckProgress shows no banner and a disabled continue button if 
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
                             <a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
-  mockFileCheckProcessing.getConsignmentId.mockImplementation(
+  mockGetFileCheckProgress.getConsignmentId.mockImplementation(
     () => consignmentId
   )
   mockGetFileChecksProgress(null)
@@ -135,10 +142,10 @@ test("updateFileCheckProgress shows no banner and a disabled continue button if 
     origin: "testorigin",
     href: "originalHref"
   }
-  mockVerifyChecksCompletedAndDisplayBanner.haveFileChecksCompleted.mockImplementation(
+  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
     () => false
   )
-  mockDisplayChecksCompletedBanner()
+  mockDisplayChecksHaveCompletedBanner()
 
   fileChecks.updateFileCheckProgress()
   await jest.runOnlyPendingTimers()
