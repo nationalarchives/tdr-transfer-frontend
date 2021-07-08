@@ -1,6 +1,4 @@
-import {
-  displayChecksCompletedBanner
-} from "../src/filechecks/display-checks-completed-banner"
+import { displayChecksCompletedBanner } from "../src/filechecks/display-checks-completed-banner"
 
 test("displayChecksCompletedBanner unhides the button and displays banner when called", () => {
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
@@ -12,13 +10,11 @@ test("displayChecksCompletedBanner unhides the button and displays banner when c
   )
   const continueButton = document.querySelector("#file-checks-continue")
 
-  if (notificationBanner && continueButton) {
-    expect(notificationBanner.getAttribute("hidden")).toBeNull()
-    expect(
-      continueButton.classList.contains("govuk-button--disabled")
-    ).toBeFalsy()
-    expect(continueButton.hasAttribute("disabled")).toBeFalsy()
-  }
+  expect(notificationBanner!.getAttribute("hidden")).toBeNull()
+  expect(
+    continueButton!.classList.contains("govuk-button--disabled")
+  ).toBeFalsy()
+  expect(continueButton!.hasAttribute("disabled")).toBeFalsy()
 
 })
 
@@ -30,13 +26,11 @@ test("displayChecksCompletedBanner displays banner but can't unhide the button",
     "#file-checks-completed-banner"
   )
   const continueButton = document.querySelector("#file-checks-continue")
+
   expect(continueButton).toBeNull()
   expect(notificationBanner).not.toBeNull()
-  //Keep typescript happy
-  if (notificationBanner) {
-    //Hidden attribute evaluates to empty string in the tests if not removed.
-    expect(notificationBanner.getAttribute("hidden")).toBeNull()
-  }
+  //Hidden attribute evaluates to empty string in the tests if not removed.
+  expect(notificationBanner!.getAttribute("hidden")).toBeNull()
 })
 
 test("displayChecksCompletedBanner displays banner but can't unhide the button", () => {
@@ -47,13 +41,12 @@ test("displayChecksCompletedBanner displays banner but can't unhide the button",
     "#file-checks-completed-banner"
   )
   const continueButton = document.querySelector("#file-checks-continue")
+
   expect(continueButton).not.toBeNull()
   expect(notificationBanner).toBeNull()
-  //Keep typescript happy
-  if (continueButton) {
-    expect(
-      continueButton.classList.contains("govuk-button--disabled")
-    ).toBeFalsy()
-    expect(continueButton.hasAttribute("disabled")).toBeFalsy()
-  }
+  expect(
+    continueButton!.classList.contains("govuk-button--disabled")
+  ).toBeFalsy()
+  expect(continueButton!.hasAttribute("disabled")).toBeFalsy()
+
 })
