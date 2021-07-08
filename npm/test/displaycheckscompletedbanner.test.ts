@@ -18,7 +18,7 @@ test("displayChecksCompletedBanner unhides the button and displays banner when c
 
 })
 
-test("displayChecksCompletedBanner displays banner but can't unhide the button", () => {
+test("displayChecksCompletedBanner displays banner even if 'continue' button is missing", () => {
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>`  // no button exists in the HTML
   displayChecksCompletedBanner()
 
@@ -33,7 +33,7 @@ test("displayChecksCompletedBanner displays banner but can't unhide the button",
   expect(notificationBanner!.getAttribute("hidden")).toBeNull()
 })
 
-test("displayChecksCompletedBanner displays banner but can't unhide the button", () => {
+test("displayChecksCompletedBanner enables 'continue' button even if display banner is missing", () => {
   document.body.innerHTML = `<a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`  // no banner exists in the HTML
   displayChecksCompletedBanner()
 
