@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.14.1",
-    "@types/jest": "^26.0.23",
+    "@types/jest": "^26.0.24",
     "@typescript-eslint/eslint-plugin": "^2.34.0",
     "@typescript-eslint/parser": "^2.34.0",
     "copyfiles": "^2.4.1",
