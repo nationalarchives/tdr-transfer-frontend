@@ -119,18 +119,20 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val client = new GraphQLConfiguration(app.configuration).getClient[itac.Data, itac.Variables]()
     val data: client.GraphqlData = client.GraphqlData(Some(itac.Data(agreement)), List())
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-    val body = """{"query":"query isTransferAgreementComplete($consignmentId:UUID!){
-                 |                getTransferAgreement(consignmentid:$consignmentId){
-                 |                  isAgreementComplete
-                 |                }
-                 |          }",
-                 |         "variables":{
-                 |            "consignmentId":"c2efd3e6-6664-4582-8c28-dcf891f60e68"
-                 |          }
-                 |}""".stripMargin.replaceAll("\n\\s*", "")
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+    val formattedJsonBody = """{"query":"query isTransferAgreementComplete($consignmentId:UUID!){
+                                               getTransferAgreement(consignmentid:$consignmentId){
+                                                 isAgreementComplete
+                                               }
+                                         }",
+                                        "variables":{
+                                           "consignmentId":"c2efd3e6-6664-4582-8c28-dcf891f60e68"
+                                         }
+                                }"""
 
-      .withRequestBody(equalToJson(body))
+    val unformattedJsonBody = removeWhiteSpaceCharacters(formattedJsonBody)
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(equalToJson(unformattedJsonBody))
       .willReturn(okJson(dataString)))
   }
 
@@ -138,22 +140,26 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
     val data = client.GraphqlData(Option(gcs.Data(Option(gcs.GetConsignment(CurrentStatus(uploadStatus))))), List())
     val dataString = data.asJson.printWith(Printer(dropNullValues = false, ""))
-    val body = """{"query":"query getConsignmentStatus($consignmentId:UUID!){
-                  |               getConsignment(consignmentid:$consignmentId){
-                  |                 currentStatus{
-                  |                   upload
-                  |                 }
-                  |               }
-                  |         }",
-                  |         "variables":{
-                  |            "consignmentId":"c2efd3e6-6664-4582-8c28-dcf891f60e68"
-                  |          }
-                  |}""".stripMargin.replaceAll("\n\\s*", "")
+    val formattedJsonBody = """{"query":"query getConsignmentStatus($consignmentId:UUID!){
+                                               getConsignment(consignmentid:$consignmentId){
+                                                 currentStatus{
+                                                   upload
+                                                 }
+                                               }
+                                         }",
+                                         "variables":{
+                                            "consignmentId":"c2efd3e6-6664-4582-8c28-dcf891f60e68"
+                                          }
+                                }"""
+    val unformattedJsonBody = removeNewLinesAndIndentation(formattedJsonBody)
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(equalToJson(body))
+      .withRequestBody(equalToJson(unformattedJsonBody))
       .willReturn(okJson(dataString))
     )
   }
 
+  private def removeNewLinesAndIndentation(formattedJsonBody: String) = {
+    formattedJsonBody.replaceAll("\n\\s*", "")
+  }
 }
