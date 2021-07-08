@@ -129,7 +129,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
                                          }
                                 }"""
 
-    val unformattedJsonBody = removeWhiteSpaceCharacters(formattedJsonBody)
+    val unformattedJsonBody = removeNewLinesAndIndentation(formattedJsonBody)
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .withRequestBody(equalToJson(unformattedJsonBody))
