@@ -19,7 +19,7 @@ export class UpdateConsignmentStatus {
 
   async markConsignmentStatusAsCompleted(
     uploadFilesInfo: FileUploadInfo
-  ): Promise<void> {
+  ): Promise<number | void> {
     try {
       const variables: MarkUploadAsCompletedMutationVariables = {
         consignmentId: uploadFilesInfo.consignmentId
@@ -33,6 +33,8 @@ export class UpdateConsignmentStatus {
           ? result.errors.toString()
           : "no data"
         throw Error(errorMessage)
+      } else {
+        return result.data.markUploadAsCompleted
       }
     } catch (e) {
       handleUploadError(
