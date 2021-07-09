@@ -121,7 +121,7 @@ test("markConsignmentStatusAsCompleted returns error if no data returned", async
   )
 })
 
-test("saveFileInformation returns error if returned data contains errors", async () => {
+test("markConsignmentStatusAsCompleted returns error if returned data contains errors", async () => {
   mockDataErrorsUpdateStatusToComplete()
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new UpdateConsignmentStatus(client)
