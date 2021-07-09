@@ -65,12 +65,13 @@ function showErrorMessageOnUploadInProgressHalf(error: Error) {
     uploadProgressError.removeAttribute("hidden")
   }
   const getErrorMessageSuffix: (errorName: string) => string = (errorName) => {
-    if (errorName === "TimeoutError") {
-      return "timeout"
-    } else if (errorName === "AccessDenied") {
-      return "authentication"
-    } else {
-      return "general"
+    switch (errorName) {
+      case "TimeoutError":
+        return "timeout"
+      case "AccessDenied":
+        return "authentication"
+      default:
+        return "general"
     }
   }
   const uploadProgressErrorMessage: HTMLParagraphElement | null =
