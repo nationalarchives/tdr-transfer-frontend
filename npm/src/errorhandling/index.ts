@@ -20,15 +20,16 @@ export function handleUploadError(
       document.querySelector("#file-upload")
     //User is still on upload form
     if (uploadFormContainer && !uploadFormContainer.hasAttribute("hidden")) {
-      const uploadFormError: HTMLDivElement | null = document.querySelector(
-        ".govuk-error-summary.upload-error"
-      )
       const uploadForm: HTMLDivElement | null =
         document.querySelector("#file-upload-form")
 
       if (uploadForm) {
         uploadForm.setAttribute("hidden", "true")
       }
+
+      const uploadFormError: HTMLDivElement | null = document.querySelector(
+        ".govuk-error-summary.upload-error"
+      )
 
       if (uploadFormError) {
         uploadFormError.removeAttribute("hidden")
