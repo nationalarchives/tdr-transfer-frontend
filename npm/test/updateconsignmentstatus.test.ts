@@ -3,6 +3,10 @@ import { DocumentNode, FetchResult } from "apollo-boost"
 import { UpdateConsignmentStatus } from "../src/updateconsignmentstatus"
 import { GraphQLError } from "graphql"
 import { mockKeycloakInstance } from "./utils"
+import {
+  GetFileCheckProgressQuery,
+  GetFileCheckProgressQueryVariables
+} from "@nationalarchives/tdr-generated-graphql"
 
 jest.mock("../src/graphql")
 
@@ -50,6 +54,15 @@ class GraphqlClientDataErrorUpdateStatusToComplete {
   }
 }
 
+class GraphqlClientFailure {
+  mutation: (
+    query: DocumentNode,
+    variables: GetFileCheckProgressQueryVariables
+  ) => Promise<FetchResult<GetFileCheckProgressQuery>> = async (_, __) => {
+    return Promise.reject(Error("error"))
+  }
+}
+
 beforeEach(() => jest.resetModules())
 
 const mockSuccessUpdateStatusToComplete: () => void = () => {
@@ -70,6 +83,13 @@ const mockDataErrorsUpdateStatusToComplete: () => void = () => {
   const mock = GraphqlClient as jest.Mock
   mock.mockImplementation(() => {
     return new GraphqlClientDataErrorUpdateStatusToComplete()
+  })
+}
+
+const mockFailure: () => void = () => {
+  const mock = GraphqlClient as jest.Mock
+  mock.mockImplementation(() => {
+    return new GraphqlClientFailure()
   })
 }
 
@@ -111,5 +131,16 @@ test("saveFileInformation returns error if returned data contains errors", async
     Error(
       'Marking the Consignment Status as "Completed" failed: error 1,error 2'
     )
+  )
+})
+
+test("markConsignmentStatusAsCompleted returns error if client fails", async () => {
+  mockFailure()
+  const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
+  const uploadMetadata = new UpdateConsignmentStatus(client)
+  await expect(
+    uploadMetadata.markConsignmentStatusAsCompleted(uploadFilesInfo)
+  ).rejects.toStrictEqual(
+    Error('Marking the Consignment Status as "Completed" failed: error')
   )
 })
