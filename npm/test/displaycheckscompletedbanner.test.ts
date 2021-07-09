@@ -15,10 +15,9 @@ test("displayChecksCompletedBanner unhides the button and displays banner when c
     continueButton!.classList.contains("govuk-button--disabled")
   ).toBeFalsy()
   expect(continueButton!.hasAttribute("disabled")).toBeFalsy()
-
 })
 
-test("displayChecksCompletedBanner displays banner even if 'continue' button is missing", () => {
+test("displayChecksCompletedBanner doesn't display banner if 'continue' button is missing", () => {
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>`  // no button exists in the HTML
   displayChecksCompletedBanner()
 
@@ -30,10 +29,10 @@ test("displayChecksCompletedBanner displays banner even if 'continue' button is 
   expect(continueButton).toBeNull()
   expect(notificationBanner).not.toBeNull()
   //Hidden attribute evaluates to empty string in the tests if not removed.
-  expect(notificationBanner!.getAttribute("hidden")).toBeNull()
+  expect(notificationBanner!.getAttribute("hidden")).not.toBeNull()
 })
 
-test("displayChecksCompletedBanner enables 'continue' button even if display banner is missing", () => {
+test("displayChecksCompletedBanner doesn't enable 'continue' button if display banner is missing", () => {
   document.body.innerHTML = `<a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`  // no banner exists in the HTML
   displayChecksCompletedBanner()
 
@@ -46,7 +45,6 @@ test("displayChecksCompletedBanner enables 'continue' button even if display ban
   expect(notificationBanner).toBeNull()
   expect(
     continueButton!.classList.contains("govuk-button--disabled")
-  ).toBeFalsy()
-  expect(continueButton!.hasAttribute("disabled")).toBeFalsy()
-
+  ).toBeTruthy()
+  expect(continueButton!.hasAttribute("disabled")).toBeTruthy()
 })
