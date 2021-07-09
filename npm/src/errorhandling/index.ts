@@ -63,7 +63,7 @@ export function handleUploadError(
       }
     }
   }
-  throw Error(additionalLoggingInfo + ": " + error.message)
+  throw Error(`${additionalLoggingInfo}: ${error.message}`)
 }
 
 function renderErrorMessage(message: string) {
