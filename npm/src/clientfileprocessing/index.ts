@@ -37,12 +37,16 @@ export class ClientFileProcessing {
   }
 
   metadataProgressCallback = (progressInformation: IProgressInformation) => {
-    const weightedPercent = Math.floor(progressInformation.percentageProcessed / 2)
+    const weightedPercent = Math.floor(
+      progressInformation.percentageProcessed / 2
+    )
     this.renderWeightedPercent(weightedPercent)
   }
 
   s3ProgressCallback = (progressInformation: IProgressInformation) => {
-    const weightedPercent = Math.floor(50 + progressInformation.percentageProcessed / 2)
+    const weightedPercent = Math.floor(
+      50 + progressInformation.percentageProcessed / 2
+    )
     this.renderWeightedPercent(weightedPercent)
   }
 
