@@ -5,6 +5,7 @@ import { UpdateConsignmentStatus } from "../updateconsignmentstatus"
 import { FileUploadInfo, UploadForm } from "./upload-form"
 import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
+import { handleUploadError } from "../errorhandling"
 
 export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
   e.preventDefault()
@@ -56,8 +57,7 @@ export class FileUploader {
       window.removeEventListener("beforeunload", pageUnloadAction)
       this.goToNextPage()
     } catch (e) {
-      //For now console log errors
-      console.error(`Client file upload failed: ${e.message}`)
+      handleUploadError(e, "Processing client files failed")
     }
   }
 
