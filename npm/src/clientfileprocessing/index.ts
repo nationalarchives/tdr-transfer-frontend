@@ -1,12 +1,11 @@
 import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { ClientFileExtractMetadata } from "../clientfileextractmetadata"
-import { handleUploadError } from "../errorhandling"
 import {
   IFileMetadata,
   IFileWithPath,
   IProgressInformation
 } from "@nationalarchives/file-information"
-import { ITdrFile, S3Upload } from "../s3upload"
+import { S3Upload } from "../s3upload"
 import { FileUploadInfo } from "../upload/upload-form"
 
 export class ClientFileProcessing {
@@ -51,30 +50,25 @@ export class ClientFileProcessing {
     uploadFilesInfo: FileUploadInfo,
     stage: string
   ): Promise<void> {
-    try {
-      const fileIds: string[] =
-        await this.clientFileMetadataUpload.saveFileInformation(
-          files.length,
-          uploadFilesInfo
-        )
-      const metadata: IFileMetadata[] =
-        await this.clientFileExtractMetadata.extract(
-          files,
-          this.metadataProgressCallback
-        )
-      const tdrFiles =
-        await this.clientFileMetadataUpload.saveClientFileMetadata(
-          fileIds,
-          metadata
-        )
-      await this.s3Upload.uploadToS3(
-        uploadFilesInfo.consignmentId,
-        tdrFiles,
-        this.s3ProgressCallback,
-        stage
+    const fileIds: string[] =
+      await this.clientFileMetadataUpload.saveFileInformation(
+        files.length,
+        uploadFilesInfo
       )
-    } catch (e) {
-      handleUploadError(e, "Processing client files failed")
-    }
+    const metadata: IFileMetadata[] =
+      await this.clientFileExtractMetadata.extract(
+        files,
+        this.metadataProgressCallback
+      )
+    const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
+      fileIds,
+      metadata
+    )
+    await this.s3Upload.uploadToS3(
+      uploadFilesInfo.consignmentId,
+      tdrFiles,
+      this.s3ProgressCallback,
+      stage
+    )
   }
 }
