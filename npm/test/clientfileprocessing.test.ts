@@ -272,7 +272,7 @@ test("s3ProgressCallback function updates the progress bar with the percentage p
 
   fileProcessing.s3ProgressCallback(progressInformation)
 
-  checkS3UploadProgressBarState("87.5")
+  checkS3UploadProgressBarState("87")
 })
 
 test("s3ProgressCallback function updates progress bar from a minimum of 50 percent", () => {
