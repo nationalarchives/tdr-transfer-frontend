@@ -1,6 +1,4 @@
-import {
-  haveFileChecksCompleted
-} from "../src/filechecks/verify-checks-have-completed"
+import { haveFileChecksCompleted } from "../src/filechecks/verify-checks-have-completed"
 
 test("haveFileChecksCompleted returns true if file checks have completed", () => {
   const mockFileChecksResponse = {
@@ -29,4 +27,3 @@ test("haveFileChecksCompleted returns false if file checks have not completed", 
 
   expect(checksCompleted).toBe(false)
 })
-
