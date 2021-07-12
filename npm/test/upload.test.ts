@@ -8,11 +8,10 @@ import { mockKeycloakInstance } from "./utils"
 import { GraphqlClient } from "../src/graphql"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
-import {UpdateConsignmentStatus} from "../src/updateconsignmentstatus";
-import {DocumentNode, FetchResult} from "apollo-boost";
-import {
-  MarkUploadAsCompletedMutation
-} from "@nationalarchives/tdr-generated-graphql";
+import { UpdateConsignmentStatus } from "../src/updateconsignmentstatus"
+import { DocumentNode, FetchResult } from "apollo-boost"
+import { MarkUploadAsCompletedMutation } from "@nationalarchives/tdr-generated-graphql"
+
 jest.mock("../src/clientfileprocessing")
 jest.mock("../src/graphql")
 
