@@ -40,10 +40,7 @@ class GraphqlClientEmptyData {
     query: DocumentNode,
     variables: GetFileCheckProgressQueryVariables
   ) => Promise<FetchResult<GetFileCheckProgressQuery>> = async (_, __) => {
-    const data: GetFileCheckProgressQuery = {
-      getConsignment: null
-    }
-    return { data }
+    throw new Error("No progress metadata found for consignment")
   }
 }
 
@@ -52,7 +49,7 @@ class GraphqlClientFailure {
     query: DocumentNode,
     variables: GetFileCheckProgressQueryVariables
   ) => Promise<FetchResult<GetFileCheckProgressQuery>> = async (_, __) => {
-    return Promise.reject("error")
+    throw new Error("error")
   }
 }
 
@@ -84,43 +81,34 @@ test("getFileChecksProgress returns the correct consignment data with a successf
   expect(fileChecksProgress!.totalFiles).toBe(10)
 })
 
-test("getFileChecksProgress returns null with a failed api call", async () => {
+test("getFileChecksProgress throws an exception with a failed api call", async () => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientFailure())
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  const fileChecksProgress: IFileCheckProgress | null =
-    await getFileChecksProgress(client)
-
-  expect(fileChecksProgress).toBeNull()
+  await expect(getFileChecksProgress(client)).rejects.toThrow("error")
 })
 
-test("getFileChecksProgress returns null with empty data from a successful api call", async () => {
+test("getFileChecksProgress throws an exception when empty data from a successful api call", async () => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientEmptyData())
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  const fileChecksProgress: IFileCheckProgress | null =
-    await getFileChecksProgress(client)
-
-  expect(fileChecksProgress).toBeNull()
+  await expect(getFileChecksProgress(client)).rejects.toThrow("No progress metadata found for consignment")
 })
 
-test("getFileChecksProgress returns null with errors from a successful api call", async () => {
+test("getFileChecksProgress throws a exception after errors from a successful api call", async () => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientErrors())
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  const fileChecksProgress: IFileCheckProgress | null =
-    await getFileChecksProgress(client)
-
-  expect(fileChecksProgress).toBeNull()
+  await expect(getFileChecksProgress(client)).rejects.toThrow("Add files failed: error 1")
 })
 
 test("getConsignmentId returns the correct id when the hidden input is present", () => {

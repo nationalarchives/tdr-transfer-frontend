@@ -15,8 +15,9 @@ export class FileChecks {
 
   updateFileCheckProgress: () => void = () => {
     const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
-      const fileChecksProgress: IFileCheckProgress | null =
+      const fileChecksProgress: IFileCheckProgress =
         await getFileChecksProgress(this.client)
+
       const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
       if (checksCompleted) {
         clearInterval(intervalId)
