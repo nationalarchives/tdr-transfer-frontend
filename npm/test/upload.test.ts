@@ -101,24 +101,19 @@ test("upload function submits redirect form on upload files success", async () =
   consoleErrorSpy.mockRestore()
 })
 
-test("upload function console logs error when upload fails", async () => {
+test("upload function throws an error when upload fails", async () => {
   mockUploadFailure()
 
   const uploadFiles = setUpFileUploader()
-  const consoleErrorSpy = jest
-    .spyOn(console, "error")
-    .mockImplementation(() => {})
 
-  await uploadFiles.uploadFiles([dummyFile], {
+  await expect(uploadFiles.uploadFiles([dummyFile], {
     consignmentId: "12345",
     parentFolder: "TEST PARENT FOLDER NAME"
-  })
+  })).rejects.toThrow("Some error")
 
-  expect(consoleErrorSpy).toHaveBeenCalled()
   expect(mockGoToNextPage).not.toHaveBeenCalled()
 
   mockGoToNextPage.mockRestore()
-  consoleErrorSpy.mockRestore()
 })
 
 function setUpFileUploader(): FileUploader {
