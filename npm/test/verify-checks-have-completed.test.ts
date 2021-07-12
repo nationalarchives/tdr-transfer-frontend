@@ -30,11 +30,3 @@ test("haveFileChecksCompleted returns false if file checks have not completed", 
   expect(checksCompleted).toBe(false)
 })
 
-test("haveFileChecksCompleted returns false if null was passed in", () => {
-  const mockFileChecksResponse = null
-  const checksCompleted: boolean = haveFileChecksCompleted(
-    mockFileChecksResponse
-  )
-
-  expect(checksCompleted).toBe(false)
-})
