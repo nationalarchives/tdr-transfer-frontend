@@ -4,19 +4,19 @@ import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFileMetadata } from "@nationalarchives/file-information"
 import { GraphQLError } from "graphql"
 import { mockKeycloakInstance } from "./utils"
-import { MetadataInput } from "@nationalarchives/tdr-generated-graphql"
+import { ClientSideMetadataInput } from "@nationalarchives/tdr-generated-graphql"
 
 jest.mock("../src/graphql")
 
 type IMockAddFileData = {
-  addFilesAndMetadata: [{ fileId: string; sequenceNumber: number }]
+  addFilesAndMetadata: [{ fileId: string; matchId: number }]
 } | null
-type IMockFileSequence = {
+type IMockFileMatches = {
   fileId: string
-  sequenceNumber: number
+  matchId: number
 }
 type IMockAddFileMetadata = {
-  addFilesAndMetadata: IMockFileSequence[]
+  addFilesAndMetadata: IMockFileMatches[]
 }
 
 type TMockVariables = string
@@ -46,8 +46,8 @@ class GraphqlClientSuccessAddMetadata {
   ) => {
     const data: IMockAddFileMetadata = {
       addFilesAndMetadata: [
-        { fileId: "0", sequenceNumber: 0 },
-        { fileId: "1", sequenceNumber: 1 }
+        { fileId: "0", matchId: 0 },
+        { fileId: "1", matchId: 1 }
       ]
     }
     return { data }
@@ -185,7 +185,7 @@ test("createMetadataInputBatches generates batches of the defined size", () => {
   const input4 = generateMockMetadataInput(4)
   const input5 = generateMockMetadataInput(5)
 
-  const inputs: MetadataInput[] = [input1, input2, input3, input4, input5]
+  const inputs: ClientSideMetadataInput[] = [input1, input2, input3, input4, input5]
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
@@ -195,12 +195,12 @@ test("createMetadataInputBatches generates batches of the defined size", () => {
   expect(result[1]).toEqual([input4, input5])
 })
 
-function generateMockMetadataInput(sequenceNumber: number): MetadataInput {
+function generateMockMetadataInput(matchId: number): ClientSideMetadataInput {
   return {
     lastModified: Date.now(),
     fileSize: 10,
     originalPath: "path",
     checksum: "checksum",
-    sequenceNumber
+    matchId
   }
 }

@@ -9,7 +9,7 @@ import {
   StartUpload,
   StartUploadMutation,
   StartUploadMutationVariables,
-  MetadataInput
+  ClientSideMetadataInput
 } from "@nationalarchives/tdr-generated-graphql"
 
 import { FetchResult } from "apollo-boost"
@@ -19,7 +19,7 @@ import { FileUploadInfo } from "../upload/upload-form"
 declare var METADATA_UPLOAD_BATCH_SIZE: string
 
 export interface IClientFileData {
-  metadataInput: MetadataInput
+  metadataInput: ClientSideMetadataInput
   tdrFile: File
 }
 
@@ -52,28 +52,29 @@ export class ClientFileMetadataUpload {
     consignmentId: string,
     metadata: IFileMetadata[]
   ): Promise<ITdrFile[]> {
-    let sequenceNumber = 0
+    let matchId = 0
     const clientFileData: IClientFileData[] = metadata.map((m) => {
       const { checksum, path, lastModified, file } = m
-      const metadataInput: MetadataInput = {
+      const metadataInput: ClientSideMetadataInput = {
         originalPath: path,
         checksum,
         lastModified: lastModified.getTime(),
-        sequenceNumber
+        fileSize: file.size,
+        matchId
       }
-      sequenceNumber++
+      matchId++
       return { metadataInput, tdrFile: file }
     })
 
-    const metadataInputs: MetadataInput[] = clientFileData.map(
+    const metadataInputs: ClientSideMetadataInput[] = clientFileData.map(
       (cf) => cf.metadataInput
     )
 
-    const sequenceFileMap: Map<number, File> = new Map(
-      clientFileData.map((cf) => [cf.metadataInput.sequenceNumber, cf.tdrFile])
+    const matchFileMap: Map<number, File> = new Map(
+      clientFileData.map((cf) => [cf.metadataInput.matchId, cf.tdrFile])
     )
 
-    const metadataBatches: MetadataInput[][] =
+    const metadataBatches: ClientSideMetadataInput[][] =
       this.createMetadataInputBatches(metadataInputs)
 
     const filesPromiseArray: Promise<ITdrFile[]>[] = metadataBatches.map(
@@ -97,12 +98,12 @@ export class ClientFileMetadataUpload {
         if (result.data) {
           return result.data.addFilesAndMetadata.map((f) => {
             const fileId: string = f.fileId
-            const file: File | undefined = sequenceFileMap.get(f.sequenceNumber)
+            const file: File | undefined = matchFileMap.get(f.matchId)
             if (file) {
               return { fileId, file }
             } else {
               throw Error(
-                `Invalid sequence number ${sequenceNumber} for file ${fileId}`
+                `Invalid match id ${f.matchId} for file ${fileId}`
               )
             }
           })
@@ -117,8 +118,8 @@ export class ClientFileMetadataUpload {
     return allFiles.reduce((acc, files) => acc.concat(files))
   }
 
-  createMetadataInputBatches(metadataInputs: MetadataInput[]) {
-    const batches: MetadataInput[][] = []
+  createMetadataInputBatches(metadataInputs: ClientSideMetadataInput[]) {
+    const batches: ClientSideMetadataInput[][] = []
     // METADATA_UPLOAD_BATCH_SIZE comes in as a string despite typescript thinking it's a number.
     // This means that on the first pass of the loop, index is set to "0250" and then exits.
     // Setting the type to string and parsing the number sets the batches correctly.
