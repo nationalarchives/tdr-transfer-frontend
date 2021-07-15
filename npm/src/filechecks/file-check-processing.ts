@@ -3,7 +3,7 @@ import {
   GetFileCheckProgressQuery,
   GetFileCheckProgressQueryVariables
 } from "@nationalarchives/tdr-generated-graphql"
-import { FetchResult } from "apollo-boost"
+import { FetchResult } from "@apollo/client"
 import { GraphqlClient } from "../graphql"
 
 export interface IFileCheckProgress {
