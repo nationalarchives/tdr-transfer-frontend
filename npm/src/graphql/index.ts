@@ -77,7 +77,8 @@ export class GraphqlClient {
   ) => {
     const options: MutationOptions<D, V> = {
       mutation,
-      ...(await this.getOptions<D, V>(variables))
+      ...(await this.getOptions<D, V>(variables)),
+      fetchPolicy: "no-cache"
     }
     const result: FetchResult<D> = await this.client.mutate<D, V>(options)
     return result
