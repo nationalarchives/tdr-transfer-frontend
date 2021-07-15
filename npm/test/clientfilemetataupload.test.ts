@@ -1,5 +1,5 @@
 import { GraphqlClient } from "../src/graphql"
-import { DocumentNode, FetchResult } from "apollo-boost"
+import { DocumentNode, FetchResult } from "@apollo/client"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFileMetadata } from "@nationalarchives/file-information"
 import { GraphQLError } from "graphql"

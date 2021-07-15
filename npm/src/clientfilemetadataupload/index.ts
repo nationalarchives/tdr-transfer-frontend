@@ -10,7 +10,7 @@ import {
   AddClientFileMetadataInput
 } from "@nationalarchives/tdr-generated-graphql"
 
-import { FetchResult } from "apollo-boost"
+import { FetchResult } from "@apollo/client"
 import { ITdrFile } from "../s3upload"
 import { FileUploadInfo } from "../upload/upload-form"
 

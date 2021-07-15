@@ -1,4 +1,3 @@
-import { createHttpLink } from "apollo-link-http"
 import {
   ApolloClient,
   InMemoryCache,
@@ -7,8 +6,9 @@ import {
   NormalizedCacheObject,
   QueryOptions,
   MutationOptions,
-  FetchResult
-} from "apollo-boost"
+  FetchResult,
+  createHttpLink
+} from "@apollo/client"
 import "unfetch/polyfill"
 import { KeycloakInstance } from "keycloak-js"
 import { refreshOrReturnToken } from "../auth"
