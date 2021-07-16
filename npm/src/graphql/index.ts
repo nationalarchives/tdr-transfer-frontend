@@ -8,7 +8,7 @@ import {
   MutationOptions,
   FetchResult,
   createHttpLink
-} from "@apollo/client"
+} from "@apollo/client/core"
 import "unfetch/polyfill"
 import { KeycloakInstance } from "keycloak-js"
 import { refreshOrReturnToken } from "../auth"

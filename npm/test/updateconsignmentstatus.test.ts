@@ -1,5 +1,5 @@
 import { GraphqlClient } from "../src/graphql"
-import { DocumentNode, FetchResult } from "@apollo/client"
+import { DocumentNode, FetchResult } from "@apollo/client/core"
 import { UpdateConsignmentStatus } from "../src/updateconsignmentstatus"
 import { GraphQLError } from "graphql"
 import { mockKeycloakInstance } from "./utils"
