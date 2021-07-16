@@ -9,7 +9,7 @@ import { GraphqlClient } from "../src/graphql"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
 import {UpdateConsignmentStatus} from "../src/updateconsignmentstatus";
-import {DocumentNode, FetchResult} from "@apollo/client";
+import {DocumentNode, FetchResult} from "@apollo/client/core";
 import {
   MarkUploadAsCompletedMutation
 } from "@nationalarchives/tdr-generated-graphql";

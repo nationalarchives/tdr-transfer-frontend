@@ -1,5 +1,5 @@
 import { GraphqlClient } from "../src/graphql"
-jest.mock("@apollo/client")
+jest.mock("@apollo/client/core")
 jest.mock("../src/auth")
 import {
   ApolloClient,
@@ -8,7 +8,7 @@ import {
   NetworkStatus,
   MutationOptions,
   FetchResult
-} from "@apollo/client"
+} from "@apollo/client/core"
 import { GraphQLError } from "graphql"
 import { mockKeycloakInstance } from "./utils"
 
