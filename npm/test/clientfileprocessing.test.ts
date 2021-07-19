@@ -344,7 +344,7 @@ test("Error thrown if processing files fails", async () => {
     )
   ).rejects.toStrictEqual(
     Error(
-      "Processing client files failed: upload client file information error"
+      "upload client file information error"
     )
   )
 })
@@ -369,7 +369,7 @@ test("Error thrown if processing file metadata fails", async () => {
       ""
     )
   ).rejects.toStrictEqual(
-    Error("Processing client files failed: upload client file metadata error")
+    Error("upload client file metadata error")
   )
 })
 
@@ -394,7 +394,7 @@ test("Error thrown if extracting file metadata fails", async () => {
     )
   ).rejects.toStrictEqual(
     Error(
-      "Processing client files failed: client file metadata extraction error"
+      "client file metadata extraction error"
     )
   )
 })
@@ -418,7 +418,7 @@ test("Error thrown if S3 upload fails", async () => {
       ""
     )
   ).rejects.toStrictEqual(
-    Error("Processing client files failed: Some S3 error")
+    Error("Some S3 error")
   )
 })
 
