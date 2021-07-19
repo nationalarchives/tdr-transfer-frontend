@@ -1,5 +1,5 @@
 @import 'overrides/all';
-@import 'node_modules/govuk-frontend/govuk/all';
+@import '../../node_modules/govuk-frontend/govuk/all';
 
 @import 'header';
 @import 'drag-and-drop';
@@ -19,8 +19,8 @@
   width: 25px;
 }
 
-@include progress-bar('.progress-display')
-  @include progress-bar('.file-check-progress__progress-bar')
+@include progress-bar('.progress-display');
+@include progress-bar('.file-check-progress__progress-bar');
 
   .hide {
   display: none;
