@@ -40,8 +40,8 @@
   "dependencies": {
     "@nationalarchives/file-information": "1.0.44",
     "@nationalarchives/tdr-generated-graphql": "1.0.75",
-    "apollo-boost": "^0.4.9",
-    "aws-sdk": "^2.943.0",
+    "@apollo/client": "^3.3.21",
+    "aws-sdk": "^2.948.0",
     "govuk-frontend": "^3.13.0",
     "graphql": "^14.7.0",
     "keycloak-js": "11.0.3",
@@ -62,7 +62,7 @@
     "eslint-plugin-prettier": "^3.4.0",
     "husky": "^7.0.1",
     "jest": "^25.5.4",
-    "lint-staged": "^11.0.0",
+    "lint-staged": "^11.0.1",
     "minify": "^7.0.2",
     "node-sass": "^6.0.1",
     "npm-check": "^5.9.2",
@@ -74,7 +74,7 @@
     "ts-jest": "^25.5.1",
     "ts-loader": "^9.2.3",
     "typescript": "^3.9.10",
-    "webpack": "^5.44.0",
+    "webpack": "^5.45.1",
     "webpack-cli": "^4.7.2"
   },
   "lint-staged": {

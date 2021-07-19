@@ -11,7 +11,7 @@ import {
 import { GraphqlClient } from "../src/graphql"
 import { mockKeycloakInstance } from "./utils"
 import { DocumentNode, GraphQLError } from "graphql"
-import { FetchResult } from "apollo-boost"
+import { FetchResult } from "@apollo/client/core"
 
 jest.mock("../src/graphql")
 
