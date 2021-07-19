@@ -102,9 +102,7 @@ export class ClientFileMetadataUpload {
             if (file) {
               return { fileId, file }
             } else {
-              throw Error(
-                `Invalid match id ${f.matchId} for file ${fileId}`
-              )
+              throw Error(`Invalid match id ${f.matchId} for file ${fileId}`)
             }
           })
         } else {
