@@ -1,6 +1,5 @@
 import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { ClientFileExtractMetadata } from "../clientfileextractmetadata"
-import { handleUploadError } from "../errorhandling"
 import {
   IFileMetadata,
   IFileWithPath,
@@ -54,7 +53,6 @@ export class ClientFileProcessing {
     uploadFilesInfo: FileUploadInfo,
     stage: string
   ): Promise<void> {
-    try {
       await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
       const metadata: IFileMetadata[] =
         await this.clientFileExtractMetadata.extract(
@@ -72,8 +70,12 @@ export class ClientFileProcessing {
         this.s3ProgressCallback,
         stage
       )
-    } catch (e) {
-      handleUploadError(e, "Processing client files failed")
-    }
+
+    await this.s3Upload.uploadToS3(
+      uploadFilesInfo.consignmentId,
+      tdrFiles,
+      this.s3ProgressCallback,
+      stage
+    )
   }
 }

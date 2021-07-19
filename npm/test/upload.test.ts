@@ -9,7 +9,7 @@ import { GraphqlClient } from "../src/graphql"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
 import {UpdateConsignmentStatus} from "../src/updateconsignmentstatus";
-import {DocumentNode, FetchResult} from "apollo-boost";
+import {DocumentNode, FetchResult} from "@apollo/client/core";
 import {
   MarkUploadAsCompletedMutation
 } from "@nationalarchives/tdr-generated-graphql";
@@ -101,24 +101,19 @@ test("upload function submits redirect form on upload files success", async () =
   consoleErrorSpy.mockRestore()
 })
 
-test("upload function console logs error when upload fails", async () => {
+test("upload function throws an error when upload fails", async () => {
   mockUploadFailure()
 
   const uploadFiles = setUpFileUploader()
-  const consoleErrorSpy = jest
-    .spyOn(console, "error")
-    .mockImplementation(() => {})
 
-  await uploadFiles.uploadFiles([dummyFile], {
+  await expect(uploadFiles.uploadFiles([dummyFile], {
     consignmentId: "12345",
     parentFolder: "TEST PARENT FOLDER NAME"
-  })
+  })).rejects.toThrow("Some error")
 
-  expect(consoleErrorSpy).toHaveBeenCalled()
   expect(mockGoToNextPage).not.toHaveBeenCalled()
 
   mockGoToNextPage.mockRestore()
-  consoleErrorSpy.mockRestore()
 })
 
 function setUpFileUploader(): FileUploader {
