@@ -53,24 +53,16 @@ export class ClientFileProcessing {
     uploadFilesInfo: FileUploadInfo,
     stage: string
   ): Promise<void> {
-      await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
-      const metadata: IFileMetadata[] =
-        await this.clientFileExtractMetadata.extract(
-          files,
-          this.metadataProgressCallback
-        )
-      const tdrFiles =
-        await this.clientFileMetadataUpload.saveClientFileMetadata(
-          uploadFilesInfo.consignmentId,
-          metadata
-        )
-      await this.s3Upload.uploadToS3(
-        uploadFilesInfo.consignmentId,
-        tdrFiles,
-        this.s3ProgressCallback,
-        stage
+    await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
+    const metadata: IFileMetadata[] =
+      await this.clientFileExtractMetadata.extract(
+        files,
+        this.metadataProgressCallback
       )
-
+    const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
+      uploadFilesInfo.consignmentId,
+      metadata
+    )
     await this.s3Upload.uploadToS3(
       uploadFilesInfo.consignmentId,
       tdrFiles,
