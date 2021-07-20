@@ -52,7 +52,7 @@ export class ClientFileMetadataUpload {
     consignmentId: string,
     metadata: IFileMetadata[]
   ): Promise<ITdrFile[]> {
-    const clientFileData: IClientFileData[] = metadata.map((m,matchId) => {
+    const clientFileData: IClientFileData[] = metadata.map((m, matchId) => {
       const { checksum, path, lastModified, file } = m
       const metadataInput: ClientSideMetadataInput = {
         originalPath: path,
