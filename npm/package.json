@@ -61,7 +61,7 @@
     "eslint-plugin-jest": "^24.3.6",
     "eslint-plugin-prettier": "^3.4.0",
     "husky": "^7.0.1",
-    "jest": "^25.5.4",
+    "jest": "^27.0.6",
     "lint-staged": "^11.0.1",
     "minify": "^7.0.2",
     "npm-check": "^5.9.2",
