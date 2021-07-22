@@ -66,8 +66,7 @@ test("a single file upload returns the correct key", async () => {
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     [{ fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", file }],
     jest.fn(),
-    "",
-    1
+    ""
   )
   expect(result[0].Key).toEqual(
     "identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
@@ -83,8 +82,7 @@ test("a single file upload calls the callback correctly", async () => {
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     [{ fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", file }],
     callback,
-    "",
-    1
+    ""
   )
   checkCallbackCalls(callback, 1, [20, 40, 60, 80, 100])
 })
@@ -143,8 +141,7 @@ test("multiple file uploads call the callback correctly", async () => {
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     files,
     callback,
-    "",
-    1
+    ""
   )
   checkCallbackCalls(callback, 4, [
     5,
@@ -193,8 +190,7 @@ test("a single file upload calls the callback correctly with a different chunk s
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     [{ fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", file }],
     callback,
-    "",
-    2
+    ""
   )
   checkCallbackCalls(callback, 1, [20, 60, 100])
 })

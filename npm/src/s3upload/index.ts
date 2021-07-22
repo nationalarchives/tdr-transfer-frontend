@@ -68,14 +68,12 @@ export class S3Upload {
     consignmentId: string,
     files: ITdrFile[],
     callback: TProgressFunction,
-    stage: string,
-    chunkSize?: number
+    stage: string
   ) => Promise<S3.ManagedUpload.SendData[]> = async (
     consignmentId,
     files,
     callback,
-    stage,
-    chunkSize = 5 * 1024 * 1024
+    stage
   ) => {
     const totalFiles = files.length
     const totalChunks: number =
