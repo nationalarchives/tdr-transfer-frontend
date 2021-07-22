@@ -32,7 +32,7 @@ export class S3Upload {
     callback: TProgressFunction,
     progressInfo: IFileProgressInfo
   ) => Promise<S3.ManagedUpload.SendData> = (
-    consigmentId,
+    consignmentId,
     stage,
     tdrFile,
     callback,
@@ -40,7 +40,7 @@ export class S3Upload {
   ) => {
     const { file, fileId } = tdrFile
     const progress: S3.ManagedUpload = this.s3.upload({
-      Key: `${this.identityId}/${consigmentId}/${fileId}`,
+      Key: `${this.identityId}/${consignmentId}/${fileId}`,
       Body: file,
       Bucket: `tdr-upload-files-dirty-${stage}`
     })
