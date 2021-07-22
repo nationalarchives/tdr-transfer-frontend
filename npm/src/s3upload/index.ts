@@ -77,8 +77,10 @@ export class S3Upload {
   ) => {
     const totalFiles = files.length
     const totalChunks: number =
-      files.map((file) => file.file.size).reduce((prev, curr) => prev + curr) ||
-      totalFiles
+      files.reduce(
+        (fileSizeTotal, file) => fileSizeTotal + file.file.size,
+        0
+      ) || totalFiles
     let processedChunks = 0
     const sendData: S3.ManagedUpload.SendData[] = []
     for (const file of files) {
