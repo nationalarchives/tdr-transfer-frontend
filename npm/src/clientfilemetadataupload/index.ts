@@ -75,42 +75,44 @@ export class ClientFileMetadataUpload {
     const metadataBatches: ClientSideMetadataInput[][] =
       this.createMetadataInputBatches(metadataInputs)
 
-    const filesPromiseArray: Promise<ITdrFile[]>[] = metadataBatches.map(
-      async (metadataInput, idx) => {
-        const isComplete = idx === metadataBatches.length - 1
-        const variables: AddFilesAndMetadataMutationVariables = {
-          input: {
-            consignmentId,
-            isComplete,
-            metadataInput
-          }
-        }
-        const result: FetchResult<AddFilesAndMetadataMutation> =
-          await this.client.mutation(AddFilesAndMetadata, variables)
+    const allFiles: ITdrFile[][] = []
 
-        if (result.errors) {
-          throw Error(
-            `Add client file metadata failed: ${result.errors.toString()}`
-          )
-        }
-        if (result.data) {
-          return result.data.addFilesAndMetadata.map((f) => {
-            const fileId: string = f.fileId
-            const file: File | undefined = matchFileMap.get(f.matchId)
-            if (file) {
-              return { fileId, file }
-            } else {
-              throw Error(`Invalid match id ${f.matchId} for file ${fileId}`)
-            }
-          })
-        } else {
-          throw Error(
-            `No data found in response for consignment ${consignmentId}`
-          )
+    for (const idxString in metadataBatches) {
+      const idx = parseInt(idxString, 10)
+      const metadataInput = metadataBatches[idx]
+      const isComplete = idx === metadataBatches.length - 1
+      const variables: AddFilesAndMetadataMutationVariables = {
+        input: {
+          consignmentId,
+          isComplete,
+          metadataInput
         }
       }
-    )
-    const allFiles = await Promise.all(filesPromiseArray)
+      const result: FetchResult<AddFilesAndMetadataMutation> =
+        await this.client.mutation(AddFilesAndMetadata, variables)
+
+      if (result.errors) {
+        throw Error(
+          `Add client file metadata failed: ${result.errors.toString()}`
+        )
+      }
+      if (result.data) {
+        const files: ITdrFile[] = result.data.addFilesAndMetadata.map((f) => {
+          const fileId: string = f.fileId
+          const file: File | undefined = matchFileMap.get(f.matchId)
+          if (file) {
+            return { fileId, file }
+          } else {
+            throw Error(`Invalid match id ${f.matchId} for file ${fileId}`)
+          }
+        })
+        allFiles.push(files)
+      } else {
+        throw Error(
+          `No data found in response for consignment ${consignmentId}`
+        )
+      }
+    }
     return allFiles.reduce((acc, files) => acc.concat(files))
   }
 
