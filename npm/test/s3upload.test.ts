@@ -68,7 +68,7 @@ test("a single file upload returns the correct key", async () => {
     jest.fn(),
     ""
   )
-  expect(result[0].Key).toEqual(
+  expect(result.sendData[0].Key).toEqual(
     "identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
   )
 })
@@ -113,16 +113,16 @@ test("multiple file uploads return the correct keys", async () => {
     callback,
     ""
   )
-  expect(result[0].Key).toEqual(
+  expect(result.sendData[0].Key).toEqual(
     `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[0]}`
   )
-  expect(result[1].Key).toEqual(
+  expect(result.sendData[1].Key).toEqual(
     `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[1]}`
   )
-  expect(result[2].Key).toEqual(
+  expect(result.sendData[2].Key).toEqual(
     `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[2]}`
   )
-  expect(result[3].Key).toEqual(
+  expect(result.sendData[3].Key).toEqual(
     `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[3]}`
   )
 })
