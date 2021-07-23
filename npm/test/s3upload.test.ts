@@ -1,6 +1,5 @@
-import { PutObjectRequest } from "aws-sdk/clients/s3"
-import { ManagedUpload } from "aws-sdk/clients/s3"
-import { S3Upload, ITdrFile } from "../src/s3upload"
+import { ManagedUpload, PutObjectRequest } from "aws-sdk/clients/s3"
+import { ITdrFile, S3Upload } from "../src/s3upload"
 import { IProgressInformation } from "@nationalarchives/file-information"
 
 class MockFailedS3 {
@@ -17,9 +16,11 @@ class MockFailedS3 {
 
 class MockSuccessfulS3 {
   private chunkSize: number
+
   constructor(chunkSize?: number) {
     this.chunkSize = chunkSize ? chunkSize : 1
   }
+
   upload(obj: PutObjectRequest) {
     return {
       abort: jest.fn(),
@@ -143,28 +144,14 @@ test("multiple file uploads call the callback correctly", async () => {
     callback,
     ""
   )
-  checkCallbackCalls(callback, 4, [
-    5,
-    10,
-    15,
-    20,
-    25,
-    30,
-    35,
-    40,
-    45,
-    50,
-    55,
-    60,
-    65,
-    70,
-    75,
-    80,
-    85,
-    90,
-    95,
-    100
-  ])
+  checkCallbackCalls(
+    callback,
+    4,
+    [
+      5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95,
+      100
+    ]
+  )
 })
 
 test("when there is an error with the upload, an error is returned", async () => {
