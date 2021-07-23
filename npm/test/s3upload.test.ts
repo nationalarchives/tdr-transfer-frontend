@@ -194,3 +194,112 @@ test("a single file upload calls the callback correctly with a different chunk s
   )
   checkCallbackCalls(callback, 1, [20, 60, 100])
 })
+
+test("multiple file uploads of more than 0 bytes returns the correct, same number of bytes provided as uploaded", async () => {
+  const fileIds = [
+    "1df92708-d66b-4b55-8c1e-bb945a5c4fb5",
+    "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1",
+    "56b34fbb-2eac-401e-a89a-0dc9b2013863",
+    "6b6694d0-814c-4978-8dee-56ec920a0102"
+  ]
+  const callback = jest.fn()
+  const file1 = new File(["file1"], "file1")
+  const file2 = new File(["file2"], "file2")
+  const file3 = new File(["file3"], "file3")
+  const file4 = new File(["file4"], "file4")
+  const files: ITdrFile[] = [
+    { fileId: fileIds[0], file: file1 },
+    { fileId: fileIds[1], file: file2 },
+    { fileId: fileIds[2], file: file3 },
+    { fileId: fileIds[3], file: file4 }
+  ]
+  const s3Upload = new S3Upload("identityId", "region")
+  s3Upload.s3 = new MockSuccessfulS3()
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    files,
+    callback,
+    ""
+  )
+  const byteSizeofAllFiles = files.reduce(
+    (fileIdTotal, tdrFile) => fileIdTotal + tdrFile.file.size,
+    0
+  )
+
+  expect(result.totalChunks).toEqual(result.processedChunks)
+  expect(result.totalChunks).toEqual(byteSizeofAllFiles)
+})
+
+test("multiple 0-byte file uploads returns a totalChunks value that equals the same as the length of 'files'", async () => {
+  const fileIds = [
+    "1df92708-d66b-4b55-8c1e-bb945a5c4fb5",
+    "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1",
+    "56b34fbb-2eac-401e-a89a-0dc9b2013863",
+    "6b6694d0-814c-4978-8dee-56ec920a0102"
+  ]
+  const callback = jest.fn()
+  const file1 = new File([""], "file1")
+  const file2 = new File([""], "file2")
+  const file3 = new File([""], "file3")
+  const file4 = new File([""], "file4")
+  const files: ITdrFile[] = [
+    { fileId: fileIds[0], file: file1 },
+    { fileId: fileIds[1], file: file2 },
+    { fileId: fileIds[2], file: file3 },
+    { fileId: fileIds[3], file: file4 }
+  ]
+  const s3Upload = new S3Upload("identityId", "region")
+  s3Upload.s3 = new MockSuccessfulS3()
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    files,
+    callback,
+    ""
+  )
+
+  expect(result.totalChunks).toEqual(files.length)
+  expect(result.totalChunks).toEqual(result.processedChunks)
+})
+
+test(`multiple file uploads (some with 0 bytes, some not) returns processedChunks value,
+            equal to byte size of files + length of 'files' with 0 bytes`, async () => {
+  const fileIds = [
+    "1df92708-d66b-4b55-8c1e-bb945a5c4fb5",
+    "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1",
+    "56b34fbb-2eac-401e-a89a-0dc9b2013863",
+    "6b6694d0-814c-4978-8dee-56ec920a0102"
+  ]
+  const callback = jest.fn()
+  const file1 = new File(["file1"], "file1")
+  const file2 = new File(["file2"], "file2")
+  const file3 = new File([""], "file3")
+  const file4 = new File([""], "file4")
+  const files: ITdrFile[] = [
+    { fileId: fileIds[0], file: file1 },
+    { fileId: fileIds[1], file: file2 },
+    { fileId: fileIds[2], file: file3 },
+    { fileId: fileIds[3], file: file4 }
+  ]
+  const s3Upload = new S3Upload("identityId", "region")
+  s3Upload.s3 = new MockSuccessfulS3()
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    files,
+    callback,
+    ""
+  )
+
+  const byteSizeofAllFiles = files.reduce(
+    (fileIdTotal, tdrFile) => fileIdTotal + tdrFile.file.size,
+    0
+  )
+
+  const numberOfFilesWithZeroBytes = files.filter(
+    (tdrFile) => tdrFile.file.size == 0
+  ).length
+
+  expect(result.processedChunks).toEqual(
+    byteSizeofAllFiles + numberOfFilesWithZeroBytes
+  )
+  expect(result.totalChunks).toEqual(byteSizeofAllFiles)
+})
