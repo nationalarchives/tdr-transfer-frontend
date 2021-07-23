@@ -49,17 +49,11 @@ export class S3Upload {
       // httpUploadProgress seems to only trigger if file size is greater than 0
       progress.on("httpUploadProgress", (ev) => {
         const chunks = ev.loaded + processedChunks
-        const percentageProcessed = Math.round((chunks / totalChunks) * 100)
-        const processedFiles = Math.floor((chunks / totalChunks) * totalFiles)
-
-        callback({ processedFiles, percentageProcessed, totalFiles })
+        this.updateUploadProgress(chunks, totalChunks, totalFiles, callback)
       })
     } else {
-      const processedFiles = 1
-      const percentageProcessed = Math.round(
-        ((file.size + processedChunks) / totalChunks) * 100
-      )
-      callback({ processedFiles, percentageProcessed, totalFiles })
+      const chunks = file.size + processedChunks
+      this.updateUploadProgress(chunks, totalChunks, totalFiles, callback)
     }
     return progress.promise()
   }
@@ -99,5 +93,22 @@ export class S3Upload {
       processedChunks += file.file.size ? file.file.size : 1
     }
     return sendData
+  }
+
+  private updateUploadProgress: (
+    chunks: number,
+    totalChunks: number,
+    totalFiles: number,
+    callback: TProgressFunction
+  ) => void = (
+    chunks: number,
+    totalChunks: number,
+    totalFiles: number,
+    updateProgressFunction: TProgressFunction
+  ) => {
+    const percentageProcessed = Math.round((chunks / totalChunks) * 100)
+    const processedFiles = Math.floor((chunks / totalChunks) * totalFiles)
+
+    updateProgressFunction({ processedFiles, percentageProcessed, totalFiles })
   }
 }
