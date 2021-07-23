@@ -29,13 +29,13 @@ export class S3Upload {
     consignmentId: string,
     stage: string,
     tdrFile: ITdrFile,
-    callback: TProgressFunction,
+    updateProgressCallback: TProgressFunction,
     progressInfo: IFileProgressInfo
   ) => Promise<S3.ManagedUpload.SendData> = (
     consignmentId,
     stage,
     tdrFile,
-    callback,
+    updateProgressCallback,
     progressInfo
   ) => {
     const { file, fileId } = tdrFile
@@ -49,11 +49,21 @@ export class S3Upload {
       // httpUploadProgress seems to only trigger if file size is greater than 0
       progress.on("httpUploadProgress", (ev) => {
         const chunks = ev.loaded + processedChunks
-        this.updateUploadProgress(chunks, totalChunks, totalFiles, callback)
+        this.updateUploadProgress(
+          chunks,
+          totalChunks,
+          totalFiles,
+          updateProgressCallback
+        )
       })
     } else {
       const chunks = file.size + processedChunks
-      this.updateUploadProgress(chunks, totalChunks, totalFiles, callback)
+      this.updateUploadProgress(
+        chunks,
+        totalChunks,
+        totalFiles,
+        updateProgressCallback
+      )
     }
     return progress.promise()
   }
