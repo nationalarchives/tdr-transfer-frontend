@@ -89,6 +89,12 @@ pipeline {
     failure {
       script {
         tdr.reportFailedBuildToGitHub(repo, env.GIT_COMMIT)
+
+        if (env.BRANCH_NAME == "master") {
+          tdr.postToDaTdrSlackChannel(colour: "danger",
+            message: "*TDR Transfer Front End Test* :warning: The build for ${env.BRANCH_NAME} has failed"
+          )
+        }
       }
     }
     success {
