@@ -30,12 +30,11 @@ export class S3Upload {
     files: ITdrFile[],
     callback: TProgressFunction,
     stage: string
-  ) => Promise<S3.ManagedUpload.SendData[]> = async (
-    consignmentId,
-    files,
-    callback,
-    stage
-  ) => {
+  ) => Promise<{
+    sendData: S3.ManagedUpload.SendData[]
+    processedChunks: number
+    totalChunks: number
+  }> = async (consignmentId, files, callback, stage) => {
     const totalFiles = files.length
     const totalChunks: number =
       files.reduce(
@@ -59,7 +58,7 @@ export class S3Upload {
       sendData.push(uploadResult)
       processedChunks += file.file.size ? file.file.size : 1
     }
-    return sendData
+    return { sendData, processedChunks, totalChunks }
   }
 
   private uploadSingleFile: (
