@@ -25,6 +25,43 @@ export class S3Upload {
     this.identityId = identityId
   }
 
+  uploadToS3: (
+    consignmentId: string,
+    files: ITdrFile[],
+    callback: TProgressFunction,
+    stage: string
+  ) => Promise<S3.ManagedUpload.SendData[]> = async (
+    consignmentId,
+    files,
+    callback,
+    stage
+  ) => {
+    const totalFiles = files.length
+    const totalChunks: number =
+      files.reduce(
+        (fileSizeTotal, file) => fileSizeTotal + file.file.size,
+        0
+      ) || totalFiles
+    let processedChunks = 0
+    const sendData: S3.ManagedUpload.SendData[] = []
+    for (const file of files) {
+      const uploadResult = await this.uploadSingleFile(
+        consignmentId,
+        stage,
+        file,
+        callback,
+        {
+          processedChunks,
+          totalChunks,
+          totalFiles
+        }
+      )
+      sendData.push(uploadResult)
+      processedChunks += file.file.size ? file.file.size : 1
+    }
+    return sendData
+  }
+
   private uploadSingleFile: (
     consignmentId: string,
     stage: string,
@@ -66,43 +103,6 @@ export class S3Upload {
       )
     }
     return progress.promise()
-  }
-
-  uploadToS3: (
-    consignmentId: string,
-    files: ITdrFile[],
-    callback: TProgressFunction,
-    stage: string
-  ) => Promise<S3.ManagedUpload.SendData[]> = async (
-    consignmentId,
-    files,
-    callback,
-    stage
-  ) => {
-    const totalFiles = files.length
-    const totalChunks: number =
-      files.reduce(
-        (fileSizeTotal, file) => fileSizeTotal + file.file.size,
-        0
-      ) || totalFiles
-    let processedChunks = 0
-    const sendData: S3.ManagedUpload.SendData[] = []
-    for (const file of files) {
-      const uploadResult = await this.uploadSingleFile(
-        consignmentId,
-        stage,
-        file,
-        callback,
-        {
-          processedChunks,
-          totalChunks,
-          totalFiles
-        }
-      )
-      sendData.push(uploadResult)
-      processedChunks += file.file.size ? file.file.size : 1
-    }
-    return sendData
   }
 
   private updateUploadProgress: (
