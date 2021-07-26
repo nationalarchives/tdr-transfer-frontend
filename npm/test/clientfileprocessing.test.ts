@@ -30,7 +30,11 @@ class S3UploadMock extends S3Upload {
     callback: TProgressFunction,
     stage: string,
     chunkSize?: number
-  ) => Promise<ManagedUpload.SendData[]> = jest.fn()
+  ) => Promise<{
+    sendData: ManagedUpload.SendData[]
+    processedChunks: number
+    totalChunks: number
+  }> = jest.fn()
 }
 
 class ClientFileUploadSuccess {
