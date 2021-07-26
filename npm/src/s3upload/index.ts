@@ -36,11 +36,11 @@ export class S3Upload {
     totalChunks: number
   }> = async (consignmentId, files, callback, stage) => {
     const totalFiles = files.length
-    const totalChunks: number =
-      files.reduce(
-        (fileSizeTotal, file) => fileSizeTotal + file.file.size,
-        0
-      ) || totalFiles
+    const totalChunks: number = files.reduce(
+      (fileSizeTotal, file) =>
+        fileSizeTotal + (file.file.size ? file.file.size : 1),
+      0
+    )
     let processedChunks = 0
     const sendData: S3.ManagedUpload.SendData[] = []
     for (const file of files) {
@@ -93,7 +93,7 @@ export class S3Upload {
         )
       })
     } else {
-      const chunks = file.size + processedChunks
+      const chunks = 1 + processedChunks
       this.updateUploadProgress(
         chunks,
         totalChunks,
