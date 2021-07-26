@@ -12,7 +12,6 @@ import { S3Upload, ITdrFile } from "../src/s3upload"
 import { ManagedUpload } from "aws-sdk/clients/s3"
 import { mockKeycloakInstance } from "./utils"
 import { FileUploadInfo } from "../src/upload/upload-form"
-import S3 = require("aws-sdk/clients/s3")
 
 jest.mock("../src/clientfilemetadataupload")
 jest.mock("../src/clientfileextractmetadata")
@@ -32,7 +31,7 @@ class S3UploadMock extends S3Upload {
     stage: string,
     chunkSize?: number
   ) => Promise<{
-    sendData: S3.ManagedUpload.SendData[]
+    sendData: ManagedUpload.SendData[]
     processedChunks: number
     totalChunks: number
   }> = jest.fn()
