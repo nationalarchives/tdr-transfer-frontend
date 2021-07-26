@@ -288,5 +288,7 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
   expect(result.processedChunks).toEqual(
     byteSizeofAllFiles + numberOfFilesWithZeroBytes
   )
-  expect(result.totalChunks).toEqual(byteSizeofAllFiles)
+  expect(result.totalChunks).toEqual(
+    byteSizeofAllFiles + numberOfFilesWithZeroBytes
+  )
 })
