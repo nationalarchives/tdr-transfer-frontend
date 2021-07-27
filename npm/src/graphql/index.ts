@@ -10,7 +10,7 @@ import {
   createHttpLink
 } from "@apollo/client/core"
 import "unfetch/polyfill"
-import { KeycloakInstance } from "keycloak-js"
+import Keycloak, { KeycloakInstance } from "keycloak-js"
 import { refreshOrReturnToken } from "../auth"
 
 type CommonQueryOptions<T> = Omit<T, "query">
