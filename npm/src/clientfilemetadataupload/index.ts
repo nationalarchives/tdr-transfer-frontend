@@ -77,10 +77,8 @@ export class ClientFileMetadataUpload {
 
     const allFiles: ITdrFile[][] = []
 
-    for (const idxString in metadataBatches) {
-      const idx = parseInt(idxString, 10)
-      const metadataInput = metadataBatches[idx]
-      const isComplete = idx === metadataBatches.length - 1
+    for (const [index, metadataInput] of metadataBatches.entries()) {
+      const isComplete = index === metadataBatches.length - 1
       const variables: AddFilesAndMetadataMutationVariables = {
         input: {
           consignmentId,
