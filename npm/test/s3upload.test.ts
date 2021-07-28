@@ -15,7 +15,7 @@ class MockFailedS3 {
 }
 
 class MockSuccessfulS3 {
-  private chunkSize: number
+  private readonly chunkSize: number
 
   constructor(chunkSize?: number) {
     this.chunkSize = chunkSize ? chunkSize : 1
