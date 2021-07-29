@@ -1,6 +1,5 @@
 package controllers
 
-import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
@@ -14,6 +13,7 @@ import play.api.test.Helpers.{status => playStatus, _}
 import services.ConsignmentService
 import util.FrontEndTestHelper
 
+import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 
@@ -100,7 +100,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       playStatus(recordsPage) mustBe OK
       headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       contentAsString(recordsPage) must include("""data-module="govuk-notification-banner"""")
-      contentAsString(recordsPage) must not include("govuk-button--disabled")
+      contentAsString(recordsPage) must not include "govuk-button--disabled"
     }
 
     "render the notification banner and enable the button if the file checks are complete and all checks are not successful" in {
@@ -122,17 +122,26 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       playStatus(recordsPage) mustBe OK
       headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\"")
-      contentAsString(recordsPage) must not include("govuk-button--disabled")
+      contentAsString(recordsPage) must not include "govuk-button--disabled"
     }
   }
 
-  private def progressData(filesProcessedWithAntivirus: Int, filesProcessedWithChecksum: Int, filesProcessedWithFFID: Int, allChecksSucceeded: Boolean): String = {
+  private def progressData(filesProcessedWithAntivirus: Int, filesProcessedWithChecksum: Int,
+                           filesProcessedWithFFID: Int, allChecksSucceeded: Boolean): String = {
     val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
     val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessedWithAntivirus)
     val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)
     val ffidProgress = fileCheck.GetConsignment.FileChecks.FfidProgress(filesProcessedWithFFID)
     val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress, ffidProgress)
-    val data: client.GraphqlData = client.GraphqlData(Some(fileCheck.Data(Some(fileCheck.GetConsignment(allChecksSucceeded, Option(""), totalFiles, fileChecks)))))
+    val data: client.GraphqlData = client.GraphqlData(
+      Some(
+        fileCheck.Data(
+          Some(
+            fileCheck.GetConsignment(allChecksSucceeded, Option(""), totalFiles, fileChecks)
+          )
+        )
+      )
+    )
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     dataString
   }
