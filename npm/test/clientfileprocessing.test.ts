@@ -11,6 +11,7 @@ import { ClientFileExtractMetadata } from "../src/clientfileextractmetadata"
 import { S3Upload, ITdrFile } from "../src/s3upload"
 import { ManagedUpload } from "aws-sdk/clients/s3"
 import { mockKeycloakInstance } from "./utils"
+import { FileUploadInfo } from "../src/upload/upload-form"
 
 jest.mock("../src/clientfilemetadataupload")
 jest.mock("../src/clientfileextractmetadata")
@@ -29,25 +30,23 @@ class S3UploadMock extends S3Upload {
     callback: TProgressFunction,
     stage: string,
     chunkSize?: number
-  ) => Promise<ManagedUpload.SendData[]> = jest.fn()
+  ) => Promise<{
+    sendData: ManagedUpload.SendData[]
+    processedChunks: number
+    totalChunks: number
+  }> = jest.fn()
 }
 
 class ClientFileUploadSuccess {
-  saveFileInformation: (
-    consignmentId: string,
-    numberOfFiles: number
-  ) => Promise<string[]> = async (
-    consignmentId: string,
-    numberOfFiles: number
+  startUpload: (uploadFilesInfo: FileUploadInfo) => Promise<void> = async (
+    uploadFilesInfo: FileUploadInfo
   ) => {
-    return Promise.resolve(["1", "2"])
-  }
-  saveClientFileMetadata: (
-    files: File[],
-    fileIds: string[]
-  ) => Promise<void> = async (files: File[], fileIds: string[]) => {
     return Promise.resolve()
   }
+  saveClientFileMetadata: (files: File[], fileIds: string[]) => Promise<void> =
+    async (files: File[], fileIds: string[]) => {
+      return Promise.resolve()
+    }
 }
 
 class ClientFileExtractMetadataSuccess {
@@ -59,39 +58,27 @@ class ClientFileExtractMetadataSuccess {
 }
 
 class ClientFileUploadFileInformationFailure {
-  saveFileInformation: (
-    consignmentId: string,
-    numberOfFiles: number
-  ) => Promise<string[]> = async (
-    consignmentId: string,
-    numberOfFiles: number
+  startUpload: (uploadFilesInfo: FileUploadInfo) => Promise<string[]> = async (
+    uploadFilesInfo: FileUploadInfo
   ) => {
     return Promise.reject(Error("upload client file information error"))
   }
-  saveClientFileMetadata: (
-    files: File[],
-    fileIds: string[]
-  ) => Promise<void> = async (files: File[], fileIds: string[]) => {
-    return Promise.resolve()
-  }
+  saveClientFileMetadata: (files: File[], fileIds: string[]) => Promise<void> =
+    async (files: File[], fileIds: string[]) => {
+      return Promise.resolve()
+    }
 }
 
 class ClientFileUploadMetadataFailure {
-  saveFileInformation: (
-    consignmentId: string,
-    numberOfFiles: number
-  ) => Promise<string[]> = async (
-    consignmentId: string,
-    numberOfFiles: number
+  startUpload: (uploadFilesInfo: FileUploadInfo) => Promise<string[]> = async (
+    uploadFilesInfo: FileUploadInfo
   ) => {
     return Promise.resolve(["1", "2"])
   }
-  saveClientFileMetadata: (
-    files: File[],
-    fileIds: string[]
-  ) => Promise<void> = async (files: File[], fileIds: string[]) => {
-    return Promise.reject(Error("upload client file metadata error"))
-  }
+  saveClientFileMetadata: (files: File[], fileIds: string[]) => Promise<void> =
+    async (files: File[], fileIds: string[]) => {
+      return Promise.reject(Error("upload client file metadata error"))
+    }
 }
 
 class ClientFileExtractMetadataFailure {
