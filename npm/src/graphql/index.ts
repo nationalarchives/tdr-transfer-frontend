@@ -1,4 +1,3 @@
-import { createHttpLink } from "apollo-link-http"
 import {
   ApolloClient,
   InMemoryCache,
@@ -7,10 +6,11 @@ import {
   NormalizedCacheObject,
   QueryOptions,
   MutationOptions,
-  FetchResult
-} from "apollo-boost"
+  FetchResult,
+  createHttpLink
+} from "@apollo/client/core"
 import "unfetch/polyfill"
-import { KeycloakInstance } from "keycloak-js"
+import Keycloak, { KeycloakInstance } from "keycloak-js"
 import { refreshOrReturnToken } from "../auth"
 
 type CommonQueryOptions<T> = Omit<T, "query">
@@ -77,7 +77,8 @@ export class GraphqlClient {
   ) => {
     const options: MutationOptions<D, V> = {
       mutation,
-      ...(await this.getOptions<D, V>(variables))
+      ...(await this.getOptions<D, V>(variables)),
+      fetchPolicy: "no-cache"
     }
     const result: FetchResult<D> = await this.client.mutate<D, V>(options)
     return result
