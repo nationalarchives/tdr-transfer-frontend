@@ -6,7 +6,7 @@ import {
   MarkUploadAsCompletedMutationVariables
 } from "@nationalarchives/tdr-generated-graphql"
 
-import { FetchResult } from "apollo-boost"
+import { FetchResult } from "@apollo/client/core"
 import { FileUploadInfo } from "../upload/upload-form"
 
 export class UpdateConsignmentStatus {
