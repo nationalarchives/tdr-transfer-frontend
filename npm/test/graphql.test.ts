@@ -1,5 +1,5 @@
 import { GraphqlClient } from "../src/graphql"
-jest.mock("apollo-boost")
+jest.mock("@apollo/client/core")
 jest.mock("../src/auth")
 import {
   ApolloClient,
@@ -8,7 +8,7 @@ import {
   NetworkStatus,
   MutationOptions,
   FetchResult
-} from "apollo-boost"
+} from "@apollo/client/core"
 import { GraphQLError } from "graphql"
 import { mockKeycloakInstance } from "./utils"
 
@@ -17,8 +17,7 @@ type TMockVariables = string
 
 const queryOptions: Omit<ApolloQueryResult<IMockData>, "data"> = {
   loading: false,
-  networkStatus: NetworkStatus.loading,
-  stale: false
+  networkStatus: NetworkStatus.loading
 }
 
 class MockApolloClientSuccess {
