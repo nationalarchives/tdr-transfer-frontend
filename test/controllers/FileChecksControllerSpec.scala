@@ -1,7 +1,6 @@
 package controllers
 
 import java.util.UUID
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
@@ -15,6 +14,7 @@ import play.api.test.Helpers.{status => playStatus, _}
 import services.ConsignmentService
 import util.FrontEndTestHelper
 
+import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 
 class FileChecksControllerSpec extends FrontEndTestHelper {
@@ -61,6 +61,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
 
       playStatus(recordsPage) mustBe OK
       contentType(recordsPage) mustBe Some("text/html")
+      headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       recordsPageAsString must include("Checking records")
       recordsPageAsString must include("Checking records")
       recordsPageAsString must include("progress")
@@ -97,6 +98,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       )
       val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
       playStatus(recordsPage) mustBe OK
+      headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       contentAsString(recordsPage) must include("""data-module="govuk-notification-banner"""")
       contentAsString(recordsPage) must not include("govuk-button--disabled")
     }
@@ -118,6 +120,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
       )
       val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
       playStatus(recordsPage) mustBe OK
+      headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\"")
       contentAsString(recordsPage) must not include("govuk-button--disabled")
     }
