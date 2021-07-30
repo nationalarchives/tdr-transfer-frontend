@@ -38,6 +38,7 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       .map {
         fileChecks => {
           Ok(views.html.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo))
+            .withHeaders("Cache-Control" -> "no-store, must-revalidate")
         }
       }
   }
