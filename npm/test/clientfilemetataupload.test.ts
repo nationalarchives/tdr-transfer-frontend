@@ -195,6 +195,30 @@ test("createMetadataInputBatches generates batches of the defined size", () => {
   expect(result[1]).toEqual([input4, input5])
 })
 
+test("createMetadataInputsAndFileMap returns metadata inputs and file map", () => {
+  const metadata: IFileMetadata[] = [mockMetadata1, mockMetadata2]
+  const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
+  const uploadMetadata = new ClientFileMetadataUpload(client)
+
+  const { metadataInputs, matchFileMap } =
+    uploadMetadata.createMetadataInputsAndFileMap(metadata)
+
+  expect(metadataInputs).toHaveLength(metadata.length)
+  for (let i = 0; i < metadataInputs.length; i += 1) {
+    expect(metadataInputs[i].checksum).toEqual(metadata[i].checksum)
+    expect(metadataInputs[i].fileSize).toEqual(metadata[i].size)
+    expect(metadataInputs[i].originalPath).toEqual(metadata[i].path)
+    expect(metadataInputs[i].lastModified).toEqual(
+      metadata[i].lastModified.getTime()
+    )
+  }
+
+  expect(matchFileMap.size).toEqual(metadata.length)
+  for (let i = 0; i < metadataInputs.length; i += 1) {
+    expect(matchFileMap.get(i)).toEqual(metadata[i].file)
+  }
+})
+
 function generateMockMetadataInput(matchId: number): ClientSideMetadataInput {
   return {
     lastModified: Date.now(),

@@ -6,10 +6,10 @@ import {
   AddFilesAndMetadata,
   AddFilesAndMetadataMutation,
   AddFilesAndMetadataMutationVariables,
+  ClientSideMetadataInput,
   StartUpload,
   StartUploadMutation,
-  StartUploadMutationVariables,
-  ClientSideMetadataInput
+  StartUploadMutationVariables
 } from "@nationalarchives/tdr-generated-graphql"
 
 import { FetchResult } from "@apollo/client/core"
@@ -47,36 +47,8 @@ export class ClientFileMetadataUpload {
     consignmentId: string,
     allFileMetadata: IFileMetadata[]
   ): Promise<ITdrFile[]> {
-    const {
-      metadataInputs,
-      matchFileMap
-    }: {
-      metadataInputs: ClientSideMetadataInput[]
-      matchFileMap: Map<number, File>
-    } = allFileMetadata.reduce(
-      (metadataInputsAndFileMapper, metadata: IFileMetadata, matchId) => {
-        const { checksum, path, lastModified, file } = metadata
-        metadataInputsAndFileMapper.matchFileMap.set(matchId, file)
-
-        //Files uploaded with 'drag and files' have '/'  prepended, those uploaded with 'browse' don't
-        //Ensure file paths stored in database are consistent
-        const validatedPath = path.startsWith("/") ? path.substring(1) : path
-        const metadataInput: ClientSideMetadataInput = {
-          originalPath: validatedPath,
-          checksum,
-          lastModified: lastModified.getTime(),
-          fileSize: file.size,
-          matchId
-        }
-        metadataInputsAndFileMapper.metadataInputs.push(metadataInput)
-
-        return metadataInputsAndFileMapper
-      },
-      {
-        metadataInputs: <ClientSideMetadataInput[]>[],
-        matchFileMap: new Map<number, File>()
-      }
-    )
+    const { metadataInputs, matchFileMap } =
+      this.createMetadataInputsAndFileMap(allFileMetadata)
 
     const metadataBatches: ClientSideMetadataInput[][] =
       this.createMetadataInputBatches(metadataInputs)
@@ -131,5 +103,35 @@ export class ClientFileMetadataUpload {
     }
 
     return batches
+  }
+
+  createMetadataInputsAndFileMap(allFileMetadata: IFileMetadata[]): {
+    metadataInputs: ClientSideMetadataInput[]
+    matchFileMap: Map<number, File>
+  } {
+    return allFileMetadata.reduce(
+      (metadataInputsAndFileMapper, metadata: IFileMetadata, matchId) => {
+        const { checksum, path, lastModified, file, size } = metadata
+        metadataInputsAndFileMapper.matchFileMap.set(matchId, file)
+
+        //Files uploaded with 'drag and files' have '/'  prepended, those uploaded with 'browse' don't
+        //Ensure file paths stored in database are consistent
+        const validatedPath = path.startsWith("/") ? path.substring(1) : path
+        const metadataInput: ClientSideMetadataInput = {
+          originalPath: validatedPath,
+          checksum,
+          lastModified: lastModified.getTime(),
+          fileSize: size,
+          matchId
+        }
+        metadataInputsAndFileMapper.metadataInputs.push(metadataInput)
+
+        return metadataInputsAndFileMapper
+      },
+      {
+        metadataInputs: <ClientSideMetadataInput[]>[],
+        matchFileMap: new Map<number, File>()
+      }
+    )
   }
 }
