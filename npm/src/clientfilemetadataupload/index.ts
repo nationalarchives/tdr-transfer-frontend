@@ -18,11 +18,6 @@ import { FileUploadInfo } from "../upload/upload-form"
 
 declare var METADATA_UPLOAD_BATCH_SIZE: string
 
-export interface IClientFileData {
-  metadataInput: ClientSideMetadataInput
-  tdrFile: File
-}
-
 export class ClientFileMetadataUpload {
   client: GraphqlClient
 
@@ -50,29 +45,37 @@ export class ClientFileMetadataUpload {
 
   async saveClientFileMetadata(
     consignmentId: string,
-    metadata: IFileMetadata[]
+    allFileMetadata: IFileMetadata[]
   ): Promise<ITdrFile[]> {
-    const clientFileData: IClientFileData[] = metadata.map((m, matchId) => {
-      const { checksum, path, lastModified, file } = m
-      //Files uploaded with 'drag and files' have '/'  prepended, those uploaded with 'browse' don't
-      //Ensure file paths stored in database are consistent
-      const validatedPath = path.startsWith("/") ? path.substring(1) : path
-      const metadataInput: ClientSideMetadataInput = {
-        originalPath: validatedPath,
-        checksum,
-        lastModified: lastModified.getTime(),
-        fileSize: file.size,
-        matchId
+    const {
+      metadataInputs,
+      matchFileMap
+    }: {
+      metadataInputs: ClientSideMetadataInput[]
+      matchFileMap: Map<number, File>
+    } = allFileMetadata.reduce(
+      (metadataInputsAndFileMapper, metadata: IFileMetadata, matchId) => {
+        const { checksum, path, lastModified, file } = metadata
+        metadataInputsAndFileMapper.matchFileMap.set(matchId, file)
+
+        //Files uploaded with 'drag and files' have '/'  prepended, those uploaded with 'browse' don't
+        //Ensure file paths stored in database are consistent
+        const validatedPath = path.startsWith("/") ? path.substring(1) : path
+        const metadataInput: ClientSideMetadataInput = {
+          originalPath: validatedPath,
+          checksum,
+          lastModified: lastModified.getTime(),
+          fileSize: file.size,
+          matchId
+        }
+        metadataInputsAndFileMapper.metadataInputs.push(metadataInput)
+
+        return metadataInputsAndFileMapper
+      },
+      {
+        metadataInputs: <ClientSideMetadataInput[]>[],
+        matchFileMap: new Map<number, File>()
       }
-      return { metadataInput, tdrFile: file }
-    })
-
-    const metadataInputs: ClientSideMetadataInput[] = clientFileData.map(
-      (cf) => cf.metadataInput
-    )
-
-    const matchFileMap: Map<number, File> = new Map(
-      clientFileData.map((cf) => [cf.metadataInput.matchId, cf.tdrFile])
     )
 
     const metadataBatches: ClientSideMetadataInput[][] =
