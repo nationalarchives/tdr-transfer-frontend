@@ -81,7 +81,7 @@ export class ClientFileMetadataUpload {
     const metadataBatches: ClientSideMetadataInput[][] =
       this.createMetadataInputBatches(metadataInputs)
 
-    const allFiles: ITdrFile[][] = []
+    const allFiles: ITdrFile[] = []
 
     for (const [index, metadataInput] of metadataBatches.entries()) {
       const isComplete = index === metadataBatches.length - 1
@@ -101,23 +101,22 @@ export class ClientFileMetadataUpload {
         )
       }
       if (result.data) {
-        const files: ITdrFile[] = result.data.addFilesAndMetadata.map((f) => {
+        result.data.addFilesAndMetadata.forEach((f) => {
           const fileId: string = f.fileId
           const file: File | undefined = matchFileMap.get(f.matchId)
           if (file) {
-            return { fileId, file }
+            allFiles.push({ fileId, file })
           } else {
             throw Error(`Invalid match id ${f.matchId} for file ${fileId}`)
           }
         })
-        allFiles.push(files)
       } else {
         throw Error(
           `No data found in response for consignment ${consignmentId}`
         )
       }
     }
-    return allFiles.reduce((acc, files) => acc.concat(files))
+    return allFiles
   }
 
   createMetadataInputBatches(metadataInputs: ClientSideMetadataInput[]) {
