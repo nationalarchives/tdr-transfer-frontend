@@ -185,7 +185,13 @@ test("createMetadataInputBatches generates batches of the defined size", () => {
   const input4 = generateMockMetadataInput(4)
   const input5 = generateMockMetadataInput(5)
 
-  const inputs: ClientSideMetadataInput[] = [input1, input2, input3, input4, input5]
+  const inputs: ClientSideMetadataInput[] = [
+    input1,
+    input2,
+    input3,
+    input4,
+    input5
+  ]
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
@@ -235,7 +241,7 @@ test("createMetadataInputsAndFileMap replaces double slash in metadata inputs fi
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
-  const { metadataInputs, matchFileMap } =
+  const { metadataInputs } =
     uploadMetadata.createMetadataInputsAndFileMap(metadata)
 
   expect(metadataInputs).toHaveLength(metadata.length)
