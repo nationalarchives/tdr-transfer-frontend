@@ -15,7 +15,7 @@ class MockFailedS3 {
 }
 
 class MockSuccessfulS3 {
-  private chunkSize: number
+  private readonly chunkSize: number
 
   constructor(chunkSize?: number) {
     this.chunkSize = chunkSize ? chunkSize : 1
@@ -46,10 +46,10 @@ class MockSuccessfulS3 {
 const checkCallbackCalls: (
   callback: jest.Mock,
   totalFiles: number,
-  arr: number[]
-) => void = (callback, totalFiles, arr) => {
-  for (let i = 0; i < arr.length; i++) {
-    const percentageProcessed = arr[i]
+  percentages: number[]
+) => void = (callback, totalFiles, percentages) => {
+  for (let i = 0; i < percentages.length; i++) {
+    const percentageProcessed = percentages[i]
     const expectedResult: IProgressInformation = {
       percentageProcessed,
       totalFiles,
