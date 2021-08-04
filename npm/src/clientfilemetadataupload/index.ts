@@ -110,9 +110,9 @@ export class ClientFileMetadataUpload {
     matchFileMap: Map<number, File>
   } {
     return allFileMetadata.reduce(
-      (metadataInputsAndFileMapper, metadata: IFileMetadata, matchId) => {
+      (result, metadata: IFileMetadata, matchId) => {
         const { checksum, path, lastModified, file, size } = metadata
-        metadataInputsAndFileMapper.matchFileMap.set(matchId, file)
+        result.matchFileMap.set(matchId, file)
 
         //Files uploaded with 'drag and files' have '/'  prepended, those uploaded with 'browse' don't
         //Ensure file paths stored in database are consistent
@@ -124,9 +124,9 @@ export class ClientFileMetadataUpload {
           fileSize: size,
           matchId
         }
-        metadataInputsAndFileMapper.metadataInputs.push(metadataInput)
+        result.metadataInputs.push(metadataInput)
 
-        return metadataInputsAndFileMapper
+        return result
       },
       {
         metadataInputs: <ClientSideMetadataInput[]>[],
