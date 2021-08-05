@@ -225,18 +225,14 @@ test("createMetadataInputsAndFileMap returns metadata inputs and file map", () =
   }
 })
 
-test("createMetadataInputsAndFileMap replaces double slash in metadata inputs file path with single slash", async () => {
-  const mockMetadata1WithDoubleSlash = <IFileMetadata>{
+test("createMetadataInputsAndFileMap removes slash at beginning of metadata input's file path", async () => {
+  const mockMetadata1WithSlashInPath = <IFileMetadata>{
     ...mockMetadata1,
     path: "/path/to/file1"
   }
-  const mockMetadata2WithDoubleSlash = <IFileMetadata>{
-    ...mockMetadata2,
-    path: "path2/to/file2"
-  }
   const metadata: IFileMetadata[] = [
-    mockMetadata1WithDoubleSlash,
-    mockMetadata2WithDoubleSlash
+    mockMetadata1WithSlashInPath,
+    mockMetadata2
   ]
   const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
@@ -246,7 +242,7 @@ test("createMetadataInputsAndFileMap replaces double slash in metadata inputs fi
 
   expect(metadataInputs).toHaveLength(2)
   expect(metadataInputs[0].originalPath).toEqual("path/to/file1")
-  expect(metadataInputs[1].originalPath).toEqual("path2/to/file2")
+  expect(metadataInputs[1].originalPath).toEqual("path/to/file2")
 })
 
 function generateMockMetadataInput(matchId: number): ClientSideMetadataInput {
