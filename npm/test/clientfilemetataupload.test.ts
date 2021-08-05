@@ -209,7 +209,7 @@ test("createMetadataInputsAndFileMap returns metadata inputs and file map", () =
   const { metadataInputs, matchFileMap } =
     uploadMetadata.createMetadataInputsAndFileMap(metadata)
 
-  expect(metadataInputs).toHaveLength(metadata.length)
+  expect(metadataInputs).toHaveLength(2)
   for (let i = 0; i < metadataInputs.length; i += 1) {
     expect(metadataInputs[i].checksum).toEqual(metadata[i].checksum)
     expect(metadataInputs[i].fileSize).toEqual(metadata[i].size)
@@ -219,7 +219,7 @@ test("createMetadataInputsAndFileMap returns metadata inputs and file map", () =
     )
   }
 
-  expect(matchFileMap.size).toEqual(metadata.length)
+  expect(matchFileMap.size).toEqual(2)
   for (let i = 0; i < metadataInputs.length; i += 1) {
     expect(matchFileMap.get(i)).toEqual(metadata[i].file)
   }
@@ -244,7 +244,7 @@ test("createMetadataInputsAndFileMap replaces double slash in metadata inputs fi
   const { metadataInputs } =
     uploadMetadata.createMetadataInputsAndFileMap(metadata)
 
-  expect(metadataInputs).toHaveLength(metadata.length)
+  expect(metadataInputs).toHaveLength(2)
   expect(metadataInputs[0].originalPath).toEqual("path/to/file1")
   expect(metadataInputs[1].originalPath).toEqual("path2/to/file2")
 })
