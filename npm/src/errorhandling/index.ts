@@ -24,6 +24,7 @@ export function handleUploadError(
       showErrorMessageOnUploadFormHalf(error)
     } else {
       //User is seeing progress bar
+      hideBrowserCloseMessageAndProgressBar()
       showErrorMessageOnUploadInProgressHalf(error)
     }
   }
@@ -82,6 +83,11 @@ function showErrorMessageOnUploadInProgressHalf(error: Error) {
   if (uploadProgressErrorMessage) {
     uploadProgressErrorMessage.removeAttribute("hidden")
   }
+}
+
+function hideBrowserCloseMessageAndProgressBar() {
+  const browserCloseMessageAndProgressBar = document.querySelector("#progress-bar-and-message")
+  browserCloseMessageAndProgressBar?.setAttribute("hidden", "true")
 }
 
 function showLoggedOutError(login: string) {
