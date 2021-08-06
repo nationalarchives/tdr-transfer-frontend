@@ -129,7 +129,7 @@ class MockDom {
                                       </label>
                                   </div>
                                   <p class="govuk-body">For more information on what metadata will be captured during the upload please visit our FAQ’s page</p>
-                                  <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                                  <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
                                       Start upload
                                   </button>
                               </div>
@@ -308,9 +308,7 @@ class MockDom {
     document.querySelector("#file-selection")
 
   submitButton: HTMLElement | null =
-    document.querySelector("input[type=submit]")
-
-  submitAndLabelButtons = document.querySelectorAll(".govuk-button")
+    document.querySelector("#start-upload-button")
 
   fileUploader = this.setUpFileUploader()
 
@@ -339,10 +337,7 @@ test("clicking the submit button, without selecting a folder, doesn't disable th
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
 
-  mockDom.submitAndLabelButtons.forEach((button) =>
-    expect(button).not.toHaveAttribute("disabled", "true")
-  )
-
+  expect(mockDom.submitButton).not.toHaveAttribute("disabled", "true")
   expect(mockDom.hiddenInputButton).not.toHaveAttribute("disabled", "true")
 })
 
@@ -600,10 +595,7 @@ test("clicking the submit button, after selecting a folder, disables the buttons
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
 
-  mockDom.submitAndLabelButtons.forEach((button) =>
-    expect(button).toHaveAttribute("disabled", "true")
-  )
-
+  expect(mockDom.submitButton).toHaveAttribute("disabled", "true")
   expect(mockDom.hiddenInputButton).toHaveAttribute("disabled", "true")
 
   /*There is currently no way in Javascript to check if an event has been removed from an element,
