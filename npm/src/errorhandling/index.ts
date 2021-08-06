@@ -86,7 +86,9 @@ function showErrorMessageOnUploadInProgressHalf(error: Error) {
 }
 
 function hideBrowserCloseMessageAndProgressBar() {
-  const browserCloseMessageAndProgressBar = document.querySelector("#progress-bar-and-message")
+  const browserCloseMessageAndProgressBar = document.querySelector(
+    "#progress-bar-and-message"
+  )
   browserCloseMessageAndProgressBar?.setAttribute("hidden", "true")
 }
 
