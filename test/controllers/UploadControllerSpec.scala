@@ -16,6 +16,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
 import util.FrontEndTestHelper
 
+import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 
 
@@ -76,6 +77,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
 
       status(uploadPage) mustBe OK
+      headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       contentAsString(uploadPage) must include("Uploading records")
       contentAsString(uploadPage) must include("You can only upload one folder to be transferred")
     }

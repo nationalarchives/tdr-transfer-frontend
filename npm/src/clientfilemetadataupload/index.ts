@@ -54,8 +54,11 @@ export class ClientFileMetadataUpload {
   ): Promise<ITdrFile[]> {
     const clientFileData: IClientFileData[] = metadata.map((m, matchId) => {
       const { checksum, path, lastModified, file } = m
+      //Files uploaded with 'drag and files' have '/'  prepended, those uploaded with 'browse' don't
+      //Ensure file paths stored in database are consistent
+      const validatedPath = path.startsWith("/") ? path.substring(1) : path
       const metadataInput: ClientSideMetadataInput = {
-        originalPath: path,
+        originalPath: validatedPath,
         checksum,
         lastModified: lastModified.getTime(),
         fileSize: file.size,
