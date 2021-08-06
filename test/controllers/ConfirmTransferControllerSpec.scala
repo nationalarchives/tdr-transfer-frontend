@@ -57,7 +57,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   }
 
   "ConfirmTransferController GET" should {
-    "render the transfer summary page with an authenticated user" in {
+    "render the confirm transfer page with an authenticated user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
 
@@ -225,7 +225,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       failure mustBe an[Exception]
     }
 
-    "throws an authorisation exception when the user does not have permission to save the transfer summary" in {
+    "throws an authorisation exception when the user does not have permission to save the transfer confirmation" in {
       stubFinalTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
