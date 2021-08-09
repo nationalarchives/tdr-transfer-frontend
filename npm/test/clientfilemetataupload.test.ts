@@ -226,6 +226,9 @@ test("createMetadataInputsAndFileMap returns metadata inputs and file map", () =
 })
 
 test("createMetadataInputsAndFileMap removes slash at beginning of metadata input's file path", async () => {
+  /*Files selected via drag-and-drop have a leading slash applied to their file path but files added using the 'Browse'
+   button do not. This test is to check that any leading slashes are be removed for consistency.*/
+
   const mockMetadata1WithSlashInPath = <IFileMetadata>{
     ...mockMetadata1,
     path: "/path/to/file1"
