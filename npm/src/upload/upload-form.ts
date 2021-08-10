@@ -242,12 +242,12 @@ export class UploadForm {
   private showUploadingRecordsPage() {
     const fileUpload: HTMLDivElement | null =
       document.querySelector("#file-upload")
-    const progressBar: HTMLDivElement | null =
-      document.querySelector("#progress-bar")
+    const uploadProgressPage: HTMLDivElement | null =
+      document.querySelector("#upload-progress")
 
-    if (fileUpload && progressBar) {
+    if (fileUpload && uploadProgressPage) {
       fileUpload.setAttribute("hidden", "true")
-      progressBar.removeAttribute("hidden")
+      uploadProgressPage.removeAttribute("hidden")
     }
   }
 
