@@ -120,7 +120,7 @@ const mockFailureAddMetadata: () => void = () => {
 
 test("startUpload returns error if no data returned", async () => {
   mockFailureAddFiles()
-  const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
+  const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
   await expect(
     uploadMetadata.startUpload({
@@ -132,7 +132,7 @@ test("startUpload returns error if no data returned", async () => {
 
 test("startUpload returns error if returned data contains errors", async () => {
   mockDataErrorsAddFiles()
-  const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
+  const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
   await expect(
     uploadMetadata.startUpload({
@@ -149,7 +149,7 @@ test("saveClientFileMetadata uploads client file metadata", async () => {
   })
 
   const metadata: IFileMetadata[] = [mockMetadata1, mockMetadata2]
-  const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
+  const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
   const result = await uploadMetadata.saveClientFileMetadata("", metadata)
@@ -168,7 +168,7 @@ test("saveClientFileMetadata fails to upload client file metadata", async () => 
   mockFailureAddMetadata()
 
   const metadata: IFileMetadata[] = [mockMetadata1, mockMetadata2]
-  const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
+  const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
   await expect(
@@ -185,14 +185,67 @@ test("createMetadataInputBatches generates batches of the defined size", () => {
   const input4 = generateMockMetadataInput(4)
   const input5 = generateMockMetadataInput(5)
 
-  const inputs: ClientSideMetadataInput[] = [input1, input2, input3, input4, input5]
-  const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
+  const inputs: ClientSideMetadataInput[] = [
+    input1,
+    input2,
+    input3,
+    input4,
+    input5
+  ]
+  const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
   const result = uploadMetadata.createMetadataInputBatches(inputs)
   expect(result).toHaveLength(2)
   expect(result[0]).toEqual([input1, input2, input3])
   expect(result[1]).toEqual([input4, input5])
+})
+
+test("createMetadataInputsAndFileMap returns metadata inputs and file map", () => {
+  const metadata: IFileMetadata[] = [mockMetadata1, mockMetadata2]
+  const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
+  const uploadMetadata = new ClientFileMetadataUpload(client)
+
+  const { metadataInputs, matchFileMap } =
+    uploadMetadata.createMetadataInputsAndFileMap(metadata)
+
+  expect(metadataInputs).toHaveLength(2)
+  for (let i = 0; i < metadataInputs.length; i += 1) {
+    expect(metadataInputs[i].checksum).toEqual(metadata[i].checksum)
+    expect(metadataInputs[i].fileSize).toEqual(metadata[i].size)
+    expect(metadataInputs[i].originalPath).toEqual(metadata[i].path)
+    expect(metadataInputs[i].lastModified).toEqual(
+      metadata[i].lastModified.getTime()
+    )
+  }
+
+  expect(matchFileMap.size).toEqual(2)
+  for (let i = 0; i < metadataInputs.length; i += 1) {
+    expect(matchFileMap.get(i)).toEqual(metadata[i].file)
+  }
+})
+
+test("createMetadataInputsAndFileMap removes slash at beginning of metadata input's file path", async () => {
+  /*Files selected via drag-and-drop have a leading slash applied to their file path but files added using the 'Browse'
+   button do not. This test is to check that any leading slashes are be removed for consistency.*/
+
+  const mockMetadata1WithSlashInPath = <IFileMetadata>{
+    ...mockMetadata1,
+    path: "/path/to/file1"
+  }
+  const metadata: IFileMetadata[] = [
+    mockMetadata1WithSlashInPath,
+    mockMetadata2
+  ]
+  const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
+  const uploadMetadata = new ClientFileMetadataUpload(client)
+
+  const { metadataInputs } =
+    uploadMetadata.createMetadataInputsAndFileMap(metadata)
+
+  expect(metadataInputs).toHaveLength(2)
+  expect(metadataInputs[0].originalPath).toEqual("path/to/file1")
+  expect(metadataInputs[1].originalPath).toEqual("path/to/file2")
 })
 
 function generateMockMetadataInput(matchId: number): ClientSideMetadataInput {
