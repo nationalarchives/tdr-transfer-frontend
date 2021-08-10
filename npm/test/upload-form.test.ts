@@ -139,7 +139,7 @@ class MockDom {
               </form>
           </div>
       </div>
-      <div id="progress-bar" class="govuk-grid-row" hidden></div>`)
+      <div id="upload-progress" class="govuk-grid-row" hidden></div>`)
 
   dataTransferItemFields = {
     fullPath: "something", // add this to the fileEntry and directoryEntry object
@@ -319,7 +319,7 @@ class MockDom {
     this.setUpFileUploader
   )
 
-  uploadingRecordsSection = document.querySelector("#progress-bar")
+  uploadingRecordsSection = document.querySelector("#upload-progress")
 }
 
 test("clicking the submit button, without selecting a folder, doesn't reveal the progress bar", async () => {
