@@ -93,7 +93,7 @@
                             <!-- Buttons -->
                             <div class="govuk-button-group">
                                 <!-- Continue -->
-                                <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                                <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
                                     Start upload
                                 </button>
 
@@ -109,28 +109,33 @@
         @form(routes.FileChecksController.recordProcessingPage(consignmentId), Symbol("id") -> "upload-data-form") { }
     </div>
 </div>
-<div id="progress-bar" class="govuk-grid-row" hidden>
+<div id="upload-progress" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("upload.progress"))
         <h1 class="govuk-heading-l">Uploading records</h1>
-        <p class="govuk-body">Do not close your browser window while your files are being uploaded. This could take a few minutes.</p>
-        <div id="upload-progress-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
-            role="alert" tabindex="-1" data-module="govuk-error-summary">
-            <div id="upload-progress-error">
+        <div id="upload-progress-error" hidden>
+            <div class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"
+                role="alert" tabindex="-1" data-module="govuk-error-summary">
                 <h2 class="govuk-error-summary__title" id="error-summary-title">
                     There is a problem
                 </h2>
                 <div class="govuk-error-summary__body">
                     <p>Some or all of your files failed to upload.</p>
-                    <p class="upload-progress-error-timeout__message" hidden>Your upload has timed out, click <a class="govuk-link" href="@routes.SeriesDetailsController.seriesDetails()">series</a> to start again.</p>
-                    <p class="upload-progress-error-authentication__message" hidden>You have been logged out, click <a class="govuk-link" href="@routes.SeriesDetailsController.seriesDetails()">series</a> to start again.</p>
-                    <p class="upload-progress-error-general__message" hidden>Something has gone wrong, click <a class="govuk-link" href="@routes.SeriesDetailsController.seriesDetails()">series</a> to start again</p>
+                    <p class="upload-progress-error-timeout__message" hidden>Your upload has timed out. Click 'Return to start' to begin a new transfer.</p>
+                    <p class="upload-progress-error-authentication__message" hidden>You have been signed out. Click 'Return to start' to begin a new transfer.</p>
+                    <p class="upload-progress-error-general__message" hidden>Click 'Return to start' to begin a new transfer.</p>
                 </div>
             </div>
+            <a class="govuk-button" href="@routes.DashboardController.dashboard()" role="button" draggable="false" data-module="govuk-button">
+            Return to start
+            </a>
         </div>
-        <div>
-            <span id="upload-status-screen-reader"><label for="upload-records-progress-bar" class="govuk-label progress-label"></label></span>
-            <progress class="progress-display" value="0" max="100"></progress>
+        <div id="progress-bar-and-message">
+            <p class="govuk-body">Do not close your browser window while your files are being uploaded. This could take a few minutes.</p>
+            <div>
+                <span id="upload-status-screen-reader"><label for="upload-records-progress-bar" class="govuk-label progress-label"></label></span>
+                <progress class="progress-display" value="0" max="100"></progress>
+            </div>
         </div>
     </div>
 </div>
