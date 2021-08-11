@@ -184,7 +184,7 @@ export class UploadForm {
 
     if (folderSelected) {
       this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
-      this.disableButtonsAndDropzone()
+      this.disableSubmitButtonAndDropzone()
 
       const parentFolder = this.getParentFolderName(this.selectedFiles)
       const uploadFilesInfo: FileUploadInfo = {
@@ -242,12 +242,12 @@ export class UploadForm {
   private showUploadingRecordsPage() {
     const fileUpload: HTMLDivElement | null =
       document.querySelector("#file-upload")
-    const progressBar: HTMLDivElement | null =
-      document.querySelector("#progress-bar")
+    const uploadProgressPage: HTMLDivElement | null =
+      document.querySelector("#upload-progress")
 
-    if (fileUpload && progressBar) {
+    if (fileUpload && uploadProgressPage) {
       fileUpload.setAttribute("hidden", "true")
-      progressBar.removeAttribute("hidden")
+      uploadProgressPage.removeAttribute("hidden")
     }
   }
 
@@ -257,11 +257,9 @@ export class UploadForm {
     }
   }
 
-  private disableButtonsAndDropzone() {
-    const submitAndLabelButtons = document.querySelectorAll(".govuk-button")
-    submitAndLabelButtons.forEach((button) =>
-      button.setAttribute("disabled", "true")
-    )
+  private disableSubmitButtonAndDropzone() {
+    const submitButton = document.querySelector("#start-upload-button")
+    submitButton?.setAttribute("disabled", "true")
 
     const hiddenInputButton = document.querySelector("#file-selection")
     hiddenInputButton?.setAttribute("disabled", "true")
