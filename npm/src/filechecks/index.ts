@@ -23,6 +23,6 @@ export class FileChecks {
         clearInterval(intervalId)
         displayChecksCompletedBanner()
       }
-    }, 2000)
+    }, 20000)
   }
 }
