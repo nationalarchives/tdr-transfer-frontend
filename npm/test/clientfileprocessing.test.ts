@@ -430,12 +430,12 @@ const showUploadingRecordsPage = () => {
   // At the point of the client file processing, the file-upload part should be hidden and progress bar revealed
   const fileUpload: HTMLDivElement | null =
     document.querySelector("#file-upload")
-  const progressBar: HTMLDivElement | null =
-    document.querySelector("#progress-bar")
+  const uploadProgressPage: HTMLDivElement | null =
+    document.querySelector("#upload-progress")
 
-  if (fileUpload && progressBar) {
+  if (fileUpload && uploadProgressPage) {
     fileUpload.setAttribute("hidden", "true")
-    progressBar.removeAttribute("hidden")
+    uploadProgressPage.removeAttribute("hidden")
   }
 }
 
@@ -446,7 +446,7 @@ function setupUploadPageHTML() {
         role="alert" tabindex="-1" data-module="govuk-error-summary">
         <h2 class="govuk-error-summary__title" id="error-summary-title"></h2>
     </div>
-    <div id="progress-bar" class="govuk-grid-row" hidden>
+    <div id="upload-progress" class="govuk-grid-row" hidden>
         <div>
           <span id="upload-status-screen-reader"><label for="upload-records-progress-bar" class="govuk-label progress-label"></label></span>
           <progress class="progress-display" value="0" max="50"></progress>
@@ -471,8 +471,8 @@ function checkExpectedPageState(percentage: String) {
   const fileUpload: HTMLDivElement | null = document.querySelector(
     "#file-upload"
   )
-  const progressBar: HTMLDivElement | null = document.querySelector(
-    "#progress-bar"
+  const uploadProgressPage: HTMLDivElement | null = document.querySelector(
+    "#upload-progress"
   )
 
   const progressBarElement: HTMLDivElement | null = document.querySelector(
@@ -483,7 +483,7 @@ function checkExpectedPageState(percentage: String) {
     "#upload-error"
   )
 
-  expect(progressBar && progressBar.classList.toString()).toEqual(
+  expect(uploadProgressPage && uploadProgressPage.classList.toString()).toEqual(
     "govuk-grid-row"
   )
 
