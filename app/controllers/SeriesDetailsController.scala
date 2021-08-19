@@ -30,7 +30,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
   private def getSeriesDetails(request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
     seriesService.getSeriesForUser(request.token)
       .map({series =>
-        val seriesFormData = series.map(s => (s.seriesid.toString, s.code.getOrElse("")))
+        val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
         status(views.html.seriesDetails(seriesFormData, form))
       })
   }
