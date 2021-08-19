@@ -75,10 +75,10 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       contentAsString(confirmTransferPage) must include("Confirm transfer")
 
       contentAsString(confirmTransferPage) must include("Series reference")
-      contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.series.get.code.get)
+      contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.series.get.code)
 
       contentAsString(confirmTransferPage) must include("Transferring body")
-      contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.transferringBody.get.name.get)
+      contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.transferringBody.get.name)
 
       contentAsString(confirmTransferPage) must include("Files uploaded for transfer")
       contentAsString(confirmTransferPage) must include(s"${consignmentSummaryResponse.totalFiles} files uploaded")
@@ -332,8 +332,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   }
 
   private def getConsignmentSummaryResponse: gcs.GetConsignment = {
-    val seriesCode = Some(gcs.GetConsignment.Series(Some("Mock Series 2")))
-    val transferringBodyName = Some(gcs.GetConsignment.TransferringBody(Some("MockBody 2")))
+    val seriesCode = Some(gcs.GetConsignment.Series("Mock Series 2"))
+    val transferringBodyName = Some(gcs.GetConsignment.TransferringBody("MockBody 2"))
     val totalFiles: Int = 4
     val consignmentReference = "TEST-TDR-2021-GB"
     new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)

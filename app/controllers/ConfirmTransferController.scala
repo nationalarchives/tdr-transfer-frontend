@@ -88,8 +88,8 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
     }
 }
 
-case class ConsignmentSummaryData(seriesCode: Option[String],
-                                  transferringBody: Option[String],
+case class ConsignmentSummaryData(seriesCode: String,
+                                  transferringBody: String,
                                   totalFiles: Int,
                                   consignmentReference: String)
 
