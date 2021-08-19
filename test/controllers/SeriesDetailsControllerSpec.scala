@@ -44,7 +44,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "render the correct series details page with an authenticated user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Some(
-        gs.Data(List(gs.GetSeries(seriesId, bodyId, Option.empty, Some("code"), Option.empty)))))
+        gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "code", Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val seriesService = new SeriesService(graphQLConfiguration)
@@ -156,7 +156,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "display errors when an invalid form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Some(
-        gs.Data(List(gs.GetSeries(seriesId, bodyId, Option.empty, Some("code"), Option.empty)))))
+        gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "code", Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val seriesService = new SeriesService(graphQLConfiguration)
@@ -177,7 +177,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "will send the correct body if it is present on the user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Some(
-        gs.Data(List(gs.GetSeries(seriesId, bodyId, Option.empty, Some("code"), Option.empty)))))
+        gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "code", Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val seriesService = new SeriesService(graphQLConfiguration)
