@@ -39,11 +39,11 @@
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
     "@apollo/client": "^3.4.8",
-    "@nationalarchives/file-information": "1.0.154",
-    "@nationalarchives/tdr-generated-graphql": "1.0.90",
+    "@nationalarchives/file-information": "^1.0.170",
+    "@nationalarchives/tdr-generated-graphql": "^1.0.95",
     "aws-sdk": "^2.974.0",
     "govuk-frontend": "^3.13.0",
-    "graphql": "^14.7.0",
+    "graphql": "^15.5.1",
     "keycloak-js": "11.0.3",
     "unfetch": "^4.1.0",
     "util": "^0.12.4"
