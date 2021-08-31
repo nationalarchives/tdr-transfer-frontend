@@ -38,6 +38,6 @@ lazy val `ts-prod-build` = taskKey[Unit]("Run TS build when packaging the applic
   if (executeProdBuild != Success) throw new Exception("Oops! TS Build crashed.")
 }
 
-test := ((test in Test) dependsOn `ts-test`).value
+//test := ((test in Test) dependsOn `ts-test`).value
 
 dist := (dist dependsOn `ts-prod-build`).value
