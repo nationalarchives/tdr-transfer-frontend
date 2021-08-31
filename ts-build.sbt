@@ -20,13 +20,7 @@ def ifNodeModulesInstalled(task: => Int)(implicit dir: File): Int =
   }
 
 
-def executeTsTests(implicit dir: File): String = {
-  ifNodeModulesInstalled(0)
-  val output = Process(NpmCommands.test, dir).!!
-  // scalastyle:ignore
-  println(output)
-  output
-}
+def executeTsTests(implicit dir: File): Int = ifNodeModulesInstalled(runOnCommandline(NpmCommands.test))
 
 def executeProdBuild(implicit dir: File): Int = ifNodeModulesInstalled(runOnCommandline(NpmCommands.build))
 
@@ -34,8 +28,7 @@ lazy val `ts-test` = taskKey[Unit]("Run TS tests when testing application.")
 
 `ts-test` := {
   implicit val userInterfaceRoot: File = baseDirectory.value / "npm"
-  executeTsTests
-//  if (executeTsTests != Success) throw new Exception("TS tests failed!")
+  if (executeTsTests != Success) throw new Exception("TS tests failed!")
 }
 
 lazy val `ts-prod-build` = taskKey[Unit]("Run TS build when packaging the application.")
