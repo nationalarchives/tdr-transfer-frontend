@@ -77,7 +77,6 @@ test("updateFileCheckProgress shows the notification banner and an enabled conti
     totalFiles: 2
   })
 
-  delete window.location
   window.location = {
     ...window.location,
     origin: "testorigin",
@@ -110,7 +109,6 @@ test("updateFileCheckProgress shows no banner and a disabled continue button if 
     ffidProcessed: 1,
     totalFiles: 2
   })
-  delete window.location
   window.location = {
     ...window.location,
     origin: "testorigin",
@@ -136,7 +134,6 @@ test("updateFileCheckProgress shows no banner and a disabled continue button if 
     () => consignmentId
   )
   mockGetFileChecksProgress(null)
-  delete window.location
   window.location = {
     ...window.location,
     origin: "testorigin",
