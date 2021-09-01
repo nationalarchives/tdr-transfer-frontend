@@ -83,7 +83,7 @@ class MockDom {
                       <div class="drag-and-drop">
                           <div class="govuk-summary-list govuk-file-upload">
                               <div class="govuk-summary-list__row">
-                                 <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden="" 
+                                 <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden=""
                                     tabindex="-1" role="alert" aria-describedby="success-message-text">
                                     <div>
                                        <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
@@ -193,8 +193,8 @@ class MockDom {
 
       dataTransfer = {
         files: mockFileList(folderToDrop),
-        dropEffect: "",
-        effectAllowed: "",
+        dropEffect: "none" as const,
+        effectAllowed: "none" as const,
         items: mockDataTransferItemList(
           itemsToDropEntryType,
           folderToDrop.length
