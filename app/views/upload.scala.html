@@ -133,7 +133,11 @@
         <div id="progress-bar-and-message">
             <p class="govuk-body">Do not close your browser window while your files are being uploaded. This could take a few minutes.</p>
             <div>
-                <span id="upload-status-screen-reader"><label for="upload-records-progress-bar" class="govuk-label progress-label"></label></span>
+                <span id="upload-status-screen-reader">
+                    <label for="upload-records-progress-bar" class="govuk-label progress-label">
+                        Uploading records <span id="upload-percentage" role="status" aria-live="polite"></span>
+                    </label>
+                </span>
                 <progress class="progress-display" value="0" max="100"></progress>
             </div>
         </div>
