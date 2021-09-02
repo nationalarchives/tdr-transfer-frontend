@@ -441,16 +441,30 @@ const showUploadingRecordsPage = () => {
 
 function setupUploadPageHTML() {
   document.body.innerHTML =
-    `<div id="file-upload" class="govuk-grid-row"></div>
-    <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
-        role="alert" tabindex="-1" data-module="govuk-error-summary">
-        <h2 class="govuk-error-summary__title" id="error-summary-title"></h2>
+    `<div id="file-upload" class="govuk-grid-row">
+      <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
+          role="alert" tabindex="-1" data-module="govuk-error-summary">
+          <h2 class="govuk-error-summary__title" id="error-summary-title"></h2>
+      </div>
+      <div id="logged-out-error" class="govuk-error-summary logged-out-error" hidden aria-labelledby="logged-out-error-title"
+       role="alert" tabindex="-1" data-module="govuk-error-summary">
+       </div>
+      <form id="file-upload-form" data-consignment-id="@consignmentId"></form>
     </div>
     <div id="upload-progress" class="govuk-grid-row" hidden>
-        <div>
-          <span id="upload-status-screen-reader"><label for="upload-records-progress-bar" class="govuk-label progress-label"></label></span>
-          <progress class="progress-display" value="0" max="50"></progress>
+      <div class="govuk-grid-column-two-thirds" role="status" aria-live="assertive">
+        <div id="progress-bar-and-message">
+          <p class="govuk-body">Do not close your browser window while your files are being uploaded. This could take a few minutes.</p>
+          <div>
+            <span id="upload-status-screen-reader">
+              <label for="upload-records-progress-bar" class="govuk-label progress-label">
+                Uploading records <span id="upload-percentage" role="status" aria-live="polite"></span>
+              </label>
+            </span>
+              <progress class="progress-display" value="0" max="100"></progress>
+          </div>
         </div>
+      </div>
     </div>`
 
   showUploadingRecordsPage()
