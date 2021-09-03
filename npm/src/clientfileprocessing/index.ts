@@ -7,6 +7,8 @@ import {
 } from "@nationalarchives/file-information"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo } from "../upload/upload-form"
+import {KeycloakInstance, KeycloakLoginOptions} from "keycloak-js";
+import {getKeycloakInstance, isSessionAboutToExpire, refreshOrReturnToken} from "../auth";
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
@@ -57,8 +59,23 @@ export class ClientFileProcessing {
   async processClientFiles(
     files: IFileWithPath[],
     uploadFilesInfo: FileUploadInfo,
-    stage: string
+    stage: string,
+    keycloak: KeycloakInstance
   ): Promise<void> {
+    //Periodically check that session idle timeout is not about to expire
+    //Check every 20 secs to make sure catch before 30 secs left on the session idle timeout
+    const intervalId = setInterval(function() {
+      const sessionAboutToExpire = isSessionAboutToExpire(keycloak, 30)
+      if (sessionAboutToExpire) {
+        //Allow for refreshing the token before the refresh token expires
+        //Keycloak documentation: https://www.keycloak.org/docs/latest/server_admin/#user-session-management
+        /*
+         SSO Session Idle: ... The idle timeout is reset by a client requesting authentication or by a refresh token request. ...
+         */
+        refreshOrReturnToken(keycloak)
+      }
+    }, 20000);
+
     await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
     const metadata: IFileMetadata[] =
       await this.clientFileExtractMetadata.extract(
@@ -75,5 +92,7 @@ export class ClientFileProcessing {
       this.s3ProgressCallback,
       stage
     )
+    //Once upload completed stop checking the session idle timeout
+    clearInterval(intervalId)
   }
 }

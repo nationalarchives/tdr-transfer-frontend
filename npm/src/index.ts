@@ -98,7 +98,8 @@ export const renderModules = () => {
           updateConsignmentStatus,
           identityId,
           frontEndInfo,
-          goToNextPage
+          goToNextPage,
+          keycloak
         ).initialiseFormListeners()
       })
     })
