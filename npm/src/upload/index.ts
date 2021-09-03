@@ -6,6 +6,7 @@ import { FileUploadInfo, UploadForm } from "./upload-form"
 import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError } from "../errorhandling"
+import {KeycloakInstance} from "keycloak-js";
 
 export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
   e.preventDefault()
@@ -17,13 +18,15 @@ export class FileUploader {
   updateConsignmentStatus: UpdateConsignmentStatus
   stage: string
   goToNextPage: () => void
+  keycloak: KeycloakInstance
 
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
     updateConsignmentStatus: UpdateConsignmentStatus,
     identityId: string,
     frontendInfo: IFrontEndInfo,
-    goToNextPage: () => void
+    goToNextPage: () => void,
+    keycloak: KeycloakInstance
   ) {
     this.clientFileProcessing = new ClientFileProcessing(
       clientFileMetadataUpload,
@@ -32,6 +35,7 @@ export class FileUploader {
     this.updateConsignmentStatus = updateConsignmentStatus
     this.stage = frontendInfo.stage
     this.goToNextPage = goToNextPage
+    this.keycloak = keycloak
   }
 
   uploadFiles: (
@@ -47,7 +51,8 @@ export class FileUploader {
       await this.clientFileProcessing.processClientFiles(
         files,
         uploadFilesInfo,
-        this.stage
+        this.stage,
+        this.keycloak
       )
       await this.updateConsignmentStatus.markConsignmentStatusAsCompleted(
         uploadFilesInfo

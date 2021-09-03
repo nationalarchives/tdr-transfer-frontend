@@ -27,10 +27,23 @@ export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
   }
 
 const isRefreshTokenExpired: (
-  token: KeycloakTokenParsed | undefined
-) => boolean = (token) => {
+  token: KeycloakTokenParsed | undefined,
+  tokenMinValidityInSecs? : number
+) => boolean = (token, tokenMinValidityInSecs = 0) => {
   const now = Math.round(new Date().getTime() / 1000)
-  return token != undefined && token.exp != undefined && token.exp < now
+  //Add the min session validity to the now as token.exp is a future time, so will return true sooner than the expiry time
+  //This will give time to refresh the token for the calling client
+  return token != undefined && token.exp != undefined && token.exp < (now + tokenMinValidityInSecs)
+}
+
+export const isSessionAboutToExpire: (
+    keycloak: Keycloak.KeycloakInstance,
+    sessionMinValiditySecs? : number
+) => boolean = (keycloak, sessionMinValiditySecs= 30) => {
+
+  //Not sure what should be checked here.
+  //return isRefreshTokenExpired(keycloak.refreshTokenParsed, sessionMinValiditySecs)
+  return keycloak.isTokenExpired(sessionMinValiditySecs)
 }
 
 export const refreshOrReturnToken: (
