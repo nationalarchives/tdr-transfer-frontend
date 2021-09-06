@@ -26,7 +26,7 @@ export class ClientFileProcessing {
     const progressBarElement: HTMLDivElement | null =
       document.querySelector(".progress-display")
     const progressLabelElement: HTMLDivElement | null =
-      document.querySelector(".progress-label")
+      document.querySelector("#upload-percentage")
 
     const currentPercentage = progressBarElement?.getAttribute("value")
     const stringWeightedPercentage = weightedPercent.toString()
@@ -37,7 +37,7 @@ export class ClientFileProcessing {
       stringWeightedPercentage !== currentPercentage
     ) {
       progressBarElement.setAttribute("value", stringWeightedPercentage)
-      progressLabelElement.innerText = `Uploading records ${stringWeightedPercentage}%`
+      progressLabelElement.innerText = `${stringWeightedPercentage}%`
     }
   }
 
