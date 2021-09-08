@@ -27,21 +27,28 @@ export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
   }
 
 const isRefreshTokenExpired: (
-  token: KeycloakTokenParsed | undefined,
-  tokenMinValidityInSecs? : number
-) => boolean = (token, tokenMinValidityInSecs = 0) => {
+  token: KeycloakTokenParsed | undefined
+) => boolean = (token) => {
   const now = Math.round(new Date().getTime() / 1000)
-  //Add the min token validity to 'now' as token.exp is a future time, so will return true sooner than the expiry time
-  //This will give time to refresh the token for the calling client
-  return token != undefined && token.exp != undefined && token.exp < (now + tokenMinValidityInSecs)
+  return token != undefined && token.exp != undefined && token.exp < now
 }
 
-export const idleSessionTimeoutAboutToExpire: (
-    keycloak: Keycloak.KeycloakInstance,
-    idleSessionMinValiditySecs? : number
-) => boolean = (keycloak, idleSessionMinValiditySecs= 30) => {
+export const refreshIdleSessionTimeout: (
+    keycloak: KeycloakInstance,
+    idleSessionMinValiditySecs?: number
+) => void = (keycloak, idleSessionMinValiditySecs = 60) => {
+  const refreshToken = keycloak.refreshTokenParsed
+  if (refreshToken != undefined && refreshToken.exp != undefined) {
+    const nowInSecs = Math.round(new Date().getTime() / 1000)
+    const expInSecs = refreshToken.exp
+    //Expiry is a future time, add min validity to the 'now' to check if expiry is about to expire
+    const timeoutInMs = (expInSecs - (nowInSecs + idleSessionMinValiditySecs)) * 1000
 
-  return isRefreshTokenExpired(keycloak.refreshTokenParsed, idleSessionMinValiditySecs)
+    setTimeout(() => {
+      console.log("Refreshing idle session")
+      refreshOrReturnToken(keycloak).then(() => refreshIdleSessionTimeout(keycloak))
+    }, timeoutInMs)
+  }
 }
 
 export const refreshOrReturnToken: (
