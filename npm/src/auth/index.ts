@@ -45,7 +45,6 @@ export const refreshIdleSessionTimeout: (
     const timeoutInMs = (expInSecs - (nowInSecs + idleSessionMinValiditySecs)) * 1000
 
     setTimeout(() => {
-      console.log("Refreshing idle session")
       refreshOrReturnToken(keycloak).then(() => refreshIdleSessionTimeout(keycloak))
     }, timeoutInMs)
   }
@@ -59,7 +58,6 @@ export const refreshOrReturnToken: (
     if (isRefreshTokenExpired(keycloak.refreshTokenParsed)) {
       throw new LoggedOutError(keycloak.createLoginUrl(), "User is logged out")
     }
-    console.log("Update token")
     await keycloak.updateToken(tokenMinValidityInSecs)
   }
   if (keycloak.token) {
