@@ -7,14 +7,12 @@ import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError } from "../errorhandling"
 import { KeycloakInstance } from "keycloak-js";
-import { idleSessionTimeoutAboutToExpire, refreshOrReturnToken } from "../auth";
+import { refreshIdleSessionTimeout } from "../auth";
 
 export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
   e.preventDefault()
   e.returnValue = ""
 }
-
-const idleSessionCheckInMilliSecs = 20000
 
 export class FileUploader {
   clientFileProcessing: ClientFileProcessing
@@ -49,17 +47,7 @@ export class FileUploader {
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
-
-    const intervalId = setInterval(() => {
-      if (idleSessionTimeoutAboutToExpire(this.keycloak)) {
-        //Allow for refreshing the token before the refresh token expires
-        //Keycloak documentation: https://www.keycloak.org/docs/latest/server_admin/#user-session-management
-        /*
-         SSO Session Idle: ... The idle timeout is reset by a client requesting authentication or by a refresh token request. ...
-        */
-        refreshOrReturnToken(this.keycloak)
-      }
-    }, idleSessionCheckInMilliSecs);
+    refreshIdleSessionTimeout(this.keycloak)
 
     try {
       await this.clientFileProcessing.processClientFiles(
@@ -70,8 +58,6 @@ export class FileUploader {
       await this.updateConsignmentStatus.markConsignmentStatusAsCompleted(
         uploadFilesInfo
       )
-
-      clearInterval(intervalId)
 
       // In order to prevent exit confirmation when page redirects to Records page
       window.removeEventListener("beforeunload", pageUnloadAction)
