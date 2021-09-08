@@ -59,7 +59,6 @@ export class ClientFileProcessing {
     uploadFilesInfo: FileUploadInfo,
     stage: string
   ): Promise<void> {
-
     await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
     const metadata: IFileMetadata[] =
       await this.clientFileExtractMetadata.extract(
