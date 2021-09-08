@@ -6,8 +6,8 @@ import { FileUploadInfo, UploadForm } from "./upload-form"
 import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError } from "../errorhandling"
-import { KeycloakInstance } from "keycloak-js";
-import { refreshIdleSessionTimeout } from "../auth";
+import { KeycloakInstance } from "keycloak-js"
+import { refreshIdleSessionTimeout } from "../auth"
 
 export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
   e.preventDefault()
