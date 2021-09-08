@@ -13,10 +13,14 @@ import {DocumentNode, FetchResult} from "@apollo/client/core";
 import {
   MarkUploadAsCompletedMutation
 } from "@nationalarchives/tdr-generated-graphql";
+import {KeycloakInstance} from "keycloak-js";
 jest.mock("../src/clientfileprocessing")
 jest.mock("../src/graphql")
 
-beforeEach(() => jest.resetModules())
+beforeEach(() => {
+  jest.resetAllMocks()
+  jest.resetModules()
+})
 
 const dummyFile = {
   file: new File([], ""),
@@ -81,6 +85,35 @@ const mockUploadFailure: () => void = () => {
 
 const mockGoToNextPage = jest.fn()
 
+const mockKeycloak: (
+    tokenExpired: boolean,
+    updateTokenFunc: Function
+) => KeycloakInstance = (tokenExpired= false, updateTokenFunc = jest.fn) => {
+  const updateToken = updateTokenFunc()
+  const isTokenExpired = jest.fn().mockImplementation(() => tokenExpired)
+  const fixedExp = Math.round(new Date().getTime() / 1000) + 60
+  return {
+    refreshTokenParsed: { exp: fixedExp },
+    init: jest.fn(),
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+    accountManagement: jest.fn(),
+    createLoginUrl: jest.fn(),
+    createLogoutUrl: jest.fn(),
+    createRegisterUrl: jest.fn(),
+    createAccountUrl: jest.fn(),
+    isTokenExpired,
+    updateToken,
+    clearToken: jest.fn(),
+    hasRealmRole: jest.fn(),
+    hasResourceRole: jest.fn(),
+    loadUserInfo: jest.fn(),
+    loadUserProfile: jest.fn(),
+    token: "fake-auth-token"
+  }
+}
+
 test("upload function submits redirect form on upload files success", async () => {
   mockUploadSuccess()
 
@@ -116,10 +149,56 @@ test("upload function throws an error when upload fails", async () => {
   mockGoToNextPage.mockRestore()
 })
 
-function setUpFileUploader(): FileUploader {
+test("upload function refreshes idle session", async () => {
+  mockUploadSuccess()
+  const updateToken = jest.fn()
+  const isTokenExpired = jest.fn().mockImplementation(() => true)
+  const mockKeycloak: KeycloakInstance = {
+    refreshTokenParsed: { exp: Math.round(new Date().getTime() / 1000) + 60 },
+    init: jest.fn(),
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+    accountManagement: jest.fn(),
+    createLoginUrl: jest.fn(),
+    createLogoutUrl: jest.fn(),
+    createRegisterUrl: jest.fn(),
+    createAccountUrl: jest.fn(),
+    isTokenExpired,
+    updateToken,
+    clearToken: jest.fn(),
+    hasRealmRole: jest.fn(),
+    hasResourceRole: jest.fn(),
+    loadUserInfo: jest.fn(),
+    loadUserProfile: jest.fn(),
+    token: "fake-auth-token"
+  }
+
+  const uploadFiles = setUpFileUploader(mockKeycloak)
+  const consoleErrorSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {})
+
+  jest.useFakeTimers()
+  await uploadFiles.uploadFiles([dummyFile], {
+    consignmentId: "12345",
+    parentFolder: "TEST PARENT FOLDER NAME"
+  })
+  jest.runAllTimers()
+
+  expect(consoleErrorSpy).not.toHaveBeenCalled()
+  expect(mockGoToNextPage).toHaveBeenCalled()
+  expect(updateToken).toHaveBeenCalled()
+
+  mockGoToNextPage.mockRestore()
+  consoleErrorSpy.mockRestore()
+})
+
+function setUpFileUploader(mockKeycloak?: KeycloakInstance): FileUploader {
+  const keycloakInstance = mockKeycloak != undefined ? mockKeycloak : mockKeycloakInstance
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientSuccess())
-  const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
+  const client = new GraphqlClient("https://test.im", keycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
   const frontendInfo: IFrontEndInfo = {
     apiUrl: "",
@@ -135,6 +214,7 @@ function setUpFileUploader(): FileUploader {
     updateConsignmentStatus,
     "identityId",
     frontendInfo,
-    mockGoToNextPage
+    mockGoToNextPage,
+    keycloakInstance
   )
 }
