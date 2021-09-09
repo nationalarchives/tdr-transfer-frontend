@@ -1,9 +1,9 @@
 package controllers
 
 import java.util.UUID
-
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
@@ -12,6 +12,8 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.{ConsignmentService, SeriesService}
 
+import java.time.{LocalDateTime, ZonedDateTime}
+import java.time.format.DateTimeFormatter
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -31,7 +33,9 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     seriesService.getSeriesForUser(request.token)
       .map({series =>
         val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
-        status(views.html.seriesDetails(seriesFormData, form))
+        val expiration: ZonedDateTime = ZonedDateTime.now().plusMinutes(20) // Will get this from the refresh token
+        val formattedTime: String = DateTimeFormatter.RFC_1123_DATE_TIME.format(expiration)
+        status(views.html.seriesDetails(seriesFormData, form, formattedTime))
       })
   }
 

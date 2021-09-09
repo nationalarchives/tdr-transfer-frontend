@@ -110,4 +110,54 @@ export const renderModules = () => {
       new FileChecks(graphqlClient).updateFileCheckProgress()
     })
   }
+  else {
+    getKeycloakInstance().then(keycloak => {
+      const cacheKey = "numberOfTimeoutWarnings"
+      localStorage.setItem(cacheKey, "0")
+      const now: () => number = () => Math.round((new Date()).getTime() / 1000)
+      const timeToExpiry = 60
+      //Set min validity to the length of the access token so it will always get a new one.
+      const minValidity = 60
+      const timeoutCheck = setInterval(() => {
+        if (keycloak.refreshTokenParsed!.exp! - now() < timeToExpiry) {
+          showModal()
+        }
+      }, 2000)
+
+      const showModal: () => void = () => {
+        const numberOfWarnings = localStorage.getItem(cacheKey)
+        if (numberOfWarnings && parseInt(numberOfWarnings, 10) > 5) {
+          clearInterval(timeoutCheck)
+        } else {
+          const timeout: HTMLDialogElement | null = document.querySelector("#timeout")
+          const update: () => void = () => {
+            keycloak.updateToken(minValidity).then(e => {
+              if (e && timeout && timeout.open) {
+                timeout.close()
+              }
+            })
+          }
+          if (timeout && !timeout.open) {
+            timeout.showModal()
+            const extendTimeout: HTMLButtonElement | null = document.querySelector("#extend-timeout")
+            const cancelTimeout: HTMLAnchorElement | null = document.querySelector("#cancel-extend")
+            if (extendTimeout) {
+              extendTimeout.addEventListener("click", (ev) => {
+                localStorage.setItem(cacheKey, (parseInt(numberOfWarnings!, 10) + 1).toString())
+                ev.preventDefault()
+                update()
+              })
+            }
+            if (cancelTimeout) {
+              cancelTimeout.addEventListener("click", ev => {
+                clearInterval(timeoutCheck)
+                timeout.close()
+              })
+            }
+          }
+        }
+      }
+
+    })
+  }
 }
