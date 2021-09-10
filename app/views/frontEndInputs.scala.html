@@ -6,6 +6,7 @@
 <input type="hidden" class="identity-pool-id" value="@frontEndInfo.identityPoolId">
 <input type="hidden" class="stage" value="@frontEndInfo.stage">
 <input type="hidden" class="region" value="@frontEndInfo.region">
+<input type="hidden" class="cognito-role-arn" value="@frontEndInfo.cognitoRoleArn">
 
 @if(frontEndInfo.cognitoEndpointOverride.isDefined) {
     <input type="hidden" class="cognito-endpoint-override" value="@frontEndInfo.cognitoEndpointOverride">

@@ -1,3 +1,7 @@
+[hidden] {
+  display: none !important;
+}
+
 .drag-and-drop {
   margin-bottom: 40px;
 }
@@ -37,7 +41,9 @@
 }
 
 .drag-and-drop__failure {
+  align-items: flex-end;
   color: govuk-colour('red');
+  flex-direction: row;
   font-weight: bold;
 }
 
@@ -49,13 +55,11 @@
 }
 
 .drag-and-drop__input {
-  /*Since input fields allow you to drag and drop folders, we've decided to make
-   the input as large as the dropzone box to avoid dealing with drop events*/
-  height: 166px;
+  height: 0;
   opacity: 0; /*Opacity is 0 in order to hide the input button AND keep it functioning ('visibility' and 'display' properties can't do this)*/
   padding-top: 0;
   position: absolute;
-  width: 630px;
+  width: 0;
 }
 
 .drag-and-drop__success {

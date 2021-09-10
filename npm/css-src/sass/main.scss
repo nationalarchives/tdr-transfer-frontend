@@ -1,16 +1,17 @@
-@import 'node_modules/govuk-frontend/govuk/all';
 @import 'overrides/all';
+@import '../../node_modules/govuk-frontend/govuk/all';
 
 @import 'header';
 @import 'drag-and-drop';
 @import 'progress-bar';
 @import 'summary-list';
+@import 'success_summary';
 
 .file-check-progress {
   margin-bottom: 30px;
 }
 
-.green-tick-mark {
+.alert-status-svg {
   fill: currentColor;
   float: left;
   height: 25px;
@@ -18,9 +19,9 @@
   width: 25px;
 }
 
-@include progress-bar('.progress-display')
-  @include progress-bar('.file-check-progress__progress-bar')
+@include progress-bar('.progress-display');
+@include progress-bar('.file-check-progress__progress-bar');
 
-  .hide {
+.hide {
   display: none;
 }

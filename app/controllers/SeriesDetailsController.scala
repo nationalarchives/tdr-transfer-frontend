@@ -23,14 +23,14 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
 
   val selectedSeriesForm = Form(
     mapping(
-      "series" -> text.verifying("seriesDetails.nonEmpty", t => !t.isEmpty)
+      "series" -> text.verifying("Select a series reference", t => !t.isEmpty)
     )(SelectedSeriesData.apply)(SelectedSeriesData.unapply)
   )
 
   private def getSeriesDetails(request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
     seriesService.getSeriesForUser(request.token)
       .map({series =>
-        val seriesFormData = series.map(s => (s.seriesid.toString, s.code.getOrElse("")))
+        val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
         status(views.html.seriesDetails(seriesFormData, form))
       })
   }

@@ -1,19 +1,17 @@
 @import helper._
 @import viewsapi.FormFunctions._
 
-@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit request: RequestHeader, messages: Messages)
+@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit request: RequestHeader,
+messages: Messages)
 
-@main(Messages("seriesDetails.header"), hasError = seriesDetailsForm("series").hasErrors) {
+@main("Series Information", hasError = seriesDetailsForm("series").hasErrors) {
 @defining(play.core.PlayVersion.current) { version =>
-
-<!-- Back -->
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
         @progressIndicator(Messages("seriesDetails.progress"))
 
-        <h1 class="govuk-heading-xl">@Messages("seriesDetails.title")</h1>
+        <h1 class="govuk-heading-l">Choose a series</h1>
         @errorSummary(seriesDetailsForm("series"))
 
         @form(routes.SeriesDetailsController.seriesSubmit(), (Symbol("novalidate"), "")) {
@@ -23,13 +21,18 @@
                 allSeriesData,
                 Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
                 Symbol("_name") -> "Series Details",
-                Symbol("_label") -> Messages("seriesDetails.chooseSeries"),
-                requiredInputArg -> true
+                Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
             )
-        <div class="govuk-form-group">
-            <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                @Messages("seriesDetails.continueLink")
+        <!-- Buttons -->
+        <div class="govuk-button-group">
+            <!-- Continue -->
+            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
+                role="button">
+                Continue
             </button>
+
+            <!-- Cancel -->
+            <a class="govuk-link" href="@routes.DashboardController.dashboard()">Cancel</a>
         </div>
         }
     </div>

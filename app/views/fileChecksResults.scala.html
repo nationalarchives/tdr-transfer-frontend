@@ -1,28 +1,24 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
-@(consignmentInfo: ConsignmentFolderInfo, consignmentId: java.util.UUID)(implicit messages: Messages)
+@(consignmentInfo: ConsignmentFolderInfo, consignmentId: java.util.UUID)(implicit messages: Messages, request: RequestHeader)
 
-@main(Messages("fileChecksResults.header")) {
+@main("Results of checks") {
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
-        <div class="govuk-panel govuk-panel--confirmation">
-            <h1 class="govuk-panel__title">
-                @Messages("fileChecksResults.title")
-            </h1>
-            <div class="govuk-panel__body">
-                @if(consignmentInfo.numberOfFiles > 1) {
-                    @Messages("fileChecksResults.description.plural", consignmentInfo.parentFolder, consignmentInfo.numberOfFiles)
-                } else {
-                    @Messages("fileChecksResults.description.singular", consignmentInfo.parentFolder, consignmentInfo.numberOfFiles)
-                }
+        @progressIndicator(Messages("fileChecksResults.progress"))
+        <h1 class="govuk-heading-l">Results of your checks</h1>
+        <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
+        role="alert" data-module="success-summary" tabindex="-1">
+            <h2 class="success-summary__title" id="success-summary-title">
+                Success
+            </h2>
+            <div class="success-summary__body">
+                <p class="govuk-body">Your folder '@{consignmentInfo.parentFolder}' containing @{consignmentInfo.numberOfFiles} item@if(consignmentInfo.numberOfFiles > 1){s} has been successfully checked and uploaded.</p>
+                <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
             </div>
         </div>
-        <button class="govuk-button govuk-button--secondary" data-module="govuk-button">
-            @Messages("fileChecksResults.dashboard")
-        </button>
-        <a href="/consignment/@consignmentId/custom-metadata" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-            @Messages("fileChecksResults.continueLink")
+        <a href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+            Continue
         </a>
     </div>
 </div>

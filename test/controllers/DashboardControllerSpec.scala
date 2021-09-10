@@ -14,9 +14,9 @@ class DashboardControllerSpec extends FrontEndTestHelper {
       val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
       status(dashboardPage) mustBe OK
       contentType(dashboardPage) mustBe Some("text/html")
-      contentAsString(dashboardPage) must include ("dashboard.header")
-      contentAsString(dashboardPage) must include ("dashboard.title")
-      contentAsString(dashboardPage) must include ("dashboard.transfer.start")
+      contentAsString(dashboardPage) must include ("Welcome")
+      contentAsString(dashboardPage) must include ("Welcome to the Transfer Digital Records service")
+      contentAsString(dashboardPage) must include ("Upload your records to start a new transfer")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {

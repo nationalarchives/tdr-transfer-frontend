@@ -45,7 +45,7 @@ class SeriesServiceSpec extends FlatSpec with Matchers with MockitoSugar with Be
   }
 
   "getSeriesForUser" should "get the series from the API" in {
-    val seriesResponse = GetSeries(seriesId, bodyId, Some("some series name"), None, None)
+    val seriesResponse = GetSeries(seriesId, bodyId, "some series name", "some series body", None)
     val graphQlResponse = GraphQlResponse(Some(getSeries.Data(List(seriesResponse))), Nil)
     when(graphQlClient.getResult(token.bearerAccessToken, getSeries.document, Some(getSeries.Variables(bodyName))))
       .thenReturn(Future.successful(graphQlResponse))

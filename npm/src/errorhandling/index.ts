@@ -1,5 +1,8 @@
+import { pageUnloadAction } from "../upload"
+
 export class LoggedOutError extends Error {
   loginUrl: string
+
   constructor(loginUrl: string, message?: string) {
     super(message)
     this.loginUrl = loginUrl
@@ -10,26 +13,22 @@ export function handleUploadError(
   error: Error,
   additionalLoggingInfo: string = "Upload failed"
 ) {
+  window.removeEventListener("beforeunload", pageUnloadAction)
   if (error instanceof LoggedOutError) {
     showLoggedOutError(error.loginUrl)
   } else {
-    const uploadForm: HTMLFormElement | null = document.querySelector(
-      "#file-upload-form"
-    )
-    const uploadFormError: HTMLDivElement | null = document.querySelector(
-      ".govuk-error-summary.upload-error"
-    )
-
-    if (uploadForm) {
-      uploadForm.classList.add("hide")
-    }
-
-    if (uploadFormError) {
-      uploadFormError.classList.remove("hide")
-      renderErrorMessage(error.message)
+    const uploadFormContainer: HTMLFormElement | null =
+      document.querySelector("#file-upload")
+    //User is still on upload form
+    if (uploadFormContainer && !uploadFormContainer.hasAttribute("hidden")) {
+      showErrorMessageOnUploadFormHalf(error)
+    } else {
+      //User is seeing progress bar
+      hideBrowserCloseMessageAndProgressBar()
+      showErrorMessageOnUploadInProgressHalf(error)
     }
   }
-  throw Error(additionalLoggingInfo + ": " + error.message)
+  throw Error(`${additionalLoggingInfo}: ${error.message}`)
 }
 
 function renderErrorMessage(message: string) {
@@ -41,10 +40,61 @@ function renderErrorMessage(message: string) {
   }
 }
 
-function showLoggedOutError(login: string) {
-  const uploadForm: HTMLFormElement | null = document.querySelector(
-    "#file-upload-form"
+function showErrorMessageOnUploadFormHalf(error: Error) {
+  const uploadForm: HTMLDivElement | null =
+    document.querySelector("#file-upload-form")
+
+  if (uploadForm) {
+    uploadForm.setAttribute("hidden", "true")
+  }
+
+  const uploadFormError: HTMLDivElement | null = document.querySelector(
+    ".govuk-error-summary.upload-error"
   )
+
+  if (uploadFormError) {
+    uploadFormError.removeAttribute("hidden")
+    renderErrorMessage(error.message)
+  }
+}
+
+function showErrorMessageOnUploadInProgressHalf(error: Error) {
+  const uploadProgressError: HTMLDivElement | null = document.querySelector(
+    "#upload-progress-error"
+  )
+  if (uploadProgressError) {
+    uploadProgressError.removeAttribute("hidden")
+  }
+  const getErrorMessageSuffix: (errorName: string) => string = (errorName) => {
+    switch (errorName) {
+      case "TimeoutError":
+        return "timeout"
+      case "AccessDenied":
+        return "authentication"
+      default:
+        return "general"
+    }
+  }
+  const uploadProgressErrorMessage: HTMLParagraphElement | null =
+    document.querySelector(
+      `.upload-progress-error-${getErrorMessageSuffix(error.name)}__message`
+    )
+
+  if (uploadProgressErrorMessage) {
+    uploadProgressErrorMessage.removeAttribute("hidden")
+  }
+}
+
+function hideBrowserCloseMessageAndProgressBar() {
+  const browserCloseMessageAndProgressBar = document.querySelector(
+    "#progress-bar-and-message"
+  )
+  browserCloseMessageAndProgressBar?.setAttribute("hidden", "true")
+}
+
+function showLoggedOutError(login: string) {
+  const uploadForm: HTMLFormElement | null =
+    document.querySelector("#file-upload-form")
   const loggedOutError: HTMLDivElement | null = document.querySelector(
     ".govuk-error-summary.logged-out-error"
   )
@@ -56,7 +106,7 @@ function showLoggedOutError(login: string) {
   }
 
   if (loggedOutError && loginLink) {
-    loggedOutError.classList.remove("hide")
+    loggedOutError.removeAttribute("hidden")
     loginLink.href = login
   }
 }

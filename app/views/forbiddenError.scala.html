@@ -1,11 +1,11 @@
-@()(implicit messages: Messages)
+@()(implicit messages: Messages, request: RequestHeader)
 
-@main(Messages("error.header")) {
+@main("Page access restricted") {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">@Messages("forbiddenError.header")</h1>
-        <p class="govuk-body">@Messages("forbiddenError.body")</p>
+        <h1 class="govuk-heading-l">You are not permitted to see this page</h1>
+        <p class="govuk-body">This page is restricted to certain users only.</p>
     </div>
 </div>
 }

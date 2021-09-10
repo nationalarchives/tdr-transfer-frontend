@@ -1,14 +1,14 @@
-@()(implicit messages: Messages)
+@()(implicit messages: Messages, request: RequestHeader)
 
-@main(Messages("error.header")) {
+@main("Page not found") {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">This page doesn't exist</h1>
-        <p class="govuk-body">@Messages("notFoundError.body1")</p>
-        <p class="govuk-body">@Messages("notFoundError.body2")</p>
-        <p class="govuk-body">@Html(Messages("notFoundError.body3"))</p>
-        <p class="govuk-body">@Html(Messages("notFoundError.body4"))</p>
+        <h1 class="govuk-heading-l">Page not found</h1>
+        <p class="govuk-body">If you typed a web address, check it is correct.</p>
+        <p class="govuk-body">If you pasted the web address, check you copied the entire address.</p>
+        <p class="govuk-body">If the web address is correct, please <a class="govuk-link" href="@routes.ContactController.contact()">contact</a> us.</p>
+        <p class="govuk-body">Alternatively, you can <a class="govuk-link" href="@routes.DashboardController.dashboard()">return to the start</a>.</p>
     </div>
 </div>
 }

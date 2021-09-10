@@ -30,15 +30,17 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
   val transferAgreementForm = Form(
     mapping(
       "publicRecord" -> boolean
-        .verifying(messagesApi("transferAgreement.publicRecord.error"), b => b),
+        .verifying("All records must be confirmed as public before proceeding", b => b),
       "crownCopyright" -> boolean
-        .verifying(messagesApi("transferAgreement.crownCopyright.error"), b => b),
+        .verifying("All records must be confirmed Crown Copyright before proceeding", b => b),
       "english" -> boolean
-        .verifying(messagesApi("transferAgreement.english.error"), b => b),
+        .verifying("All records must be confirmed as English language before proceeding", b => b),
       "droAppraisalSelection" -> boolean
-        .verifying(messagesApi("transferAgreement.droAppraisalSelection.error"), b => b),
+        .verifying("Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records", b => b),
       "droSensitivity" -> boolean
-        .verifying(messagesApi("transferAgreement.droSensitivity.error"), b => b)
+        .verifying("Departmental Records Officer (DRO) must have signed off sensitivity review", b => b),
+      "openRecords" -> boolean
+        .verifying("All records must be open", b => b)
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
@@ -53,11 +55,12 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 
     val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
       val addTransferAgreementInput: AddTransferAgreementInput = AddTransferAgreementInput(consignmentId,
-        Some(formData.publicRecord),
-        Some(formData.crownCopyright),
-        Some(formData.english),
-        Some(formData.droAppraisalSelection),
-        Some(formData.droSensitivity)
+        formData.publicRecord,
+        formData.crownCopyright,
+        formData.english,
+        formData.droAppraisalSelection,
+        formData.openRecords,
+        formData.droSensitivity
       )
 
       val variables: AddTransferAgreement.Variables = AddTransferAgreement.Variables(addTransferAgreementInput)
@@ -79,4 +82,5 @@ case class TransferAgreementData(publicRecord: Boolean,
                                  crownCopyright: Boolean,
                                  english: Boolean,
                                  droAppraisalSelection: Boolean,
-                                 droSensitivity: Boolean)
+                                 droSensitivity: Boolean,
+                                 openRecords: Boolean)
