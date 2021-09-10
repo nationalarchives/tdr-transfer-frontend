@@ -54,19 +54,18 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
 
-
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
-      contentAsString(transferAgreementPage) must include("transferAgreement.header")
-      contentAsString(transferAgreementPage) must include("transferAgreement.publicRecord")
-      contentAsString(transferAgreementPage) must include("transferAgreement.crownCopyright")
-      contentAsString(transferAgreementPage) must include("transferAgreement.english")
-      contentAsString(transferAgreementPage) must include("transferAgreement.droAppraisalSelection")
-      contentAsString(transferAgreementPage) must include("transferAgreement.droSensitivity")
+      contentAsString(transferAgreementPage) must include("Transfer agreement")
+      contentAsString(transferAgreementPage) must include("I confirm that the records are Public Records.")
+      contentAsString(transferAgreementPage) must include("I confirm that the records are all Crown Copyright.")
+      contentAsString(transferAgreementPage) must include("I confirm that the records are all in English.")
+      contentAsString(transferAgreementPage) must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
+      contentAsString(transferAgreementPage) must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
+      contentAsString(transferAgreementPage) must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -94,12 +93,14 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
 
       playStatus(transferAgreementPage) mustBe NOT_FOUND
-      contentAsString(transferAgreementPage) must include ("This page doesn't exist")
+      contentAsString(transferAgreementPage) must include("Page not found")
     }
 
     "throws an authorisation exception when the user does not have permission to see a consignment's transfer agreement" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(None)), List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
+      val data: client.GraphqlData = client.GraphqlData(
+        Some(gc.Data(None)),
+        List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
@@ -121,11 +122,12 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       
       val addTransferAgreementResponse: ata.AddTransferAgreement = new ata.AddTransferAgreement(
         consignmentId,
-        Some(true),
-        Some(true),
-        Some(true),
-        Some(true),
-        Some(true)
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
       )
       stubTransferAgreementResponse(Some(addTransferAgreementResponse))
 
@@ -188,7 +190,8 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       ("crownCopyright", true.toString),
       ("english", true.toString),
       ("droAppraisalSelection", true.toString),
-      ("droSensitivity", true.toString)
+      ("droSensitivity", true.toString),
+      ("openRecords", true.toString)
     )
   }
 

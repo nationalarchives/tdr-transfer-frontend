@@ -1,29 +1,30 @@
 import Keycloak, { KeycloakTokenParsed } from "keycloak-js"
-import AWS, { CognitoIdentityCredentials } from "aws-sdk"
+import AWS, { CognitoIdentity, Credentials } from "aws-sdk"
 import { LoggedOutError } from "../errorhandling"
 import { IFrontEndInfo } from ".."
+import { GetIdInput } from "aws-sdk/clients/cognitoidentity"
 
-export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> = async () => {
-  const keycloakInstance: Keycloak.KeycloakInstance = Keycloak(
-    `${window.location.origin}/keycloak.json`
-  )
+export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
+  async () => {
+    const keycloakInstance: Keycloak.KeycloakInstance = Keycloak(
+      `${window.location.origin}/keycloak.json`
+    )
 
-  const authenticated = await keycloakInstance.init({
-    onLoad: "check-sso",
-    silentCheckSsoRedirectUri:
-      window.location.origin + "/assets/html/silent-check-sso.html"
-  })
-
-  if (!authenticated) {
-    console.log("User is not authenticated. Redirecting to login page")
-    await keycloakInstance.login({
-      redirectUri: window.location.href,
-      prompt: "login"
+    const authenticated = await keycloakInstance.init({
+      onLoad: "check-sso",
+      silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login"
     })
-  }
 
-  return keycloakInstance
-}
+    if (!authenticated) {
+      console.log("User is not authenticated. Redirecting to login page")
+      await keycloakInstance.login({
+        redirectUri: window.location.href,
+        prompt: "login"
+      })
+    }
+
+    return keycloakInstance
+  }
 
 const isRefreshTokenExpired: (
   token: KeycloakTokenParsed | undefined
@@ -51,19 +52,56 @@ export const refreshOrReturnToken: (
 
 export const authenticateAndGetIdentityId: (
   keycloak: Keycloak.KeycloakInstance,
-  frontEndInfo: IFrontEndInfo
-) => Promise<string> = async (keycloak, frontEndInfo) => {
+  frontEndInfo: IFrontEndInfo,
+  cognitoIdentity: CognitoIdentity,
+  sts: AWS.STS
+) => Promise<string> = async (keycloak, frontEndInfo, cognitoIdentity, sts) => {
   const token = await refreshOrReturnToken(keycloak)
   const { identityProviderName, identityPoolId, region } = frontEndInfo
 
-  const credentials = new CognitoIdentityCredentials({
+  const options: GetIdInput = {
     IdentityPoolId: identityPoolId,
-    Logins: {
-      [identityProviderName]: token
+    Logins: { [identityProviderName]: token }
+  }
+  const id = await cognitoIdentity.getId(options).promise()
+  if (id.IdentityId) {
+    const identityId = id.IdentityId
+    const openIdToken = await cognitoIdentity
+      .getOpenIdToken({
+        IdentityId: identityId,
+        Logins: { [identityProviderName]: token }
+      })
+      .promise()
+
+    if (openIdToken.Token) {
+      const response = sts
+        .assumeRoleWithWebIdentity({
+          DurationSeconds: 60 * 60 * 3,
+          RoleArn: frontEndInfo.cognitoRoleArn,
+          RoleSessionName: identityId.split(":")[1], //Cognito user uuid. Can see who did what in cloudtrail
+          WebIdentityToken: openIdToken.Token
+        })
+        .promise()
+
+      const assumeRole = await response
+      if (assumeRole.Credentials) {
+        const creds = assumeRole.Credentials
+
+        AWS.config.update({
+          credentials: new Credentials({
+            accessKeyId: creds.AccessKeyId,
+            secretAccessKey: creds.SecretAccessKey,
+            sessionToken: creds.SessionToken
+          })
+        })
+      } else {
+        throw new Error("Cannot get credentials from sts")
+      }
+    } else {
+      throw new Error("Cannot get an openid token from cognito")
     }
-  })
-  AWS.config.update({ region, credentials })
-  await credentials.getPromise()
-  const { identityId } = credentials
-  return identityId
+    return id.IdentityId
+  } else {
+    throw new Error("Cannot get cognito identity id")
+  }
 }

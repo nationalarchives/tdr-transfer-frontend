@@ -4,50 +4,63 @@
 @import java.util.UUID
 
 @(consignmentId: UUID, transferAgreementForm: Form[TransferAgreementData], agreementOptions: Seq[(String, String)])(implicit request: RequestHeader, messages: Messages)
-@main(Messages("transferAgreement.header")) {
+@main("Transfer agreement") {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        <a href="@routes.DashboardController.dashboard()" class="govuk-back-link">Back</a>
         @progressIndicator(Messages("transferAgreement.progress"))
 
-        <h1 class="govuk-heading-xl">@Messages("transferAgreement.title")</h1>
+        <h1 class="govuk-heading-l">Transfer agreement</h1>
+        <p class="govuk-body">You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor.</p>
+        <div class="govuk-warning-text">
+            <span class="govuk-warning-text__icon" aria-hidden="true">!</span> <!-- "aria-hidden" was added by GDS to prevent screen reader from saying "exclamation mark"-->
+            <strong class="govuk-warning-text__text">
+              <span class="govuk-warning-text__assistive">Warning</span>
+                This service is in private beta. During this time, the Transfer Digital Records service can only accept records that are in English, are Public Records and are Crown Copyright. For more information, please see our <a href="@routes.FaqController.faq()#other-languages" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> if you need to transfer records that this service cannot currently handle.
+            </strong>
+          </div>
+        @errorSummary(
+            transferAgreementForm("publicRecord"),
+            transferAgreementForm("crownCopyright"),
+            transferAgreementForm("english"),
+            transferAgreementForm("droAppraisalSelection"),
+            transferAgreementForm("droSensitivity"),
+            transferAgreementForm("openRecords"),
+        )
         @form(
             routes.TransferAgreementController.transferAgreementSubmit(consignmentId),
             (Symbol("novalidate"), "")
         ) {
+        <div class="govuk-form-group">
         @CSRF.formField
-        <fieldset class="govuk-fieldset" aria-describedby="transfer-agreement">
-            @inputRadioGroup(
-            transferAgreementForm("publicRecord"),
-            agreementOptions,
-            Symbol("_name") -> Messages("transferAgreement.publicRecord"),
-            Symbol("_requiredOption") -> true,
-            Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("publicRecord", ""),
-            Symbol("_disabledOption") -> "false"
+            @inputSingleCheckbox(
+                transferAgreementForm("publicRecord"),
+                Symbol("_label") -> "I confirm that the records are Public Records.",
+                Symbol("_value") -> "true",
+                Symbol("_smallCheckbox") -> true,
+                Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("publicRecord", ""),
+                Symbol("_requiredOption") -> true
             )
-            @inputRadioGroup(
-            transferAgreementForm("crownCopyright"),
-            agreementOptions,
-            Symbol("_name") -> Messages("transferAgreement.crownCopyright"),
-            Symbol("_requiredOption") -> true,
-            Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("crownCopyright", ""),
-            Symbol("_disabledOption") -> "false"
+            @inputSingleCheckbox(
+                transferAgreementForm("crownCopyright"),
+                Symbol("_label") -> "I confirm that the records are all Crown Copyright.",
+                Symbol("_value") -> "true",
+                Symbol("_smallCheckbox") -> true,
+                Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("crownCopyright", ""),
+                Symbol("_requiredOption") -> true
             )
-            @inputRadioGroup(
-            transferAgreementForm("english"),
-            agreementOptions,
-            Symbol("_name") -> Messages("transferAgreement.english"),
-            Symbol("_requiredOption") -> true,
-            Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("english", ""),
-            Symbol("_disabledOption") -> "false"
+            @inputSingleCheckbox(
+                transferAgreementForm("english"),
+                Symbol("_label") -> "I confirm that the records are all in English.",
+                Symbol("_value") -> "true",
+                Symbol("_smallCheckbox") -> true,
+                Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("english", ""),
+                Symbol("_requiredOption") -> true
             )
-        </fieldset>
-        <!-- DRO confirmation -->
-        <fieldset class="govuk-fieldset" aria-describedby="transfer-agreement-checks">
+            <!-- DRO confirmation -->
             @inputSingleCheckbox(
             transferAgreementForm("droAppraisalSelection"),
-            Symbol("_label") -> Messages("transferAgreement.droAppraisalSelection"),
+            Symbol("_label") -> "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection decision.",
             Symbol("_value") -> "true",
             Symbol("_smallCheckbox") -> true,
             Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("droAppraisalSelection", ""),
@@ -55,25 +68,30 @@
             )
             @inputSingleCheckbox(
             transferAgreementForm("droSensitivity"),
-            Symbol("_label") -> Messages("transferAgreement.droSensitivity"),
+            Symbol("_label") -> "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
             Symbol("_value") -> "true",
             Symbol("_smallCheckbox") -> true,
             Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("droSensitivity", ""),
             Symbol("_requiredOption") -> true
             )
-        </fieldset>
+            @inputSingleCheckbox(
+                transferAgreementForm("openRecords"),
+                Symbol("_label") -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
+                Symbol("_value") -> "true",
+                Symbol("_smallCheckbox") -> true,
+                Symbol("_checkedOption") -> transferAgreementForm.data.getOrElse("openRecords", ""),
+                Symbol("_requiredOption") -> true
+            )
+        </div>
         <!-- Buttons -->
-        <div>
-            <!-- Cancel -->
-            <a href="@routes.DashboardController.dashboard()" role="button" draggable="false"
-               class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                @Messages("transferAgreement.cancelLink")
-            </a>
-
+        <div class="govuk-button-group">
             <!-- Continue -->
-            <button class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                @Messages("transferAgreement.continueLink")
+            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                Continue
             </button>
+
+            <!-- Cancel -->
+            <a class="govuk-link" href="@routes.DashboardController.dashboard()">Cancel</a>
         </div>
         }
     </div>

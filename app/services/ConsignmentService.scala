@@ -7,6 +7,7 @@ import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
+import graphql.codegen.GetConsignmentReference.getConsignmentReference
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
 import graphql.codegen.types.AddConsignmentInput
@@ -25,6 +26,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentFileCheckClient = graphqlConfiguration.getClient[getFileCheckProgress.Data, getFileCheckProgress.Variables]()
   private val getConsignmentFolderDetailsClient = graphqlConfiguration.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()
   private val getConsignmentSummaryClient = graphqlConfiguration.getClient[getConsignmentSummary.Data, getConsignmentSummary.Variables]()
+  private val getConsignmentReferenceClient = graphqlConfiguration.getClient[getConsignmentReference.Data, getConsignmentReference.Variables]()
 
   def consignmentExists(consignmentId: UUID,
                         token: BearerAccessToken): Future[Boolean] = {
@@ -56,10 +58,17 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       .map(data => data.getConsignment.get)
   }
 
-  def getConsignmentTransferSummary(consignmentId: UUID, token: BearerAccessToken): Future[getConsignmentSummary.GetConsignment] = {
+  def getConsignmentConfirmTransfer(consignmentId: UUID, token: BearerAccessToken): Future[getConsignmentSummary.GetConsignment] = {
     val variables: getConsignmentSummary.Variables = new getConsignmentSummary.Variables(consignmentId)
 
     sendApiRequest(getConsignmentSummaryClient, getConsignmentSummary.document, token, variables)
+      .map(data => data.getConsignment.get)
+  }
+
+  def getConsignmentRef(consignmentId: UUID, token: BearerAccessToken): Future[getConsignmentReference.GetConsignment] = {
+    val variables: getConsignmentReference.Variables = new getConsignmentReference.Variables(consignmentId)
+
+    sendApiRequest(getConsignmentReferenceClient, getConsignmentReference.document, token, variables)
       .map(data => data.getConsignment.get)
   }
 }

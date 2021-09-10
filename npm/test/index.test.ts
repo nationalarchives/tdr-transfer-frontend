@@ -37,6 +37,7 @@ const getFrontEndInfoHtml: () => string = () => {
     <input type="hidden" class="identity-pool-id">
     <input type="hidden" class="stage">
     <input type="hidden" class="region">
+    <input type="hidden" class="cognito-role-arn">
   `.toString()
 }
 
@@ -49,11 +50,13 @@ test("renderModules calls authorisation when upload form present on page", async
   )
 
   document.body.innerHTML =
+    '<div id="file-upload">' +
     '<div class="govuk-file-upload">' +
     '<form id="file-upload-form">' +
     getFrontEndInfoHtml() +
     '<button class="govuk-button" type="submit" data-module="govuk-button" role="button" />' +
     "</form>" +
+    "</div>" +
     "</div>"
 
   renderModules()

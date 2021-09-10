@@ -10,7 +10,7 @@ jest.mock("aws-sdk")
 import { KeycloakInitOptions, KeycloakInstance } from "keycloak-js"
 import { refreshOrReturnToken, authenticateAndGetIdentityId } from "../src/auth"
 import { getKeycloakInstance } from "../src/auth"
-import AWS from "aws-sdk"
+import AWS, { CognitoIdentity, Request, Service } from "aws-sdk"
 import { IFrontEndInfo } from "../src"
 import { LoggedOutError } from "../src/errorhandling"
 
@@ -58,6 +58,15 @@ class MockKeycloakError {
   }
 }
 
+class MockCognitoIdentity extends CognitoIdentity {
+  getId = jest.fn()
+  getOpenIdToken = jest.fn()
+}
+
+class MockSTS extends AWS.STS {
+  assumeRoleWithWebIdentity = jest.fn()
+}
+
 beforeEach(() => {
   jest.resetAllMocks()
   jest.resetModules()
@@ -84,7 +93,7 @@ test("Returns an error if login attempt fails", async () => {
 
 test("Calls the correct authentication update", async () => {
   const config = AWS.config.update as jest.Mock
-  const token = "testtoken"
+
   keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
   const keycloak = await getKeycloakInstance()
   const frontEndInfo: IFrontEndInfo = {
@@ -92,11 +101,132 @@ test("Calls the correct authentication update", async () => {
     region: "",
     identityPoolId: "",
     identityProviderName: "",
-    apiUrl: ""
+    apiUrl: "",
+    cognitoRoleArn: ""
   }
-  const identityId = await authenticateAndGetIdentityId(keycloak, frontEndInfo)
-  expect(identityId).toBeUndefined()
+  const identity = new MockCognitoIdentity()
+  identity.getId.mockReturnValue({
+    promise: () => ({ IdentityId: "identityId" })
+  })
+  identity.getOpenIdToken.mockReturnValue({
+    promise: () => ({ Token: "token" })
+  })
+  const sts = new MockSTS()
+  sts.assumeRoleWithWebIdentity.mockReturnValue({
+    promise: () => ({
+      Credentials: {
+        AccessKeyId: "accessKey",
+        SecretAccessKey: "secretKey",
+        SessionToken: "sessionToken"
+      }
+    })
+  })
+
+  const identityId = await authenticateAndGetIdentityId(
+    keycloak,
+    frontEndInfo,
+    identity,
+    sts
+  )
+  expect(identity.getId).toHaveBeenCalled()
+  expect(identity.getOpenIdToken).toHaveBeenCalled()
+  expect(sts.assumeRoleWithWebIdentity).toHaveBeenCalled()
+  expect(identityId).toBe("identityId")
   expect(config).toHaveBeenCalled()
+})
+
+test("Throws an error if getting the identity id fails", async () => {
+  keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
+  const keycloak = await getKeycloakInstance()
+  const frontEndInfo: IFrontEndInfo = {
+    stage: "",
+    region: "",
+    identityPoolId: "",
+    identityProviderName: "",
+    apiUrl: "",
+    cognitoRoleArn: ""
+  }
+  const identity = new MockCognitoIdentity()
+  identity.getId.mockReturnValue({
+    promise: () => ({ IdentityId: null })
+  })
+
+  const identityId = authenticateAndGetIdentityId(
+    keycloak,
+    frontEndInfo,
+    identity,
+    new AWS.STS()
+  )
+  await expect(identityId).rejects.toStrictEqual(
+    Error("Cannot get cognito identity id")
+  )
+})
+
+test("Throws an error if getting the open id token fails", async () => {
+  keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
+  const keycloak = await getKeycloakInstance()
+  const frontEndInfo: IFrontEndInfo = {
+    stage: "",
+    region: "",
+    identityPoolId: "",
+    identityProviderName: "",
+    apiUrl: "",
+    cognitoRoleArn: ""
+  }
+  const identity = new MockCognitoIdentity()
+  identity.getId.mockReturnValue({
+    promise: () => ({ IdentityId: "identityId" })
+  })
+  identity.getOpenIdToken.mockReturnValue({
+    promise: () => ({ Token: null })
+  })
+
+  const identityId = authenticateAndGetIdentityId(
+    keycloak,
+    frontEndInfo,
+    identity,
+    new AWS.STS()
+  )
+  await expect(identityId).rejects.toStrictEqual(
+    Error("Cannot get an openid token from cognito")
+  )
+})
+
+test("Throws an error if getting credentials from STS fails", async () => {
+  keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
+  const keycloak = await getKeycloakInstance()
+  const frontEndInfo: IFrontEndInfo = {
+    stage: "",
+    region: "",
+    identityPoolId: "",
+    identityProviderName: "",
+    apiUrl: "",
+    cognitoRoleArn: ""
+  }
+  const identity = new MockCognitoIdentity()
+  identity.getId.mockReturnValue({
+    promise: () => ({ IdentityId: "identityId" })
+  })
+  identity.getOpenIdToken.mockReturnValue({
+    promise: () => ({ Token: "token" })
+  })
+
+  const sts = new MockSTS()
+  sts.assumeRoleWithWebIdentity.mockReturnValue({
+    promise: () => ({
+      Credentials: null
+    })
+  })
+
+  const identityId = authenticateAndGetIdentityId(
+    keycloak,
+    frontEndInfo,
+    identity,
+    sts
+  )
+  await expect(identityId).rejects.toStrictEqual(
+    Error("Cannot get credentials from sts")
+  )
 })
 
 test("Calls refresh token if the token is expired", async () => {

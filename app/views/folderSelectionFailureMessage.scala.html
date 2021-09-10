@@ -1,0 +1,11 @@
+@(containerId: String,
+  messageId: String,
+  failureMessage: String
+)(implicit messages: Messages)
+<dd id="@containerId" class="govuk-summary-list__value drag-and-drop__failure" hidden
+    tabindex="-1" role="alert" aria-describedby="@messageId">
+    <div>
+        @redWarningSign()
+        <p id="@messageId">@Messages(failureMessage)</p>
+    </div>
+</dd>

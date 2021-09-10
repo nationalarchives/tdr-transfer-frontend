@@ -37,12 +37,8 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
     getRecordProcessingProgress(request, consignmentId)
       .map {
         fileChecks => {
-          if(fileChecks.isComplete) {
-            Redirect(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId))
-          } else {
-            Ok(views.html.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo))
-          }
-
+          Ok(views.html.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo))
+            .withHeaders("Cache-Control" -> "no-store, must-revalidate")
         }
       }
   }

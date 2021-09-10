@@ -25,10 +25,12 @@ class ConsignmentExportServiceSpec extends WordSpec with Matchers with MockitoSu
 
   "triggerExport" should {
     "return the correct value when the api is available" in {
-      checkTriggerExport(200, expectedValue = true)
+      triggerExport(200, UUID.randomUUID()).futureValue should be(true)
     }
     "return the correct value when the api is not available" in {
-      checkTriggerExport(500, expectedValue = false)
+      val consignmentId = UUID.randomUUID()
+      val message = s"Call to export API has returned a non 200 response for consignment $consignmentId"
+      triggerExport(500, consignmentId).failed.futureValue.getMessage should equal(message)
     }
   }
 
@@ -53,15 +55,15 @@ class ConsignmentExportServiceSpec extends WordSpec with Matchers with MockitoSu
     }
 
     "return the correct value when the graphql api is available" in {
-      checkUpdateTransferInitiated(Future(GraphQlResponse(Option(Data(Option(1))), List())), expectedResult = true)
+      updateTransferInitiated(Future(GraphQlResponse(Option(Data(Option(1))), List()))).futureValue should be(true)
     }
 
     "return the correct value when the graphql api is unavailable" in {
-      checkUpdateTransferInitiated(Future.failed(new RuntimeException("graphql error")), expectedResult = false)
+      updateTransferInitiated(Future.failed(new RuntimeException("graphql error"))).failed.futureValue.getMessage should equal("graphql error")
     }
   }
 
-  private def checkUpdateTransferInitiated(getResultResponse: Future[GraphQlResponse[Data]], expectedResult: Boolean): Assertion = {
+  private def updateTransferInitiated(getResultResponse: Future[GraphQlResponse[Data]]): Future[Boolean] = {
     val graphQLConfiguration = mock[GraphQLConfiguration]
     val wsClient = mock[WSClient]
     val config = mock[Configuration]
@@ -71,11 +73,10 @@ class ConsignmentExportServiceSpec extends WordSpec with Matchers with MockitoSu
       .thenReturn(getResultResponse)
     when(graphQLConfiguration.getClient[Data, Variables]()).thenReturn(client)
     val service = new ConsignmentExportService(wsClient, config, graphQLConfiguration)
-    val response = service.updateTransferInititated(UUID.randomUUID(), new BearerAccessToken()).futureValue
-    response should equal(expectedResult)
+    service.updateTransferInititated(UUID.randomUUID(), new BearerAccessToken())
   }
 
-  private def checkTriggerExport(responseCode: Int, expectedValue: Boolean): Assertion = {
+  private def triggerExport(responseCode: Int, consignmentId: UUID): Future[Boolean] = {
     val graphQLConfiguration = mock[GraphQLConfiguration]
     val wsClient = mock[WSClient]
     val request= mock[WSRequest]
@@ -87,7 +88,6 @@ class ConsignmentExportServiceSpec extends WordSpec with Matchers with MockitoSu
     when(request.post[String]("{}")).thenReturn(Future(response))
 
     val service = new ConsignmentExportService(wsClient, config, graphQLConfiguration)
-    val exportTriggered = service.triggerExport(UUID.randomUUID(), "token").futureValue
-    exportTriggered should be(expectedValue)
+    service.triggerExport(consignmentId, "token")
   }
 }

@@ -44,7 +44,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "render the correct series details page with an authenticated user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Some(
-        gs.Data(List(gs.GetSeries(seriesId, bodyId, Option.empty, Some("code"), Option.empty)))))
+        gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "code", Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val seriesService = new SeriesService(graphQLConfiguration)
@@ -58,9 +58,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
-      contentAsString(seriesDetailsPage) must include ("seriesDetails.header")
-      contentAsString(seriesDetailsPage) must include ("seriesDetails.title")
-      contentAsString(seriesDetailsPage) must include ("seriesDetails.chooseSeries")
+      contentAsString(seriesDetailsPage) must include ("Series Information")
+      contentAsString(seriesDetailsPage) must include ("Choose a series")
+      contentAsString(seriesDetailsPage) must include ("Please choose an existing series reference for the records you would like to transfer.")
       contentAsString(seriesDetailsPage) must include ("id=\"series\"")
       contentAsString(seriesDetailsPage) must include (s"""<option value="${seriesId.toString}">code</option>""")
 
@@ -156,7 +156,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "display errors when an invalid form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Some(
-        gs.Data(List(gs.GetSeries(seriesId, bodyId, Option.empty, Some("code"), Option.empty)))))
+        gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "code", Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val seriesService = new SeriesService(graphQLConfiguration)
@@ -177,7 +177,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "will send the correct body if it is present on the user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Some(
-        gs.Data(List(gs.GetSeries(seriesId, bodyId, Option.empty, Some("code"), Option.empty)))))
+        gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "code", Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val seriesService = new SeriesService(graphQLConfiguration)

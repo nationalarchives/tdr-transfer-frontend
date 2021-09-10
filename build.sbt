@@ -25,8 +25,6 @@ libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
   "org.pac4j" % "pac4j-http" % pac4jVersion exclude("com.fasterxml.jackson.core", "jackson-databind"),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude("commons-io", "commons-io") exclude("com.fasterxml.jackson.core", "jackson-databind"),
-  "org.apache.shiro" % "shiro-core" % "1.4.0",
-  "net.bytebuddy" % "byte-buddy" % "1.9.7",
   "io.circe" %% "circe-core" % "0.13.0",
   "io.circe" %% "circe-generic" % "0.13.0",
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
@@ -34,7 +32,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.15",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.12",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.71",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.129",
   ws,
   "com.github.tomakehurst" % "wiremock-jre8" % "2.26.0" % Test,
   "org.mockito" % "mockito-core" % "3.3.0" % Test
@@ -45,3 +43,6 @@ libraryDependencies += play.sbt.PlayImport.cacheApi
 libraryDependencies += "com.github.karelcemus" %% "play-redis" % "2.6.0"
 
 pipelineStages := Seq(digest)
+
+envVars in Test := Map("COGNITO_ROLE_ARN" -> "roleArn")
+

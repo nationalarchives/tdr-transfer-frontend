@@ -1,0 +1,27 @@
+@import java.util.UUID
+@(consignmentId: UUID)(implicit request: RequestHeader, messages: Messages)
+
+  @main("Upload your records") {
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        @progressIndicator(Messages("upload.progress"))
+        <h1 class="govuk-heading-l">Uploading records</h1>
+
+        <div id="upload-progress-error" class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"
+        role="alert" data-module="govuk-error-summary" tabindex="-1">
+          <div id="upload-progress-error">
+            <h2 class="govuk-error-summary__title" id="error-summary-title">
+              There is a problem
+            </h2>
+            <div class="govuk-error-summary__body">
+              <p>Your upload was interrupted and could not be completed.</p>
+              <p>Please return to the start to begin a new transfer.</p>
+            </div>
+          </div>
+        </div>
+        <a href="@routes.DashboardController.dashboard()" role="button" draggable="false" class="govuk-button govuk-button--primary">
+          Return to start
+        </a>
+      </div>
+    </div>
+  }

@@ -1,0 +1,90 @@
+@import java.util.UUID
+@import viewsapi.FormFunctions._
+@import helper.{inputRadioGroup => _, _}
+
+@(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData])(implicit request: RequestHeader, messages: Messages)
+@main("Confirm transfer") {
+@defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            @progressIndicator(Messages("confirmTransfer.progress"))
+
+            <h1 class="govuk-heading-l">Confirm transfer</h1>
+            <p class="govuk-body">Here is a summary of the records you have uploaded.</p>
+            @errorSummary(
+              finalTransferConfirmationForm("openRecords"),
+              finalTransferConfirmationForm("transferLegalOwnership")
+            )
+            <dl class="govuk-summary-list">
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key govuk-!-width-one-half">
+                        Series reference
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        @summary.seriesCode
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        Consignment reference
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        @summary.consignmentReference
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        Transferring body
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        @summary.transferringBody
+                    </dd>
+                </div>
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        Files uploaded for transfer
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        @summary.totalFiles @if(summary.totalFiles == 1) {file} else {files} uploaded
+                    </dd>
+                </div>
+            </dl>
+
+        <p class="govuk-body">Please confirm you would like to transfer ownership of the records to The National Archives.</p>
+        <div class="govuk-form-group ">
+            @form(
+            routes.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId),
+            (Symbol("novalidate"), "")
+            ) {
+                @CSRF.formField
+                <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
+                    <!-- Open records & transfer legal ownership -->
+                    @inputSingleCheckbox(
+                    finalTransferConfirmationForm("openRecords"),
+                    Symbol("_label") -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
+                    Symbol("_value") -> "true",
+                    Symbol("_smallCheckbox") -> true,
+                    Symbol("_checkedOption") -> finalTransferConfirmationForm.data.getOrElse("openRecords", ""),
+                    Symbol("_requiredOption") -> true
+                    )
+                    @inputSingleCheckbox(
+                    finalTransferConfirmationForm("transferLegalOwnership"),
+                    Symbol("_label") -> "I confirm that I am transferring legal ownership of these records to The National Archives.",
+                    Symbol("_value") -> "true",
+                    Symbol("_smallCheckbox") -> true,
+                    Symbol("_checkedOption") -> finalTransferConfirmationForm.data.getOrElse("transferLegalOwnership", ""),
+                    Symbol("_requiredOption") -> true
+                    )
+                </fieldset>
+            </div>
+                <div>
+                    <!-- Transfer -->
+                    <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                        Transfer your records
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+}
+}
