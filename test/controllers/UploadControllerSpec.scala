@@ -140,7 +140,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
   private def stubGetConsignmentStatusResponse(uploadStatus: Option[String] = None)(implicit ec: ExecutionContext) = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-    val data = client.GraphqlData(Option(gcs.Data(Option(gcs.GetConsignment(CurrentStatus(uploadStatus))))), List())
+    val data = client.GraphqlData(Option(gcs.Data(Option(gcs.GetConsignment(CurrentStatus(None, uploadStatus))))), List())
     val dataString = data.asJson.printWith(Printer(dropNullValues = false, ""))
     val formattedJsonBody = """{"query":"query getConsignmentStatus($consignmentId:UUID!){
                                                getConsignment(consignmentid:$consignmentId){
