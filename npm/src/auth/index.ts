@@ -33,7 +33,7 @@ const isRefreshTokenExpired: (
   return token != undefined && token.exp != undefined && token.exp < now
 }
 
-export const refreshIdleSessionTimeout: (
+export const scheduleTokenRefresh: (
   keycloak: KeycloakInstance,
   idleSessionMinValiditySecs?: number
 ) => void = (keycloak, idleSessionMinValiditySecs = 60) => {
@@ -46,9 +46,7 @@ export const refreshIdleSessionTimeout: (
       (expInSecs - (nowInSecs + idleSessionMinValiditySecs)) * 1000
 
     setTimeout(() => {
-      refreshOrReturnToken(keycloak).then(() =>
-        refreshIdleSessionTimeout(keycloak)
-      )
+      refreshOrReturnToken(keycloak).then(() => scheduleTokenRefresh(keycloak))
     }, timeoutInMs)
   }
 }
