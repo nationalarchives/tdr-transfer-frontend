@@ -49,6 +49,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
       val transferAgreementStatus: String = consignmentStatus.flatMap(_.transferAgreement).getOrElse("")
       if (transferAgreementStatus == "Completed") {
         Ok(views.html.transferAgreementAlreadyCompleted(consignmentId, transferAgreementForm, options))
+          .withHeaders("Cache-Control" -> "no-store, must-revalidate")
       } else {
         Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
       }
