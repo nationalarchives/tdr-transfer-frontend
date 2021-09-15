@@ -7,6 +7,8 @@ import org.pac4j.core.exception.http.{FoundAction, HttpAction, RedirectionAction
 import org.pac4j.core.util.Pac4jConstants
 import play.api.Logging
 
+import scala.jdk.OptionConverters.RichOptional
+
 class CustomSavedRequestHandler extends SavedRequestHandler with Logging {
   override def save(context: WebContext): Unit = {
 
@@ -24,15 +26,8 @@ class CustomSavedRequestHandler extends SavedRequestHandler with Logging {
     val optRequestedUrl = context.getSessionStore.asInstanceOf[SessionStore[WebContext]]
       .get(context, Pac4jConstants.REQUESTED_URL)
 
-    val requestedAction = if (optRequestedUrl.isPresent) {
-      context.getSessionStore.asInstanceOf[SessionStore[WebContext]]
-        .set(context, Pac4jConstants.REQUESTED_URL, "")
-      Some(optRequestedUrl.get.asInstanceOf[FoundAction])
-    } else {
-      None
-    }
-
-    val redirectAction = requestedAction.getOrElse(new FoundAction(defaultUrl))
+    val redirectAction = optRequestedUrl.toScala.map(_.asInstanceOf[FoundAction])
+      .getOrElse(new FoundAction(defaultUrl))
     RedirectionActionHelper.buildRedirectUrlAction(context, redirectAction.getLocation)
   }
 }
