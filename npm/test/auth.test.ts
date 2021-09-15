@@ -8,7 +8,7 @@ jest.mock("keycloak-js", () => keycloakMock)
 jest.mock("aws-sdk")
 
 import { KeycloakInitOptions, KeycloakInstance } from "keycloak-js"
-import {refreshOrReturnToken, authenticateAndGetIdentityId, refreshIdleSessionTimeout} from "../src/auth"
+import {refreshOrReturnToken, authenticateAndGetIdentityId, scheduleTokenRefresh} from "../src/auth"
 import { getKeycloakInstance } from "../src/auth"
 import AWS, { CognitoIdentity, Request, Service } from "aws-sdk"
 import { IFrontEndInfo } from "../src"
@@ -313,7 +313,7 @@ test("Throws an error if the access token and refresh token have expired", async
   )
 })
 
-test("'refreshIdleSessionTimeout' should refresh tokens if refresh token will expire within the given timeframe", async () => {
+test("'scheduleTokenRefresh' should refresh tokens if refresh token will expire within the given timeframe", async () => {
   const updateToken = jest.fn()
   const isTokenExpired = jest.fn().mockImplementation(() => true)
   const mockKeycloak: KeycloakInstance = {
@@ -338,13 +338,13 @@ test("'refreshIdleSessionTimeout' should refresh tokens if refresh token will ex
   }
 
   jest.useFakeTimers()
-  refreshIdleSessionTimeout(mockKeycloak)
+  scheduleTokenRefresh(mockKeycloak)
   jest.runAllTimers()
 
   expect(updateToken).toHaveBeenCalled()
 })
 
-test("'refreshIdleSessionTimeout' should not refresh tokens if the access token has not expired", async () => {
+test("'scheduleTokenRefresh' should not refresh tokens if the access token has not expired", async () => {
   const updateToken = jest.fn()
   const isTokenExpired = jest.fn().mockImplementation(() => false)
   const mockKeycloak: KeycloakInstance = {
@@ -369,13 +369,13 @@ test("'refreshIdleSessionTimeout' should not refresh tokens if the access token 
   }
 
   jest.useFakeTimers()
-  refreshIdleSessionTimeout(mockKeycloak)
+  scheduleTokenRefresh(mockKeycloak)
   jest.runAllTimers()
 
   expect(updateToken).not.toHaveBeenCalled()
 })
 
-test("'refreshIdleSessionTimeout' should not refresh tokens if there is no refresh token", async () => {
+test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh token", async () => {
   const updateToken = jest.fn()
   const isTokenExpired = jest.fn().mockImplementation(() => true)
   const mockKeycloak: KeycloakInstance = {
@@ -399,13 +399,13 @@ test("'refreshIdleSessionTimeout' should not refresh tokens if there is no refre
   }
 
   jest.useFakeTimers()
-  refreshIdleSessionTimeout(mockKeycloak)
+  scheduleTokenRefresh(mockKeycloak)
   jest.runAllTimers()
 
   expect(updateToken).not.toHaveBeenCalled()
 })
 
-test("'refreshIdleSessionTimeout' should not refresh tokens if there is no refresh token expiry defined", async () => {
+test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh token expiry defined", async () => {
   const updateToken = jest.fn()
   const isTokenExpired = jest.fn().mockImplementation(() => true)
   const mockKeycloak: KeycloakInstance = {
@@ -430,7 +430,7 @@ test("'refreshIdleSessionTimeout' should not refresh tokens if there is no refre
   }
 
   jest.useFakeTimers()
-  refreshIdleSessionTimeout(mockKeycloak)
+  scheduleTokenRefresh(mockKeycloak)
   jest.runAllTimers()
 
   expect(updateToken).not.toHaveBeenCalled()

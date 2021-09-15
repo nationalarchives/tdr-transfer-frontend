@@ -7,7 +7,7 @@ import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError } from "../errorhandling"
 import { KeycloakInstance } from "keycloak-js"
-import { refreshIdleSessionTimeout } from "../auth"
+import { scheduleTokenRefresh } from "../auth"
 
 export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
   e.preventDefault()
@@ -47,7 +47,7 @@ export class FileUploader {
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
-    refreshIdleSessionTimeout(this.keycloak)
+    scheduleTokenRefresh(this.keycloak)
 
     try {
       await this.clientFileProcessing.processClientFiles(
