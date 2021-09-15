@@ -60,16 +60,17 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
+      val transferAgreementPageAsString = contentAsString(transferAgreementPage)
 
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
-      contentAsString(transferAgreementPage) must include("Transfer agreement")
-      contentAsString(transferAgreementPage) must include("I confirm that the records are Public Records.")
-      contentAsString(transferAgreementPage) must include("I confirm that the records are all Crown Copyright.")
-      contentAsString(transferAgreementPage) must include("I confirm that the records are all in English.")
-      contentAsString(transferAgreementPage) must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
-      contentAsString(transferAgreementPage) must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
-      contentAsString(transferAgreementPage) must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
+      transferAgreementPageAsString must include("Transfer agreement")
+      transferAgreementPageAsString must include("I confirm that the records are Public Records.")
+      transferAgreementPageAsString must include("I confirm that the records are all Crown Copyright.")
+      transferAgreementPageAsString must include("I confirm that the records are all in English.")
+      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
+      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
+      transferAgreementPageAsString must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -105,7 +106,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
     "create a transfer agreement when a valid form is submitted and the api response is successful" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      
+
       val addTransferAgreementResponse: ata.AddTransferAgreement = new ata.AddTransferAgreement(
         consignmentId,
         true,
@@ -183,17 +184,18 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
+      val transferAgreementPageAsString = contentAsString(transferAgreementPage)
 
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
-      contentAsString(transferAgreementPage) must include("Transfer agreement")
-      contentAsString(transferAgreementPage) must include("You have already confirmed all statements")
-      contentAsString(transferAgreementPage) must include("I confirm that the records are Public Records.")
-      contentAsString(transferAgreementPage) must include("I confirm that the records are all Crown Copyright.")
-      contentAsString(transferAgreementPage) must include("I confirm that the records are all in English.")
-      contentAsString(transferAgreementPage) must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
-      contentAsString(transferAgreementPage) must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
-      contentAsString(transferAgreementPage) must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
+      transferAgreementPageAsString must include("Transfer agreement")
+      transferAgreementPageAsString must include("You have already confirmed all statements")
+      transferAgreementPageAsString must include("I confirm that the records are Public Records.")
+      transferAgreementPageAsString must include("I confirm that the records are all Crown Copyright.")
+      transferAgreementPageAsString must include("I confirm that the records are all in English.")
+      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
+      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
+      transferAgreementPageAsString must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
     }
   }
 
