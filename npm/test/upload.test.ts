@@ -4,7 +4,7 @@ import {
   TProgressFunction
 } from "@nationalarchives/file-information"
 import { FileUploader } from "../src/upload"
-import { mockKeycloakInstance } from "./utils"
+import {createMockKeycloakInstance, mockKeycloakInstance} from "./utils"
 import { GraphqlClient } from "../src/graphql"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
@@ -85,35 +85,6 @@ const mockUploadFailure: () => void = () => {
 
 const mockGoToNextPage = jest.fn()
 
-const mockKeycloak: (
-    tokenExpired: boolean,
-    updateTokenFunc: Function
-) => KeycloakInstance = (tokenExpired= false, updateTokenFunc = jest.fn) => {
-  const updateToken = updateTokenFunc()
-  const isTokenExpired = jest.fn().mockImplementation(() => tokenExpired)
-  const fixedExp = Math.round(new Date().getTime() / 1000) + 60
-  return {
-    refreshTokenParsed: { exp: fixedExp },
-    init: jest.fn(),
-    login: jest.fn(),
-    logout: jest.fn(),
-    register: jest.fn(),
-    accountManagement: jest.fn(),
-    createLoginUrl: jest.fn(),
-    createLogoutUrl: jest.fn(),
-    createRegisterUrl: jest.fn(),
-    createAccountUrl: jest.fn(),
-    isTokenExpired,
-    updateToken,
-    clearToken: jest.fn(),
-    hasRealmRole: jest.fn(),
-    hasResourceRole: jest.fn(),
-    loadUserInfo: jest.fn(),
-    loadUserProfile: jest.fn(),
-    token: "fake-auth-token"
-  }
-}
-
 test("upload function submits redirect form on upload files success", async () => {
   mockUploadSuccess()
 
@@ -151,28 +122,10 @@ test("upload function throws an error when upload fails", async () => {
 
 test("upload function refreshes idle session", async () => {
   mockUploadSuccess()
-  const updateToken = jest.fn()
-  const isTokenExpired = jest.fn().mockImplementation(() => true)
-  const mockKeycloak: KeycloakInstance = {
-    refreshTokenParsed: { exp: Math.round(new Date().getTime() / 1000) + 60 },
-    init: jest.fn(),
-    login: jest.fn(),
-    logout: jest.fn(),
-    register: jest.fn(),
-    accountManagement: jest.fn(),
-    createLoginUrl: jest.fn(),
-    createLogoutUrl: jest.fn(),
-    createRegisterUrl: jest.fn(),
-    createAccountUrl: jest.fn(),
-    isTokenExpired,
-    updateToken,
-    clearToken: jest.fn(),
-    hasRealmRole: jest.fn(),
-    hasResourceRole: jest.fn(),
-    loadUserInfo: jest.fn(),
-    loadUserProfile: jest.fn(),
-    token: "fake-auth-token"
-  }
+  const mockUpdateToken = jest.fn()
+  const isTokenExpiredTrue = jest.fn().mockImplementation(() => true)
+  const refreshTokenParsed = { exp: Math.round(new Date().getTime() / 1000) + 60 }
+  const mockKeycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpiredTrue, refreshTokenParsed)
 
   const uploadFiles = setUpFileUploader(mockKeycloak)
   const consoleErrorSpy = jest
@@ -188,7 +141,7 @@ test("upload function refreshes idle session", async () => {
 
   expect(consoleErrorSpy).not.toHaveBeenCalled()
   expect(mockGoToNextPage).toHaveBeenCalled()
-  expect(updateToken).toHaveBeenCalled()
+  expect(mockUpdateToken).toHaveBeenCalled()
 
   mockGoToNextPage.mockRestore()
   consoleErrorSpy.mockRestore()
