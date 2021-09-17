@@ -45,14 +45,14 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
   def transferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
-    for (consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)) yield {
-      val transferAgreementStatus: String = consignmentStatus.flatMap(_.transferAgreement).getOrElse("")
-      if (transferAgreementStatus == "Completed") {
-        Ok(views.html.transferAgreementAlreadyCompleted(consignmentId, transferAgreementForm, options))
-          .withHeaders("Cache-Control" -> "no-store, must-revalidate")
-      } else {
-        Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
-      }
+    consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).map {
+      consignmentStatus =>
+        val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
+        transferAgreementStatus match {
+          case Some("Completed") => Ok(views.html.transferAgreementAlreadyCompleted(consignmentId, transferAgreementForm, options))
+                                      .withHeaders("Cache-Control" -> "no-store, must-revalidate")
+          case _ =>  Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
+        }
     }
   }
 
