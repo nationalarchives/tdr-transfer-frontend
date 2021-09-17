@@ -71,7 +71,7 @@ class ValidatedActionsSpec extends FrontEndTestHelper {
 
   "uploadPermitted function" should {
     "call the controller function if the transfer agreement exists and the upload is not in progress" in {
-      val graphqlConfigurationMock = mockUploadPermittedGraphqlResponse(itac.Data(Option(itac.GetTransferAgreement(true))), gcs.Data(Option(GetConsignment(CurrentStatus(None, Option.empty)))))
+      val graphqlConfigurationMock = mockUploadPermittedGraphqlResponse(itac.Data(Option(itac.GetTransferAgreement(true))), gcs.Data(Option(GetConsignment(CurrentStatus(None, None)))))
 
       val functionMock = mock[Request[AnyContent] => Result]
 
@@ -83,7 +83,7 @@ class ValidatedActionsSpec extends FrontEndTestHelper {
     "return a redirect to the transfer agreement page if the transfer agreement is not complete" in {
       val consignmentId = UUID.randomUUID()
 
-      val graphqlConfigurationMock = mockUploadPermittedGraphqlResponse(itac.Data(Option(itac.GetTransferAgreement(false))), gcs.Data(Option(GetConsignment(CurrentStatus(None, Option.empty)))))
+      val graphqlConfigurationMock = mockUploadPermittedGraphqlResponse(itac.Data(Option(itac.GetTransferAgreement(false))), gcs.Data(Option(GetConsignment(CurrentStatus(None, None)))))
       val functionMock = mock[Request[AnyContent] => Result]
 
       val response = new MockValidatedActions(graphqlConfigurationMock).uploadPermitted(consignmentId)(functionMock)(FakeRequest()).futureValue
