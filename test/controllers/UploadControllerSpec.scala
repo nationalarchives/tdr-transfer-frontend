@@ -1,12 +1,11 @@
 package controllers
 
-import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
-import graphql.codegen.IsTransferAgreementComplete.{isTransferAgreementComplete => itac}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
+import graphql.codegen.IsTransferAgreementComplete.{isTransferAgreementComplete => itac}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -16,6 +15,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
 import util.FrontEndTestHelper
 
+import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 
@@ -121,7 +121,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val client = new GraphQLConfiguration(app.configuration).getClient[itac.Data, itac.Variables]()
     val data: client.GraphqlData = client.GraphqlData(Some(itac.Data(agreement)), List())
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-    val formattedJsonBody = """{"query":"query isTransferAgreementComplete($consignmentId:UUID!){
+    val formattedJsonBody =
+      """{"query":"query isTransferAgreementComplete($consignmentId:UUID!){
                                                        getTransferAgreement(consignmentid:$consignmentId){
                                                          isAgreementComplete
                                                        }
@@ -142,7 +143,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
     val data = client.GraphqlData(Option(gcs.Data(Option(gcs.GetConsignment(CurrentStatus(None, uploadStatus))))), List())
     val dataString = data.asJson.printWith(Printer(dropNullValues = false, ""))
-    val formattedJsonBody = """{"query":"query getConsignmentStatus($consignmentId:UUID!){
+    val formattedJsonBody =
+      """{"query":"query getConsignmentStatus($consignmentId:UUID!){
                                                        getConsignment(consignmentid:$consignmentId){
                                                          currentStatus{transferAgreement upload}
                                                        }
