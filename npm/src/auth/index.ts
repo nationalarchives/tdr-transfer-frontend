@@ -1,4 +1,4 @@
-import Keycloak, { KeycloakTokenParsed } from "keycloak-js"
+import Keycloak, { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
 import AWS, { CognitoIdentity, Credentials } from "aws-sdk"
 import { LoggedOutError } from "../errorhandling"
 import { IFrontEndInfo } from ".."
@@ -31,6 +31,24 @@ const isRefreshTokenExpired: (
 ) => boolean = (token) => {
   const now = Math.round(new Date().getTime() / 1000)
   return token != undefined && token.exp != undefined && token.exp < now
+}
+
+export const scheduleTokenRefresh: (
+  keycloak: KeycloakInstance,
+  idleSessionMinValiditySecs?: number
+) => void = (keycloak, idleSessionMinValiditySecs = 60) => {
+  const refreshToken = keycloak.refreshTokenParsed
+  if (refreshToken != undefined && refreshToken.exp != undefined) {
+    const nowInSecs = Math.round(new Date().getTime() / 1000)
+    const expInSecs = refreshToken.exp
+    //Expiry is a future time, add min validity to the 'now' to check if expiry is about to expire
+    const timeoutInMs =
+      (expInSecs - (nowInSecs + idleSessionMinValiditySecs)) * 1000
+
+    setTimeout(() => {
+      refreshOrReturnToken(keycloak).then(() => scheduleTokenRefresh(keycloak))
+    }, timeoutInMs)
+  }
 }
 
 export const refreshOrReturnToken: (

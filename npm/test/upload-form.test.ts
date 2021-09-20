@@ -271,7 +271,8 @@ class MockDom {
       updateConsignmentStatus,
       "identityId",
       frontendInfo,
-      mockGoToNextPage
+      mockGoToNextPage,
+      mockKeycloakInstance
     )
   }
 
