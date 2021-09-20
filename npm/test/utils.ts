@@ -3,10 +3,10 @@ import Mock = jest.Mock;
 
 export const createMockKeycloakInstance: (
     updateToken?: Mock,
-    isTokenExpired?: Mock,
+    isTokenExpired?: boolean,
     refreshTokenParsed?: KeycloakTokenParsed
 ) => KeycloakInstance = (updateToken = jest.fn(),
-                         isTokenExpired = jest.fn(),
+                         isTokenExpired = false,
                          refreshTokenParsed) => {
 
   return {
@@ -20,7 +20,7 @@ export const createMockKeycloakInstance: (
     createLogoutUrl: jest.fn(),
     createRegisterUrl: jest.fn(),
     createAccountUrl: jest.fn(),
-    isTokenExpired,
+    isTokenExpired: () => { return isTokenExpired },
     updateToken,
     clearToken: jest.fn(),
     hasRealmRole: jest.fn(),

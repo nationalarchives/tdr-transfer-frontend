@@ -123,9 +123,9 @@ test("upload function throws an error when upload fails", async () => {
 test("upload function refreshes idle session", async () => {
   mockUploadSuccess()
   const mockUpdateToken = jest.fn()
-  const isTokenExpiredTrue = jest.fn().mockImplementation(() => true)
+  const isTokenExpired = true
   const refreshTokenParsed = { exp: Math.round(new Date().getTime() / 1000) + 60 }
-  const mockKeycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpiredTrue, refreshTokenParsed)
+  const mockKeycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsed)
 
   const uploadFiles = setUpFileUploader(mockKeycloak)
   const consoleErrorSpy = jest
