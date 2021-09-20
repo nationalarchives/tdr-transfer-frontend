@@ -3,27 +3,10 @@ import { renderModules } from "../src/index"
 
 jest.mock("../src/auth")
 import { getKeycloakInstance, authenticateAndGetIdentityId } from "../src/auth"
+import {createMockKeycloakInstance} from "./utils";
 beforeEach(() => jest.resetModules())
 
-const mockKeycloak: KeycloakInstance = {
-  init: jest.fn(),
-  login: jest.fn(),
-  logout: jest.fn(),
-  register: jest.fn(),
-  accountManagement: jest.fn(),
-  createLoginUrl: jest.fn(),
-  createLogoutUrl: jest.fn(),
-  createRegisterUrl: jest.fn(),
-  createAccountUrl: jest.fn(),
-  isTokenExpired: jest.fn(),
-  updateToken: jest.fn(),
-  clearToken: jest.fn(),
-  hasRealmRole: jest.fn(),
-  hasResourceRole: jest.fn(),
-  loadUserInfo: jest.fn(),
-  loadUserProfile: jest.fn(),
-  token: "fake-auth-token"
-}
+const mockKeycloak: KeycloakInstance = createMockKeycloakInstance()
 
 beforeEach(() => {
   jest.resetModules()
