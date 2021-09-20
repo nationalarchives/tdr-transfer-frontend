@@ -38,7 +38,7 @@
   },
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
-    "@apollo/client": "^3.4.11",
+    "@apollo/client": "^3.4.12",
     "@nationalarchives/file-information": "^1.0.181",
     "@nationalarchives/tdr-generated-graphql": "^1.0.114",
     "aws-sdk": "^2.990.0",
