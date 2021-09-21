@@ -17,11 +17,13 @@ dropdownOptions: Seq[(String, String)],
     </label>
     @errorMessage(elements)
     <select
-            class="govuk-select"
-            id="@elements.id"
-            name="@elements.id"
-            @elements.args.requiredInput()>
-        <option value="" selected>Please choose...</option>
+        class="govuk-select"
+        id="@elements.id"
+        name="@elements.id"
+        @elements.args.requiredInput()>
+        <option value="" selected>
+          Please choose...
+        </option>
 
         @for(dropdownOption <- dropdownOptions) {
             <option value="@dropdownOption._1">@dropdownOption._2</option>
