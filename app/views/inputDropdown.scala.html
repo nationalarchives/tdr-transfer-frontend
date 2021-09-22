@@ -15,16 +15,18 @@ dropdownOptions: Seq[(String, String)],
         @elements.args.get(Symbol("_label"))
         @elements.args.requiredLabelSuffix()
     </label>
+    @errorMessage(elements)
     <select
-            class="govuk-select"
-            id="@elements.id"
-            name="@elements.id"
-            @elements.args.requiredInput()>
-        <option value="" selected>Please choose...</option>
+        class="govuk-select"
+        id="@elements.id"
+        name="@elements.id"
+        @elements.args.requiredInput()>
+        <option value="" selected>
+          Please choose...
+        </option>
 
         @for(dropdownOption <- dropdownOptions) {
             <option value="@dropdownOption._1">@dropdownOption._2</option>
         }
     </select>
-    @errorMessage(elements)
 </div>
