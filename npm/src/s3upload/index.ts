@@ -34,7 +34,7 @@ export class S3Upload {
     processedChunks: number
     totalChunks: number
   }> = async (consignmentId, userId, files, callback, stage) => {
-    if(userId) {
+    if (userId) {
       const totalFiles = files.length
       const totalChunks: number = files.reduce(
         (fileSizeTotal, file) =>
@@ -85,7 +85,7 @@ export class S3Upload {
       Key: `${userId}/${consignmentId}/${fileId}`,
       Body: file,
       Bucket: `suzanne-test-cloudfront`,
-      ACL: 'bucket-owner-full-control'
+      ACL: "bucket-owner-full-control"
     })
     const { processedChunks, totalChunks, totalFiles } = progressInfo
     if (file.size >= 1) {

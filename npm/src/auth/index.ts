@@ -45,7 +45,10 @@ export const scheduleTokenRefresh: (
 
     setTimeout(() => {
       refreshOrReturnToken(keycloak).then(() => {
-        fetch(cookiesUrl, {credentials: "include", headers: {"Authorization": `Bearer ${keycloak.token}`}}).then(() => {
+        fetch(cookiesUrl, {
+          credentials: "include",
+          headers: { Authorization: `Bearer ${keycloak.token}` }
+        }).then(() => {
           scheduleTokenRefresh(keycloak, cookiesUrl)
         })
       })
