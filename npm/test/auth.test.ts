@@ -1,3 +1,5 @@
+import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
+enableFetchMocks()
 import {createMockKeycloakInstance} from "./utils";
 
 const keycloakMock = {
@@ -5,17 +7,13 @@ const keycloakMock = {
   namedExport: jest.fn(),
   default: jest.fn()
 }
-
 jest.mock("keycloak-js", () => keycloakMock)
-jest.mock("aws-sdk")
 
 import {KeycloakInitOptions, KeycloakInstance, KeycloakTokenParsed} from "keycloak-js"
-import {refreshOrReturnToken, authenticateAndGetIdentityId, scheduleTokenRefresh} from "../src/auth"
+import {refreshOrReturnToken, scheduleTokenRefresh} from "../src/auth"
 import { getKeycloakInstance } from "../src/auth"
-import AWS, { CognitoIdentity, Request, Service } from "aws-sdk"
-import { IFrontEndInfo } from "../src"
 import { LoggedOutError } from "../src/errorhandling"
-
+import "jest-fetch-mock"
 class MockKeycloakAuthenticated {
   token: string = "fake-auth-token"
 
@@ -60,17 +58,9 @@ class MockKeycloakError {
   }
 }
 
-class MockCognitoIdentity extends CognitoIdentity {
-  getId = jest.fn()
-  getOpenIdToken = jest.fn()
-}
-
-class MockSTS extends AWS.STS {
-  assumeRoleWithWebIdentity = jest.fn()
-}
-
 beforeEach(() => {
-  jest.resetAllMocks()
+  fetchMock.mockClear()
+  jest.clearAllMocks()
   jest.resetModules()
 })
 
@@ -91,154 +81,6 @@ test("Returns a token if the user is logged in", async () => {
 test("Returns an error if login attempt fails", async () => {
   keycloakMock.default.mockImplementation(() => new MockKeycloakError())
   await expect(getKeycloakInstance()).rejects.toEqual("There has been an error")
-})
-
-test("Calls the correct authentication update", async () => {
-  const config = AWS.config.update as jest.Mock
-
-  keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
-  const keycloak = await getKeycloakInstance()
-  const frontEndInfo: IFrontEndInfo = {
-    stage: "",
-    region: "",
-    identityPoolId: "",
-    identityProviderName: "",
-    apiUrl: "",
-    cognitoRoleArn: ""
-  }
-  const identity = new MockCognitoIdentity()
-  identity.getId.mockReturnValue({
-    promise: () => ({ IdentityId: "identityId" })
-  })
-  identity.getOpenIdToken.mockReturnValue({
-    promise: () => ({ Token: "token" })
-  })
-  const sts = new MockSTS()
-  sts.assumeRoleWithWebIdentity.mockReturnValue({
-    promise: () => ({
-      Credentials: {
-        AccessKeyId: "accessKey",
-        SecretAccessKey: "secretKey",
-        SessionToken: "sessionToken"
-      }
-    })
-  })
-
-  const identityId = await authenticateAndGetIdentityId(
-    keycloak,
-    frontEndInfo,
-    identity,
-    sts
-  )
-  expect(identity.getId).toHaveBeenCalled()
-  expect(identity.getOpenIdToken).toHaveBeenCalled()
-  expect(sts.assumeRoleWithWebIdentity).toHaveBeenCalled()
-  expect(identityId).toBe("identityId")
-  expect(config).toHaveBeenCalled()
-})
-
-test("Throws an error if getting the identity id fails", async () => {
-  keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
-  const keycloak = await getKeycloakInstance()
-  const frontEndInfo: IFrontEndInfo = {
-    stage: "",
-    region: "",
-    identityPoolId: "",
-    identityProviderName: "",
-    apiUrl: "",
-    cognitoRoleArn: ""
-  }
-  const identity = new MockCognitoIdentity()
-  identity.getId.mockReturnValue({
-    promise: () => ({ IdentityId: null })
-  })
-
-  const identityId = authenticateAndGetIdentityId(
-    keycloak,
-    frontEndInfo,
-    identity,
-    new AWS.STS()
-  )
-  await expect(identityId).rejects.toStrictEqual(
-    Error("Cannot get cognito identity id")
-  )
-})
-
-test("Throws an error if getting the open id token fails", async () => {
-  keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
-  const keycloak = await getKeycloakInstance()
-  const frontEndInfo: IFrontEndInfo = {
-    stage: "",
-    region: "",
-    identityPoolId: "",
-    identityProviderName: "",
-    apiUrl: "",
-    cognitoRoleArn: ""
-  }
-  const identity = new MockCognitoIdentity()
-  identity.getId.mockReturnValue({
-    promise: () => ({ IdentityId: "identityId" })
-  })
-  identity.getOpenIdToken.mockReturnValue({
-    promise: () => ({ Token: null })
-  })
-
-  const identityId = authenticateAndGetIdentityId(
-    keycloak,
-    frontEndInfo,
-    identity,
-    new AWS.STS()
-  )
-  await expect(identityId).rejects.toStrictEqual(
-    Error("Cannot get an openid token from cognito")
-  )
-})
-
-test("Throws an error if getting credentials from STS fails", async () => {
-  keycloakMock.default.mockImplementation(() => new MockKeycloakAuthenticated())
-  const keycloak = await getKeycloakInstance()
-  const frontEndInfo: IFrontEndInfo = {
-    stage: "",
-    region: "",
-    identityPoolId: "",
-    identityProviderName: "",
-    apiUrl: "",
-    cognitoRoleArn: ""
-  }
-  const identity = new MockCognitoIdentity()
-  identity.getId.mockReturnValue({
-    promise: () => ({ IdentityId: "identityId" })
-  })
-  identity.getOpenIdToken.mockReturnValue({
-    promise: () => ({ Token: "token" })
-  })
-
-  const sts = new MockSTS()
-  sts.assumeRoleWithWebIdentity.mockReturnValue({
-    promise: () => ({
-      Credentials: null
-    })
-  })
-
-  const identityId = authenticateAndGetIdentityId(
-    keycloak,
-    frontEndInfo,
-    identity,
-    sts
-  )
-  await expect(identityId).rejects.toStrictEqual(
-    Error("Cannot get credentials from sts")
-  )
-})
-
-test("Calls refresh token if the token is expired", async () => {
-  const isTokenExpiredTrue = true
-  const mockUpdateToken = jest.fn()
-  const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpiredTrue)
-
-  await refreshOrReturnToken(mockKeycloak)
-
-  expect(mockUpdateToken).toHaveBeenCalled()
 })
 
 test("Doesn't call refresh token if the token is not expired", async () => {
@@ -268,7 +110,7 @@ test("'scheduleTokenRefresh' should refresh tokens if refresh token will expire 
   const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsed)
 
   jest.useFakeTimers()
-  scheduleTokenRefresh(mockKeycloak)
+  scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
   jest.runAllTimers()
 
   expect(mockUpdateToken).toHaveBeenCalled()
@@ -281,7 +123,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if the access token has n
   const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsed)
 
   jest.useFakeTimers()
-  scheduleTokenRefresh(mockKeycloak)
+  scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
   jest.runAllTimers()
 
   expect(mockUpdateToken).not.toHaveBeenCalled()
@@ -294,7 +136,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh to
   const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, noRefreshToken)
 
   jest.useFakeTimers()
-  scheduleTokenRefresh(mockKeycloak)
+  scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
   jest.runAllTimers()
 
   expect(mockUpdateToken).not.toHaveBeenCalled()
@@ -307,8 +149,22 @@ test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh to
   const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsedNoExp)
 
   jest.useFakeTimers()
-  scheduleTokenRefresh(mockKeycloak)
+  scheduleTokenRefresh(mockKeycloak, "https://example.com/cookies")
   jest.runAllTimers()
-
   expect(mockUpdateToken).not.toHaveBeenCalled()
+})
+
+test("'scheduleTokenRefresh' should call the cookies endpoint to refresh the signed cookies", async () => {
+  fetchMock.mockResponse("ok")
+  const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(jest.fn(), false, {exp: 1})
+  const cookiesUrl = "https://example.com/cookies"
+  jest.useFakeTimers()
+  scheduleTokenRefresh(mockKeycloak, cookiesUrl)
+  jest.runAllTimers()
+  const response = await fetchMock.mock
+  const calls = response.calls
+  expect(calls.length).toBe(2)
+  expect(response!.calls[0][0]).toBe(cookiesUrl)
+  const headers = response!.calls[0]![1]!.headers as {Authorization: string}
+  expect(headers["Authorization"]).toBe("Bearer fake-auth-token")
 })
