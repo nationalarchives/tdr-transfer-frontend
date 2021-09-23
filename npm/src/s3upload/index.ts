@@ -84,7 +84,7 @@ export class S3Upload {
     const progress: S3.ManagedUpload = this.s3.upload({
       Key: `${userId}/${consignmentId}/${fileId}`,
       Body: file,
-      Bucket: `tdr-upload-files-dirty-${stage}`
+      Bucket: `tdr-upload-files-cloudfront-dirty-${stage}`
     })
     const { processedChunks, totalChunks, totalFiles } = progressInfo
     if (file.size >= 1) {
