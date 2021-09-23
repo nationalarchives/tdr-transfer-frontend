@@ -67,7 +67,7 @@ const checkCallbackCalls: (
 
 const createTdrFile = ({
   fileId = "",
-  bits = "file1",
+  bits = "bits1",
   filename = "file1"
 }: createTdrFileParameters) => {
   const file = new File([bits], filename)
