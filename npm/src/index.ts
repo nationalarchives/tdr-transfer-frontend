@@ -1,11 +1,10 @@
 import { configureAws } from "./aws-config"
 import { GraphqlClient } from "./graphql"
-import { getKeycloakInstance, authenticateAndGetIdentityId } from "./auth"
+import { getKeycloakInstance } from "./auth"
 import { FileUploader } from "./upload"
 import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
 import { goToNextPage } from "./upload/next-page-redirect"
 import { FileChecks } from "./filechecks"
-import { CognitoIdentity, STS } from "aws-sdk"
 import { initAll } from "govuk-frontend"
 import { UpdateConsignmentStatus } from "./updateconsignmentstatus"
 
@@ -16,50 +15,31 @@ window.onload = function () {
 }
 
 export interface IFrontEndInfo {
-  apiUrl: string
-  identityProviderName: string
-  identityPoolId: string
+  apiUrl: string,
+  uploadUrl: string,
   stage: string
   region: string
-  cognitoEndpointOverride?: string
-  s3EndpointOverride?: string
-  cognitoRoleArn: string
 }
 
 const getFrontEndInfo: () => IFrontEndInfo = () => {
-  const identityPoolElement: HTMLInputElement | null =
-    document.querySelector(".identity-pool-id")
   const apiUrlElement: HTMLInputElement | null =
     document.querySelector(".api-url")
-  const identityProviderNameElement: HTMLInputElement | null =
-    document.querySelector(".identity-provider-name")
   const stageElement: HTMLInputElement | null = document.querySelector(".stage")
   const regionElement: HTMLInputElement | null =
     document.querySelector(".region")
-  const cognitoEndpointOverrideElement: HTMLInputElement | null =
-    document.querySelector(".cognito-endpoint-override")
-  const s3EndpointOverrideElement: HTMLInputElement | null =
-    document.querySelector(".s3-endpoint-override")
-  const cogitoRoleArnElement: HTMLInputElement | null =
-    document.querySelector(".cognito-role-arn")
-
+  const uploadUrlElement: HTMLInputElement | null =
+    document.querySelector(".upload-url")
   if (
     apiUrlElement &&
-    identityProviderNameElement &&
-    identityPoolElement &&
     stageElement &&
     regionElement &&
-    cogitoRoleArnElement
+    uploadUrlElement
   ) {
     return {
       apiUrl: apiUrlElement.value,
-      identityProviderName: identityProviderNameElement.value,
-      identityPoolId: identityPoolElement.value,
       stage: stageElement.value,
       region: regionElement.value,
-      cognitoEndpointOverride: cognitoEndpointOverrideElement?.value,
-      s3EndpointOverride: s3EndpointOverrideElement?.value,
-      cognitoRoleArn: cogitoRoleArnElement.value
+      uploadUrl: uploadUrlElement.value
     }
   } else {
     throw "The front end information is missing"
@@ -79,16 +59,8 @@ export const renderModules = () => {
     configureAws(frontEndInfo)
 
     getKeycloakInstance().then((keycloak) => {
-      const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
-      const cognitoIdentity = new CognitoIdentity({
-        region: frontEndInfo.region
-      })
-      authenticateAndGetIdentityId(
-        keycloak,
-        frontEndInfo,
-        cognitoIdentity,
-        new STS({ region: frontEndInfo.region })
-      ).then((identityId) => {
+      fetch(`${frontEndInfo.uploadUrl}/cookies`, {credentials: "include", headers: {"Authorization": `Bearer ${keycloak.token}`}}).then(() => {
+        const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
         const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
         const updateConsignmentStatus = new UpdateConsignmentStatus(
           graphqlClient
@@ -96,7 +68,6 @@ export const renderModules = () => {
         new FileUploader(
           clientFileProcessing,
           updateConsignmentStatus,
-          identityId,
           frontEndInfo,
           goToNextPage,
           keycloak

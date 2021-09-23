@@ -57,7 +57,8 @@ export class ClientFileProcessing {
   async processClientFiles(
     files: IFileWithPath[],
     uploadFilesInfo: FileUploadInfo,
-    stage: string
+    stage: string,
+    userId: string | undefined
   ): Promise<void> {
     await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
     const metadata: IFileMetadata[] =
@@ -71,6 +72,7 @@ export class ClientFileProcessing {
     )
     await this.s3Upload.uploadToS3(
       uploadFilesInfo.consignmentId,
+      userId,
       tdrFiles,
       this.s3ProgressCallback,
       stage
