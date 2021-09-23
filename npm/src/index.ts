@@ -15,8 +15,8 @@ window.onload = function () {
 }
 
 export interface IFrontEndInfo {
-  apiUrl: string,
-  uploadUrl: string,
+  apiUrl: string
+  uploadUrl: string
   stage: string
   region: string
 }
@@ -29,12 +29,7 @@ const getFrontEndInfo: () => IFrontEndInfo = () => {
     document.querySelector(".region")
   const uploadUrlElement: HTMLInputElement | null =
     document.querySelector(".upload-url")
-  if (
-    apiUrlElement &&
-    stageElement &&
-    regionElement &&
-    uploadUrlElement
-  ) {
+  if (apiUrlElement && stageElement && regionElement && uploadUrlElement) {
     return {
       apiUrl: apiUrlElement.value,
       stage: stageElement.value,
@@ -59,7 +54,10 @@ export const renderModules = () => {
     configureAws(frontEndInfo)
 
     getKeycloakInstance().then((keycloak) => {
-      fetch(`${frontEndInfo.uploadUrl}/cookies`, {credentials: "include", headers: {"Authorization": `Bearer ${keycloak.token}`}}).then(() => {
+      fetch(`${frontEndInfo.uploadUrl}/cookies`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${keycloak.token}` }
+      }).then(() => {
         const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
         const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
         const updateConsignmentStatus = new UpdateConsignmentStatus(
