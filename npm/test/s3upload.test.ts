@@ -252,7 +252,7 @@ test("multiple 0-byte file uploads returns a totalChunks value that equals the s
     ""
   )
 
-  expect(result.totalChunks).toEqual(tdrFiles.length)
+  expect(result.totalChunks).toEqual(4)
   expect(result.totalChunks).toEqual(result.processedChunks)
 })
 
