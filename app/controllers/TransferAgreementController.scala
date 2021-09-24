@@ -48,12 +48,13 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).map {
       consignmentStatus =>
         val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
-        val isAlreadyCompleted = transferAgreementStatus match {
-          case Some("Completed") => true
-          case _ =>  false
+        transferAgreementStatus match {
+          case Some("Completed") => Ok(views.html.transferAgreementAlreadyConfirmed(consignmentId, transferAgreementForm, options, isAlreadyCompleted = true))
+                                      .withHeaders("Cache-Control" -> "no-store, must-revalidate")
+          case _ =>  Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options, isAlreadyCompleted = false))
+                        .withHeaders("Cache-Control" -> "no-store, must-revalidate")
         }
-        Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options, isAlreadyCompleted))
-          .withHeaders("Cache-Control" -> "no-store, must-revalidate")
+
     }
   }
 

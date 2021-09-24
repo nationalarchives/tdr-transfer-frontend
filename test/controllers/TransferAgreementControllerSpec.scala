@@ -191,7 +191,9 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include(s"""<form action="/consignment/${consignmentId}/upload" method="GET" novalidate="">""")
+      transferAgreementPageAsString must include(
+        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
+           |                Continue""".stripMargin)
       transferAgreementPageAsString must include("Transfer agreement")
       transferAgreementPageAsString must include("You have already confirmed all statements")
       transferAgreementPageAsString must include("I confirm that the records are Public Records.")

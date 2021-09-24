@@ -11,27 +11,21 @@
     <div class="govuk-grid-column-two-thirds">
         @transferAgreementHeader()
         @transferAgreementWarning()
-        @errorSummary(
-            transferAgreementFormData("publicRecord"),
-            transferAgreementFormData("crownCopyright"),
-            transferAgreementFormData("english"),
-            transferAgreementFormData("droAppraisalSelection"),
-            transferAgreementFormData("droSensitivity"),
-            transferAgreementFormData("openRecords"),
-        )
-        @form(
-            routes.TransferAgreementController.transferAgreementSubmit(consignmentId),
-            (Symbol("novalidate"), "")
-        ) {
+        <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
+        role="alert" data-module="success-summary" tabindex="-1">
+          <div class="success-summary__body">
+            <h2 class="success-summary__title">You have already confirmed all statements</h2>
+            <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
+          </div>
+        </div>
         @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementData], isAlreadyCompleted)
         <div class="govuk-button-group">
-            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+            <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button" href="@routes.UploadController.uploadPage(consignmentId)">
                 Continue
-            </button>
+            </a>
 
             <a class="govuk-link" href="@routes.DashboardController.dashboard()">Cancel</a>
         </div>
-        }
     </div>
 </div>
 }
