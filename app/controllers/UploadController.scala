@@ -8,6 +8,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import validation.ValidatedActions
+import viewsapi.Caching.preventCaching
 
 import scala.concurrent.ExecutionContext
 
@@ -19,7 +20,6 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
                                 (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
 
   def uploadPage(consignmentId: UUID): Action[AnyContent] = uploadPermitted(consignmentId) { implicit request: Request[AnyContent] =>
-    Ok(views.html.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo))
-      .withHeaders("Cache-Control" -> "no-store, must-revalidate")
+    Ok(views.html.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
   }
 }

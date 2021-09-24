@@ -11,6 +11,7 @@ import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ApiErrorHandling.sendApiRequest
 import services.ConsignmentStatusService
 import validation.ValidatedActions
+import viewsapi.Caching.preventCaching
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -50,9 +51,9 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
         transferAgreementStatus match {
           case Some("Completed") => Ok(views.html.transferAgreementAlreadyConfirmed(consignmentId, transferAgreementForm, options, isAlreadyCompleted = true))
-                                      .withHeaders("Cache-Control" -> "no-store, must-revalidate")
+                                      .uncache()
           case _ =>  Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options, isAlreadyCompleted = false))
-                        .withHeaders("Cache-Control" -> "no-store, must-revalidate")
+                       .uncache()
         }
 
     }
