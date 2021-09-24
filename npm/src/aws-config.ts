@@ -17,7 +17,7 @@ const overrideS3Endpoint: (s3EndpointOverride: string) => void = (
     credentials: new Credentials({
       // The AWS SDK requires credentials to generate a request, but we are not using them for authentication so set
       // them to placeholder values
-      accessKeyId: "some-placeholder-id",
+      accessKeyId: "placeholder-id",
       secretAccessKey: "placeholder-secret"
     }),
     httpOptions: {
