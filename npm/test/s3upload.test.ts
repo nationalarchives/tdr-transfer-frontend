@@ -2,6 +2,12 @@ import { ManagedUpload, PutObjectRequest } from "aws-sdk/clients/s3"
 import { ITdrFile, S3Upload } from "../src/s3upload"
 import { IProgressInformation } from "@nationalarchives/file-information"
 
+interface createTdrFileParameters {
+  fileId?: string
+  bits?: string
+  filename?: string
+}
+
 class MockFailedS3 {
   upload(_: PutObjectRequest) {
     return {
@@ -60,14 +66,28 @@ const checkCallbackCalls: (
   }
 }
 
+const createTdrFile = ({
+  fileId = "",
+  bits = "bits1",
+  filename = "file1"
+}: createTdrFileParameters) => {
+  const file = new File([bits], filename)
+  return {
+    fileId: fileId,
+    file: file
+  }
+}
+
 test("a single file upload returns the correct key", async () => {
-  const file = new File(["file1"], "file1")
+  const tdrFile = createTdrFile({
+    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
+  })
   const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
-    [{ fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", file }],
+    [tdrFile],
     jest.fn(),
     ""
   )
@@ -77,14 +97,14 @@ test("a single file upload returns the correct key", async () => {
 })
 
 test("a single file upload calls the callback correctly", async () => {
-  const file = new File(["file1"], "file1")
+  const tdrFile = createTdrFile({})
   const callback = jest.fn()
   const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
-    [{ fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", file }],
+    [tdrFile],
     callback,
     ""
   )
@@ -92,23 +112,20 @@ test("a single file upload calls the callback correctly", async () => {
 })
 
 test("multiple file uploads return the correct keys", async () => {
-  const fileIds = [
-    "1df92708-d66b-4b55-8c1e-bb945a5c4fb5",
-    "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1",
-    "56b34fbb-2eac-401e-a89a-0dc9b2013863",
-    "6b6694d0-814c-4978-8dee-56ec920a0102"
-  ]
   const callback = jest.fn()
-  const file1 = new File(["file1"], "file1")
-  const file2 = new File(["file2"], "file2")
-  const file3 = new File(["file3"], "file3")
-  const file4 = new File(["file4"], "file4")
-  const files: ITdrFile[] = [
-    { fileId: fileIds[0], file: file1 },
-    { fileId: fileIds[1], file: file2 },
-    { fileId: fileIds[2], file: file3 },
-    { fileId: fileIds[3], file: file4 }
-  ]
+  const tdrFile1 = createTdrFile({
+    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
+  })
+  const tdrFile2 = createTdrFile({
+    fileId: "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1"
+  })
+  const tdrFile3 = createTdrFile({
+    fileId: "56b34fbb-2eac-401e-a89a-0dc9b2013863"
+  })
+  const tdrFile4 = createTdrFile({
+    fileId: "6b6694d0-814c-4978-8dee-56ec920a0102"
+  })
+  const files: ITdrFile[] = [tdrFile1, tdrFile2, tdrFile3, tdrFile4]
   const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
@@ -119,25 +136,25 @@ test("multiple file uploads return the correct keys", async () => {
     ""
   )
   expect(result.sendData[0].Key).toEqual(
-    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[0]}`
+    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5`
   )
   expect(result.sendData[1].Key).toEqual(
-    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[1]}`
+    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1`
   )
   expect(result.sendData[2].Key).toEqual(
-    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[2]}`
+    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/56b34fbb-2eac-401e-a89a-0dc9b2013863`
   )
   expect(result.sendData[3].Key).toEqual(
-    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/${fileIds[3]}`
+    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/6b6694d0-814c-4978-8dee-56ec920a0102`
   )
 })
 
 test("multiple file uploads call the callback correctly", async () => {
   const files: ITdrFile[] = [
-    { fileId: "", file: new File(["file1"], "file1") },
-    { fileId: "", file: new File(["file2"], "file2") },
-    { fileId: "", file: new File(["file3"], "file3") },
-    { fileId: "", file: new File(["file4"], "file4") }
+    createTdrFile({}),
+    createTdrFile({}),
+    createTdrFile({}),
+    createTdrFile({})
   ]
   const callback = jest.fn()
   const s3Upload = new S3Upload()
@@ -160,14 +177,13 @@ test("multiple file uploads call the callback correctly", async () => {
 })
 
 test("when there is an error with the upload, an error is returned", async () => {
-  const fileId = "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
-  const file = new File(["file1"], "file1")
+  const tdrFile = createTdrFile({})
   const s3Upload = new S3Upload()
   s3Upload.s3 = new MockFailedS3()
   const result = s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
-    [{ file, fileId }],
+    [tdrFile],
     jest.fn(),
     ""
   )
@@ -175,14 +191,14 @@ test("when there is an error with the upload, an error is returned", async () =>
 })
 
 test("a single file upload calls the callback correctly with a different chunk size", async () => {
-  const file = new File(["file1"], "file1")
+  const tdrFile = createTdrFile({})
   const callback = jest.fn()
   const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3(2)
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
-    [{ fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", file }],
+    [tdrFile],
     callback,
     ""
   )
@@ -190,33 +206,23 @@ test("a single file upload calls the callback correctly with a different chunk s
 })
 
 test("multiple file uploads of more than 0 bytes returns the correct, same number of bytes provided as uploaded", async () => {
-  const fileIds = [
-    "1df92708-d66b-4b55-8c1e-bb945a5c4fb5",
-    "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1",
-    "56b34fbb-2eac-401e-a89a-0dc9b2013863",
-    "6b6694d0-814c-4978-8dee-56ec920a0102"
-  ]
   const callback = jest.fn()
-  const file1 = new File(["file1"], "file1")
-  const file2 = new File(["file2"], "file2")
-  const file3 = new File(["file3"], "file3")
-  const file4 = new File(["file4"], "file4")
-  const files: ITdrFile[] = [
-    { fileId: fileIds[0], file: file1 },
-    { fileId: fileIds[1], file: file2 },
-    { fileId: fileIds[2], file: file3 },
-    { fileId: fileIds[3], file: file4 }
-  ]
+  const tdrFile1 = createTdrFile({})
+  const tdrFile2 = createTdrFile({})
+  const tdrFile3 = createTdrFile({})
+  const tdrFile4 = createTdrFile({})
+  const tdrFiles: ITdrFile[] = [tdrFile1, tdrFile2, tdrFile3, tdrFile4]
+
   const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
-    files,
+    tdrFiles,
     callback,
     ""
   )
-  const byteSizeofAllFiles = files.reduce(
+  const byteSizeofAllFiles = tdrFiles.reduce(
     (fileIdTotal, tdrFile) => fileIdTotal + tdrFile.file.size,
     0
   )
@@ -226,72 +232,74 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
 })
 
 test("multiple 0-byte file uploads returns a totalChunks value that equals the same as the length of 'files'", async () => {
-  const fileIds = [
-    "1df92708-d66b-4b55-8c1e-bb945a5c4fb5",
-    "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1",
-    "56b34fbb-2eac-401e-a89a-0dc9b2013863",
-    "6b6694d0-814c-4978-8dee-56ec920a0102"
-  ]
   const callback = jest.fn()
-  const file1 = new File([""], "file1")
-  const file2 = new File([""], "file2")
-  const file3 = new File([""], "file3")
-  const file4 = new File([""], "file4")
-  const files: ITdrFile[] = [
-    { fileId: fileIds[0], file: file1 },
-    { fileId: fileIds[1], file: file2 },
-    { fileId: fileIds[2], file: file3 },
-    { fileId: fileIds[3], file: file4 }
-  ]
+  const tdrFile1 = createTdrFile({
+    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5",
+    bits: ""
+  })
+  const tdrFile2 = createTdrFile({
+    fileId: "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1",
+    bits: ""
+  })
+  const tdrFile3 = createTdrFile({
+    fileId: "56b34fbb-2eac-401e-a89a-0dc9b2013863",
+    bits: ""
+  })
+  const tdrFile4 = createTdrFile({
+    fileId: "6b6694d0-814c-4978-8dee-56ec920a0102",
+    bits: ""
+  })
+  const tdrFiles: ITdrFile[] = [tdrFile1, tdrFile2, tdrFile3, tdrFile4]
+
   const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
-    files,
+    tdrFiles,
     callback,
     ""
   )
 
-  expect(result.totalChunks).toEqual(files.length)
+  expect(result.totalChunks).toEqual(4)
   expect(result.totalChunks).toEqual(result.processedChunks)
 })
 
 test(`multiple file uploads (some with 0 bytes, some not) returns processedChunks value,
             equal to byte size of files + length of 'files' with 0 bytes`, async () => {
-  const fileIds = [
-    "1df92708-d66b-4b55-8c1e-bb945a5c4fb5",
-    "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1",
-    "56b34fbb-2eac-401e-a89a-0dc9b2013863",
-    "6b6694d0-814c-4978-8dee-56ec920a0102"
-  ]
   const callback = jest.fn()
-  const file1 = new File(["file1"], "file1")
-  const file2 = new File(["file2"], "file2")
-  const file3 = new File([""], "file3")
-  const file4 = new File([""], "file4")
-  const files: ITdrFile[] = [
-    { fileId: fileIds[0], file: file1 },
-    { fileId: fileIds[1], file: file2 },
-    { fileId: fileIds[2], file: file3 },
-    { fileId: fileIds[3], file: file4 }
-  ]
+  const tdrFile1 = createTdrFile({
+    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
+  })
+  const tdrFile2 = createTdrFile({
+    fileId: "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1"
+  })
+  const tdrFile3 = createTdrFile({
+    fileId: "56b34fbb-2eac-401e-a89a-0dc9b2013863",
+    bits: "bits3"
+  })
+  const tdrFile4 = createTdrFile({
+    fileId: "6b6694d0-814c-4978-8dee-56ec920a0102",
+    bits: "bits4"
+  })
+  const tdrFiles: ITdrFile[] = [tdrFile1, tdrFile2, tdrFile3, tdrFile4]
+
   const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
-    files,
+    tdrFiles,
     callback,
     ""
   )
 
-  const byteSizeofAllFiles = files.reduce(
+  const byteSizeofAllFiles = tdrFiles.reduce(
     (fileIdTotal, tdrFile) => fileIdTotal + tdrFile.file.size,
     0
   )
 
-  const numberOfFilesWithZeroBytes = files.filter(
+  const numberOfFilesWithZeroBytes = tdrFiles.filter(
     (tdrFile) => tdrFile.file.size == 0
   ).length
 
