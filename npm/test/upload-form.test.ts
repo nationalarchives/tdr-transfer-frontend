@@ -258,18 +258,15 @@ class MockDom {
     )
     const frontendInfo: IFrontEndInfo = {
       apiUrl: "",
-      cognitoRoleArn: "",
-      identityPoolId: "",
-      identityProviderName: "",
       region: "",
-      stage: "test"
+      stage: "test",
+      uploadUrl: ""
     }
     const uploadMetadata = new ClientFileMetadataUpload(client)
     const updateConsignmentStatus = new UpdateConsignmentStatus(client)
     return new FileUploader(
       uploadMetadata,
       updateConsignmentStatus,
-      "identityId",
       frontendInfo,
       mockGoToNextPage,
       mockKeycloakInstance

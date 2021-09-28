@@ -8,15 +8,6 @@ There are two ways to develop this project:
 - Frontend development only, using the AWS integration environment for everything else. This is the default
 - Full stack local development, using a local dev copy of the API, Keycloak, etc
 
-
-When moving between full local and frontend only development you should clear your browsers' cookies and local storage as the browser can cache the local Cognito ID, which is incompatible with non-local Cognito. An example of the error you will see if this happens is below:
-
-``` 
-POST https://cognito-identity.eu-west-2.amazonaws.com 400
-
-Uncaught (in promise) ValidationException: 1 validation error detected: Value 'some-fake-identity-id' at 'identityId' failed to satisfy constraint: Member must satisy regular expression pattern: [\w-]+:[0-9a-f-]+
-```
-
 ### Prerequisites
 
 Regardless of how you set up the development environment, you will need:
@@ -47,28 +38,11 @@ development environment for the other TDR services.
         ```
         aws ssm get-parameter --name "/intg/keycloak/client/secret" --with-decryption
         ```
-      - Copy the `Value` from the object returned
-  - Cognito identity pool ID
-    - In the AWS console:
-      - Go to the Cognito service
-      - Click "Manage Identity Pools"
-      - Click on the TDR Frontend identity pool
-      - Click "Edit identity pool"
-      - Copy the full identity pool ID, including the AWS region prefix
-    - With the AWS CLI:
-      - Run:
-        ```
-        aws cognito-identity list-identity-pools --max-results 20
-        ```
-      - Copy the `IdentityPoolId` of the pool named "TDR Frontend Identity Intg"
-  - Cognito role ARN
-    - For integration this is `arn:aws:iam::${intg_account_number}:role/TDRCognitoAuthorisedRoleIntg` You can get the intg_account_number from the SSO account selection page or from your `~/.aws/config` file if you're using the CLI with SSO.
+      - Copy the `Value` from the object returned 
 - In IntelliJ, create a new sbt run configuration:
   - Set the Tasks parameter to `run`
   - Configure the environment variables:
     - AUTH_SECRET=\<the secret for the Keycloak client that you copied above\>
-    - IDENTITY_POOL_ID=\<the identity pool ID you copied above\>
-    - COGNITO_ROLE_ARN=\<the cognito role arn described above\>
 - Follow the Static Assets steps below to build the CSS and JS
 - Run the project from IntelliJ
 - Visit `http://localhost:9000`
@@ -133,9 +107,6 @@ docker run -d -p 9444:9000 -v /your/new/upload/directory:/home/sirius/data --nam
 
 Visit http://localhost:9444/ui and check you can create a bucket and upload a test file through the S3 ninja UI. Check
 that the file appears in the folder that you mounted.
-
-Requests to S3 ninja need to be authenticated with a Cognito token. To emulate this endpoint, clone the
-[tdr-local-aws] project and follow the instructions there to run the `FakeCognitoServer` application.
 
 [S3 ninja]: https://s3ninja.net/
 [tdr-local-aws]: https://github.com/nationalarchives/tdr-local-aws
