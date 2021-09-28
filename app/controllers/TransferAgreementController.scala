@@ -52,9 +52,9 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
         transferAgreementStatus match {
           case Some("Completed") => Ok(views.html.partials.transferAgreementAlreadyConfirmed(
-            consignmentId, transferAgreementForm, options, isAlreadyCompleted = true)
+            consignmentId, transferAgreementForm, options)
           ).uncache()
-          case _ =>  Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options, isAlreadyCompleted = false))
+          case _ =>  Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
                        .uncache()
         }
 
@@ -63,7 +63,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
-      Future.successful(BadRequest(views.html.transferAgreement(consignmentId, formWithErrors, options, isAlreadyCompleted = false)))
+      Future.successful(BadRequest(views.html.transferAgreement(consignmentId, formWithErrors, options)))
     }
 
     val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>

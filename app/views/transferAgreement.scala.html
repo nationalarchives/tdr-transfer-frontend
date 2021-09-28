@@ -5,7 +5,7 @@
 @import scala.language.postfixOps
 @import views.html.partials.{transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup}
 
-@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementData], agreementOptions: Seq[(String, String)], isAlreadyCompleted: Boolean)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementData], agreementOptions: Seq[(String, String)])(implicit request: RequestHeader, messages: Messages)
 @main("Transfer agreement") {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
@@ -24,7 +24,7 @@
             routes.TransferAgreementController.transferAgreementSubmit(consignmentId),
             (Symbol("novalidate"), "")
         ) {
-        @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementData], isAlreadyCompleted)
+        @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted=false)
         <div class="govuk-button-group">
             <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
                 Continue
