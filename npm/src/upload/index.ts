@@ -20,23 +20,24 @@ export class FileUploader {
   stage: string
   goToNextPage: () => void
   keycloak: KeycloakInstance
+  uploadUrl: string
 
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
     updateConsignmentStatus: UpdateConsignmentStatus,
-    identityId: string,
     frontendInfo: IFrontEndInfo,
     goToNextPage: () => void,
     keycloak: KeycloakInstance
   ) {
     this.clientFileProcessing = new ClientFileProcessing(
       clientFileMetadataUpload,
-      new S3Upload(identityId, frontendInfo.region)
+      new S3Upload()
     )
     this.updateConsignmentStatus = updateConsignmentStatus
     this.stage = frontendInfo.stage
     this.goToNextPage = goToNextPage
     this.keycloak = keycloak
+    this.uploadUrl = frontendInfo.uploadUrl
   }
 
   uploadFiles: (
@@ -47,13 +48,14 @@ export class FileUploader {
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
-    scheduleTokenRefresh(this.keycloak)
+    scheduleTokenRefresh(this.keycloak, `${this.uploadUrl}/cookies`)
 
     try {
       await this.clientFileProcessing.processClientFiles(
         files,
         uploadFilesInfo,
-        this.stage
+        this.stage,
+        this.keycloak.tokenParsed?.sub
       )
       await this.updateConsignmentStatus.markConsignmentStatusAsCompleted(
         uploadFilesInfo

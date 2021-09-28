@@ -64,10 +64,6 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     when(frontEndInfoConfiguration.frontEndInfo).thenReturn(
       new FrontEndInfo(
         "",
-        None,
-        "",
-        "",
-        None,
         "",
         "",
         ""
