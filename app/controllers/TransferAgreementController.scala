@@ -12,7 +12,6 @@ import services.ApiErrorHandling.sendApiRequest
 import services.ConsignmentStatusService
 import validation.ValidatedActions
 import viewsapi.Caching.preventCaching
-import views.html.partials.transferAgreementAlreadyConfirmed
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -51,7 +50,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
       consignmentStatus =>
         val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
         transferAgreementStatus match {
-          case Some("Completed") => Ok(views.html.partials.transferAgreementAlreadyConfirmed(
+          case Some("Completed") => Ok(views.html.transferAgreementAlreadyConfirmed(
             consignmentId, transferAgreementForm, options)
           ).uncache()
           case _ =>  Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))

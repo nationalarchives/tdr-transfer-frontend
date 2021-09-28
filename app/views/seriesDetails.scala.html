@@ -1,5 +1,6 @@
 @import helper._
 @import viewsapi.FormFunctions._
+@import views.html.partials.{errorMessage, errorSummary, inputDropdown, progressIndicator}
 
 @(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit request: RequestHeader,
 messages: Messages)
