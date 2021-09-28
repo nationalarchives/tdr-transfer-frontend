@@ -3,6 +3,7 @@ args: (Symbol, Any)*
 )(implicit messages: Messages)
 
 @import views.html.helper._
+@import views.html.partials.errorMessage
 @import viewsapi.FormFunctions._
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
