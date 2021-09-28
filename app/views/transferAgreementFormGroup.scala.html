@@ -1,7 +1,5 @@
 @* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
 @import helper.{inputRadioGroup => _, _}
-@import viewsapi.FormFunctions._
-@import java.util.UUID
 
 @import scala.language.postfixOps
 @(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted: Boolean)(implicit request: RequestHeader, messages: Messages)
