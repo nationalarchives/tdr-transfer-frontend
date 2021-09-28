@@ -3,6 +3,8 @@
 @import java.util.UUID
 
 @import scala.language.postfixOps
+@import views.html.partials.{transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup}
+
 @(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementData], agreementOptions: Seq[(String, String)], isAlreadyCompleted: Boolean)(implicit request: RequestHeader, messages: Messages)
 @main("Transfer agreement") {
 @defining(play.core.PlayVersion.current) { version =>
