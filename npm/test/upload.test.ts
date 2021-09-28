@@ -4,16 +4,14 @@ import {
   TProgressFunction
 } from "@nationalarchives/file-information"
 import { FileUploader } from "../src/upload"
-import {createMockKeycloakInstance, mockKeycloakInstance} from "./utils"
+import { createMockKeycloakInstance, mockKeycloakInstance } from "./utils"
 import { GraphqlClient } from "../src/graphql"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
-import {UpdateConsignmentStatus} from "../src/updateconsignmentstatus";
-import {DocumentNode, FetchResult} from "@apollo/client/core";
-import {
-  MarkUploadAsCompletedMutation
-} from "@nationalarchives/tdr-generated-graphql";
-import {KeycloakInstance} from "keycloak-js";
+import { UpdateConsignmentStatus } from "../src/updateconsignmentstatus"
+import { DocumentNode, FetchResult } from "@apollo/client/core"
+import { MarkUploadAsCompletedMutation } from "@nationalarchives/tdr-generated-graphql"
+import { KeycloakInstance } from "keycloak-js"
 jest.mock("../src/clientfileprocessing")
 jest.mock("../src/graphql")
 
@@ -59,8 +57,8 @@ class ClientFileProcessingFailure {
 
 class GraphqlClientSuccess {
   mutation: (
-      query: DocumentNode,
-      variables: any
+    query: DocumentNode,
+    variables: any
   ) => Promise<FetchResult<MarkUploadAsCompletedMutation>> = async (_, __) => {
     const data: MarkUploadAsCompletedMutation = {
       markUploadAsCompleted: 1
@@ -124,13 +122,20 @@ test("upload function refreshes idle session", async () => {
   mockUploadSuccess()
   const mockUpdateToken = jest.fn()
   const isTokenExpired = true
-  const refreshTokenParsed = { exp: Math.round(new Date().getTime() / 1000) + 60 }
-  const mockKeycloak = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, refreshTokenParsed)
+  const refreshTokenParsed = {
+    exp: Math.round(new Date().getTime() / 1000) + 60
+  }
+  const mockKeycloak = createMockKeycloakInstance(
+    mockUpdateToken,
+    isTokenExpired,
+    refreshTokenParsed
+  )
 
   const uploadFiles = setUpFileUploader(mockKeycloak)
+
   const consoleErrorSpy = jest
-      .spyOn(console, "error")
-      .mockImplementation(() => {})
+    .spyOn(console, "error")
+    .mockImplementation(() => {})
 
   jest.useFakeTimers()
   await uploadFiles.uploadFiles([dummyFile], {
@@ -148,24 +153,22 @@ test("upload function refreshes idle session", async () => {
 })
 
 function setUpFileUploader(mockKeycloak?: KeycloakInstance): FileUploader {
-  const keycloakInstance = mockKeycloak != undefined ? mockKeycloak : mockKeycloakInstance
+  const keycloakInstance =
+    mockKeycloak != undefined ? mockKeycloak : mockKeycloakInstance
   const clientMock = GraphqlClient as jest.Mock
   clientMock.mockImplementation(() => new GraphqlClientSuccess())
   const client = new GraphqlClient("https://test.im", keycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
   const frontendInfo: IFrontEndInfo = {
     apiUrl: "",
-    cognitoRoleArn: "",
-    identityPoolId: "",
-    identityProviderName: "",
     region: "",
-    stage: "test"
+    stage: "test",
+    uploadUrl: "https://example.com"
   }
   const updateConsignmentStatus = new UpdateConsignmentStatus(client)
   return new FileUploader(
     uploadMetadata,
     updateConsignmentStatus,
-    "identityId",
     frontendInfo,
     mockGoToNextPage,
     keycloakInstance
