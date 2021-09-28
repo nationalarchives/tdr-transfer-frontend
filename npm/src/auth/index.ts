@@ -1,8 +1,5 @@
 import Keycloak, { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
-import AWS, { CognitoIdentity, Credentials } from "aws-sdk"
 import { LoggedOutError } from "../errorhandling"
-import { IFrontEndInfo } from ".."
-import { GetIdInput } from "aws-sdk/clients/cognitoidentity"
 
 export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
   async () => {
@@ -35,8 +32,9 @@ const isRefreshTokenExpired: (
 
 export const scheduleTokenRefresh: (
   keycloak: KeycloakInstance,
+  cookiesUrl: string,
   idleSessionMinValiditySecs?: number
-) => void = (keycloak, idleSessionMinValiditySecs = 60) => {
+) => void = (keycloak, cookiesUrl, idleSessionMinValiditySecs = 60) => {
   const refreshToken = keycloak.refreshTokenParsed
   if (refreshToken != undefined && refreshToken.exp != undefined) {
     const nowInSecs = Math.round(new Date().getTime() / 1000)
@@ -46,7 +44,14 @@ export const scheduleTokenRefresh: (
       (expInSecs - (nowInSecs + idleSessionMinValiditySecs)) * 1000
 
     setTimeout(() => {
-      refreshOrReturnToken(keycloak).then(() => scheduleTokenRefresh(keycloak))
+      refreshOrReturnToken(keycloak).then(() => {
+        fetch(cookiesUrl, {
+          credentials: "include",
+          headers: { Authorization: `Bearer ${keycloak.token}` }
+        }).then(() => {
+          scheduleTokenRefresh(keycloak, cookiesUrl)
+        })
+      })
     }, timeoutInMs)
   }
 }
@@ -65,61 +70,5 @@ export const refreshOrReturnToken: (
     return keycloak.token
   } else {
     throw "Token is expired"
-  }
-}
-
-export const authenticateAndGetIdentityId: (
-  keycloak: Keycloak.KeycloakInstance,
-  frontEndInfo: IFrontEndInfo,
-  cognitoIdentity: CognitoIdentity,
-  sts: AWS.STS
-) => Promise<string> = async (keycloak, frontEndInfo, cognitoIdentity, sts) => {
-  const token = await refreshOrReturnToken(keycloak)
-  const { identityProviderName, identityPoolId, region } = frontEndInfo
-
-  const options: GetIdInput = {
-    IdentityPoolId: identityPoolId,
-    Logins: { [identityProviderName]: token }
-  }
-  const id = await cognitoIdentity.getId(options).promise()
-  if (id.IdentityId) {
-    const identityId = id.IdentityId
-    const openIdToken = await cognitoIdentity
-      .getOpenIdToken({
-        IdentityId: identityId,
-        Logins: { [identityProviderName]: token }
-      })
-      .promise()
-
-    if (openIdToken.Token) {
-      const response = sts
-        .assumeRoleWithWebIdentity({
-          DurationSeconds: 60 * 60 * 3,
-          RoleArn: frontEndInfo.cognitoRoleArn,
-          RoleSessionName: identityId.split(":")[1], //Cognito user uuid. Can see who did what in cloudtrail
-          WebIdentityToken: openIdToken.Token
-        })
-        .promise()
-
-      const assumeRole = await response
-      if (assumeRole.Credentials) {
-        const creds = assumeRole.Credentials
-
-        AWS.config.update({
-          credentials: new Credentials({
-            accessKeyId: creds.AccessKeyId,
-            secretAccessKey: creds.SecretAccessKey,
-            sessionToken: creds.SessionToken
-          })
-        })
-      } else {
-        throw new Error("Cannot get credentials from sts")
-      }
-    } else {
-      throw new Error("Cannot get an openid token from cognito")
-    }
-    return id.IdentityId
-  } else {
-    throw new Error("Cannot get cognito identity id")
   }
 }

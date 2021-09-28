@@ -2,16 +2,6 @@
 @(frontEndInfo: FrontEndInfo)
 
 <input type="hidden" class="api-url" value="@frontEndInfo.apiUrl">
-<input type="hidden" class="identity-provider-name" value="@frontEndInfo.identityProviderName">
-<input type="hidden" class="identity-pool-id" value="@frontEndInfo.identityPoolId">
 <input type="hidden" class="stage" value="@frontEndInfo.stage">
 <input type="hidden" class="region" value="@frontEndInfo.region">
-<input type="hidden" class="cognito-role-arn" value="@frontEndInfo.cognitoRoleArn">
-
-@if(frontEndInfo.cognitoEndpointOverride.isDefined) {
-    <input type="hidden" class="cognito-endpoint-override" value="@frontEndInfo.cognitoEndpointOverride">
-}
-
-@if(frontEndInfo.s3EndpointOverride.isDefined) {
-    <input type="hidden" class="s3-endpoint-override" value="@frontEndInfo.s3EndpointOverride">
-}
+<input type="hidden" class="upload-url" value="@frontEndInfo.uploadUrl">
