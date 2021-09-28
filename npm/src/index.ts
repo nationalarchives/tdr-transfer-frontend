@@ -50,8 +50,8 @@ export const renderModules = () => {
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
-    configureAws(frontEndInfo)
     getKeycloakInstance().then((keycloak) => {
+      configureAws(frontEndInfo)
       const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
       const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
       const updateConsignmentStatus = new UpdateConsignmentStatus(graphqlClient)
