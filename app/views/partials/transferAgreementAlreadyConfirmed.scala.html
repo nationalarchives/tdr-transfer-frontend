@@ -2,9 +2,8 @@
 @import java.util.UUID
 
 @import scala.language.postfixOps
-@import views.html.partials.transferAgreementHeader
 
-@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementData], agreementOptions: Seq[(String, String)], isAlreadyCompleted: Boolean)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementData], agreementOptions: Seq[(String, String)])(implicit request: RequestHeader, messages: Messages)
 @main("Transfer agreement") {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
@@ -18,7 +17,7 @@
             <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
           </div>
         </div>
-        @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementData], isAlreadyCompleted)
+        @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted=true)
         <div class="govuk-button-group">
             <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button" href="@routes.UploadController.uploadPage(consignmentId)">
                 Continue
