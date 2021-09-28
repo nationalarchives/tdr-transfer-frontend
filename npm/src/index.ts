@@ -51,13 +51,12 @@ export const renderModules = () => {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
 
-    configureAws(frontEndInfo)
-
     getKeycloakInstance().then((keycloak) => {
       fetch(`${frontEndInfo.uploadUrl}/cookies`, {
         credentials: "include",
         headers: { Authorization: `Bearer ${keycloak.token}` }
       }).then(() => {
+        configureAws(frontEndInfo)
         const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
         const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
         const updateConsignmentStatus = new UpdateConsignmentStatus(
