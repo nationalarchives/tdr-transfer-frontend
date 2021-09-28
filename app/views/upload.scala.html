@@ -1,6 +1,7 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
 @import helper._
+@import views.html.partials.{frontEndInputs, greenTickMark, progressIndicator}
 @(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
 
 @main("Upload your records") {
