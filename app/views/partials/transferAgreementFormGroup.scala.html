@@ -2,6 +2,8 @@
 @import helper.{inputRadioGroup => _, _}
 
 @import scala.language.postfixOps
+@import views.html.partials.inputSingleCheckbox
+
 @(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted: Boolean)(implicit request: RequestHeader, messages: Messages)
 @shouldOptionBeSelected(option: String, formAlreadySubmitted: Boolean) = @{
   if(!formAlreadySubmitted) transferAgreementFormData.data.getOrElse(option, "") else "true"

@@ -1,5 +1,6 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
+@import views.html.partials.{frontEndInputs, progressIndicator}
 @(consignmentId: UUID, fileChecks: FileChecksProgress, frontEndInfo: FrontEndInfo)(implicit messages: Messages, request: RequestHeader)
 
 @main("Checking records") {

@@ -3,7 +3,7 @@
 @import java.util.UUID
 
 @import scala.language.postfixOps
-@import views.html.partials.{transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup}
+@import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup}
 
 @(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementData], agreementOptions: Seq[(String, String)])(implicit request: RequestHeader, messages: Messages)
 @main("Transfer agreement") {
