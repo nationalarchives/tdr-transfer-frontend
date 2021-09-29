@@ -19,6 +19,7 @@ class MockFailedS3 {
     }
   }
 }
+const userId = "b088d123-1280-4959-91ca-74858f7ba226"
 
 class MockSuccessfulS3 {
   private readonly chunkSize: number
@@ -81,26 +82,28 @@ test("a single file upload returns the correct key", async () => {
   const tdrFile = createTdrFile({
     fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
   })
-  const s3Upload = new S3Upload("identityId", "region")
+  const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
     [tdrFile],
     jest.fn(),
     ""
   )
   expect(result.sendData[0].Key).toEqual(
-    "identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
+    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5`
   )
 })
 
 test("a single file upload calls the callback correctly", async () => {
   const tdrFile = createTdrFile({})
   const callback = jest.fn()
-  const s3Upload = new S3Upload("identityId", "region")
+  const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
     [tdrFile],
     callback,
     ""
@@ -123,25 +126,26 @@ test("multiple file uploads return the correct keys", async () => {
     fileId: "6b6694d0-814c-4978-8dee-56ec920a0102"
   })
   const files: ITdrFile[] = [tdrFile1, tdrFile2, tdrFile3, tdrFile4]
-  const s3Upload = new S3Upload("identityId", "region")
+  const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
     files,
     callback,
     ""
   )
   expect(result.sendData[0].Key).toEqual(
-    `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5`
+    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5`
   )
   expect(result.sendData[1].Key).toEqual(
-    `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1`
+    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1`
   )
   expect(result.sendData[2].Key).toEqual(
-    `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/56b34fbb-2eac-401e-a89a-0dc9b2013863`
+    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/56b34fbb-2eac-401e-a89a-0dc9b2013863`
   )
   expect(result.sendData[3].Key).toEqual(
-    `identityId/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/6b6694d0-814c-4978-8dee-56ec920a0102`
+    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/6b6694d0-814c-4978-8dee-56ec920a0102`
   )
 })
 
@@ -153,10 +157,11 @@ test("multiple file uploads call the callback correctly", async () => {
     createTdrFile({})
   ]
   const callback = jest.fn()
-  const s3Upload = new S3Upload("identityId", "region")
+  const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
     files,
     callback,
     ""
@@ -173,10 +178,11 @@ test("multiple file uploads call the callback correctly", async () => {
 
 test("when there is an error with the upload, an error is returned", async () => {
   const tdrFile = createTdrFile({})
-  const s3Upload = new S3Upload("identityId", "region")
+  const s3Upload = new S3Upload()
   s3Upload.s3 = new MockFailedS3()
   const result = s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
     [tdrFile],
     jest.fn(),
     ""
@@ -187,10 +193,11 @@ test("when there is an error with the upload, an error is returned", async () =>
 test("a single file upload calls the callback correctly with a different chunk size", async () => {
   const tdrFile = createTdrFile({})
   const callback = jest.fn()
-  const s3Upload = new S3Upload("identityId", "region")
+  const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3(2)
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
     [tdrFile],
     callback,
     ""
@@ -206,10 +213,11 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
   const tdrFile4 = createTdrFile({})
   const tdrFiles: ITdrFile[] = [tdrFile1, tdrFile2, tdrFile3, tdrFile4]
 
-  const s3Upload = new S3Upload("identityId", "region")
+  const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
     tdrFiles,
     callback,
     ""
@@ -243,10 +251,11 @@ test("multiple 0-byte file uploads returns a totalChunks value that equals the s
   })
   const tdrFiles: ITdrFile[] = [tdrFile1, tdrFile2, tdrFile3, tdrFile4]
 
-  const s3Upload = new S3Upload("identityId", "region")
+  const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
     tdrFiles,
     callback,
     ""
@@ -275,10 +284,11 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
   })
   const tdrFiles: ITdrFile[] = [tdrFile1, tdrFile2, tdrFile3, tdrFile4]
 
-  const s3Upload = new S3Upload("identityId", "region")
+  const s3Upload = new S3Upload()
   s3Upload.s3 = new MockSuccessfulS3()
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
     tdrFiles,
     callback,
     ""
