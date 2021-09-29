@@ -5,7 +5,7 @@ def repo = "tdr-transfer-frontend"
 
 pipeline {
   agent {
-    label "master"
+    label "built-in"
   }
   stages {
     stage("Run git secrets") {
