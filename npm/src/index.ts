@@ -50,26 +50,18 @@ export const renderModules = () => {
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
-
     getKeycloakInstance().then((keycloak) => {
-      fetch(`${frontEndInfo.uploadUrl}/cookies`, {
-        credentials: "include",
-        headers: { Authorization: `Bearer ${keycloak.token}` }
-      }).then(() => {
-        configureAws(frontEndInfo)
-        const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
-        const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
-        const updateConsignmentStatus = new UpdateConsignmentStatus(
-          graphqlClient
-        )
-        new FileUploader(
-          clientFileProcessing,
-          updateConsignmentStatus,
-          frontEndInfo,
-          goToNextPage,
-          keycloak
-        ).initialiseFormListeners()
-      })
+      configureAws(frontEndInfo)
+      const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
+      const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
+      const updateConsignmentStatus = new UpdateConsignmentStatus(graphqlClient)
+      new FileUploader(
+        clientFileProcessing,
+        updateConsignmentStatus,
+        frontEndInfo,
+        goToNextPage,
+        keycloak
+      ).initialiseFormListeners()
     })
   }
   if (fileChecksContainer) {
