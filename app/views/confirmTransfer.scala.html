@@ -1,6 +1,7 @@
 @import java.util.UUID
 @import viewsapi.FormFunctions._
 @import helper.{inputRadioGroup => _, _}
+@import views.html.partials.{errorSummary, inputSingleCheckbox, progressIndicator}
 
 @(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData])(implicit request: RequestHeader, messages: Messages)
 @main("Confirm transfer") {

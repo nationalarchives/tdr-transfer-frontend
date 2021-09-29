@@ -1,19 +1,20 @@
 package controllers
 
-import java.util.UUID
-
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddTransferAgreement.AddTransferAgreement
 import graphql.codegen.types.AddTransferAgreementInput
-import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ApiErrorHandling.sendApiRequest
+import services.ConsignmentStatusService
 import validation.ValidatedActions
+import viewsapi.Caching.preventCaching
 
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -22,12 +23,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
                                             val keycloakConfiguration: KeycloakConfiguration,
                                             langs: Langs)
                                            (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
-
-  private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
-  private val addTransferAgreementClient = graphqlConfiguration.getClient[AddTransferAgreement.Data, AddTransferAgreement.Variables]()
-  implicit val language: Lang = langs.availables.head
-
-  val transferAgreementForm = Form(
+  val transferAgreementForm: Form[TransferAgreementData] = Form(
     mapping(
       "publicRecord" -> boolean
         .verifying("All records must be confirmed as public before proceeding", b => b),
@@ -43,9 +39,25 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         .verifying("All records must be open", b => b)
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
+  private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
+  implicit val language: Lang = langs.availables.head
+  private val addTransferAgreementClient = graphqlConfiguration.getClient[AddTransferAgreement.Data, AddTransferAgreement.Variables]()
 
-  def transferAgreement(consignmentId: UUID): Action[AnyContent] = consignmentExists(consignmentId) { implicit request: Request[AnyContent] =>
-    Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
+  def transferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
+
+    consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).map {
+      consignmentStatus =>
+        val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
+        transferAgreementStatus match {
+          case Some("Completed") => Ok(views.html.transferAgreementAlreadyConfirmed(
+            consignmentId, transferAgreementForm, options)
+          ).uncache()
+          case _ =>  Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
+                       .uncache()
+        }
+
+    }
   }
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
