@@ -3,6 +3,7 @@ args: (Symbol, Any)*
 )(implicit messages: Messages)
 
 @import views.html.helper._
+@import views.html.partials.errorMessage
 @import viewsapi.FormFunctions._
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
@@ -14,13 +15,14 @@ args: (Symbol, Any)*
         @errorMessage(elements)
         <div class='govuk-checkboxes__item @if(elements.args.contains(Symbol("_smallCheckbox"))){govuk-checkboxes--small}'>
             <input
-                    @isSelected
-                    class="govuk-checkboxes__input"
-                    id="@elements.id"
-                    name="@elements.id"
-                    type="checkbox"
-                    value="@value"
-            />
+                @isSelected
+                class="govuk-checkboxes__input"
+                id="@elements.id"
+                name="@elements.id"
+                type="checkbox"
+                value="@value"
+                @elements.args.disabledInput(value.toString())
+                @elements.args.selectedInput(value.toString()) />
             <label class="govuk-label govuk-checkboxes__label" for="@elements.id">
                 @label
             </label>

@@ -1,18 +1,21 @@
 package controllers
 
 import java.util.UUID
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.AddTransferAgreement.{AddTransferAgreement => ata}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
+import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
+import play.api.Play.materializer
 import play.api.i18n.Langs
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -22,6 +25,7 @@ import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import util.{EnglishLang, FrontEndTestHelper}
 
+import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 
 class TransferAgreementControllerSpec extends FrontEndTestHelper {
@@ -42,30 +46,33 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
   "TransferAgreementController GET" should {
 
-    "render the transfer agreement page with an authenticated user" in {
+    "render the transfer agreement page with an authenticated user if consignment status is not 'Completed'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
 
-      val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-      val consignmentResponse: gc.GetConsignment = new gc.GetConsignment(UUID.randomUUID(), UUID.randomUUID())
-      val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(Some(consignmentResponse))), List())
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None))))
+      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
+      val transferAgreementPageAsString = contentAsString(transferAgreementPage)
 
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
-      contentAsString(transferAgreementPage) must include("Transfer agreement")
-      contentAsString(transferAgreementPage) must include("I confirm that the records are Public Records.")
-      contentAsString(transferAgreementPage) must include("I confirm that the records are all Crown Copyright.")
-      contentAsString(transferAgreementPage) must include("I confirm that the records are all in English.")
-      contentAsString(transferAgreementPage) must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
-      contentAsString(transferAgreementPage) must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
-      contentAsString(transferAgreementPage) must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
+      headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+      transferAgreementPageAsString must include(s"""<form action="/consignment/${consignmentId}/transfer-agreement" method="POST" novalidate="">""")
+      transferAgreementPageAsString must include("Transfer agreement")
+      transferAgreementPageAsString must include("I confirm that the records are Public Records.")
+      transferAgreementPageAsString must include("I confirm that the records are all Crown Copyright.")
+      transferAgreementPageAsString must include("I confirm that the records are all in English.")
+      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
+      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
+      transferAgreementPageAsString must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -76,24 +83,6 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
       redirectLocation(transferAgreementPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(transferAgreementPage) mustBe FOUND
-    }
-
-    "return a not found error page if the transfer agreement is not assigned to an existing consignment" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(None)), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
-
-      val consignmentId = UUID.randomUUID()
-      val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration, langs)
-
-      val transferAgreementPage = controller.transferAgreement(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
-
-      playStatus(transferAgreementPage) mustBe NOT_FOUND
-      contentAsString(transferAgreementPage) must include("Page not found")
     }
 
     "throws an authorisation exception when the user does not have permission to see a consignment's transfer agreement" in {
@@ -119,7 +108,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
     "create a transfer agreement when a valid form is submitted and the api response is successful" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      
+
       val addTransferAgreementResponse: ata.AddTransferAgreement = new ata.AddTransferAgreement(
         consignmentId,
         true,
@@ -181,6 +170,38 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
       contentAsString(transferAgreementSubmit) must include("govuk-error-message")
       contentAsString(transferAgreementSubmit) must include("error")
+    }
+
+    "render the transfer agreement 'agreed' page with an authenticated user if consignment status is 'Completed'" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
+
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None))))
+      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
+      val transferAgreementPage = controller.transferAgreement(consignmentId)
+        .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
+      val transferAgreementPageAsString = contentAsString(transferAgreementPage)
+
+      playStatus(transferAgreementPage) mustBe OK
+      contentType(transferAgreementPage) mustBe Some("text/html")
+      headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+      transferAgreementPageAsString must include(
+        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
+           |                Continue""".stripMargin)
+      transferAgreementPageAsString must include("Transfer agreement")
+      transferAgreementPageAsString must include("You have already confirmed all statements")
+      transferAgreementPageAsString must include("I confirm that the records are Public Records.")
+      transferAgreementPageAsString must include("I confirm that the records are all Crown Copyright.")
+      transferAgreementPageAsString must include("I confirm that the records are all in English.")
+      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
+      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
+      transferAgreementPageAsString must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
     }
   }
 

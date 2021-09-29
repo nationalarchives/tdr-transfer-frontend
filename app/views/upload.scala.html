@@ -1,6 +1,7 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
 @import helper._
+@import views.html.partials.{frontEndInputs, greenTickMark, progressIndicator}
 @(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
 
 @main("Upload your records") {
@@ -90,14 +91,11 @@
                             </div>
                             <p class="govuk-body">For more information on what metadata will be captured during the upload please visit our <a href="@routes.FaqController.faq()#metadata-captured" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a>.</p>
 
-                            <!-- Buttons -->
                             <div class="govuk-button-group">
-                                <!-- Continue -->
                                 <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
                                     Start upload
                                 </button>
 
-                                <!-- Cancel -->
                                 <a class="govuk-link" href="@routes.DashboardController.dashboard()">Cancel</a>
                             </div>
                         </div>

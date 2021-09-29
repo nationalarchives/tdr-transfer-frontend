@@ -1,0 +1,8 @@
+@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@import scala.language.postfixOps
+@import views.html.partials.progressIndicator
+
+@()(implicit request: RequestHeader, messages: Messages)
+@progressIndicator(Messages("transferAgreement.progress"))
+
+<h1 class="govuk-heading-l">Transfer agreement</h1>
