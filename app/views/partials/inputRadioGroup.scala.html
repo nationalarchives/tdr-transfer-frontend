@@ -5,6 +5,7 @@ args: (Symbol, Any)*
 
 @import views.html.helper._
 @import viewsapi.FormFunctions._
+@import views.html.partials.errorMessage
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
 

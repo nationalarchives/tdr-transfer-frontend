@@ -1,5 +1,6 @@
 @import helper._
 @import viewsapi.FormFunctions._
+@import views.html.partials.{errorMessage, errorSummary, inputDropdown, progressIndicator}
 
 @(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData])(implicit request: RequestHeader,
 messages: Messages)
@@ -23,15 +24,13 @@ messages: Messages)
                 Symbol("_name") -> "Series Details",
                 Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
             )
-        <!-- Buttons -->
+
         <div class="govuk-button-group">
-            <!-- Continue -->
             <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
                 role="button">
                 Continue
             </button>
 
-            <!-- Cancel -->
             <a class="govuk-link" href="@routes.DashboardController.dashboard()">Cancel</a>
         </div>
         }
