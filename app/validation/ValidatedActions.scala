@@ -8,21 +8,11 @@ import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
 
 import java.util.UUID
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 abstract class ValidatedActions() extends TokenSecurity with I18nSupport {
   implicit val ec: ExecutionContext
   val graphqlConfiguration: GraphQLConfiguration
-
-  def consignmentExists(consignmentId: UUID)(f: Request[AnyContent] => Result): Action[AnyContent] = secureAction.async {
-    implicit request: Request[AnyContent] =>
-      val consignmentService = new ConsignmentService(graphqlConfiguration)
-      val consignmentExists = consignmentService.consignmentExists(consignmentId, request.token.bearerAccessToken)
-      consignmentExists.map {
-        case true => f(request)
-        case false => NotFound(views.html.notFoundError())
-      }
-  }
 
   def uploadPermitted(consignmentId: UUID)(f: Request[AnyContent] => Result): Action[AnyContent] = secureAction.async {
     implicit request: Request[AnyContent] =>

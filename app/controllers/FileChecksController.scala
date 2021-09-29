@@ -1,14 +1,15 @@
 package controllers
 
 import java.util.UUID
-
 import auth.TokenSecurity
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, RequestHeader}
 import services.ConsignmentService
+import viewsapi.Caching.preventCaching
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,8 +38,7 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
     getRecordProcessingProgress(request, consignmentId)
       .map {
         fileChecks => {
-          Ok(views.html.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo))
-            .withHeaders("Cache-Control" -> "no-store, must-revalidate")
+          Ok(views.html.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo)).uncache()
         }
       }
   }
