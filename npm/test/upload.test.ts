@@ -1,3 +1,5 @@
+import { enableFetchMocks } from "jest-fetch-mock"
+enableFetchMocks()
 import { ClientFileProcessing } from "../src/clientfileprocessing"
 import {
   IFileWithPath,
@@ -16,8 +18,8 @@ jest.mock("../src/clientfileprocessing")
 jest.mock("../src/graphql")
 
 beforeEach(() => {
-  jest.resetAllMocks()
-  jest.resetModules()
+  jest.clearAllMocks()
+  jest.clearAllMocks()
 })
 
 const dummyFile = {
