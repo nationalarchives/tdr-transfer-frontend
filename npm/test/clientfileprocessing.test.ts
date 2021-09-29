@@ -21,11 +21,12 @@ beforeEach(() => jest.resetModules())
 
 class S3UploadMock extends S3Upload {
   constructor() {
-    super("some Cognito user ID", "region")
+    super()
   }
 
   uploadToS3: (
     consignmentId: string,
+    userId: string | undefined,
     files: ITdrFile[],
     callback: TProgressFunction,
     stage: string,
@@ -140,6 +141,8 @@ const mockS3UploadFailure: (message: string) => void = (message: string) => {
   })
 }
 
+const userId = "22579624-3eb9-4453-9b41-dd53a58fcfe7"
+
 test("client file metadata successfully uploaded", async () => {
   mockMetadataExtractSuccess()
   mockMetadataUploadSuccess()
@@ -157,7 +160,8 @@ test("client file metadata successfully uploaded", async () => {
     fileProcessing.processClientFiles(
       [],
       { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
-      ""
+      "",
+      userId
     )
   ).resolves.not.toThrow()
 })
@@ -248,7 +252,8 @@ test("file successfully uploaded to s3", async () => {
     fileProcessing.processClientFiles(
       [],
       { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
-      ""
+      "",
+      userId
     )
   ).resolves.not.toThrow()
 
@@ -344,7 +349,8 @@ test("Error thrown if processing files fails", async () => {
     fileProcessing.processClientFiles(
       [],
       { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
-      ""
+      "",
+      userId
     )
   ).rejects.toStrictEqual(
     Error(
@@ -370,7 +376,8 @@ test("Error thrown if processing file metadata fails", async () => {
     fileProcessing.processClientFiles(
       [],
       { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
-      ""
+      "",
+      userId
     )
   ).rejects.toStrictEqual(
     Error("upload client file metadata error")
@@ -394,7 +401,8 @@ test("Error thrown if extracting file metadata fails", async () => {
     fileProcessing.processClientFiles(
       [],
       { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
-      ""
+      "",
+      userId
     )
   ).rejects.toStrictEqual(
     Error(
@@ -412,14 +420,15 @@ test("Error thrown if S3 upload fails", async () => {
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
-  const s3Upload = new S3Upload("some Cognito user ID", "region")
+  const s3Upload = new S3Upload()
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3Upload)
 
   await expect(
     fileProcessing.processClientFiles(
       [],
       { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
-      ""
+      "",
+      userId
     )
   ).rejects.toStrictEqual(
     Error("Some S3 error")
