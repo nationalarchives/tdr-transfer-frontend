@@ -40,7 +40,7 @@
   "dependencies": {
     "@apollo/client": "^3.4.15",
     "@nationalarchives/file-information": "^1.0.185",
-    "@nationalarchives/tdr-generated-graphql": "^1.0.115",
+    "@nationalarchives/tdr-generated-graphql": "^1.0.116",
     "aws-sdk": "^2.997.0",
     "govuk-frontend": "^3.13.1",
     "graphql": "^15.5.1",
