@@ -1,5 +1,6 @@
 package controllers
 
+import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddTransferAgreement.AddTransferAgreement
 import graphql.codegen.types.AddTransferAgreementInput
@@ -10,7 +11,6 @@ import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ApiErrorHandling.sendApiRequest
 import services.ConsignmentStatusService
-import validation.ValidatedActions
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -22,7 +22,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
                                             val graphqlConfiguration: GraphQLConfiguration,
                                             val keycloakConfiguration: KeycloakConfiguration,
                                             langs: Langs)
-                                           (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
+                                           (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
   val transferAgreementForm: Form[TransferAgreementData] = Form(
     mapping(
       "publicRecord" -> boolean
