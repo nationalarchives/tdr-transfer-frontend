@@ -34,9 +34,9 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
         case Some("Completed") =>
           uploadStatus match {
             case Some("InProgress") =>
-              Ok(views.html.uploadInProgress(consignmentId))
+              Ok(views.html.uploadInProgress(consignmentId)).uncache()
             case Some("Completed") =>
-              Ok(views.html.uploadHasCompleted(consignmentId))
+              Ok(views.html.uploadHasCompleted(consignmentId)).uncache()
             case _ =>
               Ok(views.html.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
           }
