@@ -1,10 +1,12 @@
 package controllers
 
-import java.util.UUID
+import auth.TokenSecurity
 
+import java.util.UUID
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddFinalTransferConfirmation.AddFinalTransferConfirmation
 import graphql.codegen.types.AddFinalTransferConfirmationInput
+
 import javax.inject.Inject
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
@@ -15,7 +17,6 @@ import services.ApiErrorHandling.sendApiRequest
 import services.ConsignmentService
 import services.ConsignmentExportService
 import uk.gov.nationalarchives.tdr.GraphQLClient
-import validation.ValidatedActions
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -25,7 +26,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
                                           consignmentService: ConsignmentService,
                                           val consignmentExportService: ConsignmentExportService,
                                           langs: Langs)
-                                         (implicit val ec: ExecutionContext) extends ValidatedActions with I18nSupport {
+                                         (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   private val addFinalTransferConfirmationClient: GraphQLClient[AddFinalTransferConfirmation.Data, AddFinalTransferConfirmation.Variables] =
     graphqlConfiguration.getClient[AddFinalTransferConfirmation.Data, AddFinalTransferConfirmation.Variables]()
