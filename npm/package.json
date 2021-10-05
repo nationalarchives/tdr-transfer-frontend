@@ -41,7 +41,7 @@
     "@apollo/client": "^3.4.15",
     "@nationalarchives/file-information": "^1.0.188",
     "@nationalarchives/tdr-generated-graphql": "^1.0.118",
-    "aws-sdk": "^2.999.0",
+    "aws-sdk": "^2.1000.0",
     "govuk-frontend": "^3.13.1",
     "graphql": "^15.5.1",
     "keycloak-js": "11.0.3",
@@ -51,7 +51,7 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^5.14.1",
     "@types/jest": "^27.0.2",
-    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.32.0",
     "copyfiles": "^2.4.1",
     "dts-bundle": "^0.7.3",
