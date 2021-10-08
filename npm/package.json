@@ -42,7 +42,7 @@
     "@nationalarchives/file-information": "^1.0.188",
     "@nationalarchives/tdr-generated-graphql": "^1.0.118",
     "aws-sdk": "^2.1003.0",
-    "govuk-frontend": "^3.13.1",
+    "govuk-frontend": "^3.14.0",
     "graphql": "^15.5.1",
     "keycloak-js": "11.0.3",
     "unfetch": "^4.1.0",
