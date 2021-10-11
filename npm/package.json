@@ -41,7 +41,7 @@
     "@apollo/client": "^3.4.16",
     "@nationalarchives/file-information": "^1.0.194",
     "@nationalarchives/tdr-generated-graphql": "^1.0.118",
-    "aws-sdk": "^2.1003.0",
+    "aws-sdk": "^2.1004.0",
     "govuk-frontend": "^3.14.0",
     "graphql": "^15.5.1",
     "keycloak-js": "11.0.3",
