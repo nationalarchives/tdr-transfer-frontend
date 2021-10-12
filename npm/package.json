@@ -39,7 +39,7 @@
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
     "@apollo/client": "^3.4.16",
-    "@nationalarchives/file-information": "^1.0.194",
+    "@nationalarchives/file-information": "^1.0.197",
     "@nationalarchives/tdr-generated-graphql": "^1.0.118",
     "aws-sdk": "^2.1005.0",
     "govuk-frontend": "^3.14.0",
@@ -61,7 +61,7 @@
     "eslint-plugin-jest": "^24.5.2",
     "eslint-plugin-prettier": "^4.0.0",
     "husky": "^7.0.2",
-    "jest": "^27.2.4",
+    "jest": "^27.2.5",
     "jest-fetch-mock": "^3.0.3",
     "lint-staged": "^11.2.3",
     "minify": "^8.0.2",
