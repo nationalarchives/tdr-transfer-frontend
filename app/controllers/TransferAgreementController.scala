@@ -62,7 +62,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
-      Future.successful(BadRequest(views.html.transferAgreement(consignmentId, formWithErrors, options)))
+      Future.successful(BadRequest(views.html.transferAgreement(consignmentId, formWithErrors, options)).uncache())
     }
 
     val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
