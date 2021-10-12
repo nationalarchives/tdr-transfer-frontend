@@ -10,10 +10,11 @@ args: (Symbol, Any)*
 @value = {@elements.args.get(Symbol("_value"))}
 @label = {@elements.args.get(Symbol("_label"))}
 @isSelected = {@elements.args.selectedInput(value.toString)}
+@isSmallCheckbox = {@elements.args.get(Symbol("_smallCheckbox"))}
 
     <div class="govuk-checkboxes @elements.setErrorClass()">
         @errorMessage(elements)
-        <div class='govuk-checkboxes__item @if(elements.args.contains(Symbol("_smallCheckbox"))){govuk-checkboxes--small}'>
+        <div class='govuk-checkboxes__item @if(isSmallCheckbox.toString() == "true"){govuk-checkboxes--small}'>
             <input
                 @isSelected
                 class="govuk-checkboxes__input"
