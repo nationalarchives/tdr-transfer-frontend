@@ -55,7 +55,7 @@
     "@typescript-eslint/parser": "^4.33.0",
     "copyfiles": "^2.4.1",
     "dts-bundle": "^0.7.3",
-    "eslint": "^7.32.0",
+    "eslint": "^8.0.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-jest": "^25.0.5",
