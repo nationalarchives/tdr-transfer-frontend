@@ -8,6 +8,8 @@ args: (Symbol, Any)*
 @import views.html.partials.errorMessage
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
+@isDisabled = {@elements.args.get(Symbol("_disabledOption"))}
+@isSelected = {@elements.args.get(Symbol("_checkedOption"))}
 
 <div class="govuk-form-group @elements.setErrorClass()">
     <label class="govuk-label">
@@ -23,8 +25,8 @@ args: (Symbol, Any)*
                     name="@elements.id"
                     type="radio"
                     value="@value"
-                    @elements.args.disabledInput(value)
-                    @elements.args.selectedInput(value)
+                    @isDisabled
+                    @isSelected
                     @elements.args.requiredInput()
             />
             <label class="govuk-label govuk-radios__label" for="@elements.id@value">

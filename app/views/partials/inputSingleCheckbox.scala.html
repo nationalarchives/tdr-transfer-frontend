@@ -9,7 +9,8 @@ args: (Symbol, Any)*
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
 @value = {@elements.args.get(Symbol("_value"))}
 @label = {@elements.args.get(Symbol("_label"))}
-@isSelected = {@elements.args.selectedInput(value.toString)}
+@isDisabled = {@elements.args.get(Symbol("_disabledOption"))}
+@isSelected = {@elements.args.get(Symbol("_checkedOption"))}
 @isSmallCheckbox = {@elements.args.get(Symbol("_smallCheckbox"))}
 
     <div class="govuk-checkboxes @elements.setErrorClass()">
@@ -22,11 +23,9 @@ args: (Symbol, Any)*
                 name="@elements.id"
                 type="checkbox"
                 value="@value"
-                @elements.args.disabledInput(value.toString())
-                @elements.args.selectedInput(value.toString()) />
+                @isDisabled />
             <label class="govuk-label govuk-checkboxes__label" for="@elements.id">
                 @label
             </label>
         </div>
     </div>
-
