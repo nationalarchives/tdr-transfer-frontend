@@ -68,38 +68,6 @@ class FormFunctionSpec extends FrontEndTestHelper {
     }
   }
 
-  "disabledInput function" should {
-    "render disabled when _disabledOption set to a particular input option" in {
-      val args: Map[Symbol, Any] = Map(Symbol("_disabledOption") -> "false")
-
-      val result = FormFunctions.inputRenderOptions(args).disabledInput("false")
-      result shouldBe Some("disabled")
-    }
-
-    "not render disabled when no _disabledOption" in {
-      val args: Map[Symbol, Any] = Map(Symbol("_madeUpOption") -> "true")
-
-      val result = FormFunctions.inputRenderOptions(args).disabledInput("true")
-      result shouldBe ()
-    }
-  }
-
-  "selectedInput function" should {
-    "render checked when _checkedOption set to a particular input option" in {
-      val args: Map[Symbol, Any] = Map(Symbol("_checkedOption") -> "false")
-
-      val result = FormFunctions.inputRenderOptions(args).selectedInput("false")
-      result shouldBe Some("checked")
-    }
-
-    "not render checked when no _checkedOption" in {
-      val args: Map[Symbol, Any] = Map(Symbol("_madeUpOption") -> "true")
-
-      val result = FormFunctions.inputRenderOptions(args).selectedInput("true")
-      result shouldBe ()
-    }
-  }
-
   "setErrorClass function" should {
     "return the error class if the element has errors" in {
       val errors: Map[Symbol, String] = Map(Symbol("_error") -> "Error")
