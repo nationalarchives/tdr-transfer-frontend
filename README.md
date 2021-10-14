@@ -51,6 +51,14 @@ When you log into the site, you will need to log in as a user from the Integrati
 
 [auth-admin]: https://auth.tdr-integration.nationalarchives.gov.uk/auth/admin
 
+### Incognito mode
+If you are using the AWS integration environment, uploads to S3 go through upload.tdr-integration.nationalarchives.gov.uk If you try to upload using incognito/private browsing, the upload will fail. This is because the browser blocks third party cookies by default in incognito mode. To allow the cookies, you can add an exception for the url *upload.tdr-integration.nationalarchives.gov.uk*
+
+[Instructions for Chrome](https://support.google.com/chrome/answer/95647?hl=en-GB&co=GENIE.Platform%3DDesktop#zippy=%2Callow-or-block-cookies-for-a-specific-site)
+
+[Instructions for firefox](https://support.mozilla.org/en-US/kb/third-party-cookies-firefox-tracking-protection#w_enable-third-party-cookies-for-specific-sites)
+
+
 ### Full stack local development
 
 Follow these instructions if you want to make changes to the API, database and/or auth system at the same time as
