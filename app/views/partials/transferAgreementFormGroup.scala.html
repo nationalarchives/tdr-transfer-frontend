@@ -5,9 +5,20 @@
 @import views.html.partials.inputSingleCheckbox
 
 @(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted: Boolean)(implicit request: RequestHeader, messages: Messages)
+@disabledStatus = {@if(formAlreadySubmitted) {disabled} else {}}
 @shouldOptionBeSelected(option: String, formAlreadySubmitted: Boolean) = @{
-  if(!formAlreadySubmitted) transferAgreementFormData.data.getOrElse(option, "") else "true"
+  formAlreadySubmitted match {
+    case true => "checked"
+    case false => {
+      val optionHasBeenSelected = transferAgreementFormData.data.get(option)
+      optionHasBeenSelected match {
+        case Some(fieldName) => "checked"
+        case None => ""
+      }
+    }
+  }
 }
+
 <div class="govuk-form-group">
   @if(!formAlreadySubmitted) @{CSRF.formField} else {}
     @inputSingleCheckbox(
@@ -17,7 +28,7 @@
         Symbol("_smallCheckbox") -> true,
         Symbol("_checkedOption") -> shouldOptionBeSelected("publicRecord", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> formAlreadySubmitted.toString
+        Symbol("_disabledOption") -> disabledStatus
     )
     @inputSingleCheckbox(
         transferAgreementFormData("crownCopyright"),
@@ -26,7 +37,7 @@
         Symbol("_smallCheckbox") -> true,
         Symbol("_checkedOption") -> shouldOptionBeSelected("crownCopyright", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> formAlreadySubmitted.toString
+        Symbol("_disabledOption") -> disabledStatus
     )
     @inputSingleCheckbox(
         transferAgreementFormData("english"),
@@ -35,7 +46,7 @@
         Symbol("_smallCheckbox") -> true,
         Symbol("_checkedOption") -> shouldOptionBeSelected("english", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> formAlreadySubmitted.toString
+        Symbol("_disabledOption") -> disabledStatus
     )
     <!-- DRO confirmation -->
     @inputSingleCheckbox(
@@ -45,7 +56,7 @@
         Symbol("_smallCheckbox") -> true,
         Symbol("_checkedOption") -> shouldOptionBeSelected("droAppraisalSelection", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> formAlreadySubmitted.toString
+        Symbol("_disabledOption") -> disabledStatus
     )
     @inputSingleCheckbox(
         transferAgreementFormData("droSensitivity"),
@@ -54,7 +65,7 @@
         Symbol("_smallCheckbox") -> true,
         Symbol("_checkedOption") -> shouldOptionBeSelected("droSensitivity", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> formAlreadySubmitted.toString
+        Symbol("_disabledOption") -> disabledStatus
     )
     @inputSingleCheckbox(
         transferAgreementFormData("openRecords"),
@@ -63,6 +74,6 @@
         Symbol("_smallCheckbox") -> true,
         Symbol("_checkedOption") -> shouldOptionBeSelected("openRecords", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> formAlreadySubmitted.toString
+        Symbol("_disabledOption") -> disabledStatus
     )
 </div>
