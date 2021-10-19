@@ -22,7 +22,6 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import services.TransferAgreementService
-import util.FrontEndTestHelper
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import util.{EnglishLang, FrontEndTestHelper}
@@ -221,7 +220,8 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
   private def stubTransferAgreementResponse(transferAgreement: Option[ata.AddTransferAgreement] = None, errors: List[GraphQLClient.Error] = Nil): Unit = {
     val client = new GraphQLConfiguration(app.configuration).getClient[ata.Data, ata.Variables]()
 
-    val data: client.GraphqlData = client.GraphqlData(transferAgreement.map(ta => ata.Data(ta)), errors)
+    val data: client.GraphqlData =
+      client.GraphqlData(transferAgreement.map(ta => ata.Data(ta)), errors) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .willReturn(okJson(dataString)))

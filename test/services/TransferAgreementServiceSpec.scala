@@ -27,7 +27,8 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
 
   private val graphQlConfig = mock[GraphQLConfiguration]
   private val graphQlClient = mock[GraphQLClient[ata.Data, ata.Variables]]
-  when(graphQlConfig.getClient[ata.Data, ata.Variables]()).thenReturn(graphQlClient)
+  when(graphQlConfig.getClient[ata.Data, ata.Variables]())
+    .thenReturn(graphQlClient) // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
 
   private val transferAgreementService: TransferAgreementService = new TransferAgreementService(graphQlConfig)
   private val consignmentId = UUID.fromString("e1ca3948-ee41-4e80-85e6-2123040c135d")
@@ -62,7 +63,8 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
       sensitivityReviewSignedOff = true,
       initialOpenRecords = true)
 
-    val graphQlResponse = GraphQlResponse(Some(ata.Data(transferAgreementResponse)), Nil)
+    val graphQlResponse =
+      GraphQlResponse(Some(ata.Data(transferAgreementResponse)), Nil) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
     when(graphQlClient.getResult(token, ata.document, Some(ata.Variables(transferAgreementInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
@@ -77,7 +79,7 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
     transferAgreement.initialOpenRecords should equal(formData.openRecords)
   }
 
-  "addTransferAgreement" should "Return an error when the API has an error" in {
+  "addTransferAgreement" should "return an error when the API has an error" in {
     val graphQlResponse = HttpError("something went wrong", StatusCode.InternalServerError)
     when(graphQlClient.getResult(token, ata.document, Some(ata.Variables(transferAgreementInput))))
       .thenReturn(Future.failed(graphQlResponse))
