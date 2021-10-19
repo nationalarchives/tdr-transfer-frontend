@@ -2,24 +2,23 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.AddTransferAgreement.AddTransferAgreement
-import graphql.codegen.types.AddTransferAgreementInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.ApiErrorHandling.sendApiRequest
 import services.ConsignmentStatusService
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import services.TransferAgreementService
 
 @Singleton
 class TransferAgreementController @Inject()(val controllerComponents: SecurityComponents,
                                             val graphqlConfiguration: GraphQLConfiguration,
+                                            val transferAgreementService: TransferAgreementService,
                                             val keycloakConfiguration: KeycloakConfiguration,
                                             langs: Langs)
                                            (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
@@ -41,7 +40,6 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
   )
   private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
   implicit val language: Lang = langs.availables.head
-  private val addTransferAgreementClient = graphqlConfiguration.getClient[AddTransferAgreement.Data, AddTransferAgreement.Variables]()
 
   def transferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
@@ -56,7 +54,6 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
           case _ =>  Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
                        .uncache()
         }
-
     }
   }
 
@@ -66,18 +63,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     }
 
     val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
-      val addTransferAgreementInput: AddTransferAgreementInput = AddTransferAgreementInput(consignmentId,
-        formData.publicRecord,
-        formData.crownCopyright,
-        formData.english,
-        formData.droAppraisalSelection,
-        formData.openRecords,
-        formData.droSensitivity
-      )
-
-      val variables: AddTransferAgreement.Variables = AddTransferAgreement.Variables(addTransferAgreementInput)
-
-      sendApiRequest(addTransferAgreementClient, AddTransferAgreement.document, request.token.bearerAccessToken, variables)
+      transferAgreementService.addTransferAgreement(consignmentId, request.token.bearerAccessToken, formData)
         .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
     }
 
