@@ -43,26 +43,27 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
   implicit val language: Lang = langs.availables.head
   private val addTransferAgreementClient = graphqlConfiguration.getClient[AddTransferAgreement.Data, AddTransferAgreement.Variables]()
 
-  def transferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  private def loadPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData])
+                                     (implicit request: Request[AnyContent]): Future[Result] = {
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).map {
       consignmentStatus =>
         val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
         transferAgreementStatus match {
-          case Some("Completed") => Ok(views.html.transferAgreementAlreadyConfirmed(
-            consignmentId, transferAgreementForm, options)
-          ).uncache()
-          case _ =>  Ok(views.html.transferAgreement(consignmentId, transferAgreementForm, options))
-                       .uncache()
+          case Some("Completed") => Ok(views.html.transferAgreementAlreadyConfirmed(consignmentId, transferAgreementForm, options)).uncache()
+          case _ =>  httpStatus(views.html.transferAgreement(consignmentId, taForm, options)).uncache()
         }
-
     }
+  }
+
+  def transferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    loadPageBasedOnTaStatus(consignmentId, Ok, transferAgreementForm)
   }
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
-      Future.successful(BadRequest(views.html.transferAgreement(consignmentId, formWithErrors, options)).uncache())
+      loadPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
     }
 
     val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
