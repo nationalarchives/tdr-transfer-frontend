@@ -164,6 +164,13 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),
         getValidKeycloakConfiguration, langs)
 
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None))))
+      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withCSRFToken)
 
