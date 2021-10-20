@@ -66,13 +66,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       transferAgreementPageAsString must include(s"""<form action="/consignment/${consignmentId}/transfer-agreement" method="POST" novalidate="">""")
-      transferAgreementPageAsString must include("Transfer agreement")
-      transferAgreementPageAsString must include("I confirm that the records are Public Records.")
-      transferAgreementPageAsString must include("I confirm that the records are all Crown Copyright.")
-      transferAgreementPageAsString must include("I confirm that the records are all in English.")
-      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
-      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
-      transferAgreementPageAsString must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
+      checkHtmlContentForDefaultText(transferAgreementPageAsString)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -234,14 +228,8 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include(
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
            |                Continue""".stripMargin)
-      transferAgreementPageAsString must include("Transfer agreement")
       transferAgreementPageAsString must include("You have already confirmed all statements")
-      transferAgreementPageAsString must include("I confirm that the records are Public Records.")
-      transferAgreementPageAsString must include("I confirm that the records are all Crown Copyright.")
-      transferAgreementPageAsString must include("I confirm that the records are all in English.")
-      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
-      transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
-      transferAgreementPageAsString must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
+      checkHtmlContentForDefaultText(transferAgreementPageAsString)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to TA page" +
@@ -267,14 +255,8 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       taAlreadyConfirmedPageAsString must include(
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
            |                Continue""".stripMargin)
-      taAlreadyConfirmedPageAsString must include("Transfer agreement")
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
-      taAlreadyConfirmedPageAsString must include("I confirm that the records are Public Records.")
-      taAlreadyConfirmedPageAsString must include("I confirm that the records are all Crown Copyright.")
-      taAlreadyConfirmedPageAsString must include("I confirm that the records are all in English.")
-      taAlreadyConfirmedPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
-      taAlreadyConfirmedPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
-      taAlreadyConfirmedPageAsString must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
+      checkHtmlContentForDefaultText(taAlreadyConfirmedPageAsString)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to TA page" +
@@ -307,14 +289,8 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       taAlreadyConfirmedPageAsString must include(
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
            |                Continue""".stripMargin)
-      taAlreadyConfirmedPageAsString must include("Transfer agreement")
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
-      taAlreadyConfirmedPageAsString must include("I confirm that the records are Public Records.")
-      taAlreadyConfirmedPageAsString must include("I confirm that the records are all Crown Copyright.")
-      taAlreadyConfirmedPageAsString must include("I confirm that the records are all in English.")
-      taAlreadyConfirmedPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
-      taAlreadyConfirmedPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
-      taAlreadyConfirmedPageAsString must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
+      checkHtmlContentForDefaultText(taAlreadyConfirmedPageAsString)
     }
   }
 
@@ -332,6 +308,20 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       ("droSensitivity", haveDroSensitivity.toString),
       ("openRecords", recordsAreOpen.toString)
     )
+  }
+
+  private def checkHtmlContentForDefaultText(htmlAsString: String) = {
+    val defaultLinesOfTextOnPage = Set(
+      "Transfer agreement",
+      "I confirm that the records are Public Records.",
+      "I confirm that the records are all Crown Copyright.",
+      "I confirm that the records are all in English.",
+      "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
+      "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
+      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records."
+    )
+
+    defaultLinesOfTextOnPage.foreach(defaultLineOfTextOnPage => htmlAsString must include(defaultLineOfTextOnPage))
   }
 
   private def stubTransferAgreementResponse(transferAgreement: Option[ata.AddTransferAgreement] = None, errors: List[GraphQLClient.Error] = Nil): Unit = {
