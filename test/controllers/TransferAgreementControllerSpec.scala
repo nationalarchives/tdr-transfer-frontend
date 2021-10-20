@@ -210,6 +210,39 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
       transferAgreementPageAsString must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
     }
+
+    "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to TA page" +
+      "after successfully submitting TA form that had been incorrectly submitted prior" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
+
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
+      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None))))
+      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
+      val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
+        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withCSRFToken)
+      val taAlreadyConfirmedPageAsString = contentAsString(taAlreadyConfirmedPage)
+
+      playStatus(taAlreadyConfirmedPage) mustBe OK
+      contentType(taAlreadyConfirmedPage) mustBe Some("text/html")
+      headers(taAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+      taAlreadyConfirmedPageAsString must include(
+        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
+           |                Continue""".stripMargin)
+      taAlreadyConfirmedPageAsString must include("Transfer agreement")
+      taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
+      taAlreadyConfirmedPageAsString must include("I confirm that the records are Public Records.")
+      taAlreadyConfirmedPageAsString must include("I confirm that the records are all Crown Copyright.")
+      taAlreadyConfirmedPageAsString must include("I confirm that the records are all in English.")
+      taAlreadyConfirmedPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection")
+      taAlreadyConfirmedPageAsString must include("I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.")
+      taAlreadyConfirmedPageAsString must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
+    }
   }
 
   private def completedTransferAgreementForm: Seq[(String, String)] = {
