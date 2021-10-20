@@ -207,7 +207,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       contentAsString(transferAgreementSubmit) must include("error")
     }
 
-    "render the transfer agreement 'agreed' page with an authenticated user if consignment status is 'Completed'" in {
+    "render the transfer agreement 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new TransferAgreementController(getAuthorisedSecurityComponents,
         new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, langs)
