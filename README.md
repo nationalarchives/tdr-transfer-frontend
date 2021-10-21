@@ -80,6 +80,8 @@ updating the frontend.
   - Click the Groups tab
   - In the "Available Groups" box select the `Mock 1 Department` sub-group, and click `Join`
     The `transferring_body_user/Mock 1 Department` group should now appear in the "Group Membership" box
+  - In the "Available Groups" box select the relevant "user type" sub-type depending on the type of user required, and click `Join`
+    The `user_type/standard_user` or `user_type/judgment_user` group should now appear in the "Group Membership" box depending on which  sub-group was selected
   - Click the Credentials tab
   - Set a non-temporary password for the user
   - For full details about managing transferring body users and transferring body groups see: [Tdr User Administrator Manual](https://github.com/nationalarchives/tdr-dev-documentation/blob/master/tdr-admins/tdr-user-administrator.md)
