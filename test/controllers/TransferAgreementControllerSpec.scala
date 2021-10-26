@@ -162,10 +162,12 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withCSRFToken)
+      val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
-      contentAsString(transferAgreementSubmit) must include("govuk-error-message")
-      contentAsString(transferAgreementSubmit) must include("error")
+      checkHtmlContentForDefaultText(transferAgreementPageAsString)
+      transferAgreementPageAsString must include("govuk-error-message")
+      transferAgreementPageAsString must include("error")
     }
 
     "display errors when an invalid form (partially complete) is submitted" in {
@@ -184,10 +186,12 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
           .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
           .withCSRFToken)
+      val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
-      contentAsString(transferAgreementSubmit) must include("govuk-error-message")
-      contentAsString(transferAgreementSubmit) must include("error")
+      checkHtmlContentForDefaultText(transferAgreementPageAsString)
+      transferAgreementPageAsString must include("govuk-error-message")
+      transferAgreementPageAsString must include("error")
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
