@@ -5,7 +5,6 @@
 @import views.html.partials.inputSingleCheckbox
 
 @(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted: Boolean)(implicit request: RequestHeader, messages: Messages)
-@println(transferAgreementFormData.data)
 @disabledStatus = {@if(formAlreadySubmitted) {disabled} else {}}
 @shouldOptionBeSelected(option: String, formAlreadySubmitted: Boolean) = @{
   if(formAlreadySubmitted) {
