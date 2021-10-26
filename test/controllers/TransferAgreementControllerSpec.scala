@@ -65,7 +65,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include(s"""<form action="/consignment/${consignmentId}/transfer-agreement" method="POST" novalidate="">""")
+      transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement" method="POST" novalidate="">""")
       checkHtmlContentForDefaultText(transferAgreementPageAsString)
     }
 
@@ -126,7 +126,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
       val completedTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm()
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
           .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
           .withCSRFToken)
 
@@ -140,7 +140,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
       val completedTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm()
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
           .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
           .withCSRFToken)
 
@@ -161,7 +161,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withCSRFToken)
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
       val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
@@ -183,7 +183,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(4)
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
           .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
           .withCSRFToken)
       val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
@@ -231,7 +231,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withCSRFToken)
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
       val taAlreadyConfirmedPageAsString = contentAsString(taAlreadyConfirmedPage)
 
       playStatus(taAlreadyConfirmedPage) mustBe OK
@@ -258,7 +258,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(3)
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
           .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
           .withCSRFToken)
       val taAlreadyConfirmedPageAsString = contentAsString(taAlreadyConfirmedPage)
