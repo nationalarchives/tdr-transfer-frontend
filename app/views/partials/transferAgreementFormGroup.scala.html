@@ -7,14 +7,13 @@
 @(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted: Boolean)(implicit request: RequestHeader, messages: Messages)
 @disabledStatus = {@if(formAlreadySubmitted) {disabled} else {}}
 @shouldOptionBeSelected(option: String, formAlreadySubmitted: Boolean) = @{
-  formAlreadySubmitted match {
-    case true => "checked"
-    case false => {
-      val optionHasBeenSelected = transferAgreementFormData.data.get(option)
-      optionHasBeenSelected match {
-        case Some(fieldName) => "checked"
-        case None => ""
-      }
+  if(formAlreadySubmitted) {
+    "checked"
+  } else {
+    val optionHasBeenSelected = transferAgreementFormData.data.get(option)
+    optionHasBeenSelected match {
+      case Some(value) => "checked"
+      case None => ""
     }
   }
 }
