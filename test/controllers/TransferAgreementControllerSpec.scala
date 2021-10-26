@@ -168,6 +168,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       checkHtmlContentForDefaultText(transferAgreementPageAsString)
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
+      checkHtmlContentForErrorSummary(transferAgreementPageAsString, Set())
     }
 
     "display errors when an invalid form (partially complete) is submitted" in {
@@ -187,11 +188,15 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
           .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
           .withCSRFToken)
       val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
+      val pageOptions: Set[String] = incompleteTransferAgreementForm.map{
+        case (pageOption: String, _: String) => pageOption
+      }.toSet
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
       checkHtmlContentForDefaultText(transferAgreementPageAsString)
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
+      checkHtmlContentForErrorSummary(transferAgreementPageAsString, pageOptions)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
@@ -282,7 +287,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       ("droAppraisalSelection", true.toString),
       ("droSensitivity", true.toString),
       ("openRecords", true.toString)
-    ).drop(numberOfValuesToRemove)
+    ).dropRight(numberOfValuesToRemove)
   }
 
   private def checkHtmlContentForDefaultText(htmlAsString: String) = {
@@ -297,6 +302,23 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     )
 
     defaultLinesOfTextOnPage.foreach(defaultLineOfTextOnPage => htmlAsString must include(defaultLineOfTextOnPage))
+  }
+
+  private def checkHtmlContentForErrorSummary(htmlAsString: String, optionsSelected: Set[String]): Unit = {
+    val potentialErrorsOnPage = Map(
+      ("publicRecord" -> "All records must be confirmed as public before proceeding"),
+      ("crownCopyright" -> "All records must be confirmed Crown Copyright before proceeding"),
+      ("english" -> "All records must be confirmed as English language before proceeding"),
+      ("droAppraisalSelection" -> "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records"),
+      ("droSensitivity" -> "Departmental Records Officer (DRO) must have signed off sensitivity review"),
+      ("openRecords" -> "All records must be open")
+    )
+
+    val errorsThatShouldBeOnPage: Map[String, String] = potentialErrorsOnPage.filter {
+      case (errorName, _) => !optionsSelected.contains(errorName)
+    }
+
+    errorsThatShouldBeOnPage.values.foreach(error => htmlAsString must include(error))
   }
 
   private def instantiateTransferAgreementController(securityComponents: SecurityComponents) = {
