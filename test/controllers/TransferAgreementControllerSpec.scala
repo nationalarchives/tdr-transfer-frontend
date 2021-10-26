@@ -178,12 +178,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
-      val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(
-        recordsArePublic = false,
-        recordsAreCrownCopyright = false,
-        recordsAreEnglish = false,
-        haveDroAppraisalSelection = false
-      )
+      val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(4)
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
@@ -256,11 +251,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
-      val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(
-        recordsArePublic = false,
-        recordsAreCrownCopyright = false,
-        recordsAreEnglish = false,
-      )
+      val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(3)
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
@@ -279,20 +270,15 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def getTransferAgreementForm(recordsArePublic: Boolean=true,
-                                       recordsAreCrownCopyright: Boolean=true,
-                                       recordsAreEnglish: Boolean=true,
-                                       haveDroAppraisalSelection: Boolean=true,
-                                       haveDroSensitivity: Boolean=true,
-                                       recordsAreOpen: Boolean=true): Seq[(String, String)] = {
+  private def getTransferAgreementForm(numberOfValuesToRemove: Int=0): Seq[(String, String)] = {
     Seq(
-      ("publicRecord", recordsArePublic.toString),
-      ("crownCopyright", recordsAreCrownCopyright.toString),
-      ("english", recordsAreEnglish.toString),
-      ("droAppraisalSelection", haveDroAppraisalSelection.toString),
-      ("droSensitivity", haveDroSensitivity.toString),
-      ("openRecords", recordsAreOpen.toString)
-    )
+      ("publicRecord", true.toString),
+      ("crownCopyright", true.toString),
+      ("english", true.toString),
+      ("droAppraisalSelection", true.toString),
+      ("droSensitivity", true.toString),
+      ("openRecords", true.toString)
+    ).drop(numberOfValuesToRemove)
   }
 
   private def checkHtmlContentForDefaultText(htmlAsString: String) = {
