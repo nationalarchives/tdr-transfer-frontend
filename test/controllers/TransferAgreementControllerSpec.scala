@@ -280,13 +280,14 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
   }
 
   private def getTransferAgreementForm(numberOfValuesToRemove: Int=0): Seq[(String, String)] = {
+    val value = "true"
     Seq(
-      ("publicRecord", true.toString),
-      ("crownCopyright", true.toString),
-      ("english", true.toString),
-      ("droAppraisalSelection", true.toString),
-      ("droSensitivity", true.toString),
-      ("openRecords", true.toString)
+      ("publicRecord", value),
+      ("crownCopyright", value),
+      ("english", value),
+      ("droAppraisalSelection", value),
+      ("droSensitivity", value),
+      ("openRecords", value)
     ).dropRight(numberOfValuesToRemove)
   }
 
