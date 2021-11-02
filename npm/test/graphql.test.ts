@@ -9,7 +9,7 @@ import {
   MutationOptions,
   FetchResult
 } from "@apollo/client/core"
-import { GraphQLError } from "graphql"
+import {GraphQLError, Kind} from "graphql"
 import { mockKeycloakInstance } from "./utils"
 
 type IMockData = { [index: string]: string } | null
@@ -80,7 +80,7 @@ test("Returns the correct data for a query", async () => {
   mockSuccess()
   const client = new GraphqlClient("test", mockKeycloakInstance)
   const result = await client.query<IMockData, TMockVariables>(
-    { definitions: [], kind: "Document" },
+    { definitions: [], kind: Kind.DOCUMENT },
     ""
   )
   expect(result.data!.data).toEqual("expectedData")
@@ -90,7 +90,7 @@ test("Returns the correct data for a mutation", async () => {
   mockSuccess()
   const client = new GraphqlClient("test", mockKeycloakInstance)
   const result = await client.mutation<IMockData, TMockVariables>(
-    { definitions: [], kind: "Document" },
+    { definitions: [], kind: Kind.DOCUMENT },
     ""
   )
   expect(result.data!.data).toEqual("expectedData")
@@ -100,7 +100,7 @@ test("Returns errors if the query was not successful", async () => {
   mockFailure()
   const client = new GraphqlClient("test", mockKeycloakInstance)
   const result = await client.query<IMockData, TMockVariables>(
-    { definitions: [], kind: "Document" },
+    { definitions: [], kind: Kind.DOCUMENT },
     ""
   )
   expect(result.errors).toHaveLength(1)
@@ -111,7 +111,7 @@ test("Returns errors if the mutation was not successful", async () => {
   mockFailure()
   const client = new GraphqlClient("test", mockKeycloakInstance)
   const result = await client.mutation<IMockData, TMockVariables>(
-    { definitions: [], kind: "Document" },
+    { definitions: [], kind: Kind.DOCUMENT },
     ""
   )
   expect(result.errors).toHaveLength(1)
