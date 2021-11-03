@@ -26,7 +26,7 @@ import play.api.test.WsTestClient.InternalWSClient
 import services.ConsignmentExportService
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{EnglishLang, FrontEndTestHelper}
+import util.{CheckHtmlOfFormOptions, EnglishLang, FrontEndTestHelper}
 
 import scala.concurrent.ExecutionContext
 
@@ -49,6 +49,13 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   }
 
   val langs: Langs = new EnglishLang
+
+  val options = Map(
+    "openRecords" -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
+    "transferLegalOwnership" -> "I confirm that I am transferring legal ownership of these records to The National Archives."
+  )
+
+  val checkHtmlOfFormOptions = new CheckHtmlOfFormOptions(options)
   val consignmentId: UUID = UUID.randomUUID()
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
@@ -70,24 +77,25 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val confirmTransferPage = controller.confirmTransfer(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
 
+      val confirmTransferPageAsString = contentAsString(confirmTransferPage)
+
       playStatus(confirmTransferPage) mustBe OK
       contentType(confirmTransferPage) mustBe Some("text/html")
-      contentAsString(confirmTransferPage) must include("Confirm transfer")
+      confirmTransferPageAsString must include("Confirm transfer")
 
-      contentAsString(confirmTransferPage) must include("Series reference")
-      contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.series.get.code)
+      confirmTransferPageAsString must include("Series reference")
+      confirmTransferPageAsString must include(consignmentSummaryResponse.series.get.code)
 
-      contentAsString(confirmTransferPage) must include("Transferring body")
-      contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.transferringBody.get.name)
+      confirmTransferPageAsString must include("Transferring body")
+      confirmTransferPageAsString must include(consignmentSummaryResponse.transferringBody.get.name)
 
-      contentAsString(confirmTransferPage) must include("Files uploaded for transfer")
-      contentAsString(confirmTransferPage) must include(s"${consignmentSummaryResponse.totalFiles} files uploaded")
+      confirmTransferPageAsString must include("Files uploaded for transfer")
+      confirmTransferPageAsString must include(s"${consignmentSummaryResponse.totalFiles} files uploaded")
 
-      contentAsString(confirmTransferPage) must include("Consignment reference")
-      contentAsString(confirmTransferPage) must include(consignmentSummaryResponse.consignmentReference)
+      confirmTransferPageAsString must include("Consignment reference")
+      confirmTransferPageAsString must include(consignmentSummaryResponse.consignmentReference)
 
-      contentAsString(confirmTransferPage) must include("I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
-      contentAsString(confirmTransferPage) must include("I confirm that I am transferring legal ownership of these records to The National Archives.")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -150,22 +158,27 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = false)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = false): _*)
+          .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
           .withCSRFToken)
+
+      val confirmTransferPageAsString = contentAsString(finalTransferConfirmationSubmitResult)
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
-      contentAsString(finalTransferConfirmationSubmitResult) must include("govuk-error-message")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("error")
+      confirmTransferPageAsString must include("govuk-error-message")
+      confirmTransferPageAsString must include("error")
 
-      contentAsString(finalTransferConfirmationSubmitResult) must include("There is a problem")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("#error-transferLegalOwnership")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("Transferral of legal ownership of all records must be confirmed before proceeding")
+      confirmTransferPageAsString must include("There is a problem")
+      confirmTransferPageAsString must include("#error-transferLegalOwnership")
+      confirmTransferPageAsString must include("Transferral of legal ownership of all records must be confirmed before proceeding")
 
-      contentAsString(finalTransferConfirmationSubmitResult) must not include "#error-openRecords"
-      contentAsString(finalTransferConfirmationSubmitResult) must not include "All records must be confirmed as open before proceeding"
+      confirmTransferPageAsString must not include "#error-openRecords"
+      confirmTransferPageAsString must not include "All records must be confirmed as open before proceeding"
+
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, incompleteTransferConfirmationForm.toMap)
     }
 
     "display correct error when only the transfer legal ownership option is selected and the final transfer confirmation form is submitted" in {
@@ -177,22 +190,27 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = false, transferLegalOwnershipValue = true)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = false, transferLegalOwnershipValue = true): _*)
+          .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
           .withCSRFToken)
+
+      val confirmTransferPageAsString = contentAsString(finalTransferConfirmationSubmitResult)
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
-      contentAsString(finalTransferConfirmationSubmitResult) must include("govuk-error-message")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("error")
+      confirmTransferPageAsString must include("govuk-error-message")
+      confirmTransferPageAsString must include("error")
 
-      contentAsString(finalTransferConfirmationSubmitResult) must include("There is a problem")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("#error-openRecords")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("All records must be confirmed as open before proceeding")
+      confirmTransferPageAsString must include("There is a problem")
+      confirmTransferPageAsString must include("#error-openRecords")
+      confirmTransferPageAsString must include("All records must be confirmed as open before proceeding")
 
-      contentAsString(finalTransferConfirmationSubmitResult) must not include "#error-transferLegalOwnership"
-      contentAsString(finalTransferConfirmationSubmitResult) must not include "Transferral of legal ownership of all records must be confirmed before"
+      confirmTransferPageAsString must not include "#error-transferLegalOwnership"
+      confirmTransferPageAsString must not include "Transferral of legal ownership of all records must be confirmed before"
+
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, incompleteTransferConfirmationForm.toMap)
     }
 
     "add a final transfer confirmation when a valid form is submitted and the api response is successful" in {
