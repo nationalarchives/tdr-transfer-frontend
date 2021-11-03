@@ -134,19 +134,19 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = false, transferLegalOwnershipValue = false): _*)
           .withCSRFToken)
+
+      val confirmTransferPageAsString = contentAsString(finalTransferConfirmationSubmitResult)
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
-      contentAsString(finalTransferConfirmationSubmitResult) must include("govuk-error-message")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("error")
+      confirmTransferPageAsString must include("govuk-error-message")
+      confirmTransferPageAsString must include("error")
 
-      contentAsString(finalTransferConfirmationSubmitResult) must include("There is a problem")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("#error-openRecords")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("#error-transferLegalOwnership")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("All records must be confirmed as open before proceeding")
-      contentAsString(finalTransferConfirmationSubmitResult) must include("Transferral of legal ownership of all records must be confirmed before proceeding")
+      confirmTransferPageAsString must include("There is a problem")
+      confirmTransferPageAsString must include("#error-openRecords")
+      confirmTransferPageAsString must include("#error-transferLegalOwnership")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
     }
 
     "display correct error when only the open records option is selected and the final transfer confirmation form is submitted" in {
