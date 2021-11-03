@@ -4,6 +4,14 @@
 @import views.html.partials.{errorSummary, inputSingleCheckbox, progressIndicator}
 
 @(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData])(implicit request: RequestHeader, messages: Messages)
+@shouldOptionBeSelected(option: String) = @{
+  val optionSelected = finalTransferConfirmationForm.data.get(option)
+  optionSelected match {
+    case Some(value) => "checked"
+    case None => ""
+  }
+}
+
 @main("Confirm transfer") {
 @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
@@ -65,7 +73,7 @@
                     Symbol("_label") -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
                     Symbol("_value") -> "true",
                     Symbol("_smallCheckbox") -> true,
-                    Symbol("_checkedOption") -> finalTransferConfirmationForm.data.getOrElse("openRecords", ""),
+                    Symbol("_checkedOption") -> shouldOptionBeSelected("openRecords"),
                     Symbol("_requiredOption") -> true
                     )
                     @inputSingleCheckbox(
@@ -73,7 +81,7 @@
                     Symbol("_label") -> "I confirm that I am transferring legal ownership of these records to The National Archives.",
                     Symbol("_value") -> "true",
                     Symbol("_smallCheckbox") -> true,
-                    Symbol("_checkedOption") -> finalTransferConfirmationForm.data.getOrElse("transferLegalOwnership", ""),
+                    Symbol("_checkedOption") -> shouldOptionBeSelected("transferLegalOwnership"),
                     Symbol("_requiredOption") -> true
                     )
                 </fieldset>
