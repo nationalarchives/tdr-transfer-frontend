@@ -10,8 +10,8 @@
   if(formAlreadySubmitted) {
     "checked"
   } else {
-    val optionHasBeenSelected = transferAgreementFormData.data.get(option)
-    optionHasBeenSelected match {
+    val optionSelected = transferAgreementFormData.data.get(option)
+    optionSelected match {
       case Some(value) => "checked"
       case None => ""
     }
