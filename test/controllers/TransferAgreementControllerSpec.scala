@@ -77,7 +77,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement" method="POST" novalidate="">""")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, Map())
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
