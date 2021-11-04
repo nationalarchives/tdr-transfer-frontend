@@ -11,12 +11,13 @@ import views.html.helper.FieldElements
 
 class FormFunctionSpec extends FrontEndTestHelper {
 
+  val form: Form[TestData] = Form(
+    mapping(
+      "id" -> nonEmptyText
+    )(TestData.apply)(TestData.unapply)
+  )
+
   def getFieldElements(errors: Map[Symbol, String]): FieldElements = {
-    val form = Form(
-      mapping(
-        "id" -> nonEmptyText
-      )(TestData.apply)(TestData.unapply)
-    )
     val field = Field(form, "", Seq(), Option.empty, Seq(), Option.empty)
     val fieldElements: FieldElements = new FieldElements("", field, Html(""), errors, MessagesImpl(Lang.forCode("en-gb"), new DefaultMessagesApi()))
     fieldElements
@@ -84,6 +85,32 @@ class FormFunctionSpec extends FrontEndTestHelper {
     }
   }
 
+  "shouldOptionBeSelected" should {
+    "return checked if the form is already submitted" in {
+      val res = FormFunctions.formDataOptions(form)
+        .shouldOptionBeSelected("id", formAlreadySubmitted = true)
+      res should be("checked")
+    }
+
+    "return checked if the option is selected" in {
+      val filledForm = form.fill(TestData("test"))
+      val res = FormFunctions.formDataOptions(filledForm)
+        .shouldOptionBeSelected("id")
+      res should be("checked")
+    }
+
+    "return empty if the option is not selected" in {
+      val res = FormFunctions.formDataOptions(form)
+        .shouldOptionBeSelected("id")
+      res should be("")
+    }
+
+    "return empty if the option does not exist" in {
+      val res = FormFunctions.formDataOptions(form)
+        .shouldOptionBeSelected("invalid")
+      res should be("")
+    }
+  }
 }
 
 case class TestData(id: String)
