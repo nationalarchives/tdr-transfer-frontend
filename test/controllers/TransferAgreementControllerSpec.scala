@@ -170,7 +170,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
-      val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(6)
+      val incompleteTransferAgreementForm: Seq[(String, String)] = Seq()
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
