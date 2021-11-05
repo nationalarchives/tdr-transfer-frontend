@@ -1,8 +1,10 @@
 package controllers
 
+import configuration.GraphQLConfiguration
 import org.scalatest.Matchers._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status, _}
+import services.ConsignmentService
 import util.FrontEndTestHelper
 
 import scala.concurrent.ExecutionContext
@@ -10,12 +12,16 @@ import scala.concurrent.ExecutionContext
 class DashboardControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
+  val consignmentService = new ConsignmentService(new GraphQLConfiguration(app.configuration))
+
   "DashboardController GET" should {
 
     "render the dashboard page with an authenticated user with no user type" in {
       val controller = new DashboardController(
         getAuthorisedSecurityComponents,
-        getValidKeycloakConfiguration)
+        getValidKeycloakConfiguration,
+        consignmentService
+      )
       val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
       status(dashboardPage) mustBe OK
       contentType(dashboardPage) mustBe Some("text/html")
@@ -27,7 +33,8 @@ class DashboardControllerSpec extends FrontEndTestHelper {
     "render the dashboard page with an authenticated standard user" in {
       val controller = new DashboardController(
         getAuthorisedSecurityComponents,
-        getValidStandardUserKeycloakConfiguration)
+        getValidStandardUserKeycloakConfiguration,
+        consignmentService)
       val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
       status(dashboardPage) mustBe OK
       contentType(dashboardPage) mustBe Some("text/html")
@@ -39,7 +46,8 @@ class DashboardControllerSpec extends FrontEndTestHelper {
     "render the judgment dashboard page with an authenticated judgment user" in {
       val controller = new DashboardController(
         getAuthorisedSecurityComponents,
-        getValidJudgmentUserKeycloakConfiguration)
+        getValidJudgmentUserKeycloakConfiguration,
+        consignmentService)
       val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
       status(dashboardPage) mustBe OK
       contentType(dashboardPage) mustBe Some("text/html")
@@ -52,7 +60,8 @@ class DashboardControllerSpec extends FrontEndTestHelper {
     "return a redirect to the auth server with an unauthenticated user" in {
       val controller = new DashboardController(
         getUnauthorisedSecurityComponents,
-        getValidKeycloakConfiguration)
+        getValidKeycloakConfiguration,
+        consignmentService)
       val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
       redirectLocation(dashboardPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       status(dashboardPage) mustBe FOUND

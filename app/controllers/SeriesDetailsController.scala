@@ -48,7 +48,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
 
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
       consignmentService
-        .createConsignment(UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
+        .createConsignment(Option(UUID.fromString(formData.seriesId)), request.token.bearerAccessToken)
         .map(consignment => {
           Redirect(routes.TransferAgreementController.transferAgreement(consignment.consignmentid.get))
         })
