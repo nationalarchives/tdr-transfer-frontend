@@ -1,9 +1,25 @@
 package viewsapi
 
+import play.api.data.Form
 import views.html.helper.FieldElements
 
 object FormFunctions {
   val requiredInputArg: Symbol = Symbol("_requiredOption")
+
+  class FormDataOptions[T](args: Form[T]) {
+
+    def shouldOptionBeSelected(option: String, formAlreadySubmitted: Boolean = false): String = {
+      if(formAlreadySubmitted) {
+        "checked"
+      } else {
+        val optionSelected = args.data.get(option)
+        optionSelected match {
+          case Some(_) => "checked"
+          case None => ""
+        }
+      }
+    }
+  }
 
   class InputRenderOptions(args: Map[Symbol, Any]) {
 
@@ -30,4 +46,6 @@ object FormFunctions {
   implicit def errorHandling(elements: FieldElements): ErrorHandling = new ErrorHandling(elements)
 
   implicit def inputRenderOptions(args: Map[Symbol, Any]): InputRenderOptions = new InputRenderOptions(args)
+
+  implicit def formDataOptions[T](args: Form[T]): FormDataOptions[T] = new FormDataOptions(args)
 }
