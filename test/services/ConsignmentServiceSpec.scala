@@ -12,7 +12,7 @@ import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.GetConsignment
 import graphql.codegen.types.AddConsignmentInput
 import org.keycloak.representations.AccessToken
-import org.mockito.{Mock, Mockito}
+import org.mockito.Mockito
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}

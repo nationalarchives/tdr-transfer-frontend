@@ -39,7 +39,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
   def createConsignment(seriesId: UUID, token: Token): Future[addConsignment.AddConsignment] = {
     val consignmentType = token.judgmentUser match {
-      case Some(value) => token.judgmentUser
+      case Some(_) => token.judgmentUser
       case _ => Some("standard")
     }
     val addConsignmentInput: AddConsignmentInput = AddConsignmentInput(seriesId, consignmentType)
