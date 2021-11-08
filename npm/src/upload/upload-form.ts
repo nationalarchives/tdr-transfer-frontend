@@ -148,12 +148,18 @@ export class UploadForm {
     ev.preventDefault()
     const items: DataTransferItemList = ev.dataTransfer?.items!
     if (items.length > 1) {
-      this.rejectUserItemSelection()
+      this.rejectUserItemSelection(
+        this.warningMessages?.incorrectItemSelectedMessage,
+        "Only one folder is allowed to be selected"
+      )
     }
     const droppedItem: DataTransferItem | null = items[0]
     const webkitEntry = droppedItem.webkitGetAsEntry()
     if (webkitEntry!.isFile) {
-      this.rejectUserItemSelection()
+      this.rejectUserItemSelection(
+        this.warningMessages?.incorrectItemSelectedMessage,
+        "Only folders are allowed to be selected"
+      )
     }
     this.removeDragover()
     const files = await getAllFiles(webkitEntry, [])
@@ -196,11 +202,10 @@ export class UploadForm {
       this.folderUploader(this.selectedFiles, uploadFilesInfo)
     } else {
       this.successMessage?.setAttribute("hidden", "true")
-      this.warningMessages.nonFolderSelectedMessage?.setAttribute(
+      this.warningMessages.incorrectItemSelectedMessage?.setAttribute(
         "hidden",
         "true"
       )
-
       this.warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute(
         "hidden"
       )
@@ -219,13 +224,15 @@ export class UploadForm {
   readonly warningMessages: {
     [s: string]: HTMLElement | null
   } = {
-    nonFolderSelectedMessage: document.querySelector(
-      "#folder-selection-failure"
+    incorrectItemSelectedMessage: document.querySelector(
+      "#item-selection-failure"
     ),
-    submissionWithoutAFolderSelectedMessage: document.querySelector(
-      "#no-folder-submission-message"
-    )
+    submissionWithoutSelectionMessage: document.querySelector(
+      "#nothing-selected-submission-message"
+    ),
+    duplicateFileNameMessage: document.querySelector("#duplicate-name-message")
   }
+
   readonly successMessage: HTMLElement | null = document.querySelector(
     ".drag-and-drop__success"
   )
@@ -253,7 +260,10 @@ export class UploadForm {
 
   private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void {
     if (files === null || files.length === 0) {
-      this.rejectUserItemSelection()
+      this.rejectUserItemSelection(
+        this.warningMessages?.incorrectItemSelectedMessage,
+        "The folder is empty"
+      )
     }
   }
 
@@ -281,20 +291,29 @@ export class UploadForm {
     this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
   }
 
-  private rejectUserItemSelection() {
+  private rejectUserItemSelection(
+    warningMessageToReveal: HTMLElement | null,
+    exceptionMessage: string
+  ) {
     this.selectedFiles = []
     this.removeDragover()
 
-    this.warningMessages.submissionWithoutAFolderSelectedMessage?.setAttribute(
-      "hidden",
-      "true"
+    const warningMessages: (HTMLElement | null)[] = Object.values(
+      this.warningMessages
     )
+
+    for (const warningMessage of warningMessages) {
+      if (warningMessage != warningMessageToReveal) {
+        warningMessage?.setAttribute("hidden", "true")
+      }
+    }
+
     this.successMessage?.setAttribute("hidden", "true")
 
-    this.warningMessages.nonFolderSelectedMessage?.removeAttribute("hidden")
-    this.warningMessages.nonFolderSelectedMessage?.focus()
+    warningMessageToReveal?.removeAttribute("hidden")
+    warningMessageToReveal?.focus()
 
-    throw new Error("No files selected")
+    throw new Error(exceptionMessage)
   }
 
   private displayFolderSelectionSuccessMessage(
