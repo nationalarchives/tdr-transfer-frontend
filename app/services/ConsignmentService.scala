@@ -14,6 +14,7 @@ import graphql.codegen.types.AddConsignmentInput
 import graphql.codegen.{AddConsignment, GetConsignment, GetFileCheckProgress}
 import javax.inject.{Inject, Singleton}
 import services.ApiErrorHandling._
+import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,11 +37,15 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       .map(data => data.getConsignment.isDefined)
   }
 
-  def createConsignment(seriesId: UUID, token: BearerAccessToken): Future[addConsignment.AddConsignment] = {
-    val addConsignmentInput: AddConsignmentInput = AddConsignmentInput(seriesId)
+  def createConsignment(seriesId: UUID, token: Token): Future[addConsignment.AddConsignment] = {
+    val consignmentType = token.judgmentUser match {
+      case Some(_) => token.judgmentUser
+      case _ => Some("standard")
+    }
+    val addConsignmentInput: AddConsignmentInput = AddConsignmentInput(seriesId, consignmentType)
     val variables: addConsignment.Variables = AddConsignment.addConsignment.Variables(addConsignmentInput)
 
-    sendApiRequest(addConsignmentClient, addConsignment.document, token, variables)
+    sendApiRequest(addConsignmentClient, addConsignment.document, token.bearerAccessToken, variables)
       .map(data => data.addConsignment)
   }
 
