@@ -122,7 +122,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val seriesId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val consignmentResponse: ac.AddConsignment = new ac.AddConsignment(Some(consignmentId), seriesId)
+      val consignmentResponse: ac.AddConsignment = new ac.AddConsignment(Some(consignmentId), Some(seriesId))
       val data: client.GraphqlData = client.GraphqlData(Some(ac.Data(consignmentResponse)), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
