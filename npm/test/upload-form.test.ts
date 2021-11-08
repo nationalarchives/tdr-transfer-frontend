@@ -92,7 +92,7 @@ class MockDom {
                                        <p id="success-message-text">The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
                                     </div>
                                  </dd>
-                                 <dd id="folder-selection-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden=""
+                                 <dd id="item-selection-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden=""
                                     tabindex="-1" role="alert" aria-describedby="non-folder-selected-message-text">
                                     <div>
                                        <span class="drag-and-drop__error">
@@ -103,7 +103,7 @@ class MockDom {
                                        <p id="non-folder-selected-message-text">You can only drop a single folder</p>
                                     </div>
                                  </dd>
-                                 <dd id="no-folder-submission-message" class="govuk-summary-list__value drag-and-drop__failure" hidden=""
+                                 <dd id="nothing-selected-submission-message" class="govuk-summary-list__value drag-and-drop__failure" hidden=""
                                       tabindex="-1" role="alert" aria-describedby="submission-without-a-folder-message-text">
                                     <div>
                                        <span class="drag-and-drop__error">
@@ -294,19 +294,20 @@ class MockDom {
   warningMessages: {
     [s: string]: HTMLElement | null
   } = {
-    nonFolderSelectedMessage: document.querySelector(
-      "#folder-selection-failure"
+    incorrectItemSelectedMessage: document.querySelector(
+      "#item-selection-failure"
     ),
-    submissionWithoutAFolderSelectedMessage: document.querySelector(
-      "#no-folder-submission-message"
+    submissionWithoutSelectionMessage: document.querySelector(
+      "#nothing-selected-submission-message"
     )
   }
 
   hiddenInputButton: HTMLElement | null =
     document.querySelector("#file-selection")
 
-  submitButton: HTMLElement | null =
-    document.querySelector("#start-upload-button")
+  submitButton: HTMLElement | null = document.querySelector(
+    "#start-upload-button"
+  )
 
   fileUploader = this.setUpFileUploader()
 
@@ -346,10 +347,10 @@ test("clicking the submit button, without selecting a folder, displays a warning
   await mockDom.form.handleFormSubmission(submitEvent)
 
   expect(
-    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+    mockDom.warningMessages.submissionWithoutSelectionMessage
   ).not.toHaveAttribute("hidden", "true")
 
-  expect(mockDom.warningMessages.nonFolderSelectedMessage).toHaveAttribute(
+  expect(mockDom.warningMessages.incorrectItemSelectedMessage).toHaveAttribute(
     "hidden",
     "true"
   )
@@ -411,15 +412,15 @@ test("dropzone updates the page with an error if there are no files in folder", 
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
-    Error("No files selected")
+    Error("The folder is empty")
   )
 
-  expect(mockDom.warningMessages.nonFolderSelectedMessage).not.toHaveAttribute(
+  expect(mockDom.warningMessages.incorrectItemSelectedMessage).not.toHaveAttribute(
     "hidden",
     "true"
   )
   expect(
-    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+    mockDom.warningMessages.submissionWithoutSelectionMessage
   ).toHaveAttribute("hidden", "true")
   expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute(
     "hidden",
@@ -484,15 +485,15 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
-    Error("No files selected")
+    Error("Only one folder is allowed to be selected")
   )
 
-  expect(mockDom.warningMessages.nonFolderSelectedMessage).not.toHaveAttribute(
+  expect(mockDom.warningMessages.incorrectItemSelectedMessage).not.toHaveAttribute(
     "hidden",
     "true"
   )
   expect(
-    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+    mockDom.warningMessages.submissionWithoutSelectionMessage
   ).toHaveAttribute("hidden", "true")
   expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute(
     "hidden",
@@ -511,15 +512,15 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
-    Error("No files selected")
+    Error("Only one folder is allowed to be selected")
   )
 
-  expect(mockDom.warningMessages.nonFolderSelectedMessage).not.toHaveAttribute(
+  expect(mockDom.warningMessages.incorrectItemSelectedMessage).not.toHaveAttribute(
     "hidden",
     "true"
   )
   expect(
-    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+    mockDom.warningMessages.submissionWithoutSelectionMessage
   ).toHaveAttribute("hidden", "true")
   expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute(
     "hidden",
@@ -538,15 +539,15 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
-    Error("No files selected")
+    Error("Only folders are allowed to be selected")
   )
 
-  expect(mockDom.warningMessages.nonFolderSelectedMessage).not.toHaveAttribute(
+  expect(mockDom.warningMessages.incorrectItemSelectedMessage).not.toHaveAttribute(
     "hidden",
     "true"
   )
   expect(
-    mockDom.warningMessages.submissionWithoutAFolderSelectedMessage
+    mockDom.warningMessages.submissionWithoutSelectionMessage
   ).toHaveAttribute("hidden", "true")
   expect(mockDom.folderRetrievalSuccessMessage).toHaveAttribute(
     "hidden",
