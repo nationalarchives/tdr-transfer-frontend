@@ -36,7 +36,6 @@ const getAllFiles: (
 ) => Promise<IFileWithPath[]> = async (entry, fileInfoInput) => {
   const reader: IReader = entry.createReader()
   const entries: IWebkitEntry[] = await getEntriesFromReader(reader)
-
   for (const entry of entries) {
     if (entry.isDirectory) {
       await getAllFiles(entry, fileInfoInput)
@@ -84,6 +83,7 @@ const getEntryBatch: (reader: IReader) => Promise<IWebkitEntry[]> = (
 }
 
 export class UploadForm {
+  isJudgmentUser: boolean
   formElement: HTMLFormElement
   folderRetriever: HTMLInputElement
   dropzone: HTMLElement
@@ -94,6 +94,7 @@ export class UploadForm {
   ) => void
 
   constructor(
+    isJudgmentUser: boolean,
     formElement: HTMLFormElement,
     folderRetriever: HTMLInputElement,
     dropzone: HTMLElement,
@@ -102,6 +103,7 @@ export class UploadForm {
       uploadFilesInfo: FileUploadInfo
     ) => void
   ) {
+    this.isJudgmentUser = isJudgmentUser
     this.formElement = formElement
     this.folderRetriever = folderRetriever
     this.dropzone = dropzone

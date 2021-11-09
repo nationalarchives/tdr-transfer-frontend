@@ -312,6 +312,7 @@ class MockDom {
   fileUploader = this.setUpFileUploader()
 
   form = new UploadForm(
+    false,
     this.uploadForm!,
     this.folderRetriever!,
     this.dropzone!,

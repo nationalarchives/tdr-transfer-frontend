@@ -6,8 +6,16 @@ import { FileUploadInfo, UploadForm } from "./upload-form"
 import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError } from "../errorhandling"
-import { KeycloakInstance } from "keycloak-js"
+import Keycloak, { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
 import { scheduleTokenRefresh } from "../auth"
+
+interface IKeycloakInstanceWithJudgmentUser extends KeycloakInstance {
+  tokenParsed: IKeycloakTokenParsedWithJudgmentUser
+}
+
+interface IKeycloakTokenParsedWithJudgmentUser extends KeycloakTokenParsed {
+  judgment_user: boolean | undefined
+}
 
 export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
   e.preventDefault()
@@ -19,7 +27,7 @@ export class FileUploader {
   updateConsignmentStatus: UpdateConsignmentStatus
   stage: string
   goToNextPage: () => void
-  keycloak: KeycloakInstance
+  keycloak: IKeycloakInstanceWithJudgmentUser
   uploadUrl: string
 
   constructor(
@@ -27,7 +35,7 @@ export class FileUploader {
     updateConsignmentStatus: UpdateConsignmentStatus,
     frontendInfo: IFrontEndInfo,
     goToNextPage: () => void,
-    keycloak: KeycloakInstance
+    keycloak: IKeycloakInstanceWithJudgmentUser
   ) {
     this.clientFileProcessing = new ClientFileProcessing(
       clientFileMetadataUpload,
@@ -74,6 +82,10 @@ export class FileUploader {
   }
 
   initialiseFormListeners(): void {
+    const checkIfJudgmentUserExists: boolean | undefined =
+      this.keycloak.tokenParsed!.judgment_user
+    const isJudgmentUser: boolean = checkIfJudgmentUserExists != undefined
+
     const uploadForm: HTMLFormElement | null =
       document.querySelector("#file-upload-form")
 
@@ -86,6 +98,7 @@ export class FileUploader {
 
     if (uploadForm && folderRetriever && dropzone) {
       const form = new UploadForm(
+        isJudgmentUser,
         uploadForm,
         folderRetriever,
         dropzone,
