@@ -109,7 +109,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
 
     "create a consignment of type 'standard' with the given series when standard user type provided" in {
       val standardUserToken: Token = mock[Token]
-      when(standardUserToken.standardUser).thenReturn(Some("standard"))
+      when(standardUserToken.isStandardUser).thenReturn(true)
       when(standardUserToken.bearerAccessToken).thenReturn(bearerAccessToken)
 
       val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), Some(seriesId)))), Nil)
@@ -124,7 +124,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
 
     "create a consignment of type 'judgment' with the given series when judgment user type provided" in {
       val judgmentUserToken: Token = mock[Token]
-      when(judgmentUserToken.judgmentUser).thenReturn(Some("judgment"))
+      when(judgmentUserToken.isJudgmentUser).thenReturn(true)
       when(judgmentUserToken.bearerAccessToken).thenReturn(bearerAccessToken)
       val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), Some(seriesId)))), Nil)
       val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(Some(seriesId), Some("judgment"))))
