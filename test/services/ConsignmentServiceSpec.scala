@@ -122,16 +122,16 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
       Mockito.verify(addConsignmentClient).getResult(bearerAccessToken, addConsignment.document, expectedVariables)
     }
 
-    "create a consignment of type 'judgment' with the given series when judgment user type provided" in {
+    "create a consignment of type 'judgment' when judgment user type provided" in {
       val judgmentUserToken: Token = mock[Token]
       when(judgmentUserToken.isJudgmentUser).thenReturn(true)
       when(judgmentUserToken.bearerAccessToken).thenReturn(bearerAccessToken)
-      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), Some(seriesId)))), Nil)
-      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(Some(seriesId), Some("judgment"))))
+      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), None))), Nil)
+      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(None, Some("judgment"))))
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
 
-      consignmentService.createConsignment(Some(seriesId), judgmentUserToken)
+      consignmentService.createConsignment(None, judgmentUserToken)
 
       Mockito.verify(addConsignmentClient).getResult(bearerAccessToken, addConsignment.document, expectedVariables)
     }
