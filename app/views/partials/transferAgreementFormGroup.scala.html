@@ -1,22 +1,11 @@
 @* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
 @import helper.{inputRadioGroup => _, _}
-
+@import viewsapi.FormFunctions._
 @import scala.language.postfixOps
 @import views.html.partials.inputSingleCheckbox
 
 @(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted: Boolean)(implicit request: RequestHeader, messages: Messages)
 @disabledStatus = {@if(formAlreadySubmitted) {disabled} else {}}
-@shouldOptionBeSelected(option: String, formAlreadySubmitted: Boolean) = @{
-  if(formAlreadySubmitted) {
-    "checked"
-  } else {
-    val optionHasBeenSelected = transferAgreementFormData.data.get(option)
-    optionHasBeenSelected match {
-      case Some(value) => "checked"
-      case None => ""
-    }
-  }
-}
 
 <div class="govuk-form-group">
   @if(!formAlreadySubmitted) @{CSRF.formField} else {}
@@ -25,7 +14,7 @@
         Symbol("_label") -> "I confirm that the records are Public Records.",
         Symbol("_value") -> "true",
         Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> shouldOptionBeSelected("publicRecord", formAlreadySubmitted),
+        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("publicRecord", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
         Symbol("_disabledOption") -> disabledStatus
     )
@@ -34,7 +23,7 @@
         Symbol("_label") -> "I confirm that the records are all Crown Copyright.",
         Symbol("_value") -> "true",
         Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> shouldOptionBeSelected("crownCopyright", formAlreadySubmitted),
+        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("crownCopyright", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
         Symbol("_disabledOption") -> disabledStatus
     )
@@ -43,7 +32,7 @@
         Symbol("_label") -> "I confirm that the records are all in English.",
         Symbol("_value") -> "true",
         Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> shouldOptionBeSelected("english", formAlreadySubmitted),
+        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("english", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
         Symbol("_disabledOption") -> disabledStatus
     )
@@ -53,7 +42,7 @@
         Symbol("_label") -> "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection decision.",
         Symbol("_value") -> "true",
         Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> shouldOptionBeSelected("droAppraisalSelection", formAlreadySubmitted),
+        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("droAppraisalSelection", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
         Symbol("_disabledOption") -> disabledStatus
     )
@@ -62,7 +51,7 @@
         Symbol("_label") -> "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
         Symbol("_value") -> "true",
         Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> shouldOptionBeSelected("droSensitivity", formAlreadySubmitted),
+        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("droSensitivity", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
         Symbol("_disabledOption") -> disabledStatus
     )
@@ -71,7 +60,7 @@
         Symbol("_label") -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
         Symbol("_value") -> "true",
         Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> shouldOptionBeSelected("openRecords", formAlreadySubmitted),
+        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("openRecords", formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
         Symbol("_disabledOption") -> disabledStatus
     )
