@@ -1,7 +1,5 @@
 import Keycloak, { KeycloakInstance } from "keycloak-js"
-import {
-  IKeycloakTokenParsedWithJudgmentUser
-} from "../upload"
+import { IKeycloakTokenParsedWithJudgmentUser } from "../upload"
 import { LoggedOutError } from "../errorhandling"
 
 export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
