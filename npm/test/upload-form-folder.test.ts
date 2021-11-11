@@ -565,7 +565,7 @@ test("dropzone clears selected files if an invalid file is dropped after a valid
 
   const invalidDragEventClass = mockDom.addFilesToDragEvent(
     [dummyFolder],
-    mockDom.directoryEntry
+    mockDom.fileEntry
   )
 
   expect(mockDom.form.selectedFiles).toHaveLength(2)
