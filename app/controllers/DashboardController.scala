@@ -15,9 +15,7 @@ class DashboardController @Inject()(val controllerComponents: SecurityComponents
                                    (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport  {
 
   def dashboard(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] => {
-      val isJudgmentUser = request.token.judgmentUser.getOrElse("false").toBoolean
-
-      if (isJudgmentUser) {
+      if (request.token.isJudgmentUser) {
         Ok(views.html.judgmentDashboard())
       } else {
         Ok(views.html.dashboard())
