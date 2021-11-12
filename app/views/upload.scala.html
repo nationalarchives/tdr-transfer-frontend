@@ -2,6 +2,8 @@
 @import viewsapi.FrontEndInfo
 @import helper._
 @import views.html.partials.{frontEndInputs, greenTickMark, itemSelectionFailureMessage, progressIndicator}
+@import views.html.partials.noScriptMessage
+@import views.html.partials.loggedOutErrorMessage
 @(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
 
 @main("Upload your records") {
@@ -10,16 +12,7 @@
         <div class="govuk-grid-column-two-thirds">
             @progressIndicator(Messages("upload.progress"))
             <h1 class="govuk-heading-l">Upload your records</h1>
-            <div id="upload-noscript-error" class="govuk-error-summary upload-error" aria-labelledby="error-noscript-title"
-            role="alert" tabindex="0" data-module="govuk-error-summary">
-                <h2 class="govuk-error-summary__title" id="error-noscript-title">
-                There is a problem
-                </h2>
-                <div class="govuk-error-summary__body">
-                    <p>Javascript must be enabled on your browser to upload files and proceed with the transfer.</p>
-                    <p>Please check your settings to enable Javascript and refresh the page to try again. Alternatively, you can contact your IT department to resolve this issue.</p>
-                </div>
-            </div>
+            @noScriptMessage()
         </div>
     </div>
 </noscript>
@@ -44,19 +37,7 @@
                 <p class="upload-error__message"></p>
             </div>
         </div>
-        <div id="logged-out-error" class="govuk-error-summary logged-out-error" hidden aria-labelledby="logged-out-error-title"
-             role="alert" tabindex="-1" data-module="govuk-error-summary">
-            <h2 class="govuk-error-summary__title logged-out-title" id="logged-out-error-title">
-                You have been signed out due to inactivity
-            </h2>
-            <div class="govuk-error-summary__body logged-out-body">
-                <ul class="govuk-list govuk-error-summary__list">
-                    <li>
-                        <p><a class="logged-out-error-link">Sign in</a></p>
-                    </li>
-                </ul>
-            </div>
-        </div>
+        @loggedOutErrorMessage()
         <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <div class="drag-and-drop">
