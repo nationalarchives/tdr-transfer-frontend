@@ -9,11 +9,11 @@ import { handleUploadError } from "../errorhandling"
 import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
 import { scheduleTokenRefresh } from "../auth"
 
-export interface IKeycloakInstanceWithJudgmentUser extends KeycloakInstance {
-  tokenParsed: IKeycloakTokenParsedWithJudgmentUser
+export interface IKeycloakInstance extends KeycloakInstance {
+  tokenParsed: IKeycloakTokenParsed
 }
 
-export interface IKeycloakTokenParsedWithJudgmentUser
+export interface IKeycloakTokenParsed
   extends KeycloakTokenParsed {
   judgment_user?: boolean
 }
@@ -28,7 +28,7 @@ export class FileUploader {
   updateConsignmentStatus: UpdateConsignmentStatus
   stage: string
   goToNextPage: () => void
-  keycloak: IKeycloakInstanceWithJudgmentUser
+  keycloak: IKeycloakInstance
   uploadUrl: string
 
   constructor(
@@ -45,7 +45,7 @@ export class FileUploader {
     this.updateConsignmentStatus = updateConsignmentStatus
     this.stage = frontendInfo.stage
     this.goToNextPage = goToNextPage
-    this.keycloak = keycloak as IKeycloakInstanceWithJudgmentUser
+    this.keycloak = keycloak as IKeycloakInstance
     this.uploadUrl = frontendInfo.uploadUrl
   }
 

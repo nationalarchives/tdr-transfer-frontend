@@ -4,7 +4,7 @@
 @import views.html.partials.{frontEndInputs, greenTickMark, itemSelectionFailureMessage, progressIndicator}
 @(judgmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
 
-@main("Upload your records") {
+@main("Upload your judgment") {
 <noscript>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
@@ -36,7 +36,7 @@
                 There is a problem
             </h2>
             <div class="govuk-error-summary__body">
-                <p>Some or all of your files failed to upload</p>
+                <p>Your file has failed to upload</p>
                 <p class="upload-error__message"></p>
             </div>
         </div>
@@ -113,7 +113,7 @@
                     There is a problem
                 </h2>
                 <div class="govuk-error-summary__body">
-                    <p>Some or all of your files failed to upload.</p>
+                    <p>Your file has failed to upload.</p>
                     <p class="upload-progress-error-timeout__message" hidden>Your upload has timed out. Click 'Return to start' to begin a new transfer.</p>
                     <p class="upload-progress-error-authentication__message" hidden>You have been signed out. Click 'Return to start' to begin a new transfer.</p>
                     <p class="upload-progress-error-general__message" hidden>Click 'Return to start' to begin a new transfer.</p>
