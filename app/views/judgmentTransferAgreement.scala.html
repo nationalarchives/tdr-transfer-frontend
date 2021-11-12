@@ -1,0 +1,17 @@
+@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@import helper.{inputRadioGroup => _, _}
+@import java.util.UUID
+
+@import scala.language.postfixOps
+@import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup}
+
+@(consignmentId: UUID)(implicit request: RequestHeader, messages: Messages)
+@main("Transfer agreement") {
+@defining(play.core.PlayVersion.current) { version =>
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1>Placeholder judgment transfer agreement form</h1>
+    </div>
+</div>
+}
+}

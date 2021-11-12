@@ -78,8 +78,8 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
   }
 
   //Placeholder for the judgment transfer agreement page
-  def judgmentTransferAgreement(consignmentId: UUID) = secureAction.async { implicit request: Request[AnyContent] =>
-    Future(Ok)
+  def judgmentTransferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    Future(Ok(views.html.judgmentTransferAgreement(consignmentId)))
   }
 }
 
