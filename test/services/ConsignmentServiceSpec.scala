@@ -43,7 +43,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
   private val bearerAccessToken = new BearerAccessToken("some-token")
   private val token = new Token(accessToken, bearerAccessToken)
   private val consignmentId = UUID.fromString("180f9166-fe3c-486e-b9ab-6dfa5f3058dc")
-  private val seriesId = UUID.fromString("d54a5118-33a0-4ba2-8030-d16efcf1d1f4")
+  private val seriesId = Some(UUID.fromString("d54a5118-33a0-4ba2-8030-d16efcf1d1f4"))
 
   override def afterEach(): Unit = {
     Mockito.reset(getConsignmentClient)
@@ -52,7 +52,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
 
   "consignmentExists" should {
     "return true when given a valid consignment id" in {
-      val response = GraphQlResponse(Some(gc.Data(Some(gc.GetConsignment(consignmentId, Some(seriesId))))), Nil)
+      val response = GraphQlResponse(Some(gc.Data(Some(gc.GetConsignment(consignmentId, seriesId)))), Nil)
       when(getConsignmentClient.getResult(bearerAccessToken, gc.document, Some(gc.Variables(consignmentId))))
         .thenReturn(Future.successful(response))
 
@@ -97,12 +97,12 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
       val noUserTypeToken = mock[Token]
       when(noUserTypeToken.bearerAccessToken).thenReturn(bearerAccessToken)
 
-      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), Some(seriesId)))), Nil)
-      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(Some(seriesId), Some("standard"))))
+      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
+      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
 
-      consignmentService.createConsignment(Some(seriesId), token)
+      consignmentService.createConsignment(seriesId, token)
 
       Mockito.verify(addConsignmentClient).getResult(bearerAccessToken, addConsignment.document, expectedVariables)
     }
@@ -112,12 +112,12 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
       when(standardUserToken.isStandardUser).thenReturn(true)
       when(standardUserToken.bearerAccessToken).thenReturn(bearerAccessToken)
 
-      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), Some(seriesId)))), Nil)
-      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(Some(seriesId), Some("standard"))))
+      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
+      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
 
-      consignmentService.createConsignment(Some(seriesId), standardUserToken)
+      consignmentService.createConsignment(seriesId, standardUserToken)
 
       Mockito.verify(addConsignmentClient).getResult(bearerAccessToken, addConsignment.document, expectedVariables)
     }
@@ -137,22 +137,22 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
     }
 
     "return the created consignment" in {
-      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), Some(seriesId)))), Nil)
+      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
       when(addConsignmentClient.getResult(
-        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(Some(seriesId), Some("standard"))))))
+        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))))
         .thenReturn(Future.successful(response))
 
-      val result = consignmentService.createConsignment(Some(seriesId), token).futureValue
+      val result = consignmentService.createConsignment(seriesId, token).futureValue
 
       result.consignmentid should contain(consignmentId)
     }
 
     "return an error when the API has an error" in {
       when(addConsignmentClient.getResult(
-        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(Some(seriesId), Some("standard"))))))
+        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))))
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-      val results = consignmentService.createConsignment(Some(seriesId), token)
+      val results = consignmentService.createConsignment(seriesId, token)
 
       results.failed.futureValue shouldBe a[HttpError]
     }
@@ -160,10 +160,10 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
     "throw an AuthorisationException if the API returns an auth error" in {
       val response = GraphQlResponse[addConsignment.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
       when(addConsignmentClient.getResult(
-        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(Some(seriesId), Some("standard"))))))
+        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))))
         .thenReturn(Future.successful(response))
 
-      val results = consignmentService.createConsignment(Some(seriesId), token).failed.futureValue
+      val results = consignmentService.createConsignment(seriesId, token).failed.futureValue
       results shouldBe a[AuthorisationException]
     }
   }
