@@ -70,9 +70,12 @@ class DashboardControllerSpec extends FrontEndTestHelper {
         getValidJudgmentUserKeycloakConfiguration,
         consignmentService)
       val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard").withCSRFToken)
-      val a = contentAsString(dashboardPage)
       status(dashboardPage) mustBe OK
       contentType(dashboardPage) mustBe Some("text/html")
+
+      contentAsString(dashboardPage) must include ("Welcome")
+      contentAsString(dashboardPage) must include ("Welcome to the Transfer Digital Records service")
+      contentAsString(dashboardPage) must include ("Upload your records to start a new transfer")
       //Judgment and standard dashboard pages are visually the same so check for the create consignment form.
       contentAsString(dashboardPage) must include("""<form action="/dashboard"""")
     }
