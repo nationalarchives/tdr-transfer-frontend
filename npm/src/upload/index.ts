@@ -13,8 +13,7 @@ export interface IKeycloakInstance extends KeycloakInstance {
   tokenParsed: IKeycloakTokenParsed
 }
 
-export interface IKeycloakTokenParsed
-  extends KeycloakTokenParsed {
+export interface IKeycloakTokenParsed extends KeycloakTokenParsed {
   judgment_user?: boolean
 }
 
@@ -83,9 +82,8 @@ export class FileUploader {
   }
 
   initialiseFormListeners(): void {
-    const checkIfJudgmentUserExists: boolean | undefined =
-      this.keycloak.tokenParsed?.judgment_user
-    const isJudgmentUser: boolean = checkIfJudgmentUserExists != undefined
+    const isJudgmentUser: boolean =
+      this.keycloak.tokenParsed?.judgment_user === true
 
     const uploadForm: HTMLFormElement | null =
       document.querySelector("#file-upload-form")
