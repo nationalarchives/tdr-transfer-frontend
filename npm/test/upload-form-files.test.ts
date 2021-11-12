@@ -384,9 +384,6 @@ test("clicking the submit button, without selecting a file, displays a warning m
   expect(mockDom.fileRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 })
 
-// docx test and wrong number of files test
-// add file name to page
-
 test("input button updates the page with correct number of files if only 1 file has been selected", () => {
   const mockDom = new MockDom()
   mockDom.fileUploader.initialiseFormListeners()
