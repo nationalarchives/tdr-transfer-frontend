@@ -1,7 +1,7 @@
 import { KeycloakTokenParsed } from "keycloak-js"
 import {
-  IKeycloakInstanceWithJudgmentUser,
-  IKeycloakTokenParsedWithJudgmentUser
+  IKeycloakInstance,
+  IKeycloakTokenParsed
 } from "../src/upload"
 import Mock = jest.Mock
 
@@ -12,7 +12,7 @@ export const createMockKeycloakInstance: (
   isTokenExpired?: boolean,
   refreshTokenParsed?: KeycloakTokenParsed,
   isJudgmentUser?: boolean
-) => IKeycloakInstanceWithJudgmentUser = (
+) => IKeycloakInstance = (
   updateToken = jest.fn(),
   isTokenExpired = false,
   refreshTokenParsed,
@@ -23,7 +23,7 @@ export const createMockKeycloakInstance: (
   }
   return {
     refreshTokenParsed,
-    tokenParsed: keycloakTokenParsed as IKeycloakTokenParsedWithJudgmentUser,
+    tokenParsed: keycloakTokenParsed as IKeycloakTokenParsed,
     init: jest.fn(),
     login: jest.fn(),
     logout: jest.fn(),
@@ -43,8 +43,8 @@ export const createMockKeycloakInstance: (
     loadUserInfo: jest.fn(),
     loadUserProfile: jest.fn(),
     token: "fake-auth-token"
-  } as IKeycloakInstanceWithJudgmentUser
+  } as IKeycloakInstance
 }
 
-export const mockKeycloakInstance: IKeycloakInstanceWithJudgmentUser =
+export const mockKeycloakInstance: IKeycloakInstance =
   createMockKeycloakInstance()

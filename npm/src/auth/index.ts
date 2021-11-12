@@ -1,5 +1,5 @@
 import Keycloak, { KeycloakInstance } from "keycloak-js"
-import { IKeycloakTokenParsedWithJudgmentUser } from "../upload"
+import { IKeycloakTokenParsed } from "../upload"
 import { LoggedOutError } from "../errorhandling"
 
 export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
@@ -25,7 +25,7 @@ export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
   }
 
 const isRefreshTokenExpired: (
-  token: IKeycloakTokenParsedWithJudgmentUser | undefined
+  token: IKeycloakTokenParsed | undefined
 ) => boolean = (token) => {
   const now = Math.round(new Date().getTime() / 1000)
   return token != undefined && token.exp != undefined && token.exp < now
