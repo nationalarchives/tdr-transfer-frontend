@@ -102,7 +102,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
 
-      consignmentService.createConsignment(Option(seriesId), token)
+      consignmentService.createConsignment(seriesId, token)
 
       Mockito.verify(addConsignmentClient).getResult(bearerAccessToken, addConsignment.document, expectedVariables)
     }
@@ -142,7 +142,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
         bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))))
         .thenReturn(Future.successful(response))
 
-      val result = consignmentService.createConsignment(seriesIdOption, token).futureValue
+      val result = consignmentService.createConsignment(seriesId, token).futureValue
 
       result.consignmentid should contain(consignmentId)
     }
@@ -152,7 +152,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
         bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))))
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-      val results = consignmentService.createConsignment(Option(seriesId), token)
+      val results = consignmentService.createConsignment(seriesId, token)
 
       results.failed.futureValue shouldBe a[HttpError]
     }
@@ -163,7 +163,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
         bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))))
         .thenReturn(Future.successful(response))
 
-      val results = consignmentService.createConsignment(Option(seriesId), token).failed.futureValue
+      val results = consignmentService.createConsignment(seriesId, token).failed.futureValue
       results shouldBe a[AuthorisationException]
     }
   }
