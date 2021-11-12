@@ -24,7 +24,7 @@ import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocatio
 import services.TransferAgreementService
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{EnglishLang, FrontEndTestHelper}
+import util.{EnglishLang, FrontEndTestHelper, CheckHtmlOfFormOptions}
 
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
@@ -44,6 +44,17 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
   }
 
   val langs: Langs = new EnglishLang
+
+  val options = Map(
+    "publicRecord" -> "I confirm that the records are Public Records.",
+    "crownCopyright" -> "I confirm that the records are all Crown Copyright.",
+    "english" -> "I confirm that the records are all in English.",
+    "droAppraisalSelection" -> "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
+    "droSensitivity" -> "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
+    "openRecords" -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records."
+  )
+
+  val checkHtmlOfFormOptions = new CheckHtmlOfFormOptions(options)
 
   "TransferAgreementController GET" should {
 
@@ -65,8 +76,8 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include(s"""<form action="/consignment/${consignmentId}/transfer-agreement" method="POST" novalidate="">""")
-      checkHtmlContentForDefaultText(transferAgreementPageAsString)
+      transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement" method="POST" novalidate="">""")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -126,7 +137,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
       val completedTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm()
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
           .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
           .withCSRFToken)
 
@@ -140,7 +151,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
       val completedTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm()
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
           .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
           .withCSRFToken)
 
@@ -159,13 +170,19 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
+      val incompleteTransferAgreementForm: Seq[(String, String)] = Seq()
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withCSRFToken)
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
+          .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
+          .withCSRFToken)
+      val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
-      contentAsString(transferAgreementSubmit) must include("govuk-error-message")
-      contentAsString(transferAgreementSubmit) must include("error")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, incompleteTransferAgreementForm.toMap)
+      transferAgreementPageAsString must include("govuk-error-message")
+      transferAgreementPageAsString must include("error")
+      checkHtmlContentForErrorSummary(transferAgreementPageAsString, Set())
     }
 
     "display errors when an invalid form (partially complete) is submitted" in {
@@ -178,21 +195,22 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
-      val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(
-        recordsArePublic = false,
-        recordsAreCrownCopyright = false,
-        recordsAreEnglish = false,
-        haveDroAppraisalSelection = false
-      )
+      val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(4)
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
           .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
           .withCSRFToken)
+      val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
+      val pageOptions: Set[String] = incompleteTransferAgreementForm.map{
+        case (pageOption: String, _: String) => pageOption
+      }.toSet
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
-      contentAsString(transferAgreementSubmit) must include("govuk-error-message")
-      contentAsString(transferAgreementSubmit) must include("error")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, incompleteTransferAgreementForm.toMap)
+      transferAgreementPageAsString must include("govuk-error-message")
+      transferAgreementPageAsString must include("error")
+      checkHtmlContentForErrorSummary(transferAgreementPageAsString, pageOptions)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
@@ -216,7 +234,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
            |                Continue""".stripMargin)
       transferAgreementPageAsString must include("You have already confirmed all statements")
-      checkHtmlContentForDefaultText(transferAgreementPageAsString)
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to TA page" +
@@ -232,7 +250,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement").withCSRFToken)
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
       val taAlreadyConfirmedPageAsString = contentAsString(taAlreadyConfirmedPage)
 
       playStatus(taAlreadyConfirmedPage) mustBe OK
@@ -242,7 +260,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
            |                Continue""".stripMargin)
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
-      checkHtmlContentForDefaultText(taAlreadyConfirmedPageAsString)
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to TA page" +
@@ -256,14 +274,10 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
-      val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(
-        recordsArePublic = false,
-        recordsAreCrownCopyright = false,
-        recordsAreEnglish = false,
-      )
+      val incompleteTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm(3)
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, "/consignment/" + consignmentId.toString + "/transfer-agreement")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
           .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
           .withCSRFToken)
       val taAlreadyConfirmedPageAsString = contentAsString(taAlreadyConfirmedPage)
@@ -275,38 +289,37 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
            |                Continue""".stripMargin)
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
-      checkHtmlContentForDefaultText(taAlreadyConfirmedPageAsString)
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
   }
 
-  private def getTransferAgreementForm(recordsArePublic: Boolean=true,
-                                       recordsAreCrownCopyright: Boolean=true,
-                                       recordsAreEnglish: Boolean=true,
-                                       haveDroAppraisalSelection: Boolean=true,
-                                       haveDroSensitivity: Boolean=true,
-                                       recordsAreOpen: Boolean=true): Seq[(String, String)] = {
+  private def getTransferAgreementForm(numberOfValuesToRemove: Int=0): Seq[(String, String)] = {
+    val value = "true"
     Seq(
-      ("publicRecord", recordsArePublic.toString),
-      ("crownCopyright", recordsAreCrownCopyright.toString),
-      ("english", recordsAreEnglish.toString),
-      ("droAppraisalSelection", haveDroAppraisalSelection.toString),
-      ("droSensitivity", haveDroSensitivity.toString),
-      ("openRecords", recordsAreOpen.toString)
-    )
+      ("publicRecord", value),
+      ("crownCopyright", value),
+      ("english", value),
+      ("droAppraisalSelection", value),
+      ("droSensitivity", value),
+      ("openRecords", value)
+    ).dropRight(numberOfValuesToRemove)
   }
 
-  private def checkHtmlContentForDefaultText(htmlAsString: String) = {
-    val defaultLinesOfTextOnPage = Set(
-      "Transfer agreement",
-      "I confirm that the records are Public Records.",
-      "I confirm that the records are all Crown Copyright.",
-      "I confirm that the records are all in English.",
-      "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
-      "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
-      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records."
+  private def checkHtmlContentForErrorSummary(htmlAsString: String, optionsSelected: Set[String]): Unit = {
+    val potentialErrorsOnPage = Map(
+      "publicRecord" -> "All records must be confirmed as public before proceeding",
+      "crownCopyright" -> "All records must be confirmed Crown Copyright before proceeding",
+      "english" -> "All records must be confirmed as English language before proceeding",
+      "droAppraisalSelection" -> "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records",
+      "droSensitivity" -> "Departmental Records Officer (DRO) must have signed off sensitivity review",
+      "openRecords" -> "All records must be open"
     )
 
-    defaultLinesOfTextOnPage.foreach(defaultLineOfTextOnPage => htmlAsString must include(defaultLineOfTextOnPage))
+    val errorsThatShouldBeOnPage: Map[String, String] = potentialErrorsOnPage.filter {
+      case (errorName, _) => !optionsSelected.contains(errorName)
+    }
+
+    errorsThatShouldBeOnPage.values.foreach(error => htmlAsString must include(error))
   }
 
   private def instantiateTransferAgreementController(securityComponents: SecurityComponents) = {
