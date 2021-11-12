@@ -33,4 +33,4 @@ POST        /callback                                             @org.pac4j.pla
 GET         /sign-out                                             @org.pac4j.play.LogoutController.logout(request: play.mvc.Http.Request)
 
 
-GET         /judgment/:judgmentId/upload                          controllers.UploadController.uploadPage(judgmentId: java.util.UUID)
+GET         /judgment/:consignmentId/upload                          controllers.UploadController.uploadPage(consignmentId: java.util.UUID)

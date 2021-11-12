@@ -81,7 +81,7 @@ class MockDom {
   html = (document.body.innerHTML = `
       <div id="file-upload" class="govuk-grid-row">
           <div class="govuk-grid-column-two-thirds">
-              <form id="file-upload-form" data-judgment-id="@consignmentId">
+              <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
                   <div class="govuk-form-group">
                       <div class="drag-and-drop">
                           <div class="govuk-summary-list govuk-file-upload">
