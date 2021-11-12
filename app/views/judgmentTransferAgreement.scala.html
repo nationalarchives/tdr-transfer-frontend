@@ -1,9 +1,4 @@
-@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
-@import helper.{inputRadioGroup => _, _}
 @import java.util.UUID
-
-@import scala.language.postfixOps
-@import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup}
 
 @(consignmentId: UUID)(implicit request: RequestHeader, messages: Messages)
 @main("Transfer agreement") {

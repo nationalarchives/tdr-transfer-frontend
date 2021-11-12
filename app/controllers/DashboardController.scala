@@ -33,4 +33,3 @@ class DashboardController @Inject()(val controllerComponents: SecurityComponents
     }
   }
 }
-
