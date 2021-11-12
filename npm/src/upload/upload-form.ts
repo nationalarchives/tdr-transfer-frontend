@@ -112,9 +112,10 @@ export class UploadForm {
   }
 
   consignmentId: () => string = () => {
-    const value: string | null = this.isJudgmentUser
-      ? this.formElement.getAttribute("data-judgment-id")
-      : this.formElement.getAttribute("data-consignment-id")
+    const value: string | null = this.formElement.getAttribute(
+      "data-consignment-id"
+    )
+
     if (!value) {
       throw Error("No consignment provided")
     }

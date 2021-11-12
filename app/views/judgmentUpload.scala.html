@@ -4,7 +4,7 @@
 @import views.html.partials.{frontEndInputs, greenTickMark, itemSelectionFailureMessage, progressIndicator}
 @import views.html.partials.noScriptMessage
 @import views.html.partials.loggedOutErrorMessage
-@(judgmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
 
 @main("Upload your judgment") {
 <noscript>
@@ -34,7 +34,7 @@
             </div>
         </div>
         @loggedOutErrorMessage()
-        <form id="file-upload-form" data-judgment-id="@judgmentId">
+        <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <div class="drag-and-drop">
                     <div class="govuk-summary-list govuk-file-upload">
@@ -79,8 +79,8 @@
                 </div>
             </div>
         </form>
-        <!--        Form to redirect user once upload has completed. It sends judgmentId to record processing placeholder page -->
-        @form(routes.FileChecksController.recordProcessingPage(judgmentId), Symbol("id") -> "upload-data-form") { }
+        <!--        Form to redirect user once upload has completed. It sends consignmentId to record processing placeholder page -->
+        @form(routes.FileChecksController.recordProcessingPage(consignmentId), Symbol("id") -> "upload-data-form") { }
     </div>
 </div>
 <div id="upload-progress" class="govuk-grid-row" hidden>
