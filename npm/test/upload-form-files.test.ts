@@ -348,21 +348,13 @@ class MockDom {
   uploadingRecordsSection = document.querySelector("#upload-progress")
 }
 
-test("clicking the submit button, without selecting a file, doesn't reveal the progress bar", async () => {
+test("clicking the submit button, without selecting a file, doesn't reveal the progress bar & disables the buttons on the page", async () => {
   const mockDom = new MockDom()
 
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
 
   expect(mockDom.uploadingRecordsSection).toHaveAttribute("hidden")
-})
-
-test("clicking the submit button, without selecting a file, doesn't disable the buttons on the page", async () => {
-  const mockDom = new MockDom()
-
-  const submitEvent = mockDom.createSubmitEvent()
-  await mockDom.form.handleFormSubmission(submitEvent)
-
   expect(mockDom.submitButton).not.toHaveAttribute("disabled", "true")
   expect(mockDom.hiddenInputButton).not.toHaveAttribute("disabled", "true")
 })
