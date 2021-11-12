@@ -16,6 +16,14 @@ class DashboardController @Inject()(val controllerComponents: SecurityComponents
                                     val consignmentService: ConsignmentService)
                                    (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
+  def judgmentDashboardSubmit(): Action[AnyContent] = secureAction.async {
+    implicit request: Request[AnyContent] => {
+      consignmentService.createConsignment(None, request.token).map(consignment => {
+        Redirect(routes.TransferAgreementController.judgmentTransferAgreement(consignment.consignmentid.get))
+      })
+    }
+  }
+
   def dashboard(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] => {
       if (request.token.isJudgmentUser) {
         Ok(views.html.judgmentDashboard())
