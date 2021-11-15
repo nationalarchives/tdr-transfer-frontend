@@ -40,7 +40,7 @@ test("clicking the submit button, without selecting a file, displays a warning m
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 })
 
-test("input button updates the page with correct number of files if only 1 file has been selected", () => {
+test("input button updates the page with the file that has been selected", () => {
   const mockDom = new MockUploadFormDom(true)
   mockDom.fileUploader.initialiseFormListeners()
   mockDom.uploadForm!.files = { files: [dummyFile] }
