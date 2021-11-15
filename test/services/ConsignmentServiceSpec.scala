@@ -43,7 +43,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
   private val bearerAccessToken = new BearerAccessToken("some-token")
   private val token = new Token(accessToken, bearerAccessToken)
   private val consignmentId = UUID.fromString("180f9166-fe3c-486e-b9ab-6dfa5f3058dc")
-  private val seriesId = UUID.fromString("d54a5118-33a0-4ba2-8030-d16efcf1d1f4")
+  private val seriesId = Some(UUID.fromString("d54a5118-33a0-4ba2-8030-d16efcf1d1f4"))
 
   override def afterEach(): Unit = {
     Mockito.reset(getConsignmentClient)
@@ -109,7 +109,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
 
     "create a consignment of type 'standard' with the given series when standard user type provided" in {
       val standardUserToken: Token = mock[Token]
-      when(standardUserToken.standardUser).thenReturn(Some("standard"))
+      when(standardUserToken.isStandardUser).thenReturn(true)
       when(standardUserToken.bearerAccessToken).thenReturn(bearerAccessToken)
 
       val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
@@ -122,16 +122,16 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
       Mockito.verify(addConsignmentClient).getResult(bearerAccessToken, addConsignment.document, expectedVariables)
     }
 
-    "create a consignment of type 'judgment' with the given series when judgment user type provided" in {
+    "create a consignment of type 'judgment' when judgment user type provided" in {
       val judgmentUserToken: Token = mock[Token]
-      when(judgmentUserToken.judgmentUser).thenReturn(Some("judgment"))
+      when(judgmentUserToken.isJudgmentUser).thenReturn(true)
       when(judgmentUserToken.bearerAccessToken).thenReturn(bearerAccessToken)
-      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
-      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("judgment"))))
+      val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), None))), Nil)
+      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(None, Some("judgment"))))
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
 
-      consignmentService.createConsignment(seriesId, judgmentUserToken)
+      consignmentService.createConsignment(None, judgmentUserToken)
 
       Mockito.verify(addConsignmentClient).getResult(bearerAccessToken, addConsignment.document, expectedVariables)
     }
