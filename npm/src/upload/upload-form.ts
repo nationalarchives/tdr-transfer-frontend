@@ -172,9 +172,10 @@ export class UploadForm {
       this.checkIfFolderHasFiles(files)
 
       this.selectedFiles = files
-      const folderSize = this.selectedFiles.length
-      const folderName = webkitEntry.name
-      this.addFolderSelectionSuccessMessage(folderName, folderSize)
+      this.addFolderSelectionSuccessMessage(
+        webkitEntry.name,
+        this.selectedFiles.length
+      )
     }
     this.displaySelectionSuccessMessage()
     this.removeDragover()
