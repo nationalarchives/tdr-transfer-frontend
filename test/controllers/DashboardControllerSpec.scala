@@ -75,9 +75,7 @@ class DashboardControllerSpec extends FrontEndTestHelper {
 
       contentAsString(dashboardPage) must include ("Welcome")
       contentAsString(dashboardPage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(dashboardPage) must include ("Upload your records to start a new transfer")
-      //Judgment and standard dashboard pages are visually the same so check for the create consignment form.
-      contentAsString(dashboardPage) must include("""<form action="/dashboard"""")
+      contentAsString(dashboardPage) must include ("Upload your judgment to start a new transfer")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -92,7 +90,7 @@ class DashboardControllerSpec extends FrontEndTestHelper {
   }
 
   "DashboardController POST" should {
-    "create a new consignment" in {
+    "create a new consignment for a judgment user" in {
       val controller = new DashboardController(
         getAuthorisedSecurityComponents,
         getValidJudgmentUserKeycloakConfiguration,
@@ -112,7 +110,6 @@ class DashboardControllerSpec extends FrontEndTestHelper {
 
       redirectLocation(redirect).get must equal(s"/judgment/$consignmentId/transfer-agreement")
       wiremockServer.getAllServeEvents.size should equal(1)
-
     }
 
     "show an error if the consignment couldn't be created" in {
