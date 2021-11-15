@@ -32,5 +32,6 @@ GET         /callback                                             @org.pac4j.pla
 POST        /callback                                             @org.pac4j.play.CallbackController.callback(request: play.mvc.Http.Request)
 GET         /sign-out                                             @org.pac4j.play.LogoutController.logout(request: play.mvc.Http.Request)
 
-
-GET         /judgment/:consignmentId/upload                          controllers.UploadController.uploadPage(consignmentId: java.util.UUID)
+POST        /dashboard                                            controllers.DashboardController.judgmentDashboardSubmit()
+GET         /judgment/:consignmentId/transfer-agreement           controllers.TransferAgreementController.judgmentTransferAgreement(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/upload                       controllers.UploadController.uploadPage(consignmentId: java.util.UUID)
