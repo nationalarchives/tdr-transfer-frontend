@@ -151,53 +151,32 @@ export class UploadForm {
     ev.preventDefault()
     if (this.isJudgmentUser) {
       const fileList: FileList = ev.dataTransfer?.files!
-      if (fileList.length > 1) {
-        this.rejectUserItemSelection(
-          this.warningMessages?.incorrectItemSelectedMessage,
-          "You are only allowed to drop one file."
-        )
-      }
-      const files: File[] = [...Array(fileList.length).keys()].map((i) => {
-        const file: File = fileList[i]
-        if (!file.type) {
-          this.rejectUserItemSelection(
-            this.warningMessages?.incorrectItemSelectedMessage,
-            "Only files are allowed to be selected"
-          )
-        }
-
-        return file
-      })
-
+      this.checkNumberOfObjectsDropped(
+        fileList,
+        "You are only allowed to drop one file."
+      )
+      const files: File[] = this.convertFileListToArray(fileList)
       this.selectedFiles = this.convertFilesToIfilesWithPath(files)
       this.addFileSelectionSuccessMessage(this.selectedFiles[0].file.name)
-      this.displaySelectionSuccessMessage()
     } else {
       const items: DataTransferItemList = ev.dataTransfer?.items!
-      if (items.length > 1) {
-        this.rejectUserItemSelection(
-          this.warningMessages?.incorrectItemSelectedMessage,
-          "Only one folder is allowed to be selected"
-        )
-      }
+      this.checkNumberOfObjectsDropped(
+        items,
+        "Only one folder is allowed to be selected"
+      )
       const droppedItem: DataTransferItem | null = items[0]
       const webkitEntry = droppedItem.webkitGetAsEntry()
-      if (webkitEntry!.isFile) {
-        this.rejectUserItemSelection(
-          this.warningMessages?.incorrectItemSelectedMessage,
-          "Only folders are allowed to be selected"
-        )
-      }
-      const files = await getAllFiles(webkitEntry, [])
+      this.checkIfDroppedItemIsFolder(webkitEntry)
+
+      const files: IFileWithPath[] = await getAllFiles(webkitEntry, [])
       this.checkIfFolderHasFiles(files)
 
       this.selectedFiles = files
-      const folderSize = files.length
+      const folderSize = this.selectedFiles.length
       const folderName = webkitEntry.name
-
       this.addFolderSelectionSuccessMessage(folderName, folderSize)
-      this.displaySelectionSuccessMessage()
     }
+    this.displaySelectionSuccessMessage()
     this.removeDragover()
   }
 
@@ -388,5 +367,41 @@ export class UploadForm {
 
     this.successMessage?.removeAttribute("hidden")
     this.successMessage?.focus()
+  }
+
+  private checkNumberOfObjectsDropped(
+    droppedObjects: DataTransferItemList | FileList,
+    exceptionMessage: string
+  ) {
+    if (droppedObjects.length > 1) {
+      this.rejectUserItemSelection(
+        this.warningMessages?.incorrectItemSelectedMessage,
+        exceptionMessage
+      )
+    }
+  }
+
+  private convertFileListToArray(fileList: FileList): File[] {
+    const fileListIndexes = [...Array(fileList.length).keys()]
+    return fileListIndexes.map((i) => {
+      const file: File = fileList[i]
+      if (!file.type) {
+        this.rejectUserItemSelection(
+          this.warningMessages?.incorrectItemSelectedMessage,
+          "Only files are allowed to be selected"
+        )
+      }
+
+      return file
+    })
+  }
+
+  private checkIfDroppedItemIsFolder(webkitEntry: any) {
+    if (webkitEntry!.isFile) {
+      this.rejectUserItemSelection(
+        this.warningMessages?.incorrectItemSelectedMessage,
+        "Only folders are allowed to be selected"
+      )
+    }
   }
 }
