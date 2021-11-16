@@ -23,7 +23,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
 
   def uploadPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
-    val isJudgmentUser = request.token.judgmentUser.getOrElse("false").toBoolean
+    val isJudgmentUser = request.token.isJudgmentUser
 
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
