@@ -6,10 +6,10 @@ import {
   dummyFolder
 } from "./upload-form-utils/mock-files-and-folders"
 import { MockUploadFormDom } from "./upload-form-utils/mockUploadFormDom"
-import { htmlForFileAndFolderUploadForms } from "./upload-form-utils/html-for-file-and-folder-upload-forms"
+import { htmlForFileUploadForm } from "./upload-form-utils/html-for-file-upload-form"
 
 beforeEach(() => {
-  document.body.innerHTML = htmlForFileAndFolderUploadForms
+  document.body.innerHTML = htmlForFileUploadForm
 })
 
 test("clicking the submit button, without selecting a file, doesn't reveal the progress bar & disables the buttons on the page", async () => {
@@ -42,7 +42,7 @@ test("clicking the submit button, without selecting a file, displays a warning m
 
 test("input button updates the page with the file that has been selected", () => {
   const mockDom = new MockUploadFormDom(true)
-  mockDom.fileUploader.initialiseFormListeners()
+  mockDom.getFileUploader().initialiseFormListeners()
   mockDom.uploadForm!.files = { files: [dummyFile] }
   mockDom.selectFolderViaButton()
 

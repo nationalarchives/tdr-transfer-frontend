@@ -64,7 +64,7 @@ export const htmlForFolderUploadForm = `
       </div>
       <div id="upload-progress" class="govuk-grid-row" hidden></div>`
 
-export const htmlForFileAndFolderUploadForms = `
+export const htmlForFileUploadForm = `
   <div id="file-upload" class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
           <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">

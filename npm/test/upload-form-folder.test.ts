@@ -6,7 +6,7 @@ import {
   dummyFolder
 } from "./upload-form-utils/mock-files-and-folders"
 import { MockUploadFormDom } from "./upload-form-utils/mockUploadFormDom"
-import { htmlForFolderUploadForm } from "./upload-form-utils/html-for-file-and-folder-upload-forms"
+import { htmlForFolderUploadForm } from "./upload-form-utils/html-for-file-upload-form"
 import { IReader, IWebkitEntry } from "../src/upload/upload-form"
 
 beforeEach(() => {
@@ -43,7 +43,7 @@ test("clicking the submit button, without selecting a folder, displays a warning
 
 test("input button updates the page with correct folder information if there are 1 or more files in folder", () => {
   const mockDom = new MockUploadFormDom()
-  mockDom.fileUploader.initialiseFormListeners()
+  mockDom.getFileUploader().initialiseFormListeners()
   mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
   mockDom.selectFolderViaButton()
 
