@@ -37,12 +37,16 @@ export class MockUploadFormDom {
         cb(this.entries[this.batchCount])
       }
     }
-    this.form = new UploadForm(
-      this.isJudgmentUser,
+    this.form = this.createForm(isJudgmentUser)
+  }
+
+  createForm: (isJudgmentUser: boolean) => UploadForm = (isJudgmentUser) => {
+    return new UploadForm(
+      isJudgmentUser,
       this.uploadForm!,
       this.itemRetriever!,
       this.dropzone!,
-      this.setUpFileUploader
+      this.setUpFileUploader(isJudgmentUser).uploadFiles
     )
   }
 
@@ -157,7 +161,7 @@ export class MockUploadFormDom {
     this.triggerInputEvent(this.itemRetriever!, "change")
   }
 
-  setUpFileUploader(): FileUploader {
+  setUpFileUploader(isJudgmentUser: boolean): FileUploader {
     const mockUpdateToken = jest.fn()
     const isTokenExpired = true
     const refreshTokenParsed: KeycloakTokenParsed = {
@@ -168,7 +172,7 @@ export class MockUploadFormDom {
       mockUpdateToken,
       isTokenExpired,
       refreshTokenParsed,
-      this.isJudgmentUser
+      isJudgmentUser
     )
     const client = new GraphqlClient(
       "https://example.com",
@@ -238,6 +242,8 @@ export class MockUploadFormDom {
     "#start-upload-button"
   )
 
-  fileUploader = this.setUpFileUploader()
+  getFileUploader: () => FileUploader = () =>
+    this.setUpFileUploader(this.isJudgmentUser)
+
   uploadingRecordsSection = document.querySelector("#upload-progress")
 }
