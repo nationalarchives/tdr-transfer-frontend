@@ -65,8 +65,17 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     }
 
     val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
-      transferAgreementService.addTransferAgreement(consignmentId, request.token.bearerAccessToken, formData)
-        .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
+      val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
+
+      consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).flatMap {
+        consignmentStatus =>
+          val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
+          transferAgreementStatus match {
+            case Some("Completed") => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
+            case _ => transferAgreementService.addTransferAgreement(consignmentId, request.token.bearerAccessToken, formData)
+              .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
+          }
+      }
     }
 
     val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest()
