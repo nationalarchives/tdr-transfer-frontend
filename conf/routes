@@ -31,3 +31,6 @@ GET         /assets/*file                                         controllers.As
 GET         /callback                                             @org.pac4j.play.CallbackController.callback(request: play.mvc.Http.Request)
 POST        /callback                                             @org.pac4j.play.CallbackController.callback(request: play.mvc.Http.Request)
 GET         /sign-out                                             @org.pac4j.play.LogoutController.logout(request: play.mvc.Http.Request)
+
+POST        /dashboard                                            controllers.DashboardController.judgmentDashboardSubmit()
+GET         /judgment/:consignmentId/transfer-agreement           controllers.TransferAgreementController.judgmentTransferAgreement(consignmentId: java.util.UUID)

@@ -1,14 +1,23 @@
-@()(implicit request: RequestHeader, messages: Messages)
-@main("Judgment Transfer Welcome") {
-    @defining(play.core.PlayVersion.current) { version =>
+@import views.html.helper.CSRF
+@import views.html.helper.form
+@()(implicit messages: Messages, request: RequestHeader)
 
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-two-thirds">
-                <h1 class="govuk-heading-l">Welcome to the Transfer Digital Records service</h1>
+@main("Welcome") {
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">Welcome to the Transfer Digital Records service</h1>
 
-                <h2 class="govuk-heading-m govuk-!-margin-top-9">Upload your judgment to start a new transfer</h2>
-                <p class="govuk-body">Placeholder page</p>
-            </div>
+      <h2 class="govuk-heading-m govuk-!-margin-top-9">Upload your judgment to start a new transfer</h2>
+
+      @form(routes.DashboardController.judgmentDashboardSubmit(), (Symbol("novalidate"), "")) {
+        @CSRF.formField
+        <div class="govuk-button-group">
+          <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
+          role="button">
+            Start transfer
+          </button>
         </div>
-    }
+      }
+    </div>
+  </div>
 }
