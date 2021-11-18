@@ -1,5 +1,10 @@
-import S3 from "aws-sdk/clients/s3"
+import {S3Client, S3, ServiceOutputTypes} from "@aws-sdk/client-s3";
+import { HttpHandler, HttpRequest, HttpResponse } from "@aws-sdk/protocol-http"
+import {HttpHandlerOptions, RequestHandlerOutput} from "@aws-sdk/types"
+import {useRegionalEndpointMiddleware} from "@aws-sdk/middleware-sdk-s3"
+import { Upload } from "@aws-sdk/lib-storage";
 import { TProgressFunction } from "@nationalarchives/file-information"
+import {S3ClientConfig} from "@aws-sdk/client-s3/dist-types/S3Client";
 
 export interface ITdrFile {
   fileId: string
@@ -12,15 +17,10 @@ interface IFileProgressInfo {
   totalFiles: number
 }
 
-type TdrS3 = Pick<S3, "upload">
-
 export class S3Upload {
-  s3: TdrS3
-
-  constructor() {
-    const timeout = 20 * 60 * 1000
-    const connectTimeout = 20 * 60 * 1000
-    this.s3 = new S3({ httpOptions: { timeout, connectTimeout } })
+  endpoint: string
+  constructor(endpoint: string) {
+    this.endpoint = endpoint
   }
 
   uploadToS3: (
@@ -30,7 +30,7 @@ export class S3Upload {
     callback: TProgressFunction,
     stage: string
   ) => Promise<{
-    sendData: S3.ManagedUpload.SendData[]
+    sendData: ServiceOutputTypes[]
     processedChunks: number
     totalChunks: number
   }> = async (consignmentId, userId, files, callback, stage) => {
@@ -42,7 +42,7 @@ export class S3Upload {
         0
       )
       let processedChunks = 0
-      const sendData: S3.ManagedUpload.SendData[] = []
+      const sendData: ServiceOutputTypes[] = []
       for (const file of files) {
         const uploadResult = await this.uploadSingleFile(
           consignmentId,
@@ -72,7 +72,7 @@ export class S3Upload {
     tdrFile: ITdrFile,
     updateProgressCallback: TProgressFunction,
     progressInfo: IFileProgressInfo
-  ) => Promise<S3.ManagedUpload.SendData> = (
+  ) => Promise<ServiceOutputTypes> = (
     consignmentId,
     userId,
     stage,
@@ -81,23 +81,41 @@ export class S3Upload {
     progressInfo
   ) => {
     const { file, fileId } = tdrFile
-    const progress: S3.ManagedUpload = this.s3.upload({
-      Key: `${userId}/${consignmentId}/${fileId}`,
-      Body: file,
-      Bucket: `tdr-upload-files-cloudfront-dirty-${stage}`,
-      ACL: "bucket-owner-read"
-    })
+    const key = `${userId}/${consignmentId}/${fileId}`
+    const params = {Key: key, Bucket: "undefined", ACL: "bucket-owner-read", Body: file}
+    const connectTimeout = 20 * 60 * 1000
+    const config: S3ClientConfig = {
+      region: "eu-west-2",
+      endpoint: this.endpoint,
+      credentials: {accessKeyId: "placeholder-id", secretAccessKey: "placeholder-secret"},
+      bucketEndpoint: true,
+    }
+    const client = new S3Client(config)
+
+    client.middlewareStack.add(
+      (next, context) => async (args: any) => {
+        args.request.path = `/${args.request.path.split("/").slice(2).join("/")}`
+        args.request.query = {}
+        return await next(args);
+      },
+      { step: "build", name: "removeBucketName" }
+    );
+
+    const progress = new Upload({client, params})
+
     const { processedChunks, totalChunks, totalFiles } = progressInfo
     if (file.size >= 1) {
       // httpUploadProgress seems to only trigger if file size is greater than 0
       progress.on("httpUploadProgress", (ev) => {
-        const chunks = ev.loaded + processedChunks
-        this.updateUploadProgress(
-          chunks,
-          totalChunks,
-          totalFiles,
-          updateProgressCallback
-        )
+        if(ev.loaded) {
+          const chunks = ev.loaded! + processedChunks
+          this.updateUploadProgress(
+            chunks,
+            totalChunks,
+            totalFiles,
+            updateProgressCallback
+          )
+        }
       })
     } else {
       const chunks = 1 + processedChunks
@@ -108,7 +126,7 @@ export class S3Upload {
         updateProgressCallback
       )
     }
-    return progress.promise()
+    return progress.done()
   }
 
   private updateUploadProgress: (

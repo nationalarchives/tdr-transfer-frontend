@@ -21,7 +21,7 @@ module.exports = {
   },
   resolve: {
     extensions: [".ts", ".js", ".mjs"],
-    fallback: { util: require.resolve("util/") }
+    fallback: { util: require.resolve("util/"), events: require.resolve("events") }
   },
   plugins: [
     new webpack.DefinePlugin({
