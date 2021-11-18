@@ -5,7 +5,7 @@
 
 # An example controller showing a sample home page
 GET         /                                                     controllers.HomeController.index()
-GET         /dashboard                                            controllers.DashboardController.dashboard()
+GET         /homepage                                             controllers.HomepageController.homepage()
 GET         /contact                                              controllers.ContactController.contact()
 GET         /cookies                                              controllers.CookiesController.cookies()
 GET         /faq                                                  controllers.FaqController.faq()
@@ -32,5 +32,5 @@ GET         /callback                                             @org.pac4j.pla
 POST        /callback                                             @org.pac4j.play.CallbackController.callback(request: play.mvc.Http.Request)
 GET         /sign-out                                             @org.pac4j.play.LogoutController.logout(request: play.mvc.Http.Request)
 
-POST        /dashboard                                            controllers.DashboardController.judgmentDashboardSubmit()
+POST        /homepage                                             controllers.HomepageController.judgmentHomepageSubmit()
 GET         /judgment/:consignmentId/transfer-agreement           controllers.TransferAgreementController.judgmentTransferAgreement(consignmentId: java.util.UUID)

@@ -11,12 +11,12 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class DashboardController @Inject()(val controllerComponents: SecurityComponents,
-                                    val keycloakConfiguration: KeycloakConfiguration,
-                                    val consignmentService: ConsignmentService)
-                                   (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+class HomepageController @Inject()(val controllerComponents: SecurityComponents,
+                                   val keycloakConfiguration: KeycloakConfiguration,
+                                   val consignmentService: ConsignmentService)
+                                  (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  def judgmentDashboardSubmit(): Action[AnyContent] = secureAction.async {
+  def judgmentHomepageSubmit(): Action[AnyContent] = secureAction.async {
     implicit request: Request[AnyContent] => {
       consignmentService.createConsignment(None, request.token).map(consignment => {
         Redirect(routes.TransferAgreementController.judgmentTransferAgreement(consignment.consignmentid.get))
@@ -24,11 +24,11 @@ class DashboardController @Inject()(val controllerComponents: SecurityComponents
     }
   }
 
-  def dashboard(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] => {
+  def homepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] => {
       if (request.token.isJudgmentUser) {
-        Ok(views.html.judgmentDashboard())
+        Ok(views.html.judgmentHomepage())
       } else {
-        Ok(views.html.dashboard())
+        Ok(views.html.homepage())
       }
     }
   }
