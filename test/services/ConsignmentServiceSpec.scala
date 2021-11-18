@@ -98,7 +98,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
       when(noUserTypeToken.bearerAccessToken).thenReturn(bearerAccessToken)
 
       val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
-      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))
+      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(seriesId, "standard")))
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
 
@@ -113,7 +113,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
       when(standardUserToken.bearerAccessToken).thenReturn(bearerAccessToken)
 
       val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
-      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))
+      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(seriesId, "standard")))
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
 
@@ -127,7 +127,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
       when(judgmentUserToken.isJudgmentUser).thenReturn(true)
       when(judgmentUserToken.bearerAccessToken).thenReturn(bearerAccessToken)
       val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), None))), Nil)
-      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(None, Some("judgment"))))
+      val expectedVariables = Some(addConsignment.Variables(AddConsignmentInput(None, "judgment")))
       when(addConsignmentClient.getResult(bearerAccessToken, addConsignment.document, expectedVariables))
         .thenReturn(Future.successful(response))
 
@@ -139,7 +139,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
     "return the created consignment" in {
       val response = GraphQlResponse(Some(new addConsignment.Data(addConsignment.AddConsignment(Some(consignmentId), seriesId))), Nil)
       when(addConsignmentClient.getResult(
-        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))))
+        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, "standard")))))
         .thenReturn(Future.successful(response))
 
       val result = consignmentService.createConsignment(seriesId, token).futureValue
@@ -149,7 +149,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
 
     "return an error when the API has an error" in {
       when(addConsignmentClient.getResult(
-        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))))
+        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, "standard")))))
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
       val results = consignmentService.createConsignment(seriesId, token)
@@ -160,7 +160,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
     "throw an AuthorisationException if the API returns an auth error" in {
       val response = GraphQlResponse[addConsignment.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
       when(addConsignmentClient.getResult(
-        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, Some("standard"))))))
+        bearerAccessToken, addConsignment.document, Some(addConsignment.Variables(AddConsignmentInput(seriesId, "standard")))))
         .thenReturn(Future.successful(response))
 
       val results = consignmentService.createConsignment(seriesId, token).failed.futureValue
