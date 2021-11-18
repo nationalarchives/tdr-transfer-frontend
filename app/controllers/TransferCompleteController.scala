@@ -26,7 +26,7 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
   def transferComplete(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     getConsignmentReference(request, consignmentId)
       .map { consignmentReference =>
-        Ok(views.html.transferComplete(consignmentReference))
+        Ok(views.html.standard.transferComplete(consignmentReference))
       }
   }
 }
