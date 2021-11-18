@@ -13,7 +13,7 @@ beforeEach(() => {
   document.body.innerHTML = htmlForFolderUploadForm
 })
 
-test("clicking the submit button, without selecting a folder, doesn't reveal the progress bar & disable the buttons on the page", async () => {
+test("clicking the submit button, without selecting a folder, doesn't reveal the progress bar and disable the buttons on the page", async () => {
   const mockDom = new MockUploadFormDom()
 
   const submitEvent = mockDom.createSubmitEvent()
@@ -266,7 +266,7 @@ test("clicking the submit button, after selecting a folder, disables the buttons
    */
 })
 
-test("clicking the submit button, after selecting a folder, hides 'upload folder' section & reveals progress bar", async () => {
+test("clicking the submit button, after selecting a folder, hides 'upload folder' section and reveals progress bar", async () => {
   const mockDom = new MockUploadFormDom()
   const dragEventClass = mockDom.addFilesToDragEvent(
     [dummyFolder],
