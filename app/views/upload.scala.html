@@ -1,9 +1,8 @@
-@import java.util.UUID
-@import viewsapi.FrontEndInfo
 @import helper._
-@import views.html.partials.{frontEndInputs, greenTickMark, itemSelectionFailureMessage, progressIndicator}
-@import views.html.partials.noScriptMessage
-@import views.html.partials.loggedOutErrorMessage
+@import views.html.partials._
+@import viewsapi.FrontEndInfo
+
+@import java.util.UUID
 @(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
 
 @main("Upload your records") {
