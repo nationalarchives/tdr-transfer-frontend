@@ -26,9 +26,9 @@ class DashboardController @Inject()(val controllerComponents: SecurityComponents
 
   def dashboard(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] => {
       if (request.token.isJudgmentUser) {
-        Ok(views.html.judgmentDashboard())
+        Ok(views.html.judgment.judgmentDashboard())
       } else {
-        Ok(views.html.dashboard())
+        Ok(views.html.standard.dashboard())
       }
     }
   }
