@@ -1,4 +1,3 @@
-import { configureAws } from "./aws-config"
 import { GraphqlClient } from "./graphql"
 import { getKeycloakInstance } from "./auth"
 import { FileUploader } from "./upload"
@@ -51,7 +50,6 @@ export const renderModules = () => {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
     getKeycloakInstance().then((keycloak) => {
-      configureAws(frontEndInfo)
       const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
       const clientFileProcessing = new ClientFileMetadataUpload(graphqlClient)
       const updateConsignmentStatus = new UpdateConsignmentStatus(graphqlClient)

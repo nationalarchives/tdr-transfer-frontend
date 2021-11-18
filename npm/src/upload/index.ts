@@ -31,7 +31,7 @@ export class FileUploader {
   ) {
     this.clientFileProcessing = new ClientFileProcessing(
       clientFileMetadataUpload,
-      new S3Upload()
+      new S3Upload(frontendInfo.uploadUrl)
     )
     this.updateConsignmentStatus = updateConsignmentStatus
     this.stage = frontendInfo.stage
