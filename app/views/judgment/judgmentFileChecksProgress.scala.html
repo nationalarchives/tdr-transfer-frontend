@@ -1,0 +1,47 @@
+@import java.util.UUID
+@import viewsapi.FrontEndInfo
+@import views.html.partials.{frontEndInputs, progressIndicator}
+@(consignmentId: UUID, fileChecks: FileChecksProgress, frontEndInfo: FrontEndInfo)(implicit messages: Messages, request: RequestHeader)
+
+@main("Checking judgments") {
+    @defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row file-check-progress">
+        <div class="govuk-grid-column-two-thirds">
+
+            @progressIndicator(Messages("checkingRecords.progress"))
+            @frontEndInputs(frontEndInfo)
+            <h1 class="govuk-heading-l">Checking court judgment record</h1>
+            <input id="consignmentId" type="hidden" value="@consignmentId">
+            <p class="govuk-body">Please wait while your court judgment is being checked. This may take a few minutes.</p>
+            <p class="govuk-body">The following checks are now being performed:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Anti-virus scanning</li>
+                <li>Identifying file formats</li>
+                <li>Validating data integrity</li>
+            </ul>
+            <p class="govuk-body govuk-!-margin-bottom-7">For more information on these checks, please see our
+                <a href="@routes.FaqController.faq()#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> for this service.
+            </p>
+
+            <div class="govuk-notification-banner" id="file-checks-completed-banner" tabindex="-1" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" @if(!fileChecks.isComplete) {hidden}>
+                <div class="govuk-notification-banner__header">
+                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                        Important
+                    </h2>
+                </div>
+                <div class="govuk-notification-banner__content">
+                    <p class="govuk-notification-banner__heading">Your upload has been checked</p>
+                    <p class="govuk-body">Please click 'Continue' to see your results.</p>
+
+                </div>
+            </div>
+            <form action="@routes.FileChecksResultsController.fileCheckResultsPage(consignmentId)">
+                <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button @if(!fileChecks.isComplete){govuk-button--disabled}" @if(!fileChecks.isComplete){disabled}>
+                Continue
+                </button>
+            </form>
+
+        </div>
+    </div>
+    }
+}
