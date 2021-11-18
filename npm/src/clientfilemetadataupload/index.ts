@@ -116,7 +116,7 @@ export class ClientFileMetadataUpload {
         //Ensure file paths stored in database are consistent
         const validatedPath = path.startsWith("/") ? path.substring(1) : path
         const metadataInput: ClientSideMetadataInput = {
-          originalPath: validatedPath,
+          originalPath: validatedPath ? validatedPath : file.name,
           checksum,
           lastModified: lastModified.getTime(),
           fileSize: size,

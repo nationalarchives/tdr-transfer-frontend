@@ -1,7 +1,9 @@
 # https://www.playframework.com/documentation/latest/ScalaI18N
 
-upload.dragAndDropErrorMessage=You can only drop a single folder
+upload.dragAndDropFolderErrorMessage=You can only drop a single folder
+upload.dragAndDropFileErrorMessage=You can only drop a single file
 upload.submissionWithoutAFolderMessageText=Select a folder to upload.
+upload.submissionWithoutAFileMessageText=Select a file to upload.
 
 fileChecksResults.description.singular=Your folder ''{0}'' containing {1} item has been successfully checked and uploaded. Click ''Continue'' to proceed with your transfer.
 fileChecksResults.description.plural=Your folder ''{0}'' containing {1} items has been successfully checked and uploaded. Click ''Continue'' to proceed with your transfer.
