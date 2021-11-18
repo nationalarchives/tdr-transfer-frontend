@@ -5,14 +5,14 @@ import {
   dummyFile,
   dummyFolder
 } from "./upload-form-utils/mock-files-and-folders"
-import { MockUploadFormDom } from "./upload-form-utils/mockUploadFormDom"
+import { MockUploadFormDom } from "./upload-form-utils/mock-upload-form-dom"
 import { htmlForFileUploadForm } from "./upload-form-utils/html-for-file-upload-form"
 
 beforeEach(() => {
   document.body.innerHTML = htmlForFileUploadForm
 })
 
-test("clicking the submit button, without selecting a file, doesn't reveal the progress bar & disables the buttons on the page", async () => {
+test("clicking the submit button, without selecting a file, doesn't reveal the progress bar and disables the buttons on the page", async () => {
   const mockDom = new MockUploadFormDom(true)
 
   const submitEvent = mockDom.createSubmitEvent()
@@ -198,7 +198,7 @@ test("clicking the submit button, after selecting the file, disables the buttons
    */
 })
 
-test("clicking the submit button, after selecting a file, hides 'upload file' section & reveals progress bar", async () => {
+test("clicking the submit button, after selecting a file, hides 'upload file' section and reveals progress bar", async () => {
   const mockDom = new MockUploadFormDom(true)
   const dragEventClass = mockDom.addFilesToDragEvent(
     [dummyFile],
