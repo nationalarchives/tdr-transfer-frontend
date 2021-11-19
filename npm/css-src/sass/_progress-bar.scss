@@ -1,38 +1,27 @@
 @mixin progress-bar($selector) {
   /* Variables for repeated blocks */
-  $_border-radius: 10px;
-  $_box-shadow: 0 2px 3px govuk-colour('black', $legacy: 'black') inset;
+  $_appearance: none;
+  $_height: 20px;
   $_position: relative;
 
-  #{$selector}[value] {
-    /* Get rid of the default appearance */
-    appearance: none;
+  #{$selector}-bar {
+    appearance: $_appearance;
     background-color: govuk-colour('light-grey', $legacy: 'grey-1');
-    border: none;
-    border-radius: $_border-radius;
-    box-shadow: $_box-shadow;
+    border: solid 1px #b1b4b6;
     color: govuk-colour('dark-grey', $legacy: 'grey-3');
-    height: 20px;
+    height: $_height;
     margin: 0.1px;
     position: $_position;
     width: 100%;
   }
 
-  #{$selector}[value]::-webkit-progress-bar {
-    background-color: govuk-colour('light-grey', $legacy: 'grey-1');
-    border-radius: $_border-radius;
-    box-shadow: $_box-shadow;
-  }
-
-  #{$selector}[value]::-webkit-progress-value {
+  #{$selector}-display {
+    appearance: $_appearance;
     background-color: govuk-colour('dark-grey', $legacy: 'grey-3');
-    border-radius: $_border-radius;
+    border: none;
+    color: govuk-colour('dark-grey', $legacy: 'grey-3');
+    height: $_height;
     position: $_position;
-  }
-
-  #{$selector}[value]::-moz-progress-bar {
-    background-color: govuk-colour('dark-grey', $legacy: 'grey-3');
-    background-size: 35px 20px, 100% 100%, 100% 100%;
-    border-radius: $_border-radius;
+    width: 0%;
   }
 }
