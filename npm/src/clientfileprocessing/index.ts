@@ -28,16 +28,18 @@ export class ClientFileProcessing {
     const progressLabelElement: HTMLDivElement | null =
       document.querySelector("#upload-percentage")
 
-    const currentPercentage = progressBarElement?.getAttribute("value")
+    const currentPercentageWithSign = progressLabelElement?.innerText
     const stringWeightedPercentage = weightedPercent.toString()
+    const stringWeightedPercentageWithSign = `${stringWeightedPercentage}%`
 
     if (
       progressBarElement &&
       progressLabelElement &&
-      stringWeightedPercentage !== currentPercentage
+      stringWeightedPercentageWithSign !== currentPercentageWithSign
     ) {
-      progressBarElement.setAttribute("value", stringWeightedPercentage)
-      progressLabelElement.innerText = `${stringWeightedPercentage}%`
+      progressLabelElement.innerText = stringWeightedPercentageWithSign
+      progressBarElement.style.width = stringWeightedPercentageWithSign
+      progressBarElement.setAttribute("aria-valuenow", stringWeightedPercentage)
     }
   }
 
