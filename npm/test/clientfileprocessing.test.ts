@@ -470,7 +470,9 @@ function setupUploadPageHTML() {
                             Uploading records <span id="upload-percentage" role="status" aria-live="polite"></span>
                         </label>
                     </span>
-                        <progress class="progress-display" value="0" max="100"></progress>
+                    <div class="progress-bar">
+                        <div class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
                 </div>
             </div>
         </div>
