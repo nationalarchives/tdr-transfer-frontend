@@ -168,7 +168,9 @@ function setupProgressBarErrorHtml() {
     <p class="govuk-body">Browser window message</p>
     <div>
         <span id="upload-status-screen-reader"><label for="upload-records-progress-bar" class="govuk-label progress-label"></label></span>
-        <progress class="progress-display" value="0" max="100"></progress>
+        <div class="progress-bar">
+           <div class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
     </div>
     </div>
   </div>

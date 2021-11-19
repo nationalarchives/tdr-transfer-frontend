@@ -470,7 +470,9 @@ function setupUploadPageHTML() {
                             Uploading records <span id="upload-percentage" role="status" aria-live="polite"></span>
                         </label>
                     </span>
-                        <progress class="progress-display" value="0" max="100"></progress>
+                    <div class="progress-bar">
+                        <div class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -498,6 +500,10 @@ function checkExpectedPageState(percentage: String) {
     "#upload-progress"
   )
 
+  const progressLabelElement: HTMLDivElement | null = document.querySelector(
+    "#upload-percentage"
+  )
+
   const progressBarElement: HTMLDivElement | null = document.querySelector(
     ".progress-display"
   )
@@ -514,19 +520,27 @@ function checkExpectedPageState(percentage: String) {
 
   expect(uploadError && uploadError.getAttribute("hidden")).toEqual("")
 
-  expect(
-    progressBarElement && progressBarElement.getAttribute("value")
-  ).toEqual(percentage)
+  expect(progressBarElement).not.toBeNull()
+
+  expect(progressLabelElement && progressLabelElement?.innerText).toEqual(
+    `${percentage}%`
+  )
 }
 
 function checkS3UploadProgressBarState(percentage: String) {
+  const progressLabelElement: HTMLDivElement | null = document.querySelector(
+    "#upload-percentage"
+  )
+
   const progressBarElement: HTMLDivElement | null = document.querySelector(
     ".progress-display"
   )
 
-  expect(
-    progressBarElement && progressBarElement.getAttribute("value")
-  ).toEqual(percentage)
+  expect(progressBarElement).not.toBeNull()
+
+  expect(progressLabelElement && progressLabelElement?.innerText).toEqual(
+    `${percentage}%`
+  )
 }
 
 function checkNoPageStateChangeExpected() {
