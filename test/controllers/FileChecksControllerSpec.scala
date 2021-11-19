@@ -2,13 +2,13 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.GraphQLConfiguration
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => fileCheck}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
-import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1, TableFor2, TableFor3}
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import services.ConsignmentService
