@@ -500,6 +500,10 @@ function checkExpectedPageState(percentage: String) {
     "#upload-progress"
   )
 
+  const progressLabelElement: HTMLDivElement | null = document.querySelector(
+    "#upload-percentage"
+  )
+
   const progressBarElement: HTMLDivElement | null = document.querySelector(
     ".progress-display"
   )
@@ -516,19 +520,27 @@ function checkExpectedPageState(percentage: String) {
 
   expect(uploadError && uploadError.getAttribute("hidden")).toEqual("")
 
-  expect(
-    progressBarElement && progressBarElement.getAttribute("value")
-  ).toEqual(percentage)
+  expect(progressBarElement).not.toBeNull()
+
+  expect(progressLabelElement && progressLabelElement?.innerText).toEqual(
+    `${percentage}%`
+  )
 }
 
 function checkS3UploadProgressBarState(percentage: String) {
+  const progressLabelElement: HTMLDivElement | null = document.querySelector(
+    "#upload-percentage"
+  )
+
   const progressBarElement: HTMLDivElement | null = document.querySelector(
     ".progress-display"
   )
 
-  expect(
-    progressBarElement && progressBarElement.getAttribute("value")
-  ).toEqual(percentage)
+  expect(progressBarElement).not.toBeNull()
+
+  expect(progressLabelElement && progressLabelElement?.innerText).toEqual(
+    `${percentage}%`
+  )
 }
 
 function checkNoPageStateChangeExpected() {
