@@ -43,7 +43,6 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
           } else {
             Ok(views.html.standard.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo)).uncache()
           }
-
         }
       }
   }
