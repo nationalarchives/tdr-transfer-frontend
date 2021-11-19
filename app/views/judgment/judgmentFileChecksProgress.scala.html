@@ -3,7 +3,7 @@
 @import views.html.partials.{frontEndInputs, progressIndicator}
 @(consignmentId: UUID, fileChecks: FileChecksProgress, frontEndInfo: FrontEndInfo)(implicit messages: Messages, request: RequestHeader)
 
-@main("Checking judgments") {
+@main("Checking judgment") {
     @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row file-check-progress">
         <div class="govuk-grid-column-two-thirds">
