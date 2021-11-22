@@ -19,7 +19,7 @@
   width: 25px;
 }
 
-@include progress-bar('.progress-display');
+@include progress-bar('.progress');
 @include progress-bar('.file-check-progress__progress-bar');
 
 .hide {

@@ -192,15 +192,14 @@ export class UploadForm {
 
       if (this.isJudgmentUser) {
         this.addFileSelectionSuccessMessage(this.selectedFiles[0].file.name)
-        this.displaySelectionSuccessMessage()
       } else {
         const parentFolder = this.getParentFolderName(this.selectedFiles)
         this.addFolderSelectionSuccessMessage(
           parentFolder,
           this.selectedFiles.length
         )
-        this.displaySelectionSuccessMessage()
       }
+      this.displaySelectionSuccessMessage()
     })
   }
 
