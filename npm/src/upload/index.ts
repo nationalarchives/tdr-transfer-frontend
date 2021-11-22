@@ -7,10 +7,10 @@ import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError } from "../errorhandling"
 import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
-import {scheduleTokenRefresh} from "../auth"
-import {S3ClientConfig} from "@aws-sdk/client-s3/dist-types/S3Client";
-import {TdrFetchHandler} from "../s3upload/tdr-fetch-handler";
-import {S3Client} from "@aws-sdk/client-s3";
+import { scheduleTokenRefresh } from "../auth"
+import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
+import { TdrFetchHandler } from "../s3upload/tdr-fetch-handler"
+import { S3Client } from "@aws-sdk/client-s3"
 
 export interface IKeycloakInstance extends KeycloakInstance {
   tokenParsed: IKeycloakTokenParsed
@@ -44,9 +44,12 @@ export class FileUploader {
     const config: S3ClientConfig = {
       region: "eu-west-2",
       endpoint: frontendInfo.uploadUrl,
-      credentials: {accessKeyId: "placeholder-id", secretAccessKey: "placeholder-secret"},
+      credentials: {
+        accessKeyId: "placeholder-id",
+        secretAccessKey: "placeholder-secret"
+      },
       forcePathStyle: true,
-      requestHandler: new TdrFetchHandler({requestTimeout})
+      requestHandler: new TdrFetchHandler({ requestTimeout })
     }
     const client = new S3Client(config)
     this.clientFileProcessing = new ClientFileProcessing(
