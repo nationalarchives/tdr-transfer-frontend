@@ -39,9 +39,9 @@
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
     "@apollo/client": "^3.4.17",
-    "@nationalarchives/file-information": "^1.0.223",
+    "@nationalarchives/file-information": "^1.0.225",
     "@nationalarchives/tdr-generated-graphql": "^1.0.139",
-    "aws-sdk": "^2.1032.0",
+    "aws-sdk": "^2.1033.0",
     "govuk-frontend": "^3.14.0",
     "graphql": "^16.0.1",
     "keycloak-js": "15.0.2",
@@ -55,7 +55,7 @@
     "@typescript-eslint/parser": "^5.4.0",
     "copyfiles": "^2.4.1",
     "dts-bundle": "^0.7.3",
-    "eslint": "^8.2.0",
+    "eslint": "^8.3.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-jest": "^25.2.3",
@@ -63,7 +63,7 @@
     "husky": "^7.0.4",
     "jest": "^27.3.1",
     "jest-fetch-mock": "^3.0.3",
-    "lint-staged": "^12.0.3",
+    "lint-staged": "^12.1.2",
     "minify": "^8.0.2",
     "npm-run-all": "^4.1.5",
     "postcss-cli": "^9.0.2",
@@ -74,7 +74,7 @@
     "ts-jest": "^27.0.7",
     "ts-loader": "^9.2.6",
     "typescript": "4.2.4",
-    "webpack": "^5.64.1",
+    "webpack": "^5.64.2",
     "webpack-cli": "^4.9.1"
   },
   "lint-staged": {
