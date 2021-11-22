@@ -1,16 +1,29 @@
-import {KeycloakInstance, KeycloakTokenParsed} from "keycloak-js"
-import Mock = jest.Mock;
+import { KeycloakTokenParsed } from "keycloak-js"
+import {
+  IKeycloakInstance,
+  IKeycloakTokenParsed
+} from "../src/upload"
+import Mock = jest.Mock
+
+const keycloakTokenParsed: { judgment_user?: boolean } = {}
 
 export const createMockKeycloakInstance: (
-    updateToken?: Mock,
-    isTokenExpired?: boolean,
-    refreshTokenParsed?: KeycloakTokenParsed
-) => KeycloakInstance = (updateToken = jest.fn(),
-                         isTokenExpired = false,
-                         refreshTokenParsed) => {
-
+  updateToken?: Mock,
+  isTokenExpired?: boolean,
+  refreshTokenParsed?: KeycloakTokenParsed,
+  isJudgmentUser?: boolean
+) => IKeycloakInstance = (
+  updateToken = jest.fn(),
+  isTokenExpired = false,
+  refreshTokenParsed,
+  isJudgmentUser = false
+) => {
+  if (isJudgmentUser) {
+    keycloakTokenParsed["judgment_user"] = true
+  }
   return {
     refreshTokenParsed,
+    tokenParsed: keycloakTokenParsed as IKeycloakTokenParsed,
     init: jest.fn(),
     login: jest.fn(),
     logout: jest.fn(),
@@ -20,7 +33,9 @@ export const createMockKeycloakInstance: (
     createLogoutUrl: jest.fn(),
     createRegisterUrl: jest.fn(),
     createAccountUrl: jest.fn(),
-    isTokenExpired: () => { return isTokenExpired },
+    isTokenExpired: () => {
+      return isTokenExpired
+    },
     updateToken,
     clearToken: jest.fn(),
     hasRealmRole: jest.fn(),
@@ -28,7 +43,8 @@ export const createMockKeycloakInstance: (
     loadUserInfo: jest.fn(),
     loadUserProfile: jest.fn(),
     token: "fake-auth-token"
-  }
+  } as IKeycloakInstance
 }
 
-export const mockKeycloakInstance: KeycloakInstance = createMockKeycloakInstance()
+export const mockKeycloakInstance: IKeycloakInstance =
+  createMockKeycloakInstance()
