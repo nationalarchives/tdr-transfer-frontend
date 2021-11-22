@@ -1,16 +1,18 @@
-import {HttpHandler, HttpRequest, HttpResponse} from "@aws-sdk/protocol-http"
-import {HttpHandlerOptions, HeaderBag} from "@aws-sdk/types"
+import { HttpHandler, HttpRequest, HttpResponse } from "@aws-sdk/protocol-http"
+import { HttpHandlerOptions, HeaderBag } from "@aws-sdk/types"
 
 function requestTimeout(timeoutInMs = 0): Promise<never> {
   return new Promise((resolve, reject) => {
     if (timeoutInMs) {
       setTimeout(() => {
-        const timeoutError = new Error(`Request did not complete within ${timeoutInMs} ms`);
-        timeoutError.name = "TimeoutError";
-        reject(timeoutError);
-      }, timeoutInMs);
+        const timeoutError = new Error(
+          `Request did not complete within ${timeoutInMs} ms`
+        )
+        timeoutError.name = "TimeoutError"
+        reject(timeoutError)
+      }, timeoutInMs)
     }
-  });
+  })
 }
 
 export interface FetchHttpHandlerOptions {
@@ -29,7 +31,6 @@ export interface FetchHttpHandlerOptions {
  * We remove the bucket name from the path
  */
 export class TdrFetchHandler implements HttpHandler {
-  
   private readonly requestTimeout?: number
 
   constructor({ requestTimeout }: FetchHttpHandlerOptions = {}) {
@@ -40,7 +41,10 @@ export class TdrFetchHandler implements HttpHandler {
     // Do nothing. TLS and HTTP/2 connection pooling is handled by the browser.
   }
 
-  handle(request: HttpRequest, { abortSignal }: HttpHandlerOptions = {}): Promise<{ response: HttpResponse }> {
+  handle(
+    request: HttpRequest,
+    { abortSignal }: HttpHandlerOptions = {}
+  ): Promise<{ response: HttpResponse }> {
     const requestTimeoutInMs = this.requestTimeout
 
     // if the request was already aborted, prevent doing extra work
@@ -53,11 +57,15 @@ export class TdrFetchHandler implements HttpHandler {
     let path = `/${request.path.split("/").slice(2).join("/")}`
 
     const { port, method } = request
-    const url = `${request.protocol}//${request.hostname}${port ? `:${port}` : ""}${path}`
+    const url = `${request.protocol}//${request.hostname}${
+      port ? `:${port}` : ""
+    }${path}`
     // Request constructor doesn't allow GET/HEAD request with body
     // ref: https://github.com/whatwg/fetch/issues/551
-    const body = method === "GET" || method === "HEAD" ? undefined : request.body
-    const requestOptions: RequestInit = {
+    const body =
+      method === "GET" || method === "HEAD" ? undefined : request.body
+
+    const requestOptions: RequestInit = {//eslint-disable-line
       body,
       headers: new Headers(request.headers),
       method: method,
@@ -66,7 +74,7 @@ export class TdrFetchHandler implements HttpHandler {
 
     // some browsers support abort signal
     if (typeof AbortController !== "undefined") {
-      (requestOptions as any)["signal"] = abortSignal
+      ;(requestOptions as any)["signal"] = abortSignal
     }
 
     const fetchRequest = new Request(url, requestOptions)
@@ -87,8 +95,8 @@ export class TdrFetchHandler implements HttpHandler {
             response: new HttpResponse({
               headers: transformedHeaders,
               statusCode: response.status,
-              body,
-            }),
+              body
+            })
           }))
         }
         // Return the response with streaming body
@@ -96,11 +104,11 @@ export class TdrFetchHandler implements HttpHandler {
           response: new HttpResponse({
             headers: transformedHeaders,
             statusCode: response.status,
-            body: response.body,
-          }),
+            body: response.body
+          })
         }
       }),
-      requestTimeout(requestTimeoutInMs),
+      requestTimeout(requestTimeoutInMs)
     ]
     if (abortSignal) {
       raceOfPromises.push(
@@ -115,5 +123,4 @@ export class TdrFetchHandler implements HttpHandler {
     }
     return Promise.race(raceOfPromises)
   }
-
 }
