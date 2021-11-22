@@ -23,6 +23,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
 
   def uploadPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
+    val isJudgmentUser = request.token.isJudgmentUser
 
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
@@ -38,7 +39,11 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
             case Some("Completed") =>
               Ok(views.html.uploadHasCompleted(consignmentId)).uncache()
             case _ =>
-              Ok(views.html.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
+              if(isJudgmentUser) {
+                Ok(views.html.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
+              } else {
+                Ok(views.html.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
+              }
           }
         case _ =>
           Redirect(routes.TransferAgreementController.transferAgreement(consignmentId))

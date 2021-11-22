@@ -36,6 +36,14 @@ const mockMetadata2 = <IFileMetadata>{
   lastModified: new Date()
 }
 
+const mockMetadataWithoutPath = <IFileMetadata>{
+  file: new File([], ""),
+  checksum: "checksum3",
+  size: 10,
+  path: "",
+  lastModified: new Date()
+}
+
 class GraphqlClientSuccessAddMetadata {
   mutation: (
     query: DocumentNode,
@@ -246,6 +254,20 @@ test("createMetadataInputsAndFileMap removes slash at beginning of metadata inpu
   expect(metadataInputs).toHaveLength(2)
   expect(metadataInputs[0].originalPath).toEqual("path/to/file1")
   expect(metadataInputs[1].originalPath).toEqual("path/to/file2")
+})
+
+test("createMetadataInputsAndFileMap sets the 'originalPath' to the file name when the 'path' is empty", () => {
+  const metadata: IFileMetadata[] = [mockMetadataWithoutPath, mockMetadata1]
+  const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
+  const uploadMetadata = new ClientFileMetadataUpload(client)
+
+  const { metadataInputs, matchFileMap } =
+    uploadMetadata.createMetadataInputsAndFileMap(metadata)
+
+  expect(metadataInputs).toHaveLength(2)
+
+  expect(metadataInputs[0].originalPath).toEqual(metadata[0].file.name)
+  expect(metadataInputs[1].originalPath).toEqual(metadata[1].path)
 })
 
 function generateMockMetadataInput(matchId: number): ClientSideMetadataInput {

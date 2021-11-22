@@ -36,7 +36,6 @@ const getAllFiles: (
 ) => Promise<IFileWithPath[]> = async (entry, fileInfoInput) => {
   const reader: IReader = entry.createReader()
   const entries: IWebkitEntry[] = await getEntriesFromReader(reader)
-
   for (const entry of entries) {
     if (entry.isDirectory) {
       await getAllFiles(entry, fileInfoInput)
@@ -84,6 +83,7 @@ const getEntryBatch: (reader: IReader) => Promise<IWebkitEntry[]> = (
 }
 
 export class UploadForm {
+  isJudgmentUser: boolean
   formElement: HTMLFormElement
   folderRetriever: HTMLInputElement
   dropzone: HTMLElement
@@ -94,6 +94,7 @@ export class UploadForm {
   ) => void
 
   constructor(
+    isJudgmentUser: boolean,
     formElement: HTMLFormElement,
     folderRetriever: HTMLInputElement,
     dropzone: HTMLElement,
@@ -102,6 +103,7 @@ export class UploadForm {
       uploadFilesInfo: FileUploadInfo
     ) => void
   ) {
+    this.isJudgmentUser = isJudgmentUser
     this.formElement = formElement
     this.folderRetriever = folderRetriever
     this.dropzone = dropzone
@@ -113,6 +115,7 @@ export class UploadForm {
     const value: string | null = this.formElement.getAttribute(
       "data-consignment-id"
     )
+
     if (!value) {
       throw Error("No consignment provided")
     }
@@ -146,24 +149,36 @@ export class UploadForm {
 
   handleDroppedItems: (ev: DragEvent) => any = async (ev) => {
     ev.preventDefault()
-    const items: DataTransferItemList = ev.dataTransfer?.items!
-    if (items.length > 1) {
-      this.rejectUserItemSelection()
+    if (this.isJudgmentUser) {
+      const fileList: FileList = ev.dataTransfer?.files!
+      this.checkNumberOfObjectsDropped(
+        fileList,
+        "You are only allowed to drop one file."
+      )
+      const files: File[] = this.convertFileListToArray(fileList)
+      this.selectedFiles = this.convertFilesToIfilesWithPath(files)
+      this.addFileSelectionSuccessMessage(this.selectedFiles[0].file.name)
+    } else {
+      const items: DataTransferItemList = ev.dataTransfer?.items!
+      this.checkNumberOfObjectsDropped(
+        items,
+        "Only one folder is allowed to be selected"
+      )
+      const droppedItem: DataTransferItem | null = items[0]
+      const webkitEntry = droppedItem.webkitGetAsEntry()
+      this.checkIfDroppedItemIsFolder(webkitEntry)
+
+      const files: IFileWithPath[] = await getAllFiles(webkitEntry, [])
+      this.checkIfFolderHasFiles(files)
+
+      this.selectedFiles = files
+      this.addFolderSelectionSuccessMessage(
+        webkitEntry.name,
+        this.selectedFiles.length
+      )
     }
-    const droppedItem: DataTransferItem | null = items[0]
-    const webkitEntry = droppedItem.webkitGetAsEntry()
-    if (webkitEntry!.isFile) {
-      this.rejectUserItemSelection()
-    }
+    this.displaySelectionSuccessMessage()
     this.removeDragover()
-    const files = await getAllFiles(webkitEntry, [])
-    this.checkIfFolderHasFiles(files)
-
-    this.selectedFiles = files
-    const folderSize = files.length
-    const folderName = webkitEntry.name
-
-    this.displayFolderSelectionSuccessMessage(folderName, folderSize)
   }
 
   addFolderListener() {
@@ -171,10 +186,20 @@ export class UploadForm {
 
     this.folderRetriever.addEventListener("change", () => {
       const form: HTMLFormElement | null = this.formElement
-      const files = this.retrieveFiles(form)
-      this.selectedFiles = files
-      const parentFolder = this.getParentFolderName(this.selectedFiles)
-      this.displayFolderSelectionSuccessMessage(parentFolder, files.length)
+      this.selectedFiles = this.convertFilesToIfilesWithPath(
+        form!.files!.files!
+      )
+
+      if (this.isJudgmentUser) {
+        this.addFileSelectionSuccessMessage(this.selectedFiles[0].file.name)
+      } else {
+        const parentFolder = this.getParentFolderName(this.selectedFiles)
+        this.addFolderSelectionSuccessMessage(
+          parentFolder,
+          this.selectedFiles.length
+        )
+      }
+      this.displaySelectionSuccessMessage()
     })
   }
 
@@ -196,16 +221,15 @@ export class UploadForm {
       this.folderUploader(this.selectedFiles, uploadFilesInfo)
     } else {
       this.successMessage?.setAttribute("hidden", "true")
-      this.warningMessages.nonFolderSelectedMessage?.setAttribute(
+      this.warningMessages.incorrectItemSelectedMessage?.setAttribute(
         "hidden",
         "true"
       )
-
-      this.warningMessages.submissionWithoutAFolderSelectedMessage?.removeAttribute(
+      this.warningMessages.submissionWithoutSelectionMessage?.removeAttribute(
         "hidden"
       )
 
-      this.warningMessages.submissionWithoutAFolderSelectedMessage?.focus()
+      this.warningMessages.submissionWithoutSelectionMessage?.focus()
       this.addSubmitListener() // Readd submit listener as we've set it to be removed after one form submission
     }
   }
@@ -219,13 +243,14 @@ export class UploadForm {
   readonly warningMessages: {
     [s: string]: HTMLElement | null
   } = {
-    nonFolderSelectedMessage: document.querySelector(
-      "#folder-selection-failure"
+    incorrectItemSelectedMessage: document.querySelector(
+      "#item-selection-failure"
     ),
-    submissionWithoutAFolderSelectedMessage: document.querySelector(
-      "#no-folder-submission-message"
+    submissionWithoutSelectionMessage: document.querySelector(
+      "#nothing-selected-submission-message"
     )
   }
+
   readonly successMessage: HTMLElement | null = document.querySelector(
     ".drag-and-drop__success"
   )
@@ -253,7 +278,10 @@ export class UploadForm {
 
   private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void {
     if (files === null || files.length === 0) {
-      this.rejectUserItemSelection()
+      this.rejectUserItemSelection(
+        this.warningMessages?.incorrectItemSelectedMessage,
+        "The folder is empty"
+      )
     }
   }
 
@@ -267,8 +295,7 @@ export class UploadForm {
     this.dropzone.removeEventListener("drop", this.handleDroppedItems)
   }
 
-  private retrieveFiles(target: HTMLInputTarget | null): IFileWithPath[] {
-    const files: File[] = target!.files!.files!
+  private convertFilesToIfilesWithPath(files: File[]): IFileWithPath[] {
     this.checkIfFolderHasFiles(files)
 
     return [...files].map((file) => ({
@@ -281,23 +308,32 @@ export class UploadForm {
     this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
   }
 
-  private rejectUserItemSelection() {
+  private rejectUserItemSelection(
+    warningMessageToReveal: HTMLElement | null,
+    exceptionMessage: string
+  ) {
     this.selectedFiles = []
     this.removeDragover()
 
-    this.warningMessages.submissionWithoutAFolderSelectedMessage?.setAttribute(
-      "hidden",
-      "true"
+    const warningMessages: (HTMLElement | null)[] = Object.values(
+      this.warningMessages
     )
+
+    for (const warningMessage of warningMessages) {
+      if (warningMessage != warningMessageToReveal) {
+        warningMessage?.setAttribute("hidden", "true")
+      }
+    }
+
     this.successMessage?.setAttribute("hidden", "true")
 
-    this.warningMessages.nonFolderSelectedMessage?.removeAttribute("hidden")
-    this.warningMessages.nonFolderSelectedMessage?.focus()
+    warningMessageToReveal?.removeAttribute("hidden")
+    warningMessageToReveal?.focus()
 
-    throw new Error("No files selected")
+    throw new Error(exceptionMessage)
   }
 
-  private displayFolderSelectionSuccessMessage(
+  private addFolderSelectionSuccessMessage(
     folderName: string,
     folderSize: number
   ) {
@@ -311,15 +347,61 @@ export class UploadForm {
       folderSizeElement.textContent = `${folderSize} ${
         folderSize === 1 ? "file" : "files"
       }`
+    }
+  }
 
-      Object.values(this.warningMessages).forEach(
-        (warningMessageElement: HTMLElement | null) => {
-          warningMessageElement?.setAttribute("hidden", "true")
-        }
+  private addFileSelectionSuccessMessage(fileName: string) {
+    const fileNameElement: HTMLElement | null =
+      document.querySelector("#file-name")
+    if (fileNameElement) {
+      fileNameElement.textContent = fileName
+    }
+  }
+
+  private displaySelectionSuccessMessage() {
+    Object.values(this.warningMessages).forEach(
+      (warningMessageElement: HTMLElement | null) => {
+        warningMessageElement?.setAttribute("hidden", "true")
+      }
+    )
+
+    this.successMessage?.removeAttribute("hidden")
+    this.successMessage?.focus()
+  }
+
+  private checkNumberOfObjectsDropped(
+    droppedObjects: DataTransferItemList | FileList,
+    exceptionMessage: string
+  ) {
+    if (droppedObjects.length > 1) {
+      this.rejectUserItemSelection(
+        this.warningMessages?.incorrectItemSelectedMessage,
+        exceptionMessage
       )
+    }
+  }
 
-      this.successMessage?.removeAttribute("hidden")
-      this.successMessage?.focus()
+  private convertFileListToArray(fileList: FileList): File[] {
+    const fileListIndexes = [...Array(fileList.length).keys()]
+    return fileListIndexes.map((i) => {
+      const file: File = fileList[i]
+      if (!file.type) {
+        this.rejectUserItemSelection(
+          this.warningMessages?.incorrectItemSelectedMessage,
+          "Only files are allowed to be selected"
+        )
+      }
+
+      return file
+    })
+  }
+
+  private checkIfDroppedItemIsFolder(webkitEntry: any) {
+    if (webkitEntry!.isFile) {
+      this.rejectUserItemSelection(
+        this.warningMessages?.incorrectItemSelectedMessage,
+        "Only folders are allowed to be selected"
+      )
     }
   }
 }
