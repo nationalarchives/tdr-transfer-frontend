@@ -1,10 +1,7 @@
-import {S3Client, S3, ServiceOutputTypes} from "@aws-sdk/client-s3";
-import { HttpHandler, HttpRequest, HttpResponse } from "@aws-sdk/protocol-http"
-import {HttpHandlerOptions, RequestHandlerOutput} from "@aws-sdk/types"
-import {useRegionalEndpointMiddleware} from "@aws-sdk/middleware-sdk-s3"
+import {S3Client, ServiceOutputTypes, PutObjectCommandInput} from "@aws-sdk/client-s3";
+
 import { Upload } from "@aws-sdk/lib-storage";
 import { TProgressFunction } from "@nationalarchives/file-information"
-import {S3ClientConfig} from "@aws-sdk/client-s3/dist-types/S3Client";
 
 export interface ITdrFile {
   fileId: string
@@ -18,9 +15,9 @@ interface IFileProgressInfo {
 }
 
 export class S3Upload {
-  endpoint: string
-  constructor(endpoint: string) {
-    this.endpoint = endpoint
+  client: S3Client
+  constructor(client: S3Client) {
+    this.client = client
   }
 
   uploadToS3: (
@@ -82,33 +79,17 @@ export class S3Upload {
   ) => {
     const { file, fileId } = tdrFile
     const key = `${userId}/${consignmentId}/${fileId}`
-    const params = {Key: key, Bucket: "undefined", ACL: "bucket-owner-read", Body: file}
-    const connectTimeout = 20 * 60 * 1000
-    const config: S3ClientConfig = {
-      region: "eu-west-2",
-      endpoint: this.endpoint,
-      credentials: {accessKeyId: "placeholder-id", secretAccessKey: "placeholder-secret"},
-      bucketEndpoint: true,
-    }
-    const client = new S3Client(config)
+    const params: PutObjectCommandInput = {Key: key, Bucket: `tdr-upload-files-cloudfront-dirty-${stage}`, ACL: "bucket-owner-read", Body: file}
 
-    client.middlewareStack.add(
-      (next, context) => async (args: any) => {
-        args.request.path = `/${args.request.path.split("/").slice(2).join("/")}`
-        args.request.query = {}
-        return await next(args);
-      },
-      { step: "build", name: "removeBucketName" }
-    );
-
-    const progress = new Upload({client, params})
+    const progress = new Upload({client: this.client, params})
 
     const { processedChunks, totalChunks, totalFiles } = progressInfo
     if (file.size >= 1) {
       // httpUploadProgress seems to only trigger if file size is greater than 0
       progress.on("httpUploadProgress", (ev) => {
-        if(ev.loaded) {
-          const chunks = ev.loaded! + processedChunks
+        const loaded = ev.loaded
+        if(loaded) {
+          const chunks = loaded + processedChunks
           this.updateUploadProgress(
             chunks,
             totalChunks,

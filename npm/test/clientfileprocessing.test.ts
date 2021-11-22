@@ -9,9 +9,9 @@ import {
 } from "@nationalarchives/file-information"
 import { ClientFileExtractMetadata } from "../src/clientfileextractmetadata"
 import { S3Upload, ITdrFile } from "../src/s3upload"
-import { ManagedUpload } from "aws-sdk/clients/s3"
 import { mockKeycloakInstance } from "./utils"
 import { FileUploadInfo } from "../src/upload/upload-form"
+import { S3Client, ServiceOutputTypes } from "@aws-sdk/client-s3"
 
 jest.mock("../src/clientfilemetadataupload")
 jest.mock("../src/clientfileextractmetadata")
@@ -21,7 +21,7 @@ beforeEach(() => jest.resetModules())
 
 class S3UploadMock extends S3Upload {
   constructor() {
-    super()
+    super(new S3Client({}))
   }
 
   uploadToS3: (
@@ -32,7 +32,7 @@ class S3UploadMock extends S3Upload {
     stage: string,
     chunkSize?: number
   ) => Promise<{
-    sendData: ManagedUpload.SendData[]
+    sendData: ServiceOutputTypes[]
     processedChunks: number
     totalChunks: number
   }> = jest.fn()
@@ -420,7 +420,7 @@ test("Error thrown if S3 upload fails", async () => {
   const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
     client
   )
-  const s3Upload = new S3Upload()
+  const s3Upload = new S3Upload(new S3Client({}))
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3Upload)
 
   await expect(
