@@ -38,7 +38,7 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
     getRecordProcessingProgress(request, consignmentId)
       .map {
         fileChecks => {
-          Ok(views.html.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo)).uncache()
+          Ok(views.html.standard.fileChecksProgress(consignmentId, fileChecks, frontEndInfoConfiguration.frontEndInfo)).uncache()
         }
       }
   }

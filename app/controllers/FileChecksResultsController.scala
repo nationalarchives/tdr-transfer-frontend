@@ -28,9 +28,9 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
           fileCheck.totalFiles,
           parentFolder
         )
-        Ok(views.html.fileChecksResults(consignmentInfo, consignmentId))
+        Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId))
       } else {
-        Ok(views.html.fileChecksFailed())
+        Ok(views.html.standard.fileChecksFailed())
       }
     })
   }

@@ -49,8 +49,8 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
       consignmentStatus =>
         val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
         transferAgreementStatus match {
-          case Some("Completed") => Ok(views.html.transferAgreementAlreadyConfirmed(consignmentId, transferAgreementForm, options)).uncache()
-          case _ =>  httpStatus(views.html.transferAgreement(consignmentId, taForm, options)).uncache()
+          case Some("Completed") => Ok(views.html.standard.transferAgreementAlreadyConfirmed(consignmentId, transferAgreementForm, options)).uncache()
+          case _ =>  httpStatus(views.html.standard.transferAgreement(consignmentId, taForm, options)).uncache()
         }
     }
   }
@@ -88,7 +88,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 
   //Placeholder for the judgment transfer agreement page
   def judgmentTransferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-    Future(Ok(views.html.judgmentTransferAgreement(consignmentId)))
+    Future(Ok(views.html.judgment.judgmentTransferAgreement(consignmentId)))
   }
 }
 
