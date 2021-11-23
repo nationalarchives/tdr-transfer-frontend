@@ -40,7 +40,7 @@ export class FileUploader {
     goToNextPage: () => void,
     keycloak: KeycloakInstance
   ) {
-    const requestTimeoutMs   = 20 * 60 * 1000
+    const requestTimeoutMs = 20 * 60 * 1000
     const config: S3ClientConfig = {
       region: "eu-west-2",
       endpoint: frontendInfo.uploadUrl,
