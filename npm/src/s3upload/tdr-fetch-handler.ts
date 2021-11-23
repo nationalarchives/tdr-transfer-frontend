@@ -31,10 +31,10 @@ export interface FetchHttpHandlerOptions {
  * We remove the bucket name from the path
  */
 export class TdrFetchHandler implements HttpHandler {
-  private readonly requestTimeout?: number
+  private readonly requestTimeoutMs?: number
 
-  constructor({ requestTimeout }: FetchHttpHandlerOptions = {}) {
-    this.requestTimeout = requestTimeout
+  constructor({ requestTimeoutMs }: FetchHttpHandlerOptions = {}) {
+    this.requestTimeoutMs = requestTimeoutMs
   }
 
   destroy(): void {
@@ -45,8 +45,6 @@ export class TdrFetchHandler implements HttpHandler {
     request: HttpRequest,
     { abortSignal }: HttpHandlerOptions = {}
   ): Promise<{ response: HttpResponse }> {
-    const requestTimeoutInMs = this.requestTimeout
-
     // if the request was already aborted, prevent doing extra work
     if (abortSignal?.aborted) {
       const abortError = new Error("Request aborted")
@@ -108,7 +106,7 @@ export class TdrFetchHandler implements HttpHandler {
           })
         }
       }),
-      requestTimeout(requestTimeoutInMs)
+      requestTimeout(this.requestTimeoutMs)
     ]
     if (abortSignal) {
       raceOfPromises.push(
