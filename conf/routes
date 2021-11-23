@@ -35,3 +35,4 @@ GET         /sign-out                                             @org.pac4j.pla
 POST        /homepage                                             controllers.HomepageController.judgmentHomepageSubmit()
 GET         /judgment/:consignmentId/transfer-agreement           controllers.TransferAgreementController.judgmentTransferAgreement(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/upload                       controllers.UploadController.uploadPage(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/records                      controllers.FileChecksController.recordProcessingPage(consignmentId: java.util.UUID)

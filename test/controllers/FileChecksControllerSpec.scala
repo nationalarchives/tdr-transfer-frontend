@@ -8,6 +8,7 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.Matchers._
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import services.ConsignmentService
@@ -17,7 +18,7 @@ import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 
-class FileChecksControllerSpec extends FrontEndTestHelper {
+class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenPropertyChecks {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val totalFiles: Int = 40
@@ -34,95 +35,107 @@ class FileChecksControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  "FileChecksController GET" should {
+  val fileChecks: TableFor1[String] = Table(
+    "User type",
+    "judgment",
+    "standard"
+  )
 
-    "render the fileChecks page with a hidden notification banner and disabled button if the checks are incomplete" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val filesProcessedWithAntivirus = 6
+  forAll (fileChecks) { userType =>
+    "FileChecksController GET" should {
+      val (pathName, keycloakConfiguration, expectedText) = if(userType == "judgment") {
+        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Checking court judgment record")
+      } else {
+        ("consignment", getValidStandardUserKeycloakConfiguration, "Checking your records")
+      }
 
-      val filesProcessedWithChecksum = 12
-      val filesProcessedWithFFID = 8
-      val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
+      s"render the $userType fileChecks page with a hidden notification banner and disabled button if the checks are incomplete" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val filesProcessedWithAntivirus = 6
 
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+        val filesProcessedWithChecksum = 12
+        val filesProcessedWithFFID = 8
+        val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
-      val recordsController = new FileChecksController(
-        getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration,
-        consignmentService,
-        frontEndInfoConfiguration
-      )
+        wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString)))
 
-      val recordsPage = recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"consignment/$consignmentId/records"))
-      val recordsPageAsString = contentAsString(recordsPage)
+        val recordsController = new FileChecksController(
+          getAuthorisedSecurityComponents,
+          new GraphQLConfiguration(app.configuration),
+          keycloakConfiguration,
+          consignmentService,
+          frontEndInfoConfiguration
+        )
 
-      playStatus(recordsPage) mustBe OK
-      contentType(recordsPage) mustBe Some("text/html")
-      headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      recordsPageAsString must include("Checking records")
-      recordsPageAsString must include("Checking records")
-      recordsPageAsString must include("progress")
-      recordsPageAsString must include("data-module=\"govuk-notification-banner\" hidden>")
-      recordsPageAsString must include("govuk-button--disabled")
+        val recordsPage = recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        val recordsPageAsString = contentAsString(recordsPage)
 
-    }
+        playStatus(recordsPage) mustBe OK
+        contentType(recordsPage) mustBe Some("text/html")
+        headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+        recordsPageAsString must include(expectedText)
+        recordsPageAsString must include("progress")
+        recordsPageAsString must include("data-module=\"govuk-notification-banner\" hidden>")
+        recordsPageAsString must include("govuk-button--disabled")
 
-    "return a redirect to the auth server with an unauthenticated user" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new FileChecksController(getUnauthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
-      val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
+      }
 
-      playStatus(recordsPage) mustBe FOUND
-      redirectLocation(recordsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
-    }
+      s"return a redirect to the auth server with an unauthenticated $userType user" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val controller = new FileChecksController(getUnauthorisedSecurityComponents,
+          new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
+        val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
 
-    "render the notification banner and enable the button if the file checks are complete and all checks are successful" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val dataString: String = progressData(40, 40, 40, allChecksSucceeded = true)
+        playStatus(recordsPage) mustBe FOUND
+        redirectLocation(recordsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      }
 
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      s"render the notification banner and enable the button if the $userType file checks are complete and all checks are successful" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val dataString: String = progressData(40, 40, 40, allChecksSucceeded = true)
 
-      val controller = new FileChecksController(
-        getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration,
-        consignmentService,
-        frontEndInfoConfiguration
-      )
-      val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
-      playStatus(recordsPage) mustBe OK
-      headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      contentAsString(recordsPage) must include("""data-module="govuk-notification-banner"""")
-      contentAsString(recordsPage) must not include "govuk-button--disabled"
-    }
+        wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString)))
 
-    "render the notification banner and enable the button if the file checks are complete and all checks are not successful" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val dataString: String = progressData(40, 40, 40, allChecksSucceeded = false)
+        val controller = new FileChecksController(
+          getAuthorisedSecurityComponents,
+          new GraphQLConfiguration(app.configuration),
+          keycloakConfiguration,
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+        val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        playStatus(recordsPage) mustBe OK
+        headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+        contentAsString(recordsPage) must include("""data-module="govuk-notification-banner"""")
+        contentAsString(recordsPage) must not include "govuk-button--disabled"
+      }
 
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      s"render the notification banner and enable the button if the $userType file checks are complete and all checks are not successful" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val dataString: String = progressData(40, 40, 40, allChecksSucceeded = false)
 
-      val controller = new FileChecksController(
-        getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration),
-        getValidKeycloakConfiguration,
-        consignmentService,
-        frontEndInfoConfiguration
-      )
-      val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
-      playStatus(recordsPage) mustBe OK
-      headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\"")
-      contentAsString(recordsPage) must not include "govuk-button--disabled"
+        wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString)))
+
+        val controller = new FileChecksController(
+          getAuthorisedSecurityComponents,
+          new GraphQLConfiguration(app.configuration),
+          keycloakConfiguration,
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+        val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        playStatus(recordsPage) mustBe OK
+        headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+        contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\"")
+        contentAsString(recordsPage) must not include "govuk-button--disabled"
+      }
     }
   }
 

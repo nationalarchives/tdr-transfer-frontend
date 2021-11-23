@@ -12,9 +12,9 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class HomepageController @Inject()(val controllerComponents: SecurityComponents,
-                                   val keycloakConfiguration: KeycloakConfiguration,
-                                   val consignmentService: ConsignmentService)
-                                  (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+                                    val keycloakConfiguration: KeycloakConfiguration,
+                                    val consignmentService: ConsignmentService)
+                                   (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   def judgmentHomepageSubmit(): Action[AnyContent] = secureAction.async {
     implicit request: Request[AnyContent] => {
@@ -26,9 +26,9 @@ class HomepageController @Inject()(val controllerComponents: SecurityComponents,
 
   def homepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] => {
       if (request.token.isJudgmentUser) {
-        Ok(views.html.judgmentHomepage())
+        Ok(views.html.judgment.judgmentHomepage())
       } else {
-        Ok(views.html.homepage())
+        Ok(views.html.standard.homepage())
       }
     }
   }
