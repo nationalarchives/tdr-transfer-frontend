@@ -20,7 +20,7 @@ export interface FetchHttpHandlerOptions {
    * The number of milliseconds a request can take before being automatically
    * terminated.
    */
-  requestTimeout?: number
+  requestTimeoutMs?: number
 }
 
 /**
@@ -65,7 +65,7 @@ export class TdrFetchHandler implements HttpHandler {
     const body =
       method === "GET" || method === "HEAD" ? undefined : request.body
 
-    const requestOptions: RequestInit = {//eslint-disable-line
+    const requestOptions: RequestInit = {
       body,
       headers: new Headers(request.headers),
       method: method,
