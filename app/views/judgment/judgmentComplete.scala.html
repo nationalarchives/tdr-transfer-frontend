@@ -1,4 +1,6 @@
 @import java.util.UUID
+@import views.html.partials.returnToStartPage
+@import views.html.partials.feedbackSurvey
 @(reference: String)(implicit messages: Messages, request: RequestHeader)
     @main("Transfer complete") {
         @defining(play.core.PlayVersion.current) { version =>
@@ -23,15 +25,9 @@
 
                     <p class="govuk-body">You will be notified by email once the judgment has been received and published.</p>
 
-                    <p class="govuk-body govuk-!-margin-bottom-6">
-                        <a href="https://www.smartsurvey.co.uk/s/tdr-feedback/" class="govuk-link" rel="noreferrer noopener" target="_blank">
-                            What did you think of this service? (opens in new tab)
-                        </a>
-                    </p>
+                    @feedbackSurvey()
 
-                    <a href="@routes.HomepageController.homepage()" role="button" draggable="false" class="govuk-button">
-                    Return to start
-                    </a>
+                    @returnToStartPage()
                 </div>
 
             </div>
