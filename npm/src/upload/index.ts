@@ -7,7 +7,7 @@ import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError } from "../errorhandling"
 import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
-import { scheduleTokenRefresh } from "../auth"
+import { refreshOrReturnToken, scheduleTokenRefresh } from "../auth"
 
 export interface IKeycloakInstance extends KeycloakInstance {
   tokenParsed: IKeycloakTokenParsed
@@ -56,11 +56,17 @@ export class FileUploader {
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
+    const currentTimeInSecs = Math.round(new Date().getTime() / 1000)
+    const token =
+      this.keycloak.tokenParsed.exp! >= currentTimeInSecs - 5000
+        ? await refreshOrReturnToken(this.keycloak)
+        : this.keycloak.token
+
     const cookiesUrl = `${this.uploadUrl}/cookies`
     scheduleTokenRefresh(this.keycloak, cookiesUrl)
     await fetch(cookiesUrl, {
       credentials: "include",
-      headers: { Authorization: `Bearer ${this.keycloak.token}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
     try {
       await this.clientFileProcessing.processClientFiles(
