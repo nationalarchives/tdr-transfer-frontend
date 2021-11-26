@@ -43,6 +43,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       val transferCompleteSubmit = callTransferComplete("consignment")
       contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
+      contentAsString(transferCompleteSubmit) must include("Your records have now been transferred to The National Archives.")
     }
   }
 
@@ -52,6 +53,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       val transferCompleteSubmit = callTransferComplete("judgment")
       contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
+      contentAsString(transferCompleteSubmit) must include("Your file has now been transferred to The National Archives.")
     }
   }
 
@@ -65,15 +67,18 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       .willReturn(okJson(dataString)))
   }
 
-  private def instantiateTransferCompleteController(securityComponents: SecurityComponents) = {
+  private def instantiateTransferCompleteController(securityComponents: SecurityComponents, path: String) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
-
-    new TransferCompleteController(securityComponents, getValidKeycloakConfiguration, consignmentService)
+    if (path.equals("judgment")) {
+      new TransferCompleteController(securityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService)
+    } else {
+      new TransferCompleteController(securityComponents, getValidKeycloakConfiguration, consignmentService)
+    }
   }
 
   private def callTransferComplete(path: String): Future[Result] = {
-    val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents)
+    val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, path)
     val consignmentId = UUID.randomUUID()
 
     controller.transferComplete(consignmentId)
