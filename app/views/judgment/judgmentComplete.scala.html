@@ -1,5 +1,5 @@
 @import java.util.UUID
-@(consignmentReference: String)(implicit messages: Messages, request: RequestHeader)
+@(reference: String)(implicit messages: Messages, request: RequestHeader)
     @main("Transfer complete") {
         @defining(play.core.PlayVersion.current) { version =>
             <div class="govuk-grid-row">
@@ -10,14 +10,14 @@
                             Transfer complete
                         </h1>
                         <div class="govuk-panel__body govuk-!-font-size-27">
-                        Your file have now been transferred to The National Archives.
+                        Your file has now been transferred to The National Archives.
                         </div>
                         <div class="govuk-panel__body govuk-!-font-size-27 govuk-!-margin-top-5">
-                            Consignment reference: <span class="govuk-!-font-weight-bold">@consignmentReference</span>
+                            Reference: <span class="govuk-!-font-weight-bold">@reference</span>
                         </div>
                     </div>
 
-                    <p class="govuk-body">We have now received your judgment. Please do not delete the original files you uploaded until you are notified that it has been published.</p>
+                    <p class="govuk-body">We have now received your judgment. Please do not delete the original file you uploaded until you are notified that it has been published.</p>
 
                     <h2 class="govuk-heading-m govuk-!-margin-top-2">What happens next</h2>
 

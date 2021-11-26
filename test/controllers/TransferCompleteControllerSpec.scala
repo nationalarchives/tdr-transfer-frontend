@@ -3,6 +3,7 @@ package controllers
 import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.GraphQLConfiguration
 import io.circe.Printer
 import org.pac4j.play.scala.SecurityComponents
@@ -38,6 +39,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
   "TransferCompleteController GET" should {
     "render the success page if the export was triggered successfully" in {
+      setConsignmentReferenceResponse()
       val transferCompleteSubmit = callTransferComplete("consignment")
       contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
@@ -46,25 +48,21 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
   "TransferCompleteController GET" should {
     "render the success page if the export was triggered successfully for a judgment user" in {
+      setConsignmentReferenceResponse()
       val transferCompleteSubmit = callTransferComplete("judgment")
       contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
     }
   }
 
-  private def callTransferComplete(path: String): Future[Result] = {
+  private def setConsignmentReferenceResponse(): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcr.Data, gcr.Variables]()
-    val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents)
-
-    val consignmentReferenceResponse: gcr.GetConsignment = getConsignmentReferenceResponse
+    val consignmentReferenceResponse: gcr.GetConsignment = new gcr.GetConsignment("TEST-TDR-2021-GB")
     val data: client.GraphqlData = client.GraphqlData(Some(gcr.Data(Some(consignmentReferenceResponse))), List())
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .willReturn(okJson(dataString)))
-
-    val consignmentId = UUID.randomUUID()
-    controller.transferComplete(consignmentId)
-      .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
   }
 
   private def instantiateTransferCompleteController(securityComponents: SecurityComponents) = {
@@ -74,8 +72,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     new TransferCompleteController(securityComponents, getValidKeycloakConfiguration, consignmentService)
   }
 
-  private def getConsignmentReferenceResponse: gcr.GetConsignment = {
-    val consignmentReference = "TEST-TDR-2021-GB"
-    new gcr.GetConsignment(consignmentReference)
+  private def callTransferComplete(path: String): Future[Result] = {
+    val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents)
+    val consignmentId = UUID.randomUUID()
+
+    controller.transferComplete(consignmentId)
+      .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
   }
 }
