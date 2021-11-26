@@ -1,6 +1,6 @@
 import Keycloak, { KeycloakInstance } from "keycloak-js"
 import { IKeycloakTokenParsed } from "../upload"
-import {handleUploadError, LoggedOutError} from "../errorhandling"
+import { handleUploadError, LoggedOutError } from "../errorhandling"
 
 export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
   async () => {
