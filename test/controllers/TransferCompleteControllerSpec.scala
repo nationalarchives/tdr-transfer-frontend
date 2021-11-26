@@ -1,9 +1,9 @@
 package controllers
 
 import java.util.UUID
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.GraphQLConfiguration
 import io.circe.Printer
 import org.pac4j.play.scala.SecurityComponents
@@ -15,8 +15,9 @@ import util.FrontEndTestHelper
 import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcr}
 import io.circe.syntax.EncoderOps
 import io.circe.generic.auto._
+import play.api.mvc.Result
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class TransferCompleteControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -38,32 +39,49 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
   "TransferCompleteController GET" should {
     "render the success page if the export was triggered successfully" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcr.Data, gcr.Variables]()
-      val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents)
-
-      val consignmentReferenceResponse: gcr.GetConsignment = getConsignmentReferenceResponse
-      val data: client.GraphqlData = client.GraphqlData(Some(gcr.Data(Some(consignmentReferenceResponse))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
-
-      val consignmentId = UUID.randomUUID()
-      val transferCompleteSubmit = controller.transferComplete(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-complete").withCSRFToken)
+      setConsignmentReferenceResponse()
+      val transferCompleteSubmit = callTransferComplete("consignment")
       contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
+      contentAsString(transferCompleteSubmit) must include("Your records have now been transferred to The National Archives.")
     }
   }
 
-  private def instantiateTransferCompleteController(securityComponents: SecurityComponents) = {
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-
-    new TransferCompleteController(securityComponents, getValidKeycloakConfiguration, consignmentService)
+  "TransferCompleteController GET" should {
+    "render the success page if the export was triggered successfully for a judgment user" in {
+      setConsignmentReferenceResponse()
+      val transferCompleteSubmit = callTransferComplete("judgment")
+      contentAsString(transferCompleteSubmit) must include("Transfer complete")
+      contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
+      contentAsString(transferCompleteSubmit) must include("Your file has now been transferred to The National Archives.")
+    }
   }
 
-  private def getConsignmentReferenceResponse: gcr.GetConsignment = {
-    val consignmentReference = "TEST-TDR-2021-GB"
-    new gcr.GetConsignment(consignmentReference)
+  private def setConsignmentReferenceResponse(): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcr.Data, gcr.Variables]()
+    val consignmentReferenceResponse: gcr.GetConsignment = new gcr.GetConsignment("TEST-TDR-2021-GB")
+    val data: client.GraphqlData = client.GraphqlData(Some(gcr.Data(Some(consignmentReferenceResponse))), List())
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .willReturn(okJson(dataString)))
+  }
+
+  private def instantiateTransferCompleteController(securityComponents: SecurityComponents, path: String) = {
+    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+    val consignmentService = new ConsignmentService(graphQLConfiguration)
+    if (path.equals("judgment")) {
+      new TransferCompleteController(securityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService)
+    } else {
+      new TransferCompleteController(securityComponents, getValidKeycloakConfiguration, consignmentService)
+    }
+  }
+
+  private def callTransferComplete(path: String): Future[Result] = {
+    val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, path)
+    val consignmentId = UUID.randomUUID()
+
+    controller.transferComplete(consignmentId)
+      .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
   }
 }
