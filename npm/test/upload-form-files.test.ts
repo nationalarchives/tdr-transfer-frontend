@@ -2,8 +2,8 @@ import "@testing-library/jest-dom"
 
 import {
   dummyIFileWithPath,
-  dummyFile,
-  dummyFolder
+  getDummyFile,
+  getDummyFolder
 } from "./upload-form-utils/mock-files-and-folders"
 import { MockUploadFormDom } from "./upload-form-utils/mock-upload-form-dom"
 import { htmlForFileUploadForm } from "./upload-form-utils/html-for-file-upload-form"
@@ -43,7 +43,11 @@ test("clicking the submit button, without selecting a file, displays a warning m
 test("input button updates the page with the file that has been selected", () => {
   const mockDom = new MockUploadFormDom(true)
   mockDom.getFileUploader().initialiseFormListeners()
-  mockDom.uploadForm!.files = { files: [dummyFile] }
+
+  const dummyFile = getDummyFile("Mock File.docx", "docx")
+  mockDom.uploadForm!.files = {
+    files: [dummyFile]
+  }
   mockDom.selectFolderViaButton()
 
   expect(mockDom.itemRetrievalSuccessMessage!).not.toHaveAttribute(
@@ -62,8 +66,10 @@ test("input button updates the page with the file that has been selected", () =>
 
 test("dropzone updates the page with correct number of files if only 1 file has been dropped", async () => {
   const mockDom = new MockUploadFormDom(true)
+  const fileName = "Mock File.docx"
+  const fileType = "docx"
   const dragEventClass = mockDom.addFilesToDragEvent(
-    [dummyFile],
+    [getDummyFile(fileName, fileType)],
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
@@ -79,15 +85,16 @@ test("dropzone updates the page with correct number of files if only 1 file has 
       expect(warningMessageElement!).toHaveAttribute("hidden", "true")
   )
 
-  expect(mockDom.fileNameElement!.textContent).toStrictEqual(
-    dummyIFileWithPath.file.name
-  )
+  expect(mockDom.fileNameElement!.textContent).toStrictEqual(fileName)
 })
 
 test("dropzone updates the page with an error if more than 1 file has been dropped", async () => {
   const mockDom = new MockUploadFormDom(true)
   const dragEventClass = mockDom.addFilesToDragEvent(
-    [dummyFile, dummyFile],
+    [
+      getDummyFile("Mock File.docx", "docx"),
+      getDummyFile("Mock File.docx", "docx")
+    ],
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
@@ -110,7 +117,7 @@ test("dropzone updates the page with an error if more than 1 file has been dropp
 test("dropzone updates the page with an error if a file and a folder has been dropped", async () => {
   const mockDom = new MockUploadFormDom(true)
   const dragEventClass = mockDom.addFilesToDragEvent(
-    [dummyFolder, dummyFile],
+    [getDummyFolder(), getDummyFile("Mock File.docx", "docx")],
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
@@ -134,7 +141,7 @@ test("dropzone updates the page with an error if a file and a folder has been dr
 test("dropzone updates the page with an error if 1 non-file has been dropped", async () => {
   const mockDom = new MockUploadFormDom(true)
   const dragEventClass = mockDom.addFilesToDragEvent(
-    [dummyFolder],
+    [getDummyFolder("Mock Folder.docx")],
     mockDom.fileEntry
   )
   const dragEvent = new dragEventClass()
@@ -158,14 +165,14 @@ test("dropzone updates the page with an error if 1 non-file has been dropped", a
 test("dropzone clears selected file if an invalid object is dropped after a valid one", async () => {
   const mockDom = new MockUploadFormDom(true)
   const validDragEventClass = mockDom.addFilesToDragEvent(
-    [dummyFile],
+    [getDummyFile("Mock File.docx", "docx")],
     mockDom.fileEntry
   )
   const validDragEvent = new validDragEventClass()
   await mockDom.form.handleDroppedItems(validDragEvent)
 
   const invalidDragEventClass = mockDom.addFilesToDragEvent(
-    [dummyFolder],
+    [getDummyFolder()],
     mockDom.directoryEntry
   )
 
@@ -182,7 +189,7 @@ test("dropzone clears selected file if an invalid object is dropped after a vali
 test("clicking the submit button, after selecting the file, disables the buttons on the page", async () => {
   const mockDom = new MockUploadFormDom(true)
   const dragEventClass = mockDom.addFilesToDragEvent(
-    [dummyFile],
+    [getDummyFile("Mock File.docx", "docx")],
     mockDom.fileEntry
   )
   const dragEvent = new dragEventClass()
@@ -201,7 +208,7 @@ test("clicking the submit button, after selecting the file, disables the buttons
 test("clicking the submit button, after selecting a file, hides 'upload file' section and reveals progress bar", async () => {
   const mockDom = new MockUploadFormDom(true)
   const dragEventClass = mockDom.addFilesToDragEvent(
-    [dummyFile],
+    [getDummyFile("Mock File.docx", "docx")],
     mockDom.fileEntry
   )
   expect(mockDom.uploadingRecordsSection).toHaveAttribute("hidden")
