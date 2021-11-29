@@ -1,6 +1,6 @@
 import { IReader, IWebkitEntry, UploadForm } from "../../src/upload/upload-form"
 import {
-  dummyFile,
+  getDummyFile,
   mockDataTransferItemList,
   mockFileList
 } from "./mock-files-and-folders"
@@ -60,7 +60,7 @@ export class MockUploadFormDom {
 
   dataTransferItemFields = {
     fullPath: "something", // add this to the fileEntry and directoryEntry object
-    file: (success: any) => success(dummyFile),
+    file: (success: any) => success(getDummyFile()),
     kind: "",
     type: "",
     getAsFile: jest.fn(),
