@@ -56,17 +56,13 @@ export class FileUploader {
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
-    const currentTimeInSecs = Math.round(new Date().getTime() / 1000)
-    const token =
-      this.keycloak.tokenParsed.exp! >= currentTimeInSecs - 5000
-        ? await refreshOrReturnToken(this.keycloak)
-        : this.keycloak.token
+    const refreshedToken = await refreshOrReturnToken(this.keycloak)
 
     const cookiesUrl = `${this.uploadUrl}/cookies`
     scheduleTokenRefresh(this.keycloak, cookiesUrl)
     await fetch(cookiesUrl, {
       credentials: "include",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${refreshedToken}` }
     })
     try {
       await this.clientFileProcessing.processClientFiles(
