@@ -1,0 +1,8 @@
+@import java.util.UUID
+
+@(consignmentId: UUID, fileId: UUID)(implicit request: RequestHeader, messages: Messages)
+@main("Metadata") {
+  @defining(play.core.PlayVersion.current) { version =>
+    <a class="govuk-link" href="@routes.MetadataController.displayMetadata(consignmentId, fileId, "closure")">Closure</a>
+  }
+}

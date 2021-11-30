@@ -1,0 +1,49 @@
+@import controllers.MetadataController._
+@import views.html.partials.inputDate
+@import graphql.codegen.types
+@import java.util.UUID
+
+@import views.html.helper.CSRF
+@import views.html.helper.form
+@(consignmentId: UUID, fileId: UUID, fieldType: String, metadata: List[MetadataForm], errors: Map[String, String] = Map())(implicit request: RequestHeader, messages: Messages)
+@main("Metadata") {
+  @defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        @form(routes.MetadataController.submitMetadata(consignmentId, fileId, fieldType), (Symbol("novalidate"), "")) {
+          @CSRF.formField
+          <div class="govuk-form-group">
+          @for(formValue <- metadata) {
+            <label class="govuk-label" for="@{formValue.name}">@{formValue.fullName}</label>
+            @formValue.value match {
+              case FormDateValue(day, month, year) => {
+                @inputDate(formValue.name, day, month, year)
+              }
+              case FormSelectValue(value, options) => {
+                <select class="govuk-select" id="@{formValue.name}" name="@{formValue.name}" @if(!formValue.editable){disabled}>
+                @for(option <- options) {
+                  <option value="@{option}" @if(option == value){selected}>@{option}</option>
+                }
+                </select>
+              }
+              case FormTextValue(value) => {
+                <input class="govuk-input" type="text" name="@{formValue.name}" id="@{formValue.name}" value="@{value}" @if(!formValue.editable){disabled}/>
+              }
+            }
+            @if(errors.nonEmpty && errors.contains(formValue.name)) {
+              <span class="govuk-error-message" id="error-@formValue.name">
+                <span class="govuk-visually-hidden">Error:</span>
+                @errors(formValue.name)
+              </span>
+            }
+          }
+          </div>
+          <button type="submit" role="button" draggable="false" id="submit-metadata" class="govuk-button">Submit</button>
+
+        }
+
+      </div>
+    </div>
+
+  }
+}

@@ -17,6 +17,6 @@ class ConsignmentStatusService @Inject()(val graphqlConfiguration: GraphQLConfig
     val variables = new Variables(consignmentId)
     sendApiRequest(getConsignmentStatusClient, getConsignmentStatus.document, token, variables).map(data => {
       data.getConsignment.map(_.currentStatus)
-    })h
+    })
   }
 }

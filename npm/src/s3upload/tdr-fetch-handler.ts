@@ -63,10 +63,12 @@ export class TdrFetchHandler implements HttpHandler {
     const body =
       method === "GET" || method === "HEAD" ? undefined : request.body
 
+    const newMethod = method == "POST" ? "PUT" : method
+
     const requestOptions: RequestInit = {
       body,
       headers: new Headers(request.headers),
-      method: method,
+      method: newMethod,
       credentials: "include"
     }
 
