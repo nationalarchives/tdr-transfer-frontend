@@ -47,20 +47,19 @@ const getAllFiles: (
   return fileInfoInput
 }
 
-const getEntriesFromReader: (
-  reader: IReader
-) => Promise<IWebkitEntry[]> = async (reader) => {
-  let allEntries: IWebkitEntry[] = []
+const getEntriesFromReader: (reader: IReader) => Promise<IWebkitEntry[]> =
+  async (reader) => {
+    let allEntries: IWebkitEntry[] = []
 
-  let nextBatch = await getEntryBatch(reader)
+    let nextBatch = await getEntryBatch(reader)
 
-  while (nextBatch.length > 0) {
-    allEntries = allEntries.concat(nextBatch)
-    nextBatch = await getEntryBatch(reader)
+    while (nextBatch.length > 0) {
+      allEntries = allEntries.concat(nextBatch)
+      nextBatch = await getEntryBatch(reader)
+    }
+
+    return allEntries
   }
-
-  return allEntries
-}
 
 const getFileFromEntry: (entry: IWebkitEntry) => Promise<IFileWithPath> = (
   entry
@@ -156,9 +155,11 @@ export class UploadForm {
         fileList,
         "You are only allowed to drop one file."
       )
+      const fileName: string = fileList.item(0)?.name!
+      this.checkForCorrectJudgmentFileExtension(fileName)
       const files: File[] = this.convertFileListToArray(fileList)
       this.selectedFiles = this.convertFilesToIfilesWithPath(files)
-      this.addFileSelectionSuccessMessage(this.selectedFiles[0].file.name)
+      this.addFileSelectionSuccessMessage(fileName)
     } else {
       const items: DataTransferItemList = ev.dataTransfer?.items!
       this.checkNumberOfObjectsDropped(
@@ -182,26 +183,27 @@ export class UploadForm {
     this.removeDragover()
   }
 
+  handleSelectedItems: () => any = async () => {
+    const form: HTMLFormElement | null = this.formElement
+    this.selectedFiles = this.convertFilesToIfilesWithPath(form!.files!.files!)
+
+    if (this.isJudgmentUser) {
+      const fileName = this.selectedFiles[0].file.name
+      this.checkForCorrectJudgmentFileExtension(fileName)
+      this.addFileSelectionSuccessMessage(fileName)
+    } else {
+      const parentFolder = this.getParentFolderName(this.selectedFiles)
+      this.addFolderSelectionSuccessMessage(
+        parentFolder,
+        this.selectedFiles.length
+      )
+    }
+    this.displaySelectionSuccessMessage()
+  }
+
   addFolderListener() {
     this.dropzone.addEventListener("drop", this.handleDroppedItems)
-
-    this.folderRetriever.addEventListener("change", () => {
-      const form: HTMLFormElement | null = this.formElement
-      this.selectedFiles = this.convertFilesToIfilesWithPath(
-        form!.files!.files!
-      )
-
-      if (this.isJudgmentUser) {
-        this.addFileSelectionSuccessMessage(this.selectedFiles[0].file.name)
-      } else {
-        const parentFolder = this.getParentFolderName(this.selectedFiles)
-        this.addFolderSelectionSuccessMessage(
-          parentFolder,
-          this.selectedFiles.length
-        )
-      }
-      this.displaySelectionSuccessMessage()
-    })
+    this.folderRetriever.addEventListener("change", this.handleSelectedItems)
   }
 
   handleFormSubmission: (ev: Event) => void = (ev: Event) => {
@@ -244,6 +246,9 @@ export class UploadForm {
   readonly warningMessages: {
     [s: string]: HTMLElement | null
   } = {
+    incorrectFileExtensionMessage: document.querySelector(
+      "#incorrect-file-extension"
+    ),
     incorrectItemSelectedMessage: document.querySelector(
       "#item-selection-failure"
     ),
@@ -403,6 +408,30 @@ export class UploadForm {
         this.warningMessages?.incorrectItemSelectedMessage,
         "Only folders are allowed to be selected"
       )
+    }
+  }
+
+  private checkForCorrectJudgmentFileExtension(fileName: string) {
+    const acceptableJudgmentFileExtensions = [
+      ".doc",
+      ".docm",
+      ".docx",
+      ".dot",
+      ".dotm",
+      ".dotx"
+    ]
+
+    if (fileName) {
+      const indexOfLastDot = fileName.lastIndexOf(".")
+      const fileExtension = fileName.slice(indexOfLastDot)
+      if (!acceptableJudgmentFileExtensions.includes(fileExtension)) {
+        this.rejectUserItemSelection(
+          this.warningMessages?.incorrectFileExtensionMessage,
+          "Only MS Word docs are allowed to be selected"
+        )
+      }
+    } else {
+      throw "The file does not have a file name!"
     }
   }
 }

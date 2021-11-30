@@ -2,6 +2,7 @@
 
 upload.dragAndDropFolderErrorMessage=You can only drop a single folder
 upload.dragAndDropFileErrorMessage=You can only drop a single file
+upload.nonWordDocSelectedErrorMessage=You can only upload a Microsoft Word file. Please try again or contact us
 upload.submissionWithoutAFolderMessageText=Select a folder to upload.
 upload.submissionWithoutAFileMessageText=Select a file to upload.
 
