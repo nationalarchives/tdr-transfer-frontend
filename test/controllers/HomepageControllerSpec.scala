@@ -18,7 +18,7 @@ import org.scalatest.concurrent.ScalaFutures._
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
-class DashboardControllerSpec extends FrontEndTestHelper {
+class HomepageControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   lazy val graphqlConfig = new GraphQLConfiguration(app.configuration)
@@ -35,63 +35,63 @@ class DashboardControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  "DashboardController GET" should {
+  "HomepageController GET" should {
 
-    "render the dashboard page with an authenticated user with no user type" in {
-      val controller = new DashboardController(
+    "render the homepage page with an authenticated user with no user type" in {
+      val controller = new HomepageController(
         getAuthorisedSecurityComponents,
         getValidKeycloakConfiguration,
         consignmentService
       )
-      val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
-      status(dashboardPage) mustBe OK
-      contentType(dashboardPage) mustBe Some("text/html")
-      contentAsString(dashboardPage) must include ("Welcome")
-      contentAsString(dashboardPage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(dashboardPage) must include ("Upload your records to start a new transfer")
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage"))
+      status(homepagePage) mustBe OK
+      contentType(homepagePage) mustBe Some("text/html")
+      contentAsString(homepagePage) must include ("Welcome")
+      contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
+      contentAsString(homepagePage) must include ("Upload your records to start a new transfer")
     }
 
-    "render the dashboard page with an authenticated standard user" in {
-      val controller = new DashboardController(
+    "render the homepage page with an authenticated standard user" in {
+      val controller = new HomepageController(
         getAuthorisedSecurityComponents,
         getValidStandardUserKeycloakConfiguration,
         consignmentService)
-      val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
-      status(dashboardPage) mustBe OK
-      contentType(dashboardPage) mustBe Some("text/html")
-      contentAsString(dashboardPage) must include ("Welcome")
-      contentAsString(dashboardPage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(dashboardPage) must include ("Upload your records to start a new transfer")
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage"))
+      status(homepagePage) mustBe OK
+      contentType(homepagePage) mustBe Some("text/html")
+      contentAsString(homepagePage) must include ("Welcome")
+      contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
+      contentAsString(homepagePage) must include ("Upload your records to start a new transfer")
     }
 
-    "render the judgment dashboard page with an authenticated judgment user" in {
-      val controller = new DashboardController(
+    "render the judgment homepage page with an authenticated judgment user" in {
+      val controller = new HomepageController(
         getAuthorisedSecurityComponents,
         getValidJudgmentUserKeycloakConfiguration,
         consignmentService)
-      val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard").withCSRFToken)
-      status(dashboardPage) mustBe OK
-      contentType(dashboardPage) mustBe Some("text/html")
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
+      status(homepagePage) mustBe OK
+      contentType(homepagePage) mustBe Some("text/html")
 
-      contentAsString(dashboardPage) must include ("Welcome")
-      contentAsString(dashboardPage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(dashboardPage) must include ("Upload your judgment to start a new transfer")
+      contentAsString(homepagePage) must include ("Welcome")
+      contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
+      contentAsString(homepagePage) must include ("Upload your judgment to start a new transfer")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = new DashboardController(
+      val controller = new HomepageController(
         getUnauthorisedSecurityComponents,
         getValidKeycloakConfiguration,
         consignmentService)
-      val dashboardPage = controller.dashboard().apply(FakeRequest(GET, "/dashboard"))
-      redirectLocation(dashboardPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
-      status(dashboardPage) mustBe FOUND
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage"))
+      redirectLocation(homepagePage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      status(homepagePage) mustBe FOUND
     }
   }
 
-  "DashboardController POST" should {
+  "HomepageController POST" should {
     "create a new consignment for a judgment user" in {
-      val controller = new DashboardController(
+      val controller = new HomepageController(
         getAuthorisedSecurityComponents,
         getValidJudgmentUserKeycloakConfiguration,
         consignmentService)
@@ -105,35 +105,35 @@ class DashboardControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val redirect = controller.judgmentDashboardSubmit()
-        .apply(FakeRequest(POST, "/dashboard").withCSRFToken)
+      val redirect = controller.judgmentHomepageSubmit()
+        .apply(FakeRequest(POST, "/homepage").withCSRFToken)
 
       redirectLocation(redirect).get must equal(s"/judgment/$consignmentId/transfer-agreement")
       wiremockServer.getAllServeEvents.size should equal(1)
     }
 
     "show an error if the consignment couldn't be created" in {
-      val controller = new DashboardController(
+      val controller = new HomepageController(
         getAuthorisedSecurityComponents,
         getValidJudgmentUserKeycloakConfiguration,
         consignmentService)
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(serverError()))
 
-      val response: Throwable = controller.judgmentDashboardSubmit()
-        .apply(FakeRequest(POST, "/dashboard").withCSRFToken).failed.futureValue
+      val response: Throwable = controller.judgmentHomepageSubmit()
+        .apply(FakeRequest(POST, "/homepage").withCSRFToken).failed.futureValue
 
       response.getMessage.contains("Unexpected response from GraphQL API") should be(true)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = new DashboardController(
+      val controller = new HomepageController(
         getUnauthorisedSecurityComponents,
         getValidKeycloakConfiguration,
         consignmentService)
-      val dashboardPage = controller.dashboard().apply(FakeRequest(POST, "/dashboard").withCSRFToken)
-      redirectLocation(dashboardPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
-      status(dashboardPage) mustBe SEE_OTHER
+      val homepagePage = controller.homepage().apply(FakeRequest(POST, "/homepage").withCSRFToken)
+      redirectLocation(homepagePage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      status(homepagePage) mustBe SEE_OTHER
     }
   }
 }
