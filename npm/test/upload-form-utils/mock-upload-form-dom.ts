@@ -23,7 +23,16 @@ export class MockUploadFormDom {
   reader: IReader
   form: UploadForm
 
-  constructor(isJudgmentUser: boolean = false, numberOfFiles: number = 2) {
+  constructor(
+    isJudgmentUser: boolean = false,
+    numberOfFiles: number = 2,
+    additionalWarningMessages: {
+      [warningMessage: string]: HTMLElement | null
+    } = {},
+    additionalWarningMessagesText: {
+      [warningMessage: string]: HTMLElement | null
+    } = {}
+  ) {
     this.isJudgmentUser = isJudgmentUser
     this.entries =
       numberOfFiles === 0
@@ -38,6 +47,8 @@ export class MockUploadFormDom {
       }
     }
     this.form = this.createForm(isJudgmentUser)
+    Object.assign(this.warningMessages, additionalWarningMessages)
+    Object.assign(this.warningMessagesText, additionalWarningMessagesText)
   }
 
   createForm: (isJudgmentUser: boolean) => UploadForm = (isJudgmentUser) => {
@@ -158,7 +169,7 @@ export class MockUploadFormDom {
   }
 
   selectFolderViaButton: () => void = () => {
-    this.triggerInputEvent(this.itemRetriever!, "change")
+    return this.triggerInputEvent(this.itemRetriever!, "change")
   }
 
   setUpFileUploader(isJudgmentUser: boolean): FileUploader {

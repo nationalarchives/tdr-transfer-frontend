@@ -12,8 +12,48 @@ beforeEach(() => {
   document.body.innerHTML = htmlForFileUploadForm
 })
 
+const judgmentUploadPageSpecificWarningMessages: () => {
+  [warningMessage: string]: HTMLElement | null
+} = () => {
+  return {
+    incorrectFileExtensionMessage: document.querySelector(
+      "#incorrect-file-extension"
+    )
+  }
+}
+
+const judgmentUploadPageSpecificWarningMessageText: () => {
+  [warningMessage: string]: HTMLElement | null
+} = () => {
+  return {
+    incorrectFileExtensionMessageText: document.querySelector(
+      "#non-word-doc-selected-message-text"
+    )
+  }
+}
+
+const verifyWarningMessagesAreHidden = (
+  warningMessages: {
+    [warningMessage: string]: HTMLElement | null
+  },
+  warningMessagesToIgnore: HTMLElement[]
+) => {
+  Object.values(warningMessages).forEach(
+    (warningMessageElement: HTMLElement | null) => {
+      if (!warningMessagesToIgnore.includes(warningMessageElement!)) {
+        expect(warningMessageElement!).toHaveAttribute("hidden", "true")
+      }
+    }
+  )
+}
+
 test("clicking the submit button, without selecting a file, doesn't reveal the progress bar and disables the buttons on the page", async () => {
-  const mockDom = new MockUploadFormDom(true)
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
 
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
@@ -24,7 +64,12 @@ test("clicking the submit button, without selecting a file, doesn't reveal the p
 })
 
 test("clicking the submit button, without selecting a file, displays a warning message to the user", async () => {
-  const mockDom = new MockUploadFormDom(true)
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
 
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
@@ -33,6 +78,10 @@ test("clicking the submit button, without selecting a file, displays a warning m
     mockDom.warningMessages.submissionWithoutSelectionMessage
   ).not.toHaveAttribute("hidden", "true")
 
+  expect(mockDom.warningMessages.incorrectFileExtensionMessage).toHaveAttribute(
+    "hidden",
+    ""
+  )
   expect(mockDom.warningMessages.incorrectItemSelectedMessage).toHaveAttribute(
     "hidden",
     "true"
@@ -40,8 +89,13 @@ test("clicking the submit button, without selecting a file, displays a warning m
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 })
 
-test("input button updates the page with the file that has been selected", () => {
-  const mockDom = new MockUploadFormDom(true)
+test("input button updates the page with the file that has been selected, if that file is an MS Word file", () => {
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
   mockDom.getFileUploader().initialiseFormListeners()
 
   const dummyFile = getDummyFile("Mock File.docx", "docx")
@@ -64,8 +118,52 @@ test("input button updates the page with the file that has been selected", () =>
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(dummyFile.name)
 })
 
-test("dropzone updates the page with correct number of files if only 1 file has been dropped", async () => {
-  const mockDom = new MockUploadFormDom(true)
+test("input button updates the page with an error if the file that has been selected is an non-MS Word file", async() => {
+  /* Currently with the accept attribute in place, this should not be possible, but the test is added in case it is removed*/
+
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
+  mockDom.getFileUploader().initialiseFormListeners()
+
+  const dummyFile = getDummyFile("Mock File.txt", "txt")
+  mockDom.uploadForm!.files = {
+    files: [dummyFile]
+  }
+  await expect(mockDom.form.handleSelectedItems()).rejects.toEqual(
+    Error("Only MS Word docs are allowed to be selected")
+  )
+
+  expect(mockDom.itemRetrievalSuccessMessage!).toHaveAttribute("hidden", "true")
+
+  expect(mockDom.warningMessages.incorrectItemSelectedMessage).toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(
+    mockDom.warningMessages.submissionWithoutSelectionMessage
+  ).toHaveAttribute("hidden", "true")
+
+  expect(
+    mockDom.warningMessages.incorrectFileExtensionMessage
+  ).not.toHaveAttribute("hidden", "true")
+  expect(
+    mockDom.warningMessagesText.incorrectFileExtensionMessageText!.textContent
+  ).toStrictEqual(
+    "You can only upload a Microsoft Word file. Please try again or contact us"
+  )
+})
+
+test("dropzone updates the page with correct number of files if an MS Word file has been dropped", async () => {
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
   const fileName = "Mock File.docx"
   const fileType = "docx"
   const dragEventClass = mockDom.addFilesToDragEvent(
@@ -88,8 +186,50 @@ test("dropzone updates the page with correct number of files if only 1 file has 
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(fileName)
 })
 
+test("dropzone updates the page with an error if a non MS Word file has been dropped", async () => {
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
+  const fileName = "Mock File.pdf"
+  const fileType = "pdf"
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [getDummyFile(fileName, fileType)],
+    mockDom.dataTransferItem
+  )
+  const dragEvent = new dragEventClass()
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+    Error("Only MS Word docs are allowed to be selected")
+  )
+
+  expect(
+    mockDom.warningMessages.incorrectFileExtensionMessage
+  ).not.toHaveAttribute("hidden", "true")
+  expect(mockDom.warningMessages.incorrectItemSelectedMessage).toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(
+    mockDom.warningMessages.submissionWithoutSelectionMessage
+  ).toHaveAttribute("hidden", "true")
+  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+
+  expect(
+    mockDom.warningMessagesText.incorrectFileExtensionMessageText!.textContent
+  ).toStrictEqual(
+    "You can only upload a Microsoft Word file. Please try again or contact us"
+  )
+})
+
 test("dropzone updates the page with an error if more than 1 file has been dropped", async () => {
-  const mockDom = new MockUploadFormDom(true)
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
   const dragEventClass = mockDom.addFilesToDragEvent(
     [
       getDummyFile("Mock File.docx", "docx"),
@@ -105,6 +245,11 @@ test("dropzone updates the page with an error if more than 1 file has been dropp
   expect(
     mockDom.warningMessages.incorrectItemSelectedMessage
   ).not.toHaveAttribute("hidden", "true")
+
+  expect(mockDom.warningMessages.incorrectFileExtensionMessage).toHaveAttribute(
+    "hidden",
+    "true"
+  )
   expect(
     mockDom.warningMessages.submissionWithoutSelectionMessage
   ).toHaveAttribute("hidden", "true")
@@ -115,7 +260,12 @@ test("dropzone updates the page with an error if more than 1 file has been dropp
 })
 
 test("dropzone updates the page with an error if a file and a folder has been dropped", async () => {
-  const mockDom = new MockUploadFormDom(true)
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFolder(), getDummyFile("Mock File.docx", "docx")],
     mockDom.directoryEntry
@@ -128,6 +278,11 @@ test("dropzone updates the page with an error if a file and a folder has been dr
   expect(
     mockDom.warningMessages.incorrectItemSelectedMessage
   ).not.toHaveAttribute("hidden", "true")
+
+  expect(mockDom.warningMessages.incorrectFileExtensionMessage).toHaveAttribute(
+    "hidden",
+    "true"
+  )
   expect(
     mockDom.warningMessages.submissionWithoutSelectionMessage
   ).toHaveAttribute("hidden", "true")
@@ -138,8 +293,48 @@ test("dropzone updates the page with an error if a file and a folder has been dr
   ).toStrictEqual("You can only drop a single file")
 })
 
-test("dropzone updates the page with an error if 1 non-file has been dropped", async () => {
-  const mockDom = new MockUploadFormDom(true)
+test("dropzone updates the page with 'Only MS Word' error if 1 non-file has been dropped", async () => {
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [getDummyFolder()],
+    mockDom.fileEntry
+  )
+  const dragEvent = new dragEventClass()
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+    Error("Only MS Word docs are allowed to be selected")
+  )
+
+  expect(
+    mockDom.warningMessages.incorrectFileExtensionMessage
+  ).not.toHaveAttribute("hidden", "true")
+  expect(mockDom.warningMessages.incorrectItemSelectedMessage).toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  expect(
+    mockDom.warningMessages.submissionWithoutSelectionMessage
+  ).toHaveAttribute("hidden", "true")
+  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+
+  expect(
+    mockDom.warningMessagesText.incorrectFileExtensionMessageText!.textContent
+  ).toStrictEqual(
+    "You can only upload a Microsoft Word file. Please try again or contact us"
+  )
+})
+
+test("dropzone updates the page with 'Only files are allowed' error if 1 non-file with a name ending with acceptable extension has been dropped", async () => {
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFolder("Mock Folder.docx")],
     mockDom.fileEntry
@@ -163,7 +358,12 @@ test("dropzone updates the page with an error if 1 non-file has been dropped", a
 })
 
 test("dropzone clears selected file if an invalid object is dropped after a valid one", async () => {
-  const mockDom = new MockUploadFormDom(true)
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
   const validDragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFile("Mock File.docx", "docx")],
     mockDom.fileEntry
@@ -187,7 +387,12 @@ test("dropzone clears selected file if an invalid object is dropped after a vali
 })
 
 test("clicking the submit button, after selecting the file, disables the buttons on the page", async () => {
-  const mockDom = new MockUploadFormDom(true)
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFile("Mock File.docx", "docx")],
     mockDom.fileEntry
@@ -206,7 +411,12 @@ test("clicking the submit button, after selecting the file, disables the buttons
 })
 
 test("clicking the submit button, after selecting a file, hides 'upload file' section and reveals progress bar", async () => {
-  const mockDom = new MockUploadFormDom(true)
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages(),
+    judgmentUploadPageSpecificWarningMessageText()
+  )
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFile("Mock File.docx", "docx")],
     mockDom.fileEntry
