@@ -6,6 +6,7 @@ import {
 } from "./upload-form-utils/mock-files-and-folders"
 import { MockUploadFormDom } from "./upload-form-utils/mock-upload-form-dom"
 import { htmlForFileUploadForm } from "./upload-form-utils/html-for-file-upload-form"
+import { verifyVisibilityOfWarningMessages } from "./upload-form-utils/verify-visibility-of-warning-messages"
 
 beforeEach(() => {
   document.body.innerHTML = htmlForFileUploadForm
@@ -29,21 +30,6 @@ const judgmentUploadPageSpecificWarningMessageText: () => {
       "#non-word-doc-selected-message-text"
     )
   }
-}
-
-const verifyWarningMessagesAreHidden = (
-  warningMessages: {
-    [warningMessage: string]: HTMLElement | null
-  },
-  warningMessagesToIgnore: HTMLElement[]
-) => {
-  Object.values(warningMessages).forEach(
-    (warningMessageElement: HTMLElement | null) => {
-      if (!warningMessagesToIgnore.includes(warningMessageElement!)) {
-        expect(warningMessageElement!).toHaveAttribute("hidden", "true")
-      }
-    }
-  )
 }
 
 test("clicking the submit button, without selecting a file, doesn't reveal the progress bar and disables the buttons on the page", async () => {
@@ -73,18 +59,9 @@ test("clicking the submit button, without selecting a file, displays a warning m
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
 
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).not.toHaveAttribute("hidden", "true")
-
-  expect(mockDom.warningMessages.incorrectFileExtensionMessage).toHaveAttribute(
-    "hidden",
-    ""
-  )
-  expect(mockDom.warningMessages.incorrectItemSelectedMessage).toHaveAttribute(
-    "hidden",
-    "true"
-  )
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.submissionWithoutSelectionMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 })
 
@@ -108,16 +85,11 @@ test("input button updates the page with the file that has been selected, if tha
     "true"
   )
 
-  Object.values(mockDom.warningMessages!).forEach(
-    (warningMessageElement: HTMLElement | null) => {
-      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
-    }
-  )
-
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages)
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(dummyFile.name)
 })
 
-test("input button updates the page with an error if the file that has been selected is an non-MS Word file", async() => {
+test("input button updates the page with an error if the file that has been selected is an non-MS Word file", async () => {
   /* Currently with the accept attribute in place, this should not be possible, but the test is added in case it is removed*/
 
   const mockDom = new MockUploadFormDom(
@@ -138,17 +110,10 @@ test("input button updates the page with an error if the file that has been sele
 
   expect(mockDom.itemRetrievalSuccessMessage!).toHaveAttribute("hidden", "true")
 
-  expect(mockDom.warningMessages.incorrectItemSelectedMessage).toHaveAttribute(
-    "hidden",
-    "true"
-  )
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.incorrectFileExtensionMessage!
+  ])
 
-  expect(
-    mockDom.warningMessages.incorrectFileExtensionMessage
-  ).not.toHaveAttribute("hidden", "true")
   expect(
     mockDom.warningMessagesText.incorrectFileExtensionMessageText!.textContent
   ).toStrictEqual(
@@ -177,11 +142,7 @@ test("dropzone updates the page with correct number of files if an MS Word file 
     "true"
   )
 
-  Object.values(mockDom.warningMessages!).forEach(
-    (warningMessageElement: HTMLElement | null) =>
-      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
-  )
-
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages)
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(fileName)
 })
 
@@ -203,16 +164,9 @@ test("dropzone updates the page with an error if a non MS Word file has been dro
     Error("Only MS Word docs are allowed to be selected")
   )
 
-  expect(
-    mockDom.warningMessages.incorrectFileExtensionMessage
-  ).not.toHaveAttribute("hidden", "true")
-  expect(mockDom.warningMessages.incorrectItemSelectedMessage).toHaveAttribute(
-    "hidden",
-    "true"
-  )
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.incorrectFileExtensionMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(
@@ -241,17 +195,9 @@ test("dropzone updates the page with an error if more than 1 file has been dropp
     Error("You are only allowed to drop one file.")
   )
 
-  expect(
-    mockDom.warningMessages.incorrectItemSelectedMessage
-  ).not.toHaveAttribute("hidden", "true")
-
-  expect(mockDom.warningMessages.incorrectFileExtensionMessage).toHaveAttribute(
-    "hidden",
-    "true"
-  )
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.incorrectItemSelectedMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
   expect(
     mockDom.warningMessagesText.incorrectItemSelectedMessageText!.textContent
@@ -274,17 +220,9 @@ test("dropzone updates the page with an error if a file and a folder has been dr
     Error("You are only allowed to drop one file.")
   )
 
-  expect(
-    mockDom.warningMessages.incorrectItemSelectedMessage
-  ).not.toHaveAttribute("hidden", "true")
-
-  expect(mockDom.warningMessages.incorrectFileExtensionMessage).toHaveAttribute(
-    "hidden",
-    "true"
-  )
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.incorrectItemSelectedMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(
@@ -308,16 +246,9 @@ test("dropzone updates the page with 'Only MS Word' error if 1 non-file has been
     Error("Only MS Word docs are allowed to be selected")
   )
 
-  expect(
-    mockDom.warningMessages.incorrectFileExtensionMessage
-  ).not.toHaveAttribute("hidden", "true")
-  expect(mockDom.warningMessages.incorrectItemSelectedMessage).toHaveAttribute(
-    "hidden",
-    "true"
-  )
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.incorrectFileExtensionMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(
@@ -343,12 +274,9 @@ test("dropzone updates the page with 'Only files are allowed' error if 1 non-fil
     Error("Only files are allowed to be selected")
   )
 
-  expect(
-    mockDom.warningMessages.incorrectItemSelectedMessage
-  ).not.toHaveAttribute("hidden", "true")
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.incorrectItemSelectedMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(

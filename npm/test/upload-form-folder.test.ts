@@ -8,6 +8,7 @@ import {
 import { MockUploadFormDom } from "./upload-form-utils/mock-upload-form-dom"
 import { htmlForFolderUploadForm } from "./upload-form-utils/html-for-file-upload-form"
 import { IReader, IWebkitEntry } from "../src/upload/upload-form"
+import { verifyVisibilityOfWarningMessages } from "./upload-form-utils/verify-visibility-of-warning-messages"
 
 beforeEach(() => {
   document.body.innerHTML = htmlForFolderUploadForm
@@ -30,14 +31,9 @@ test("clicking the submit button, without selecting a folder, displays a warning
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
 
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).not.toHaveAttribute("hidden", "true")
-
-  expect(mockDom.warningMessages.incorrectItemSelectedMessage).toHaveAttribute(
-    "hidden",
-    "true"
-  )
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.submissionWithoutSelectionMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 })
 
@@ -52,10 +48,7 @@ test("input button updates the page with correct folder information if there are
     "true"
   )
 
-  Object.values(mockDom.warningMessages!).forEach(
-    (warningMessageElement: HTMLElement | null) =>
-      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
-  )
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("1 file")
@@ -75,10 +68,7 @@ test("dropzone updates the page with correct folder information if there are 1 o
     "true"
   )
 
-  Object.values(mockDom.warningMessages!).forEach(
-    (warningMessageElement: HTMLElement | null) =>
-      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
-  )
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
@@ -96,12 +86,9 @@ test("dropzone updates the page with an error if there are no files in folder", 
     Error("The folder is empty")
   )
 
-  expect(
-    mockDom.warningMessages.incorrectItemSelectedMessage
-  ).not.toHaveAttribute("hidden", "true")
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.incorrectItemSelectedMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
@@ -145,10 +132,7 @@ test("dropzone updates the page with correct folder information if there is a ne
     "hidden",
     "true"
   )
-  Object.values(mockDom.warningMessages!).forEach(
-    (warningMessageElement: HTMLElement | null) =>
-      expect(warningMessageElement!).toHaveAttribute("hidden", "true")
-  )
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
@@ -165,12 +149,9 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     Error("Only one folder is allowed to be selected")
   )
 
-  expect(
-    mockDom.warningMessages.incorrectItemSelectedMessage
-  ).not.toHaveAttribute("hidden", "true")
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.incorrectItemSelectedMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
@@ -188,12 +169,9 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     Error("Only one folder is allowed to be selected")
   )
 
-  expect(
-    mockDom.warningMessages.incorrectItemSelectedMessage
-  ).not.toHaveAttribute("hidden", "true")
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.incorrectItemSelectedMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
@@ -211,12 +189,9 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
     Error("Only folders are allowed to be selected")
   )
 
-  expect(
-    mockDom.warningMessages.incorrectItemSelectedMessage
-  ).not.toHaveAttribute("hidden", "true")
-  expect(
-    mockDom.warningMessages.submissionWithoutSelectionMessage
-  ).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
+    mockDom.warningMessages.incorrectItemSelectedMessage!
+  ])
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
