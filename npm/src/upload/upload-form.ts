@@ -208,9 +208,9 @@ export class UploadForm {
 
   handleFormSubmission: (ev: Event) => void = (ev: Event) => {
     ev.preventDefault()
-    const folderSelected: IFileWithPath | undefined = this.selectedFiles[0]
+    const itemSelected: IFileWithPath | undefined = this.selectedFiles[0]
 
-    if (folderSelected) {
+    if (itemSelected) {
       this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
       this.disableSubmitButtonAndDropzone()
 
@@ -228,6 +228,11 @@ export class UploadForm {
         "hidden",
         "true"
       )
+      const incorrectFileExtensionElement =
+        this.warningMessages.incorrectFileExtensionMessage
+      if (incorrectFileExtensionElement)
+        incorrectFileExtensionElement.setAttribute("hidden", "true")
+
       this.warningMessages.submissionWithoutSelectionMessage?.removeAttribute(
         "hidden"
       )

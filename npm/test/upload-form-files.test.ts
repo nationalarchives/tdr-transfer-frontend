@@ -1,7 +1,6 @@
 import "@testing-library/jest-dom"
 
 import {
-  dummyIFileWithPath,
   getDummyFile,
   getDummyFolder
 } from "./upload-form-utils/mock-files-and-folders"
