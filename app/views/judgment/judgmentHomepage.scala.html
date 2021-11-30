@@ -9,7 +9,7 @@
 
       <h2 class="govuk-heading-m govuk-!-margin-top-9">Upload your judgment to start a new transfer</h2>
 
-      @form(routes.DashboardController.judgmentDashboardSubmit(), (Symbol("novalidate"), "")) {
+      @form(routes.HomepageController.judgmentHomepageSubmit(), (Symbol("novalidate"), "")) {
         @CSRF.formField
         <div class="govuk-button-group">
           <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
