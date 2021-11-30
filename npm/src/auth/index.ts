@@ -1,6 +1,6 @@
 import Keycloak, { KeycloakInstance } from "keycloak-js"
 import { IKeycloakTokenParsed } from "../upload"
-import { LoggedOutError } from "../errorhandling"
+import { handleUploadError, LoggedOutError } from "../errorhandling"
 
 export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
   async () => {
@@ -63,13 +63,16 @@ export const refreshOrReturnToken: (
 ) => Promise<string> = async (keycloak, tokenMinValidityInSecs = 30) => {
   if (keycloak.isTokenExpired(tokenMinValidityInSecs)) {
     if (isRefreshTokenExpired(keycloak.refreshTokenParsed)) {
-      throw new LoggedOutError(keycloak.createLoginUrl(), "User is logged out")
+      handleUploadError(
+        new LoggedOutError(keycloak.createLoginUrl(), "User is logged out"),
+        "Refresh token has expired"
+      )
     }
     await keycloak.updateToken(tokenMinValidityInSecs)
   }
   if (keycloak.token) {
     return keycloak.token
   } else {
-    throw "Token is expired"
+    throw "Something really odd has happened, Keycloak is down or something"
   }
 }
