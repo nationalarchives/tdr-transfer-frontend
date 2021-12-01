@@ -47,19 +47,20 @@ const getAllFiles: (
   return fileInfoInput
 }
 
-const getEntriesFromReader: (reader: IReader) => Promise<IWebkitEntry[]> =
-  async (reader) => {
-    let allEntries: IWebkitEntry[] = []
+const getEntriesFromReader: (
+  reader: IReader
+) => Promise<IWebkitEntry[]> = async (reader) => {
+  let allEntries: IWebkitEntry[] = []
 
-    let nextBatch = await getEntryBatch(reader)
+  let nextBatch = await getEntryBatch(reader)
 
-    while (nextBatch.length > 0) {
-      allEntries = allEntries.concat(nextBatch)
-      nextBatch = await getEntryBatch(reader)
-    }
-
-    return allEntries
+  while (nextBatch.length > 0) {
+    allEntries = allEntries.concat(nextBatch)
+    nextBatch = await getEntryBatch(reader)
   }
+
+  return allEntries
+}
 
 const getFileFromEntry: (entry: IWebkitEntry) => Promise<IFileWithPath> = (
   entry
