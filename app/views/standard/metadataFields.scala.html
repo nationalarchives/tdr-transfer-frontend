@@ -14,20 +14,28 @@
           @CSRF.formField
           <div class="govuk-form-group">
           @for(formValue <- metadata) {
-            <label class="govuk-label" for="@{formValue.name}">@{formValue.fullName}</label>
             @formValue.value match {
               case FormDateValue(day, month, year) => {
-                @inputDate(formValue.name, day, month, year)
+                <div class="govuk-form-group@if(errors.nonEmpty && errors.contains(formValue.name)){--error}">
+                  <label class="govuk-label" for="@{formValue.name}">@{formValue.fullName}</label>
+                  @inputDate(formValue.name, day, month, year, errors)
+                </div>
               }
               case FormSelectValue(value, options) => {
-                <select class="govuk-select" id="@{formValue.name}" name="@{formValue.name}" @if(!formValue.editable){disabled}>
-                @for(option <- options) {
-                  <option value="@{option}" @if(option == value){selected}>@{option}</option>
-                }
-                </select>
+                <label class="govuk-label" for="@{formValue.name}">@{formValue.fullName}</label>
+                <div class="govuk-form-group@if(errors.nonEmpty && errors.contains(formValue.name)){--error}">
+                  <select class="govuk-select" id="@{formValue.name}" name="@{formValue.name}" @if(!formValue.editable){disabled}>
+                  @for(option <- options) {
+                    <option value="@{option}" @if(option == value){selected}>@{option}</option>
+                  }
+                  </select>
+                </div>
               }
               case FormTextValue(value) => {
-                <input class="govuk-input" type="text" name="@{formValue.name}" id="@{formValue.name}" value="@{value}" @if(!formValue.editable){disabled}/>
+                <div class="govuk-form-group@if(errors.nonEmpty && errors.contains(formValue.name)){--error}">
+                  <label class="govuk-label" for="@{formValue.name}">@{formValue.fullName}</label>
+                  <input class="govuk-input" type="text" name="@{formValue.name}" id="@{formValue.name}" value="@{value}" @if(!formValue.editable){disabled}/>
+                </div>
               }
             }
             @if(errors.nonEmpty && errors.contains(formValue.name)) {

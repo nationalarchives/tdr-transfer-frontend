@@ -1,27 +1,26 @@
-@(id: String, day: String, month: String, year: String)(implicit messages: Messages)
-
-<div class="govuk-date-input" id="@id">
-  <div class="govuk-date-input__item">
-    <div class="govuk-form-group">
-      <label class="govuk-label govuk-date-input__label" for="@id-day">
-        Day
-      </label>
-      <input class="govuk-input govuk-date-input__input govuk-input--width-2" value="@day" id="@id-day" name="@id-day" type="text" pattern="[0-9]*" inputmode="numeric"></div>
+@(id: String, day: String, month: String, year: String, errors: Map[String, String])(implicit messages: Messages)
+@defining(errors.get(id)) { error =>
+  <div class="govuk-date-input" id="@id">
+    <div class="govuk-date-input__item">
+      <div class="govuk-form-group">
+        <label class="govuk-label govuk-date-input__label" for="@id-day">
+          Day
+        </label>
+        <input class="govuk-input govuk-date-input__input govuk-input--width-2 @if(error.isDefined){govuk-input--error}" value="@day" id="@id-day" name="@id-day" type="text" pattern="[0-9]*" inputmode="numeric"></div>
+    </div>
+    <div class="govuk-date-input__item">
+      <div class="govuk-form-group">
+        <label class="govuk-label govuk-date-input__label" for="@id-month">
+          Month
+        </label>
+        <input class="govuk-input govuk-date-input__input govuk-input--width-2 @if(error.isDefined){govuk-input--error}" value="@month" id="@id-month" name="@id-month" type="text" pattern="[0-9]*" inputmode="numeric"></div>
+    </div>
+    <div class="govuk-date-input__item">
+      <div class="govuk-form-group">
+        <label class="govuk-label govuk-date-input__label" for="@id-year">
+          Year
+        </label>
+        <input class="govuk-input govuk-date-input__input govuk-input--width-4 @if(error.isDefined){govuk-input--error}" value="@year" id="@id-year" name="@id-year" type="text" pattern="[0-9]*" inputmode="numeric"></div>
+    </div>
   </div>
-  <div class="govuk-date-input__item">
-    <div class="govuk-form-group">
-      <label class="govuk-label govuk-date-input__label" for="@id-month">
-        Month
-      </label>
-      <input class="govuk-input govuk-date-input__input govuk-input--width-2" value="@month" id="@id-month" name="@id-month" type="text" pattern="[0-9]*" inputmode="numeric"></div>
-  </div>
-  <div class="govuk-date-input__item">
-    <div class="govuk-form-group">
-      <label class="govuk-label govuk-date-input__label" for="@id-year">
-        Year
-      </label>
-      <input class="govuk-input govuk-date-input__input govuk-input--width-4" value="@year" id="@id-year" name="@id-year" type="text" pattern="[0-9]*" inputmode="numeric"></div>
-  </div>
-</div>
-
-
+}

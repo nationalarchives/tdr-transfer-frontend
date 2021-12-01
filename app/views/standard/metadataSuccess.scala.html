@@ -1,0 +1,8 @@
+@import java.util.UUID
+@(consignmentId: UUID, fileId: UUID)(implicit request: RequestHeader, messages: Messages)
+@main("Metadata") {
+  @defining(play.core.PlayVersion.current) { version =>
+    <h1>Metadata Success</h1>
+    <a href="@routes.MetadataController.metadataHome(consignmentId, fileId)">Metadata Home</a>
+  }
+}

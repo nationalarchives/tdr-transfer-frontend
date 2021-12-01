@@ -4,5 +4,9 @@
 @main("Metadata") {
   @defining(play.core.PlayVersion.current) { version =>
     <a class="govuk-link" href="@routes.MetadataController.displayMetadata(consignmentId, fileId, "closure")">Closure</a>
+    <br>
+    <a class="govuk-link" href="@routes.MetadataController.displayMetadata(consignmentId, fileId, "mandatorymetadata")">Mandatory Metadata</a>
+    <br>
+    <a class="govuk-link" href="@routes.MetadataController.displayMetadata(consignmentId, fileId, "optionalmetadata")">Optional Metadata</a>
   }
 }

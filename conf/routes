@@ -21,6 +21,8 @@ POST        /consignment/:consignmentId/confirm-transfer          controllers.Co
 GET         /consignment/:consignmentId/transfer-complete         controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/file/:fileId/metadata                  controllers.MetadataController.metadataHome(consignmentId: java.util.UUID, fileId: java.util.UUID)
 GET         /consignment/:consignmentId/file/:fileId/metadata-fields/:fieldType controllers.MetadataController.displayMetadata(consignmentId: java.util.UUID, fileId: java.util.UUID, fieldType: String)
+GET         /consignment/:consignmentId/file/:fileId/metadata-fields/:fieldType/dependencies controllers.MetadataController.displayMetadataDependencies(consignmentId: java.util.UUID, fileId: java.util.UUID, fieldType: String)
+GET         /consignment/:consignmentId/file/:fileId/metadata-complete controllers.MetadataController.metadataComplete(consignmentId: java.util.UUID, fileId: java.util.UUID)
 POST         /consignment/:consignmentId/file/:fileId/metadata-fields/:fieldType controllers.MetadataController.submitMetadata(consignmentId: java.util.UUID, fileId: java.util.UUID, fieldType: String)
 GET         /signed-out                                           controllers.SignOutController.signedOut()
 
