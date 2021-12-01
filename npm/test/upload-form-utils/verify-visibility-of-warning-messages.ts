@@ -1,17 +1,42 @@
 export const verifyVisibilityOfWarningMessages = (
-  warningMessagesThatShouldBeHidden: {
-    [warningMessage: string]: HTMLElement | null
+  warningMessageElementsAndText: {
+    [warningName: string]: { [s: string]: HTMLElement | null }
   },
-  warningMessageThatShouldBeDisplayed: HTMLElement[] = []
-) => {
-  Object.values(warningMessagesThatShouldBeHidden).forEach(
+  warningMessageThatShouldBeDisplayed?: {
+    warningMessageElements: { [elementName: string]: HTMLElement | null }
+    expectedWarningMessageText: string
+  }
+): void => {
+  const warningMessageThatShouldBeDisplayedElement =
+    warningMessageThatShouldBeDisplayed
+      ? warningMessageThatShouldBeDisplayed.warningMessageElements
+          .messageElement
+      : undefined
+
+  if (warningMessageThatShouldBeDisplayedElement) {
+    expect(warningMessageThatShouldBeDisplayedElement).not.toHaveAttribute(
+      "hidden",
+      "true"
+    )
+
+    expect(
+      warningMessageThatShouldBeDisplayed?.warningMessageElements
+        .messageElementText!.textContent
+    ).toStrictEqual(
+      warningMessageThatShouldBeDisplayed?.expectedWarningMessageText
+    )
+  }
+
+  const warningMessageElements: any = Object.values(
+    warningMessageElementsAndText
+  ).map(
+    (warningMessageElementsAndText) =>
+      warningMessageElementsAndText.messageElement
+  )
+  warningMessageElements.forEach(
     (warningMessageElement: HTMLElement | null) => {
-      if (!warningMessageThatShouldBeDisplayed.includes(warningMessageElement!))
+      if (warningMessageElement! !== warningMessageThatShouldBeDisplayedElement)
         expect(warningMessageElement!).toHaveAttribute("hidden", "true")
     }
-  )
-  warningMessageThatShouldBeDisplayed.forEach(
-    (warningMessageElement: HTMLElement | null) =>
-      expect(warningMessageElement!).not.toHaveAttribute("hidden", "true")
   )
 }

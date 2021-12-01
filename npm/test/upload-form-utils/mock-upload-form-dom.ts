@@ -27,10 +27,7 @@ export class MockUploadFormDom {
     isJudgmentUser: boolean = false,
     numberOfFiles: number = 2,
     additionalWarningMessages: {
-      [warningMessage: string]: HTMLElement | null
-    } = {},
-    additionalWarningMessagesText: {
-      [warningMessage: string]: HTMLElement | null
+      [warningMessage: string]: { [warningMessage: string]: HTMLElement | null }
     } = {}
   ) {
     this.isJudgmentUser = isJudgmentUser
@@ -48,7 +45,6 @@ export class MockUploadFormDom {
     }
     this.form = this.createForm(isJudgmentUser)
     Object.assign(this.warningMessages, additionalWarningMessages)
-    Object.assign(this.warningMessagesText, additionalWarningMessagesText)
   }
 
   createForm: (isJudgmentUser: boolean) => UploadForm = (isJudgmentUser) => {
@@ -228,22 +224,22 @@ export class MockUploadFormDom {
   folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
 
   warningMessages: {
-    [s: string]: HTMLElement | null
+    [warningName: string]: { [s: string]: HTMLElement | null }
   } = {
-    incorrectItemSelectedMessage: document.querySelector(
-      "#item-selection-failure"
-    ),
-    submissionWithoutSelectionMessage: document.querySelector(
-      "#nothing-selected-submission-message"
-    )
-  }
-
-  warningMessagesText: {
-    [s: string]: HTMLElement | null
-  } = {
-    incorrectItemSelectedMessageText: document.querySelector(
-      "#non-file-selected-message-text"
-    )
+    incorrectItemSelected: {
+      messageElement: document.querySelector("#item-selection-failure"),
+      messageElementText: document.querySelector(
+        "#wrong-object-type-selected-message-text"
+      )
+    },
+    submissionWithoutSelection: {
+      messageElement: document.querySelector(
+        "#nothing-selected-submission-message"
+      ),
+      messageElementText: document.querySelector(
+        "#submission-without-anything-selected-text"
+      )
+    }
   }
 
   hiddenInputButton: HTMLElement | null =
