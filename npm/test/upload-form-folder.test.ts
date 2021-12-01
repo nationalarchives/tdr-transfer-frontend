@@ -31,9 +31,10 @@ test("clicking the submit button, without selecting a folder, displays a warning
   const submitEvent = mockDom.createSubmitEvent()
   await mockDom.form.handleFormSubmission(submitEvent)
 
-  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
-    mockDom.warningMessages.submissionWithoutSelectionMessage!
-  ])
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
+    warningMessageElements: mockDom.warningMessages.submissionWithoutSelection!,
+    expectedWarningMessageText: "Select a folder to upload."
+  })
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 })
 
@@ -86,9 +87,10 @@ test("dropzone updates the page with an error if there are no files in folder", 
     Error("The folder is empty")
   )
 
-  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
-    mockDom.warningMessages.incorrectItemSelectedMessage!
-  ])
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
+    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
+    expectedWarningMessageText: "You can only drop a single folder"
+  })
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
@@ -149,9 +151,10 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     Error("Only one folder is allowed to be selected")
   )
 
-  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
-    mockDom.warningMessages.incorrectItemSelectedMessage!
-  ])
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
+    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
+    expectedWarningMessageText: "You can only drop a single folder"
+  })
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
@@ -169,9 +172,10 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     Error("Only one folder is allowed to be selected")
   )
 
-  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
-    mockDom.warningMessages.incorrectItemSelectedMessage!
-  ])
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
+    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
+    expectedWarningMessageText: "You can only drop a single folder"
+  })
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
@@ -189,9 +193,10 @@ test("dropzone updates the page with an error if 1 non-folder has been dropped",
     Error("Only folders are allowed to be selected")
   )
 
-  verifyVisibilityOfWarningMessages(mockDom.warningMessages, [
-    mockDom.warningMessages.incorrectItemSelectedMessage!
-  ])
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
+    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
+    expectedWarningMessageText: "You can only drop a single folder"
+  })
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")

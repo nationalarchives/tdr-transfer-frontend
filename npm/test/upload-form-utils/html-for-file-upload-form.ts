@@ -16,25 +16,25 @@ export const htmlForFolderUploadForm = `
                                     </div>
                                  </dd>
                                  <dd id="item-selection-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden=""
-                                    tabindex="-1" role="alert" aria-describedby="non-folder-selected-message-text">
+                                    tabindex="-1" role="alert" aria-describedby="wrong-object-type-selected-message-text">
                                     <div>
                                        <span class="drag-and-drop__error">
                                           <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
                                        </span>
-                                       <p id="non-folder-selected-message-text">You can only drop a single folder</p>
+                                       <p id="wrong-object-type-selected-message-text">You can only drop a single folder</p>
                                     </div>
                                  </dd>
                                  <dd id="nothing-selected-submission-message" class="govuk-summary-list__value drag-and-drop__failure" hidden=""
-                                      tabindex="-1" role="alert" aria-describedby="submission-without-a-folder-message-text">
+                                      tabindex="-1" role="alert" aria-describedby="submission-without-anything-selected-text">
                                     <div>
                                        <span class="drag-and-drop__error">
                                           <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
                                        </span>
-                                       <p id="submission-without-a-folder-message-text">Select a folder to upload.</p>
+                                       <p id="submission-without-anything-selected-text">Select a folder to upload.</p>
                                     </div>
                                  </dd>
                               </div>
@@ -82,7 +82,7 @@ export const htmlForFileUploadForm = `
                                   </div>
                               </dd>
                               <dd id="incorrect-file-extension" class="govuk-summary-list__value drag-and-drop__failure" hidden
-                                  tabindex="-1" role="alert" aria-describedby="non-file-selected-message-text">
+                                  tabindex="-1" role="alert" aria-describedby="wrong-object-type-selected-message-text">
                                   <div>
                                       <span class="drag-and-drop__error">
                                           <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg">
@@ -93,25 +93,25 @@ export const htmlForFileUploadForm = `
                                   </div>
                               </dd>
                               <dd id="item-selection-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden
-                                  tabindex="-1" role="alert" aria-describedby="non-file-selected-message-text">
+                                  tabindex="-1" role="alert" aria-describedby="wrong-object-type-selected-message-text">
                                   <div>
                                       <span class="drag-and-drop__error">
                                           <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg">
                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
                                      </span>
-                                      <p id="non-file-selected-message-text">You can only drop a single file</p>
+                                      <p id="wrong-object-type-selected-message-text">You can only drop a single file</p>
                                   </div>
                               </dd>
                               <dd id="nothing-selected-submission-message" class="govuk-summary-list__value drag-and-drop__failure" hidden
-                                  tabindex="-1" role="alert" aria-describedby="submission-without-a-file-message-text">
+                                  tabindex="-1" role="alert" aria-describedby="submission-without-anything-selected-text">
                                   <div>
                                       <span class="drag-and-drop__error">
                                           <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg">
                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
                                       </span>
-                                      <p id="submission-without-a-file-message-text">Select a file to upload.</p>
+                                      <p id="submission-without-anything-selected-text">Select a file to upload.</p>
                                   </div>
                               </dd>
                           </div>
