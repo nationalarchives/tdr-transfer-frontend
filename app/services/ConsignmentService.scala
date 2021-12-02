@@ -1,11 +1,11 @@
 package services
 
 import java.util.UUID
-
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
+import graphql.codegen.GetConsignmentFiles.getConsignmentFiles
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentReference.getConsignmentReference
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
@@ -28,6 +28,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentFolderDetailsClient = graphqlConfiguration.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()
   private val getConsignmentSummaryClient = graphqlConfiguration.getClient[getConsignmentSummary.Data, getConsignmentSummary.Variables]()
   private val getConsignmentReferenceClient = graphqlConfiguration.getClient[getConsignmentReference.Data, getConsignmentReference.Variables]()
+  private val getConsignmentFilesClient = graphqlConfiguration.getClient[getConsignmentFiles.Data, getConsignmentFiles.Variables]()
 
   def consignmentExists(consignmentId: UUID,
                         token: BearerAccessToken): Future[Boolean] = {
@@ -71,6 +72,13 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
     val variables: getConsignmentReference.Variables = new getConsignmentReference.Variables(consignmentId)
 
     sendApiRequest(getConsignmentReferenceClient, getConsignmentReference.document, token, variables)
+      .map(data => data.getConsignment.get)
+  }
+
+  def getConsignmentFilePath(consignmentId: UUID, token: BearerAccessToken): Future[getConsignmentFiles.GetConsignment] = {
+    val variables: getConsignmentFiles.Variables = new getConsignmentFiles.Variables(consignmentId)
+
+    sendApiRequest(getConsignmentFilesClient, getConsignmentFiles.document, token, variables)
       .map(data => data.getConsignment.get)
   }
 }
