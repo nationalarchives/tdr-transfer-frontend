@@ -1,3 +1,4 @@
+@import views.html.helper.CSRF
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
 @import views.html.partials.progressIndicator
@@ -20,6 +21,7 @@
         <div>
                 <!-- Transfer -->
             <form method="post" action="@routes.ConfirmTransferController.finalJudgmentTransferConfirmationSubmit(consignmentId)">
+                @CSRF.formField
                 <button class="govuk-button" type="submit" role="button" draggable="false">
                     Export
                 </button>
