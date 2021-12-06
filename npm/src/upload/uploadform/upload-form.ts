@@ -196,13 +196,13 @@ export class UploadForm {
   }
 
   private showUploadingRecordsPage() {
-    const fileUpload: HTMLDivElement | null =
+    const fileUploadPage: HTMLDivElement | null =
       document.querySelector("#file-upload")
     const uploadProgressPage: HTMLDivElement | null =
       document.querySelector("#upload-progress")
 
-    if (fileUpload && uploadProgressPage) {
-      fileUpload.setAttribute("hidden", "true")
+    if (fileUploadPage && uploadProgressPage) {
+      fileUploadPage.setAttribute("hidden", "true")
       uploadProgressPage.removeAttribute("hidden")
     }
   }
