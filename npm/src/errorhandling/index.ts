@@ -95,18 +95,30 @@ function hideBrowserCloseMessageAndProgressBar() {
 function showLoggedOutError(login: string) {
   const uploadForm: HTMLFormElement | null =
     document.querySelector("#file-upload-form")
-  const loggedOutError: HTMLDivElement | null = document.querySelector(
+  const progressBarAndMessage: Element | null = document.querySelector(
+    "#progress-bar-and-message"
+  )
+  const loggedOutErrors = document.querySelectorAll(
     ".govuk-error-summary.logged-out-error"
   )
-  const loginLink: HTMLAnchorElement | null = document.querySelector(
+  // eslint-disable-next-line no-undef
+  const loginLinks: NodeListOf<HTMLAnchorElement> = document.querySelectorAll(
     ".logged-out-error-link"
   )
+
+  console.log(uploadForm, progressBarAndMessage)
   if (uploadForm) {
     uploadForm.classList.add("hide")
   }
 
-  if (loggedOutError && loginLink) {
-    loggedOutError.removeAttribute("hidden")
-    loginLink.href = login
+  if (progressBarAndMessage) {
+    progressBarAndMessage.classList.add("hide")
+  }
+
+  if (loggedOutErrors && loginLinks) {
+    loggedOutErrors.forEach((loggedOutError) =>
+      loggedOutError.removeAttribute("hidden")
+    )
+    loginLinks.forEach((loginLink) => (loginLink.href = login))
   }
 }
