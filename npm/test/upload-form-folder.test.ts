@@ -8,7 +8,10 @@ import {
 import { MockUploadFormDom } from "./upload-form-utils/mock-upload-form-dom"
 import { htmlForFolderUploadForm } from "./upload-form-utils/html-for-file-upload-form"
 import { verifyVisibilityOfWarningMessages } from "./upload-form-utils/verify-visibility-of-warning-messages"
-import {IReader, IWebkitEntry} from "../src/upload/uploadform/get-files-from-drag-event";
+import {
+  IReader,
+  IWebkitEntry
+} from "../src/upload/uploadform/get-files-from-drag-event"
 
 beforeEach(() => {
   document.body.innerHTML = htmlForFolderUploadForm
@@ -18,7 +21,9 @@ test("clicking the submit button, without selecting a folder, doesn't reveal the
   const mockDom = new MockUploadFormDom()
 
   const submitEvent = mockDom.createSubmitEvent()
-  await mockDom.form.handleFormSubmission(submitEvent)
+  await expect(mockDom.form.handleFormSubmission(submitEvent)).rejects.toEqual(
+    Error("A submission was made without an item being selected")
+  )
 
   expect(mockDom.uploadingRecordsSection).toHaveAttribute("hidden")
   expect(mockDom.submitButton).not.toHaveAttribute("disabled", "true")
@@ -29,7 +34,9 @@ test("clicking the submit button, without selecting a folder, displays a warning
   const mockDom = new MockUploadFormDom()
 
   const submitEvent = mockDom.createSubmitEvent()
-  await mockDom.form.handleFormSubmission(submitEvent)
+  await expect(mockDom.form.handleFormSubmission(submitEvent)).rejects.toEqual(
+    Error("A submission was made without an item being selected")
+  )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.submissionWithoutSelection!,
