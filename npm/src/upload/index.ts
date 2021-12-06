@@ -103,18 +103,18 @@ export class FileUploader {
     const uploadForm: HTMLFormElement | null =
       document.querySelector("#file-upload-form")
 
-    const folderRetriever: HTMLInputElement | null =
+    const itemRetriever: HTMLInputElement | null =
       document.querySelector("#file-selection")
 
     const dropzone: HTMLElement | null = document.querySelector(
       ".drag-and-drop__dropzone"
     )
 
-    if (uploadForm && folderRetriever && dropzone) {
+    if (uploadForm && itemRetriever && dropzone) {
       const form = new UploadForm(
         isJudgmentUser,
         uploadForm,
-        folderRetriever,
+        itemRetriever,
         dropzone,
         this.uploadFiles
       )
