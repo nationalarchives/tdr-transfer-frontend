@@ -137,7 +137,7 @@ export class UploadForm {
     this.folderRetriever.addEventListener("change", this.handleSelectedItems)
   }
 
-  handleFormSubmission: (ev: Event) => void = (ev: Event) => {
+  handleFormSubmission: (ev: Event) => void = async (ev: Event) => {
     ev.preventDefault()
     const itemSelected: IFileWithPath | undefined = this.selectedFiles[0]
 
@@ -154,22 +154,14 @@ export class UploadForm {
       this.showUploadingRecordsPage()
       this.folderUploader(this.selectedFiles, uploadFilesInfo)
     } else {
-      this.successMessage?.setAttribute("hidden", "true")
-      this.warningMessages.incorrectItemSelectedMessage?.setAttribute(
-        "hidden",
-        "true"
-      )
-      const incorrectFileExtensionElement =
-        this.warningMessages.incorrectFileExtensionMessage
-      if (incorrectFileExtensionElement)
-        incorrectFileExtensionElement.setAttribute("hidden", "true")
-
-      this.warningMessages.submissionWithoutSelectionMessage?.removeAttribute(
-        "hidden"
-      )
-
-      this.warningMessages.submissionWithoutSelectionMessage?.focus()
       this.addSubmitListener() // Readd submit listener as we've set it to be removed after one form submission
+      this.removeFilesAndDropShadow()
+      rejectUserItemSelection(
+        this.warningMessages?.submissionWithoutSelectionMessage,
+        this.warningMessages,
+        this.successMessage,
+        "A submission was made without an item being selected"
+      )
     }
   }
 

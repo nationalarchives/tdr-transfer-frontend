@@ -33,7 +33,9 @@ test("clicking the submit button, without selecting a file, doesn't reveal the p
   )
 
   const submitEvent = mockDom.createSubmitEvent()
-  await mockDom.form.handleFormSubmission(submitEvent)
+  await expect(mockDom.form.handleFormSubmission(submitEvent)).rejects.toEqual(
+    Error("A submission was made without an item being selected")
+  )
 
   expect(mockDom.uploadingRecordsSection).toHaveAttribute("hidden")
   expect(mockDom.submitButton).not.toHaveAttribute("disabled", "true")
@@ -48,7 +50,9 @@ test("clicking the submit button, without selecting a file, displays a warning m
   )
 
   const submitEvent = mockDom.createSubmitEvent()
-  await mockDom.form.handleFormSubmission(submitEvent)
+  await expect(mockDom.form.handleFormSubmission(submitEvent)).rejects.toEqual(
+    Error("A submission was made without an item being selected")
+  )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.submissionWithoutSelection!,
