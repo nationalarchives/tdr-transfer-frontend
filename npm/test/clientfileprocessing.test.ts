@@ -352,11 +352,7 @@ test("Error thrown if processing files fails", async () => {
       "",
       userId
     )
-  ).rejects.toStrictEqual(
-    Error(
-      "upload client file information error"
-    )
-  )
+  ).rejects.toStrictEqual(Error("upload client file information error"))
 })
 
 test("Error thrown if processing file metadata fails", async () => {
@@ -379,9 +375,7 @@ test("Error thrown if processing file metadata fails", async () => {
       "",
       userId
     )
-  ).rejects.toStrictEqual(
-    Error("upload client file metadata error")
-  )
+  ).rejects.toStrictEqual(Error("upload client file metadata error"))
 })
 
 test("Error thrown if extracting file metadata fails", async () => {
@@ -404,11 +398,7 @@ test("Error thrown if extracting file metadata fails", async () => {
       "",
       userId
     )
-  ).rejects.toStrictEqual(
-    Error(
-      "client file metadata extraction error"
-    )
-  )
+  ).rejects.toStrictEqual(Error("client file metadata extraction error"))
 })
 
 test("Error thrown if S3 upload fails", async () => {
@@ -430,20 +420,18 @@ test("Error thrown if S3 upload fails", async () => {
       "",
       userId
     )
-  ).rejects.toStrictEqual(
-    Error("Some S3 error")
-  )
+  ).rejects.toStrictEqual(Error("Some S3 error"))
 })
 
 const showUploadingRecordsPage = () => {
   // At the point of the client file processing, the file-upload part should be hidden and progress bar revealed
-  const fileUpload: HTMLDivElement | null =
+  const fileUploadPage: HTMLDivElement | null =
     document.querySelector("#file-upload")
   const uploadProgressPage: HTMLDivElement | null =
     document.querySelector("#upload-progress")
 
-  if (fileUpload && uploadProgressPage) {
-    fileUpload.setAttribute("hidden", "true")
+  if (fileUploadPage && uploadProgressPage) {
+    fileUploadPage.setAttribute("hidden", "true")
     uploadProgressPage.removeAttribute("hidden")
   }
 }
@@ -493,30 +481,27 @@ function setupUploadPageHTMLWithoutProgressBar() {
 }
 
 function checkExpectedPageState(percentage: String) {
-  const fileUpload: HTMLDivElement | null = document.querySelector(
-    "#file-upload"
-  )
-  const uploadProgressPage: HTMLDivElement | null = document.querySelector(
-    "#upload-progress"
-  )
+  const fileUploadPage: HTMLDivElement | null =
+    document.querySelector("#file-upload")
+  const uploadProgressPage: HTMLDivElement | null =
+    document.querySelector("#upload-progress")
 
-  const progressLabelElement: HTMLDivElement | null = document.querySelector(
-    "#upload-percentage"
-  )
+  const progressLabelElement: HTMLDivElement | null =
+    document.querySelector("#upload-percentage")
 
-  const progressBarElement: HTMLDivElement | null = document.querySelector(
-    ".progress-display"
-  )
+  const progressBarElement: HTMLDivElement | null =
+    document.querySelector(".progress-display")
 
-  const uploadError: HTMLDivElement | null = document.querySelector(
-    "#upload-error"
-  )
+  const uploadError: HTMLDivElement | null =
+    document.querySelector("#upload-error")
 
   expect(uploadProgressPage && uploadProgressPage.classList.toString()).toEqual(
     "govuk-grid-row"
   )
 
-  expect(fileUpload && fileUpload.getAttribute("hidden")).toEqual("true")
+  expect(fileUploadPage && fileUploadPage.getAttribute("hidden")).toEqual(
+    "true"
+  )
 
   expect(uploadError && uploadError.getAttribute("hidden")).toEqual("")
 
@@ -528,13 +513,11 @@ function checkExpectedPageState(percentage: String) {
 }
 
 function checkS3UploadProgressBarState(percentage: String) {
-  const progressLabelElement: HTMLDivElement | null = document.querySelector(
-    "#upload-percentage"
-  )
+  const progressLabelElement: HTMLDivElement | null =
+    document.querySelector("#upload-percentage")
 
-  const progressBarElement: HTMLDivElement | null = document.querySelector(
-    ".progress-display"
-  )
+  const progressBarElement: HTMLDivElement | null =
+    document.querySelector(".progress-display")
 
   expect(progressBarElement).not.toBeNull()
 
@@ -544,11 +527,10 @@ function checkS3UploadProgressBarState(percentage: String) {
 }
 
 function checkNoPageStateChangeExpected() {
-  const fileUpload: HTMLDivElement | null = document.querySelector(
-    "#file-upload"
-  )
+  const fileUploadPage: HTMLDivElement | null =
+    document.querySelector("#file-upload")
 
-  expect(fileUpload && fileUpload.classList.toString()).toEqual(
+  expect(fileUploadPage && fileUploadPage.classList.toString()).toEqual(
     "govuk-grid-row"
   )
 }
