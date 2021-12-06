@@ -7,8 +7,8 @@ import {
 } from "./upload-form-utils/mock-files-and-folders"
 import { MockUploadFormDom } from "./upload-form-utils/mock-upload-form-dom"
 import { htmlForFolderUploadForm } from "./upload-form-utils/html-for-file-upload-form"
-import { IReader, IWebkitEntry } from "../src/upload/upload-form"
 import { verifyVisibilityOfWarningMessages } from "./upload-form-utils/verify-visibility-of-warning-messages"
+import {IReader, IWebkitEntry} from "../src/upload/uploadform/get-files-from-drag-event";
 
 beforeEach(() => {
   document.body.innerHTML = htmlForFolderUploadForm
