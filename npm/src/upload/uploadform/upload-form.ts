@@ -57,13 +57,12 @@ export class UploadForm {
   }
 
   addButtonHighlighter() {
+    const itemRetrieverLabel: HTMLLabelElement = this.itemRetriever.labels![0]
     this.itemRetriever.addEventListener("focus", () => {
-      const itemRetrieverLabel: HTMLLabelElement = this.itemRetriever.labels![0]
       itemRetrieverLabel.classList.add("drag-and-drop__button--highlight")
     })
 
     this.itemRetriever.addEventListener("blur", () => {
-      const itemRetrieverLabel: HTMLLabelElement = this.itemRetriever.labels![0]
       itemRetrieverLabel.classList.remove("drag-and-drop__button--highlight")
     })
   }
