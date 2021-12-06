@@ -19,7 +19,7 @@ export interface FileUploadInfo {
 export class UploadForm {
   isJudgmentUser: boolean
   formElement: HTMLFormElement
-  folderRetriever: HTMLInputElement
+  itemRetriever: HTMLInputElement
   dropzone: HTMLElement
   selectedFiles: IFileWithPath[]
   folderUploader: (
@@ -30,7 +30,7 @@ export class UploadForm {
   constructor(
     isJudgmentUser: boolean,
     formElement: HTMLFormElement,
-    folderRetriever: HTMLInputElement,
+    itemRetriever: HTMLInputElement,
     dropzone: HTMLElement,
     folderUploader: (
       files: IFileWithPath[],
@@ -39,7 +39,7 @@ export class UploadForm {
   ) {
     this.isJudgmentUser = isJudgmentUser
     this.formElement = formElement
-    this.folderRetriever = folderRetriever
+    this.itemRetriever = itemRetriever
     this.dropzone = dropzone
     this.selectedFiles = []
     this.folderUploader = folderUploader
@@ -57,16 +57,14 @@ export class UploadForm {
   }
 
   addButtonHighlighter() {
-    this.folderRetriever.addEventListener("focus", () => {
-      const folderRetrieverLabel: HTMLLabelElement =
-        this.folderRetriever.labels![0]
-      folderRetrieverLabel.classList.add("drag-and-drop__button--highlight")
+    this.itemRetriever.addEventListener("focus", () => {
+      const itemRetrieverLabel: HTMLLabelElement = this.itemRetriever.labels![0]
+      itemRetrieverLabel.classList.add("drag-and-drop__button--highlight")
     })
 
-    this.folderRetriever.addEventListener("blur", () => {
-      const folderRetrieverLabel: HTMLLabelElement =
-        this.folderRetriever.labels![0]
-      folderRetrieverLabel.classList.remove("drag-and-drop__button--highlight")
+    this.itemRetriever.addEventListener("blur", () => {
+      const itemRetrieverLabel: HTMLLabelElement = this.itemRetriever.labels![0]
+      itemRetrieverLabel.classList.remove("drag-and-drop__button--highlight")
     })
   }
 
@@ -134,7 +132,7 @@ export class UploadForm {
 
   addFolderListener() {
     this.dropzone.addEventListener("drop", this.handleDroppedItems)
-    this.folderRetriever.addEventListener("change", this.handleSelectedItems)
+    this.itemRetriever.addEventListener("change", this.handleSelectedItems)
   }
 
   handleFormSubmission: (ev: Event) => void = async (ev: Event) => {
