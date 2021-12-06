@@ -1,4 +1,4 @@
-import { IReader, IWebkitEntry, UploadForm } from "../../src/upload/upload-form"
+import { UploadForm } from "../../src/upload/uploadform/upload-form"
 import {
   getDummyFile,
   mockDataTransferItemList,
@@ -11,6 +11,7 @@ import { GraphqlClient } from "../../src/graphql"
 import { IFrontEndInfo } from "../../src"
 import { ClientFileMetadataUpload } from "../../src/clientfilemetadataupload"
 import { UpdateConsignmentStatus } from "../../src/updateconsignmentstatus"
+import {IReader, IWebkitEntry} from "../../src/upload/uploadform/get-files-from-drag-event";
 
 interface SubmitEvent extends Event {
   submitter: HTMLElement

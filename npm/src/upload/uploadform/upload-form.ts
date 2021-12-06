@@ -1,4 +1,11 @@
 import { IFileWithPath } from "@nationalarchives/file-information"
+import { getAllFiles } from "./get-files-from-drag-event"
+import { rejectUserItemSelection } from "./display-warning-message"
+import {
+  addFileSelectionSuccessMessage,
+  addFolderSelectionSuccessMessage,
+  displaySelectionSuccessMessage
+} from "./update-and-display-success-message"
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
@@ -7,80 +14,6 @@ interface FileWithRelativePath extends File {
 export interface FileUploadInfo {
   consignmentId: string
   parentFolder: string
-}
-
-export interface InputElement extends EventTarget {
-  files?: File[]
-}
-
-interface HTMLInputTarget extends EventTarget {
-  files?: InputElement
-}
-
-export interface IReader {
-  readEntries: (callbackFunction: (entry: IWebkitEntry[]) => void) => void
-}
-
-export interface IWebkitEntry extends DataTransferItem {
-  createReader: () => IReader
-  isFile: boolean
-  isDirectory: boolean
-  fullPath: string
-  name?: string
-  file: (success: (file: File) => void) => void
-}
-
-const getAllFiles: (
-  entry: IWebkitEntry,
-  fileInfoInput: IFileWithPath[]
-) => Promise<IFileWithPath[]> = async (entry, fileInfoInput) => {
-  const reader: IReader = entry.createReader()
-  const entries: IWebkitEntry[] = await getEntriesFromReader(reader)
-  for (const entry of entries) {
-    if (entry.isDirectory) {
-      await getAllFiles(entry, fileInfoInput)
-    } else {
-      const file: IFileWithPath = await getFileFromEntry(entry)
-      fileInfoInput.push(file)
-    }
-  }
-  return fileInfoInput
-}
-
-const getEntriesFromReader: (
-  reader: IReader
-) => Promise<IWebkitEntry[]> = async (reader) => {
-  let allEntries: IWebkitEntry[] = []
-
-  let nextBatch = await getEntryBatch(reader)
-
-  while (nextBatch.length > 0) {
-    allEntries = allEntries.concat(nextBatch)
-    nextBatch = await getEntryBatch(reader)
-  }
-
-  return allEntries
-}
-
-const getFileFromEntry: (entry: IWebkitEntry) => Promise<IFileWithPath> = (
-  entry
-) => {
-  return new Promise<IFileWithPath>((resolve) => {
-    entry.file((file) =>
-      resolve({
-        file,
-        path: entry.fullPath
-      })
-    )
-  })
-}
-
-const getEntryBatch: (reader: IReader) => Promise<IWebkitEntry[]> = (
-  reader
-) => {
-  return new Promise<IWebkitEntry[]>((resolve) => {
-    reader.readEntries((entries) => resolve(entries))
-  })
 }
 
 export class UploadForm {
@@ -160,7 +93,7 @@ export class UploadForm {
       this.checkForCorrectJudgmentFileExtension(fileName)
       const files: File[] = this.convertFileListToArray(fileList)
       this.selectedFiles = this.convertFilesToIfilesWithPath(files)
-      this.addFileSelectionSuccessMessage(fileName)
+      addFileSelectionSuccessMessage(fileName)
     } else {
       const items: DataTransferItemList = ev.dataTransfer?.items!
       this.checkNumberOfObjectsDropped(
@@ -175,12 +108,12 @@ export class UploadForm {
       this.checkIfFolderHasFiles(files)
 
       this.selectedFiles = files
-      this.addFolderSelectionSuccessMessage(
+      addFolderSelectionSuccessMessage(
         webkitEntry.name,
         this.selectedFiles.length
       )
     }
-    this.displaySelectionSuccessMessage()
+    displaySelectionSuccessMessage(this.successMessage, this.warningMessages)
     this.removeDragover()
   }
 
@@ -191,15 +124,12 @@ export class UploadForm {
     if (this.isJudgmentUser) {
       const fileName = this.selectedFiles[0].file.name
       this.checkForCorrectJudgmentFileExtension(fileName)
-      this.addFileSelectionSuccessMessage(fileName)
+      addFileSelectionSuccessMessage(fileName)
     } else {
       const parentFolder = this.getParentFolderName(this.selectedFiles)
-      this.addFolderSelectionSuccessMessage(
-        parentFolder,
-        this.selectedFiles.length
-      )
+      addFolderSelectionSuccessMessage(parentFolder, this.selectedFiles.length)
     }
-    this.displaySelectionSuccessMessage()
+    displaySelectionSuccessMessage(this.successMessage, this.warningMessages)
   }
 
   addFolderListener() {
@@ -290,8 +220,11 @@ export class UploadForm {
 
   private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void {
     if (files === null || files.length === 0) {
-      this.rejectUserItemSelection(
+      this.removeFilesAndDropShadow()
+      rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
+        this.warningMessages,
+        this.successMessage,
         "The folder is empty"
       )
     }
@@ -320,74 +253,16 @@ export class UploadForm {
     this.dropzone.classList.remove("drag-and-drop__dropzone--dragover")
   }
 
-  private rejectUserItemSelection(
-    warningMessageToReveal: HTMLElement | null,
-    exceptionMessage: string
-  ) {
-    this.selectedFiles = []
-    this.removeDragover()
-
-    const warningMessages: (HTMLElement | null)[] = Object.values(
-      this.warningMessages
-    )
-
-    for (const warningMessage of warningMessages) {
-      if (warningMessage != warningMessageToReveal) {
-        warningMessage?.setAttribute("hidden", "true")
-      }
-    }
-
-    this.successMessage?.setAttribute("hidden", "true")
-
-    warningMessageToReveal?.removeAttribute("hidden")
-    warningMessageToReveal?.focus()
-
-    throw new Error(exceptionMessage)
-  }
-
-  private addFolderSelectionSuccessMessage(
-    folderName: string,
-    folderSize: number
-  ) {
-    const folderNameElement: HTMLElement | null =
-      document.querySelector("#folder-name")
-    const folderSizeElement: HTMLElement | null =
-      document.querySelector("#folder-size")
-
-    if (folderNameElement && folderSizeElement) {
-      folderNameElement.textContent = folderName
-      folderSizeElement.textContent = `${folderSize} ${
-        folderSize === 1 ? "file" : "files"
-      }`
-    }
-  }
-
-  private addFileSelectionSuccessMessage(fileName: string) {
-    const fileNameElement: HTMLElement | null =
-      document.querySelector("#file-name")
-    if (fileNameElement) {
-      fileNameElement.textContent = fileName
-    }
-  }
-
-  private displaySelectionSuccessMessage() {
-    Object.values(this.warningMessages).forEach(
-      (warningMessageElement: HTMLElement | null) => {
-        warningMessageElement?.setAttribute("hidden", "true")
-      }
-    )
-
-    this.successMessage?.removeAttribute("hidden")
-    this.successMessage?.focus()
-  }
-
   private checkNumberOfObjectsDropped(
     droppedObjects: DataTransferItemList | FileList,
     exceptionMessage: string
   ) {
     if (droppedObjects.length > 1) {
-      this.rejectUserItemSelection(
+      this.removeFilesAndDropShadow()
+      rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
+        this.warningMessages,
+        this.successMessage,
         exceptionMessage
       )
     }
@@ -398,8 +273,11 @@ export class UploadForm {
     return fileListIndexes.map((i) => {
       const file: File = fileList[i]
       if (!file.type) {
-        this.rejectUserItemSelection(
+        this.removeFilesAndDropShadow()
+        rejectUserItemSelection(
           this.warningMessages?.incorrectItemSelectedMessage,
+          this.warningMessages,
+          this.successMessage,
           "Only files are allowed to be selected"
         )
       }
@@ -410,11 +288,19 @@ export class UploadForm {
 
   private checkIfDroppedItemIsFolder(webkitEntry: any) {
     if (webkitEntry!.isFile) {
-      this.rejectUserItemSelection(
+      this.removeFilesAndDropShadow()
+      rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
+        this.warningMessages,
+        this.successMessage,
         "Only folders are allowed to be selected"
       )
     }
+  }
+
+  private removeFilesAndDropShadow() {
+    this.selectedFiles = []
+    this.removeDragover()
   }
 
   private checkForCorrectJudgmentFileExtension(fileName: string) {
@@ -431,8 +317,11 @@ export class UploadForm {
       const indexOfLastDot = fileName.lastIndexOf(".")
       const fileExtension = fileName.slice(indexOfLastDot)
       if (!acceptableJudgmentFileExtensions.includes(fileExtension)) {
-        this.rejectUserItemSelection(
+        this.removeFilesAndDropShadow()
+        rejectUserItemSelection(
           this.warningMessages?.incorrectFileExtensionMessage,
+          this.warningMessages,
+          this.successMessage,
           "Only MS Word docs are allowed to be selected"
         )
       }
