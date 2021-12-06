@@ -99,7 +99,7 @@ test("Throws an error if the access token and refresh token have expired", async
   const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(undefined, isTokenExpired, refreshTokenParsed)
 
   await expect(refreshOrReturnToken(mockKeycloak)).rejects.toEqual(
-    new LoggedOutError("", "User is logged out")
+    new LoggedOutError("", "Refresh token has expired: User is logged out")
   )
 })
 
