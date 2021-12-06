@@ -7,7 +7,7 @@ import {
 } from "@nationalarchives/tdr-generated-graphql"
 
 import { FetchResult } from "@apollo/client/core"
-import { FileUploadInfo } from "../upload/upload-form"
+import { FileUploadInfo } from "../upload/uploadform/upload-form"
 
 export class UpdateConsignmentStatus {
   client: GraphqlClient
