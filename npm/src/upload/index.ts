@@ -7,7 +7,7 @@ import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError } from "../errorhandling"
 import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
-import { scheduleTokenRefresh } from "../auth"
+import { refreshOrReturnToken, scheduleTokenRefresh } from "../auth"
 import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
 import { TdrFetchHandler } from "../s3upload/tdr-fetch-handler"
 import { S3Client } from "@aws-sdk/client-s3"
@@ -71,11 +71,13 @@ export class FileUploader {
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
+    const refreshedToken = await refreshOrReturnToken(this.keycloak)
+
     const cookiesUrl = `${this.uploadUrl}/cookies`
     scheduleTokenRefresh(this.keycloak, cookiesUrl)
     await fetch(cookiesUrl, {
       credentials: "include",
-      headers: { Authorization: `Bearer ${this.keycloak.token}` }
+      headers: { Authorization: `Bearer ${refreshedToken}` }
     })
     try {
       await this.clientFileProcessing.processClientFiles(
