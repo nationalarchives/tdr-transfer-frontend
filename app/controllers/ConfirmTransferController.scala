@@ -87,6 +87,16 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
         successFunction
       )
     }
+
+  def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
+    secureAction.async { implicit request: Request[AnyContent] =>
+      for {
+        _ <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
+        _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
+//        res <- Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
+      } yield ()
+      Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
+    }
 }
 
 case class ConsignmentSummaryData(seriesCode: String,
