@@ -189,7 +189,7 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
 })
 
-test("dropzone updates the page with an error if 1 non-folder has been dropped", async () => {
+test("dropzone updates the page with an error if 1 file has been dropped", async () => {
   const mockDom = new MockUploadFormDom()
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFile()],
