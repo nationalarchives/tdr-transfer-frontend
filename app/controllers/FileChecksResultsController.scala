@@ -26,7 +26,8 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
       if (fileCheck.allChecksSucceeded) {
         if (request.token.isJudgmentUser) {
           consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).map(files => {
-            val filename = files.files.head.metadata.clientSideOriginalFilePath.getOrElse("Unknown Filename")
+            val filename = files.files.head.metadata.clientSideOriginalFilePath
+              .getOrElse(throw new IllegalStateException(s"Filename cannot be found for judgment upload: '$consignmentId'"))
             Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId))
           })
         } else {
