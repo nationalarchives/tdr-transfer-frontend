@@ -135,7 +135,7 @@ test("dropzone updates the page with correct number of files if an MS Word file 
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(fileName)
 })
 
-test("dropzone updates the page with an error if a non MS Word file has been dropped", async () => {
+test("dropzone updates the page with an error if a non-MS Word file has been dropped", async () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
@@ -207,7 +207,7 @@ test("dropzone updates the page with an error if a file and a folder has been dr
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 })
 
-test("dropzone updates the page with 'Only MS Word' error if 1 non-file has been dropped", async () => {
+test("dropzone updates the page with 'Only MS Word' error if 1 folder has been dropped", async () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
@@ -230,7 +230,7 @@ test("dropzone updates the page with 'Only MS Word' error if 1 non-file has been
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 })
 
-test("dropzone updates the page with 'Only files are allowed' error if 1 non-file with a name ending with acceptable extension has been dropped", async () => {
+test("dropzone updates the page with 'Only files are allowed' error if 1 folder with a name ending with acceptable extension has been dropped", async () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
