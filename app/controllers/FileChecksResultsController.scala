@@ -22,25 +22,23 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
                                            )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-    consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).map(fileCheck => {
-      val parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
-      if(fileCheck.allChecksSucceeded) {
+    consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).flatMap(fileCheck => {
+      if (fileCheck.allChecksSucceeded) {
         if (request.token.isJudgmentUser) {
-          val result = for {
-            files <- consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken)
-            filename = files.files.head.metadata.clientSideOriginalFilePath.get
-          } yield filename
-          val filename = Await.result(result, Duration.Inf)
-          Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId))
+          consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).map(files => {
+            val filename = files.files.head.metadata.clientSideOriginalFilePath.getOrElse("Unknown Filename")
+            Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId))
+          })
         } else {
+          val parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
           val consignmentInfo = ConsignmentFolderInfo(
             fileCheck.totalFiles,
             parentFolder
           )
-          Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId))
+          Future(Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId)))
         }
       } else {
-        Ok(views.html.standard.fileChecksFailed())
+        Future(Ok(views.html.standard.fileChecksFailed()))
       }
     })
   }
