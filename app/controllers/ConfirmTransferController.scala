@@ -6,6 +6,8 @@ import java.util.UUID
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddFinalTransferConfirmation.AddFinalTransferConfirmation
 import graphql.codegen.types.AddFinalTransferConfirmationInput
+import graphql.codegen.AddFinalJudgmentTransferConfirmation.AddFinalJudgmentTransferConfirmation
+import graphql.codegen.types.AddFinalJudgmentTransferConfirmationInput
 
 import javax.inject.Inject
 import org.pac4j.play.scala.SecurityComponents
@@ -30,6 +32,8 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
 
   private val addFinalTransferConfirmationClient: GraphQLClient[AddFinalTransferConfirmation.Data, AddFinalTransferConfirmation.Variables] =
     graphqlConfiguration.getClient[AddFinalTransferConfirmation.Data, AddFinalTransferConfirmation.Variables]()
+  private val addFinalJudgmentTransferConfirmationClient: GraphQLClient[AddFinalJudgmentTransferConfirmation.Data, AddFinalJudgmentTransferConfirmation.Variables] =
+    graphqlConfiguration.getClient[AddFinalJudgmentTransferConfirmation.Data, AddFinalJudgmentTransferConfirmation.Variables]()
   implicit val language: Lang = langs.availables.head
   val finalTransferConfirmationForm: Form[FinalTransferConfirmationData] = Form(
     mapping(
@@ -90,12 +94,17 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
 
   def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
     secureAction.async { implicit request: Request[AnyContent] =>
+      val addFinalJudgmentTransferConfirmationInput: AddFinalJudgmentTransferConfirmationInput = AddFinalJudgmentTransferConfirmationInput(
+        consignmentId, legalCustodyTransferConfirmed = true
+      )
+      val variables: AddFinalJudgmentTransferConfirmation.Variables = AddFinalJudgmentTransferConfirmation.Variables(addFinalJudgmentTransferConfirmationInput)
       for {
+        _ <- sendApiRequest(addFinalJudgmentTransferConfirmationClient, AddFinalJudgmentTransferConfirmation.document,
+          request.token.bearerAccessToken, variables)
         _ <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
         _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
-//        res <- Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
-      } yield ()
-      Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
+        res <- Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
+      } yield res
     }
 }
 
