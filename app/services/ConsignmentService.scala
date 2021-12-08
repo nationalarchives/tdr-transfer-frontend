@@ -1,6 +1,7 @@
 package services
 
 import java.util.UUID
+
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment

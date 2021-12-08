@@ -1,6 +1,7 @@
 package controllers
 
 import java.util.UUID
+
 import auth.TokenSecurity
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
 import javax.inject.{Inject, Singleton}
