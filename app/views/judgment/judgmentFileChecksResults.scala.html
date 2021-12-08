@@ -5,29 +5,28 @@
 @(filename: String, consignmentId: java.util.UUID)(implicit messages: Messages, request: RequestHeader)
 
 @main("Results of checks") {
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("judgmentFileChecksResults.progress"))
-        <h1 class="govuk-heading-l">Results of checks</h1>
-        <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
-        role="status" data-module="success-summary" tabindex="-1">
-            <h2 class="success-summary__title" id="success-summary-title">
-                Success
-            </h2>
-            <div class="success-summary__body">
-                <p class="govuk-body">Your file '@{filename}' has been successfully checked and is ready to be exported for publication.</p>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            @progressIndicator(Messages("judgmentFileChecksResults.progress"))
+            <h1 class="govuk-heading-l">Results of checks</h1>
+            <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
+            role="status" data-module="success-summary" tabindex="-1">
+                <h2 class="success-summary__title" id="success-summary-title">
+                    Success
+                </h2>
+                <div class="success-summary__body">
+                    <p class="govuk-body">Your file '@{filename}' has been successfully checked and is ready to be exported for publication.</p>
+                </div>
+            </div>
+            <div>
+                    <!-- Transfer -->
+                <form method="post" action="@routes.ConfirmTransferController.finalJudgmentTransferConfirmationSubmit(consignmentId)">
+                    @CSRF.formField
+                    <button class="govuk-button" type="submit" role="button" draggable="false">
+                        Export
+                    </button>
+                </form>
             </div>
         </div>
-        <div>
-                <!-- Transfer -->
-            <form method="post" action="@routes.ConfirmTransferController.finalJudgmentTransferConfirmationSubmit(consignmentId)">
-                @CSRF.formField
-                <button class="govuk-button" type="submit" role="button" draggable="false">
-                    Export
-                </button>
-            </form>
-        </div>
     </div>
-</div>
-
 }

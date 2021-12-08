@@ -3,15 +3,13 @@ package controllers
 import java.util.UUID
 import auth.TokenSecurity
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
-
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, RequestHeader}
 import services.ConsignmentService
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class FileChecksResultsController @Inject()(val controllerComponents: SecurityComponents,
