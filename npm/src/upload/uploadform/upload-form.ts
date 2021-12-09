@@ -151,8 +151,8 @@ export class UploadForm {
       this.showUploadingRecordsPage()
       this.folderUploader(this.selectedFiles, uploadFilesInfo)
     } else {
-      this.addSubmitListener() // Readd submit listener as we've set it to be removed after one form submission
-      this.removeFilesAndDropShadow()
+      this.addSubmitListener() // Add submit listener back as we've set it to be removed after one form submission
+      this.removeFilesAndDragOver()
       rejectUserItemSelection(
         this.warningMessages?.submissionWithoutSelectionMessage,
         this.warningMessages,
@@ -209,7 +209,7 @@ export class UploadForm {
 
   private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void {
     if (files === null || files.length === 0) {
-      this.removeFilesAndDropShadow()
+      this.removeFilesAndDragOver()
       rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
         this.warningMessages,
@@ -247,7 +247,7 @@ export class UploadForm {
     exceptionMessage: string
   ) {
     if (droppedObjects.length > 1) {
-      this.removeFilesAndDropShadow()
+      this.removeFilesAndDragOver()
       rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
         this.warningMessages,
@@ -262,7 +262,7 @@ export class UploadForm {
     return fileListIndexes.map((i) => {
       const file: File = fileList[i]
       if (!file.type) {
-        this.removeFilesAndDropShadow()
+        this.removeFilesAndDragOver()
         rejectUserItemSelection(
           this.warningMessages?.incorrectItemSelectedMessage,
           this.warningMessages,
@@ -277,7 +277,7 @@ export class UploadForm {
 
   private checkIfDroppedItemIsFolder(webkitEntry: any) {
     if (webkitEntry!.isFile) {
-      this.removeFilesAndDropShadow()
+      this.removeFilesAndDragOver()
       rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
         this.warningMessages,
@@ -287,13 +287,13 @@ export class UploadForm {
     }
   }
 
-  private removeFilesAndDropShadow() {
+  private removeFilesAndDragOver() {
     this.selectedFiles = []
     this.removeDragover()
   }
 
   private checkForCorrectJudgmentFileExtension(fileName: string) {
-    const acceptableJudgmentFileExtensions = [
+    const judgmentFileExtensionsAllowList = [
       ".doc",
       ".docm",
       ".docx",
@@ -305,8 +305,8 @@ export class UploadForm {
     if (fileName) {
       const indexOfLastDot = fileName.lastIndexOf(".")
       const fileExtension = fileName.slice(indexOfLastDot)
-      if (!acceptableJudgmentFileExtensions.includes(fileExtension)) {
-        this.removeFilesAndDropShadow()
+      if (!judgmentFileExtensionsAllowList.includes(fileExtension)) {
+        this.removeFilesAndDragOver()
         rejectUserItemSelection(
           this.warningMessages?.incorrectFileExtensionMessage,
           this.warningMessages,
