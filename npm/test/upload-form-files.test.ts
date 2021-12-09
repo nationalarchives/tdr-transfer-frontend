@@ -61,7 +61,7 @@ test("clicking the submit button, without selecting a file, displays a warning m
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 })
 
-test("input button updates the page with the file that has been selected, if that file is an MS Word file", () => {
+test("input button updates the page with the file that has been selected, if that file is an .docx file", () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
@@ -84,7 +84,7 @@ test("input button updates the page with the file that has been selected, if tha
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(dummyFile.name)
 })
 
-test("input button updates the page with an error if the file that has been selected is an non-MS Word file", async () => {
+test("input button updates the page with an error if the file that has been selected is an non-docx file", async () => {
   /* Currently with the accept attribute in place, this should not be possible, but the test is added in case it is removed*/
 
   const mockDom = new MockUploadFormDom(
@@ -94,7 +94,7 @@ test("input button updates the page with an error if the file that has been sele
   )
   mockDom.getFileUploader().initialiseFormListeners()
 
-  const dummyFile = getDummyFile("Mock File.txt", "txt")
+  const dummyFile = getDummyFile("Mock File.doc", "doc")
   mockDom.uploadForm!.files = {
     files: [dummyFile]
   }
@@ -111,7 +111,7 @@ test("input button updates the page with an error if the file that has been sele
   })
 })
 
-test("dropzone updates the page with correct number of files if an MS Word file has been dropped", async () => {
+test("dropzone updates the page with correct number of files if a .docx file has been dropped", async () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
@@ -135,14 +135,14 @@ test("dropzone updates the page with correct number of files if an MS Word file 
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(fileName)
 })
 
-test("dropzone updates the page with an error if a non-MS Word file has been dropped", async () => {
+test("dropzone updates the page with an error if a non-docx file has been dropped", async () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
-  const fileName = "Mock File.pdf"
-  const fileType = "pdf"
+  const fileName = "Mock File.doc"
+  const fileType = "doc"
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFile(fileName, fileType)],
     mockDom.dataTransferItem
