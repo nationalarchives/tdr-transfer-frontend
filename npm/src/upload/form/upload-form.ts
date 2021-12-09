@@ -293,14 +293,7 @@ export class UploadForm {
   }
 
   private checkForCorrectJudgmentFileExtension(fileName: string) {
-    const judgmentFileExtensionsAllowList = [
-      ".doc",
-      ".docm",
-      ".docx",
-      ".dot",
-      ".dotm",
-      ".dotx"
-    ]
+    const judgmentFileExtensionsAllowList = [".docx"]
 
     if (fileName) {
       const indexOfLastDot = fileName.lastIndexOf(".")
