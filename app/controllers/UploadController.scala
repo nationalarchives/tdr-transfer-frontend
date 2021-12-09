@@ -23,7 +23,6 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
 
   def uploadPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
-    val isJudgmentUser = request.token.isJudgmentUser
 
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
@@ -39,14 +38,30 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
             case Some("Completed") =>
               Ok(views.html.standard.uploadHasCompleted(consignmentId)).uncache()
             case _ =>
-              if(isJudgmentUser) {
-                Ok(views.html.judgment.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
-              } else {
-                Ok(views.html.standard.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
-              }
+              Ok(views.html.standard.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
           }
         case _ =>
           Redirect(routes.TransferAgreementController.transferAgreement(consignmentId))
+      }
+    }
+  }
+
+  def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
+    val isJudgmentUser = request.token.isJudgmentUser
+
+    for {
+      consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
+
+      uploadStatus match {
+        case Some("InProgress") =>
+          Ok(views.html.standard.uploadInProgress(consignmentId)).uncache()
+        case Some("Completed") =>
+          Ok(views.html.standard.uploadHasCompleted(consignmentId)).uncache()
+        case _ =>
+          Ok(views.html.judgment.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
       }
     }
   }

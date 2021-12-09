@@ -1,5 +1,7 @@
 # https://www.playframework.com/documentation/latest/ScalaI18N
 
+transferAgreement.warning=This service is in private beta. During this time, the Transfer Digital Records service can only accept records that are in English, are Public Records and are Crown Copyright. For more information, please see our <a href="@routes.FaqController.faq()#other-languages" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> if you need to transfer records that this service cannot currently handle.
+
 upload.dragAndDropFolderErrorMessage=You can only drop a single folder
 upload.dragAndDropFileErrorMessage=You can only drop a single file
 upload.submissionWithoutAFolderMessageText=Select a folder to upload.
@@ -9,6 +11,9 @@ fileChecksResults.description.singular=Your folder ''{0}'' containing {1} item h
 fileChecksResults.description.plural=Your folder ''{0}'' containing {1} items has been successfully checked and uploaded. Click ''Continue'' to proceed with your transfer.
 
 transferComplete.error=There has been an error, contact us.
+
+judgmentTransferAgreement.warning=We cannot publish the court judgment without this: Name(s) of judge(s), name of parties, court, judgment date, neutral citation, case reference(s).
+
 
 progressIndicator.step=Step {0} of {1}
 # Progress indicator step numbers
