@@ -32,8 +32,9 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
 
   private val addFinalTransferConfirmationClient: GraphQLClient[AddFinalTransferConfirmation.Data, AddFinalTransferConfirmation.Variables] =
     graphqlConfiguration.getClient[AddFinalTransferConfirmation.Data, AddFinalTransferConfirmation.Variables]()
-  private val addFinalJudgmentTransferConfirmationClient: GraphQLClient[AddFinalJudgmentTransferConfirmation.Data, AddFinalJudgmentTransferConfirmation.Variables] =
-    graphqlConfiguration.getClient[AddFinalJudgmentTransferConfirmation.Data, AddFinalJudgmentTransferConfirmation.Variables]()
+  private val addFinalJudgmentTransferConfirmationClient: GraphQLClient[AddFinalJudgmentTransferConfirmation.Data,
+    AddFinalJudgmentTransferConfirmation.Variables] = graphqlConfiguration.getClient[AddFinalJudgmentTransferConfirmation.Data,
+    AddFinalJudgmentTransferConfirmation.Variables]()
   implicit val language: Lang = langs.availables.head
   val finalTransferConfirmationForm: Form[FinalTransferConfirmationData] = Form(
     mapping(
