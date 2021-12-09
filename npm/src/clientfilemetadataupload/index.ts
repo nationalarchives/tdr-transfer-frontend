@@ -14,7 +14,7 @@ import {
 
 import { FetchResult } from "@apollo/client/core"
 import { ITdrFile } from "../s3upload"
-import { FileUploadInfo } from "../upload/uploadform/upload-form"
+import { FileUploadInfo } from "../upload/form/upload-form"
 
 declare var METADATA_UPLOAD_BATCH_SIZE: string
 

@@ -6,7 +6,7 @@ import {
   IProgressInformation
 } from "@nationalarchives/file-information"
 import { S3Upload } from "../s3upload"
-import { FileUploadInfo } from "../upload/uploadform/upload-form"
+import { FileUploadInfo } from "../upload/form/upload-form"
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload

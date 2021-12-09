@@ -11,7 +11,7 @@ import { verifyVisibilityOfWarningMessages } from "./upload-form-utils/verify-vi
 import {
   IReader,
   IWebkitEntry
-} from "../src/upload/uploadform/get-files-from-drag-event"
+} from "../src/upload/form/get-files-from-drag-event"
 
 beforeEach(() => {
   document.body.innerHTML = htmlForFolderUploadForm
