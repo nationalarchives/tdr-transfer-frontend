@@ -10,7 +10,7 @@ import {
 import { ClientFileExtractMetadata } from "../src/clientfileextractmetadata"
 import { S3Upload, ITdrFile } from "../src/s3upload"
 import { mockKeycloakInstance } from "./utils"
-import { FileUploadInfo } from "../src/upload/uploadform/upload-form"
+import { FileUploadInfo } from "../src/upload/form/upload-form"
 import { S3Client, ServiceOutputTypes } from "@aws-sdk/client-s3"
 
 jest.mock("../src/clientfilemetadataupload")

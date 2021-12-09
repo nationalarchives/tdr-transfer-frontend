@@ -1,4 +1,4 @@
-import { UploadForm } from "../../src/upload/uploadform/upload-form"
+import { UploadForm } from "../../src/upload/form/upload-form"
 import {
   getDummyFile,
   mockDataTransferItemList,
@@ -14,7 +14,7 @@ import { UpdateConsignmentStatus } from "../../src/updateconsignmentstatus"
 import {
   IReader,
   IWebkitEntry
-} from "../../src/upload/uploadform/get-files-from-drag-event"
+} from "../../src/upload/form/get-files-from-drag-event"
 
 interface SubmitEvent extends Event {
   submitter: HTMLElement
