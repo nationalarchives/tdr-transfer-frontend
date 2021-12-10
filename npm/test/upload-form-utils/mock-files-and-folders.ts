@@ -24,24 +24,33 @@ export const mockDataTransferItemList: (
   } as DataTransferItemList
 }
 
-export const dummyFolder = {
-  lastModified: 2147483647,
-  name: "Mock Folder",
-  size: 0,
-  type: "",
-  webkitRelativePath: ""
-} as unknown as File
+export const getDummyFolder: (folderName?: string) => File = (
+  folderName = "Mock Folder"
+) => {
+  return {
+    lastModified: 2147483647,
+    name: folderName,
+    size: 0,
+    type: "",
+    webkitRelativePath: ""
+  } as unknown as File
+}
 
-export const dummyFile = {
-  lastModified: 2147483647,
-  name: "Mock File",
-  size: 3008,
-  type: "pdf",
-  webkitRelativePath: "Parent_Folder"
-} as unknown as File
+export const getDummyFile: (fileName?: string, fileType?: string) => File = (
+  fileName = "Mock File",
+  fileType = "pdf"
+) => {
+  return {
+    lastModified: 2147483647,
+    name: fileName,
+    size: 3008,
+    type: fileType,
+    webkitRelativePath: "Parent_Folder"
+  } as unknown as File
+}
 
 export const dummyIFileWithPath = {
-  file: dummyFile,
+  file: getDummyFile(),
   path: "Parent_Folder",
   webkitRelativePath: "Parent_Folder"
 } as IFileWithPath
