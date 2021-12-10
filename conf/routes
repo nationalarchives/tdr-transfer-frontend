@@ -39,4 +39,4 @@ GET         /judgment/:consignmentId/upload                       controllers.Up
 GET         /judgment/:consignmentId/records                      controllers.FileChecksController.recordProcessingPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/records-results              controllers.FileChecksResultsController.fileCheckResultsPage(consignmentId: java.util.UUID)
 POST        /judgment/:consignmentId/records-results              controllers.ConfirmTransferController.finalJudgmentTransferConfirmationSubmit(consignmentId: java.util.UUID)
-GET         /judgment/:consignmentId/transfer-complete            controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/transfer-complete            controllers.TransferCompleteController.judgmentTransferComplete(consignmentId: java.util.UUID)

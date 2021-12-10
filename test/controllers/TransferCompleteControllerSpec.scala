@@ -81,7 +81,12 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, path)
     val consignmentId = UUID.randomUUID()
 
-    controller.transferComplete(consignmentId)
-      .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
+    if (path.equals("judgment")) {
+      controller.judgmentTransferComplete(consignmentId)
+        .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
+    } else {
+      controller.transferComplete(consignmentId)
+        .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
+    }
   }
 }

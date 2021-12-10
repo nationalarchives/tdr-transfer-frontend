@@ -104,7 +104,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
           request.token.bearerAccessToken, variables)
         _ <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
         _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
-        res <- Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
+        res <- Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)))
       } yield res
     }
 }
