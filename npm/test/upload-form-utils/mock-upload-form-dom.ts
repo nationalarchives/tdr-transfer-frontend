@@ -1,6 +1,6 @@
-import { IReader, IWebkitEntry, UploadForm } from "../../src/upload/upload-form"
+import { UploadForm } from "../../src/upload/form/upload-form"
 import {
-  dummyFile,
+  getDummyFile,
   mockDataTransferItemList,
   mockFileList
 } from "./mock-files-and-folders"
@@ -11,6 +11,10 @@ import { GraphqlClient } from "../../src/graphql"
 import { IFrontEndInfo } from "../../src"
 import { ClientFileMetadataUpload } from "../../src/clientfilemetadataupload"
 import { UpdateConsignmentStatus } from "../../src/updateconsignmentstatus"
+import {
+  IReader,
+  IWebkitEntry
+} from "../../src/upload/form/get-files-from-drag-event"
 
 interface SubmitEvent extends Event {
   submitter: HTMLElement
@@ -23,7 +27,13 @@ export class MockUploadFormDom {
   reader: IReader
   form: UploadForm
 
-  constructor(isJudgmentUser: boolean = false, numberOfFiles: number = 2) {
+  constructor(
+    isJudgmentUser: boolean = false,
+    numberOfFiles: number = 2,
+    additionalWarningMessages: {
+      [warningMessage: string]: { [warningMessage: string]: HTMLElement | null }
+    } = {}
+  ) {
     this.isJudgmentUser = isJudgmentUser
     this.entries =
       numberOfFiles === 0
@@ -38,6 +48,7 @@ export class MockUploadFormDom {
       }
     }
     this.form = this.createForm(isJudgmentUser)
+    Object.assign(this.warningMessages, additionalWarningMessages)
   }
 
   createForm: (isJudgmentUser: boolean) => UploadForm = (isJudgmentUser) => {
@@ -60,7 +71,7 @@ export class MockUploadFormDom {
 
   dataTransferItemFields = {
     fullPath: "something", // add this to the fileEntry and directoryEntry object
-    file: (success: any) => success(dummyFile),
+    file: (success: any) => success(getDummyFile()),
     kind: "",
     type: "",
     getAsFile: jest.fn(),
@@ -158,7 +169,7 @@ export class MockUploadFormDom {
   }
 
   selectFolderViaButton: () => void = () => {
-    this.triggerInputEvent(this.itemRetriever!, "change")
+    return this.triggerInputEvent(this.itemRetriever!, "change")
   }
 
   setUpFileUploader(isJudgmentUser: boolean): FileUploader {
@@ -217,22 +228,22 @@ export class MockUploadFormDom {
   folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
 
   warningMessages: {
-    [s: string]: HTMLElement | null
+    [warningName: string]: { [s: string]: HTMLElement | null }
   } = {
-    incorrectItemSelectedMessage: document.querySelector(
-      "#item-selection-failure"
-    ),
-    submissionWithoutSelectionMessage: document.querySelector(
-      "#nothing-selected-submission-message"
-    )
-  }
-
-  warningMessagesText: {
-    [s: string]: HTMLElement | null
-  } = {
-    incorrectItemSelectedMessageText: document.querySelector(
-      "#non-file-selected-message-text"
-    )
+    incorrectItemSelected: {
+      messageElement: document.querySelector("#item-selection-failure"),
+      messageElementText: document.querySelector(
+        "#wrong-object-type-selected-message-text"
+      )
+    },
+    submissionWithoutSelection: {
+      messageElement: document.querySelector(
+        "#nothing-selected-submission-message"
+      ),
+      messageElementText: document.querySelector(
+        "#submission-without-anything-selected-text"
+      )
+    }
   }
 
   hiddenInputButton: HTMLElement | null =
