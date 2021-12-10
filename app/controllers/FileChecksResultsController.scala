@@ -21,22 +21,28 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
                                            )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-    consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).flatMap(fileCheck => {
+    consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).map(fileCheck => {
       val parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
+      if(fileCheck.allChecksSucceeded) {
+        val consignmentInfo = ConsignmentFolderInfo(
+          fileCheck.totalFiles,
+          parentFolder
+        )
+        Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId))
+      } else {
+        Ok(views.html.standard.fileChecksFailed())
+      }
+    })
+  }
+
+  def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).flatMap(fileCheck => {
       if (fileCheck.allChecksSucceeded) {
-        if (request.token.isJudgmentUser) {
-          consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).map(files => {
-            val filename = files.files.head.metadata.clientSideOriginalFilePath
-              .getOrElse(throw new IllegalStateException(s"Filename cannot be found for judgment upload: '$consignmentId'"))
-            Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId))
-          })
-        } else {
-          val consignmentInfo = ConsignmentFolderInfo(
-            fileCheck.totalFiles,
-            parentFolder
-          )
-          Future(Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId)))
-        }
+        consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).map(files => {
+          val filename = files.files.head.metadata.clientSideOriginalFilePath
+            .getOrElse(throw new IllegalStateException(s"Filename cannot be found for judgment upload: '$consignmentId'"))
+          Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId))
+        })
       } else {
         Future(Ok(views.html.standard.fileChecksFailed()))
       }
