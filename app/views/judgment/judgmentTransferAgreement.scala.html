@@ -12,7 +12,9 @@
       @transferAgreementHeader()
       <p class="govuk-body">Please confirm that the court judgment contains the following information.</p>
       @transferAgreementWarning(warningMessage)
-      <p class="govuk-body">In case the court judgment you want to transfer has supplementary material: upload the court judgment using this service and email the supplementary material to tdr@@nationalarchives.gov.uk</p>
+      <p class="govuk-body">In case the court judgment you want to transfer has supplementary material: upload the court judgment using this service and email the supplementary material to
+        <a href="mailto:tdr@@nationalarchives.gov.uk"> tdr@@nationalarchives.gov.uk</a>
+      </p>
       <div class="govuk-button-group">
         <a href="@routes.UploadController.judgmentUploadPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
             Continue
