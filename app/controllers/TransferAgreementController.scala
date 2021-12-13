@@ -67,34 +67,30 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
   }
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-    if(request.token.isJudgmentUser) {
-      Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
-    } else {
-      val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
-        loadStandardPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
-      }
-
-      val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
-        val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
-
-        for {
-          consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
-          transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
-          result <- transferAgreementStatus match {
-            case Some("Completed") => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
-            case _ => transferAgreementService.addTransferAgreement(consignmentId, request.token.bearerAccessToken, formData)
-              .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
-          }
-        } yield result
-      }
-
-      val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest()
-
-      formValidationResult.fold(
-        errorFunction,
-        successFunction
-      )
+    val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
+      loadStandardPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
     }
+
+    val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
+      val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
+
+      for {
+        consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+        transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
+        result <- transferAgreementStatus match {
+          case Some("Completed") => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
+          case _ => transferAgreementService.addTransferAgreement(consignmentId, request.token.bearerAccessToken, formData)
+            .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
+        }
+      } yield result
+    }
+
+    val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest()
+
+    formValidationResult.fold(
+      errorFunction,
+      successFunction
+    )
   }
 }
 
