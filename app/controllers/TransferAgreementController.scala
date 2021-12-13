@@ -21,7 +21,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
                                             val keycloakConfiguration: KeycloakConfiguration,
                                             langs: Langs)
                                            (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
-  val emptyTransferAgreementForm: Form[TransferAgreementData] = Form(
+  val transferAgreementForm: Form[TransferAgreementData] = Form(
     mapping(
       "publicRecord" -> boolean
         .verifying("All records must be confirmed as public before proceeding", b => b),
@@ -41,7 +41,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
   private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
   implicit val language: Lang = langs.availables.head
 
-  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData]=emptyTransferAgreementForm)
+  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData] = transferAgreementForm)
                                         (implicit request: Request[AnyContent]): Future[Result] = {
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
@@ -51,7 +51,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         val warningMessage = Messages("transferAgreement.warning")
         transferAgreementStatus match {
           case Some("Completed") =>
-            Ok(views.html.standard.transferAgreementAlreadyConfirmed(consignmentId, emptyTransferAgreementForm, options, warningMessage)).uncache()
+            Ok(views.html.standard.transferAgreementAlreadyConfirmed(consignmentId, taForm, options, warningMessage)).uncache()
           case _ => httpStatus(views.html.standard.transferAgreement(consignmentId, taForm, options, warningMessage)).uncache()
         }
     }
@@ -89,7 +89,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         } yield result
       }
 
-      val formValidationResult: Form[TransferAgreementData] = emptyTransferAgreementForm.bindFromRequest()
+      val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest()
 
       formValidationResult.fold(
         errorFunction,
