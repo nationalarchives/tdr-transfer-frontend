@@ -17,15 +17,10 @@ class HomepageController @Inject()(val controllerComponents: SecurityComponents,
                                   (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   def judgmentHomepageSubmit(): Action[AnyContent] = secureAction.async {
-    implicit request: Request[AnyContent] => {
-      consignmentService.createConsignment(None, request.token).map(consignment => {
-        if (request.token.isJudgmentUser) {
-          Redirect(routes.TransferAgreementController.judgmentTransferAgreement(consignment.consignmentid.get))
-        } else {
-          Redirect(routes.TransferAgreementController.transferAgreement(consignment.consignmentid.get))
-        }
-      })
-    }
+    implicit request: Request[AnyContent] =>
+      consignmentService.createConsignment(None, request.token).map(consignment =>
+        Redirect(routes.TransferAgreementController.judgmentTransferAgreement(consignment.consignmentid.get))
+      )
   }
 
   def homepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] => {
