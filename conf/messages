@@ -12,7 +12,7 @@ fileChecksResults.description.plural=Your folder ''{0}'' containing {1} items ha
 
 transferComplete.error=There has been an error, contact us.
 
-judgmentTransferAgreement.warning=We cannot publish the court judgment without this: Name(s) of judge(s), name of parties, court, judgment date, neutral citation, case reference(s).
+judgmentTransferAgreement.warning=We cannot publish the court judgment without the: Name(s) of judge(s), name of parties, court, judgment date, neutral citation, case reference(s).
 
 
 progressIndicator.step=Step {0} of {1}
