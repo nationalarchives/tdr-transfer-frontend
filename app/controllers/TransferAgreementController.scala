@@ -67,8 +67,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
   }
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-    val isJudgmentUser = request.token.isJudgmentUser
-    if(isJudgmentUser) {
+    if(request.token.isJudgmentUser) {
       Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
     } else {
       val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
@@ -105,6 +104,3 @@ case class TransferAgreementData(publicRecord: Boolean,
                                  droAppraisalSelection: Boolean,
                                  droSensitivity: Boolean,
                                  openRecords: Boolean)
-
-case class JudgmentTransferAgreementData(reportingRestrictions: Boolean,
-                                         reportingRestrictionsInformation: String)
