@@ -26,7 +26,7 @@
 
                 </div>
             </div>
-            <form action="@routes.FileChecksResultsController.fileCheckResultsPage(consignmentId)">
+            <form action="@routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId)">
                 <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button @if(!fileChecks.isComplete){govuk-button--disabled}" @if(!fileChecks.isComplete){disabled}>
                 Continue
                 </button>

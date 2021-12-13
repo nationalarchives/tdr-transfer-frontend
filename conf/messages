@@ -19,5 +19,6 @@ upload.progress=3
 uploadProgress.progress=3
 checkingRecords.progress=4
 fileChecksResults.progress=4
+judgmentFileChecksResults.progress=5
 confirmTransfer.progress=5
 progress.totalSteps=5
