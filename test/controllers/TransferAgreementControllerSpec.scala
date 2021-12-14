@@ -291,7 +291,24 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
       checkHtmlOfFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
+
+    "render the transfer agreement page for judgments" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
+
+      val transferAgreementPage = controller.judgmentTransferAgreement(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/transfer-agreement").withCSRFToken)
+      val transferAgreementPageAsString = contentAsString(transferAgreementPage)
+
+      playStatus(transferAgreementPage) mustBe OK
+      contentType(transferAgreementPage) mustBe Some("text/html")
+      headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+      transferAgreementPageAsString must include("Please confirm that the court judgment contains the following information.")
+      transferAgreementPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
+           """ role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
+    }
   }
+
 
   private def getTransferAgreementForm(numberOfValuesToRemove: Int=0): Seq[(String, String)] = {
     val value = "true"
