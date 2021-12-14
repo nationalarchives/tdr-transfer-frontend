@@ -5,6 +5,8 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 
 import java.util.UUID
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.AddFinalJudgmentTransferConfirmation.{AddFinalJudgmentTransferConfirmation => afjtc}
+import graphql.codegen.types.AddFinalJudgmentTransferConfirmationInput
 
 import javax.inject.Inject
 import org.pac4j.play.scala.SecurityComponents
@@ -27,6 +29,9 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
                                           langs: Langs)
                                          (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
+  private val addFinalJudgmentTransferConfirmationClient: GraphQLClient[afjtc.Data,
+    afjtc.Variables] = graphqlConfiguration.getClient[afjtc.Data,
+    afjtc.Variables]()
   implicit val language: Lang = langs.availables.head
   val finalTransferConfirmationForm: Form[FinalTransferConfirmationData] = Form(
     mapping(
@@ -79,6 +84,21 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
         errorFunction,
         successFunction
       )
+    }
+
+  def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
+    secureAction.async { implicit request: Request[AnyContent] =>
+      val addFinalJudgmentTransferConfirmationInput: AddFinalJudgmentTransferConfirmationInput = AddFinalJudgmentTransferConfirmationInput(
+        consignmentId, legalCustodyTransferConfirmed = true
+      )
+      val variables: afjtc.Variables = afjtc.Variables(addFinalJudgmentTransferConfirmationInput)
+      for {
+        _ <- sendApiRequest(addFinalJudgmentTransferConfirmationClient, afjtc.document,
+          request.token.bearerAccessToken, variables)
+        _ <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
+        _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
+        res <- Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)))
+      } yield res
     }
 }
 
