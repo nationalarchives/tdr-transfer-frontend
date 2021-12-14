@@ -1,11 +1,27 @@
 @import java.util.UUID
+@import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementWarning}
+@import play.twirl.api.Html
 
-@(consignmentId: UUID)(implicit request: RequestHeader, messages: Messages)
+@import views.html.helper.form
+
+@(consignmentId: UUID, warningMessage: String)(implicit request: RequestHeader, messages: Messages)
 @main("Transfer agreement") {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      <h1>Placeholder judgment transfer agreement form</h1>
+      @transferAgreementHeader()
+      <p class="govuk-body">Please confirm that the court judgment contains the following information.</p>
+      @transferAgreementWarning(warningMessage)
+      <p class="govuk-body">In case the court judgment you want to transfer has supplementary material: upload the court judgment using this service and email the supplementary material to
+        <a href="mailto:tdr@@nationalarchives.gov.uk"> tdr@@nationalarchives.gov.uk</a>
+      </p>
+      <div class="govuk-button-group">
+        <a href="@routes.UploadController.judgmentUploadPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+            Continue
+        </a>
+
+        <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+      </div>
     </div>
 </div>
 }
