@@ -34,6 +34,20 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
       }
     })
   }
+
+  def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+    consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).flatMap(fileCheck => {
+      if (fileCheck.allChecksSucceeded) {
+        consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).map(files => {
+          val filename = files.files.head.metadata.clientSideOriginalFilePath
+            .getOrElse(throw new IllegalStateException(s"Filename cannot be found for judgment upload: '$consignmentId'"))
+          Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId))
+        })
+      } else {
+        Future(Ok(views.html.standard.fileChecksFailed()))
+      }
+    })
+  }
 }
 
 case class ConsignmentFolderInfo(numberOfFiles: Int, parentFolder: String)
