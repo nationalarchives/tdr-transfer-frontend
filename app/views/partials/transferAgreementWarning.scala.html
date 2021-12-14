@@ -1,11 +1,11 @@
 @* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
 @import scala.language.postfixOps
-@()
-<p class="govuk-body">You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor.</p>
+@(warningMessage: String)
+
 <div class="govuk-warning-text">
     <span class="govuk-warning-text__icon" aria-hidden="true">!</span> <!-- "aria-hidden" was added by GDS to prevent screen reader from saying "exclamation mark"-->
     <strong class="govuk-warning-text__text">
       <span class="govuk-warning-text__assistive">Warning</span>
-        This service is in private beta. During this time, the Transfer Digital Records service can only accept records that are in English, are Public Records and are Crown Copyright. For more information, please see our <a href="@routes.FaqController.faq()#other-languages" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> if you need to transfer records that this service cannot currently handle.
+      @Html(warningMessage)
     </strong>
 </div>

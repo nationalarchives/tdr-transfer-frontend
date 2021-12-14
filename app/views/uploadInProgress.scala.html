@@ -1,12 +1,12 @@
 @import java.util.UUID
 @import views.html.partials.progressIndicator
-@(consignmentId: UUID)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, pageHeading: String)(implicit request: RequestHeader, messages: Messages)
 
   @main("Upload your records") {
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("upload.progress"))
-        <h1 class="govuk-heading-l">Uploading records</h1>
+        <h1 class="govuk-heading-l">@pageHeading</h1>
 
         <div id="upload-progress-error" class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"
         role="alert" data-module="govuk-error-summary" tabindex="-1">
