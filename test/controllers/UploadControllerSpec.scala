@@ -110,7 +110,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       contentAsString(uploadPage) must include("Your upload is complete and has been saved")
     }
 
-    "redirect to the transfer agreement page if the transfer agreement for that judgment has not been agreed" in {
+    "show the judgment upload page for judgments" in {
       implicit val ec: ExecutionContext = ExecutionContext.global
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
@@ -118,35 +118,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       stubGetConsignmentStatusResponse()
 
-      val uploadPage = controller.uploadPage(consignmentId)
-        .apply(FakeRequest(GET, "/judgment/1/upload").withCSRFToken)
-      status(uploadPage) mustBe SEE_OTHER
-      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement") // have to keep it as consignment until we create page
-    }
-
-    "redirect to the transfer agreement page if the transfer agreement for that judgment has been partially agreed to" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration)
-
-      stubGetConsignmentStatusResponse()
-
-      val uploadPage = controller.uploadPage(consignmentId)
-        .apply(FakeRequest(GET, "/judgment/1/upload").withCSRFToken)
-      status(uploadPage) mustBe SEE_OTHER
-      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement") // have to keep it as consignment until we create page
-    }
-
-    "show the judgment upload page if the transfer agreement for that judgment has been agreed to in full" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration)
-
-      stubGetConsignmentStatusResponse(Some("Completed"))
-
-      val uploadPage = controller.uploadPage(consignmentId)
+      val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
 
       status(uploadPage) mustBe OK
