@@ -1,7 +1,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{status => _, _}
+import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.AddFinalJudgmentTransferConfirmation.{AddFinalJudgmentTransferConfirmation => afjtc}
