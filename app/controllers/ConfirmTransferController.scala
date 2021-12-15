@@ -1,13 +1,10 @@
 package controllers
 
 import auth.TokenSecurity
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 
 import java.util.UUID
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.AddFinalTransferConfirmation.AddFinalTransferConfirmation
-import graphql.codegen.types.AddFinalTransferConfirmationInput
-import graphql.codegen.AddFinalJudgmentTransferConfirmation.{AddFinalJudgmentTransferConfirmation => afjtc}
-import graphql.codegen.types.AddFinalJudgmentTransferConfirmationInput
 
 import javax.inject.Inject
 import org.pac4j.play.scala.SecurityComponents
@@ -16,8 +13,7 @@ import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
 import services.ApiErrorHandling.sendApiRequest
-import services.ConsignmentService
-import services.ConsignmentExportService
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -26,15 +22,12 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
                                           val graphqlConfiguration: GraphQLConfiguration,
                                           val keycloakConfiguration: KeycloakConfiguration,
                                           consignmentService: ConsignmentService,
+                                          val confirmTransferService: ConfirmTransferService,
                                           val consignmentExportService: ConsignmentExportService,
                                           langs: Langs)
                                          (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  private val addFinalTransferConfirmationClient: GraphQLClient[AddFinalTransferConfirmation.Data, AddFinalTransferConfirmation.Variables] =
-    graphqlConfiguration.getClient[AddFinalTransferConfirmation.Data, AddFinalTransferConfirmation.Variables]()
-  private val addFinalJudgmentTransferConfirmationClient: GraphQLClient[afjtc.Data,
-    afjtc.Variables] = graphqlConfiguration.getClient[afjtc.Data,
-    afjtc.Variables]()
+
   implicit val language: Lang = langs.availables.head
   val finalTransferConfirmationForm: Form[FinalTransferConfirmationData] = Form(
     mapping(
@@ -72,16 +65,12 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
       }
 
       val successFunction: FinalTransferConfirmationData => Future[Result] = { formData: FinalTransferConfirmationData =>
-        val addFinalTransferConfirmationInput: AddFinalTransferConfirmationInput = AddFinalTransferConfirmationInput(consignmentId,
-          formData.openRecords,
-          formData.transferLegalOwnership)
-
-        val variables: AddFinalTransferConfirmation.Variables = AddFinalTransferConfirmation.Variables(addFinalTransferConfirmationInput)
+        val token: BearerAccessToken = request.token.bearerAccessToken
 
         for {
-          _ <- sendApiRequest(addFinalTransferConfirmationClient, AddFinalTransferConfirmation.document, request.token.bearerAccessToken, variables)
-          _ <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
-          _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
+          _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
+          _ <- consignmentExportService.updateTransferInititated(consignmentId, token)
+          _ <- consignmentExportService.triggerExport(consignmentId, token.toString)
           res <- Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
         } yield res
       }
@@ -95,13 +84,10 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
 
   def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
     secureAction.async { implicit request: Request[AnyContent] =>
-      val addFinalJudgmentTransferConfirmationInput: AddFinalJudgmentTransferConfirmationInput = AddFinalJudgmentTransferConfirmationInput(
-        consignmentId, legalCustodyTransferConfirmed = true
-      )
-      val variables: afjtc.Variables = afjtc.Variables(addFinalJudgmentTransferConfirmationInput)
+      val token: BearerAccessToken = request.token.bearerAccessToken
+
       for {
-        _ <- sendApiRequest(addFinalJudgmentTransferConfirmationClient, afjtc.document,
-          request.token.bearerAccessToken, variables)
+        _ <- confirmTransferService.addFinalJudgmentTransferConfirmation(consignmentId, token)
         _ <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
         _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
         res <- Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)))
