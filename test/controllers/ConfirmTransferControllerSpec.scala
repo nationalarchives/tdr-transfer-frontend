@@ -22,9 +22,8 @@ import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
-import services.ConsignmentService
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService}
 import play.api.test.WsTestClient.InternalWSClient
-import services.ConsignmentExportService
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import util.{CheckHtmlOfFormOptions, EnglishLang, FrontEndTestHelper}
@@ -438,10 +437,12 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   private def instantiateConfirmTransferController(securityComponents: SecurityComponents) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+    val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 
+
     new ConfirmTransferController(securityComponents, new GraphQLConfiguration(app.configuration),
-      getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
+      getValidKeycloakConfiguration, consignmentService, confirmTransferService, exportService(app.configuration), langs)
   }
 
   private def getConsignmentSummaryResponse: gcs.GetConsignment = {
