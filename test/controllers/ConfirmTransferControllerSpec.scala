@@ -1,20 +1,19 @@
 package controllers
 
-import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, ok, okJson, post, serverError, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
-import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcs}
-import graphql.codegen.AddFinalTransferConfirmation.{AddFinalTransferConfirmation => aftc}
 import graphql.codegen.AddFinalJudgmentTransferConfirmation.{AddFinalJudgmentTransferConfirmation => afjtc}
+import graphql.codegen.AddFinalTransferConfirmation.{AddFinalTransferConfirmation => aftc}
+import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcs}
 import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
-import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
+import org.scalatest.Matchers._
 import play.api.Configuration
 import play.api.Play.materializer
 import play.api.i18n.Langs
@@ -22,13 +21,13 @@ import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
-import services.ConsignmentService
 import play.api.test.WsTestClient.InternalWSClient
-import services.ConsignmentExportService
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import util.{CheckHtmlOfFormOptions, EnglishLang, FrontEndTestHelper}
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 class ConfirmTransferControllerSpec extends FrontEndTestHelper {
@@ -438,10 +437,12 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   private def instantiateConfirmTransferController(securityComponents: SecurityComponents) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+    val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 
+
     new ConfirmTransferController(securityComponents, new GraphQLConfiguration(app.configuration),
-      getValidKeycloakConfiguration, consignmentService, exportService(app.configuration), langs)
+      getValidKeycloakConfiguration, consignmentService, confirmTransferService, exportService(app.configuration), langs)
   }
 
   private def getConsignmentSummaryResponse: gcs.GetConsignment = {
@@ -488,7 +489,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
                             {consignmentId finalOpenRecordsConfirmed legalOwnershipTransferConfirmed}}",
            "variables":{
                         "input":{
-                                 "consignmentId":"${consignmentId.toString}",
+                                 "consignmentId":"$consignmentId",
                                  "finalOpenRecordsConfirmed":true,
                                  "legalOwnershipTransferConfirmed":true
                                 }
@@ -510,7 +511,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
                             {consignmentId legalCustodyTransferConfirmed}}",
            "variables":{
                         "input":{
-                                 "consignmentId":"${consignmentId.toString}",
+                                 "consignmentId":"$consignmentId",
                                  "legalCustodyTransferConfirmed":true
                                 }
                        }
