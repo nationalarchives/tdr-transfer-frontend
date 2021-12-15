@@ -3,12 +3,12 @@ package services
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
-import controllers.{FinalTransferConfirmationData, TransferAgreementData}
+import controllers.FinalTransferConfirmationData
 import errors.AuthorisationException
 import graphql.codegen.AddFinalJudgmentTransferConfirmation.AddFinalJudgmentTransferConfirmation.AddFinalJudgmentTransferConfirmation
+import graphql.codegen.AddFinalJudgmentTransferConfirmation.{AddFinalJudgmentTransferConfirmation => afjtc}
 import graphql.codegen.AddFinalTransferConfirmation.AddFinalTransferConfirmation.AddFinalTransferConfirmation
 import graphql.codegen.AddFinalTransferConfirmation.{AddFinalTransferConfirmation => aftc}
-import graphql.codegen.AddFinalJudgmentTransferConfirmation.{AddFinalJudgmentTransferConfirmation => afjtc}
 import graphql.codegen.types.{AddFinalJudgmentTransferConfirmationInput, AddFinalTransferConfirmationInput}
 import org.mockito.Mockito
 import org.mockito.Mockito.when
