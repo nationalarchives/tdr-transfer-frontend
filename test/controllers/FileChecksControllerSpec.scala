@@ -69,7 +69,12 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           frontEndInfoConfiguration
         )
 
-        val recordsPage = recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        val recordsPage = if (userType == "judgment") {
+          recordsController.judgmentProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        } else {
+          recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        }
+
         val recordsPageAsString = contentAsString(recordsPage)
 
         playStatus(recordsPage) mustBe OK
@@ -108,7 +113,11 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           consignmentService,
           frontEndInfoConfiguration
         )
-        val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        val recordsPage = if (userType == "judgment") {
+          controller.judgmentProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        } else {
+          controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        }
         playStatus(recordsPage) mustBe OK
         headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
         contentAsString(recordsPage) must include("""data-module="govuk-notification-banner"""")
@@ -130,7 +139,11 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           consignmentService,
           frontEndInfoConfiguration
         )
-        val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        val recordsPage = if (userType == "judgment") {
+          controller.judgmentProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        } else {
+          controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        }
         playStatus(recordsPage) mustBe OK
         headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
         contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\"")
