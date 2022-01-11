@@ -5,12 +5,11 @@
 $govuk-header-link: govuk-colour('white');
 
 .govuk-header__tna-logo {
-  float: left;
   width: 220px;
 }
 
 .govuk-header__tna-logo-image {
-  width: 220px;
+  width: 90%;
 }
 
 .govuk-header__tna-content {
@@ -56,5 +55,21 @@ $govuk-header-link: govuk-colour('white');
   &:link,
   &:visited {
     text-decoration: none;
+  }
+}
+
+@media (max-width: 48.06249em) {
+  .tna-header {
+    display: block;
+  }
+
+  .tna-header ul {
+    list-style-type: none; // for some reason, the bullets appear when you zoom in; this line ensures that they don't.
+    margin-block-start: 0;
+    padding-inline-start: 0;
+  }
+
+  .govuk-header__link--service-name {
+    margin-bottom: 0;
   }
 }
