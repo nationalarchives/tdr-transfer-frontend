@@ -38,10 +38,10 @@
   },
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
-    "@apollo/client": "^3.5.6",
+    "@apollo/client": "^3.5.7",
     "@aws-sdk/client-s3": "^3.46.0",
     "@aws-sdk/lib-storage": "^3.46.0",
-    "@nationalarchives/file-information": "^1.0.248",
+    "@nationalarchives/file-information": "^1.0.250",
     "@nationalarchives/tdr-generated-graphql": "^1.0.153",
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
@@ -60,8 +60,8 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.1",
     "@types/jest": "^27.4.0",
-    "@typescript-eslint/eslint-plugin": "^5.9.0",
-    "@typescript-eslint/parser": "^5.9.0",
+    "@typescript-eslint/eslint-plugin": "^5.9.1",
+    "@typescript-eslint/parser": "^5.9.1",
     "aws-sdk-client-mock": "^0.5.6",
     "copyfiles": "^2.4.1",
     "dts-bundle": "^0.7.3",
