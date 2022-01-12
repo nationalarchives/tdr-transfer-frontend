@@ -7,7 +7,7 @@ import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakC
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request, RequestHeader}
+import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -20,7 +20,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
                                             val frontEndInfoConfiguration: FrontEndInfoConfiguration
                                            )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).map(fileCheck => {
       val parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
       if(fileCheck.allChecksSucceeded) {
@@ -35,7 +35,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
     })
   }
 
-  def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = judgmentUserAction { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).flatMap(fileCheck => {
       if (fileCheck.allChecksSucceeded) {
         consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).map(files => {

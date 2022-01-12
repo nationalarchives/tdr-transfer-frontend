@@ -57,16 +57,16 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     }
   }
 
-  def transferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-      loadStandardPageBasedOnTaStatus(consignmentId, Ok)
+  def transferAgreement(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
+    loadStandardPageBasedOnTaStatus(consignmentId, Ok)
   }
 
-  def judgmentTransferAgreement(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def judgmentTransferAgreement(consignmentId: UUID): Action[AnyContent] = judgmentUserAction { implicit request: Request[AnyContent] =>
       val warningMessage = Messages("judgmentTransferAgreement.warning")
       Future(Ok(views.html.judgment.judgmentTransferAgreement(consignmentId, warningMessage)).uncache())
   }
 
-  def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
     val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
       loadStandardPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
     }

@@ -21,7 +21,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
                                  val frontEndInfoConfiguration: FrontEndInfoConfiguration)
                                 (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  def uploadPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def uploadPage(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     for {
@@ -47,7 +47,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     }
   }
 
-  def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = judgmentUserAction { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     for {

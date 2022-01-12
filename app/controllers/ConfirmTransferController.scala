@@ -2,20 +2,16 @@ package controllers
 
 import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-
-import java.util.UUID
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-
-import javax.inject.Inject
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
-import play.api.mvc.{Action, AnyContent, Request, RequestHeader, Result}
-import services.ApiErrorHandling.sendApiRequest
+import play.api.mvc._
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService}
-import uk.gov.nationalarchives.tdr.GraphQLClient
 
+import java.util.UUID
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ConfirmTransferController @Inject()(val controllerComponents: SecurityComponents,
@@ -49,7 +45,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
       }
   }
 
-  def confirmTransfer(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def confirmTransfer(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
     getConsignmentSummary(request, consignmentId)
       .map { consignmentSummary =>
         Ok(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferConfirmationForm))
@@ -57,7 +53,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
   }
 
   def finalTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
-    secureAction.async { implicit request: Request[AnyContent] =>
+    standardUserAction { implicit request: Request[AnyContent] =>
       val errorFunction: Form[FinalTransferConfirmationData] => Future[Result] = { formWithErrors: Form[FinalTransferConfirmationData] =>
         getConsignmentSummary(request, consignmentId).map { summary =>
           BadRequest(views.html.standard.confirmTransfer(consignmentId, summary, formWithErrors))
@@ -83,7 +79,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
     }
 
   def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
-    secureAction.async { implicit request: Request[AnyContent] =>
+    judgmentUserAction { implicit request: Request[AnyContent] =>
       val token: BearerAccessToken = request.token.bearerAccessToken
 
       for {
