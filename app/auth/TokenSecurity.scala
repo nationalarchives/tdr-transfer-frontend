@@ -24,7 +24,6 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   }
 
   def judgmentUserAction(block: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    println(request.token)
     createResult(block, request, request.token.isJudgmentUser)
   }
 
