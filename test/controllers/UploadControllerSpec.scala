@@ -2,7 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, okJson, post, urlEqualTo}
-import configuration.GraphQLConfiguration
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import io.circe.Printer
@@ -135,11 +135,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       stubGetConsignmentStatusResponse(Some("Completed"), Some("InProgress"))
 
-      val uploadPage = controller.uploadPage(consignmentId)
+      val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
 
       status(uploadPage) mustBe OK
-      contentAsString(uploadPage) must include("Uploading records")
+      contentAsString(uploadPage) must include("Uploading court judgment")
       contentAsString(uploadPage) must include("Your upload was interrupted and could not be completed.")
     }
 
@@ -151,12 +151,32 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       stubGetConsignmentStatusResponse(Some("Completed"), Some("Completed"))
 
-      val uploadPage = controller.uploadPage(consignmentId)
+      val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
 
       status(uploadPage) mustBe OK
-      contentAsString(uploadPage) must include("Uploading records")
+      contentAsString(uploadPage) must include("Uploading court judgment")
       contentAsString(uploadPage) must include("Your upload is complete and has been saved")
+    }
+  }
+
+  forAll(userChecks) { (user, url) =>
+    s"The $url upload page" should {
+      s"return 403 if accessed by an incorrect user" in {
+        implicit val ec: ExecutionContext = ExecutionContext.global
+        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+        val controller = new UploadController(getAuthorisedSecurityComponents,
+          new GraphQLConfiguration(app.configuration), user, frontEndInfoConfiguration)
+
+        stubGetConsignmentStatusResponse(Some("Completed"))
+        val uploadPage = url match {
+          case "judgment" => controller.judgmentUploadPage(consignmentId)
+            .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+          case "consignment" => controller.uploadPage(consignmentId)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+        }
+        status(uploadPage) mustBe FORBIDDEN
+      }
     }
   }
 

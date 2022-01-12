@@ -152,6 +152,31 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     }
   }
 
+  forAll(userChecks) { (user, url) =>
+    s"The $url upload page" should {
+      s"return 403 if accessed by an incorrect user" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+        val controller = new FileChecksController(
+          getAuthorisedSecurityComponents,
+          new GraphQLConfiguration(app.configuration),
+          user,
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+
+        val fileChecksPage = url match {
+          case "judgment" => controller.judgmentProcessingPage(consignmentId)
+            .apply(FakeRequest(GET, s"/judgment/$consignmentId/records"))
+          case "consignment" => controller.recordProcessingPage(consignmentId)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
+        }
+        playStatus(fileChecksPage) mustBe FORBIDDEN
+      }
+    }
+  }
+
   private def progressData(filesProcessedWithAntivirus: Int, filesProcessedWithChecksum: Int,
                            filesProcessedWithFFID: Int, allChecksSucceeded: Boolean): String = {
     val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
