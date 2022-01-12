@@ -3,7 +3,7 @@ package controllers
 import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
-import configuration.GraphQLConfiguration
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import errors.AuthorisationException
 import graphql.codegen.AddTransferAgreement.{AddTransferAgreement => ata}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
@@ -24,7 +24,7 @@ import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocatio
 import services.TransferAgreementService
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{EnglishLang, FrontEndTestHelper, CheckHtmlOfFormOptions}
+import util.{CheckHtmlOfFormOptions, EnglishLang, FrontEndTestHelper}
 
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
@@ -294,7 +294,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
 
     "render the transfer agreement page for judgments" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
+      val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
 
       val transferAgreementPage = controller.judgmentTransferAgreement(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/transfer-agreement").withCSRFToken)
@@ -306,6 +306,35 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include("Please confirm that the court judgment contains the following information.")
       transferAgreementPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
            """ role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
+    }
+
+    "return forbidden if a judgment user submits a transfer agreement form" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
+      val completedTransferAgreementForm: Seq[(String, String)] = getTransferAgreementForm()
+      val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
+          .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
+          .withCSRFToken)
+
+      playStatus(transferAgreementSubmit) mustBe FORBIDDEN
+    }
+  }
+
+  forAll(userChecks) { (user, url) =>
+    s"The $url transfer agreement page" should {
+      s"return 403 if the GET is accessed by an incorrect user" in {
+        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+        val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents, user)
+
+        val transferAgreement = url match {
+          case "judgment" => controller.judgmentTransferAgreement(consignmentId)
+            .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+          case "consignment" => controller.transferAgreement(consignmentId)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+        }
+        playStatus(transferAgreement) mustBe FORBIDDEN
+      }
     }
   }
 
@@ -339,12 +368,12 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     errorsThatShouldBeOnPage.values.foreach(error => htmlAsString must include(error))
   }
 
-  private def instantiateTransferAgreementController(securityComponents: SecurityComponents) = {
+  private def instantiateTransferAgreementController(securityComponents: SecurityComponents, keycloakConfiguration: KeycloakConfiguration = getValidKeycloakConfiguration) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
 
     new TransferAgreementController(securityComponents, new GraphQLConfiguration(app.configuration),
-      transferAgreementService, getValidKeycloakConfiguration, langs)
+      transferAgreementService, keycloakConfiguration, langs)
   }
 
   private def stubTransferAgreementResponse(transferAgreement: Option[ata.AddTransferAgreement] = None, errors: List[GraphQLClient.Error] = Nil): Unit = {

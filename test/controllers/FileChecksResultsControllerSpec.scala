@@ -140,4 +140,29 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       contentAsString(recordCheckResultsPage) must include("There is a problem")
     }
   }
+
+  forAll(userChecks) { (user, url) =>
+    s"The $url upload page" should {
+      s"return 403 if accessed by an incorrect user" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+        val fileCheckResultsController = new FileChecksResultsController(
+          getAuthorisedSecurityComponents,
+          user,
+          new GraphQLConfiguration(app.configuration),
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+
+        val fileCheckResultsPage = url match {
+          case "judgment" => fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
+            .apply(FakeRequest(GET, s"/judgment/$consignmentId/records-results"))
+          case "consignment" => fileCheckResultsController.fileCheckResultsPage(consignmentId)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/records-results"))
+        }
+        status(fileCheckResultsPage) mustBe FORBIDDEN
+      }
+    }
+  }
 }

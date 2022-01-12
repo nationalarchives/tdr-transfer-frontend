@@ -9,12 +9,13 @@ import io.circe.Printer
 import org.pac4j.play.scala.SecurityComponents
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout}
+import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
 import services.ConsignmentService
 import util.FrontEndTestHelper
 import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcr}
 import io.circe.syntax.EncoderOps
 import io.circe.generic.auto._
+import play.api.http.Status.FORBIDDEN
 import play.api.mvc.Result
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -54,6 +55,25 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
       contentAsString(transferCompleteSubmit) must include("Your file has now been transferred to The National Archives.")
+    }
+  }
+
+  forAll(userChecks) { (_, url) =>
+    s"The $url upload page" should {
+      s"return 403 if accessed by an incorrect user" in {
+        setConsignmentReferenceResponse()
+        val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, url)
+        val consignmentId = UUID.randomUUID()
+
+        val transferCompleteSubmit = if (url.equals("judgment")) {
+          controller.transferComplete(consignmentId)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-complete").withCSRFToken)
+        } else {
+          controller.judgmentTransferComplete(consignmentId)
+            .apply(FakeRequest(GET, s"/judgment/$consignmentId/transfer-complete").withCSRFToken)
+        }
+        status(transferCompleteSubmit) mustBe FORBIDDEN
+      }
     }
   }
 

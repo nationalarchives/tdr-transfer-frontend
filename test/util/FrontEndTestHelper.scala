@@ -31,6 +31,7 @@ import org.pac4j.play.scala.SecurityComponents
 import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures.{PatienceConfig, scaled}
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor2}
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -49,7 +50,7 @@ import scala.concurrent.{Await, Future}
 import scala.language.existentials
 
 
-trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach {
+trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach with TableDrivenPropertyChecks {
 
   implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = scaled(Span(100, Millis)))
 
@@ -58,6 +59,12 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       Await.result(future, timeout)
     }
   }
+
+  val userChecks: TableFor2[KeycloakConfiguration, String] = Table(
+    ("user", "url"),
+    (getValidJudgmentUserKeycloakConfiguration, "consignment"),
+    (getValidStandardUserKeycloakConfiguration, "judgment")
+  )
 
   def frontEndInfoConfiguration: FrontEndInfoConfiguration = {
     val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
