@@ -23,17 +23,17 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     RequestWithToken(request, accessToken)
   }
 
-  def judgmentUserAction(block: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    createResult(block, request, request.token.isJudgmentUser)
+  def judgmentUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
+    createResult(action, request, request.token.isJudgmentUser)
   }
 
-  def standardUserAction(block: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    createResult(block, request, !request.token.isJudgmentUser)
+  def standardUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
+    createResult(action, request, !request.token.isJudgmentUser)
   }
 
-  private def createResult(block: Request[AnyContent] => Future[Result], request: AuthenticatedRequest[AnyContent], isPermitted: Boolean) = {
+  private def createResult(action: Request[AnyContent] => Future[Result], request: AuthenticatedRequest[AnyContent], isPermitted: Boolean) = {
     if (isPermitted) {
-      block(request)
+      action(request)
     } else {
       Future.successful(Forbidden(views.html.forbiddenError()(request2Messages(request), request)))
     }
