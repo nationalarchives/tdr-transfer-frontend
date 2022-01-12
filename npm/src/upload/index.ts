@@ -112,12 +112,17 @@ export class FileUploader {
       ".drag-and-drop__dropzone"
     )
 
-    if (uploadForm && itemRetriever && dropzone) {
+    const directoryPicker: HTMLButtonElement | null = document.querySelector(
+        "#directory-picker-button"
+    )
+
+    if (uploadForm && itemRetriever && dropzone && directoryPicker) {
       const form = new UploadForm(
         isJudgmentUser,
         uploadForm,
         itemRetriever,
         dropzone,
+        directoryPicker,
         this.uploadFiles
       )
       form.addFolderListener()

@@ -43,6 +43,7 @@
     "@aws-sdk/lib-storage": "^3.46.0",
     "@nationalarchives/file-information": "^1.0.248",
     "@nationalarchives/tdr-generated-graphql": "^1.0.153",
+    "@types/wicg-file-system-access": "^2020.9.4",
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
     "govuk-frontend": "^3.14.0",

@@ -21,6 +21,7 @@ export class UploadForm {
   formElement: HTMLFormElement
   itemRetriever: HTMLInputElement
   dropzone: HTMLElement
+  directoryPicker: HTMLButtonElement
   selectedFiles: IFileWithPath[]
   folderUploader: (
     files: IFileWithPath[],
@@ -32,6 +33,7 @@ export class UploadForm {
     formElement: HTMLFormElement,
     itemRetriever: HTMLInputElement,
     dropzone: HTMLElement,
+    directoryPicker: HTMLButtonElement,
     folderUploader: (
       files: IFileWithPath[],
       uploadFilesInfo: FileUploadInfo
@@ -40,6 +42,7 @@ export class UploadForm {
     this.isJudgmentUser = isJudgmentUser
     this.formElement = formElement
     this.itemRetriever = itemRetriever
+    this.directoryPicker = directoryPicker
     this.dropzone = dropzone
     this.selectedFiles = []
     this.folderUploader = folderUploader
@@ -114,6 +117,31 @@ export class UploadForm {
     this.removeDragover()
   }
 
+  handleDirectoryPicker: () => any = async () => {
+    const dirHandle = await window.showDirectoryPicker();
+    const entries =  dirHandle.values()
+    const files = this.walkTheTree(entries, new Array())
+  }
+
+  walkTheTree: (
+      entries: AsyncIterableIterator<FileSystemHandle>,
+      files: File[]) => Promise<File[]> = async (
+          entries: AsyncIterableIterator<FileSystemHandle>,
+          files: File[]) => {
+    for await (const entry of entries) {
+      if (entry.kind == "directory") {
+        console.log("Type: " + entry.kind, "Name: " + entry.name);
+        await this.walkTheTree(entry.values(), files)
+      } else {
+        console.log("Type: " + entry.kind, "Name: " + entry.name);
+        const file: File = await entry.getFile()
+        files.push(file)
+      }
+    }
+
+    return files
+  }
+
   handleSelectedItems: () => any = async () => {
     const form: HTMLFormElement | null = this.formElement
     this.selectedFiles = this.convertFilesToIfilesWithPath(form!.files!.files!)
@@ -132,6 +160,7 @@ export class UploadForm {
   addFolderListener() {
     this.dropzone.addEventListener("drop", this.handleDroppedItems)
     this.itemRetriever.addEventListener("change", this.handleSelectedItems)
+    this.directoryPicker.addEventListener("click", this.handleDirectoryPicker)
   }
 
   handleFormSubmission: (ev: Event) => void = async (ev: Event) => {
