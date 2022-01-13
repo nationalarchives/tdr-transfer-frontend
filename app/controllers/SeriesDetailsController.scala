@@ -18,7 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SeriesDetailsController @Inject()(val controllerComponents: SecurityComponents,
                                         val keycloakConfiguration: KeycloakConfiguration,
                                         seriesService: SeriesService,
-                                        consignmentService: ConsignmentService
+                                        val consignmentService: ConsignmentService
                                         )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   val selectedSeriesForm = Form(
@@ -35,11 +35,11 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
       })
   }
 
-  def seriesDetails(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def seriesDetails(): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
     getSeriesDetails(request, Ok, selectedSeriesForm)
   }
 
-  def seriesSubmit(): Action[AnyContent] =  secureAction.async { implicit request: Request[AnyContent] =>
+  def seriesSubmit(): Action[AnyContent] =  standardUserAction { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest()
 
     val errorFunction: Form[SelectedSeriesData] => Future[Result] = { formWithErrors: Form[SelectedSeriesData] =>

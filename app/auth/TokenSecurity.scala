@@ -6,13 +6,18 @@ import org.pac4j.core.profile.{CommonProfile, ProfileManager}
 import org.pac4j.play.PlayWebContext
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
+import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
-import scala.concurrent.Future
+import java.util.UUID
+import scala.concurrent.{ExecutionContext, Future}
 
 trait TokenSecurity extends OidcSecurity with I18nSupport {
 
   def keycloakConfiguration: KeycloakConfiguration
+
+  def consignmentService: ConsignmentService
+  implicit val executionContext: ExecutionContext = consignmentService.ec
 
   implicit def requestToRequestWithToken(request: Request[AnyContent]): RequestWithToken = {
     val webContext = new PlayWebContext(request, playSessionStore)
@@ -23,12 +28,24 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     RequestWithToken(request, accessToken)
   }
 
+  def judgmentTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
+    consignmentService.getConsignmentType(consignmentId, request.token.bearerAccessToken).flatMap(consignmentType => {
+      createResult(action, request, consignmentType == "judgment")
+    })
+  }
+
   def judgmentUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
     createResult(action, request, request.token.isJudgmentUser)
   }
 
   def standardUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    createResult(action, request, !request.token.isJudgmentUser)
+    createResult(action, request, request.token.isStandardUser)
+  }
+
+  def standardTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
+    consignmentService.getConsignmentType(consignmentId, request.token.bearerAccessToken).flatMap(consignmentType => {
+      createResult(action, request, consignmentType == "standard")
+    })
   }
 
   private def createResult(action: Request[AnyContent] => Future[Result], request: AuthenticatedRequest[AnyContent], isPermitted: Boolean) = {

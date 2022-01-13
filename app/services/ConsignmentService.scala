@@ -10,6 +10,7 @@ import graphql.codegen.GetConsignmentFiles.getConsignmentFiles
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentReference.getConsignmentReference
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
+import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
 import graphql.codegen.types.AddConsignmentInput
 import graphql.codegen.{AddConsignment, GetConsignment, GetFileCheckProgress}
@@ -30,6 +31,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentSummaryClient = graphqlConfiguration.getClient[getConsignmentSummary.Data, getConsignmentSummary.Variables]()
   private val getConsignmentReferenceClient = graphqlConfiguration.getClient[getConsignmentReference.Data, getConsignmentReference.Variables]()
   private val getConsignmentFilesClient = graphqlConfiguration.getClient[getConsignmentFiles.Data, getConsignmentFiles.Variables]()
+  private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
 
   def consignmentExists(consignmentId: UUID,
                         token: BearerAccessToken): Future[Boolean] = {
@@ -37,6 +39,11 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
     sendApiRequest(getConsignmentClient, getConsignment.document, token, variables)
       .map(data => data.getConsignment.isDefined)
+  }
+
+  def getConsignmentType(consignmentId: UUID, token: BearerAccessToken): Future[String] = {
+    sendApiRequest(gctClient, gct.document, token, gct.Variables(consignmentId))
+      .map(data => data.getConsignment.flatMap(_.consignmentType).getOrElse(throw new IllegalStateException("No consignment type found")))
   }
 
   def createConsignment(seriesId: Option[UUID], token: Token): Future[addConsignment.AddConsignment] = {

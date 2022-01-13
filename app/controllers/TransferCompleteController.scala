@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class TransferCompleteController @Inject()(val controllerComponents: SecurityComponents,
                                            val keycloakConfiguration: KeycloakConfiguration,
-                                           consignmentService: ConsignmentService)
+                                           val consignmentService: ConsignmentService)
                                           (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   private def getConsignmentReference(request: Request[AnyContent], consignmentId: UUID)
@@ -23,14 +23,14 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
       .map(r => r.consignmentReference)
   }
 
-  def transferComplete(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
+  def transferComplete(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getConsignmentReference(request, consignmentId)
       .map { consignmentReference =>
         Ok(views.html.standard.transferComplete(consignmentReference))
       }
   }
 
-  def judgmentTransferComplete(consignmentId: UUID): Action[AnyContent] = judgmentUserAction { implicit request: Request[AnyContent] =>
+  def judgmentTransferComplete(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getConsignmentReference(request, consignmentId)
       .map { consignmentReference =>
         Ok(views.html.judgment.judgmentComplete(consignmentReference))
