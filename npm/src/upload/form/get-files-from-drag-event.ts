@@ -6,10 +6,13 @@ export const getAllFiles: (
 ) => Promise<IFileWithPath[]> = async (entry, fileInfoInput) => {
   const reader: IReader = entry.createReader()
   const entries: IWebkitEntry[] = await getEntriesFromReader(reader)
+  console.log("DRAG EVENT: getAllFiles")
   for (const entry of entries) {
     if (entry.isDirectory) {
+      console.log("Directory Name: " + entry.name)
       await getAllFiles(entry, fileInfoInput)
     } else {
+      console.log("File Name: " + entry.name)
       const file: IFileWithPath = await getFileFromEntry(entry)
       fileInfoInput.push(file)
     }
