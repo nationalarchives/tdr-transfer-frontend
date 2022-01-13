@@ -71,8 +71,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      mockGraphqlResponse(dataString)
 
       val confirmTransferPage = controller.confirmTransfer(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
@@ -128,8 +127,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      mockGraphqlResponse(dataString)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
@@ -154,8 +152,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      mockGraphqlResponse(dataString)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = false)
@@ -186,8 +183,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      mockGraphqlResponse(dataString)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = false, transferLegalOwnershipValue = true)
@@ -217,6 +213,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
+      mockGraphqlResponse()
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
@@ -236,6 +233,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val addFinalJudgmentTransferConfirmationResponse: afjtc.AddFinalJudgmentTransferConfirmation = createFinalJudgmentTransferConfirmationResponse
       stubFinalJudgmentTransferConfirmationResponse(Some(addFinalJudgmentTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
+      mockGraphqlResponse(consignmentType = "judgment")
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
@@ -282,6 +280,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
           .withCSRFToken)
+      mockGraphqlResponse()
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
 
@@ -290,7 +289,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
     "throws an authorisation exception when the user does not have permission to save the transfer confirmation for judgment" in {
       stubFinalJudgmentTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
-
+      mockGraphqlResponse(consignmentType = "judgment")
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitResult = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
@@ -306,6 +305,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
+      mockGraphqlResponse()
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
@@ -323,6 +323,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
+      mockGraphqlResponse()
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(serverError()))
 
@@ -340,6 +341,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val addFinalTransferConfirmationResponse: afjtc.AddFinalJudgmentTransferConfirmation = createFinalJudgmentTransferConfirmationResponse
       stubFinalJudgmentTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
+      mockGraphqlResponse(consignmentType = "judgment")
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(serverError()))
 
@@ -357,6 +359,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
+      mockGraphqlResponse()
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
@@ -374,6 +377,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val addFinalTransferConfirmationResponse: afjtc.AddFinalJudgmentTransferConfirmation = createFinalJudgmentTransferConfirmationResponse
       stubFinalJudgmentTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
+      mockGraphqlResponse(consignmentType = "judgment")
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(okJson("{}")))
 
@@ -388,8 +392,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     }
 
     "return an error when the call to the graphql api fails" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
+      mockGraphqlResponse()
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentSummary"))
         .willReturn(serverError()))
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
@@ -403,8 +408,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     }
 
     "return an error when the call to the graphql api fails for judgment" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
+      mockGraphqlResponse(consignmentType = "judgment")
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentSummary"))
         .willReturn(serverError()))
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
@@ -417,10 +423,11 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       finalTransferConfirmationSubmitError.getMessage should startWith("Unexpected response from GraphQL API")
     }
 
-    "calls the graphql api twice when a valid form is submitted" in {
+    "calls the graphql api three times when a valid form is submitted" in {
       val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
+      mockGraphqlResponse()
       wiremockExportServer.stubFor(post(urlEqualTo(s"/export/$consignmentId"))
         .willReturn(ok()))
 
@@ -431,7 +438,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
           .withCSRFToken
         ).futureValue
 
-      wiremockServer.getAllServeEvents.size() should equal(2)
+      wiremockServer.getAllServeEvents.size() should equal(3)
     }
   }
 
@@ -441,10 +448,14 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, user)
 
         val fileChecksPage = url match {
-          case "judgment" => controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
+          case "judgment" =>
+            mockGraphqlResponse()
+            controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
             .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
               .withCSRFToken)
-          case "consignment" => controller.finalTransferConfirmationSubmit(consignmentId)
+          case "consignment" =>
+            mockGraphqlResponse(consignmentType = "judgment")
+            controller.finalTransferConfirmationSubmit(consignmentId)
             .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
               .withCSRFToken
             )
@@ -452,6 +463,15 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(fileChecksPage) mustBe FORBIDDEN
       }
     }
+  }
+
+  private def mockGraphqlResponse(dataString: String = "", consignmentType: String = "standard") = {
+    if(dataString.nonEmpty) {
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentSummary"))
+        .willReturn(okJson(dataString)))
+    }
+    setConsignmentTypeResponse(wiremockServer, consignmentType)
   }
 
   private def instantiateConfirmTransferController(securityComponents: SecurityComponents, keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration) = {

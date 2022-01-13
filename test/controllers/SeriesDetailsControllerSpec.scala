@@ -52,7 +52,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidKeycloakConfiguration,
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration,
         seriesService, consignmentService)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series").withCSRFToken)
 
@@ -71,7 +71,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val seriesService = new SeriesService(graphQLConfiguration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new SeriesDetailsController(getUnauthorisedSecurityComponents, getValidKeycloakConfiguration,
+      val controller = new SeriesDetailsController(getUnauthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration,
         seriesService, consignmentService)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
       redirectLocation(seriesDetailsPage).get must startWith ("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -88,7 +88,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidKeycloakConfiguration,
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration,
         seriesService, consignmentService)
       val seriesDetailsPage = controller.seriesDetails().apply(FakeRequest(GET, "/series"))
 
@@ -128,7 +128,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidKeycloakConfiguration,
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration,
         seriesService, consignmentService)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest().withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
       playStatus(seriesSubmit) mustBe SEE_OTHER
@@ -146,7 +146,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidKeycloakConfiguration,
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration,
         seriesService, consignmentService)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest(POST, "/series").withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
 
@@ -164,7 +164,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidKeycloakConfiguration,
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration,
         seriesService, consignmentService)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest(POST, "/series").withCSRFToken)
       playStatus(seriesSubmit) mustBe BAD_REQUEST
@@ -185,12 +185,26 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidKeycloakConfiguration,
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration,
         seriesService, consignmentService)
       controller.seriesDetails().apply(FakeRequest(GET, "/series").withCSRFToken).futureValue
 
       val expectedJson = "{\"query\":\"query getSeries($body:String!){getSeries(body:$body){seriesid bodyid name code description}}\",\"variables\":{\"body\":\"Body\"}}"
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))
+    }
+
+    "will return forbidden if the pages are accessed by a judgment user" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val seriesService = new SeriesService(graphQLConfiguration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration,
+        seriesService, consignmentService)
+
+      val seriesGet = controller.seriesDetails().apply(FakeRequest(GET, "/series").withCSRFToken)
+      val seriesPost = controller.seriesSubmit().apply(FakeRequest().withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
+      playStatus(seriesGet) mustBe FORBIDDEN
+      playStatus(seriesPost) mustBe FORBIDDEN
     }
   }
 }
