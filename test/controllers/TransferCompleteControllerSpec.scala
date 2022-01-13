@@ -2,7 +2,7 @@ package controllers
 
 import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.GraphQLConfiguration
 import io.circe.Printer
@@ -64,11 +64,14 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         setConsignmentReferenceResponse()
         val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, url)
         val consignmentId = UUID.randomUUID()
+        setConsignmentTypeResponse(wiremockServer, url)
 
         val transferCompleteSubmit = if (url.equals("judgment")) {
+          setConsignmentTypeResponse(wiremockServer, "judgment")
           controller.transferComplete(consignmentId)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-complete").withCSRFToken)
         } else {
+          setConsignmentTypeResponse(wiremockServer, "standard")
           controller.judgmentTransferComplete(consignmentId)
             .apply(FakeRequest(GET, s"/judgment/$consignmentId/transfer-complete").withCSRFToken)
         }
@@ -84,6 +87,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentReference"))
       .willReturn(okJson(dataString)))
   }
 
@@ -100,11 +104,12 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   private def callTransferComplete(path: String): Future[Result] = {
     val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, path)
     val consignmentId = UUID.randomUUID()
-
     if (path.equals("judgment")) {
+      setConsignmentTypeResponse(wiremockServer, "judgment")
       controller.judgmentTransferComplete(consignmentId)
         .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
     } else {
+      setConsignmentTypeResponse(wiremockServer, "standard")
       controller.transferComplete(consignmentId)
         .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
     }

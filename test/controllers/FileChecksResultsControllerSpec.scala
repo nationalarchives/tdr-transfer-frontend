@@ -2,7 +2,7 @@ package controllers
 
 import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks.{AntivirusProgress, ChecksumProgress, FfidProgress}
@@ -43,8 +43,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       val client = graphQLConfiguration.getClient[Data, Variables ]()
       val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(fileStatusResponse)))
+      mockGraphqlResponse(fileStatusResponse, "standard")
 
       val fileCheckResultsController = new FileChecksResultsController(
         getAuthorisedSecurityComponents,
@@ -121,8 +120,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       val client = graphQLConfiguration.getClient[Data, Variables ]()
       val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(fileStatusResponse)))
+      mockGraphqlResponse(fileStatusResponse, "standard")
 
       val fileCheckResultsController = new FileChecksResultsController(
         getAuthorisedSecurityComponents,
@@ -156,13 +154,26 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         )
 
         val fileCheckResultsPage = url match {
-          case "judgment" => fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
+          case "judgment" =>
+            mockGraphqlResponse(consignmentType = "standard")
+            fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
             .apply(FakeRequest(GET, s"/judgment/$consignmentId/records-results"))
-          case "consignment" => fileCheckResultsController.fileCheckResultsPage(consignmentId)
+          case "consignment" =>
+            mockGraphqlResponse(consignmentType = "judgment")
+            fileCheckResultsController.fileCheckResultsPage(consignmentId)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/records-results"))
         }
         status(fileCheckResultsPage) mustBe FORBIDDEN
       }
     }
+  }
+
+  private def mockGraphqlResponse(fileStatusResponse: String = "", consignmentType: String) = {
+    if(fileStatusResponse.nonEmpty) {
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getFileCheckProgress"))
+        .willReturn(okJson(fileStatusResponse)))
+    }
+    setConsignmentTypeResponse(wiremockServer, consignmentType)
   }
 }

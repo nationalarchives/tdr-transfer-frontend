@@ -2,7 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, okJson, post, urlEqualTo}
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import io.circe.Printer
@@ -12,6 +12,7 @@ import org.scalatest.Matchers._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
+import services.ConsignmentService
 import util.FrontEndTestHelper
 
 import java.util.UUID
@@ -31,14 +32,18 @@ class UploadControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
+  implicit val ec: ExecutionContext = ExecutionContext.global
+
   "UploadController GET upload" should {
     "redirect to the transfer agreement page if the transfer agreement for that consignment has not been signed" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
       stubGetConsignmentStatusResponse()
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
@@ -48,12 +53,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     // This is unlikely but it's possible that they've bypassed the checks and partially agreed to things
     "redirect to the transfer agreement page if the transfer agreement for that consignment has been partially agreed to" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
       stubGetConsignmentStatusResponse()
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
@@ -62,12 +69,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "show the upload page if the transfer agreement for that consignment has been agreed to in full" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
       stubGetConsignmentStatusResponse(Some("Completed"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
@@ -79,12 +88,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "render the upload in progress page if the upload is in progress" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
       stubGetConsignmentStatusResponse(Some("Completed"), Some("InProgress"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
@@ -95,12 +106,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "render the upload is complete page if the upload has completed" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
       stubGetConsignmentStatusResponse(Some("Completed"), Some("Completed"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
@@ -111,12 +124,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "show the judgment upload page for judgments" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration)
+        graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
       stubGetConsignmentStatusResponse()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
@@ -128,12 +143,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "render the judgment upload in progress page if the upload is in progress" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration)
+        graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
       stubGetConsignmentStatusResponse(Some("Completed"), Some("InProgress"))
+      setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
@@ -144,12 +161,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "render the judgment upload is complete page if the upload has completed" in {
-      implicit val ec: ExecutionContext = ExecutionContext.global
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration), getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration)
+        graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
       stubGetConsignmentStatusResponse(Some("Completed"), Some("Completed"))
+      setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
@@ -163,16 +182,23 @@ class UploadControllerSpec extends FrontEndTestHelper {
   forAll(userChecks) { (user, url) =>
     s"The $url upload page" should {
       s"return 403 if accessed by an incorrect user" in {
-        implicit val ec: ExecutionContext = ExecutionContext.global
+        val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller = new UploadController(getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration), user, frontEndInfoConfiguration)
+          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService)
 
         stubGetConsignmentStatusResponse(Some("Completed"))
+
+
         val uploadPage = url match {
-          case "judgment" => controller.judgmentUploadPage(consignmentId)
+          case "judgment" =>
+            setConsignmentTypeResponse(wiremockServer, "standard")
+            controller.judgmentUploadPage(consignmentId)
             .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
-          case "consignment" => controller.uploadPage(consignmentId)
+          case "consignment" =>
+            setConsignmentTypeResponse(wiremockServer, "judgment")
+            controller.uploadPage(consignmentId)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
         }
         status(uploadPage) mustBe FORBIDDEN

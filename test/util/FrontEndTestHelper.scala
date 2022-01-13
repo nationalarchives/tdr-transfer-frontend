@@ -1,5 +1,8 @@
 package util
 
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, equalToJson, okJson, post, urlEqualTo}
+
 import java.io.File
 import java.net.URI
 import java.time.{LocalDateTime, ZoneOffset}
@@ -58,6 +61,14 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     def await(timeout: Duration = 2.seconds): T = {
       Await.result(future, timeout)
     }
+  }
+
+  def setConsignmentTypeResponse(wiremockServer: WireMockServer, consignmentType: String) = {
+    val dataString = s"""{"data": {"getConsignment": {"consignmentType": "$consignmentType"}}}"""
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentType"))
+      .willReturn(okJson(dataString)))
+
   }
 
   val userChecks: TableFor2[KeycloakConfiguration, String] = Table(
