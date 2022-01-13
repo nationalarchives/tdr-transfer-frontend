@@ -17,7 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ConfirmTransferController @Inject()(val controllerComponents: SecurityComponents,
                                           val graphqlConfiguration: GraphQLConfiguration,
                                           val keycloakConfiguration: KeycloakConfiguration,
-                                          consignmentService: ConsignmentService,
+                                          val consignmentService: ConsignmentService,
                                           val confirmTransferService: ConfirmTransferService,
                                           val consignmentExportService: ConsignmentExportService,
                                           langs: Langs)
@@ -45,7 +45,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
       }
   }
 
-  def confirmTransfer(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
+  def confirmTransfer(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getConsignmentSummary(request, consignmentId)
       .map { consignmentSummary =>
         Ok(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferConfirmationForm))
@@ -53,7 +53,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
   }
 
   def finalTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
-    standardUserAction { implicit request: Request[AnyContent] =>
+    standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       val errorFunction: Form[FinalTransferConfirmationData] => Future[Result] = { formWithErrors: Form[FinalTransferConfirmationData] =>
         getConsignmentSummary(request, consignmentId).map { summary =>
           BadRequest(views.html.standard.confirmTransfer(consignmentId, summary, formWithErrors))
@@ -79,7 +79,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
     }
 
   def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
-    judgmentUserAction { implicit request: Request[AnyContent] =>
+    judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       val token: BearerAccessToken = request.token.bearerAccessToken
 
       for {
