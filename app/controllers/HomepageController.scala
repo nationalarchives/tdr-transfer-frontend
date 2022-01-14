@@ -16,7 +16,7 @@ class HomepageController @Inject()(val controllerComponents: SecurityComponents,
                                    val consignmentService: ConsignmentService)
                                   (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  def judgmentHomepageSubmit(): Action[AnyContent] = secureAction.async {
+  def judgmentHomepageSubmit(): Action[AnyContent] = judgmentUserAction {
     implicit request: Request[AnyContent] =>
       consignmentService.createConsignment(None, request.token).map(consignment =>
         Redirect(routes.TransferAgreementController.judgmentTransferAgreement(consignment.consignmentid.get))

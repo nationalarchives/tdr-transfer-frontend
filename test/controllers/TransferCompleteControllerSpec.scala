@@ -2,19 +2,20 @@ package controllers
 
 import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.GraphQLConfiguration
 import io.circe.Printer
 import org.pac4j.play.scala.SecurityComponents
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout}
+import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
 import services.ConsignmentService
 import util.FrontEndTestHelper
 import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcr}
 import io.circe.syntax.EncoderOps
 import io.circe.generic.auto._
+import play.api.http.Status.FORBIDDEN
 import play.api.mvc.Result
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -57,6 +58,28 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  forAll(userChecks) { (_, url) =>
+    s"The $url upload page" should {
+      s"return 403 if the url doesn't match the consignment type" in {
+        setConsignmentReferenceResponse()
+        val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, url)
+        val consignmentId = UUID.randomUUID()
+        setConsignmentTypeResponse(wiremockServer, url)
+
+        val transferCompleteSubmit = if (url.equals("judgment")) {
+          setConsignmentTypeResponse(wiremockServer, "judgment")
+          controller.transferComplete(consignmentId)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-complete").withCSRFToken)
+        } else {
+          setConsignmentTypeResponse(wiremockServer, "standard")
+          controller.judgmentTransferComplete(consignmentId)
+            .apply(FakeRequest(GET, s"/judgment/$consignmentId/transfer-complete").withCSRFToken)
+        }
+        status(transferCompleteSubmit) mustBe FORBIDDEN
+      }
+    }
+  }
+
   private def setConsignmentReferenceResponse(): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcr.Data, gcr.Variables]()
     val consignmentReferenceResponse: gcr.GetConsignment = new gcr.GetConsignment("TEST-TDR-2021-GB")
@@ -64,6 +87,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentReference"))
       .willReturn(okJson(dataString)))
   }
 
@@ -80,11 +104,12 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   private def callTransferComplete(path: String): Future[Result] = {
     val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, path)
     val consignmentId = UUID.randomUUID()
-
     if (path.equals("judgment")) {
+      setConsignmentTypeResponse(wiremockServer, "judgment")
       controller.judgmentTransferComplete(consignmentId)
         .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
     } else {
+      setConsignmentTypeResponse(wiremockServer, "standard")
       controller.transferComplete(consignmentId)
         .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
     }

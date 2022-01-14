@@ -10,10 +10,12 @@ import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.{getConsignment => gc}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.GetConsignment
+import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.types.AddConsignmentInput
 import org.keycloak.representations.AccessToken
 import org.mockito.Mockito
 import org.mockito.Mockito._
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
 import org.scalatestplus.mockito.MockitoSugar
@@ -33,9 +35,11 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
   private val getConsignmentClient = mock[GraphQLClient[gc.Data, gc.Variables]]
   private val addConsignmentClient = mock[GraphQLClient[addConsignment.Data, addConsignment.Variables]]
   private val getConsignmentFolderInfoClient = mock[GraphQLClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]]
+  private val getConsignmentTypeClient = mock[GraphQLClient[gct.Data, gct.Variables]]
   when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(getConsignmentClient)
   when(graphQlConfig.getClient[addConsignment.Data, addConsignment.Variables]()).thenReturn(addConsignmentClient)
   when(graphQlConfig.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()).thenReturn(getConsignmentFolderInfoClient)
+  when(graphQlConfig.getClient[gct.Data, gct.Variables]()).thenReturn(getConsignmentTypeClient)
 
   private val consignmentService = new ConsignmentService(graphQlConfig)
 
@@ -48,6 +52,7 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
   override def afterEach(): Unit = {
     Mockito.reset(getConsignmentClient)
     Mockito.reset(addConsignmentClient)
+    Mockito.reset(getConsignmentTypeClient)
   }
 
   "consignmentExists" should {
@@ -208,5 +213,56 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
     val getConsignmentDetails = consignmentService.getConsignmentFolderInfo(consignmentId, bearerAccessToken).futureValue
 
     getConsignmentDetails should be(GetConsignment(0, None))
+  }
+  
+  "getConsignmentType" should {
+    def mockGraphqlResponse(consignmentType: String): OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = {
+      val response = GraphQlResponse(
+        Some(gct.Data(Some(gct.GetConsignment(Some(consignmentType)))))
+        , List())
+      when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
+    }
+
+    def mockErrorResponse: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
+      .thenReturn(Future.successful(GraphQlResponse(None, List(NotAuthorisedError("error", Nil, Nil)))))
+
+    def mockMissingConsignmentType: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
+      .thenReturn(Future.successful(GraphQlResponse(Some(gct.Data(Some(gct.GetConsignment(None)))), List())))
+
+    def mockAPIFailedResponse: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
+      .thenReturn(Future.failed(new Exception("API failure")))
+
+    "return the correct consignment type for a judgment type" in {
+      val expectedType = "judgment"
+      mockGraphqlResponse(expectedType)
+      val consignmentType = consignmentService.getConsignmentType(consignmentId, bearerAccessToken).futureValue
+      consignmentType should be("judgment")
+    }
+
+    "return the correct consignment type for a standard type" in {
+      val expectedType = "standard"
+      mockGraphqlResponse(expectedType)
+      val consignmentType = consignmentService.getConsignmentType(consignmentId, bearerAccessToken).futureValue
+      consignmentType should be(expectedType)
+    }
+
+    "return the an error if there is an error from the API" in {
+      mockErrorResponse
+      val error = consignmentService.getConsignmentType(consignmentId, bearerAccessToken).failed.futureValue
+      error.getMessage should be("error")
+    }
+
+    "return the an error if the API fails" in {
+      mockAPIFailedResponse
+      val error = consignmentService.getConsignmentType(consignmentId, bearerAccessToken).failed.futureValue
+      error.getMessage should be("API failure")
+    }
+
+    "return an error if the consignment type is missing" in {
+      mockMissingConsignmentType
+      val error = consignmentService.getConsignmentType(consignmentId, bearerAccessToken).failed.futureValue
+      error.getMessage should be(s"No consignment type found for consignment $consignmentId")
+    }
   }
 }
