@@ -9,7 +9,7 @@ import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.ConsignmentStatusService
+import services.{ConsignmentService, ConsignmentStatusService}
 import viewsapi.Caching.preventCaching
 
 import scala.concurrent.ExecutionContext
@@ -18,10 +18,11 @@ import scala.concurrent.ExecutionContext
 class UploadController @Inject()(val controllerComponents: SecurityComponents,
                                  val graphqlConfiguration: GraphQLConfiguration,
                                  val keycloakConfiguration: KeycloakConfiguration,
-                                 val frontEndInfoConfiguration: FrontEndInfoConfiguration)
+                                 val frontEndInfoConfiguration: FrontEndInfoConfiguration,
+                                 val consignmentService: ConsignmentService)
                                 (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  def uploadPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def uploadPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     for {
@@ -47,7 +48,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     }
   }
 
-  def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     for {
