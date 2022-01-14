@@ -158,7 +158,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
   forAll(userChecks) { (user, url) =>
     s"The $url upload page" should {
-      s"return 403 if accessed by an incorrect user" in {
+      s"return 403 if the url doesn't match the consignment type" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
 

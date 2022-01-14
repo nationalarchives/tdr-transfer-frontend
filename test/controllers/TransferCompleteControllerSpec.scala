@@ -60,7 +60,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
   forAll(userChecks) { (_, url) =>
     s"The $url upload page" should {
-      s"return 403 if accessed by an incorrect user" in {
+      s"return 403 if the url doesn't match the consignment type" in {
         setConsignmentReferenceResponse()
         val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, url)
         val consignmentId = UUID.randomUUID()

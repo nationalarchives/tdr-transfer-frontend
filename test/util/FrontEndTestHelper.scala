@@ -68,7 +68,6 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .withRequestBody(containing("getConsignmentType"))
       .willReturn(okJson(dataString)))
-
   }
 
   val userChecks: TableFor2[KeycloakConfiguration, String] = Table(

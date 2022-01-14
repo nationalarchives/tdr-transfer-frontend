@@ -43,7 +43,8 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
   def getConsignmentType(consignmentId: UUID, token: BearerAccessToken): Future[String] = {
     sendApiRequest(gctClient, gct.document, token, gct.Variables(consignmentId))
-      .map(data => data.getConsignment.flatMap(_.consignmentType).getOrElse(throw new IllegalStateException("No consignment type found")))
+      .map(data => data.getConsignment.flatMap(_.consignmentType)
+        .getOrElse(throw new IllegalStateException(s"No consignment type found for consignment $consignmentId")))
   }
 
   def createConsignment(seriesId: Option[UUID], token: Token): Future[addConsignment.AddConsignment] = {
