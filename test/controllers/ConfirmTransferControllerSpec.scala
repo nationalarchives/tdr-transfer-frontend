@@ -4,8 +4,8 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
-import graphql.codegen.AddFinalJudgmentTransferConfirmation.{AddFinalJudgmentTransferConfirmation => afjtc}
-import graphql.codegen.AddFinalTransferConfirmation.{AddFinalTransferConfirmation => aftc}
+import graphql.codegen.AddFinalJudgmentTransferConfirmation.{addFinalJudgmentTransferConfirmation => afjtc}
+import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcs}
 import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
 import io.circe.Printer
@@ -484,7 +484,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     val data: client.GraphqlData = client.GraphqlData(finalTransferConfirmation.map(ftc => aftc.Data(ftc)), errors)
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     val query =
-      s"""{"query":"mutation AddFinalTransferConfirmation($$input:AddFinalTransferConfirmationInput!)
+      s"""{"query":"mutation addFinalTransferConfirmation($$input:AddFinalTransferConfirmationInput!)
                             {addFinalTransferConfirmation(addFinalTransferConfirmationInput:$$input)
                             {consignmentId finalOpenRecordsConfirmed legalOwnershipTransferConfirmed}}",
            "variables":{
@@ -506,7 +506,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     val data: client.GraphqlData = client.GraphqlData(finalJudgmentTransferConfirmation.map(ftc => afjtc.Data(ftc)), errors)
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     val query =
-      s"""{"query":"mutation AddFinalJudgmentTransferConfirmation($$input:AddFinalJudgmentTransferConfirmationInput!)
+      s"""{"query":"mutation addFinalJudgmentTransferConfirmation($$input:AddFinalJudgmentTransferConfirmationInput!)
                             {addFinalJudgmentTransferConfirmation(addFinalJudgmentTransferConfirmationInput:$$input)
                             {consignmentId legalCustodyTransferConfirmed}}",
            "variables":{
