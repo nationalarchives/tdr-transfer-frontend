@@ -5,8 +5,8 @@ import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import controllers.TransferAgreementData
 import errors.AuthorisationException
-import graphql.codegen.AddTransferAgreement.{AddTransferAgreement => ata}
-import graphql.codegen.AddTransferAgreement.AddTransferAgreement.AddTransferAgreement
+import graphql.codegen.AddTransferAgreement.{addTransferAgreement => ata}
+import graphql.codegen.AddTransferAgreement.addTransferAgreement.AddTransferAgreement
 import graphql.codegen.types.AddTransferAgreementInput
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -68,8 +68,8 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
     when(graphQlClient.getResult(token, ata.document, Some(ata.Variables(transferAgreementInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferAgreement= transferAgreementService.addTransferAgreement(consignmentId, token, formData)
-      .futureValue.asInstanceOf[AddTransferAgreement]
+    val transferAgreement: AddTransferAgreement =
+      transferAgreementService.addTransferAgreement(consignmentId, token, formData).futureValue
 
     transferAgreement.consignmentId should equal(consignmentId)
     transferAgreement.allCrownCopyright should equal(formData.crownCopyright)
