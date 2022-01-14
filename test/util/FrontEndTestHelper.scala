@@ -1,5 +1,8 @@
 package util
 
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, equalToJson, okJson, post, urlEqualTo}
+
 import java.io.File
 import java.net.URI
 import java.time.{LocalDateTime, ZoneOffset}
@@ -31,6 +34,7 @@ import org.pac4j.play.scala.SecurityComponents
 import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures.{PatienceConfig, scaled}
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor2}
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -49,7 +53,7 @@ import scala.concurrent.{Await, Future}
 import scala.language.existentials
 
 
-trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach {
+trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach with TableDrivenPropertyChecks {
 
   implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)), interval = scaled(Span(100, Millis)))
 
@@ -58,6 +62,19 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       Await.result(future, timeout)
     }
   }
+
+  def setConsignmentTypeResponse(wiremockServer: WireMockServer, consignmentType: String) = {
+    val dataString = s"""{"data": {"getConsignment": {"consignmentType": "$consignmentType"}}}"""
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentType"))
+      .willReturn(okJson(dataString)))
+  }
+
+  val userChecks: TableFor2[KeycloakConfiguration, String] = Table(
+    ("user", "url"),
+    (getValidJudgmentUserKeycloakConfiguration, "consignment"),
+    (getValidStandardUserKeycloakConfiguration, "judgment")
+  )
 
   def frontEndInfoConfiguration: FrontEndInfoConfiguration = {
     val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]

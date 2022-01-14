@@ -34,7 +34,7 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       }
   }
 
-  def recordProcessingPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def recordProcessingPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getRecordProcessingProgress(request, consignmentId)
       .map {
         fileChecks => {
@@ -43,7 +43,7 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       }
   }
 
-  def judgmentProcessingPage(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit  request: Request[AnyContent] =>
+  def judgmentProcessingPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getRecordProcessingProgress(request, consignmentId)
       .map {
         fileChecks => {

@@ -1,7 +1,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => fileCheck}
 import io.circe.Printer
@@ -58,8 +58,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val filesProcessedWithFFID = 8
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
-        wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-          .willReturn(okJson(dataString)))
+        mockGraphqlResponse(dataString, userType)
 
         val recordsController = new FileChecksController(
           getAuthorisedSecurityComponents,
@@ -103,8 +102,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val dataString: String = progressData(40, 40, 40, allChecksSucceeded = true)
 
-        wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-          .willReturn(okJson(dataString)))
+        mockGraphqlResponse(dataString, userType)
 
         val controller = new FileChecksController(
           getAuthorisedSecurityComponents,
@@ -129,8 +127,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val dataString: String = progressData(40, 40, 40, allChecksSucceeded = false)
 
-        wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-          .willReturn(okJson(dataString)))
+        mockGraphqlResponse(dataString, userType)
 
         val controller = new FileChecksController(
           getAuthorisedSecurityComponents,
@@ -148,6 +145,42 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
         contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\"")
         contentAsString(recordsPage) must not include "govuk-button--disabled"
+      }
+    }
+  }
+
+  private def mockGraphqlResponse(dataString: String, userType: String) = {
+    setConsignmentTypeResponse(wiremockServer, userType)
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getFileCheckProgress"))
+      .willReturn(okJson(dataString)))
+  }
+
+  forAll(userChecks) { (user, url) =>
+    s"The $url upload page" should {
+      s"return 403 if the url doesn't match the consignment type" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+        val controller = new FileChecksController(
+          getAuthorisedSecurityComponents,
+          new GraphQLConfiguration(app.configuration),
+          user,
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+
+        val fileChecksPage = url match {
+          case "judgment" =>
+            setConsignmentTypeResponse(wiremockServer, "standard")
+            controller.judgmentProcessingPage(consignmentId)
+            .apply(FakeRequest(GET, s"/judgment/$consignmentId/records"))
+          case "consignment" =>
+            setConsignmentTypeResponse(wiremockServer, "judgment")
+            controller.recordProcessingPage(consignmentId)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
+        }
+        playStatus(fileChecksPage) mustBe FORBIDDEN
       }
     }
   }
