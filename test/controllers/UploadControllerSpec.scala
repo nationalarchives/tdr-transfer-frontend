@@ -181,7 +181,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
   forAll(userChecks) { (user, url) =>
     s"The $url upload page" should {
-      s"return 403 if accessed by an incorrect user" in {
+      s"return 403 if the url doesn't match the consignment type" in {
         val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
@@ -189,7 +189,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
           graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService)
 
         stubGetConsignmentStatusResponse(Some("Completed"))
-
 
         val uploadPage = url match {
           case "judgment" =>

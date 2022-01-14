@@ -227,6 +227,9 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
     def mockErrorResponse: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
       .thenReturn(Future.successful(GraphQlResponse(None, List(NotAuthorisedError("error", Nil, Nil)))))
 
+    def mockMissingConsignmentType: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
+      .thenReturn(Future.successful(GraphQlResponse(Some(gct.Data(Some(gct.GetConsignment(None)))), List())))
+
     def mockAPIFailedResponse: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
       .thenReturn(Future.failed(new Exception("API failure")))
 
@@ -254,6 +257,12 @@ class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar wi
       mockAPIFailedResponse
       val error = consignmentService.getConsignmentType(consignmentId, bearerAccessToken).failed.futureValue
       error.getMessage should be("API failure")
+    }
+
+    "return an error if the consignment type is missing" in {
+      mockMissingConsignmentType
+      val error = consignmentService.getConsignmentType(consignmentId, bearerAccessToken).failed.futureValue
+      error.getMessage should be(s"No consignment type found for consignment $consignmentId")
     }
   }
 }

@@ -444,7 +444,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   forAll(userChecks) { (user, url) =>
     s"The $url upload page" should {
-      s"return 403 if accessed by an incorrect user" in {
+      s"return 403 if the url doesn't match the consignment type" in {
         val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, user)
 
         val fileChecksPage = url match {

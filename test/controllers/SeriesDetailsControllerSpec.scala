@@ -1,7 +1,6 @@
 package controllers
 
 import java.util.UUID
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
