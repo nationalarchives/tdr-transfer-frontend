@@ -5,10 +5,10 @@ import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import controllers.FinalTransferConfirmationData
 import errors.AuthorisationException
-import graphql.codegen.AddFinalJudgmentTransferConfirmation.AddFinalJudgmentTransferConfirmation.AddFinalJudgmentTransferConfirmation
-import graphql.codegen.AddFinalJudgmentTransferConfirmation.{AddFinalJudgmentTransferConfirmation => afjtc}
-import graphql.codegen.AddFinalTransferConfirmation.AddFinalTransferConfirmation.AddFinalTransferConfirmation
-import graphql.codegen.AddFinalTransferConfirmation.{AddFinalTransferConfirmation => aftc}
+import graphql.codegen.AddFinalJudgmentTransferConfirmation.addFinalJudgmentTransferConfirmation.AddFinalJudgmentTransferConfirmation
+import graphql.codegen.AddFinalJudgmentTransferConfirmation.{addFinalJudgmentTransferConfirmation => afjtc}
+import graphql.codegen.AddFinalTransferConfirmation.addFinalTransferConfirmation.AddFinalTransferConfirmation
+import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.types.{AddFinalJudgmentTransferConfirmationInput, AddFinalTransferConfirmationInput}
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -71,8 +71,8 @@ class ConfirmTransferServiceSpec extends FlatSpec with Matchers with MockitoSuga
     when(standardGraphQlClient.getResult(token, aftc.document, Some(aftc.Variables(addFinalTransferConfirmationInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferConfirmation: AddFinalTransferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
-      .futureValue.asInstanceOf[AddFinalTransferConfirmation]
+    val transferConfirmation: AddFinalTransferConfirmation =
+      confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).futureValue
 
     transferConfirmation.consignmentId should equal(consignmentId)
     transferConfirmation.finalOpenRecordsConfirmed should equal(formData.openRecords)
@@ -113,8 +113,8 @@ class ConfirmTransferServiceSpec extends FlatSpec with Matchers with MockitoSuga
     when(judgmentGraphQlClient.getResult(token, afjtc.document, Some(afjtc.Variables(addFinalJudgmentTransferConfirmationInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferConfirmation: AddFinalJudgmentTransferConfirmation = confirmTransferService.addFinalJudgmentTransferConfirmation(consignmentId, token)
-      .futureValue.asInstanceOf[AddFinalJudgmentTransferConfirmation]
+    val transferConfirmation: AddFinalJudgmentTransferConfirmation =
+      confirmTransferService.addFinalJudgmentTransferConfirmation(consignmentId, token).futureValue
 
     transferConfirmation.consignmentId should equal(consignmentId)
     transferConfirmation.legalCustodyTransferConfirmed should equal(true)
