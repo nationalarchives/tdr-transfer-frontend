@@ -3,8 +3,8 @@ package services
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import controllers.FinalTransferConfirmationData
-import graphql.codegen.AddFinalTransferConfirmation.{AddFinalTransferConfirmation => aftc}
-import graphql.codegen.AddFinalJudgmentTransferConfirmation.{AddFinalJudgmentTransferConfirmation => afjtc}
+import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
+import graphql.codegen.AddFinalJudgmentTransferConfirmation.{addFinalJudgmentTransferConfirmation => afjtc}
 import graphql.codegen.types.{AddFinalJudgmentTransferConfirmationInput, AddFinalTransferConfirmationInput}
 import services.ApiErrorHandling.sendApiRequest
 import uk.gov.nationalarchives.tdr.GraphQLClient
@@ -22,7 +22,7 @@ class ConfirmTransferService @Inject()(val graphqlConfiguration: GraphQLConfigur
 
   def addFinalTransferConfirmation(consignmentId: UUID,
                                    token: BearerAccessToken,
-                                   formData: FinalTransferConfirmationData): Future[Any] = {
+                                   formData: FinalTransferConfirmationData): Future[aftc.AddFinalTransferConfirmation] = {
     val addTransferAgreementInput: AddFinalTransferConfirmationInput = AddFinalTransferConfirmationInput(
       consignmentId,
       formData.openRecords,
@@ -34,7 +34,7 @@ class ConfirmTransferService @Inject()(val graphqlConfiguration: GraphQLConfigur
     sendApiRequest(addFinalTransferConfirmationClient, aftc.document, token, variables).map(_.addFinalTransferConfirmation)
   }
 
-  def addFinalJudgmentTransferConfirmation(consignmentId: UUID, token: BearerAccessToken): Future[Any] = {
+  def addFinalJudgmentTransferConfirmation(consignmentId: UUID, token: BearerAccessToken): Future[afjtc.AddFinalJudgmentTransferConfirmation] = {
     val addFinalJudgmentTransferConfirmationInput: AddFinalJudgmentTransferConfirmationInput =
       AddFinalJudgmentTransferConfirmationInput( consignmentId, legalCustodyTransferConfirmed = true)
 

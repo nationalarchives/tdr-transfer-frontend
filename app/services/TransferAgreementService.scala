@@ -3,7 +3,7 @@ package services
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import controllers.TransferAgreementData
-import graphql.codegen.AddTransferAgreement.{AddTransferAgreement => ata}
+import graphql.codegen.AddTransferAgreement.{addTransferAgreement => ata}
 import graphql.codegen.types.AddTransferAgreementInput
 import services.ApiErrorHandling.sendApiRequest
 
@@ -15,7 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferAgreementService @Inject()(val graphqlConfiguration: GraphQLConfiguration) (implicit val ec: ExecutionContext){
   private val addTransferAgreementClient =
     graphqlConfiguration.getClient[ata.Data, ata.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
-  def addTransferAgreement(consignmentId: UUID, token: BearerAccessToken, formData: TransferAgreementData): Future[Any] = {
+  def addTransferAgreement(consignmentId: UUID, token: BearerAccessToken, formData: TransferAgreementData): Future[ata.AddTransferAgreement] = {
     val addTransferAgreementInput: AddTransferAgreementInput = AddTransferAgreementInput(consignmentId,
       formData.publicRecord,
       formData.crownCopyright,
