@@ -9,6 +9,7 @@ GET         /homepage                                             controllers.Ho
 GET         /contact                                              controllers.ContactController.contact()
 GET         /cookies                                              controllers.CookiesController.cookies()
 GET         /faq                                                  controllers.FaqController.faq()
+GET         /help                                                  controllers.HelpController.help()
 GET         /series                                               controllers.SeriesDetailsController.seriesDetails()
 POST        /series                                               controllers.SeriesDetailsController.seriesSubmit()
 GET         /consignment/:consignmentId/transfer-agreement        controllers.TransferAgreementController.transferAgreement(consignmentId: java.util.UUID)
