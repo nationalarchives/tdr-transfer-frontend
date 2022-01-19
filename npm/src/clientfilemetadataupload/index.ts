@@ -1,6 +1,9 @@
 import { GraphqlClient } from "../graphql"
 
-import { IFileMetadata } from "@nationalarchives/file-information"
+import {
+  IFileMetadata,
+  IFileWithPath
+} from "@nationalarchives/file-information"
 
 import {
   AddFilesAndMetadata,
@@ -17,6 +20,11 @@ import { ITdrFile } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 
 declare var METADATA_UPLOAD_BATCH_SIZE: string
+
+export interface ITdrFileWithPath {
+  fileId: string
+  fileWithPath: IFileWithPath
+}
 
 export class ClientFileMetadataUpload {
   client: GraphqlClient
@@ -46,14 +54,14 @@ export class ClientFileMetadataUpload {
   async saveClientFileMetadata(
     consignmentId: string,
     allFileMetadata: IFileMetadata[]
-  ): Promise<ITdrFile[]> {
+  ): Promise<ITdrFileWithPath[]> {
     const { metadataInputs, matchFileMap } =
       this.createMetadataInputsAndFileMap(allFileMetadata)
 
     const metadataBatches: ClientSideMetadataInput[][] =
       this.createMetadataInputBatches(metadataInputs)
 
-    const allFiles: ITdrFile[] = []
+    const allFiles: ITdrFileWithPath[] = []
 
     for (const metadataInput of metadataBatches) {
       const variables: AddFilesAndMetadataMutationVariables = {
@@ -73,9 +81,9 @@ export class ClientFileMetadataUpload {
       if (result.data) {
         result.data.addFilesAndMetadata.forEach((f) => {
           const fileId: string = f.fileId
-          const file: File | undefined = matchFileMap.get(f.matchId)
+          const file: IFileWithPath | undefined = matchFileMap.get(f.matchId)
           if (file) {
-            allFiles.push({ fileId, file })
+            allFiles.push({ fileId, fileWithPath: file })
           } else {
             throw Error(`Invalid match id ${f.matchId} for file ${fileId}`)
           }
@@ -105,18 +113,18 @@ export class ClientFileMetadataUpload {
 
   createMetadataInputsAndFileMap(allFileMetadata: IFileMetadata[]): {
     metadataInputs: ClientSideMetadataInput[]
-    matchFileMap: Map<number, File>
+    matchFileMap: Map<number, IFileWithPath>
   } {
     return allFileMetadata.reduce(
       (result, metadata: IFileMetadata, matchId) => {
         const { checksum, path, lastModified, file, size } = metadata
-        result.matchFileMap.set(matchId, file)
-
         //Files uploaded with 'drag and files' have '/'  prepended, those uploaded with 'browse' don't
         //Ensure file paths stored in database are consistent
         const validatedPath = path.startsWith("/") ? path.substring(1) : path
+        const pathWithoutSlash = validatedPath ? validatedPath : file.name
+        result.matchFileMap.set(matchId, { file, path: pathWithoutSlash })
         const metadataInput: ClientSideMetadataInput = {
-          originalPath: validatedPath ? validatedPath : file.name,
+          originalPath: pathWithoutSlash,
           checksum,
           lastModified: lastModified.getTime(),
           fileSize: size,
@@ -128,7 +136,7 @@ export class ClientFileMetadataUpload {
       },
       {
         metadataInputs: <ClientSideMetadataInput[]>[],
-        matchFileMap: new Map<number, File>()
+        matchFileMap: new Map<number, IFileWithPath>()
       }
     )
   }

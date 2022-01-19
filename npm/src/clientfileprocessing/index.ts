@@ -1,4 +1,7 @@
-import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
+import {
+  ClientFileMetadataUpload,
+  ITdrFileWithPath
+} from "../clientfilemetadataupload"
 import { ClientFileExtractMetadata } from "../clientfileextractmetadata"
 import {
   IFileMetadata,
@@ -68,14 +71,15 @@ export class ClientFileProcessing {
         files,
         this.metadataProgressCallback
       )
-    const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
-      uploadFilesInfo.consignmentId,
-      metadata
-    )
+    const tdrFilesWithPath: ITdrFileWithPath[] =
+      await this.clientFileMetadataUpload.saveClientFileMetadata(
+        uploadFilesInfo.consignmentId,
+        metadata
+      )
     await this.s3Upload.uploadToS3(
       uploadFilesInfo.consignmentId,
       userId,
-      tdrFiles,
+      tdrFilesWithPath,
       this.s3ProgressCallback,
       stage
     )
