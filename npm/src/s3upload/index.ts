@@ -91,7 +91,11 @@ export class S3Upload {
       Tagging: ""
     }
 
-    const progress = new Upload({ client: this.client, params, tags: [{Key: "originalFilename", Value: "/a/file"}]})
+    const progress = new Upload({
+      client: this.client,
+      params,
+      tags: [{ Key: "originalFilename", Value: "/a/file" }]
+    })
 
     const { processedChunks, totalChunks, totalFiles } = progressInfo
     if (file.size >= 1) {
