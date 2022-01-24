@@ -1,9 +1,9 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
 @import views.html.partials.progressIndicator
-@(consignmentInfo: ConsignmentFolderInfo, consignmentId: java.util.UUID)(implicit messages: Messages, request: RequestHeader)
+@(consignmentInfo: ConsignmentFolderInfo, consignmentId: java.util.UUID, name: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("Results of checks") {
+@main("Results of checks", name = name) {
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("fileChecksResults.progress"))

@@ -149,7 +149,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     //Create the profile and add to the map
     val profile: OidcProfile = new OidcProfile()
-    profile.setAccessToken(new BearerAccessToken("faketoken"))
+    //This is the example token from jwt.io
+    val jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+    profile.setAccessToken(new BearerAccessToken(jwtToken))
     profile.addAttribute(OidcProfileDefinition.EXPIRATION, Date.from(LocalDateTime.now().plusDays(10).toInstant(ZoneOffset.UTC)))
 
     val profileMap: java.util.LinkedHashMap[String, OidcProfile] = new java.util.LinkedHashMap[String, OidcProfile]
