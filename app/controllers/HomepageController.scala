@@ -25,9 +25,9 @@ class HomepageController @Inject()(val controllerComponents: SecurityComponents,
 
   def homepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] => {
       if (request.token.isJudgmentUser) {
-        Ok(views.html.judgment.judgmentHomepage())
+        Ok(views.html.judgment.judgmentHomepage(request.token.name))
       } else {
-        Ok(views.html.standard.homepage())
+        Ok(views.html.standard.homepage(request.token.name))
       }
     }
   }

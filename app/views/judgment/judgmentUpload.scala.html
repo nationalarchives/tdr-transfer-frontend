@@ -3,9 +3,9 @@
 @import viewsapi.FrontEndInfo
 @import java.util.UUID
 
-@(consignmentId: UUID, frontEndInfo: FrontEndInfo)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
-@main("Upload your judgment") {
+@main("Upload your judgment", name = name) {
 <noscript>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
