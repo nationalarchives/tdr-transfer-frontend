@@ -41,7 +41,7 @@
     "@apollo/client": "^3.5.7",
     "@aws-sdk/client-s3": "^3.48.0",
     "@aws-sdk/lib-storage": "^3.48.0",
-    "@nationalarchives/file-information": "^1.0.256",
+    "@nationalarchives/file-information": "^1.0.258",
     "@nationalarchives/tdr-generated-graphql": "^1.0.156",
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
