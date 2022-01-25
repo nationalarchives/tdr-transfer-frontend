@@ -1,8 +1,8 @@
 @import java.util.UUID
 @import views.html.partials.returnToStartPage
 @import views.html.partials.feedbackSurvey
-@(consignmentReference: String)(implicit messages: Messages, request: RequestHeader)
-    @main("Transfer complete") {
+@(consignmentReference: String, name: String)(implicit messages: Messages, request: RequestHeader)
+    @main("Transfer complete", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-two-thirds">

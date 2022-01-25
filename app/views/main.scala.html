@@ -6,7 +6,7 @@
 *@
 @import views.html.helper.CSPNonce
 
-@(title: String, hasError: Boolean = false, isLoggedIn: Boolean = true)(content: Html)(implicit messages: Messages, request: RequestHeader)
+@(title: String, hasError: Boolean = false, isLoggedIn: Boolean = true, name: String = "")(content: Html)(implicit messages: Messages, request: RequestHeader)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -41,6 +41,11 @@
             </div>
             @if(isLoggedIn) {
                 <ul class="govuk-header__navigation govuk-header__navigation--end">
+                    <li class="govuk-header__navigation-item">
+                        <a>
+                            @{name}
+                        </a>
+                    </li>
                     <li class="govuk-header__navigation-item">
                         <a href="/sign-out" class="govuk-header__link">
                             Sign out

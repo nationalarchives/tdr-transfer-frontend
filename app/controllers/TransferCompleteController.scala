@@ -26,14 +26,14 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
   def transferComplete(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getConsignmentReference(request, consignmentId)
       .map { consignmentReference =>
-        Ok(views.html.standard.transferComplete(consignmentReference))
+        Ok(views.html.standard.transferComplete(consignmentReference, request.token.name))
       }
   }
 
   def judgmentTransferComplete(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getConsignmentReference(request, consignmentId)
       .map { consignmentReference =>
-        Ok(views.html.judgment.judgmentComplete(consignmentReference))
+        Ok(views.html.judgment.judgmentComplete(consignmentReference, request.token.name))
       }
   }
 }
