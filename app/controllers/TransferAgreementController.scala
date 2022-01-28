@@ -52,8 +52,8 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         val warningMessage = Messages("transferAgreement.warning")
         transferAgreementStatus match {
           case Some("Completed") =>
-            Ok(views.html.standard.transferAgreementAlreadyConfirmed(consignmentId, taForm, options, warningMessage)).uncache()
-          case _ => httpStatus(views.html.standard.transferAgreement(consignmentId, taForm, options, warningMessage)).uncache()
+            Ok(views.html.standard.transferAgreementAlreadyConfirmed(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
+          case _ => httpStatus(views.html.standard.transferAgreement(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
         }
     }
   }
@@ -64,7 +64,7 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
 
   def judgmentTransferAgreement(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       val warningMessage = Messages("judgmentTransferAgreement.warning")
-      Future(Ok(views.html.judgment.judgmentTransferAgreement(consignmentId, warningMessage)).uncache())
+      Future(Ok(views.html.judgment.judgmentTransferAgreement(consignmentId, warningMessage, request.token.name)).uncache())
   }
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>

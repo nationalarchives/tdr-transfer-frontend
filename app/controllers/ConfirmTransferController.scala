@@ -48,7 +48,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
   def confirmTransfer(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getConsignmentSummary(request, consignmentId)
       .map { consignmentSummary =>
-        Ok(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferConfirmationForm))
+        Ok(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferConfirmationForm, request.token.name))
       }
   }
 
@@ -56,7 +56,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       val errorFunction: Form[FinalTransferConfirmationData] => Future[Result] = { formWithErrors: Form[FinalTransferConfirmationData] =>
         getConsignmentSummary(request, consignmentId).map { summary =>
-          BadRequest(views.html.standard.confirmTransfer(consignmentId, summary, formWithErrors))
+          BadRequest(views.html.standard.confirmTransfer(consignmentId, summary, formWithErrors, request.token.name))
         }
       }
 

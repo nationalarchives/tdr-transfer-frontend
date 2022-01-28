@@ -16,6 +16,6 @@ import play.api.mvc._
 class HomeController @Inject()(securityComponents: SecurityComponents) extends UnprotectedPageController(securityComponents) with I18nSupport {
 
   def index(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.index(request.isLoggedIn))
+    Ok(views.html.index(request.isLoggedIn, request.name))
   }
 }
