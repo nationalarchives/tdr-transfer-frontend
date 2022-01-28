@@ -31,7 +31,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     seriesService.getSeriesForUser(request.token)
       .map({series =>
         val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
-        status(views.html.standard.seriesDetails(seriesFormData, form))
+        status(views.html.standard.seriesDetails(seriesFormData, form, request.token.name))
       })
   }
 
