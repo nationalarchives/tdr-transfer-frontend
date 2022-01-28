@@ -1,6 +1,11 @@
-import {IFileWithPath} from "@nationalarchives/file-information"
-import {getAllFiles, IDirectoryWithPath, IEntryWithPath, isFile} from "./get-files-from-drag-event"
-import {rejectUserItemSelection} from "./display-warning-message"
+import { IFileWithPath } from "@nationalarchives/file-information"
+import {
+  getAllFiles,
+  IDirectoryWithPath,
+  IEntryWithPath,
+  isFile
+} from "./get-files-from-drag-event"
+import { rejectUserItemSelection } from "./display-warning-message"
 import {
   addFileSelectionSuccessMessage,
   addFolderSelectionSuccessMessage,
@@ -101,14 +106,17 @@ export class UploadForm {
       const webkitEntry = droppedItem.webkitGetAsEntry()
       this.checkIfDroppedItemIsFolder(webkitEntry)
 
-      const filesAndDirectories: (IFileWithPath|IDirectoryWithPath)[] = await getAllFiles(webkitEntry, [])
-      const files = filesAndDirectories.filter(f => isFile(f)) as IFileWithPath[]
+      const filesAndDirectories: (IFileWithPath | IDirectoryWithPath)[] =
+        await getAllFiles(webkitEntry, [])
+      const files = filesAndDirectories.filter((f) =>
+        isFile(f)
+      ) as IFileWithPath[]
       this.checkIfFolderHasFiles(files)
 
       this.selectedFiles = filesAndDirectories
       addFolderSelectionSuccessMessage(
         webkitEntry.name,
-        this.selectedFiles.filter(f => isFile(f)).length
+        this.selectedFiles.filter((f) => isFile(f)).length
       )
     }
     displaySelectionSuccessMessage(this.successMessage, this.warningMessages)
@@ -121,7 +129,7 @@ export class UploadForm {
 
     if (this.isJudgmentUser) {
       const fileWithPath = this.selectedFiles[0]
-      if(isFile(fileWithPath)) {
+      if (isFile(fileWithPath)) {
         const fileName = fileWithPath.file.name
         this.checkForCorrectJudgmentFileExtension(fileName)
         addFileSelectionSuccessMessage(fileName)
@@ -191,10 +199,14 @@ export class UploadForm {
   )
 
   private getParentFolderName(folder: IEntryWithPath[]) {
-    const firstItem: IEntryWithPath = folder.filter(f => isFile(f))[0]
+    const firstItem: IEntryWithPath = folder.filter((f) => isFile(f))[0]
     const relativePath: string = firstItem.path
-    const splitPath: string[] = relativePath.split("/")
-    return splitPath[1]
+    if (relativePath.includes("/")) {
+      const splitPath: string[] = relativePath.split("/")
+      return splitPath[1]
+    } else {
+      return relativePath
+    }
   }
 
   private static showUploadingRecordsPage() {
