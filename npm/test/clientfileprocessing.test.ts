@@ -423,6 +423,31 @@ test("Error thrown if S3 upload fails", async () => {
   ).rejects.toStrictEqual(Error("Some S3 error"))
 })
 
+test("empty directories are passed correctly to the save metadata function", async () => {
+  const saveMetadataFn = jest.fn()
+  const metadataUpload: jest.Mock = ClientFileMetadataUpload as jest.Mock
+  metadataUpload.mockImplementation(() => {
+    return {
+      startUpload: jest.fn(),
+      saveClientFileMetadata: saveMetadataFn
+    }
+  })
+
+  const fileProcessing = new ClientFileProcessing(
+    metadataUpload(),
+    new S3UploadMock()
+  )
+
+  await fileProcessing.processClientFiles(
+    [{path: "directoryPath"}, {path: "filePath", file: new File(["a"], "test")}],
+    { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+    "",
+    userId
+  )
+  const saveMetadataArgs = saveMetadataFn.mock.calls[0]
+  await expect(saveMetadataArgs[2]).toEqual(["directoryPath"])
+})
+
 const showUploadingRecordsPage = () => {
   // At the point of the client file processing, the file-upload part should be hidden and progress bar revealed
   const fileUploadPage: HTMLDivElement | null =
