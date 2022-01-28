@@ -160,7 +160,7 @@ test("saveClientFileMetadata uploads client file metadata", async () => {
   const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
-  const result = await uploadMetadata.saveClientFileMetadata("", metadata)
+  const result = await uploadMetadata.saveClientFileMetadata("", metadata, [])
 
   expect(mockGraphqlClient).toHaveBeenCalled()
   expect(result).toHaveLength(2)
@@ -180,7 +180,7 @@ test("saveClientFileMetadata fails to upload client file metadata", async () => 
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
   await expect(
-    uploadMetadata.saveClientFileMetadata("", metadata)
+    uploadMetadata.saveClientFileMetadata("", metadata, [])
   ).rejects.toStrictEqual(
     Error("Add client file metadata failed: error 1,error 2")
   )
