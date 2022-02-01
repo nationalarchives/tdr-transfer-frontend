@@ -1,16 +1,8 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.AddTransferAgreementNonCompliance.{addTransferAgreementNotCompliance => atanc}
-import graphql.codegen.GetConsignment.{getConsignment => gc}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
-import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
-import io.circe.Printer
-import io.circe.generic.auto._
-import io.circe.syntax._
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Play.materializer
@@ -47,12 +39,7 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
       val controller: TransferAgreementController1 = taHelper.instantiateTransferAgreement1Controller(getAuthorisedSecurityComponents, app.configuration)
-
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None))))
-      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      taHelper.mockGraphqlResponse(dataString)
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement1").withCSRFToken)
@@ -75,12 +62,7 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
     }
 
     "throws an authorisation exception when the user does not have permission to see a consignment's not-compliance transfer agreement" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(
-        Some(gc.Data(None)),
-        List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      taHelper.mockGraphqlResponse(dataString)
+      taHelper.mockGetConsignmentGraphqlResponse(app.configuration)
 
       val consignmentId = UUID.randomUUID()
       val controller: TransferAgreementController1 = taHelper.instantiateTransferAgreement1Controller(getAuthorisedSecurityComponents, app.configuration)
@@ -117,6 +99,7 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
     "render an error when a valid (not-compliance) form is submitted but there is an error from the api" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       taHelper.stubTANotComplianceResponse(config = app.configuration, errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
+
       val controller: TransferAgreementController1 = taHelper.instantiateTransferAgreement1Controller(getAuthorisedSecurityComponents, app.configuration)
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.notCompliance)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
@@ -149,12 +132,7 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
     "display errors when an invalid (not-compliance) form (empty) is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementController1 = taHelper.instantiateTransferAgreement1Controller(getAuthorisedSecurityComponents, app.configuration)
-
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None))))
-      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      taHelper.mockGraphqlResponse(dataString)
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = Seq()
 
@@ -174,12 +152,7 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
     "display errors when an invalid (not-compliance) form (partially complete) is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = taHelper.instantiateTransferAgreement1Controller(getAuthorisedSecurityComponents, app.configuration)
-
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None))))
-      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      taHelper.mockGraphqlResponse(dataString)
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("compliance", 2)
 
@@ -202,12 +175,7 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
     "render the TA (not-compliance) 'already confirmed' page with an authenticated user if consignment status is 'InProgress'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementController1 = taHelper.instantiateTransferAgreement1Controller(getAuthorisedSecurityComponents, app.configuration)
-
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("InProgress"), None))))
-      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      taHelper.mockGraphqlResponse(dataString)
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement1").withCSRFToken)
@@ -226,12 +194,7 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
     "render the TA (not-compliance) 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementController1 = taHelper.instantiateTransferAgreement1Controller(getAuthorisedSecurityComponents, app.configuration)
-
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None))))
-      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      taHelper.mockGraphqlResponse(dataString)
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement1").withCSRFToken)
@@ -251,12 +214,7 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
       "after successfully submitting TA form that had been incorrectly submitted (empty) prior" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = taHelper.instantiateTransferAgreement1Controller(getAuthorisedSecurityComponents, app.configuration)
-
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None))))
-      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      taHelper.mockGraphqlResponse(dataString)
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement1").withCSRFToken)
@@ -276,12 +234,8 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
       "after successfully submitting TA form that had been incorrectly submitted (partially) prior" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = taHelper.instantiateTransferAgreement1Controller(getAuthorisedSecurityComponents, app.configuration)
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
 
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None))))
-      val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      taHelper.mockGraphqlResponse(dataString)
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("compliance", 1)
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
@@ -308,7 +262,7 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
         getValidJudgmentUserKeycloakConfiguration
       )
 
-      taHelper.mockGraphqlResponse(consignmentType = "judgment")
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, consignmentType = "judgment")
 
       val transferAgreementPage = controller.judgmentTransferAgreement(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/transfer-agreement1").withCSRFToken)
@@ -329,8 +283,9 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
         app.configuration,
         getValidJudgmentUserKeycloakConfiguration
       )
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, consignmentType = "judgment")
+
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.notCompliance)
-      taHelper.mockGraphqlResponse(consignmentType = "judgment")
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement1")
           .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
@@ -352,11 +307,11 @@ class TransferAgreementController1Spec extends FrontEndTestHelper {
 
         val transferAgreementPage = url match {
           case "judgment" =>
-            taHelper.mockGraphqlResponse()
+            taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
             controller.judgmentTransferAgreement(consignmentId)
             .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
           case "consignment" =>
-            taHelper.mockGraphqlResponse(consignmentType = "judgment")
+            taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, consignmentType = "judgment")
               controller.transferAgreement(consignmentId)
                 .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement1").withCSRFToken)
         }
