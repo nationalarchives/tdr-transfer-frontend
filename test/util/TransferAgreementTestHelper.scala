@@ -7,6 +7,10 @@ import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.{TransferAgreementController1, TransferAgreementController2}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementNonCompliance.{addTransferAgreementNotCompliance => atanc}
+import graphql.codegen.GetConsignment.{getConsignment => gc}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
+import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -16,6 +20,7 @@ import play.api.Configuration
 import play.api.i18n.Langs
 import services.{ConsignmentService, TransferAgreementService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
+import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 
 import scala.concurrent.ExecutionContext
 
@@ -41,10 +46,34 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
   val notCompliance = "notCompliance"
   val compliance = "compliance"
 
-  def mockGraphqlResponse(dataString: String = "", consignmentType: String = "standard"): StubMapping = {
-    if(dataString.nonEmpty) {
+  def mockGetConsignmentStatusGraphqlResponse(config: Configuration, taStatus: Option[String]=None, consignmentType: String = "standard"): StubMapping = {
+
+    val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
+    val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(taStatus, None))))
+    val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    if (dataString.nonEmpty) {
       wireMockServer.stubFor(post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentStatus"))
+        .willReturn(okJson(dataString)))
+    }
+
+    setConsignmentTypeResponse(wireMockServer, consignmentType)
+  }
+
+  def mockGetConsignmentGraphqlResponse(config: Configuration,
+                                        consignmentType: String = "standard"): StubMapping = {
+
+    val client = new GraphQLConfiguration(config).getClient[gc.Data, gc.Variables]()
+    val data: client.GraphqlData = client.GraphqlData(
+      Some(gc.Data(None)),
+      List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    if(dataString.nonEmpty) {
+      wireMockServer.stubFor(post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignment"))
         .willReturn(okJson(dataString)))
     }
 
