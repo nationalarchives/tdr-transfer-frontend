@@ -15,34 +15,28 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TransferAgreementController @Inject()(val controllerComponents: SecurityComponents,
+class TransferAgreementController2 @Inject()(val controllerComponents: SecurityComponents,
                                             val graphqlConfiguration: GraphQLConfiguration,
                                             val transferAgreementService: TransferAgreementService,
                                             val keycloakConfiguration: KeycloakConfiguration,
                                             val consignmentService: ConsignmentService,
                                             langs: Langs)
                                            (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
-  val transferAgreementForm: Form[TransferAgreementData] = Form(
+  val transferAgreementForm: Form[TransferAgreementComplianceData] = Form(
     mapping(
-      "publicRecord" -> boolean
-        .verifying("All records must be confirmed as public before proceeding", b => b),
-      "crownCopyright" -> boolean
-        .verifying("All records must be confirmed Crown Copyright before proceeding", b => b),
-      "english" -> boolean
-        .verifying("All records must be confirmed as English language before proceeding", b => b),
       "droAppraisalSelection" -> boolean
         .verifying("Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records", b => b),
       "droSensitivity" -> boolean
         .verifying("Departmental Records Officer (DRO) must have signed off sensitivity review", b => b),
       "openRecords" -> boolean
         .verifying("All records must be open", b => b)
-    )(TransferAgreementData.apply)(TransferAgreementData.unapply)
+    )(TransferAgreementComplianceData.apply)(TransferAgreementComplianceData.unapply)
   )
 
   private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
   implicit val language: Lang = langs.availables.head
 
-  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData] = transferAgreementForm)
+  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementComplianceData] = transferAgreementForm)
                                         (implicit request: Request[AnyContent]): Future[Result] = {
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
@@ -52,8 +46,10 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         val warningMessage = Messages("transferAgreement.warning")
         transferAgreementStatus match {
           case Some("Completed") =>
-            Ok(views.html.standard.transferAgreementAlreadyConfirmed(consignmentId, taForm, options, warningMessage)).uncache()
-          case _ => httpStatus(views.html.standard.transferAgreement(consignmentId, taForm, options, warningMessage)).uncache()
+            Ok(views.html.standard.transferAgreementAlreadyConfirmed2(consignmentId, taForm, options, warningMessage)).uncache()
+          case Some("InProgress") => httpStatus(views.html.standard.transferAgreement2(consignmentId, taForm, options, warningMessage)).uncache()
+          case _ =>
+            Redirect(routes.TransferAgreementController1.transferAgreement(consignmentId)).uncache()
         }
     }
   }
@@ -62,17 +58,12 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
     loadStandardPageBasedOnTaStatus(consignmentId, Ok)
   }
 
-  def judgmentTransferAgreement(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-      val warningMessage = Messages("judgmentTransferAgreement.warning")
-      Future(Ok(views.html.judgment.judgmentTransferAgreement(consignmentId, warningMessage)).uncache())
-  }
-
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
+    val errorFunction: Form[TransferAgreementComplianceData] => Future[Result] = { formWithErrors: Form[TransferAgreementComplianceData] =>
       loadStandardPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
     }
 
-    val successFunction: TransferAgreementData => Future[Result] = { formData: TransferAgreementData =>
+    val successFunction: TransferAgreementComplianceData => Future[Result] = { formData: TransferAgreementComplianceData =>
       val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
       for {
@@ -80,13 +71,13 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
         transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
         result <- transferAgreementStatus match {
           case Some("Completed") => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
-          case _ => transferAgreementService.addTransferAgreement(consignmentId, request.token.bearerAccessToken, formData)
+          case _ => transferAgreementService.addTransferAgreementCompliance(consignmentId, request.token.bearerAccessToken, formData)
             .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
         }
       } yield result
     }
 
-    val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest()
+    val formValidationResult: Form[TransferAgreementComplianceData] = transferAgreementForm.bindFromRequest()
 
     formValidationResult.fold(
       errorFunction,
@@ -95,9 +86,6 @@ class TransferAgreementController @Inject()(val controllerComponents: SecurityCo
   }
 }
 
-case class TransferAgreementData(publicRecord: Boolean,
-                                 crownCopyright: Boolean,
-                                 english: Boolean,
-                                 droAppraisalSelection: Boolean,
-                                 droSensitivity: Boolean,
-                                 openRecords: Boolean)
+case class TransferAgreementComplianceData(droAppraisalSelection: Boolean,
+                                           droSensitivity: Boolean,
+                                           openRecords: Boolean)

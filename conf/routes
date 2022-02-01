@@ -11,8 +11,10 @@ GET         /cookies                                              controllers.Co
 GET         /faq                                                  controllers.FaqController.faq()
 GET         /series                                               controllers.SeriesDetailsController.seriesDetails()
 POST        /series                                               controllers.SeriesDetailsController.seriesSubmit()
-GET         /consignment/:consignmentId/transfer-agreement        controllers.TransferAgreementController.transferAgreement(consignmentId: java.util.UUID)
-POST        /consignment/:consignmentId/transfer-agreement        controllers.TransferAgreementController.transferAgreementSubmit(consignmentId: java.util.UUID)
+GET         /consignment/:consignmentId/transfer-agreement1       controllers.TransferAgreementController1.transferAgreement(consignmentId: java.util.UUID)
+POST        /consignment/:consignmentId/transfer-agreement1       controllers.TransferAgreementController1.transferAgreementSubmit(consignmentId: java.util.UUID)
+GET         /consignment/:consignmentId/transfer-agreement2       controllers.TransferAgreementController2.transferAgreement(consignmentId: java.util.UUID)
+POST        /consignment/:consignmentId/transfer-agreement2       controllers.TransferAgreementController2.transferAgreementSubmit(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/upload                    controllers.UploadController.uploadPage(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/records                   controllers.FileChecksController.recordProcessingPage(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/records-results           controllers.FileChecksResultsController.fileCheckResultsPage(consignmentId: java.util.UUID)
@@ -34,7 +36,7 @@ GET         /sign-out                                             @org.pac4j.pla
 
 # Routes for judgment
 POST        /homepage                                             controllers.HomepageController.judgmentHomepageSubmit()
-GET         /judgment/:consignmentId/transfer-agreement           controllers.TransferAgreementController.judgmentTransferAgreement(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/transfer-agreement           controllers.TransferAgreementController1.judgmentTransferAgreement(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/upload                       controllers.UploadController.judgmentUploadPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/records                      controllers.FileChecksController.judgmentProcessingPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/records-results              controllers.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId: java.util.UUID)

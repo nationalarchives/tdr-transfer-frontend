@@ -42,8 +42,10 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
             case _ =>
               Ok(views.html.standard.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
           }
+        case Some("InProgress") =>
+          Redirect(routes.TransferAgreementController2.transferAgreement(consignmentId))
         case _ =>
-          Redirect(routes.TransferAgreementController.transferAgreement(consignmentId))
+          Redirect(routes.TransferAgreementController1.transferAgreement(consignmentId))
       }
     }
   }
