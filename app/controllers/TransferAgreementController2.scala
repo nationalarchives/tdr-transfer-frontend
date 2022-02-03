@@ -46,8 +46,9 @@ class TransferAgreementController2 @Inject()(val controllerComponents: SecurityC
         val warningMessage = Messages("transferAgreement.warning")
         transferAgreementStatus match {
           case Some("Completed") =>
-            Ok(views.html.standard.transferAgreementAlreadyConfirmed2(consignmentId, taForm, options, warningMessage)).uncache()
-          case Some("InProgress") => httpStatus(views.html.standard.transferAgreement2(consignmentId, taForm, options, warningMessage)).uncache()
+            Ok(views.html.standard.transferAgreementAlreadyConfirmed2(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
+          case Some("InProgress") =>
+            httpStatus(views.html.standard.transferAgreement2(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
           case _ =>
             Redirect(routes.TransferAgreementController1.transferAgreement(consignmentId)).uncache()
         }
