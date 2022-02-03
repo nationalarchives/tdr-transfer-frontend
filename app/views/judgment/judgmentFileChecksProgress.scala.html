@@ -1,9 +1,9 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
 @import views.html.partials.{frontEndInputs, progressIndicator}
-@(consignmentId: UUID, fileChecks: FileChecksProgress, frontEndInfo: FrontEndInfo)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, fileChecks: FileChecksProgress, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("Checking judgment") {
+@main("Checking judgment", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row file-check-progress">
         <div class="govuk-grid-column-two-thirds">

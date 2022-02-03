@@ -1,0 +1,246 @@
+@(isLoggedIn: Boolean)(implicit messages: Messages, request: RequestHeader)
+
+@main("Help", isLoggedIn = isLoggedIn) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="govuk-heading-l">User Help Guide</h1>
+
+            <h2 class="govuk-heading-m">This user help guide includes:</h2>
+            <nav aria-label="List">
+                <ul class="govuk-list govuk-list--bullet">
+                    <li><a href="#about">About Transfer Digital Records</a></li>
+                    <li><a href="#before-you-begin">Before you begin</a></li>
+                    <li><a href="#file-formats">File formats</a></li>
+                    <li><a href="#contact">Contact us</a></li>
+                    <li><a href="#step-by-step">A step by step guide to using TDR</a></li>
+                    <li><a href="#glossary">Glossary</a></li>
+                </ul>
+            </nav>
+            <br>
+
+            <h2 class="govuk-heading-m" id="about">About Transfer Digital Records</h2>
+            <p class="govuk-body">
+                Transfer Digital Records (TDR) is The National Archives’ (TNA’s) new digital transfer service that helps you as a Public Record Body prepare and transfer your selected digital public records to TNA for permanent preservation.
+            </p>
+            <p class="govuk-body">
+                Under the 20-year rule, you must transfer selected and sensitivity-reviewed digital public records by 20 years after they are created at the latest. This is usually determined by your date last modified. Until then, you must safeguard the records and actively manage their digital continuity to maintain your ability to find, open, understand and trust them over time and through change. We are very happy to accept early transfers of digital records and encourage you to transfer digital prior to the 20-year deadline. There are advantages to you transferring early; once records are transferred, you will no longer need to manage their digital continuity. We also advise taking a ‘little and often’ approach to transferring digital records to The National Archives.
+            </p>
+            <p class="govuk-body">
+                TDR is an improvement on our existing service. We have created a product which provides a preparation area where records are uploaded to prepare for transfer to TNA. These uploaded records in TDR continue to be the responsibility of and owned by you, the transferring body. For example, while your records are in TDR, you will be responsible for handling any FOI requests. The records are only transferred to TNA during the final stage of the TDR process.
+            </p>
+            <p class="govuk-body">
+                TDR is being built using an Agile approach. Private beta is an early agile stage where the service is still being developed and does not yet offer the full range of features that we intend to support. For example, TDR can currently only accept records that are open (i.e. no FOI exemptions apply), crown copyright and in English.
+            </p>
+            <p class="govuk-body">
+                At this private beta stage, the service is also only available to an invited group of users. Over time, we will make TDR available to more public record bodies and will continue to develop the service in consultation with our users, to add support for closed records and more complex types of records.
+            </p>
+            
+            <h2 class="govuk-heading-m" id="before-you-begin">Before you begin</h2>
+            <p class="govuk-body">
+                This service is currently in private beta, an early agile stage of development where limited features are available. Please be aware that at this stage, we can only accept records that are Crown Copyright, in english, open (i.e no FOI exemptions apply) and from your shared drive. 
+            </p>
+            <p class="govuk-body">
+                Over time, we will extend the service to accept a wider range of records such as those in a different language, closed records and other complex types of records.
+            </p>
+            <p class="govuk-body">
+                To ensure you have the best experience, and can use all of our available features, we recommend you use the latest version of Google Chrome. Please be aware that Internet Explorer is not currently supported at all. 
+            </p>
+            <h3 class="govuk-heading-s" id="file-formats">File formats</h3>
+            <p class="govuk-body">
+                To ensure that your records have the best possible chance of being successfully uploaded and passing TDR checks, we ask that you read the following information about the file formats we accept before proceeding to upload your records:
+            </p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>We cannot accept files that are password protected or encrypted</li>
+                <li>During private beta, we cannot accept zip files </li>
+                <li>Files such as thumbnail images (thumbs.db) and system files are not usually selected for permanent preservation We will accept these but strongly advise you remove them prior to upload. </li>
+            </ul>
+            <p class="govuk-body">
+                To identify these files, search your folder for the file extensions (thumb.dbs, .exe and .zip). For password protected files, click to view folder options and select ‘hidden files and folders’. These files should usually be identified as part of your selection and sensitivity review process.
+            </p>
+            <p class="govuk-body">
+                We recommend that you check your files prior to upload to ensure that you upload only selected records intended for preservation. During the upload and checking process, if we detect files we cannot accept, we will inform you and you will be unable to proceed with your transfer.
+            </p>
+
+            <h3 class="govuk-heading-s" id="contact">Contact us </h3>
+            <p class="govuk-body">
+                If you have a query regarding the transfer process, the status of your transfer or to report an error or issue you have encountered, please contact <a href="mailto:tdr@@nationalarchives.gov.uk">tdr@@nationalarchives.gov.uk</a>
+            </p>
+            <p class="govuk-body">
+                You can also contact us if you have more general queries regarding the suitability of records for transfer, file format or transfer agreement criteria.
+            </p>
+
+            <h2 class="govuk-heading-m" id="step-by-step">A step by step guide to using TDR</h2>
+            <h3 class="govuk-heading-s">Sign in</h3>
+            <p class="govuk-body">
+                To begin a new upload, sign in to your account, entering your email address and using the password provided in your invitation email. If you forget your password, use the ‘I’ve forgotten my password’ link on the sign-in page to reset it. If you still cannot sign in, please contact <a href="mailto:tdr@@nationalarchives.gov.uk">tdr@@nationalarchives.gov.uk</a>. Once signed in you will be prompted to change your password.
+            </p>
+            <img src="@routes.Assets.versioned("images/sign-in.png")" class="screenshots" alt="Login page with text input for your email address and password." />
+
+            <h3 class="govuk-heading-s">Step one: Select series reference </h3>
+            <p class="govuk-body">
+                Your series reference during private beta will be pre-populated and will appear in the drop down list. You should select the correct series reference from the drop-down menu and click continue. 
+            </p>
+            <img src="@routes.Assets.versioned("images/series.png")" class="screenshots" alt="Series reference page with a drop down menu that consists of pre-populated series numbers." />
+            <p class="govuk-body">
+                If you cannot see the correct series reference please contact <a href="mailto:tdr@@nationalarchives.gov.uk">tdr@@nationalarchives.gov.uk</a>.
+            </p>
+            <h3 class="govuk-heading-s">Step two: Transfer agreement</h3>
+            <p class="govuk-body">
+                Before you upload records, you must confirm that, to the best of your knowledge, your records meet our criteria. 
+            </p>
+            <p class="govuk-body">
+                During private beta, records must meet the following criteria:
+            </p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Records must be Public Records</li>
+                <li>Records must be Crown Copyright</li>
+                <li>Records must be in English</li>
+                <li>The Departmental Records Officer (DRO) must have signed off the appraisal and selection decision </li>
+                <li>The Departmental Records Officer (DRO) must have signed off the sensitivity review</li>
+                <li>For more information on what is meant by the above terms, please see our <a href="#glossary">Glossary</a></li>
+            </ul>
+            <p class="govuk-body">
+                The transfer agreement is in two parts. The first part covers the requirements that records must be public, crown copyright and in english.
+            </p>
+            <img src="@routes.Assets.versioned("images/TA-1.png")" class="screenshots" alt="A list of checkboxes which need to be checked before continuing." />
+            <p class="govuk-body">
+                The second part of the transfer agreement is to confirm that the Departmental Records Officer (DRO) has signed off the sensitivity review, appraisal and selection decision.
+            </p>
+            <img src="@routes.Assets.versioned("images/TA-2.png")" class="screenshots" alt="A second list of checkboxes which need to be checked before continuing." />
+            <h3 class="govuk-heading-s">Step three: Upload your records</h3>
+            <p class="govuk-body">
+                To upload your records, you can either drag and drop a file or folder OR choose a file or folder for upload. Please ensure your internet connection is strong and stable. Before uploading please consider the following information:
+            </p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>You can upload one file or one top-level folder per transfer. However, your folder can contain multiple files and sub-folders</li>
+                <li>We cannot accept files that are password protected or encrypted</li>
+                <li>During private beta, we cannot accept zip files</li>
+                <li>Files such as thumbnail images (thumbs.db) and system files are not usually selected for permanent preservation. We strongly advise you do not upload these</li>
+                <li>During the upload process, TDR runs DROID to capture basic file-level metadata. Such as file path, file name, date (usually last modified), file format, and checksum</li>
+            </ul>
+            <img src="@routes.Assets.versioned("images/upload.png")" class="screenshots" alt="Upload page with a multi-select area for dropping your folder or selecting through a button." />
+            <p class="govuk-body">
+                Please note, when you upload your records, you still have legal custody over them and are still responsible for any FOI requests.
+            </p>
+            <h3 class="govuk-heading-s">Step four: Upload and file checks</h3>
+            <p class="govuk-body">
+                During upload, we will identify the format of your records. If your records are in a format that is not known, TNA may be in contact with you post transfer to discuss these.
+            </p>
+            <img src="@routes.Assets.versioned("images/checks.png")" class="screenshots" alt="Checks page with information on what checks are taking place now." />
+            <p class="govuk-body">
+                TDR runs a series of checks on the files to ensure they can be transferred. The following checks are performed:
+            </p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li class="govuk-!-font-weight-bold">Antivirus</li>
+                    <p class="govuk-body">
+                        A check performed to scan for viruses and other malware. We cannot accept infected files.
+                    </p>
+                <li class="govuk-!-font-weight-bold">File format identification</li>
+                    <p class="govuk-body">
+                        A check performed to identify the file format and confirm that the file is suitable for transfer. Knowing the format also aids TNA with preservation decisions about the record. We accept most digital formats, but ones we haven’t seen before may need further investigation. We may contact you if your transfer contains file formats that we can’t identify. 
+                    </p>
+                <li class="govuk-!-font-weight-bold">Validating data integrity</li>
+                    <p class="govuk-body">
+                        A check performed to ensure files have not been corrupted as they move between your shared drive and TDR during the upload process. The data integrity check uses checksums which are like a digital fingerprint used to ensure the data has not changed. For TDR we use SHA256.
+                    </p>
+            </ul>
+            <p class="govuk-body">
+                If your files fail TDR checks, we will inform you. Failing checks may mean you cannot proceed with your transfer until the problems are resolved.
+            </p>
+            <h3 class="govuk-heading-s">Step five: Add descriptive metadata</h3>
+            <p class="govuk-body">
+                Although TDR runs DROID to capture basic file-level metadata during the upload, you should provide additional information about your records if you can. This can include anything from descriptions to additional dates. Any additional information that will provide context and richness to the record and make it easier to find and understand in the future.
+            </p>
+            <img src="@routes.Assets.versioned("images/metadata.png")" class="screenshots" alt="Adding metadata page with information on how to add, edit or delete metadata." />
+            <p class="govuk-body">
+                To do this during private beta, you will need to download DROID and create a metadata csv which contains the additional metadata. For further assistance, please contact <a href="mailto:tdr@@nationalarchives.gov.uk">tdr@@nationalarchives.gov.uk</a>.
+            </p>
+            <h3 class="govuk-heading-s">Step six: Confirm transfer</h3>
+            <p class="govuk-body">
+                At the final stage of TDR you will be asked to confirm transfer.  When confirmed, both the records and their legal custody will be exported to TNA.
+            </p>
+            <img src="@routes.Assets.versioned("images/confirm.png")" class="screenshots" alt="Final confirmation before submitting your transfer to The National Archives." />
+            <p class="govuk-body">
+                Until you are notified that your records have been successfully transferred and are live on Discovery it is important that you keep your records safe and do not delete them. During private beta, this process can take up to 90 days. If you do not receive an email after this time, please contact <a href="mailto:tdr@@nationalarchives.gov.uk">tdr@@nationalarchives.gov.uk</a>.
+            </p>
+
+            <h2 class="govuk-heading-m" id="glossary">Glossary</h2>
+            <p class="govuk-body">
+                Each of the following terms is defined within the context of Transfer Digital Records (TDR).
+            </p>
+            <h3 class="govuk-heading-s">Anti-virus scan</h3>
+            <p class="govuk-body">
+                A check performed on digital files to detect the presence of computer viruses or other malware. We do not accept files that contain viruses or malware and so if these are detected the upload will fail.
+            </p>
+            <h3 class="govuk-heading-s">Consignment</h3>
+            <p class="govuk-body">
+                A consignment is a group of selected records being prepared and transferred to The National Archives. Sometimes referred to as a batch.
+            </p>
+            <h3 class="govuk-heading-s">Consignment reference </h3>
+            <p class="govuk-body">
+                Each consignment of digital records uploaded to TDR for transfer to The National Archives is assigned a consignment reference which can be identified as a series of letters and numbers. Please quote this reference if you need to contact us about your records transfer.
+            </p>
+            <h3 class="govuk-heading-s">Creating body</h3>
+            <p class="govuk-body">
+                The government department or body that originally created the records being transferred. This is often the same as the body that transfers the records.
+            </p>
+            <h3 class="govuk-heading-s">Crown Copyright </h3>
+            <p class="govuk-body">
+                Under section 163 of the Copyright, Designs and Patents Act 1988, Crown Copyright is defined as works made by officers or servants of the Crown in the course of their duties. This includes material created by ministers, civil servants and government departments and agencies. Copyright can also be assigned or transferred to the Crown by the legal owner of the copyright. Most, though not all, Public Records are Crown Copyright.
+            </p>
+            <h3 class="govuk-heading-s">Data integrity check</h3>
+            <p class="govuk-body">
+                When you upload your digital records to TDR, we carry out data integrity checks to help ensure that files have not been corrupted during the upload process. The integrity check uses checksums which are like digital fingerprints used to verify that no changes have been made to the data.
+            </p>
+            <p class="govuk-body">
+                The checksum hash we use is SHA 256.
+            </p>
+            <h3 class="govuk-heading-s">Departmental Records Officer</h3>
+            <p class="govuk-body">
+                A Departmental Records Officer (DRO) is a person appointed by a government department or agency as being responsible for the management of the records of that organisation. The DRO must authorise any transfer of records to The National Archives and is responsible for ensuring that the records are properly sensitivity reviewed prior to transfer. 
+            </p>
+            <h3 class="govuk-heading-s">Freedom of Information (FOI) exemption</h3>
+            <p class="govuk-body">
+                FOI exemptions exist to protect information that should not be disclosed. A list of exemptions can be found in Part II of the Freedom of Information Act, at sections 21 to 44. Records transferred to The National Archives will be released to the public (‘opened’) unless you apply one or more FOI exemptions.
+            </p>
+            <h3 class="govuk-heading-s">Metadata</h3>
+            <p class="govuk-body">
+                Data that provides additional information about digital records. For example, information that could help a user find or understand a record, locate other related information or understand how the record was originally created or used.
+            </p>
+            <h3 class="govuk-heading-s">Private beta</h3>
+            <p class="govuk-body">
+                The Transfer Digital Records service is still being developed and is currently at a ‘private beta’ stage. At this stage in its development, TDR does not yet offer the full range of features which our users require (for example, TDR can currently only accept records which are Open, Crown Copyright and in English). The service is currently only available to an invited group of users.
+            </p>
+            <h3 class="govuk-heading-s">Public Records</h3>
+            <p class="govuk-body">
+                Records of, or held in, any department of Her Majesty’s Government in the United Kingdom or records of any office, commission or other body or establishment whatsoever under Her Majesty’s Government in the United Kingdom, as defined in paragraph 2 of the First Schedule to the Public Records Act 1958.
+            </p>
+            <p class="govuk-body">
+                Most records held by the UK central government and related bodies are Public Records.
+            </p>
+            <p class="govuk-body">
+                Records held by local authorities, educational institutions, businesses or private individuals are not usually Public Records. If you need advice on whether the records you hold are Public Records please contact us.
+            </p>
+            <h3 class="govuk-heading-s">Records selection</h3>
+            <p class="govuk-body">
+                The process of evaluating your records to determine which should be transferred to The National Archives for permanent preservation, in line with the Public Records Act. Selection must be completed prior to using TDR.
+            </p>
+            <h3 class="govuk-heading-s">Sensitivity review</h3>
+            <p class="govuk-body">
+                Before you transfer records to The National Archives, you must review them to identify any sensitive information and apply the relevant FOI exemption(s). Transferred records will be released to the public except where FOI exemptions have been applied.
+            </p>
+            <h3 class="govuk-heading-s">Series reference</h3>
+            <p class="govuk-body">
+                A reference assigned to a set of archived records. Series references generally indicate the creating department and the subject matter of the records.
+            </p>
+            <h3 class="govuk-heading-s">Records transfer</h3>
+            <p class="govuk-body">
+                The process of formally transferring custody of public records that have been selected for permanent preservation to The National Archives (or other approved Place of Deposit for public records).
+            </p>
+            <h3 class="govuk-heading-s">Transferring body</h3>
+            <p class="govuk-body">
+                The government department or body that is transferring records for permanent preservation. This is often the same as the body that originally created the records.
+            </p>
+        </div>
+    </div>
+}

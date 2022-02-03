@@ -10,7 +10,7 @@ import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponent
 @Singleton
 class ContactController @Inject()(securityComponents: SecurityComponents) extends UnprotectedPageController(securityComponents) with I18nSupport  {
   def contact(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.contact(request.isLoggedIn))
+    Ok(views.html.contact(request.isLoggedIn, request.name))
   }
 }
 
