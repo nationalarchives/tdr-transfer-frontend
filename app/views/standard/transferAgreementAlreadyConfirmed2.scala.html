@@ -4,8 +4,8 @@
 @import scala.language.postfixOps
 @import views.html.partials.{transferAgreementFormGroup2, transferAgreementHeader, transferAgreementWarning}
 
-@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementComplianceData], agreementOptions: Seq[(String, String)], warningMessage: String)(implicit request: RequestHeader, messages: Messages)
-@main("Transfer agreement") {
+@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementComplianceData], agreementOptions: Seq[(String, String)], warningMessage: String, name: String)(implicit request: RequestHeader, messages: Messages)
+@main("Transfer agreement", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
