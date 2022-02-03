@@ -131,7 +131,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         seriesService, consignmentService)
       val seriesSubmit = controller.seriesSubmit().apply(FakeRequest().withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
       playStatus(seriesSubmit) mustBe SEE_OTHER
-      redirectLocation(seriesSubmit) must be(Some(s"/consignment/$consignmentId/transfer-agreement"))
+      redirectLocation(seriesSubmit) must be(Some(s"/consignment/$consignmentId/transfer-agreement1"))
     }
 
     "renders an error when a valid form is submitted but there is an error from the api" in {

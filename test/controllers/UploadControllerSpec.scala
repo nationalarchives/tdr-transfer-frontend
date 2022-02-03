@@ -48,11 +48,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
       status(uploadPage) mustBe SEE_OTHER
-      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement")
+      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement1")
     }
 
     // This is unlikely but it's possible that they've bypassed the checks and partially agreed to things
-    "redirect to the transfer agreement page if the transfer agreement for that consignment has been partially agreed to" in {
+    "redirect to the transfer agreement page if the transfer agreement for that consignment has not been agreed to" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
@@ -65,7 +65,24 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
       status(uploadPage) mustBe SEE_OTHER
-      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement")
+      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement1")
+    }
+
+    // This is unlikely but it's possible that they've bypassed the checks and partially agreed to things
+    "redirect to the transfer agreement page if the transfer agreement for that consignment has been partially agreed to" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
+
+      stubGetConsignmentStatusResponse(Some("InProgress"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
+
+      val uploadPage = controller.uploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
+      status(uploadPage) mustBe SEE_OTHER
+      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement2")
     }
 
     "show the upload page if the transfer agreement for that consignment has been agreed to in full" in {

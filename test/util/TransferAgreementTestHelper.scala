@@ -40,8 +40,8 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     "openRecords" -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records."
   )
 
-  val checkHtmlOfNonComplianceFormOptions = new CheckHtmlOfFormOptions(nonComplianceOptions)
-  val checkHtmlOfComplianceFormOptions = new CheckHtmlOfFormOptions(complianceOptions)
+  val checkHtmlOfNonComplianceFormOptions = new CheckHtmlOfFormOptions(nonComplianceOptions, "")
+  val checkHtmlOfComplianceFormOptions = new CheckHtmlOfFormOptions(complianceOptions, "")
 
   val notCompliance = "notCompliance"
   val compliance = "compliance"
