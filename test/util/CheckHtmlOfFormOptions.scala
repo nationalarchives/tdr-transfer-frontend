@@ -9,7 +9,7 @@ class CheckHtmlOfFormOptions(options: Map[String, String]) {
 
     def addValuesToAttributes(name: String, label: String, checkedStatus: String="", disabledStatus: String=""): String = {
       s"""
-         |        <div class='govuk-checkboxes__item '>
+         |        <div class='govuk-checkboxes__item'>
          |            <input
          |                $checkedStatus
          |                class="govuk-checkboxes__input"
