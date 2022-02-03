@@ -3,9 +3,9 @@
 @import helper.{inputRadioGroup => _, _}
 @import views.html.partials.{errorSummary, inputSingleCheckbox, progressIndicator}
 
-@(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData])(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData], name: String)(implicit request: RequestHeader, messages: Messages)
 
-@main("Confirm transfer") {
+@main("Confirm transfer", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">

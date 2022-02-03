@@ -28,9 +28,9 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
           fileCheck.totalFiles,
           parentFolder
         )
-        Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId))
+        Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId, request.token.name))
       } else {
-        Ok(views.html.standard.fileChecksFailed())
+        Ok(views.html.standard.fileChecksFailed(request.token.name))
       }
     })
   }
@@ -41,10 +41,10 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
         consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).map(files => {
           val filename = files.files.head.metadata.clientSideOriginalFilePath
             .getOrElse(throw new IllegalStateException(s"Filename cannot be found for judgment upload: '$consignmentId'"))
-          Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId))
+          Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, request.token.name))
         })
       } else {
-        Future(Ok(views.html.standard.fileChecksFailed()))
+        Future(Ok(views.html.standard.fileChecksFailed(request.token.name)))
       }
     })
   }

@@ -36,11 +36,11 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
         case Some("Completed") =>
           uploadStatus match {
             case Some("InProgress") =>
-              Ok(views.html.uploadInProgress(consignmentId, pageHeading)).uncache()
+              Ok(views.html.uploadInProgress(consignmentId, pageHeading, request.token.name)).uncache()
             case Some("Completed") =>
-              Ok(views.html.uploadHasCompleted(consignmentId, pageHeading)).uncache()
+              Ok(views.html.uploadHasCompleted(consignmentId, pageHeading, request.token.name)).uncache()
             case _ =>
-              Ok(views.html.standard.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
+              Ok(views.html.standard.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
           }
         case Some("InProgress") =>
           Redirect(routes.TransferAgreementController2.transferAgreement(consignmentId))
@@ -61,11 +61,11 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
 
       uploadStatus match {
         case Some("InProgress") =>
-          Ok(views.html.uploadInProgress(consignmentId, pageHeading)).uncache()
+          Ok(views.html.uploadInProgress(consignmentId, pageHeading, request.token.name)).uncache()
         case Some("Completed") =>
-          Ok(views.html.uploadHasCompleted(consignmentId, pageHeading)).uncache()
+          Ok(views.html.uploadHasCompleted(consignmentId, pageHeading, request.token.name)).uncache()
         case _ =>
-          Ok(views.html.judgment.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo)).uncache()
+          Ok(views.html.judgment.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
       }
     }
   }

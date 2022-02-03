@@ -1,6 +1,6 @@
-@()(implicit messages: Messages, request: RequestHeader)
+@(name: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("Page access restricted") {
+@main("Page access restricted", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
