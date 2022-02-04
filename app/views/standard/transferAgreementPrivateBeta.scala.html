@@ -3,26 +3,26 @@
 @import java.util.UUID
 
 @import scala.language.postfixOps
-@import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup2}
+@import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup}
 
-@import views.html.partials.transferAgreementFormGroup2
-@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementComplianceData], agreementOptions: Seq[(String, String)], warningMessage: String, name: String)(implicit request: RequestHeader, messages: Messages)
-@main("Transfer agreement continued", name = name) {
+@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementData], agreementOptions: Seq[(String, String)], warningMessage: String, name: String)(implicit request: RequestHeader, messages: Messages)
+@main("Transfer agreement", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        @transferAgreementHeader(" continued")
+        @transferAgreementHeader()
         <p class="govuk-body">You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor.</p>
+        @transferAgreementWarning(warningMessage)
         @errorSummary(
-            transferAgreementFormData("droAppraisalSelection"),
-            transferAgreementFormData("droSensitivity"),
-            transferAgreementFormData("openRecords"),
+            transferAgreementFormData("publicRecord"),
+            transferAgreementFormData("crownCopyright"),
+            transferAgreementFormData("english")
         )
         @form(
-            routes.TransferAgreementController2.transferAgreementSubmit(consignmentId),
+            routes.TransferAgreementPrivateBetaController.transferAgreementSubmit(consignmentId),
             (Symbol("novalidate"), "")
         ) {
-        @transferAgreementFormGroup2(transferAgreementFormData: Form[TransferAgreementComplianceData], formAlreadySubmitted=false)
+        @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted=false)
         <div class="govuk-button-group">
             <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
                 Continue

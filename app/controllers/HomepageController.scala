@@ -19,7 +19,7 @@ class HomepageController @Inject()(val controllerComponents: SecurityComponents,
   def judgmentHomepageSubmit(): Action[AnyContent] = judgmentUserAction {
     implicit request: Request[AnyContent] =>
       consignmentService.createConsignment(None, request.token).map(consignment =>
-        Redirect(routes.TransferAgreementController1.judgmentTransferAgreement(consignment.consignmentid.get))
+        Redirect(routes.TransferAgreementPrivateBetaController.judgmentTransferAgreement(consignment.consignmentid.get))
       )
   }
 

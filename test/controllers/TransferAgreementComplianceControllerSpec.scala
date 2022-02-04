@@ -17,7 +17,7 @@ import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 
-class TransferAgreementController2Spec extends FrontEndTestHelper {
+class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val wiremockServer = new WireMockServer(9006)
@@ -33,11 +33,12 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
 
   val taHelper = new TransferAgreementTestHelper(wiremockServer)
 
-  "TransferAgreementController GET" should {
+  "TransferAgreementComplianceController GET" should {
 
     "redirect to the TA not-compliance page with an authenticated user if consignment status is 'None'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller: TransferAgreementController2 = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller: TransferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
@@ -53,7 +54,8 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
 
     "render the TA (compliance) page with an authenticated user if consignment status is 'InProgress'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller: TransferAgreementController2 = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller: TransferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
@@ -69,7 +71,8 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
 
     "return a redirect to the auth server with an unauthenticated user (compliance)" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller: TransferAgreementController2 = taHelper.instantiateTransferAgreement2Controller(getUnauthorisedSecurityComponents, app.configuration)
+      val controller: TransferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getUnauthorisedSecurityComponents, app.configuration)
       val transferAgreementPage = controller.transferAgreement(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-agreement2"))
 
       redirectLocation(transferAgreementPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -80,7 +83,8 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
       taHelper.mockGetConsignmentGraphqlResponse(app.configuration)
 
       val consignmentId = UUID.randomUUID()
-      val controller: TransferAgreementController2 = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller: TransferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement2").withCSRFToken)
@@ -103,7 +107,8 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
 
-      val controller: TransferAgreementController2 = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller: TransferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.compliance)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest().withFormUrlEncodedBody(completedTransferAgreementForm:_*).withCSRFToken)
@@ -115,7 +120,8 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       taHelper.stubTAComplianceResponse(config=app.configuration, errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
 
-      val controller: TransferAgreementController2 = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller: TransferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.compliance)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/upload")
@@ -133,7 +139,8 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
         errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED")))))
       )
 
-      val controller: TransferAgreementController2 = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller: TransferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.compliance)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/upload")
@@ -145,9 +152,10 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
       failure mustBe an[AuthorisationException]
     }
 
-    "display errors when an invalid (compliance) form (empty) is submitted" in {
+    "display errors when an empty compliance form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller: TransferAgreementController2 = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller: TransferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = Seq()
@@ -165,9 +173,9 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
       taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.compliance, Set())
     }
 
-    "display errors when an invalid (compliance) form (partially complete) is submitted" in {
+    "display errors when a partially complete compliance form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("notCompliance", 2)
@@ -190,7 +198,8 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
 
     "render the TA (compliance) 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller: TransferAgreementController2 = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller: TransferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
@@ -210,7 +219,7 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
     "render the TA (compliance) 'already confirmed' page with an authenticated user if user navigates back to TA page" +
       "after successfully submitting TA form that had been incorrectly submitted (empty) prior" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
@@ -230,7 +239,7 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
     "render the TA (compliance) 'already confirmed' page with an authenticated user if user navigates back to TA page" +
       "after successfully submitting TA form that had been incorrectly submitted (partially) prior" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = taHelper.instantiateTransferAgreement2Controller(getAuthorisedSecurityComponents, app.configuration)
+      val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("notCompliance", 1)
@@ -256,7 +265,7 @@ class TransferAgreementController2Spec extends FrontEndTestHelper {
     s"The $url transfer agreement page" should {
       s"return 403 if the GET is accessed by an incorrect user" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-        val controller: TransferAgreementController2 = taHelper.instantiateTransferAgreement2Controller(
+        val controller: TransferAgreementComplianceController = taHelper.instantiateTransferAgreementComplianceController(
           getAuthorisedSecurityComponents,
           app.configuration,
           user

@@ -15,13 +15,13 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TransferAgreementController1 @Inject()(val controllerComponents: SecurityComponents,
-                                            val graphqlConfiguration: GraphQLConfiguration,
-                                            val transferAgreementService: TransferAgreementService,
-                                            val keycloakConfiguration: KeycloakConfiguration,
-                                            val consignmentService: ConsignmentService,
-                                            langs: Langs)
-                                           (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+class TransferAgreementPrivateBetaController @Inject()(val controllerComponents: SecurityComponents,
+                                                       val graphqlConfiguration: GraphQLConfiguration,
+                                                       val transferAgreementService: TransferAgreementService,
+                                                       val keycloakConfiguration: KeycloakConfiguration,
+                                                       val consignmentService: ConsignmentService,
+                                                       langs: Langs)
+                                                      (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
   val transferAgreementForm: Form[TransferAgreementData] = Form(
     mapping(
       "publicRecord" -> boolean
@@ -46,8 +46,8 @@ class TransferAgreementController1 @Inject()(val controllerComponents: SecurityC
         val warningMessage = Messages("transferAgreement.warning")
         transferAgreementStatus match {
           case Some("InProgress") | Some("Completed") =>
-            Ok(views.html.standard.transferAgreementAlreadyConfirmed(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
-          case _ => httpStatus(views.html.standard.transferAgreement(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
+            Ok(views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
+          case _ => httpStatus(views.html.standard.transferAgreementPrivateBeta(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
         }
     }
   }
@@ -73,9 +73,9 @@ class TransferAgreementController1 @Inject()(val controllerComponents: SecurityC
         consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
         transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
         result <- transferAgreementStatus match {
-          case Some("InProgress") => Future(Redirect(routes.TransferAgreementController2.transferAgreement(consignmentId)))
+          case Some("InProgress") => Future(Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
           case _ => transferAgreementService.addTransferAgreementNotCompliance(consignmentId, request.token.bearerAccessToken, formData)
-            .map(_ => Redirect(routes.TransferAgreementController2.transferAgreement(consignmentId)))
+            .map(_ => Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
         }
       } yield result
     }
