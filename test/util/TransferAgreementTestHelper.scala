@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import controllers.{TransferAgreementController1, TransferAgreementController2}
+import controllers.{TransferAgreementPrivateBetaController, TransferAgreementComplianceController}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementNonCompliance.{addTransferAgreementNotCompliance => atanc}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
@@ -123,28 +123,28 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     errorsThatShouldBeOnPage.values.foreach(error => htmlAsString must include(error))
   }
 
-  def instantiateTransferAgreement1Controller(securityComponents: SecurityComponents,
-                                              config: Configuration,
-                                              keycloakConfiguration: KeycloakConfiguration =
-                                              getValidKeycloakConfiguration): TransferAgreementController1 = {
+  def instantiateTransferAgreementPrivateBetaController(securityComponents: SecurityComponents,
+                                                        config: Configuration,
+                                                        keycloakConfiguration: KeycloakConfiguration =
+                                                        getValidKeycloakConfiguration): TransferAgreementPrivateBetaController = {
 
     val graphQLConfiguration = new GraphQLConfiguration(config)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 
-    new TransferAgreementController1(securityComponents, new GraphQLConfiguration(config),
+    new TransferAgreementPrivateBetaController(securityComponents, new GraphQLConfiguration(config),
       transferAgreementService, keycloakConfiguration, consignmentService, langs)
   }
 
-  def instantiateTransferAgreement2Controller(securityComponents: SecurityComponents,
-                                              config: Configuration,
-                                              keycloakConfiguration: KeycloakConfiguration =
-                                              getValidKeycloakConfiguration): TransferAgreementController2 = {
+  def instantiateTransferAgreementComplianceController(securityComponents: SecurityComponents,
+                                                       config: Configuration,
+                                                       keycloakConfiguration: KeycloakConfiguration =
+                                                       getValidKeycloakConfiguration): TransferAgreementComplianceController = {
     val graphQLConfiguration = new GraphQLConfiguration(config)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 
-    new TransferAgreementController2(securityComponents, new GraphQLConfiguration(config),
+    new TransferAgreementComplianceController(securityComponents, new GraphQLConfiguration(config),
       transferAgreementService, keycloakConfiguration, consignmentService, langs)
   }
 
