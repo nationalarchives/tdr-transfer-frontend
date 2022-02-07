@@ -5,7 +5,7 @@ import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.i18n.{I18nSupport, Lang, Langs, Messages}
+import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
 import viewsapi.Caching.preventCaching
@@ -19,8 +19,7 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
                                                       val graphqlConfiguration: GraphQLConfiguration,
                                                       val transferAgreementService: TransferAgreementService,
                                                       val keycloakConfiguration: KeycloakConfiguration,
-                                                      val consignmentService: ConsignmentService,
-                                                      langs: Langs)
+                                                      val consignmentService: ConsignmentService)
                                                      (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
   val transferAgreementForm: Form[TransferAgreementComplianceData] = Form(
     mapping(
@@ -33,8 +32,11 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
     )(TransferAgreementComplianceData.apply)(TransferAgreementComplianceData.unapply)
   )
 
-  private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
-  implicit val language: Lang = langs.availables.head
+  val taFormNamesAndLabels = Seq(
+    ("droAppraisalSelection", "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection decision."),
+    ("droSensitivity", "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review."),
+    ("openRecords", "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
+  )
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementComplianceData] = transferAgreementForm)
                                         (implicit request: Request[AnyContent]): Future[Result] = {
@@ -46,9 +48,11 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
         val warningMessage = Messages("transferAgreement.warning")
         transferAgreementStatus match {
           case Some("Completed") =>
-            Ok(views.html.standard.transferAgreementComplianceAlreadyConfirmed(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
+            Ok(views.html.standard.transferAgreementComplianceAlreadyConfirmed(
+              consignmentId, taForm, taFormNamesAndLabels, warningMessage, request.token.name)).uncache()
           case Some("InProgress") =>
-            httpStatus(views.html.standard.transferAgreementCompliance(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
+            httpStatus(views.html.standard.transferAgreementCompliance(
+              consignmentId, taForm, taFormNamesAndLabels, warningMessage, request.token.name)).uncache()
           case _ =>
             Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)).uncache()
         }

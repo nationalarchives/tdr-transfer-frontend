@@ -5,7 +5,7 @@ import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.i18n.{I18nSupport, Lang, Langs, Messages}
+import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
 import viewsapi.Caching.preventCaching
@@ -19,8 +19,7 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
                                                        val graphqlConfiguration: GraphQLConfiguration,
                                                        val transferAgreementService: TransferAgreementService,
                                                        val keycloakConfiguration: KeycloakConfiguration,
-                                                       val consignmentService: ConsignmentService,
-                                                       langs: Langs)
+                                                       val consignmentService: ConsignmentService)
                                                       (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
   val transferAgreementForm: Form[TransferAgreementData] = Form(
     mapping(
@@ -33,8 +32,11 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
     )(TransferAgreementData.apply)(TransferAgreementData.unapply)
   )
 
-  private val options: Seq[(String, String)] = Seq("Yes" -> "true", "No" -> "false")
-  implicit val language: Lang = langs.availables.head
+  val transferAgreementFormNameAndLabel = Seq(
+    ("publicRecord", "I confirm that the records are Public Records."),
+    ("crownCopyright", "I confirm that the records are all Crown Copyright."),
+    ("english", "I confirm that the records are all in English.")
+  )
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData] = transferAgreementForm)
                                         (implicit request: Request[AnyContent]): Future[Result] = {
@@ -46,8 +48,11 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
         val warningMessage = Messages("transferAgreement.warning")
         transferAgreementStatus match {
           case Some("InProgress") | Some("Completed") =>
-            Ok(views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
-          case _ => httpStatus(views.html.standard.transferAgreementPrivateBeta(consignmentId, taForm, options, warningMessage, request.token.name)).uncache()
+            Ok(views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(
+              consignmentId, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
+          case _ => httpStatus(
+            views.html.standard.transferAgreementPrivateBeta(
+              consignmentId, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
         }
     }
   }

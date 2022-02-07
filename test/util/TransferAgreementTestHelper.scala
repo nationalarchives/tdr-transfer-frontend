@@ -17,7 +17,6 @@ import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Configuration
-import play.api.i18n.Langs
 import services.{ConsignmentService, TransferAgreementService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
@@ -26,7 +25,6 @@ import scala.concurrent.ExecutionContext
 
 class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontEndTestHelper{
   implicit val ec: ExecutionContext = ExecutionContext.global
-  val langs: Langs = new EnglishLang
 
   val nonComplianceOptions = Map(
     "publicRecord" -> "I confirm that the records are Public Records.",
@@ -133,7 +131,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 
     new TransferAgreementPrivateBetaController(securityComponents, new GraphQLConfiguration(config),
-      transferAgreementService, keycloakConfiguration, consignmentService, langs)
+      transferAgreementService, keycloakConfiguration, consignmentService)
   }
 
   def instantiateTransferAgreementComplianceController(securityComponents: SecurityComponents,
@@ -145,7 +143,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 
     new TransferAgreementComplianceController(securityComponents, new GraphQLConfiguration(config),
-      transferAgreementService, keycloakConfiguration, consignmentService, langs)
+      transferAgreementService, keycloakConfiguration, consignmentService)
   }
 
   def stubTANotComplianceResponse(transferAgreement: Option[atanc.AddTransferAgreementNotCompliance] = None,
