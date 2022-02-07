@@ -3,10 +3,13 @@
 @import java.util.UUID
 
 @import scala.language.postfixOps
-@import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup2}
+@import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup, transferAgreementNavButtons}
 
-@import views.html.partials.transferAgreementFormGroup2
-@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementComplianceData], agreementOptions: Seq[(String, String)], warningMessage: String, name: String)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID,
+  transferAgreementFormData: Form[TransferAgreementComplianceData],
+  taFormNamesAndLabels: Seq[(String, String)],
+  warningMessage: String, name: String)(implicit request: RequestHeader, messages: Messages
+)
 @main("Transfer agreement continued", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">

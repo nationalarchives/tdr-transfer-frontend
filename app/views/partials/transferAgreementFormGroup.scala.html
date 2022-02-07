@@ -4,36 +4,23 @@
 @import scala.language.postfixOps
 @import views.html.partials.inputSingleCheckbox
 
-@(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted: Boolean)(implicit request: RequestHeader, messages: Messages)
+@(transferAgreementFormData: Form[_],
+  taFormNamesAndLabels: Seq[(String, String)],
+  formAlreadySubmitted: Boolean
+)(implicit request: RequestHeader, messages: Messages)
 @disabledStatus = {@if(formAlreadySubmitted) {disabled} else {}}
 
 <div class="govuk-form-group">
   @if(!formAlreadySubmitted) @{CSRF.formField} else {}
+  @for((name, label) <- taFormNamesAndLabels) {
     @inputSingleCheckbox(
-        transferAgreementFormData("publicRecord"),
-        Symbol("_label") -> "I confirm that the records are Public Records.",
+        transferAgreementFormData(name),
+        Symbol("_label") -> label,
         Symbol("_value") -> "true",
         Symbol("_smallCheckbox") -> false,
-        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("publicRecord", formAlreadySubmitted),
+        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected(name, formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
         Symbol("_disabledOption") -> disabledStatus
     )
-    @inputSingleCheckbox(
-        transferAgreementFormData("crownCopyright"),
-        Symbol("_label") -> "I confirm that the records are all Crown Copyright.",
-        Symbol("_value") -> "true",
-        Symbol("_smallCheckbox") -> false,
-        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("crownCopyright", formAlreadySubmitted),
-        Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> disabledStatus
-    )
-    @inputSingleCheckbox(
-        transferAgreementFormData("english"),
-        Symbol("_label") -> "I confirm that the records are all in English.",
-        Symbol("_value") -> "true",
-        Symbol("_smallCheckbox") -> false,
-        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("english", formAlreadySubmitted),
-        Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> disabledStatus
-    )
+  }
 </div>
