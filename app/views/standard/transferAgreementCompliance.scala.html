@@ -25,14 +25,8 @@
             routes.TransferAgreementComplianceController.transferAgreementSubmit(consignmentId),
             (Symbol("novalidate"), "")
         ) {
-        @transferAgreementFormGroup2(transferAgreementFormData: Form[TransferAgreementComplianceData], formAlreadySubmitted=false)
-        <div class="govuk-button-group">
-            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                Continue
-            </button>
-
-            <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
-        </div>
+        @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementComplianceData], taFormNamesAndLabels, formAlreadySubmitted=false)
+        @transferAgreementNavButtons
         }
     </div>
 </div>
