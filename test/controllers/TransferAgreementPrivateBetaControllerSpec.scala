@@ -287,24 +287,6 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
            """ role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
     }
-
-    "return forbidden if a judgment user submits a transfer agreement form" in {
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller: TransferAgreementPrivateBetaController = taHelper.instantiateTransferAgreementPrivateBetaController(
-        getAuthorisedSecurityComponents,
-        app.configuration,
-        getValidJudgmentUserKeycloakConfiguration
-      )
-      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, consignmentType = "judgment")
-
-      val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.notCompliance)
-      val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement1")
-          .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
-          .withCSRFToken)
-
-      playStatus(transferAgreementSubmit) mustBe FORBIDDEN
-    }
   }
 
   forAll(userChecks) { (user, url) =>
