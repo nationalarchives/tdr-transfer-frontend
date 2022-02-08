@@ -35,7 +35,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
 
   "TransferAgreementComplianceController GET" should {
 
-    "redirect to the TA not-compliance page with an authenticated user if consignment status is 'None'" in {
+    "redirect to the transfer agreement not-compliance page with an authenticated user if consignment status is 'None'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
@@ -52,7 +52,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       redirectLocation(transferAgreementPage) must be(Some(s"/consignment/$consignmentId/transfer-agreement1"))
     }
 
-    "render the TA (compliance) page with an authenticated user if consignment status is 'InProgress'" in {
+    "render the transfer agreement (compliance) page with an authenticated user if consignment status is 'InProgress'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
@@ -69,7 +69,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
     }
 
-    "return a redirect to the auth server with an unauthenticated user (compliance)" in {
+    "return a redirect to the auth server with an unauthenticated user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getUnauthorisedSecurityComponents, app.configuration)
@@ -196,7 +196,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.compliance, pageOptions)
     }
 
-    "render the TA (compliance) 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
+    "render the transfer agreement (compliance) 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
@@ -216,8 +216,8 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
-    "render the TA (compliance) 'already confirmed' page with an authenticated user if user navigates back to TA page" +
-      "after successfully submitting TA form that had been incorrectly submitted (empty) prior" in {
+    "render the transfer agreement (compliance) 'already confirmed' page with an authenticated user if user navigates back to TA page" +
+      "after successfully submitting transfer agreement form having previously submitted an empty form" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
@@ -236,8 +236,8 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
-    "render the TA (compliance) 'already confirmed' page with an authenticated user if user navigates back to TA page" +
-      "after successfully submitting TA form that had been incorrectly submitted (partially) prior" in {
+    "render the transfer agreement (compliance) 'already confirmed' page with an authenticated user if user navigates back to TA page" +
+      "after successfully submitting transfer agreement form having previously submitted a partially complete form" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
