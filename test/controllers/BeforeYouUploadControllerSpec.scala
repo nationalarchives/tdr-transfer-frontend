@@ -46,8 +46,8 @@ class BeforeYouUploadControllerSpec extends FrontEndTestHelper {
   }
 
   forAll(userChecks) { (user, url) =>
-    s"The $url transfer agreement page" should {
-      s"return 403 if the GET is accessed by an incorrect user" in {
+    s"The $url before you upload page" should {
+      s"return 403 if the GET is accessed by a non-judgment user" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val beforeYouUploadController: BeforeYouUploadController = instantiateBeforeYouUploadController
 

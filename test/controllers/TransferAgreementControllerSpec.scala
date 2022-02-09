@@ -305,7 +305,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
   }
 
   s"The consignment transfer agreement page" should {
-    s"return 403 if the GET is accessed by an incorrect user" in {
+    s"return 403 if the GET is accessed by a non-standard user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val transferAgreementController: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
 
