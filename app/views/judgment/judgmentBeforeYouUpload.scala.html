@@ -1,8 +1,5 @@
 @import java.util.UUID
-@import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementWarning}
-@import play.twirl.api.Html
-
-@import views.html.helper.form
+@import views.html.partials.progressIndicator
 
 @(consignmentId: UUID, name: String)(implicit request: RequestHeader, messages: Messages)
 @main("Before you upload", name = name) {

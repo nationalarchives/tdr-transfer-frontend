@@ -70,7 +70,7 @@ class BeforeYouUploadControllerSpec extends FrontEndTestHelper {
       getAuthorisedSecurityComponents,
       new GraphQLConfiguration(app.configuration),
       getValidJudgmentUserKeycloakConfiguration,
-      consignmentService, langs
+      consignmentService
     )
   }
 }
