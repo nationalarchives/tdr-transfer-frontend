@@ -13,7 +13,7 @@ import util.{EnglishLang, FrontEndTestHelper}
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
-class BeforeYouUploadControllerSpec extends FrontEndTestHelper {
+class BeforeUploadingControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val wiremockServer = new WireMockServer(9006)
@@ -29,44 +29,44 @@ class BeforeYouUploadControllerSpec extends FrontEndTestHelper {
 
   val langs: Langs = new EnglishLang
 
-  "render the before you upload page for judgments" in {
+  "render the before uploading page for judgments" in {
     val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-    val beforeYouUploadController = instantiateBeforeYouUploadController
+    val beforeUploadingController = instantiateBeforeUploadingController
     setConsignmentTypeResponse(wiremockServer, "judgment")
 
-    val beforeYouUploadPage = beforeYouUploadController.beforeYouUpload(consignmentId)
-      .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-you-upload").withCSRFToken)
-    val beforeYouUploadPageAsString = contentAsString(beforeYouUploadPage)
+    val beforeUploadingPage = beforeUploadingController.beforeUploading(consignmentId)
+      .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
+    val beforeUploadingPageAsString = contentAsString(beforeUploadingPage)
 
-    playStatus(beforeYouUploadPage) mustBe OK
-    contentType(beforeYouUploadPage) mustBe Some("text/html")
-    beforeYouUploadPageAsString must include("Please check the court judgment contains the following information:")
-    beforeYouUploadPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
+    playStatus(beforeUploadingPage) mustBe OK
+    contentType(beforeUploadingPage) mustBe Some("text/html")
+    beforeUploadingPageAsString must include("Your upload must contain the following information:")
+    beforeUploadingPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
       """ role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
   }
 
   forAll(userChecks) { (user, url) =>
-    s"The $url before you upload page" should {
+    s"The $url before uploading page" should {
       s"return 403 if the GET is accessed by a non-judgment user" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-        val beforeYouUploadController: BeforeYouUploadController = instantiateBeforeYouUploadController
+        val beforeUploadingController: BeforeUploadingController = instantiateBeforeUploadingController
 
-        val beforeYouUpload = {
+        val beforeUploading = {
           setConsignmentTypeResponse(wiremockServer, "standard")
-          beforeYouUploadController.beforeYouUpload(consignmentId)
-            .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-you-upload").withCSRFToken)
+          beforeUploadingController.beforeUploading(consignmentId)
+            .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
         }
 
-        playStatus(beforeYouUpload) mustBe FORBIDDEN
+        playStatus(beforeUploading) mustBe FORBIDDEN
       }
     }
   }
 
-  private def instantiateBeforeYouUploadController = {
+  private def instantiateBeforeUploadingController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 
-    new BeforeYouUploadController(
+    new BeforeUploadingController(
       getAuthorisedSecurityComponents,
       new GraphQLConfiguration(app.configuration),
       getValidJudgmentUserKeycloakConfiguration,

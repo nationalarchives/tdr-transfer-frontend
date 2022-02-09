@@ -35,7 +35,7 @@ GET         /sign-out                                             @org.pac4j.pla
 
 # Routes for judgment
 POST        /homepage                                             controllers.HomepageController.judgmentHomepageSubmit()
-GET         /judgment/:consignmentId/before-you-upload            controllers.BeforeYouUploadController.beforeYouUpload(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/before-uploading             controllers.BeforeUploadingController.beforeUploading(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/upload                       controllers.UploadController.judgmentUploadPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/records                      controllers.FileChecksController.judgmentProcessingPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/records-results              controllers.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId: java.util.UUID)

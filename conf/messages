@@ -18,7 +18,7 @@ progressIndicator.step=Step {0} of {1}
 # Progress indicator step numbers
 seriesDetails.progress=1
 transferAgreement.progress=2
-beforeYouUpload.progress=2
+beforeUploading.progress=2
 upload.progress=3
 uploadProgress.progress=3
 checkingRecords.progress=4

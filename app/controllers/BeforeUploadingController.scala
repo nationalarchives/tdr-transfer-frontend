@@ -12,13 +12,13 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class BeforeYouUploadController @Inject()(val controllerComponents: SecurityComponents,
+class BeforeUploadingController @Inject()(val controllerComponents: SecurityComponents,
                                             val graphqlConfiguration: GraphQLConfiguration,
                                             val keycloakConfiguration: KeycloakConfiguration,
                                             val consignmentService: ConsignmentService)
                                            (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  def beforeYouUpload(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    Future(Ok(views.html.judgment.judgmentBeforeYouUpload(consignmentId, request.token.name)))
+  def beforeUploading(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    Future(Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, request.token.name)))
   }
 }
