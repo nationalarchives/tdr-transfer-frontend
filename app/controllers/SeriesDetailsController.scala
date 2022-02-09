@@ -51,7 +51,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
         .createConsignment(Some(UUID.fromString(formData.seriesId)), request.token)
         .map(consignment => {
           if(request.token.isJudgmentUser) {
-            Redirect(routes.BeforeYouUploadController.beforeYouUpload(consignment.consignmentid.get))
+            Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentid.get))
           } else {
             Redirect(routes.TransferAgreementController.transferAgreement(consignment.consignmentid.get))
           }
