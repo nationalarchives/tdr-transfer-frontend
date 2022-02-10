@@ -43,18 +43,18 @@ export class FileUploader {
     const requestTimeoutMs = 20 * 60 * 1000
     const config: S3ClientConfig = {
       region: "eu-west-2",
-      endpoint: frontendInfo.uploadUrl,
+      // endpoint: frontendInfo.uploadUrl,
       credentials: {
         accessKeyId: "placeholder-id",
         secretAccessKey: "placeholder-secret"
       },
-      forcePathStyle: true,
-      requestHandler: new TdrFetchHandler({ requestTimeoutMs })
+      bucketEndpoint: true
+      // requestHandler: new TdrFetchHandler({ requestTimeoutMs })
     }
     const client = new S3Client(config)
     this.clientFileProcessing = new ClientFileProcessing(
       clientFileMetadataUpload,
-      new S3Upload(client)
+      new S3Upload(client, frontendInfo.uploadUrl)
     )
     this.updateConsignmentStatus = updateConsignmentStatus
     this.stage = frontendInfo.stage
