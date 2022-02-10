@@ -94,7 +94,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       failure mustBe an[AuthorisationException]
     }
 
-    "create a TA (compliance) when a valid form is submitted and the api response is successful" in {
+    "create a transfer agreement (compliance) when a valid form is submitted and the api response is successful" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
       val addTransferAgreementResponse: atac.AddTransferAgreementCompliance = new atac.AddTransferAgreementCompliance(
@@ -216,7 +216,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
-    "render the transfer agreement (compliance) 'already confirmed' page with an authenticated user if user navigates back to TA page" +
+    "render the transfer agreement (compliance) 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
       "after successfully submitting transfer agreement form having previously submitted an empty form" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
@@ -236,7 +236,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
-    "render the transfer agreement (compliance) 'already confirmed' page with an authenticated user if user navigates back to TA page" +
+    "render the transfer agreement (compliance) 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
       "after successfully submitting transfer agreement form having previously submitted a partially complete form" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
