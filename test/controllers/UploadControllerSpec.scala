@@ -51,7 +51,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
       redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement")
     }
 
-    // This is unlikely but it's possible that they've bypassed the checks and partially agreed to things
     "redirect to the transfer agreement page if the transfer agreement for that consignment has not been agreed to" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
@@ -68,7 +67,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
       redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement")
     }
 
-    // This is unlikely but it's possible that they've bypassed the checks and partially agreed to things
     "redirect to the transfer agreement page if the transfer agreement for that consignment has been partially agreed to" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
