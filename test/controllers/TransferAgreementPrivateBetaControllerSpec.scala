@@ -63,7 +63,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe FOUND
     }
 
-    "throws an authorisation exception when the user does not have permission to see a consignment's not-compliance transfer agreement" in {
+    "throw an authorisation exception when the user does not have permission to see a consignment's not-compliance transfer agreement" in {
       taHelper.mockGetConsignmentGraphqlResponse(app.configuration)
 
       val consignmentId = UUID.randomUUID()
@@ -116,7 +116,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       failure mustBe an[Exception]
     }
 
-    "throws an authorisation exception when the user does not have permission to save the not-compliance transfer agreement" in {
+    "throw an authorisation exception when the user does not have permission to save the not-compliance transfer agreement" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       taHelper.stubTANotComplianceResponse(
         config = app.configuration,
