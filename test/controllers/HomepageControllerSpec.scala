@@ -109,7 +109,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       val redirect = controller.judgmentHomepageSubmit()
         .apply(FakeRequest(POST, "/homepage").withCSRFToken)
 
-      redirectLocation(redirect).get must equal(s"/judgment/$consignmentId/transfer-agreement")
+      redirectLocation(redirect).get must equal(s"/judgment/$consignmentId/before-uploading")
       wiremockServer.getAllServeEvents.size should equal(1)
     }
 
