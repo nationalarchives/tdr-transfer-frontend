@@ -48,7 +48,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
       status(uploadPage) mustBe SEE_OTHER
-      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement1")
+      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement")
     }
 
     // This is unlikely but it's possible that they've bypassed the checks and partially agreed to things
@@ -65,7 +65,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
       status(uploadPage) mustBe SEE_OTHER
-      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement1")
+      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement")
     }
 
     // This is unlikely but it's possible that they've bypassed the checks and partially agreed to things
@@ -82,7 +82,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
       status(uploadPage) mustBe SEE_OTHER
-      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement2")
+      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement-continued")
     }
 
     "show the upload page if the transfer agreement for that consignment has been agreed to in full" in {

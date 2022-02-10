@@ -42,14 +42,14 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
-        .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement2").withCSRFToken)
+        .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued").withCSRFToken)
 
       playStatus(transferAgreementPage) mustBe SEE_OTHER
       headers(transferAgreementPage) mustBe TreeMap(
-        "Location" -> s"/consignment/$consignmentId/transfer-agreement1",
+        "Location" -> s"/consignment/$consignmentId/transfer-agreement",
         "Cache-Control" -> "no-store, must-revalidate"
       )
-      redirectLocation(transferAgreementPage) must be(Some(s"/consignment/$consignmentId/transfer-agreement1"))
+      redirectLocation(transferAgreementPage) must be(Some(s"/consignment/$consignmentId/transfer-agreement"))
     }
 
     "render the transfer agreement (compliance) page with an authenticated user if consignment status is 'InProgress'" in {
@@ -59,13 +59,13 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
-        .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement2").withCSRFToken)
+        .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued").withCSRFToken)
       val transferAgreementPageAsString = contentAsString(transferAgreementPage)
 
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement2" method="POST" novalidate="">""")
+      transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement-continued" method="POST" novalidate="">""")
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
     }
 
@@ -73,7 +73,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getUnauthorisedSecurityComponents, app.configuration)
-      val transferAgreementPage = controller.transferAgreement(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-agreement2"))
+      val transferAgreementPage = controller.transferAgreement(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-agreement-continued"))
 
       redirectLocation(transferAgreementPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(transferAgreementPage) mustBe FOUND
@@ -87,7 +87,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement2").withCSRFToken)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement-continued").withCSRFToken)
 
       val failure: Throwable = transferAgreementPage.failed.futureValue
 
@@ -161,7 +161,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val incompleteTransferAgreementForm: Seq[(String, String)] = Seq()
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement2")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement-continued")
           .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
           .withCSRFToken)
       val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
@@ -181,7 +181,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("notCompliance", 2)
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement2")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement-continued")
           .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
           .withCSRFToken)
       val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
@@ -203,7 +203,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
-        .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement2").withCSRFToken)
+        .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued").withCSRFToken)
       val transferAgreementPageAsString = contentAsString(transferAgreementPage)
 
       playStatus(transferAgreementPage) mustBe OK
@@ -223,7 +223,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement2").withCSRFToken)
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement-continued").withCSRFToken)
       val taAlreadyConfirmedPageAsString = contentAsString(taAlreadyConfirmedPage)
 
       playStatus(taAlreadyConfirmedPage) mustBe OK
@@ -245,7 +245,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("notCompliance", 1)
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement2")
+        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement-continued")
           .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
           .withCSRFToken)
       val taAlreadyConfirmedPageAsString = contentAsString(taAlreadyConfirmedPage)
@@ -274,7 +274,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
         val transferAgreementPage = {
           taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"), consignmentType = "judgment")
           controller.transferAgreement(consignmentId)
-            .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement2").withCSRFToken)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement-continued").withCSRFToken)
         }
         playStatus(transferAgreementPage) mustBe FORBIDDEN
       }
