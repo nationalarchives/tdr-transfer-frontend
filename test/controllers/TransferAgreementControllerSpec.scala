@@ -290,24 +290,6 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       checkHtmlOfFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
-    "render the transfer agreement page for judgments" in {
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-
-      mockGraphqlResponse(consignmentType = "judgment")
-
-      val transferAgreementPage = controller.judgmentTransferAgreement(consignmentId)
-        .apply(FakeRequest(GET, s"/judgment/$consignmentId/transfer-agreement").withCSRFToken)
-      val transferAgreementPageAsString = contentAsString(transferAgreementPage)
-
-      playStatus(transferAgreementPage) mustBe OK
-      contentType(transferAgreementPage) mustBe Some("text/html")
-      headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include("Please confirm that the court judgment contains the following information.")
-      transferAgreementPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
-           """ role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
-    }
-
     "return forbidden if a judgment user submits a transfer agreement form" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
@@ -322,26 +304,20 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  forAll(userChecks) { (user, url) =>
-    s"The $url transfer agreement page" should {
-      s"return 403 if the GET is accessed by an incorrect user" in {
-        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-        val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents, user)
+  s"The consignment transfer agreement page" should {
+    s"return 403 if the GET is accessed by a non-standard user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val transferAgreementController: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
 
-        val transferAgreement = url match {
-          case "judgment" =>
-            mockGraphqlResponse()
-            controller.judgmentTransferAgreement(consignmentId)
-            .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
-          case "consignment" =>
-            mockGraphqlResponse(consignmentType = "judgment")
-            controller.transferAgreement(consignmentId)
-            .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
-        }
-        playStatus(transferAgreement) mustBe FORBIDDEN
+      val transferAgreement = {
+          mockGraphqlResponse(consignmentType = "judgment")
+          transferAgreementController.transferAgreement(consignmentId)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
       }
+      playStatus(transferAgreement) mustBe FORBIDDEN
     }
   }
+
 
   private def mockGraphqlResponse(dataString: String = "", consignmentType: String = "standard") = {
     if(dataString.nonEmpty) {
