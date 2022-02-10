@@ -54,21 +54,20 @@ export class TdrFetchHandler implements HttpHandler {
 
     let path = `/${request.path.split("/").slice(2).join("/")}`
 
-    const { port, method } = request
+    const { port, method, query } = request
     const url = `${request.protocol}//${request.hostname}${
       port ? `:${port}` : ""
     }${path}`
+    // ?${Object.keys(query).map(key => key + '=' + query[key]).join('&')}
     // Request constructor doesn't allow GET/HEAD request with body
     // ref: https://github.com/whatwg/fetch/issues/551
     const body =
       method === "GET" || method === "HEAD" ? undefined : request.body
 
-    const newMethod = method == "POST" ? "PUT" : method
-
     const requestOptions: RequestInit = {
       body,
       headers: new Headers(request.headers),
-      method: newMethod,
+      method: method,
       credentials: "include"
     }
 
