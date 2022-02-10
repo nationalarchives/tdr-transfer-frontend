@@ -75,7 +75,8 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
       contentAsString(homepagePage) must include ("Welcome")
       contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(homepagePage) must include ("Upload your judgment to start a new transfer")
+      contentAsString(homepagePage) must include ("Upload your court judgment to start a new transfer")
+      contentAsString(homepagePage) must include ("You must upload your court judgment as a Microsoft Word document.")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
