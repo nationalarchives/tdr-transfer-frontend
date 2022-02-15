@@ -178,7 +178,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
 
-      val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("notCompliance", 2)
+      val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("privateBeta", 2)
 
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement-continued")
@@ -242,7 +242,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
 
-      val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("notCompliance", 1)
+      val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("privateBeta", 1)
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement-continued")

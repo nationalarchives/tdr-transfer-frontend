@@ -50,7 +50,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement" method="POST" novalidate="">""")
-      taHelper.checkHtmlOfNonComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
+      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -63,7 +63,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe FOUND
     }
 
-    "throw an authorisation exception when the user does not have permission to see a consignment's not-compliance transfer agreement" in {
+    "throw an authorisation exception when the user does not have permission to see a consignment's private beta transfer agreement" in {
       taHelper.mockGetConsignmentGraphqlResponse(app.configuration)
 
       val consignmentId = UUID.randomUUID()
@@ -87,26 +87,26 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         true,
         true
       )
-      taHelper.stubTANotComplianceResponse(Some(addTransferAgreementResponse), app.configuration)
+      taHelper.stubTAPrivateBetaResponse(Some(addTransferAgreementResponse), app.configuration)
 
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.notCompliance)
+      val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.privateBeta)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest().withFormUrlEncodedBody(completedTransferAgreementForm:_*).withCSRFToken)
       playStatus(transferAgreementSubmit) mustBe SEE_OTHER
       redirectLocation(transferAgreementSubmit) must be(Some("/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued"))
     }
 
-    "render an error when a valid (not-compliance) form is submitted but there is an error from the api" in {
+    "render an error when a valid (private beta) form is submitted but there is an error from the api" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      taHelper.stubTANotComplianceResponse(config = app.configuration, errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
+      taHelper.stubTAPrivateBetaResponse(config = app.configuration, errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
 
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.notCompliance)
+      val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.privateBeta)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
           .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
@@ -116,15 +116,15 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       failure mustBe an[Exception]
     }
 
-    "throw an authorisation exception when the user does not have permission to save the not-compliance transfer agreement" in {
+    "throw an authorisation exception when the user does not have permission to save the private beta transfer agreement" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      taHelper.stubTANotComplianceResponse(
+      taHelper.stubTAPrivateBetaResponse(
         config = app.configuration,
         errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED")))))
       )
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.notCompliance)
+      val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.privateBeta)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
           .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
@@ -135,7 +135,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       failure mustBe an[AuthorisationException]
     }
 
-    "display errors when an empty not-compliance form is submitted" in {
+    "display errors when an empty private beta form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
@@ -150,13 +150,13 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
-      taHelper.checkHtmlOfNonComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, incompleteTransferAgreementForm.toMap)
+      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, incompleteTransferAgreementForm.toMap)
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
-      taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.notCompliance, Set())
+      taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.privateBeta, Set())
     }
 
-    "display errors when a partially complete not-compliance form is submitted" in {
+    "display errors when a partially complete private form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
@@ -174,10 +174,10 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       }.toSet
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
-      taHelper.checkHtmlOfNonComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, incompleteTransferAgreementForm.toMap)
+      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, incompleteTransferAgreementForm.toMap)
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
-      taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.notCompliance, pageOptions)
+      taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.privateBeta, pageOptions)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if consignment status is 'InProgress'" in {
@@ -197,7 +197,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued">
            |                Continue""".stripMargin)
       transferAgreementPageAsString must include("You have already confirmed all statements")
-      taHelper.checkHtmlOfNonComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
+      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
@@ -217,7 +217,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued">
            |                Continue""".stripMargin)
       transferAgreementPageAsString must include("You have already confirmed all statements")
-      taHelper.checkHtmlOfNonComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
+      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
@@ -238,7 +238,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued">
            |                Continue""".stripMargin)
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
-      taHelper.checkHtmlOfNonComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
+      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
@@ -263,7 +263,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued">
            |                Continue""".stripMargin)
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
-      taHelper.checkHtmlOfNonComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
+      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
     "render the judgments transfer agreement page for a judgment user" in {

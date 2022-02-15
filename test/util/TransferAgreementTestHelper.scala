@@ -26,7 +26,7 @@ import scala.concurrent.ExecutionContext
 class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontEndTestHelper{
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  val nonComplianceOptions = Map(
+  val privateBetaOptions = Map(
     "publicRecord" -> "I confirm that the records are Public Records.",
     "crownCopyright" -> "I confirm that the records are all Crown Copyright.",
     "english" -> "I confirm that the records are all in English."
@@ -38,10 +38,10 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     "openRecords" -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records."
   )
 
-  val checkHtmlOfNonComplianceFormOptions = new CheckHtmlOfFormOptions(nonComplianceOptions, "")
+  val checkHtmlOfPrivateBetaFormOptions = new CheckHtmlOfFormOptions(privateBetaOptions, "")
   val checkHtmlOfComplianceFormOptions = new CheckHtmlOfFormOptions(complianceOptions, "")
 
-  val notCompliance = "notCompliance"
+  val privateBeta = "privateBeta"
   val compliance = "compliance"
 
   def mockGetConsignmentStatusGraphqlResponse(config: Configuration, taStatus: Option[String]=None, consignmentType: String = "standard"): StubMapping = {
@@ -82,7 +82,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val value = "true"
 
     val options = Map(
-      "notCompliance" ->
+      "privateBeta" ->
         Seq(
           ("publicRecord", value),
           ("crownCopyright", value),
@@ -102,7 +102,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
   def checkHtmlContentForErrorSummary(htmlAsString: String, optionType: String, optionsSelected: Set[String]): Unit = {
 
     val potentialErrorsOnPage = Map(
-      "notCompliance" ->  Map(
+      "privateBeta" ->  Map(
         "publicRecord" -> "All records must be confirmed as public before proceeding",
         "crownCopyright" -> "All records must be confirmed Crown Copyright before proceeding",
         "english" -> "All records must be confirmed as English language before proceeding"
@@ -146,7 +146,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       transferAgreementService, keycloakConfiguration, consignmentService)
   }
 
-  def stubTANotComplianceResponse(transferAgreement: Option[atapb.AddTransferAgreementPrivateBeta] = None,
+  def stubTAPrivateBetaResponse(transferAgreement: Option[atapb.AddTransferAgreementPrivateBeta] = None,
                                   config: Configuration,
                                   errors: List[GraphQLClient.Error] = Nil): Unit = {
     val client = new GraphQLConfiguration(config).getClient[atapb.Data, atapb.Variables]()
