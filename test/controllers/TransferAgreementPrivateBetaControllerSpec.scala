@@ -265,52 +265,20 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
-
-    "render the judgments transfer agreement page for a judgment user" in {
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller: TransferAgreementPrivateBetaController = taHelper.instantiateTransferAgreementPrivateBetaController(
-        getAuthorisedSecurityComponents,
-        app.configuration,
-        getValidJudgmentUserKeycloakConfiguration
-      )
-
-      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, consignmentType = "judgment")
-
-      val transferAgreementPage = controller.judgmentTransferAgreement(consignmentId)
-        .apply(FakeRequest(GET, s"/judgment/$consignmentId/transfer-agreement").withCSRFToken)
-      val transferAgreementPageAsString = contentAsString(transferAgreementPage)
-
-      playStatus(transferAgreementPage) mustBe OK
-      contentType(transferAgreementPage) mustBe Some("text/html")
-      headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include("Please confirm that the court judgment contains the following information.")
-      transferAgreementPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
-           """ role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
-    }
   }
 
-  forAll(userChecks) { (user, url) =>
-    s"The $url transfer agreement page" should {
-      s"return 403 if the GET is accessed by an incorrect user" in {
-        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-        val controller: TransferAgreementPrivateBetaController = taHelper.instantiateTransferAgreementPrivateBetaController(
-          getAuthorisedSecurityComponents,
-          app.configuration,
-          user
-        )
+  s"The consignment transfer agreement page" should {
+    s"return 403 if the GET is accessed by a non-standard user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val transferAgreementPrivateBetaController =
+        taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
 
-        val transferAgreementPage = url match {
-          case "judgment" =>
-            taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
-            controller.judgmentTransferAgreement(consignmentId)
-            .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
-          case "consignment" =>
-            taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, consignmentType = "judgment")
-              controller.transferAgreement(consignmentId)
-                .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
-        }
-        playStatus(transferAgreementPage) mustBe FORBIDDEN
+      val transferAgreement = {
+        setConsignmentTypeResponse(wiremockServer, consignmentType = "judgment")
+        transferAgreementPrivateBetaController.transferAgreement(consignmentId)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
       }
+      playStatus(transferAgreement) mustBe FORBIDDEN
     }
   }
 }
