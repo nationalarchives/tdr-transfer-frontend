@@ -154,7 +154,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       contentAsString(uploadPage) must include("Upload a court judgment")
-      contentAsString(uploadPage) must include("You can upload your judgment by dragging and dropping it in the area below or by clicking 'Choose file'")
+      contentAsString(uploadPage) must include("You may now upload the court judgment you wish to transfer. You can only upload one file.")
     }
 
     "render the judgment upload in progress page if the upload is in progress" in {

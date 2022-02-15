@@ -7,7 +7,9 @@
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">Welcome to the Transfer Digital Records service</h1>
 
-      <h2 class="govuk-heading-m govuk-!-margin-top-9">Upload your judgment to start a new transfer</h2>
+      <h2 class="govuk-heading-m govuk-!-margin-top-9">Upload your court judgment to start a new transfer</h2>
+
+      <p class="govuk-body">You must upload your court judgment as a Microsoft Word document.</p>
 
       @form(routes.HomepageController.judgmentHomepageSubmit(), (Symbol("novalidate"), "")) {
         @CSRF.formField

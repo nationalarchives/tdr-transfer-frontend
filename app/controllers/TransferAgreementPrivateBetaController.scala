@@ -61,11 +61,6 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
     loadStandardPageBasedOnTaStatus(consignmentId, Ok)
   }
 
-  def judgmentTransferAgreement(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-      val warningMessage = Messages("judgmentTransferAgreement.warning")
-      Future(Ok(views.html.judgment.judgmentTransferAgreement(consignmentId, warningMessage, request.token.name)).uncache())
-  }
-
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
       loadStandardPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
