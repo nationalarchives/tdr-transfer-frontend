@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.{TransferAgreementPrivateBetaController, TransferAgreementComplianceController}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
-import graphql.codegen.AddTransferAgreementNonCompliance.{addTransferAgreementNotCompliance => atanc}
+import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
@@ -146,14 +146,14 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       transferAgreementService, keycloakConfiguration, consignmentService)
   }
 
-  def stubTANotComplianceResponse(transferAgreement: Option[atanc.AddTransferAgreementNotCompliance] = None,
+  def stubTANotComplianceResponse(transferAgreement: Option[atapb.AddTransferAgreementPrivateBeta] = None,
                                   config: Configuration,
                                   errors: List[GraphQLClient.Error] = Nil): Unit = {
-    val client = new GraphQLConfiguration(config).getClient[atanc.Data, atanc.Variables]()
+    val client = new GraphQLConfiguration(config).getClient[atapb.Data, atapb.Variables]()
 
     val data: client.GraphqlData =
       client.GraphqlData(
-        transferAgreement.map(ta => atanc.Data(ta)),  // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
+        transferAgreement.map(ta => atapb.Data(ta)),  // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
         errors
       )
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))

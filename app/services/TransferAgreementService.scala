@@ -3,9 +3,9 @@ package services
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import controllers.{TransferAgreementData, TransferAgreementComplianceData}
-import graphql.codegen.AddTransferAgreementNonCompliance.{addTransferAgreementNotCompliance => atanc}
+import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
-import graphql.codegen.types.{AddTransferAgreementComplianceInput, AddTransferAgreementNotComplianceInput}
+import graphql.codegen.types.{AddTransferAgreementComplianceInput, AddTransferAgreementPrivateBetaInput}
 import services.ApiErrorHandling.sendApiRequest
 
 import java.util.UUID
@@ -14,21 +14,21 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class TransferAgreementService @Inject()(val graphqlConfiguration: GraphQLConfiguration) (implicit val ec: ExecutionContext){
-  private val addTransferAgreementNotComplianceClient =
-    graphqlConfiguration.getClient[atanc.Data, atanc.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
+  private val addTransferAgreementPrivateBetaClient =
+    graphqlConfiguration.getClient[atapb.Data, atapb.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
   private val addTransferAgreementComplianceClient =
     graphqlConfiguration.getClient[atac.Data, atac.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
-  def addTransferAgreementNotCompliance(consignmentId: UUID,
+  def addTransferAgreementPrivateBeta(consignmentId: UUID,
                                         token: BearerAccessToken,
-                                        formData: TransferAgreementData): Future[atanc.AddTransferAgreementNotCompliance] = {
-    val addTransferAgreementNotComplianceInput: AddTransferAgreementNotComplianceInput = AddTransferAgreementNotComplianceInput(consignmentId,
+                                        formData: TransferAgreementData): Future[atapb.AddTransferAgreementPrivateBeta] = {
+    val addTransferAgreementPrivateBetaInput: AddTransferAgreementPrivateBetaInput = AddTransferAgreementPrivateBetaInput(consignmentId,
       formData.publicRecord,
       formData.crownCopyright,
       formData.english
     )
-    val variables: atanc.Variables = atanc.Variables(addTransferAgreementNotComplianceInput)
+    val variables: atapb.Variables = atapb.Variables(addTransferAgreementPrivateBetaInput)
 
-    sendApiRequest(addTransferAgreementNotComplianceClient, atanc.document, token, variables).map(_.addTransferAgreementNotCompliance)
+    sendApiRequest(addTransferAgreementPrivateBetaClient, atapb.document, token, variables).map(_.addTransferAgreementPrivateBeta)
   }
 
   def addTransferAgreementCompliance(consignmentId: UUID,
