@@ -35,7 +35,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
 
   "TransferAgreementPrivateBetaController GET" should {
 
-    "render the transfer agreement (not-compliance) page with an authenticated user if consignment status is not 'InProgress' or not 'Completed'" in {
+    "render the transfer agreement page with an authenticated user if consignment status is not 'InProgress' or not 'Completed'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
       val controller: TransferAgreementPrivateBetaController =
@@ -78,7 +78,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       failure mustBe an[AuthorisationException]
     }
 
-    "create a transfer agreement (not-compliance) when a valid form is submitted and the api response is successful" in {
+    "create a transfer agreement when a valid form is submitted and the api response is successful" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
       val addTransferAgreementResponse: atanc.AddTransferAgreementNotCompliance = new atanc.AddTransferAgreementNotCompliance(
@@ -180,7 +180,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.notCompliance, pageOptions)
     }
 
-    "render the transfer agreement (not-compliance) 'already confirmed' page with an authenticated user if consignment status is 'InProgress'" in {
+    "render the transfer agreement 'already confirmed' page with an authenticated user if consignment status is 'InProgress'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
@@ -200,7 +200,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlOfNonComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
-    "render the transfer agreement (not-compliance) 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
+    "render the transfer agreement 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
@@ -220,7 +220,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlOfNonComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
-    "render the transfer agreement (not-compliance) 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
+    "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
       "after successfully submitting transfer agreement form having previously submitted an empty form" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller =
@@ -241,7 +241,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlOfNonComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
-    "render the transfer agreement (not-compliance) 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
+    "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
       "after successfully submitting transfer agreement form having previously submitted a partially complete form" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller =
