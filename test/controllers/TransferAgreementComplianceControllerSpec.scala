@@ -261,23 +261,18 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  forAll(userChecks) { (user, url) =>
-    s"The $url transfer agreement page" should {
-      s"return 403 if the GET is accessed by an incorrect user" in {
-        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-        val controller: TransferAgreementComplianceController = taHelper.instantiateTransferAgreementComplianceController(
-          getAuthorisedSecurityComponents,
-          app.configuration,
-          user
-        )
+  s"The consignment transfer agreement continued page" should {
+    s"return 403 if the GET is accessed by a non-standard user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val transferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
 
-        val transferAgreementPage = {
-          taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"), consignmentType = "judgment")
-          controller.transferAgreement(consignmentId)
-            .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement-continued").withCSRFToken)
-        }
-        playStatus(transferAgreementPage) mustBe FORBIDDEN
+      val transferAgreement = {
+        setConsignmentTypeResponse(wiremockServer, consignmentType = "judgment")
+        transferAgreementComplianceController.transferAgreement(consignmentId)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement-continued").withCSRFToken)
       }
+      playStatus(transferAgreement) mustBe FORBIDDEN
     }
   }
 }
