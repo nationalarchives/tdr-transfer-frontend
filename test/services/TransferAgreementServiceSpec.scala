@@ -5,11 +5,11 @@ import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import controllers.{TransferAgreementComplianceData, TransferAgreementData}
 import errors.AuthorisationException
-import graphql.codegen.AddTransferAgreementNonCompliance.{addTransferAgreementNotCompliance => atanc}
-import graphql.codegen.AddTransferAgreementNonCompliance.addTransferAgreementNotCompliance.AddTransferAgreementNotCompliance
+import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
+import graphql.codegen.AddTransferAgreementPrivateBeta.addTransferAgreementPrivateBeta.AddTransferAgreementPrivateBeta
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementCompliance.addTransferAgreementCompliance.AddTransferAgreementCompliance
-import graphql.codegen.types.{AddTransferAgreementComplianceInput, AddTransferAgreementNotComplianceInput}
+import graphql.codegen.types.{AddTransferAgreementComplianceInput, AddTransferAgreementPrivateBetaInput}
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures._
@@ -28,10 +28,10 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   private val graphQlConfig = mock[GraphQLConfiguration]
-  private val graphQlClientForTANotCompliance = mock[GraphQLClient[atanc.Data, atanc.Variables]]
+  private val graphQlClientForTAPrivateBeta = mock[GraphQLClient[atapb.Data, atapb.Variables]]
   private val graphQlClientForTACompliance = mock[GraphQLClient[atac.Data, atac.Variables]]
-  when(graphQlConfig.getClient[atanc.Data, atanc.Variables]())
-    .thenReturn(graphQlClientForTANotCompliance) // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
+  when(graphQlConfig.getClient[atapb.Data, atapb.Variables]())
+    .thenReturn(graphQlClientForTAPrivateBeta) // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
 
   when(graphQlConfig.getClient[atac.Data, atac.Variables]())
     .thenReturn(graphQlClientForTACompliance) // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
@@ -41,7 +41,7 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
 
   private val token = new BearerAccessToken("some-token")
 
-  private val taNotComplianceFormData = TransferAgreementData(publicRecord = true,
+  private val taPrivateBetaFormData = TransferAgreementData(publicRecord = true,
     crownCopyright = true,
     english = true)
 
@@ -50,10 +50,10 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
     droSensitivity = true,
     openRecords = true)
   
-  private val transferAgreementNotComplianceInput = AddTransferAgreementNotComplianceInput(consignmentId,
-    allPublicRecords = taNotComplianceFormData.publicRecord,
-    allCrownCopyright = taNotComplianceFormData.crownCopyright,
-    allEnglish = taNotComplianceFormData.english)
+  private val transferAgreementPrivateBetaInput = AddTransferAgreementPrivateBetaInput(consignmentId,
+    allPublicRecords = taPrivateBetaFormData.publicRecord,
+    allCrownCopyright = taPrivateBetaFormData.crownCopyright,
+    allEnglish = taPrivateBetaFormData.english)
 
   private val transferAgreementComplianceInput = AddTransferAgreementComplianceInput(consignmentId,
     appraisalSelectionSignedOff = taComplianceFormData.droAppraisalSelection,
@@ -61,11 +61,11 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
     initialOpenRecords = taComplianceFormData.openRecords)
 
   override def afterEach(): Unit = {
-    Mockito.reset(graphQlClientForTANotCompliance)
+    Mockito.reset(graphQlClientForTAPrivateBeta)
   }
 
-  "addTransferAgreementNotCompliance" should "return the TransferAgreement from the API" in {
-    val transferAgreementNotComplianceResponse = AddTransferAgreementNotCompliance(consignmentId,
+  "addTransferAgreementPrivateBeta" should "return the TransferAgreement from the API" in {
+    val transferAgreementPrivateBetaResponse = AddTransferAgreementPrivateBeta(consignmentId,
       allPublicRecords = true,
       allCrownCopyright = true,
       allEnglish = true)
@@ -73,38 +73,38 @@ class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSu
     val graphQlResponse =
       GraphQlResponse(
         Some(
-          atanc.Data(transferAgreementNotComplianceResponse)
+          atapb.Data(transferAgreementPrivateBetaResponse)
         ),
         Nil) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
-    when(graphQlClientForTANotCompliance.getResult(token, atanc.document, Some(atanc.Variables(transferAgreementNotComplianceInput))))
+    when(graphQlClientForTAPrivateBeta.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPrivateBetaInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferAgreement: AddTransferAgreementNotCompliance =
-      transferAgreementService.addTransferAgreementNotCompliance(consignmentId, token, taNotComplianceFormData).futureValue
+    val transferAgreement: AddTransferAgreementPrivateBeta =
+      transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPrivateBetaFormData).futureValue
 
     transferAgreement.consignmentId should equal(consignmentId)
-    transferAgreement.allPublicRecords should equal(taNotComplianceFormData.publicRecord)
-    transferAgreement.allCrownCopyright should equal(taNotComplianceFormData.crownCopyright)
-    transferAgreement.allEnglish should equal(taNotComplianceFormData.english)
+    transferAgreement.allPublicRecords should equal(taPrivateBetaFormData.publicRecord)
+    transferAgreement.allCrownCopyright should equal(taPrivateBetaFormData.crownCopyright)
+    transferAgreement.allEnglish should equal(taPrivateBetaFormData.english)
   }
 
-  "addTransferAgreementNotCompliance" should "return an error when the API has an error" in {
+  "addTransferAgreementPrivateBeta" should "return an error when the API has an error" in {
     val graphQlResponse = HttpError("something went wrong", StatusCode.InternalServerError)
-    when(graphQlClientForTANotCompliance.getResult(token, atanc.document, Some(atanc.Variables(transferAgreementNotComplianceInput))))
+    when(graphQlClientForTAPrivateBeta.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPrivateBetaInput))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferAgreement = transferAgreementService.addTransferAgreementNotCompliance(consignmentId, token, taNotComplianceFormData).failed
+    val transferAgreement = transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPrivateBetaFormData).failed
       .futureValue.asInstanceOf[HttpError]
 
     transferAgreement shouldBe a[HttpError]
   }
 
-  "addTransferAgreementNotCompliance" should "throw an AuthorisationException if the API returns an auth error" in {
-    val graphQlResponse = GraphQlResponse[atanc.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
-    when(graphQlClientForTANotCompliance.getResult(token, atanc.document, Some(atanc.Variables(transferAgreementNotComplianceInput))))
+  "addTransferAgreementPrivateBeta" should "throw an AuthorisationException if the API returns an auth error" in {
+    val graphQlResponse = GraphQlResponse[atapb.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
+    when(graphQlClientForTAPrivateBeta.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPrivateBetaInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferAgreement = transferAgreementService.addTransferAgreementNotCompliance(consignmentId, token, taNotComplianceFormData).failed
+    val transferAgreement = transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPrivateBetaFormData).failed
       .futureValue.asInstanceOf[AuthorisationException]
 
     transferAgreement shouldBe a[AuthorisationException]

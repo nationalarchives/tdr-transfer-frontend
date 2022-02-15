@@ -2,7 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import errors.AuthorisationException
-import graphql.codegen.AddTransferAgreementNonCompliance.{addTransferAgreementNotCompliance => atanc}
+import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Play.materializer
@@ -81,7 +81,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
     "create a transfer agreement when a valid form is submitted and the api response is successful" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
-      val addTransferAgreementResponse: atanc.AddTransferAgreementNotCompliance = new atanc.AddTransferAgreementNotCompliance(
+      val addTransferAgreementResponse: atapb.AddTransferAgreementPrivateBeta = new atapb.AddTransferAgreementPrivateBeta(
         consignmentId,
         true,
         true,

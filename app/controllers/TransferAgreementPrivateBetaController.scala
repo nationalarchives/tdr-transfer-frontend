@@ -79,7 +79,7 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
         transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
         result <- transferAgreementStatus match {
           case Some("InProgress") => Future(Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
-          case _ => transferAgreementService.addTransferAgreementNotCompliance(consignmentId, request.token.bearerAccessToken, formData)
+          case _ => transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, request.token.bearerAccessToken, formData)
             .map(_ => Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
         }
       } yield result
