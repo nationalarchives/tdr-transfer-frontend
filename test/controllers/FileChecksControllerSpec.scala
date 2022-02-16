@@ -44,7 +44,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
   forAll (fileChecks) { userType =>
     "FileChecksController GET" should {
       val (pathName, keycloakConfiguration, expectedText) = if(userType == "judgment") {
-        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Checking court judgment record")
+        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Checking your upload")
       } else {
         ("consignment", getValidStandardUserKeycloakConfiguration, "Checking your records")
       }
