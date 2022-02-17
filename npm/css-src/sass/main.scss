@@ -30,3 +30,8 @@
 .logged-out-error-link {
   color: $govuk-error-colour;
 }
+
+.govuk-checkboxes__item:last-child,
+.govuk-checkboxes__item:last-of-type {
+  margin-bottom: 10px;
+}

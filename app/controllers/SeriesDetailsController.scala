@@ -53,7 +53,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
           if(request.token.isJudgmentUser) {
             Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentid.get))
           } else {
-            Redirect(routes.TransferAgreementController.transferAgreement(consignment.consignmentid.get))
+            Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignment.consignmentid.get))
           }
         })
     }

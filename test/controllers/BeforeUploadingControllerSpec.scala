@@ -44,20 +44,18 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  forAll(userChecks) { (_, url) =>
-    s"The $url before uploading page" should {
-      s"return 403 if the GET is accessed by a non-judgment user" in {
-        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-        val beforeUploadingController: BeforeUploadingController = instantiateBeforeUploadingController
+  s"The judgment before uploading page" should {
+    s"return 403 if the GET is accessed by a non-judgment user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val beforeUploadingController: BeforeUploadingController = instantiateBeforeUploadingController
 
-        val beforeUploading = {
-          setConsignmentTypeResponse(wiremockServer, "standard")
-          beforeUploadingController.beforeUploading(consignmentId)
-            .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
-        }
-
-        playStatus(beforeUploading) mustBe FORBIDDEN
+      val beforeUploading = {
+        setConsignmentTypeResponse(wiremockServer, "standard")
+        beforeUploadingController.beforeUploading(consignmentId)
+          .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
       }
+
+      playStatus(beforeUploading) mustBe FORBIDDEN
     }
   }
 
