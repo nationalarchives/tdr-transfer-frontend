@@ -63,7 +63,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None))))
+      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None, None))))
       val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlResponse(dataString)
@@ -165,7 +165,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None))))
+      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None, None))))
       val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlResponse(dataString)
@@ -190,7 +190,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None))))
+      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(None, None, None))))
       val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlResponse(dataString)
@@ -218,7 +218,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementController = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None))))
+      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None, None))))
       val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlResponse(dataString)
@@ -243,7 +243,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None))))
+      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None, None))))
       val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlResponse(dataString)
@@ -268,7 +268,7 @@ class TransferAgreementControllerSpec extends FrontEndTestHelper {
       val controller = instantiateTransferAgreementController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None))))
+      val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(Some("Completed"), None, None))))
       val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlResponse(dataString)
