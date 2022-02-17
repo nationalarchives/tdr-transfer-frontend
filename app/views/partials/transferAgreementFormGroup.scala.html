@@ -4,64 +4,23 @@
 @import scala.language.postfixOps
 @import views.html.partials.inputSingleCheckbox
 
-@(transferAgreementFormData: Form[TransferAgreementData], formAlreadySubmitted: Boolean)(implicit request: RequestHeader, messages: Messages)
+@(transferAgreementFormData: Form[_],
+  taFormNamesAndLabels: Seq[(String, String)],
+  formAlreadySubmitted: Boolean
+)(implicit request: RequestHeader, messages: Messages)
 @disabledStatus = {@if(formAlreadySubmitted) {disabled} else {}}
 
 <div class="govuk-form-group">
   @if(!formAlreadySubmitted) @{CSRF.formField} else {}
+  @for((name, label) <- taFormNamesAndLabels) {
     @inputSingleCheckbox(
-        transferAgreementFormData("publicRecord"),
-        Symbol("_label") -> "I confirm that the records are Public Records.",
+        transferAgreementFormData(name),
+        Symbol("_label") -> label,
         Symbol("_value") -> "true",
-        Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("publicRecord", formAlreadySubmitted),
+        Symbol("_smallCheckbox") -> false,
+        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected(name, formAlreadySubmitted),
         Symbol("_requiredOption") -> true,
         Symbol("_disabledOption") -> disabledStatus
     )
-    @inputSingleCheckbox(
-        transferAgreementFormData("crownCopyright"),
-        Symbol("_label") -> "I confirm that the records are all Crown Copyright.",
-        Symbol("_value") -> "true",
-        Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("crownCopyright", formAlreadySubmitted),
-        Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> disabledStatus
-    )
-    @inputSingleCheckbox(
-        transferAgreementFormData("english"),
-        Symbol("_label") -> "I confirm that the records are all in English.",
-        Symbol("_value") -> "true",
-        Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("english", formAlreadySubmitted),
-        Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> disabledStatus
-    )
-    <!-- DRO confirmation -->
-    @inputSingleCheckbox(
-        transferAgreementFormData("droAppraisalSelection"),
-        Symbol("_label") -> "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection decision.",
-        Symbol("_value") -> "true",
-        Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("droAppraisalSelection", formAlreadySubmitted),
-        Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> disabledStatus
-    )
-    @inputSingleCheckbox(
-        transferAgreementFormData("droSensitivity"),
-        Symbol("_label") -> "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
-        Symbol("_value") -> "true",
-        Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("droSensitivity", formAlreadySubmitted),
-        Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> disabledStatus
-    )
-    @inputSingleCheckbox(
-        transferAgreementFormData("openRecords"),
-        Symbol("_label") -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-        Symbol("_value") -> "true",
-        Symbol("_smallCheckbox") -> true,
-        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected("openRecords", formAlreadySubmitted),
-        Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> disabledStatus
-    )
+  }
 </div>

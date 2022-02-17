@@ -1,0 +1,33 @@
+@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@import java.util.UUID
+
+@import scala.language.postfixOps
+@import views.html.partials.{transferAgreementFormGroup, transferAgreementHeader, transferAgreementWarning}
+
+@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementData], taFormNameAndLabel: Seq[(String, String)], warningMessage: String, name: String)(implicit request: RequestHeader, messages: Messages)
+@main("Transfer agreement", name = name) {
+@defining(play.core.PlayVersion.current) { version =>
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        @transferAgreementHeader()
+        <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
+        role="alert" data-module="success-summary" tabindex="-1">
+          <div class="success-summary__body">
+            <h2 class="success-summary__title">You have already confirmed all statements</h2>
+            <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
+          </div>
+        </div>
+          @transferAgreementWarning(warningMessage)
+          @transferAgreementFormGroup(transferAgreementFormData, taFormNameAndLabel, formAlreadySubmitted=true)
+
+        <div class="govuk-button-group">
+            <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button" href="@routes.TransferAgreementComplianceController.transferAgreement(consignmentId)">
+                Continue
+            </a>
+
+            <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+        </div>
+    </div>
+</div>
+}
+}

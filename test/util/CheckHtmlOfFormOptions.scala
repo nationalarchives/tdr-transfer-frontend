@@ -2,14 +2,17 @@ package util
 import org.scalatest.Matchers._
 import org.scalatest.MustMatchers.convertToAnyMustWrapper
 
-class CheckHtmlOfFormOptions(options: Map[String, String]) {
+class CheckHtmlOfFormOptions(options: Map[String, String], smallCheckbox: String=" govuk-checkboxes--small") {
   def checkForOptionAndItsAttributes(htmlAsString: String,
                                      optionsSelected: Map[String, String]=Map(),
                                      formSuccessfullySubmitted: Boolean=false): Unit = {
 
-    def addValuesToAttributes(name: String, label: String, checkedStatus: String="", disabledStatus: String=""): String = {
+    def addValuesToAttributes(name: String,
+                              label: String,
+                              checkedStatus: String="",
+                              disabledStatus: String=""): String = {
       s"""
-         |        <div class='govuk-checkboxes__item govuk-checkboxes--small'>
+         |        <div class='govuk-checkboxes__item$smallCheckbox'>
          |            <input
          |                $checkedStatus
          |                class="govuk-checkboxes__input"
