@@ -105,7 +105,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(confirmTransferPage) mustBe FOUND
     }
 
-    "throws an authorisation exception when the user does not have permission to see a consignment's transfer summary" in {
+    "throw an authorisation exception when the user does not have permission to see a consignment's transfer summary" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val graphQlError = GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(None)), List(graphQlError))
@@ -272,7 +272,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       failure mustBe an[Exception]
     }
 
-    "throws an authorisation exception when the user does not have permission to save the transfer confirmation" in {
+    "throw an authorisation exception when the user does not have permission to save the transfer confirmation" in {
       stubFinalTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
@@ -287,7 +287,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       failure mustBe an[AuthorisationException]
     }
 
-    "throws an authorisation exception when the user does not have permission to save the transfer confirmation for judgment" in {
+    "throw an authorisation exception when the user does not have permission to save the transfer confirmation for judgment" in {
       stubFinalJudgmentTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
       mockGraphqlResponse(consignmentType = "judgment")
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
