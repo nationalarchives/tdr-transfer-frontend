@@ -46,7 +46,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
       }
   }
 
-  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status,
+  private def loadStandardPageBasedOnCtStatus(consignmentId: UUID, httpStatus: Status,
                                               finalTransferForm: Form[FinalTransferConfirmationData] = finalTransferConfirmationForm)
                                              (implicit request: Request[AnyContent]): Future[Result] = {
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
@@ -66,13 +66,13 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
   }
 
   def confirmTransfer(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    loadStandardPageBasedOnTaStatus(consignmentId, Ok)
+    loadStandardPageBasedOnCtStatus(consignmentId, Ok)
   }
 
   def finalTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       val errorFunction: Form[FinalTransferConfirmationData] => Future[Result] = { formWithErrors: Form[FinalTransferConfirmationData] =>
-        loadStandardPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
+        loadStandardPageBasedOnCtStatus(consignmentId, BadRequest, formWithErrors)
       }
 
       val successFunction: FinalTransferConfirmationData => Future[Result] = { formData: FinalTransferConfirmationData =>
