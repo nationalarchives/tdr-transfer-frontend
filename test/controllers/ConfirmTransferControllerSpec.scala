@@ -26,7 +26,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import play.api.test.WsTestClient.InternalWSClient
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import util.{CheckHtmlOfFormOptions, EnglishLang, FrontEndTestHelper}
@@ -482,7 +482,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     }
 
     "render the confirm transfer 'already confirmed' page with an authenticated user if the user navigates back to the" +
-      "confirmTransfer after successfully submitting a transfer prior" in {
+      "confirmTransfer after previously successfully submitting the transfer" in {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcstatus.Data, gcstatus.Variables]()
@@ -505,7 +505,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     }
 
     "render the confirm transfer 'already confirmed' page with an authenticated user if the user navigates back to the" +
-      "confirmTransfer after submitting an incorrect form prior" in {
+      "confirmTransfer after previously submitting an incorrect form" in {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcstatus.Data, gcstatus.Variables]()
@@ -573,13 +573,15 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
   }
 
-  private def instantiateConfirmTransferController(securityComponents: SecurityComponents, keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration) = {
+  private def instantiateConfirmTransferController(securityComponents: SecurityComponents,
+                                                   keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
     new ConfirmTransferController(securityComponents, new GraphQLConfiguration(app.configuration),
-      keycloakConfiguration, consignmentService, confirmTransferService, exportService(app.configuration), langs)
+      keycloakConfiguration, consignmentService, confirmTransferService, exportService(app.configuration), consignmentStatusService, langs)
   }
 
   private def getConsignmentSummaryResponse: gcs.GetConsignment = {

@@ -21,6 +21,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
                                           val consignmentService: ConsignmentService,
                                           val confirmTransferService: ConfirmTransferService,
                                           val consignmentExportService: ConsignmentExportService,
+                                          val consignmentStatusService: ConsignmentStatusService,
                                           langs: Langs)
                                          (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
@@ -49,8 +50,6 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
   private def loadStandardPageBasedOnCtStatus(consignmentId: UUID, httpStatus: Status,
                                               finalTransferForm: Form[FinalTransferConfirmationData] = finalTransferConfirmationForm)
                                              (implicit request: Request[AnyContent]): Future[Result] = {
-    val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
-
     consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).flatMap {
       consignmentStatus =>
         val confirmTransferStatus = consignmentStatus.flatMap(_.confirmTransfer)
@@ -77,7 +76,6 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
 
       val successFunction: FinalTransferConfirmationData => Future[Result] = { formData: FinalTransferConfirmationData =>
         val token: BearerAccessToken = request.token.bearerAccessToken
-        val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
         for {
           consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
