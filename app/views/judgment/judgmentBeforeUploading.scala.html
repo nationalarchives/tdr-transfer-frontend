@@ -1,0 +1,35 @@
+@import java.util.UUID
+@import views.html.partials.progressIndicator
+
+@(consignmentId: UUID, name: String)(implicit request: RequestHeader, messages: Messages)
+@main("Check your file before uploading", name = name) {
+@defining(play.core.PlayVersion.current) { version =>
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      @progressIndicator(Messages("beforeUploading.progress"))
+      <h1 class="govuk-heading-l">Check your file before uploading</h1>
+      <p class="govuk-body govuk-!-margin-bottom-1">Your upload must contain the following information:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>name(s) of judge(s)</li>
+        <li>name of parties</li>
+        <li>court</li>
+        <li>judgment date</li>
+        <li>neutral citation</li>
+      </ul>
+      <h2 class="govuk-heading-s">Transferring supplementary material</h2>
+      <p class="govuk-body">If the court judgment you are transferring has supplementary material,
+        please continue to upload the judgment and email the supplementary material to
+        <a href="mailto:judgments@@nationalarchives.gov.uk">judgments@@nationalarchives.gov.uk</a>.
+        In the email, please include the consignment reference that you receive at the end of this service.
+      </p>
+      <div class="govuk-button-group">
+        <a href="@routes.UploadController.judgmentUploadPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+            Continue
+        </a>
+
+        <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+      </div>
+    </div>
+</div>
+}
+}

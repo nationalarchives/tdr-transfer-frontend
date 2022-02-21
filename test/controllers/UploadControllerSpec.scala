@@ -51,8 +51,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement")
     }
 
-    // This is unlikely but it's possible that they've bypassed the checks and partially agreed to things
-    "redirect to the transfer agreement page if the transfer agreement for that consignment has been partially agreed to" in {
+    "redirect to the transfer agreement page if the transfer agreement for that consignment has not been agreed to" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
@@ -66,6 +65,22 @@ class UploadControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
       status(uploadPage) mustBe SEE_OTHER
       redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement")
+    }
+
+    "redirect to the transfer agreement page if the transfer agreement for that consignment has been partially agreed to" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
+
+      stubGetConsignmentStatusResponse(Some("InProgress"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
+
+      val uploadPage = controller.uploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
+      status(uploadPage) mustBe SEE_OTHER
+      redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement-continued")
     }
 
     "show the upload page if the transfer agreement for that consignment has been agreed to in full" in {
@@ -205,15 +220,17 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def stubGetConsignmentStatusResponse(transferAgreementStatus: Option[String] = None, uploadStatus: Option[String] = None)
+  private def stubGetConsignmentStatusResponse(transferAgreementStatus: Option[String] = None, uploadStatus: Option[String] = None,
+                                               confirmTransferStatus: Option[String] = None)
                                               (implicit ec: ExecutionContext) = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-    val data = client.GraphqlData(Option(gcs.Data(Option(gcs.GetConsignment(CurrentStatus(transferAgreementStatus, uploadStatus))))), List())
+    val data = client.GraphqlData(Option(gcs.Data(Option(gcs.GetConsignment(
+      CurrentStatus(transferAgreementStatus, uploadStatus, confirmTransferStatus))))), List())
     val dataString = data.asJson.printWith(Printer(dropNullValues = false, ""))
     val formattedJsonBody =
       """{"query":"query getConsignmentStatus($consignmentId:UUID!){
                                                        getConsignment(consignmentid:$consignmentId){
-                                                         currentStatus{transferAgreement upload}
+                                                         currentStatus{transferAgreement upload confirmTransfer}
                                                        }
                                                 }",
                                                 "variables":{

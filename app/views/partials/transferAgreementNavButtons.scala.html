@@ -1,0 +1,9 @@
+@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@()
+<div class="govuk-button-group">
+  <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+    Continue
+  </button>
+
+  <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+</div>

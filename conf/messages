@@ -13,13 +13,12 @@ fileChecksResults.description.plural=Your folder ''{0}'' containing {1} items ha
 
 transferComplete.error=There has been an error, contact us.
 
-judgmentTransferAgreement.warning=We cannot publish the court judgment without the: Name(s) of judge(s), name of parties, court, judgment date, neutral citation, case reference(s).
-
 
 progressIndicator.step=Step {0} of {1}
 # Progress indicator step numbers
 seriesDetails.progress=1
 transferAgreement.progress=2
+beforeUploading.progress=2
 upload.progress=3
 uploadProgress.progress=3
 checkingRecords.progress=4
