@@ -8,7 +8,8 @@ import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc._
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import viewsapi.Caching.preventCaching
 
 import java.util.UUID
 import javax.inject.Inject
@@ -20,6 +21,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
                                           val consignmentService: ConsignmentService,
                                           val confirmTransferService: ConfirmTransferService,
                                           val consignmentExportService: ConsignmentExportService,
+                                          val consignmentStatusService: ConsignmentStatusService,
                                           langs: Langs)
                                          (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
@@ -45,30 +47,48 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
       }
   }
 
+  private def loadStandardPageBasedOnCtStatus(consignmentId: UUID, httpStatus: Status,
+                                              finalTransferForm: Form[FinalTransferConfirmationData] = finalTransferConfirmationForm)
+                                             (implicit request: Request[AnyContent]): Future[Result] = {
+    consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).flatMap {
+      consignmentStatus =>
+        val confirmTransferStatus = consignmentStatus.flatMap(_.confirmTransfer)
+        confirmTransferStatus match {
+          case Some("Completed") => Future(Ok(views.html.standard.confirmTransferAlreadyConfirmed(consignmentId, request.token.name)).uncache())
+          case _ =>
+            getConsignmentSummary(request, consignmentId)
+              .map { consignmentSummary =>
+                httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
+              }
+        }
+    }
+  }
+
   def confirmTransfer(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    getConsignmentSummary(request, consignmentId)
-      .map { consignmentSummary =>
-        Ok(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferConfirmationForm, request.token.name))
-      }
+    loadStandardPageBasedOnCtStatus(consignmentId, Ok)
   }
 
   def finalTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       val errorFunction: Form[FinalTransferConfirmationData] => Future[Result] = { formWithErrors: Form[FinalTransferConfirmationData] =>
-        getConsignmentSummary(request, consignmentId).map { summary =>
-          BadRequest(views.html.standard.confirmTransfer(consignmentId, summary, formWithErrors, request.token.name))
-        }
+        loadStandardPageBasedOnCtStatus(consignmentId, BadRequest, formWithErrors)
       }
 
       val successFunction: FinalTransferConfirmationData => Future[Result] = { formData: FinalTransferConfirmationData =>
         val token: BearerAccessToken = request.token.bearerAccessToken
 
         for {
-          _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
-          _ <- consignmentExportService.updateTransferInititated(consignmentId, token)
-          _ <- consignmentExportService.triggerExport(consignmentId, token.toString)
-          res <- Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
-        } yield res
+          consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+          confirmTransferStatus = consignmentStatus.flatMap(_.confirmTransfer)
+          result <- confirmTransferStatus match {
+            case Some("Completed") => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
+            case _ =>
+              confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
+              consignmentExportService.updateTransferInititated(consignmentId, token)
+              consignmentExportService.triggerExport(consignmentId, token.toString)
+              Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
+          }
+        } yield result
       }
 
       val formValidationResult: Form[FinalTransferConfirmationData] = finalTransferConfirmationForm.bindFromRequest()
