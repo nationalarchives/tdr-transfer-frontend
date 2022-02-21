@@ -47,26 +47,28 @@
                                     <p id="success-message-text">The file "<span id="file-name"></span>" has been selected</p>
                                 </div>
                             </dd>
-                            @itemSelectionFailureMessage("incorrect-file-extension", "non-word-doc-selected-message-text", "upload.nonWordDocSelectedErrorMessage")
-                            @itemSelectionFailureMessage("item-selection-failure", "wrong-object-type-selected-message-text", "upload.dragAndDropFileErrorMessage")
-                            @itemSelectionFailureMessage("nothing-selected-submission-message", "submission-without-anything-selected-text", "upload.submissionWithoutAFileMessage")
                         </div>
                     </div>
                     <div>
                         <div class="govuk-form-group">
-                            <div class="drag-and-drop__dropzone">
-                                <input type="file" id="file-selection" name="files"
-                                    class="govuk-file-upload drag-and-drop__input"
-                                    @* Specify an arbitrary type in the 'accept' attribute to work around a bug in
-                                    Safari 14.0.1, which does not let the user browse for files if the 'accept'
-                                    attribute is missing. The actual value of the attribute is ignored because
-                                    'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
-                                    accept=".docx" aria-hidden="true"
-                                >
-                                <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single file here or</p>
-                                <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
-                                    Choose file
-                                </label>
+                            <div id="selection-area">
+                                @itemSelectionFailureMessage("incorrect-file-extension", "non-word-doc-selected-message-text", "upload.nonWordDocSelectedErrorMessage")
+                                @itemSelectionFailureMessage("item-selection-failure", "wrong-object-type-selected-message-text", "upload.dragAndDropFileErrorMessage")
+                                @itemSelectionFailureMessage("nothing-selected-submission-message", "submission-without-anything-selected-text", "upload.submissionWithoutAFileMessage")
+                                <div class="drag-and-drop__dropzone">
+                                    <input type="file" id="file-selection" name="files"
+                                        class="govuk-file-upload drag-and-drop__input"
+                                        @* Specify an arbitrary type in the 'accept' attribute to work around a bug in
+                                        Safari 14.0.1, which does not let the user browse for files if the 'accept'
+                                        attribute is missing. The actual value of the attribute is ignored because
+                                        'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
+                                        accept=".docx" aria-hidden="true"
+                                    >
+                                    <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single file here or</p>
+                                    <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
+                                        Choose file
+                                    </label>
+                                </div>
                             </div>
 
                             <div class="govuk-button-group">
