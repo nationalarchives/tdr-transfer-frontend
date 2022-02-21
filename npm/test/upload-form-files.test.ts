@@ -57,7 +57,7 @@ test("clicking the submit button, without selecting a file, displays a warning m
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.submissionWithoutSelection!,
-    expectedWarningMessageText: "Select a file to upload."
+    expectedWarningMessageText: "You did not select a file for upload."
   })
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 })

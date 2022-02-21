@@ -133,7 +133,7 @@ export const htmlForFileUploadForm = `
                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
                                       </span>
-                                      <p id="submission-without-anything-selected-text">Select a file to upload.</p>
+                                      <p id="submission-without-anything-selected-text">You did not select a file for upload.</p>
                                   </div>
                               </dd>
                           </div>
