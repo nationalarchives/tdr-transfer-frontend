@@ -69,10 +69,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           Option(gcf.GetConsignment(List(Files(Metadata(Some("test file.docx")))))          )
         )
 
-        val client = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables ]()
-        val client2 = graphQLConfiguration.getClient[gcf.Data, gcf.Variables ]()
-        val fileStatusResponse: String = client.GraphqlData(Option(fileChecksData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
-        val filePathResponse: String = client2.GraphqlData(Option(filePathData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+        val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables ]()
+        val getConsignmentFilesClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables ]()
+        val fileStatusResponse: String =
+          getFileChecksProgressClient.GraphqlData(Option(fileChecksData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+        val filePathResponse: String =
+          getConsignmentFilesClient.GraphqlData(Option(filePathData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse, filePathResponse)
 
