@@ -46,9 +46,8 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage"))
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
-      contentAsString(homepagePage) must include ("Welcome")
-      contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(homepagePage) must include ("Upload your records to start a new transfer")
+      contentAsString(homepagePage) must include ("Registration Complete")
+      contentAsString(homepagePage) must include ("Thank you for completing your registration")
     }
 
     "render the homepage page with an authenticated standard user" in {
