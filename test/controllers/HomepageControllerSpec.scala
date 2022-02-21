@@ -37,7 +37,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
   "HomepageController GET" should {
 
-    "render the homepage page with an authenticated user with no user type" in {
+    "render the registration complete page with an authenticated user with no user type" in {
       val controller = new HomepageController(
         getAuthorisedSecurityComponents,
         getValidKeycloakConfiguration,
