@@ -8,7 +8,7 @@ upload.dragAndDropMultipleFilesErrorMessage=You must upload a single file
 upload.dragAndDropMultipleFoldersErrorMessage=You must upload a single folder
 upload.nonWordDocSelectedErrorMessage=You must upload your judgment as a Microsoft Word file (.docx)
 upload.submissionWithoutAFolderMessage=Select a folder to upload.
-upload.submissionWithoutAFileMessage=Select a file to upload.
+upload.submissionWithoutAFileMessage=You did not select a file for upload.
 
 fileChecksResults.description.singular=Your folder ''{0}'' containing {1} item has been successfully checked and uploaded. Click ''Continue'' to proceed with your transfer.
 fileChecksResults.description.plural=Your folder ''{0}'' containing {1} items has been successfully checked and uploaded. Click ''Continue'' to proceed with your transfer.
