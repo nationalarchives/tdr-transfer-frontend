@@ -1,0 +1,34 @@
+@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@import helper.{inputRadioGroup => _, _}
+@import java.util.UUID
+
+@import scala.language.postfixOps
+@import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementWarning, transferAgreementFormGroup, transferAgreementNavButtons}
+
+@(consignmentId: UUID,
+  transferAgreementFormData: Form[TransferAgreementComplianceData],
+  taFormNamesAndLabels: Seq[(String, String)],
+  warningMessage: String, name: String)(implicit request: RequestHeader, messages: Messages
+)
+@main("Transfer agreement continued", name = name) {
+@defining(play.core.PlayVersion.current) { version =>
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        @transferAgreementHeader(" continued")
+        <p class="govuk-body">You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor.</p>
+        @errorSummary(
+            transferAgreementFormData("droAppraisalSelection"),
+            transferAgreementFormData("droSensitivity"),
+            transferAgreementFormData("openRecords"),
+        )
+        @form(
+            routes.TransferAgreementComplianceController.transferAgreementSubmit(consignmentId),
+            (Symbol("novalidate"), "")
+        ) {
+        @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementComplianceData], taFormNamesAndLabels, formAlreadySubmitted=false)
+        @transferAgreementNavButtons()
+        }
+    </div>
+</div>
+}
+}
