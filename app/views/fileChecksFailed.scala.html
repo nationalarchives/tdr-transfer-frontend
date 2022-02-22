@@ -1,5 +1,5 @@
 @import views.html.partials.progressIndicator
-@(name: String, isStandardUser: Boolean)(implicit request: RequestHeader, messages: Messages)
+@(name: String, isJudgmentUser: Boolean)(implicit request: RequestHeader, messages: Messages)
 
 @main("Results of checks", name = name) {
   <div class="govuk-grid-row">
@@ -13,10 +13,16 @@
               There is a problem
           </h2>
           <div class="govuk-error-summary__body">
-            @if(isStandardUser) {
+            @if(isJudgmentUser) {
+              <p class="govuk-body">Your file has failed our checks. Please try again. If this continues, contact us at
+                <a class="govuk-link" href="mailto:judgments@@nationalarchives.gov.uk" data-hsupport="email">
+                  judgments@@nationalarchives.gov.uk
+                </a>
+              </p>
+            } else {
               <p class="govuk-body">One or more files you uploaded have failed our checks. Please
-                  <a class="govuk-link" href="@routes.ContactController.contact()">contact</a>
-                  us to resolve this issue.
+                <a class="govuk-link" href="@routes.ContactController.contact()">contact</a>
+                us to resolve this issue.
               </p>
               <p class="govuk-body">Possible failure causes:</p>
               <ul class="govuk-list govuk-list--bullet">
@@ -24,12 +30,6 @@
                 <li>Zip files</li>
                 <li>Corrupted files</li>
               </ul>
-            } else {
-              <p class="govuk-body">Your file has failed our checks. Please try again. If this continues, contact us at
-                <a class="govuk-link" href="mailto:judgments@@nationalarchives.gov.uk" data-hsupport="email">
-                   judgments@@nationalarchives.gov.uk
-                </a>
-              </p>
             }
           </div>
       </div>
