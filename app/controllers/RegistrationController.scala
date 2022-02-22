@@ -21,5 +21,4 @@ class RegistrationController @Inject()(val controllerComponents: SecurityCompone
       Ok(views.html.registrationComplete(request.token.name))
     }
   }
-
 }
