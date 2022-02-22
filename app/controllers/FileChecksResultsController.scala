@@ -30,7 +30,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
         )
         Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId, request.token.name))
       } else {
-        Ok(views.html.fileChecksFailed(request.token.name, request.token.isStandardUser))
+        Ok(views.html.fileChecksFailed(request.token.name, request.token.isJudgmentUser))
       }
     })
   }
@@ -44,7 +44,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
           Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, request.token.name))
         })
       } else {
-        Future(Ok(views.html.fileChecksFailed(request.token.name, request.token.isStandardUser)))
+        Future(Ok(views.html.fileChecksFailed(request.token.name, request.token.isJudgmentUser)))
       }
     })
   }
