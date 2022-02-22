@@ -4,9 +4,14 @@ import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
+import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
+import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
+import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
+import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks.{AntivirusProgress, ChecksumProgress, FfidProgress}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.prop.TableFor1
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.ConsignmentService
@@ -15,6 +20,8 @@ import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.{Data, GetConsi
 import io.circe.Printer
 import io.circe.syntax._
 import io.circe.generic.auto._
+import play.api.Play.materializer
+import play.api.test.CSRFTokenHelper.CSRFRequest
 
 import scala.concurrent.ExecutionContext
 
@@ -33,109 +40,160 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  "FileChecksResultsController fileCheckResultsPage GET" should {
+  val userTypes: TableFor1[String] = Table(
+    "User type",
+    "judgment",
+    "standard"
+  )
 
-    "render the fileChecksResults page with the confirmation box" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
+  forAll (userTypes) { userType =>
+    "FileChecksResultsController GET" should {
 
-      val data = Data(Option(GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))))
-      val client = graphQLConfiguration.getClient[Data, Variables ]()
-      val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+      val (pathName, keycloakConfiguration, expectedTitle) = if(userType == "judgment") {
+        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Results of checks")
+      } else {
+        ("consignment", getValidStandardUserKeycloakConfiguration, "Results of your checks")
+      }
 
-      mockGraphqlResponse(fileStatusResponse, "standard")
+      s"render the $userType fileChecksResults page with the confirmation box" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
 
-      val fileCheckResultsController = new FileChecksResultsController(
-        getAuthorisedSecurityComponents,
-        getValidKeycloakConfiguration,
-        new GraphQLConfiguration(app.configuration),
-        consignmentService,
-        frontEndInfoConfiguration
-      )
+        val fileChecksData = gfcp.Data(
+          Option(
+            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          )
+        )
 
-      val recordCheckResultsPage = fileCheckResultsController.fileCheckResultsPage(consignmentId).apply(
-        FakeRequest(GET, s"consignment/$consignmentId/records-results")
-      )
-      val resultsPageAsString = contentAsString(recordCheckResultsPage)
+        val filePathData = gcf.Data(
+          Option(gcf.GetConsignment(List(Files(Metadata(Some("test file.docx")))))          )
+        )
 
-      status(recordCheckResultsPage) mustBe 200
-      contentType(recordCheckResultsPage) mustBe Some("text/html")
-      resultsPageAsString must include("Results of your checks")
-      resultsPageAsString must include("success-summary")
-      resultsPageAsString must include("has been successfully checked and uploaded")
-      resultsPageAsString must include("Click 'Continue' to proceed with your transfer")
-      resultsPageAsString must include("Continue")
-    }
+        val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables ]()
+        val getConsignmentFilesClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables ]()
+        val fileStatusResponse: String =
+          getFileChecksProgressClient.GraphqlData(Option(fileChecksData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+        val filePathResponse: String =
+          getConsignmentFilesClient.GraphqlData(Option(filePathData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
-    "return a redirect to the auth server with an unauthenticated user" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new FileChecksResultsController(
-        getUnauthorisedSecurityComponents,
-        getValidKeycloakConfiguration,
-        new GraphQLConfiguration(app.configuration),
-        consignmentService,
-        frontEndInfoConfiguration
-      )
-      val recordChecksResultsPage = controller.fileCheckResultsPage(consignmentId).apply(FakeRequest(GET, s"consignment/$consignmentId/records-results"))
+        mockGraphqlResponse(userType, fileStatusResponse, filePathResponse)
 
-      status(recordChecksResultsPage) mustBe FOUND
-      redirectLocation(recordChecksResultsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
-    }
+        val fileCheckResultsController = new FileChecksResultsController(
+          getAuthorisedSecurityComponents,
+          keycloakConfiguration,
+          new GraphQLConfiguration(app.configuration),
+          consignmentService,
+          frontEndInfoConfiguration
+        )
 
-    "return an error if an authenticated user tries to get information for a consignment they don't own" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new FileChecksResultsController(
-        getAuthorisedSecurityComponents,
-        getValidKeycloakConfiguration,
-        new GraphQLConfiguration(app.configuration),
-        consignmentService,
-        frontEndInfoConfiguration
-      )
-      val exampleApiResponse = "{\"data\":{" +
-        "\"getConsignment\":null}," +
-        "\"errors\":[{" +
-        "\"message\":\"User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '0a3f617c-04e8-41c2-9f24-99622a779528'\"," +
-        "\"path\":[\"getConsignment\"],\"locations\":[{" +
-        "\"column\":3,\"line\":2}]," +
-        "\"extensions\":{" +
-        "\"code\":\"NOT_AUTHORISED\"}}]}"
+        val recordCheckResultsPage = {
+          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
+          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/records").withCSRFToken)
+        val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(exampleApiResponse)))
+        if (userType == "judgment") {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("has been successfully checked and is ready to be exported")
+          resultsPageAsString must include("Export")
+        } else {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("has been successfully checked and uploaded")
+          resultsPageAsString must include("Click 'Continue' to proceed with your transfer")
+          resultsPageAsString must include("Continue")
+        }
 
-      val results: Throwable = controller.fileCheckResultsPage(consignmentId).apply(
-        FakeRequest(GET, s"consignment/$consignmentId/records-results")
-      ).failed.futureValue
+        status(recordCheckResultsPage) mustBe 200
+        contentType(recordCheckResultsPage) mustBe Some("text/html")
+        resultsPageAsString must include("success-summary")
+      }
 
-      results.getMessage mustBe("User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '0a3f617c-04e8-41c2-9f24-99622a779528'")
-    }
+      s"return a redirect to the auth server if an unauthenticated user tries to access the $userType file checks page" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val controller = new FileChecksResultsController(
+          getUnauthorisedSecurityComponents,
+          getValidKeycloakConfiguration,
+          new GraphQLConfiguration(app.configuration),
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+        val recordChecksResultsPage = controller.fileCheckResultsPage(consignmentId)
+          .apply(FakeRequest(GET, s"consignment/$consignmentId/records-results"))
 
-    "return the error page if some file checks have failed" in {
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
+        status(recordChecksResultsPage) mustBe FOUND
+        redirectLocation(recordChecksResultsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      }
 
-      val data = Data(Option(GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))))
-      val client = graphQLConfiguration.getClient[Data, Variables ]()
-      val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+      s"return an error if an authenticated user tries to get information for a consignment they don't own from the $userType file checks page" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val controller = new FileChecksResultsController(
+          getAuthorisedSecurityComponents,
+          getValidKeycloakConfiguration,
+          new GraphQLConfiguration(app.configuration),
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+        val exampleApiResponse = "{\"fileChecksData\":{" +
+          "\"getConsignment\":null}," +
+          "\"errors\":[{" +
+          "\"message\":\"User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '0a3f617c-04e8-41c2-9f24-99622a779528'\"," +
+          "\"path\":[\"getConsignment\"],\"locations\":[{" +
+          "\"column\":3,\"line\":2}]," +
+          "\"extensions\":{" +
+          "\"code\":\"NOT_AUTHORISED\"}}]}"
 
-      mockGraphqlResponse(fileStatusResponse, "standard")
+        wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+          .willReturn(okJson(exampleApiResponse)))
 
-      val fileCheckResultsController = new FileChecksResultsController(
-        getAuthorisedSecurityComponents,
-        getValidKeycloakConfiguration,
-        new GraphQLConfiguration(app.configuration),
-        consignmentService,
-        frontEndInfoConfiguration
-      )
+        val results: Throwable = controller.fileCheckResultsPage(consignmentId).apply(
+          FakeRequest(GET, s"consignment/$consignmentId/records-results")
+        ).failed.futureValue
 
-      val recordCheckResultsPage = fileCheckResultsController.fileCheckResultsPage(consignmentId).apply(
-        FakeRequest(GET, s"consignment/$consignmentId/records-results")
-      )
+        results.getMessage mustBe "User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '0a3f617c-04e8-41c2-9f24-99622a779528'"
+      }
 
-      status(recordCheckResultsPage) mustBe OK
-      contentAsString(recordCheckResultsPage) must include("There is a problem")
+      s"return the $userType error page if some file checks have failed" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+        val data = Data(
+          Option(
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          )
+        )
+        val client = graphQLConfiguration.getClient[Data, Variables ]()
+        val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+        mockGraphqlResponse(userType, fileStatusResponse)
+
+        val fileCheckResultsController = new FileChecksResultsController(
+          getAuthorisedSecurityComponents,
+          keycloakConfiguration,
+          new GraphQLConfiguration(app.configuration),
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+
+        val recordCheckResultsPage = {
+          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
+          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+        if (userType == "judgment") {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("Your file has failed our checks. Please try again.")
+        } else {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("One or more files you uploaded have failed our checks")
+        }
+
+        status(recordCheckResultsPage) mustBe OK
+        contentAsString(recordCheckResultsPage) must include("There is a problem")
+        resultsPageAsString must include("Return to start")
+      }
     }
   }
 
@@ -168,7 +226,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def mockGraphqlResponse(fileStatusResponse: String = "", consignmentType: String) = {
+  private def mockGraphqlResponse(consignmentType: String, fileStatusResponse: String = "", filePathResponse: String= "") = {
+    if(consignmentType == "judgment") {
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentFiles"))
+        .willReturn(okJson(filePathResponse)))
+    }
     if(fileStatusResponse.nonEmpty) {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getFileCheckProgress"))

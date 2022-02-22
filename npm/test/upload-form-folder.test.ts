@@ -6,7 +6,7 @@ import {
   getDummyFolder
 } from "./upload-form-utils/mock-files-and-folders"
 import { MockUploadFormDom } from "./upload-form-utils/mock-upload-form-dom"
-import { htmlForFolderUploadForm } from "./upload-form-utils/html-for-file-upload-form"
+import { htmlForFolderUploadForm } from "./upload-form-utils/html-for-upload-forms"
 import { verifyVisibilityOfWarningMessages } from "./upload-form-utils/verify-visibility-of-warning-messages"
 import {
   IReader,
@@ -159,8 +159,8 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
-    expectedWarningMessageText: "You can only drop a single folder"
+    warningMessageElements: mockDom.warningMessages.multipleItemSelected!,
+    expectedWarningMessageText: "You must upload a single folder"
   })
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
@@ -180,8 +180,8 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
-    expectedWarningMessageText: "You can only drop a single folder"
+    warningMessageElements: mockDom.warningMessages.multipleItemSelected!,
+    expectedWarningMessageText: "You must upload a single folder"
   })
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
