@@ -80,6 +80,8 @@ test("input button updates the page with the file that has been selected, if tha
     "hidden",
     "true"
   )
+  const selectionArea = document.querySelector("#selection-area")
+  expect(selectionArea!).not.toHaveClass("govuk-form-group--error")
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(dummyFile.name)
@@ -131,6 +133,8 @@ test("dropzone updates the page with correct number of files if a .docx file has
     "hidden",
     "true"
   )
+  const selectionArea = document.querySelector("#selection-area")
+  expect(selectionArea!).not.toHaveClass("govuk-form-group--error")
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(fileName)

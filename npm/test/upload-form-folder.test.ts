@@ -55,6 +55,8 @@ test("input button updates the page with correct folder information if there are
     "hidden",
     "true"
   )
+  const selectionArea = document.querySelector("#selection-area")
+  expect(selectionArea!).not.toHaveClass("govuk-form-group--error")
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
@@ -75,6 +77,8 @@ test("dropzone updates the page with correct folder information if there are 1 o
     "hidden",
     "true"
   )
+  const selectionArea = document.querySelector("#selection-area")
+  expect(selectionArea!).not.toHaveClass("govuk-form-group--error")
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
@@ -141,6 +145,9 @@ test("dropzone updates the page with correct folder information if there is a ne
     "hidden",
     "true"
   )
+  const selectionArea = document.querySelector("#selection-area")
+  expect(selectionArea!).not.toHaveClass("govuk-form-group--error")
+
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
