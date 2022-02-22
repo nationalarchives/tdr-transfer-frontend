@@ -114,7 +114,7 @@ test("input button updates the page with an error if the file that has been sele
   })
 })
 
-test("dropzone updates the page with correct number of files if a .docx file has been dropped", async () => {
+test("dropzone updates the page with name of file if a .docx file has been dropped", async () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
