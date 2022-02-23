@@ -49,7 +49,7 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
         transferAgreementStatus match {
           case Some("Completed") =>
             Ok(views.html.standard.transferAgreementComplianceAlreadyConfirmed(
-              consignmentId, taForm, taFormNamesAndLabels, warningMessage, request.token.name)).uncache()
+              consignmentId, transferAgreementForm, taFormNamesAndLabels, warningMessage, request.token.name)).uncache()
           case Some("InProgress") =>
             httpStatus(views.html.standard.transferAgreementCompliance(
               consignmentId, taForm, taFormNamesAndLabels, warningMessage, request.token.name)).uncache()
