@@ -16,7 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ConsignmentExportService @Inject()(val ws: WSClient, val configuration: Configuration, graphQLConfiguration: GraphQLConfiguration)
                                         (implicit val executionContext: ExecutionContext) extends Logging {
 
-  def updateTransferInititated(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
+  def updateTransferInitiated(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
     val client = graphQLConfiguration.getClient[Data, Variables]()
     sendApiRequest(client, document, token, Variables(consignmentId))
       .map(d => d.updateTransferInitiated.isDefined)
