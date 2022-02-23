@@ -88,7 +88,7 @@ export class S3Upload {
     const key = `${userId}/${consignmentId}/${fileId}`
     const params: PutObjectCommandInput = {
       Key: key,
-      Bucket: "tdr-upload-files-cloudfront-dirty-intg",//this.uploadUrl,
+      Bucket: this.uploadUrl,
       ACL: "bucket-owner-read",
       Body: file
     }

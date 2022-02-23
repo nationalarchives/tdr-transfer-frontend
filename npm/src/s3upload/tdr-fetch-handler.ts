@@ -1,92 +1,100 @@
-import { HttpHandler, HttpRequest, HttpResponse } from "@aws-sdk/protocol-http"
-import { HttpHandlerOptions, HeaderBag } from "@aws-sdk/types"
+import { HttpHandler, HttpRequest, HttpResponse } from "@aws-sdk/protocol-http";
+import { buildQueryString } from "@aws-sdk/querystring-builder";
+import { HeaderBag, HttpHandlerOptions, Provider } from "@aws-sdk/types";
 
-function requestTimeout(timeoutInMs = 0): Promise<never> {
+declare let AbortController: any;
+
+
+export function requestTimeout(timeoutInMs = 0): Promise<never> {
   return new Promise((resolve, reject) => {
     if (timeoutInMs) {
       setTimeout(() => {
-        const timeoutError = new Error(
-          `Request did not complete within ${timeoutInMs} ms`
-        )
-        timeoutError.name = "TimeoutError"
-        reject(timeoutError)
-      }, timeoutInMs)
+        const timeoutError = new Error(`Request did not complete within ${timeoutInMs} ms`);
+        timeoutError.name = "TimeoutError";
+        reject(timeoutError);
+      }, timeoutInMs);
     }
-  })
+  });
 }
 
+/**
+ * Represents the http options that can be passed to a browser http client.
+ */
 export interface FetchHttpHandlerOptions {
   /**
    * The number of milliseconds a request can take before being automatically
    * terminated.
    */
-  requestTimeoutMs?: number
+  requestTimeoutMs?: number;
 }
 
-/**
- * This is copied mostly from https://github.com/aws/aws-sdk-js-v3/blob/main/packages/fetch-http-handler/src/fetch-http-handler.ts
- * There are a few changes
- * We set credentials to 'include' so the cookies are sent
- * We stop sending query parameters as they're not needed.
- * We remove the bucket name from the path
- */
-export class TdrFetchHandler implements HttpHandler {
-  private readonly requestTimeoutMs?: number
+type FetchHttpHandlerConfig = FetchHttpHandlerOptions;
 
-  constructor({ requestTimeoutMs }: FetchHttpHandlerOptions = {}) {
-    this.requestTimeoutMs = requestTimeoutMs
+export class TdrFetchHandler implements HttpHandler {
+  private config?: FetchHttpHandlerConfig;
+  private readonly configProvider?: Provider<FetchHttpHandlerConfig>;
+
+  constructor(options?: FetchHttpHandlerOptions | Provider<FetchHttpHandlerOptions | undefined>) {
+    if (typeof options === "function") {
+      this.configProvider = async () => (await options()) || {};
+    } else {
+      this.config = options ?? {};
+    }
   }
 
   destroy(): void {
     // Do nothing. TLS and HTTP/2 connection pooling is handled by the browser.
   }
 
-  handle(
-    request: HttpRequest,
-    { abortSignal }: HttpHandlerOptions = {}
-  ): Promise<{ response: HttpResponse }> {
+  async handle(request: HttpRequest, { abortSignal }: HttpHandlerOptions = {}): Promise<{ response: HttpResponse }> {
+    if (!this.config && this.configProvider) {
+      this.config = await this.configProvider();
+    }
+    const requestTimeoutInMs = this.config!.requestTimeoutMs;
+
     // if the request was already aborted, prevent doing extra work
     if (abortSignal?.aborted) {
-      const abortError = new Error("Request aborted")
-      abortError.name = "AbortError"
-      return Promise.reject(abortError)
+      const abortError = new Error("Request aborted");
+      abortError.name = "AbortError";
+      return Promise.reject(abortError);
     }
 
-    let path = `/${request.path.split("/").slice(2).join("/")}`
+    let path = request.path;
+    if (request.query) {
+      const queryString = buildQueryString(request.query);
+      if (queryString) {
+        path += `?${queryString}`;
+      }
+    }
 
-    const { port, method, query } = request
-    const url = `${request.protocol}//${request.hostname}${
-      port ? `:${port}` : ""
-    }${path}`
-    // ?${Object.keys(query).map(key => key + '=' + query[key]).join('&')}
+    const { port, method } = request;
+    const url = `${request.protocol}//${request.hostname}${port ? `:${port}` : ""}${path}`;
     // Request constructor doesn't allow GET/HEAD request with body
     // ref: https://github.com/whatwg/fetch/issues/551
-    const body =
-      method === "GET" || method === "HEAD" ? undefined : request.body
-
+    const body = method === "GET" || method === "HEAD" ? undefined : request.body;
     const requestOptions: RequestInit = {
       body,
       headers: new Headers(request.headers),
       method: method,
       credentials: "include"
-    }
+    };
 
     // some browsers support abort signal
     if (typeof AbortController !== "undefined") {
-      ;(requestOptions as any)["signal"] = abortSignal
+      (requestOptions as any)["signal"] = abortSignal;
     }
 
-    const fetchRequest = new Request(url, requestOptions)
+    const fetchRequest = new Request(url, requestOptions);
     const raceOfPromises = [
       fetch(fetchRequest).then((response) => {
-        const fetchHeaders: any = response.headers
-        const transformedHeaders: HeaderBag = {}
+        const fetchHeaders: any = response.headers;
+        const transformedHeaders: HeaderBag = {};
 
         for (const pair of <Array<string[]>>fetchHeaders.entries()) {
-          transformedHeaders[pair[0]] = pair[1]
+          transformedHeaders[pair[0]] = pair[1];
         }
 
-        const hasReadableStream = response.body !== undefined
+        const hasReadableStream = response.body !== undefined;
 
         // Return the response with buffered body
         if (!hasReadableStream) {
@@ -94,32 +102,32 @@ export class TdrFetchHandler implements HttpHandler {
             response: new HttpResponse({
               headers: transformedHeaders,
               statusCode: response.status,
-              body
-            })
-          }))
+              body,
+            }),
+          }));
         }
         // Return the response with streaming body
         return {
           response: new HttpResponse({
             headers: transformedHeaders,
             statusCode: response.status,
-            body: response.body
-          })
-        }
+            body: response.body,
+          }),
+        };
       }),
-      requestTimeout(this.requestTimeoutMs)
-    ]
+      requestTimeout(requestTimeoutInMs),
+    ];
     if (abortSignal) {
       raceOfPromises.push(
         new Promise<never>((resolve, reject) => {
           abortSignal.onabort = () => {
-            const abortError = new Error("Request aborted")
-            abortError.name = "AbortError"
-            reject(abortError)
-          }
+            const abortError = new Error("Request aborted");
+            abortError.name = "AbortError";
+            reject(abortError);
+          };
         })
-      )
+      );
     }
-    return Promise.race(raceOfPromises)
+    return Promise.race(raceOfPromises);
   }
 }
