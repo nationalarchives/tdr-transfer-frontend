@@ -17,8 +17,7 @@ class RegistrationController @Inject()(val controllerComponents: SecurityCompone
                                       (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   def complete(): Action[AnyContent] = secureAction {
-    implicit request: Request[AnyContent] => {
+    implicit request: Request[AnyContent] =>
       Ok(views.html.registrationComplete(request.token.name))
-    }
   }
 }
