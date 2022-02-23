@@ -27,13 +27,13 @@ class ConsignmentExportService @Inject()(val ws: WSClient, val configuration: Co
     ws.url(url)
       .addHttpHeaders(("Authorization", token), ("Content-Type", "application/json"))
       .post("{}")
-      .flatMap(r => {
+      .flatMap(r =>
         r.status match {
           case 200 => Future(true)
           case _ =>
             logger.error(s"Export api response ${r.status} ${r.body}")
             Future.failed(new Exception(s"Call to export API has returned a non 200 response for consignment $consignmentId"))
         }
-      })
+      )
   }
 }
