@@ -236,6 +236,12 @@ export class MockUploadFormDom {
         "#wrong-object-type-selected-message-text"
       )
     },
+    multipleItemSelected: {
+      messageElement: document.querySelector("#multiple-selection-failure"),
+      messageElementText: document.querySelector(
+        "#multiple-object-type-selected-message-text"
+      )
+    },
     submissionWithoutSelection: {
       messageElement: document.querySelector(
         "#nothing-selected-submission-message"
