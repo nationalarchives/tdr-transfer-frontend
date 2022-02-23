@@ -15,6 +15,17 @@ export const htmlForFolderUploadForm = `
                                        <p id="success-message-text">The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
                                     </div>
                                  </dd>
+                                 <dd id="multiple-selection-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden=""
+                                    tabindex="-1" role="alert" aria-describedby="wrong-object-type-selected-message-text">
+                                    <div>
+                                       <span class="drag-and-drop__error">
+                                          <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" width="25px" height="25px">
+                                             <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
+                                          </svg>
+                                       </span>
+                                       <p id="multiple-object-type-selected-message-text">You must upload a single folder</p>
+                                    </div>
+                                 </dd>
                                  <dd id="item-selection-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden=""
                                     tabindex="-1" role="alert" aria-describedby="wrong-object-type-selected-message-text">
                                     <div>
@@ -89,7 +100,18 @@ export const htmlForFileUploadForm = `
                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
                                      </span>
-                                      <p id="non-word-doc-selected-message-text">You can only upload a Microsoft Word file. Please try again or contact us</p>
+                                      <p id="non-word-doc-selected-message-text">You must upload your judgment as a Microsoft Word file (.docx)</p>
+                                  </div>
+                              </dd>
+                              <dd id="multiple-selection-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden
+                                  tabindex="-1" role="alert" aria-describedby="wrong-object-type-selected-message-text">
+                                  <div>
+                                      <span class="drag-and-drop__error">
+                                          <svg class="alert-status-svg" role="presentation" focusable="false" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg">
+                                             <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
+                                          </svg>
+                                     </span>
+                                      <p id="multiple-object-type-selected-message-text">You must upload a single file</p>
                                   </div>
                               </dd>
                               <dd id="item-selection-failure" class="govuk-summary-list__value drag-and-drop__failure" hidden
@@ -100,7 +122,7 @@ export const htmlForFileUploadForm = `
                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
                                      </span>
-                                      <p id="wrong-object-type-selected-message-text">You can only drop a single file</p>
+                                      <p id="wrong-object-type-selected-message-text">You must upload a file</p>
                                   </div>
                               </dd>
                               <dd id="nothing-selected-submission-message" class="govuk-summary-list__value drag-and-drop__failure" hidden
@@ -111,7 +133,7 @@ export const htmlForFileUploadForm = `
                                              <path d="M13.6,15.4h-2.3v-4.5h2.3V15.4z M13.6,19.8h-2.3v-2.2h2.3V19.8z M0,23.2h25L12.5,2L0,23.2z"></path>
                                           </svg>
                                       </span>
-                                      <p id="submission-without-anything-selected-text">Select a file to upload.</p>
+                                      <p id="submission-without-anything-selected-text">You did not select a file for upload.</p>
                                   </div>
                               </dd>
                           </div>
