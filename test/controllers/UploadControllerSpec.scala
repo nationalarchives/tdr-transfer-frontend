@@ -218,6 +218,54 @@ class UploadControllerSpec extends FrontEndTestHelper {
         status(uploadPage) mustBe FORBIDDEN
       }
     }
+
+    s"The $url upload in progress page" should {
+      s"return 403 if the url doesn't match the consignment type" in {
+        val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+        val controller = new UploadController(getAuthorisedSecurityComponents,
+          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService)
+
+        stubGetConsignmentStatusResponse(Some("Completed"), Some("InProgress"))
+
+        val uploadPage = url match {
+          case "judgment" =>
+            setConsignmentTypeResponse(wiremockServer, "standard")
+            controller.judgmentUploadPage(consignmentId)
+              .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+          case "consignment" =>
+            setConsignmentTypeResponse(wiremockServer, "judgment")
+            controller.uploadPage(consignmentId)
+              .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+        }
+        status(uploadPage) mustBe FORBIDDEN
+      }
+    }
+
+    s"The $url upload has completed page" should {
+      s"return 403 if the url doesn't match the consignment type" in {
+        val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+        val controller = new UploadController(getAuthorisedSecurityComponents,
+          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService)
+
+        stubGetConsignmentStatusResponse(Some("Completed"), Some("Completed"))
+
+        val uploadPage = url match {
+          case "judgment" =>
+            setConsignmentTypeResponse(wiremockServer, "standard")
+            controller.judgmentUploadPage(consignmentId)
+              .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+          case "consignment" =>
+            setConsignmentTypeResponse(wiremockServer, "judgment")
+            controller.uploadPage(consignmentId)
+              .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+        }
+        status(uploadPage) mustBe FORBIDDEN
+      }
+    }
   }
 
   private def stubGetConsignmentStatusResponse(transferAgreementStatus: Option[String] = None, uploadStatus: Option[String] = None,
