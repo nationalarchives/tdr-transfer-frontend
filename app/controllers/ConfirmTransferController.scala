@@ -84,7 +84,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
             case Some("Completed") => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
             case _ =>
               confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
-              consignmentExportService.updateTransferInititated(consignmentId, token)
+              consignmentExportService.updateTransferInitiated(consignmentId, token)
               consignmentExportService.triggerExport(consignmentId, token.toString)
               Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
           }
@@ -104,7 +104,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
 
       for {
         _ <- confirmTransferService.addFinalJudgmentTransferConfirmation(consignmentId, token)
-        _ <- consignmentExportService.updateTransferInititated(consignmentId, request.token.bearerAccessToken)
+        _ <- consignmentExportService.updateTransferInitiated(consignmentId, request.token.bearerAccessToken)
         _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
         res <- Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)))
       } yield res
