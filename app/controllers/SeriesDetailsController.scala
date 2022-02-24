@@ -49,13 +49,13 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
       consignmentService
         .createConsignment(Some(UUID.fromString(formData.seriesId)), request.token)
-        .map(consignment => {
-          if(request.token.isJudgmentUser) {
+        .map { consignment =>
+          if (request.token.isJudgmentUser) {
             Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentid.get))
           } else {
             Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignment.consignmentid.get))
           }
-        })
+        }
     }
 
     formValidationResult.fold(
