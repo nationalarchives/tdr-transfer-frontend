@@ -49,7 +49,7 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
         transferAgreementStatus match {
           case Some("InProgress") | Some("Completed") =>
             Ok(views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(
-              consignmentId, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
+              consignmentId, transferAgreementForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
           case _ => httpStatus(
             views.html.standard.transferAgreementPrivateBeta(
               consignmentId, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
