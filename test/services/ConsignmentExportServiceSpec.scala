@@ -49,7 +49,7 @@ class ConsignmentExportServiceSpec extends WordSpec with Matchers with MockitoSu
       val service = new ConsignmentExportService(wsClient, config, graphQLConfiguration)
       val consignmentId = UUID.randomUUID()
       val token = new BearerAccessToken("token")
-      service.updateTransferInititated(consignmentId, token)
+      service.updateTransferInitiated(consignmentId, token)
       tokenCaptor.getValue.getValue should equal("token")
       variablesCaptor.getValue.get.consignmentId should equal(consignmentId)
     }
@@ -73,7 +73,7 @@ class ConsignmentExportServiceSpec extends WordSpec with Matchers with MockitoSu
       .thenReturn(getResultResponse)
     when(graphQLConfiguration.getClient[Data, Variables]()).thenReturn(client)
     val service = new ConsignmentExportService(wsClient, config, graphQLConfiguration)
-    service.updateTransferInititated(UUID.randomUUID(), new BearerAccessToken())
+    service.updateTransferInitiated(UUID.randomUUID(), new BearerAccessToken())
   }
 
   private def triggerExport(responseCode: Int, consignmentId: UUID): Future[Boolean] = {
