@@ -29,6 +29,9 @@ export const displaySelectionSuccessMessage = (
     [s: string]: HTMLElement | null
   }
 ) => {
+  const selectionArea = document.querySelector("#selection-area")
+  selectionArea?.classList.remove("govuk-form-group--error")
+
   Object.values(warningMessagesToHide).forEach(
     (warningMessageElement: HTMLElement | null) => {
       warningMessageElement?.setAttribute("hidden", "true")

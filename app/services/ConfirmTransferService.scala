@@ -23,13 +23,13 @@ class ConfirmTransferService @Inject()(val graphqlConfiguration: GraphQLConfigur
   def addFinalTransferConfirmation(consignmentId: UUID,
                                    token: BearerAccessToken,
                                    formData: FinalTransferConfirmationData): Future[aftc.AddFinalTransferConfirmation] = {
-    val addTransferAgreementInput: AddFinalTransferConfirmationInput = AddFinalTransferConfirmationInput(
+    val addFinalTransferConfirmationInput: AddFinalTransferConfirmationInput = AddFinalTransferConfirmationInput(
       consignmentId,
       formData.openRecords,
       formData.transferLegalCustody
     )
 
-    val variables: aftc.Variables = aftc.Variables(addTransferAgreementInput)
+    val variables: aftc.Variables = aftc.Variables(addFinalTransferConfirmationInput)
 
     sendApiRequest(addFinalTransferConfirmationClient, aftc.document, token, variables).map(_.addFinalTransferConfirmation)
   }
