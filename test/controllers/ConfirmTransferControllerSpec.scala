@@ -57,7 +57,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   val options = Map(
     "openRecords" -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-    "transferLegalOwnership" -> "I confirm that I am transferring legal ownership of these records to The National Archives."
+    "transferLegalCustody" -> "I confirm that I am transferring legal custody of these records to The National Archives."
   )
 
   val checkHtmlOfFormOptions = new CheckHtmlOfFormOptions(options)
@@ -150,7 +150,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       confirmTransferPageAsString must include("There is a problem")
       confirmTransferPageAsString must include("#error-openRecords")
-      confirmTransferPageAsString must include("#error-transferLegalOwnership")
+      confirmTransferPageAsString must include("#error-transferLegalCustody")
       checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
     }
 
@@ -163,7 +163,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       mockGetConsignmentStatusResponse()
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = false)
+      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = false)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
@@ -177,8 +177,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       confirmTransferPageAsString must include("error")
 
       confirmTransferPageAsString must include("There is a problem")
-      confirmTransferPageAsString must include("#error-transferLegalOwnership")
-      confirmTransferPageAsString must include("Transferral of legal ownership of all records must be confirmed before proceeding")
+      confirmTransferPageAsString must include("#error-transferLegalCustody")
+      confirmTransferPageAsString must include("Transferral of legal custody of all records must be confirmed before proceeding")
 
       confirmTransferPageAsString must not include "#error-openRecords"
       confirmTransferPageAsString must not include "All records must be confirmed as open before proceeding"
@@ -186,7 +186,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, incompleteTransferConfirmationForm.toMap)
     }
 
-    "display correct error when only the transfer legal ownership option is selected and the final transfer confirmation form is submitted" in {
+    "display correct error when only the transfer legal custody option is selected and the final transfer confirmation form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
@@ -195,7 +195,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       mockGetConsignmentStatusResponse()
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = false, transferLegalOwnershipValue = true)
+      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = false, transferLegalCustodyValue = true)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
@@ -212,8 +212,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       confirmTransferPageAsString must include("#error-openRecords")
       confirmTransferPageAsString must include("All records must be confirmed as open before proceeding")
 
-      confirmTransferPageAsString must not include "#error-transferLegalOwnership"
-      confirmTransferPageAsString must not include "Transferral of legal ownership of all records must be confirmed before"
+      confirmTransferPageAsString must not include "#error-transferLegalCustody"
+      confirmTransferPageAsString must not include "Transferral of legal custody of all records must be confirmed before"
 
       checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, incompleteTransferConfirmationForm.toMap)
     }
@@ -230,7 +230,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest()
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
           .withCSRFToken)
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe SEE_OTHER
@@ -262,7 +262,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
           .withCSRFToken)
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
@@ -293,7 +293,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
           .withCSRFToken)
       mockGraphqlResponse()
 
@@ -328,7 +328,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult: Result = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
           .withCSRFToken
         ).futureValue
 
@@ -346,7 +346,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -383,7 +383,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
           .withCSRFToken
         ).futureValue
 
@@ -417,7 +417,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -452,7 +452,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = true): _*)
+          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
           .withCSRFToken
         ).futureValue
 
@@ -513,7 +513,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlConsignmentStatusResponse(dataString)
-      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalOwnershipValue = false)
+      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = false)
 
       val ctAlreadyConfirmedPage = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/confirm-transfer")
@@ -592,10 +592,10 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
   }
 
-  private def finalTransferConfirmationForm(openRecordsValue: Boolean, transferLegalOwnershipValue: Boolean): Seq[(String, String)] = {
+  private def finalTransferConfirmationForm(openRecordsValue: Boolean, transferLegalCustodyValue: Boolean): Seq[(String, String)] = {
     Seq(
       ("openRecords", openRecordsValue.toString),
-      ("transferLegalOwnership", transferLegalOwnershipValue.toString)
+      ("transferLegalCustody", transferLegalCustodyValue.toString)
     )
   }
 
@@ -608,7 +608,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   private def createFinalTransferConfirmationResponse = new aftc.AddFinalTransferConfirmation(
     consignmentId,
     finalOpenRecordsConfirmed = true,
-    legalOwnershipTransferConfirmed = true
+    legalCustodyTransferConfirmed = true
   )
 
   private def createFinalJudgmentTransferConfirmationResponse = new afjtc.AddFinalJudgmentTransferConfirmation(
@@ -625,12 +625,12 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     val query =
       s"""{"query":"mutation addFinalTransferConfirmation($$input:AddFinalTransferConfirmationInput!)
                             {addFinalTransferConfirmation(addFinalTransferConfirmationInput:$$input)
-                            {consignmentId finalOpenRecordsConfirmed legalOwnershipTransferConfirmed}}",
+                            {consignmentId finalOpenRecordsConfirmed legalCustodyTransferConfirmed}}",
            "variables":{
                         "input":{
                                  "consignmentId":"$consignmentId",
                                  "finalOpenRecordsConfirmed":true,
-                                 "legalOwnershipTransferConfirmed":true
+                                 "legalCustodyTransferConfirmed":true
                                 }
                        }
                              }""".stripMargin.replaceAll("\n\\s*", "")
