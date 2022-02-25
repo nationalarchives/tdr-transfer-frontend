@@ -26,7 +26,7 @@ class ConfirmTransferService @Inject()(val graphqlConfiguration: GraphQLConfigur
     val addTransferAgreementInput: AddFinalTransferConfirmationInput = AddFinalTransferConfirmationInput(
       consignmentId,
       formData.openRecords,
-      formData.transferLegalOwnership
+      formData.transferLegalCustody
     )
 
     val variables: aftc.Variables = aftc.Variables(addTransferAgreementInput)

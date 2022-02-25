@@ -31,8 +31,8 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
     mapping(
       "openRecords" -> boolean
         .verifying("All records must be confirmed as open before proceeding", b => b),
-      "transferLegalOwnership" -> boolean
-        .verifying("Transferral of legal ownership of all records must be confirmed before proceeding", b => b)
+      "transferLegalCustody" -> boolean
+        .verifying("Transferral of legal custody of all records must be confirmed before proceeding", b => b)
     )(FinalTransferConfirmationData.apply)(FinalTransferConfirmationData.unapply)
   )
 
@@ -117,4 +117,4 @@ case class ConsignmentSummaryData(seriesCode: String,
                                   consignmentReference: String)
 
 case class FinalTransferConfirmationData(openRecords: Boolean,
-                                         transferLegalOwnership: Boolean)
+                                         transferLegalCustody: Boolean)
