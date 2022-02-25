@@ -132,10 +132,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
-      contentAsString(uploadPage) must include("Uploading records")
-      contentAsString(uploadPage) must include("Your upload is complete and has been saved")
+      uploadPageAsString must include("Uploading records")
+      uploadPageAsString must include(
+        s"""      <a href="/consignment/$consignmentId/records" role="button" draggable="false" class="govuk-button govuk-button--primary">
+           |        Continue
+           |      </a>""".stripMargin)
     }
 
     "show the judgment upload page for judgments" in {
@@ -187,10 +191,15 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
-      contentAsString(uploadPage) must include("Uploading court judgment")
-      contentAsString(uploadPage) must include("Your upload is complete and has been saved")
+      uploadPageAsString must include("Uploading court judgment")
+      uploadPageAsString must include("Your upload is complete and has been saved")
+      uploadPageAsString must include(
+        s"""      <a href="/judgment/$consignmentId/records" role="button" draggable="false" class="govuk-button govuk-button--primary">
+           |        Continue
+           |      </a>""".stripMargin)
     }
   }
 
