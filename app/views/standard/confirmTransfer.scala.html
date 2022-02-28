@@ -15,7 +15,7 @@
             <p class="govuk-body">Here is a summary of the records you have uploaded.</p>
             @errorSummary(
               finalTransferConfirmationForm("openRecords"),
-              finalTransferConfirmationForm("transferLegalOwnership")
+              finalTransferConfirmationForm("transferLegalCustody")
             )
             <dl class="govuk-summary-list">
                 <div class="govuk-summary-list__row">
@@ -52,7 +52,7 @@
                 </div>
             </dl>
 
-        <p class="govuk-body">Please confirm you would like to transfer ownership of the records to The National Archives.</p>
+        <p class="govuk-body">Please confirm you would like to transfer custody of the records to The National Archives.</p>
         <div class="govuk-form-group ">
             @form(
             routes.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId),
@@ -60,7 +60,7 @@
             ) {
                 @CSRF.formField
                 <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
-                    <!-- Open records & transfer legal ownership -->
+                    <!-- Open records & transfer legal custody -->
                     @inputSingleCheckbox(
                     finalTransferConfirmationForm("openRecords"),
                     Symbol("_label") -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
@@ -70,11 +70,11 @@
                     Symbol("_requiredOption") -> true
                     )
                     @inputSingleCheckbox(
-                    finalTransferConfirmationForm("transferLegalOwnership"),
-                    Symbol("_label") -> "I confirm that I am transferring legal ownership of these records to The National Archives.",
+                    finalTransferConfirmationForm("transferLegalCustody"),
+                    Symbol("_label") -> "I confirm that I am transferring legal custody of these records to The National Archives.",
                     Symbol("_value") -> "true",
                     Symbol("_smallCheckbox") -> true,
-                    Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalOwnership"),
+                    Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
                     Symbol("_requiredOption") -> true
                     )
                 </fieldset>
