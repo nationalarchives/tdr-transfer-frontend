@@ -48,15 +48,33 @@ beforeEach(() => {
   mockGoToNextPage.mockRestore()
 })
 
+const typesOfProgress: {
+  [key: string]: {} | null
+} = {
+  noData: null,
+  inProgress: {
+    antivirusProcessed: 1,
+    checksumProcessed: 2,
+    ffidProcessed: 1,
+    totalFiles: 2
+  },
+  complete: {
+    antivirusProcessed: 2,
+    checksumProcessed: 2,
+    ffidProcessed: 2,
+    totalFiles: 2
+  }
+}
 const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
 const fileChecks = new FileChecks(client)
 
-const mockGetFileChecksProgress: (
-  fileChecks: IFileCheckProgress | null
-) => void = (fileChecks) =>
+const mockGetFileChecksProgress: (progressType: string) => void = (
+  progressType: string
+) => {
   mockGetFileCheckProgress.getFileChecksProgress.mockImplementation(
-    (_) => fileChecks
+    (_) => typesOfProgress[progressType]
   )
+}
 
 const mockDisplayChecksHaveCompletedBanner: () => void = () =>
   mockVerifyChecksHaveCompleted.displayChecksCompletedBanner.mockImplementation(
@@ -78,12 +96,7 @@ test("updateFileCheckProgress shows a standard user, the notification banner and
     () => consignmentId
   )
 
-  mockGetFileChecksProgress({
-    antivirusProcessed: 2,
-    checksumProcessed: 2,
-    ffidProcessed: 2,
-    totalFiles: 2
-  })
+  mockGetFileChecksProgress("complete")
 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
     () => true
@@ -105,12 +118,7 @@ test("updateFileCheckProgress shows a standard user, no banner and a disabled co
   mockGetFileCheckProgress.getConsignmentId.mockImplementation(
     () => consignmentId
   )
-  mockGetFileChecksProgress({
-    antivirusProcessed: 1,
-    checksumProcessed: 2,
-    ffidProcessed: 1,
-    totalFiles: 2
-  })
+  mockGetFileChecksProgress("inProgress")
 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
     () => false
@@ -131,7 +139,7 @@ test("updateFileCheckProgress shows a standard user, no banner and a disabled co
   mockGetFileCheckProgress.getConsignmentId.mockImplementation(
     () => consignmentId
   )
-  mockGetFileChecksProgress(null)
+  mockGetFileChecksProgress("noData")
 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
     () => false
@@ -151,12 +159,7 @@ test("updateFileCheckProgress calls goToNextPage for a judgment user, if all che
     () => consignmentId
   )
 
-  mockGetFileChecksProgress({
-    antivirusProcessed: 2,
-    checksumProcessed: 2,
-    ffidProcessed: 2,
-    totalFiles: 2
-  })
+  mockGetFileChecksProgress("complete")
 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
     () => true
@@ -174,12 +177,7 @@ test("updateFileCheckProgress does not call goToNextPage for a judgment user if 
   mockGetFileCheckProgress.getConsignmentId.mockImplementation(
     () => consignmentId
   )
-  mockGetFileChecksProgress({
-    antivirusProcessed: 1,
-    checksumProcessed: 2,
-    ffidProcessed: 1,
-    totalFiles: 2
-  })
+  mockGetFileChecksProgress("inProgress")
 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
     () => false
@@ -197,7 +195,7 @@ test("updateFileCheckProgress does not call goToNextPage for a judgment user if 
   mockGetFileCheckProgress.getConsignmentId.mockImplementation(
     () => consignmentId
   )
-  mockGetFileChecksProgress(null)
+  mockGetFileChecksProgress("noData")
 
   mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
     () => false
