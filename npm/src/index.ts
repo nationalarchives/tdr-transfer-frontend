@@ -2,7 +2,7 @@ import { GraphqlClient } from "./graphql"
 import { getKeycloakInstance } from "./auth"
 import { FileUploader } from "./upload"
 import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
-import { goToNextPage } from "./upload/next-page-redirect"
+import { goToNextPage } from "./nextpageredirect/next-page-redirect"
 import { FileChecks } from "./filechecks"
 import { initAll } from "govuk-frontend"
 import { UpdateConsignmentStatus } from "./updateconsignmentstatus"
@@ -66,7 +66,11 @@ export const renderModules = () => {
     const frontEndInfo = getFrontEndInfo()
     getKeycloakInstance().then((keycloak) => {
       const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
-      new FileChecks(graphqlClient).updateFileCheckProgress()
+      const isJudgmentUser = keycloak.tokenParsed?.judgment_user
+      new FileChecks(graphqlClient).updateFileCheckProgress(
+        isJudgmentUser,
+        goToNextPage
+      )
     })
   }
 }
