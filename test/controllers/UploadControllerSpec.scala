@@ -95,11 +95,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      contentAsString(uploadPage) must include("Uploading records")
-      contentAsString(uploadPage) must include("You can only upload one folder to be transferred")
+      uploadPageAsString must include("Uploading records")
+      uploadPageAsString must include("You can only upload one folder to be transferred")
     }
 
     "render the upload in progress page if the upload is in progress" in {
@@ -114,10 +115,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
-      contentAsString(uploadPage) must include("Uploading records")
-      contentAsString(uploadPage) must include("Your upload was interrupted and could not be completed.")
+      uploadPageAsString must include("Uploading records")
+      uploadPageAsString must include("Your upload was interrupted and could not be completed.")
     }
 
     "render the upload is complete page if the upload has completed" in {
@@ -132,10 +134,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val uploadPage = controller.uploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
-      contentAsString(uploadPage) must include("Uploading records")
-      contentAsString(uploadPage) must include("Your upload is complete and has been saved")
+      uploadPageAsString must include("Uploading records")
+      uploadPageAsString must include(
+        s"""      <a href="/consignment/$consignmentId/records" role="button" draggable="false" class="govuk-button govuk-button--primary">
+           |        Continue
+           |      </a>""".stripMargin)
     }
 
     "show the judgment upload page for judgments" in {
@@ -150,11 +156,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      contentAsString(uploadPage) must include("Upload a court judgment")
-      contentAsString(uploadPage) must include("You may now upload the court judgment you wish to transfer. You can only upload one file.")
+      uploadPageAsString must include("Upload a court judgment")
+      uploadPageAsString must include("You may now upload the court judgment you wish to transfer. You can only upload one file.")
     }
 
     "render the judgment upload in progress page if the upload is in progress" in {
@@ -169,10 +176,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
-      contentAsString(uploadPage) must include("Uploading court judgment")
-      contentAsString(uploadPage) must include("Your upload was interrupted and could not be completed.")
+      uploadPageAsString must include("Uploading court judgment")
+      uploadPageAsString must include("Your upload was interrupted and could not be completed.")
     }
 
     "render the judgment upload is complete page if the upload has completed" in {
@@ -187,10 +195,15 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
-      contentAsString(uploadPage) must include("Uploading court judgment")
-      contentAsString(uploadPage) must include("Your upload is complete and has been saved")
+      uploadPageAsString must include("Uploading court judgment")
+      uploadPageAsString must include("Your upload is complete and has been saved")
+      uploadPageAsString must include(
+        s"""      <a href="/judgment/$consignmentId/records" role="button" draggable="false" class="govuk-button govuk-button--primary">
+           |        Continue
+           |      </a>""".stripMargin)
     }
   }
 
@@ -214,6 +227,54 @@ class UploadControllerSpec extends FrontEndTestHelper {
             setConsignmentTypeResponse(wiremockServer, "judgment")
             controller.uploadPage(consignmentId)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+        }
+        status(uploadPage) mustBe FORBIDDEN
+      }
+    }
+
+    s"The $url upload in progress page" should {
+      s"return 403 if the url doesn't match the consignment type" in {
+        val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+        val controller = new UploadController(getAuthorisedSecurityComponents,
+          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService)
+
+        stubGetConsignmentStatusResponse(Some("Completed"), Some("InProgress"))
+
+        val uploadPage = url match {
+          case "judgment" =>
+            setConsignmentTypeResponse(wiremockServer, "standard")
+            controller.judgmentUploadPage(consignmentId)
+              .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+          case "consignment" =>
+            setConsignmentTypeResponse(wiremockServer, "judgment")
+            controller.uploadPage(consignmentId)
+              .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+        }
+        status(uploadPage) mustBe FORBIDDEN
+      }
+    }
+
+    s"The $url upload has completed page" should {
+      s"return 403 if the url doesn't match the consignment type" in {
+        val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+        val controller = new UploadController(getAuthorisedSecurityComponents,
+          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService)
+
+        stubGetConsignmentStatusResponse(Some("Completed"), Some("Completed"))
+
+        val uploadPage = url match {
+          case "judgment" =>
+            setConsignmentTypeResponse(wiremockServer, "standard")
+            controller.judgmentUploadPage(consignmentId)
+              .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+          case "consignment" =>
+            setConsignmentTypeResponse(wiremockServer, "judgment")
+            controller.uploadPage(consignmentId)
+              .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
         }
         status(uploadPage) mustBe FORBIDDEN
       }
