@@ -1,7 +1,7 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
 @import views.html.partials.{frontEndInputs, progressIndicator}
-@(consignmentId: UUID, fileChecks: FileChecksProgress, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
 
 @main("Checking records", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -23,7 +23,7 @@
                 <a href="@routes.FaqController.faq()#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> for this service.
             </p>
 
-            <div class="govuk-notification-banner" id="file-checks-completed-banner" tabindex="-1" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" @if(!fileChecks.isComplete) {hidden}>
+            <div class="govuk-notification-banner" id="file-checks-completed-banner" tabindex="-1" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" hidden>
                 <div class="govuk-notification-banner__header">
                     <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
                         Important
@@ -36,7 +36,7 @@
                 </div>
             </div>
             <form action="@routes.FileChecksResultsController.fileCheckResultsPage(consignmentId)">
-                <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button @if(!fileChecks.isComplete){govuk-button--disabled}" @if(!fileChecks.isComplete){disabled}>
+                <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button govuk-button--disabled" disabled>
                 Continue
                 </button>
             </form>

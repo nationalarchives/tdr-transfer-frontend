@@ -1,7 +1,9 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
 @import views.html.partials.{frontEndInputs, progressIndicator}
-@(consignmentId: UUID, fileChecks: FileChecksProgress, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
+@import views.html.helper.form
+@import views.html.helper.form
+@(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
 
 @main("Checking your upload", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -15,23 +17,8 @@
             <p class="govuk-body">Please wait whilst your court judgment is being checked for errors.
               This may take a few minutes. Once your record has been checked, you will be redirected automatically.</p>
 
-            <div class="govuk-notification-banner" id="file-checks-completed-banner" tabindex="-1" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" @if(!fileChecks.isComplete) {hidden}>
-                <div class="govuk-notification-banner__header">
-                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-                        Important
-                    </h2>
-                </div>
-                <div class="govuk-notification-banner__content">
-                    <p class="govuk-notification-banner__heading">Your upload has been checked</p>
-                    <p class="govuk-body">Please click 'Continue' to see your results.</p>
-
-                </div>
-            </div>
-            <form action="@routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId)">
-                <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button @if(!fileChecks.isComplete){govuk-button--disabled}" @if(!fileChecks.isComplete){disabled}>
-                Continue
-                </button>
-            </form>
+            <!--        Form to redirect user once file checks have completed. It sends consignmentId to record results' placeholder page -->
+            @form(routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId), Symbol("id") -> "file-checks-form") { }
         </div>
     </div>
     }

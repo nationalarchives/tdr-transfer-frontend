@@ -43,13 +43,16 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
   forAll (fileChecks) { userType =>
     "FileChecksController GET" should {
-      val (pathName, keycloakConfiguration, expectedText) = if(userType == "judgment") {
-        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Checking your upload")
+      val (pathName, keycloakConfiguration, expectedTitle, expectedText) = if(userType == "judgment") {
+        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Checking your upload", "Please wait whilst your court judgment is being checked for errors")
       } else {
-        ("consignment", getValidStandardUserKeycloakConfiguration, "Checking your records")
+        ("consignment",
+          getValidStandardUserKeycloakConfiguration,
+          "Checking your records",
+          "Please wait while your records are being checked. This may take a few minutes.")
       }
 
-      s"render the $userType fileChecks page with a hidden notification banner and disabled button if the checks are incomplete" in {
+      s"render the $userType fileChecks page if the checks are incomplete" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val filesProcessedWithAntivirus = 6
@@ -69,7 +72,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
 
         val recordsPage = if (userType == "judgment") {
-          recordsController.judgmentProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+          recordsController.judgmentsRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
         } else {
           recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
         }
@@ -79,11 +82,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         playStatus(recordsPage) mustBe OK
         contentType(recordsPage) mustBe Some("text/html")
         headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+        recordsPageAsString must include(expectedTitle)
         recordsPageAsString must include(expectedText)
-        recordsPageAsString must include("progress")
-        recordsPageAsString must include("data-module=\"govuk-notification-banner\" hidden>")
-        recordsPageAsString must include("govuk-button--disabled")
-
       }
 
       s"return a redirect to the auth server with an unauthenticated $userType user" in {
@@ -97,57 +97,67 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         redirectLocation(recordsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       }
 
-      s"render the notification banner and enable the button if the $userType file checks are complete and all checks are successful" in {
-        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-        val consignmentService = new ConsignmentService(graphQLConfiguration)
-        val dataString: String = progressData(40, 40, 40, allChecksSucceeded = true)
+    s"render the $userType file checks complete page if the file checks are complete and all checks are successful" in {
+      print("\n\nblah", userType, pathName, expectedTitle)
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val dataString: String = progressData(40, 40, 40, allChecksSucceeded = true)
 
-        mockGraphqlResponse(dataString, userType)
+      mockGraphqlResponse(dataString, userType)
 
-        val controller = new FileChecksController(
-          getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration),
-          keycloakConfiguration,
-          consignmentService,
-          frontEndInfoConfiguration
-        )
-        val recordsPage = if (userType == "judgment") {
-          controller.judgmentProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
-        } else {
-          controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
-        }
-        playStatus(recordsPage) mustBe OK
-        headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        contentAsString(recordsPage) must include("""data-module="govuk-notification-banner"""")
-        contentAsString(recordsPage) must not include "govuk-button--disabled"
+      val controller = new FileChecksController(
+        getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration),
+        getValidJudgmentUserKeycloakConfiguration,
+        consignmentService,
+        frontEndInfoConfiguration
+      )
+
+      val fileChecksCompletePage = if (userType == "judgment") {
+        controller.judgmentsRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+      } else {
+        controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
       }
 
-      s"render the notification banner and enable the button if the $userType file checks are complete and all checks are not successful" in {
-        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-        val consignmentService = new ConsignmentService(graphQLConfiguration)
-        val dataString: String = progressData(40, 40, 40, allChecksSucceeded = false)
+      playStatus(fileChecksCompletePage) mustBe OK
+      contentAsString(fileChecksCompletePage) must include(expectedTitle)
+      contentAsString(fileChecksCompletePage) must include("Your upload and checks have been completed.")
+      contentAsString(fileChecksCompletePage) must not include(
+        s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
+                                                                                 href="/$pathName/$consignmentId/records">
+        Continue""")
+    }
 
-        mockGraphqlResponse(dataString, userType)
+    s"render the $userType file checks complete page if the file checks are complete and all checks are not successful" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val dataString: String = progressData(40, 40, 40, allChecksSucceeded = false)
 
-        val controller = new FileChecksController(
-          getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration),
-          keycloakConfiguration,
-          consignmentService,
-          frontEndInfoConfiguration
-        )
-        val recordsPage = if (userType == "judgment") {
-          controller.judgmentProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
-        } else {
-          controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
-        }
-        playStatus(recordsPage) mustBe OK
-        headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        contentAsString(recordsPage) must include("data-module=\"govuk-notification-banner\"")
-        contentAsString(recordsPage) must not include "govuk-button--disabled"
+      mockGraphqlResponse(dataString, userType)
+
+      val controller = new FileChecksController(
+        getAuthorisedSecurityComponents,
+        new GraphQLConfiguration(app.configuration),
+        getValidJudgmentUserKeycloakConfiguration,
+        consignmentService,
+        frontEndInfoConfiguration
+      )
+      val fileChecksCompletePage = if (userType == "judgment") {
+        controller.judgmentsRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+      } else {
+        controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
       }
+      playStatus(fileChecksCompletePage) mustBe OK
+      contentAsString(fileChecksCompletePage) must include(expectedTitle)
+      contentAsString(fileChecksCompletePage) must include("Your upload and checks have been completed.")
+      contentAsString(fileChecksCompletePage) must not include(
+        s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
+                                                                                 href="/$pathName/$consignmentId/records">
+        Continue""")
+    }
     }
   }
+
 
   private def mockGraphqlResponse(dataString: String, userType: String) = {
     setConsignmentTypeResponse(wiremockServer, userType)
@@ -173,7 +183,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val fileChecksPage = url match {
           case "judgment" =>
             setConsignmentTypeResponse(wiremockServer, "standard")
-            controller.judgmentProcessingPage(consignmentId)
+            controller.judgmentsRecordProcessingPage(consignmentId)
             .apply(FakeRequest(GET, s"/judgment/$consignmentId/records"))
           case "consignment" =>
             setConsignmentTypeResponse(wiremockServer, "judgment")
