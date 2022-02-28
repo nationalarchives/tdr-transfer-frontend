@@ -20,8 +20,11 @@ interface IFileProgressInfo {
 
 export class S3Upload {
   client: S3Client
-  constructor(client: S3Client) {
+  uploadUrl: string
+
+  constructor(client: S3Client, uploadUrl: string) {
     this.client = client
+    this.uploadUrl = uploadUrl.split("//")[1]
   }
 
   uploadToS3: (
@@ -85,7 +88,7 @@ export class S3Upload {
     const key = `${userId}/${consignmentId}/${fileId}`
     const params: PutObjectCommandInput = {
       Key: key,
-      Bucket: `tdr-upload-files-cloudfront-dirty-${stage}`,
+      Bucket: this.uploadUrl,
       ACL: "bucket-owner-read",
       Body: file
     }
