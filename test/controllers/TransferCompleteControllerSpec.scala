@@ -45,6 +45,9 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
       contentAsString(transferCompleteSubmit) must include("Your records have now been transferred to The National Archives.")
+      contentAsString(transferCompleteSubmit) must include(
+      """    <a href="https://www.smartsurvey.co.uk/s/5YDPSA/" class="govuk-link" rel="noreferrer noopener" target="_blank">
+        What did you think of this service? (opens in new tab)""")
     }
   }
 
@@ -55,6 +58,9 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
       contentAsString(transferCompleteSubmit) must include("Your file has now been transferred to The National Archives.")
+      contentAsString(transferCompleteSubmit) must include(
+        """    <a href="https://www.smartsurvey.co.uk/s/5YDPSA/" class="govuk-link" rel="noreferrer noopener" target="_blank">
+        What did you think of this service? (opens in new tab)""")
     }
   }
 
