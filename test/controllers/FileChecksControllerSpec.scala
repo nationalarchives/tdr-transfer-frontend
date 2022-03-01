@@ -72,7 +72,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
 
         val recordsPage = if (userType == "judgment") {
-          recordsController.judgmentsRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+          recordsController.judgmentRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
         } else {
           recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
         }
@@ -114,7 +114,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       )
 
       val fileChecksCompletePage = if (userType == "judgment") {
-        controller.judgmentsRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        controller.judgmentRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
       } else {
         controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
       }
@@ -143,7 +143,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         frontEndInfoConfiguration
       )
       val fileChecksCompletePage = if (userType == "judgment") {
-        controller.judgmentsRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        controller.judgmentRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
       } else {
         controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
       }
@@ -183,7 +183,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val fileChecksPage = url match {
           case "judgment" =>
             setConsignmentTypeResponse(wiremockServer, "standard")
-            controller.judgmentsRecordProcessingPage(consignmentId)
+            controller.judgmentRecordProcessingPage(consignmentId)
             .apply(FakeRequest(GET, s"/judgment/$consignmentId/records"))
           case "consignment" =>
             setConsignmentTypeResponse(wiremockServer, "judgment")

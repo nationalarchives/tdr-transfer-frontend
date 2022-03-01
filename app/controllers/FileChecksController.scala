@@ -46,7 +46,7 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       }
   }
 
-  def judgmentsRecordProcessingPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def judgmentRecordProcessingPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getRecordProcessingProgress(request, consignmentId)
       .map {
         fileChecks => if(fileChecks.isComplete) {
