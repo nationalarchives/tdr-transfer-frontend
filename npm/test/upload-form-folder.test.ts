@@ -12,6 +12,7 @@ import {
   IReader,
   IWebkitEntry
 } from "../src/upload/form/get-files-from-drag-event"
+import {verifyVisibilityOfSuccessMessage} from "./upload-form-utils/verify-visibility-of-success-message";
 
 beforeEach(() => {
   document.body.innerHTML = htmlForFolderUploadForm
@@ -42,7 +43,7 @@ test("clicking the submit button, without selecting a folder, displays a warning
     warningMessageElements: mockDom.warningMessages.submissionWithoutSelection!,
     expectedWarningMessageText: "Select a folder to upload."
   })
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 })
 
 test("input button updates the page with correct folder information if there are 1 or more files in folder", () => {
@@ -51,11 +52,7 @@ test("input button updates the page with correct folder information if there are
   mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
   mockDom.selectFolderViaButton()
 
-  expect(mockDom.itemRetrievalSuccessMessage!).not.toHaveAttribute(
-    "hidden",
-    "true"
-  )
-
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, true)
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
@@ -71,11 +68,7 @@ test("dropzone updates the page with correct folder information if there are 1 o
   const dragEvent = new dragEventClass()
   await mockDom.form.handleDroppedItems(dragEvent)
 
-  expect(mockDom.itemRetrievalSuccessMessage!).not.toHaveAttribute(
-    "hidden",
-    "true"
-  )
-
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, true)
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
@@ -98,7 +91,7 @@ test("dropzone updates the page with an error if there are no files in folder", 
     warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
     expectedWarningMessageText: "You can only drop a single folder"
   })
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
@@ -137,10 +130,7 @@ test("dropzone updates the page with correct folder information if there is a ne
   const dragEvent = new dragEventClass()
   await mockDom.form.handleDroppedItems(dragEvent)
 
-  expect(mockDom.itemRetrievalSuccessMessage!).not.toHaveAttribute(
-    "hidden",
-    "true"
-  )
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, true)
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
@@ -162,7 +152,7 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     warningMessageElements: mockDom.warningMessages.multipleItemSelected!,
     expectedWarningMessageText: "You must upload a single folder"
   })
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
@@ -183,7 +173,7 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     warningMessageElements: mockDom.warningMessages.multipleItemSelected!,
     expectedWarningMessageText: "You must upload a single folder"
   })
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
@@ -204,7 +194,7 @@ test("dropzone updates the page with an error if 1 file has been dropped", async
     warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
     expectedWarningMessageText: "You can only drop a single folder"
   })
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
