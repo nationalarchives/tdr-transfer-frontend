@@ -38,7 +38,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
             case Some("InProgress") =>
               Ok(views.html.uploadInProgress(consignmentId, pageHeading, request.token.name)).uncache()
             case Some("Completed") =>
-              Ok(views.html.uploadHasCompleted(consignmentId, pageHeading, request.token.name)).uncache()
+              Ok(views.html.uploadHasCompleted(consignmentId, pageHeading, request.token.name, isJudgmentUser = false)).uncache()
             case _ =>
               Ok(views.html.standard.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
           }
@@ -63,7 +63,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
         case Some("InProgress") =>
           Ok(views.html.uploadInProgress(consignmentId, pageHeading, request.token.name)).uncache()
         case Some("Completed") =>
-          Ok(views.html.uploadHasCompleted(consignmentId, pageHeading, request.token.name)).uncache()
+          Ok(views.html.uploadHasCompleted(consignmentId, pageHeading, request.token.name, isJudgmentUser = true)).uncache()
         case _ =>
           Ok(views.html.judgment.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
       }

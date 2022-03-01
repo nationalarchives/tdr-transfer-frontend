@@ -48,26 +48,28 @@
                                     <p id="success-message-text">The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
                                 </div>
                             </dd>
-                            @itemSelectionFailureMessage("multiple-selection-failure", "multiple-object-type-selected-message-text", "upload.dragAndDropMultipleFoldersErrorMessage")
-                            @itemSelectionFailureMessage("item-selection-failure", "wrong-object-type-selected-message-text", "upload.dragAndDropFolderErrorMessage")
-                            @itemSelectionFailureMessage("nothing-selected-submission-message", "submission-without-anything-selected-text", "upload.submissionWithoutAFolderMessage")
                         </div>
                     </div>
                     <div>
                         <div class="govuk-form-group">
-                            <div class="drag-and-drop__dropzone">
-                                <input type="file" id="file-selection" name="files"
+                            <div id="selection-area">
+                                @itemSelectionFailureMessage("multiple-selection-failure", "multiple-object-type-selected-message-text", "upload.dragAndDropMultipleFoldersErrorMessage")
+                                @itemSelectionFailureMessage("item-selection-failure", "wrong-object-type-selected-message-text", "upload.dragAndDropFolderErrorMessage")
+                                @itemSelectionFailureMessage("nothing-selected-submission-message", "submission-without-anything-selected-text", "upload.submissionWithoutAFolderMessage")
+                                <div class="drag-and-drop__dropzone">
+                                    <input type="file" id="file-selection" name="files"
                                     class="govuk-file-upload drag-and-drop__input" webkitdirectory
                                     @* Specify an arbitrary type in the 'accept' attribute to work around a bug in
                                     Safari 14.0.1, which does not let the user browse for files if the 'accept'
                                     attribute is missing. The actual value of the attribute is ignored because
                                     'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
                                     accept="*" aria-hidden="true"
-                                >
-                                <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single folder here or</p>
-                                <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
-                                    Choose folder
-                                </label>
+                                    >
+                                    <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single folder here or</p>
+                                    <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
+                                        Choose folder
+                                    </label>
+                                </div>
                             </div>
                             <p class="govuk-body">For more information on what metadata will be captured during the upload please visit our <a href="@routes.FaqController.faq()#metadata-captured" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a>.</p>
 
@@ -105,7 +107,7 @@
                 </div>
             </div>
             <a class="govuk-button" href="@routes.HomepageController.homepage()" role="button" draggable="false" data-module="govuk-button">
-            Return to start
+                Return to start
             </a>
         </div>
         @loggedOutErrorMessage()
@@ -118,7 +120,7 @@
                     </label>
                 </span>
                 <div class="progress-bar">
-                  <div class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
             </div>
         </div>
