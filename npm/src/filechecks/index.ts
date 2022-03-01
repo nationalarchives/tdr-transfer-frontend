@@ -13,7 +13,13 @@ export class FileChecks {
     this.client = client
   }
 
-  updateFileCheckProgress: () => void = () => {
+  updateFileCheckProgress: (
+    isJudgmentUser: boolean,
+    goToNextPage: (formId: string) => void
+  ) => void = (
+    isJudgmentUser: boolean,
+    goToNextPage: (formId: string) => void
+  ) => {
     const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
       const fileChecksProgress: IFileCheckProgress =
         await getFileChecksProgress(this.client)
@@ -21,7 +27,9 @@ export class FileChecks {
       const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
       if (checksCompleted) {
         clearInterval(intervalId)
-        displayChecksCompletedBanner()
+        isJudgmentUser
+          ? goToNextPage("#file-checks-form")
+          : displayChecksCompletedBanner()
       }
     }, 20000)
   }

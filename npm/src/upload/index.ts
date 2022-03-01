@@ -29,7 +29,7 @@ export class FileUploader {
   clientFileProcessing: ClientFileProcessing
   updateConsignmentStatus: UpdateConsignmentStatus
   stage: string
-  goToNextPage: () => void
+  goToNextPage: (formId: string) => void
   keycloak: IKeycloakInstance
   uploadUrl: string
 
@@ -37,7 +37,7 @@ export class FileUploader {
     clientFileMetadataUpload: ClientFileMetadataUpload,
     updateConsignmentStatus: UpdateConsignmentStatus,
     frontendInfo: IFrontEndInfo,
-    goToNextPage: () => void,
+    goToNextPage: (formId: string) => void,
     keycloak: KeycloakInstance
   ) {
     const requestTimeoutMs = 20 * 60 * 1000
@@ -91,7 +91,7 @@ export class FileUploader {
 
       // In order to prevent exit confirmation when page redirects to Records page
       window.removeEventListener("beforeunload", pageUnloadAction)
-      this.goToNextPage()
+      this.goToNextPage("#upload-data-form")
     } catch (e) {
       handleUploadError(e, "Processing client files failed")
     }
