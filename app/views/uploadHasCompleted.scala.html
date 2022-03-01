@@ -9,7 +9,7 @@
       <h1 class="govuk-heading-l">@pageHeading</h1>
       <p class="govuk-body">Your upload is complete and has been saved. You cannot make amendments to your upload or add additional files.</p>
       <p class="govuk-body">Please click 'Continue' to proceed with your transfer.</p>
-      <a href="@{if(isJudgmentUser) {routes.FileChecksController.judgmentProcessingPage(consignmentId)}
+      <a href="@{if(isJudgmentUser) {routes.FileChecksController.judgmentRecordProcessingPage(consignmentId)}
                 else {routes.FileChecksController.recordProcessingPage(consignmentId)}}" role="button" draggable="false" class="govuk-button govuk-button--primary">
         Continue
       </a>
