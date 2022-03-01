@@ -22,9 +22,10 @@ export const verifyVisibilityOfWarningMessages = (
     expect(
       warningMessageThatShouldBeDisplayed?.warningMessageElements
         .messageElementText!.textContent
-    ).toStrictEqual(
-      warningMessageThatShouldBeDisplayed?.expectedWarningMessageText
-    )
+    ).toContain(warningMessageThatShouldBeDisplayed?.expectedWarningMessageText)
+
+    const selectionArea = document.querySelector("#selection-area")
+    expect(selectionArea!).toHaveClass("govuk-form-group--error")
   }
 
   const warningMessageElements: any = Object.values(

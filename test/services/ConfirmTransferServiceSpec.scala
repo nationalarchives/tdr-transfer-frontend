@@ -42,12 +42,12 @@ class ConfirmTransferServiceSpec extends FlatSpec with Matchers with MockitoSuga
 
   private val formData = FinalTransferConfirmationData(
     openRecords = true,
-    transferLegalOwnership = true)
+    transferLegalCustody = true)
 
   val addFinalTransferConfirmationInput: AddFinalTransferConfirmationInput = AddFinalTransferConfirmationInput(
     consignmentId,
     formData.openRecords,
-    formData.transferLegalOwnership
+    formData.transferLegalCustody
   )
 
   val addFinalJudgmentTransferConfirmationInput: AddFinalJudgmentTransferConfirmationInput =
@@ -62,7 +62,7 @@ class ConfirmTransferServiceSpec extends FlatSpec with Matchers with MockitoSuga
     val finalTransferConfirmationResponse = AddFinalTransferConfirmation(
       consignmentId,
       finalOpenRecordsConfirmed = true,
-      legalOwnershipTransferConfirmed = true)
+      legalCustodyTransferConfirmed = true)
 
     val graphQlResponse =
       GraphQlResponse(Some(aftc.Data(
@@ -76,7 +76,7 @@ class ConfirmTransferServiceSpec extends FlatSpec with Matchers with MockitoSuga
 
     transferConfirmation.consignmentId should equal(consignmentId)
     transferConfirmation.finalOpenRecordsConfirmed should equal(formData.openRecords)
-    transferConfirmation.legalOwnershipTransferConfirmed should equal(formData.transferLegalOwnership)
+    transferConfirmation.legalCustodyTransferConfirmed should equal(formData.transferLegalCustody)
   }
 
   "addFinalTransferConfirmation" should "return an error when the API has an error" in {

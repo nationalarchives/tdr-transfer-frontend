@@ -96,7 +96,7 @@ test("a single file upload returns the correct key", async () => {
   })
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client)
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -116,7 +116,7 @@ test("a single file upload calls the callback correctly", async () => {
   const callback = jest.fn()
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client)
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -145,7 +145,7 @@ test("multiple file uploads return the correct keys", async () => {
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.reset()
   mockUpload.resolves({})
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client)
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -178,7 +178,7 @@ test("multiple file uploads call the callback correctly", async () => {
   const callback = jest.fn()
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client)
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -197,7 +197,7 @@ test("when there is an error with the upload, an error is returned", async () =>
   const tdrFile = createTdrFile({})
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.rejects("error")
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client)
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
   const result = s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -213,7 +213,7 @@ test("a single file upload calls the callback correctly with a different chunk s
   const callback = jest.fn()
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client)
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -234,7 +234,7 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
 
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client)
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -273,7 +273,7 @@ test("multiple 0-byte file uploads returns a totalChunks value that equals the s
 
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client)
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -307,7 +307,7 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
 
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client)
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
