@@ -29,7 +29,7 @@ export class FileUploader {
   clientFileProcessing: ClientFileProcessing
   updateConsignmentStatus: UpdateConsignmentStatus
   stage: string
-  goToNextPage: () => void
+  goToNextPage: (formId: string) => void
   keycloak: IKeycloakInstance
   uploadUrl: string
 
@@ -37,24 +37,23 @@ export class FileUploader {
     clientFileMetadataUpload: ClientFileMetadataUpload,
     updateConsignmentStatus: UpdateConsignmentStatus,
     frontendInfo: IFrontEndInfo,
-    goToNextPage: () => void,
+    goToNextPage: (formId: string) => void,
     keycloak: KeycloakInstance
   ) {
     const requestTimeoutMs = 20 * 60 * 1000
     const config: S3ClientConfig = {
       region: "eu-west-2",
-      endpoint: frontendInfo.uploadUrl,
       credentials: {
         accessKeyId: "placeholder-id",
         secretAccessKey: "placeholder-secret"
       },
-      forcePathStyle: true,
+      bucketEndpoint: true,
       requestHandler: new TdrFetchHandler({ requestTimeoutMs })
     }
     const client = new S3Client(config)
     this.clientFileProcessing = new ClientFileProcessing(
       clientFileMetadataUpload,
-      new S3Upload(client)
+      new S3Upload(client, frontendInfo.uploadUrl)
     )
     this.updateConsignmentStatus = updateConsignmentStatus
     this.stage = frontendInfo.stage
@@ -92,7 +91,7 @@ export class FileUploader {
 
       // In order to prevent exit confirmation when page redirects to Records page
       window.removeEventListener("beforeunload", pageUnloadAction)
-      this.goToNextPage()
+      this.goToNextPage("#upload-data-form")
     } catch (e) {
       handleUploadError(e, "Processing client files failed")
     }

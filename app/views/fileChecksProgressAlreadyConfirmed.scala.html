@@ -1,0 +1,28 @@
+@import java.util.UUID
+@import viewsapi.FrontEndInfo
+@import views.html.partials.{frontEndInputs, progressIndicator}
+
+@(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
+@title = @{if(isJudgmentUser){"Checking your upload"} else {"Checking your records"}}
+@main(title, name = name) {
+    @defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row file-check-progress">
+        <div class="govuk-grid-column-two-thirds">
+            @progressIndicator(Messages("checkingRecords.progress"))
+            @frontEndInputs(frontEndInfo)
+            <h1 class="govuk-heading-l">@title</h1>
+            <input id="consignmentId" type="hidden" value="@consignmentId">
+            <p class="govuk-body">Your upload and checks have been completed.</p>
+            <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
+
+            <div class="govuk-button-group">
+                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
+                    href="@{if(isJudgmentUser) {routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId)}
+                            else {routes.FileChecksResultsController.fileCheckResultsPage(consignmentId)}}">
+                    Continue
+                </a>
+            </div>
+        </div>
+    </div>
+    }
+}

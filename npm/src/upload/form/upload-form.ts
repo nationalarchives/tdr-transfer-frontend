@@ -91,9 +91,11 @@ export class UploadForm {
         fileList,
         "You are only allowed to drop one file."
       )
-      const fileName: string = fileList.item(0)?.name!
-      this.checkForCorrectJudgmentFileExtension(fileName)
       const files: File[] = this.convertFileListToArray(fileList)
+      const fileName: string = fileList.item(0)?.name!
+      /* checkForCorrectJudgmentFileExtension must be called after the dropped item's type is checked
+      (in convertFileListToArray), otherwise the extension error message will display when folder is dropped */
+      this.checkForCorrectJudgmentFileExtension(fileName)
       this.selectedFiles = this.convertFilesToIfilesWithPath(files)
       addFileSelectionSuccessMessage(fileName)
     } else {
@@ -189,6 +191,9 @@ export class UploadForm {
     incorrectItemSelectedMessage: document.querySelector(
       "#item-selection-failure"
     ),
+    multipleItemSelectedMessage: document.querySelector(
+      "#multiple-selection-failure"
+    ),
     submissionWithoutSelectionMessage: document.querySelector(
       "#nothing-selected-submission-message"
     )
@@ -263,7 +268,7 @@ export class UploadForm {
     if (droppedObjects.length > 1) {
       this.removeFilesAndDragOver()
       rejectUserItemSelection(
-        this.warningMessages?.incorrectItemSelectedMessage,
+        this.warningMessages?.multipleItemSelectedMessage,
         this.warningMessages,
         this.successMessage,
         exceptionMessage

@@ -15,8 +15,8 @@ class ConsignmentStatusService @Inject()(val graphqlConfiguration: GraphQLConfig
 
   def consignmentStatus(consignmentId: UUID, token: BearerAccessToken): Future[Option[GetConsignment.CurrentStatus]] = {
     val variables = new Variables(consignmentId)
-    sendApiRequest(getConsignmentStatusClient, getConsignmentStatus.document, token, variables).map(data => {
+    sendApiRequest(getConsignmentStatusClient, getConsignmentStatus.document, token, variables).map(data =>
       data.getConsignment.map(_.currentStatus)
-    })
+    )
   }
 }

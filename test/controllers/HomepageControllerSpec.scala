@@ -37,7 +37,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
   "HomepageController GET" should {
 
-    "render the homepage page with an authenticated user with no user type" in {
+    "render the registration complete page with an authenticated user with no user type" in {
       val controller = new HomepageController(
         getAuthorisedSecurityComponents,
         getValidKeycloakConfiguration,
@@ -46,9 +46,8 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage"))
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
-      contentAsString(homepagePage) must include ("Welcome")
-      contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(homepagePage) must include ("Upload your records to start a new transfer")
+      contentAsString(homepagePage) must include ("Registration Complete")
+      contentAsString(homepagePage) must include ("Thank you for completing your registration")
     }
 
     "render the homepage page with an authenticated standard user" in {
@@ -75,7 +74,8 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
       contentAsString(homepagePage) must include ("Welcome")
       contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(homepagePage) must include ("Upload your judgment to start a new transfer")
+      contentAsString(homepagePage) must include ("Upload your court judgment to start a new transfer")
+      contentAsString(homepagePage) must include ("You must upload your court judgment as a Microsoft Word document.")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -108,7 +108,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       val redirect = controller.judgmentHomepageSubmit()
         .apply(FakeRequest(POST, "/homepage").withCSRFToken)
 
-      redirectLocation(redirect).get must equal(s"/judgment/$consignmentId/transfer-agreement")
+      redirectLocation(redirect).get must equal(s"/judgment/$consignmentId/before-uploading")
       wiremockServer.getAllServeEvents.size should equal(1)
     }
 

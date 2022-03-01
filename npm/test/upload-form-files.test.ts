@@ -5,8 +5,9 @@ import {
   getDummyFolder
 } from "./upload-form-utils/mock-files-and-folders"
 import { MockUploadFormDom } from "./upload-form-utils/mock-upload-form-dom"
-import { htmlForFileUploadForm } from "./upload-form-utils/html-for-file-upload-form"
+import { htmlForFileUploadForm } from "./upload-form-utils/html-for-upload-forms"
 import { verifyVisibilityOfWarningMessages } from "./upload-form-utils/verify-visibility-of-warning-messages"
+import { verifyVisibilityOfSuccessMessage } from "./upload-form-utils/verify-visibility-of-success-message"
 
 beforeEach(() => {
   document.body.innerHTML = htmlForFileUploadForm
@@ -25,7 +26,8 @@ const judgmentUploadPageSpecificWarningMessages: () => {
   }
 }
 
-test("clicking the submit button, without selecting a file, doesn't reveal the progress bar and disables the buttons on the page", async () => {
+test(`clicking the submit button, without selecting a file, displays a warning message and doesn't reveal the
+            progress bar nor does it disable the buttons on the page`, async () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
@@ -56,9 +58,9 @@ test("clicking the submit button, without selecting a file, displays a warning m
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.submissionWithoutSelection!,
-    expectedWarningMessageText: "Select a file to upload."
+    expectedWarningMessageText: "You did not select a file for upload."
   })
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 })
 
 test("input button updates the page with the file that has been selected, if that file is an .docx file", () => {
@@ -75,17 +77,13 @@ test("input button updates the page with the file that has been selected, if tha
   }
   mockDom.selectFolderViaButton()
 
-  expect(mockDom.itemRetrievalSuccessMessage!).not.toHaveAttribute(
-    "hidden",
-    "true"
-  )
-
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, true)
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(dummyFile.name)
 })
 
 test("input button updates the page with an error if the file that has been selected is an non-docx file", async () => {
-  /* Currently with the accept attribute in place, this should not be possible, but the test is added in case it is removed*/
+  /* Currently, with the accept attribute in place, this should not be possible, but the test is added in case it is removed */
 
   const mockDom = new MockUploadFormDom(
     true,
@@ -102,16 +100,15 @@ test("input button updates the page with an error if the file that has been sele
     Error("Only MS Word docs are allowed to be selected")
   )
 
-  expect(mockDom.itemRetrievalSuccessMessage!).toHaveAttribute("hidden", "true")
-
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.incorrectFileExtension!,
     expectedWarningMessageText:
-      "You can only upload a Microsoft Word file. Please try again or contact us"
+      "You must upload your judgment as a Microsoft Word file (.docx)"
   })
 })
 
-test("dropzone updates the page with correct number of files if a .docx file has been dropped", async () => {
+test("dropzone updates the page with name of file if a .docx file has been dropped", async () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
@@ -126,11 +123,7 @@ test("dropzone updates the page with correct number of files if a .docx file has
   const dragEvent = new dragEventClass()
   await mockDom.form.handleDroppedItems(dragEvent)
 
-  expect(mockDom.itemRetrievalSuccessMessage!).not.toHaveAttribute(
-    "hidden",
-    "true"
-  )
-
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, true)
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
   expect(mockDom.fileNameElement!.textContent).toStrictEqual(fileName)
 })
@@ -155,9 +148,9 @@ test("dropzone updates the page with an error if a non-docx file has been droppe
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.incorrectFileExtension!,
     expectedWarningMessageText:
-      "You can only upload a Microsoft Word file. Please try again or contact us"
+      "You must upload your judgment as a Microsoft Word file (.docx)"
   })
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 })
 
 test("dropzone updates the page with an error if more than 1 file has been dropped", async () => {
@@ -179,10 +172,10 @@ test("dropzone updates the page with an error if more than 1 file has been dropp
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
-    expectedWarningMessageText: "You can only drop a single file"
+    warningMessageElements: mockDom.warningMessages.multipleItemSelected!,
+    expectedWarningMessageText: "You must upload a single file"
   })
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 })
 
 test("dropzone updates the page with an error if a file and a folder has been dropped", async () => {
@@ -201,13 +194,13 @@ test("dropzone updates the page with an error if a file and a folder has been dr
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
-    expectedWarningMessageText: "You can only drop a single file"
+    warningMessageElements: mockDom.warningMessages.multipleItemSelected!,
+    expectedWarningMessageText: "You must upload a single file"
   })
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 })
 
-test("dropzone updates the page with 'Only MS Word' error if 1 folder has been dropped", async () => {
+test("dropzone updates the page with a error if 1 folder has been dropped", async () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
@@ -219,18 +212,17 @@ test("dropzone updates the page with 'Only MS Word' error if 1 folder has been d
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
-    Error("Only MS Word docs are allowed to be selected")
+    Error("Only files are allowed to be selected")
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.incorrectFileExtension!,
-    expectedWarningMessageText:
-      "You can only upload a Microsoft Word file. Please try again or contact us"
+    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
+    expectedWarningMessageText: "You must upload a file"
   })
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 })
 
-test("dropzone updates the page with 'Only files are allowed' error if 1 folder with a name ending with acceptable extension has been dropped", async () => {
+test("dropzone updates the page with an error if 1 folder with a name ending with acceptable extension has been dropped", async () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
@@ -247,10 +239,9 @@ test("dropzone updates the page with 'Only files are allowed' error if 1 folder 
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
-    expectedWarningMessageText: "You can only drop a single file"
+    expectedWarningMessageText: "You must upload a file"
   })
-
-  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+  verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 })
 
 test("dropzone clears selected file if an invalid object is dropped after a valid one", async () => {
