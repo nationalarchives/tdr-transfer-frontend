@@ -40,13 +40,6 @@
   outline-color: govuk-colour('dark-grey');
 }
 
-.drag-and-drop__failure {
-  align-items: flex-end;
-  color: govuk-colour('red');
-  flex-direction: row;
-  font-weight: bold;
-}
-
 .drag-and-drop__hint-text {
   margin-bottom: 0;
   margin-right: 10px;
@@ -65,4 +58,9 @@
 .drag-and-drop__success {
   color: govuk-colour('green');
   font-weight: bold;
+  padding-left: 10px;
+}
+
+.error-messages {
+  margin-bottom: 0;
 }

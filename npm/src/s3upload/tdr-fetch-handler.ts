@@ -1,7 +1,10 @@
 import { HttpHandler, HttpRequest, HttpResponse } from "@aws-sdk/protocol-http"
-import { HttpHandlerOptions, HeaderBag } from "@aws-sdk/types"
+import { buildQueryString } from "@aws-sdk/querystring-builder"
+import { HeaderBag, HttpHandlerOptions, Provider } from "@aws-sdk/types"
 
-function requestTimeout(timeoutInMs = 0): Promise<never> {
+declare let AbortController: any
+
+export function requestTimeout(timeoutInMs = 0): Promise<never> {
   return new Promise((resolve, reject) => {
     if (timeoutInMs) {
       setTimeout(() => {
@@ -15,6 +18,9 @@ function requestTimeout(timeoutInMs = 0): Promise<never> {
   })
 }
 
+/**
+ * Represents the http options that can be passed to a browser http client.
+ */
 export interface FetchHttpHandlerOptions {
   /**
    * The number of milliseconds a request can take before being automatically
@@ -23,28 +29,37 @@ export interface FetchHttpHandlerOptions {
   requestTimeoutMs?: number
 }
 
-/**
- * This is copied mostly from https://github.com/aws/aws-sdk-js-v3/blob/main/packages/fetch-http-handler/src/fetch-http-handler.ts
- * There are a few changes
- * We set credentials to 'include' so the cookies are sent
- * We stop sending query parameters as they're not needed.
- * We remove the bucket name from the path
- */
-export class TdrFetchHandler implements HttpHandler {
-  private readonly requestTimeoutMs?: number
+type FetchHttpHandlerConfig = FetchHttpHandlerOptions
 
-  constructor({ requestTimeoutMs }: FetchHttpHandlerOptions = {}) {
-    this.requestTimeoutMs = requestTimeoutMs
+export class TdrFetchHandler implements HttpHandler {
+  private config?: FetchHttpHandlerConfig
+  private readonly configProvider?: Provider<FetchHttpHandlerConfig>
+
+  constructor(
+    options?:
+      | FetchHttpHandlerOptions
+      | Provider<FetchHttpHandlerOptions | undefined>
+  ) {
+    if (typeof options === "function") {
+      this.configProvider = async () => (await options()) || {}
+    } else {
+      this.config = options ?? {}
+    }
   }
 
   destroy(): void {
     // Do nothing. TLS and HTTP/2 connection pooling is handled by the browser.
   }
 
-  handle(
+  async handle(
     request: HttpRequest,
     { abortSignal }: HttpHandlerOptions = {}
   ): Promise<{ response: HttpResponse }> {
+    if (!this.config && this.configProvider) {
+      this.config = await this.configProvider()
+    }
+    const requestTimeoutInMs = this.config!.requestTimeoutMs
+
     // if the request was already aborted, prevent doing extra work
     if (abortSignal?.aborted) {
       const abortError = new Error("Request aborted")
@@ -52,7 +67,13 @@ export class TdrFetchHandler implements HttpHandler {
       return Promise.reject(abortError)
     }
 
-    let path = `/${request.path.split("/").slice(2).join("/")}`
+    let path = request.path
+    if (request.query) {
+      const queryString = buildQueryString(request.query)
+      if (queryString) {
+        path += `?${queryString}`
+      }
+    }
 
     const { port, method } = request
     const url = `${request.protocol}//${request.hostname}${
@@ -62,13 +83,10 @@ export class TdrFetchHandler implements HttpHandler {
     // ref: https://github.com/whatwg/fetch/issues/551
     const body =
       method === "GET" || method === "HEAD" ? undefined : request.body
-
-    const newMethod = method == "POST" ? "PUT" : method
-
     const requestOptions: RequestInit = {
       body,
       headers: new Headers(request.headers),
-      method: newMethod,
+      method: method,
       credentials: "include"
     }
 
@@ -108,7 +126,7 @@ export class TdrFetchHandler implements HttpHandler {
           })
         }
       }),
-      requestTimeout(this.requestTimeoutMs)
+      requestTimeout(requestTimeoutInMs)
     ]
     if (abortSignal) {
       raceOfPromises.push(

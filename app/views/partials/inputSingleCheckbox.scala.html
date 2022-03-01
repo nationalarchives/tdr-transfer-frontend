@@ -15,7 +15,7 @@ args: (Symbol, Any)*
 
     <div class="govuk-checkboxes @elements.setErrorClass()">
         @errorMessage(elements)
-        <div class='govuk-checkboxes__item @if(isSmallCheckbox.toString() == "true"){govuk-checkboxes--small}'>
+        <div class='govuk-checkboxes__item@if(isSmallCheckbox.toString() == "true"){ govuk-checkboxes--small}'>
             <input
                 @checkedStatus
                 class="govuk-checkboxes__input"
