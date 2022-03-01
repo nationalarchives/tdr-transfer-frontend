@@ -9,6 +9,7 @@ export const rejectUserItemSelection = (
   const warningMessages: (HTMLElement | null)[] = Object.values(
     warningMessagesToHide
   )
+  const selectionArea = document.querySelector("#selection-area")
 
   for (const warningMessage of warningMessages) {
     if (warningMessage != warningMessageToReveal) {
@@ -20,6 +21,7 @@ export const rejectUserItemSelection = (
 
   warningMessageToReveal?.removeAttribute("hidden")
   warningMessageToReveal?.focus()
+  selectionArea?.classList.add("govuk-form-group--error")
 
   throw new Error(exceptionMessage)
 }
