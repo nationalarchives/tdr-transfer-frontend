@@ -17,8 +17,8 @@ export const getAllFiles: (
 ) => Promise<IEntryWithPath[]> = async (entry, fileInfoInput) => {
   const reader: IReader = entry.createReader()
   const entries: IWebkitEntry[] = await getEntriesFromReader(reader)
-  if(entry.isDirectory && entries.length === 0) {
-    fileInfoInput.push({path: entry.fullPath})
+  if (entry.isDirectory && entries.length === 0) {
+    fileInfoInput.push({ path: entry.fullPath })
   }
   for (const entry of entries) {
     if (entry.isDirectory) {
