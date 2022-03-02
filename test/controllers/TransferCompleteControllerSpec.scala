@@ -49,9 +49,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       """    <a href="https://www.smartsurvey.co.uk/s/tdr-feedback/" class="govuk-link" rel="noreferrer noopener" target="_blank">
         What did you think of this service? (opens in new tab)""")
     }
-  }
 
-  "TransferCompleteController GET" should {
     "render the success page if the export was triggered successfully for a judgment user" in {
       setConsignmentReferenceResponse()
       val transferCompleteSubmit = callTransferComplete("judgment")
