@@ -64,3 +64,12 @@
 .error-messages {
   margin-bottom: 0;
 }
+
+.success-message-flexbox-container {
+  display: flex;
+  align-items: center;
+}
+
+.success-message-flexbox-item-2 {
+  margin-left: auto;
+}
