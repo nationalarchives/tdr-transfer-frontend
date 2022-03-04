@@ -3,7 +3,10 @@
 @import views.html.partials.{frontEndInputs, progressIndicator}
 @import views.html.helper.form
 @import views.html.helper.form
+@import views.html.partials.setHiddenInputValue
+
 @(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
+@url = @{routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId)}
 
 @main("Checking your upload", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -18,7 +21,9 @@
               This may take a few minutes. Once your record has been checked, you will be redirected automatically.</p>
 
             <!--        Form to redirect user once file checks have completed. It sends consignmentId to record results' placeholder page -->
-            @form(routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId), Symbol("id") -> "file-checks-form") { }
+            @form(url) {
+                @setHiddenInputValue(url)
+            }
         </div>
     </div>
     }
