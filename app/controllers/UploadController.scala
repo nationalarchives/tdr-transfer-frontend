@@ -55,25 +55,26 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
 
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
-      fc <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
-    } yield {
-      val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
-      val pageHeading = "Uploading court judgment"
-
-      uploadStatus match {
-        case Some("InProgress") =>
-          Ok(views.html.uploadInProgress(consignmentId, pageHeading, request.token.name)).uncache()
-        case Some("Completed") =>
-          if(fc.allChecksSucceeded) {
-            Ok(views.html.fileChecksProgressAlreadyConfirmed(
-              consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = true
-            )).uncache()
-          } else {
-            Ok(views.html.uploadHasCompleted(consignmentId, pageHeading, request.token.name, isJudgmentUser = true)).uncache()
-          }
-        case _ =>
-          Ok(views.html.judgment.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
+      result <- {
+        val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
+        val pageHeading = "Uploading court judgment"
+        uploadStatus match {
+          case Some("InProgress") =>
+            Future(Ok(views.html.uploadInProgress(consignmentId, pageHeading, request.token.name)).uncache())
+          case Some("Completed") =>
+            consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).map(fc => {
+              if(fc.allChecksSucceeded) {
+                Ok(views.html.fileChecksProgressAlreadyConfirmed(
+                  consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = true
+                )).uncache()
+              } else {
+                Ok(views.html.uploadHasCompleted(consignmentId, pageHeading, request.token.name, isJudgmentUser = true)).uncache()
+              }
+            })
+          case _ =>
+            Future(Ok(views.html.judgment.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache())
+        }
       }
-    }
+    } yield result
   }
 }
