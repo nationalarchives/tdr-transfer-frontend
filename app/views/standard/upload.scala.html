@@ -4,6 +4,7 @@
 
 @import java.util.UUID
 @(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
+@url = @{routes.FileChecksController.recordProcessingPage(consignmentId)}
 
 @main("Upload your records", name = name) {
 <noscript>
@@ -86,7 +87,9 @@
             </div>
         </form>
         <!--        Form to redirect user once upload has completed. It sends consignmentId to record processing placeholder page -->
-        @form(routes.FileChecksController.recordProcessingPage(consignmentId), Symbol("id") -> "upload-data-form") { }
+        @form(url) {
+            @setHiddenInputValue(url)
+        }
     </div>
 </div>
 <div id="upload-progress" class="govuk-grid-row" hidden>

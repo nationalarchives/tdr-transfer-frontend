@@ -1,7 +1,6 @@
-export const goToNextPage: (formId: string) => void = (formId: string) => {
+export const goToNextPage: () => void = () => {
   const uploadDataFormRedirect: HTMLFormElement | null =
-    document.querySelector(formId)
-  if (uploadDataFormRedirect) {
-    uploadDataFormRedirect.submit()
-  }
+    document.querySelector("#next-page-value")
+  if (uploadDataFormRedirect)
+    window.location.href = uploadDataFormRedirect.getAttribute("value")!
 }

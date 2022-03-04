@@ -28,7 +28,7 @@ export class FileChecks {
       if (checksCompleted) {
         clearInterval(intervalId)
         isJudgmentUser
-          ? goToNextPage("#file-checks-form")
+          ? goToNextPage("#next-page-value")
           : displayChecksCompletedBanner()
       }
     }, 20000)
