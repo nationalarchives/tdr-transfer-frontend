@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom"
 
 import {
+  dummyIFileWithPath,
   getDummyFile,
   getDummyFolder
 } from "./upload-form-utils/mock-files-and-folders"
@@ -8,6 +9,7 @@ import { MockUploadFormDom } from "./upload-form-utils/mock-upload-form-dom"
 import { htmlForFileUploadForm } from "./upload-form-utils/html-for-upload-forms"
 import { verifyVisibilityOfWarningMessages } from "./upload-form-utils/verify-visibility-of-warning-messages"
 import { verifyVisibilityOfSuccessMessage } from "./upload-form-utils/verify-visibility-of-success-message"
+import { displaySelectionSuccessMessage } from "../src/upload/form/update-and-display-success-message"
 
 beforeEach(() => {
   document.body.innerHTML = htmlForFileUploadForm
@@ -291,8 +293,8 @@ test("clicking the submit button, after selecting the file, disables the buttons
   expect(mockDom.submitButton).toHaveAttribute("disabled", "true")
   expect(mockDom.hiddenInputButton).toHaveAttribute("disabled", "true")
   /*There is currently no way in Javascript to check if an event has been removed from an element,
-   therefore it is not possible to see if the submission code removed the drop event from the dropzone
-   */
+     therefore it is not possible to see if the submission code removed the drop event from the dropzone
+     */
 })
 
 test("clicking the submit button, after selecting a file, hides 'upload file' section and reveals progress bar", async () => {
@@ -315,4 +317,35 @@ test("clicking the submit button, after selecting a file, hides 'upload file' se
 
   expect(mockDom.uploadYourRecordsSection).toHaveAttribute("hidden", "true")
   expect(mockDom.uploadingRecordsSection).not.toHaveAttribute("hidden")
+})
+
+test("removeSelectedItem function should remove the selected files", () => {
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages()
+  )
+
+  mockDom.form.selectedFiles.push(dummyIFileWithPath)
+  mockDom.form.removeSelectedItem(new Event("click"))
+
+  expect(mockDom.form.selectedFiles).toHaveLength(0)
+})
+
+test("removeSelectedItem function should hide the success message row", () => {
+  const mockDom = new MockUploadFormDom(
+    true,
+    1,
+    judgmentUploadPageSpecificWarningMessages()
+  )
+  mockDom.getFileUploader().initialiseFormListeners()
+
+  expect(mockDom.successMessageRow).not.toHaveAttribute("hidden", "true")
+
+  displaySelectionSuccessMessage(
+    mockDom.form.successMessage,
+    mockDom.form.warningMessages
+  )
+  mockDom.removeButton!.click()
+  expect(mockDom.successMessageRow).toHaveAttribute("hidden", "true")
 })
