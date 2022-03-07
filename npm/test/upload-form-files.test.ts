@@ -327,7 +327,7 @@ test("removeSelectedItem function should remove the selected files", () => {
   )
 
   mockDom.form.selectedFiles.push(dummyIFileWithPath)
-  mockDom.form.removeSelectedItem()
+  mockDom.form.removeSelectedItem(new Event("click"))
 
   expect(mockDom.form.selectedFiles).toHaveLength(0)
 })
