@@ -1,3 +1,5 @@
+import { enableFetchMocks } from "jest-fetch-mock"
+enableFetchMocks()
 import "@testing-library/jest-dom"
 
 import {
@@ -23,7 +25,7 @@ test("clicking the submit button, without selecting a folder, doesn't reveal the
   const mockDom = new MockUploadFormDom()
 
   const submitEvent = mockDom.createSubmitEvent()
-  await expect(mockDom.form.handleFormSubmission(submitEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleFormSubmission(submitEvent)).resolves.toEqual(
     Error("A submission was made without an item being selected")
   )
 
@@ -36,7 +38,7 @@ test("clicking the submit button, without selecting a folder, displays a warning
   const mockDom = new MockUploadFormDom()
 
   const submitEvent = mockDom.createSubmitEvent()
-  await expect(mockDom.form.handleFormSubmission(submitEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleFormSubmission(submitEvent)).resolves.toEqual(
     Error("A submission was made without an item being selected")
   )
 
@@ -84,7 +86,7 @@ test("dropzone updates the page with an error if there are no files in folder", 
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("The folder is empty")
   )
 
@@ -145,7 +147,7 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("Only one folder is allowed to be selected")
   )
 
@@ -166,7 +168,7 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("Only one folder is allowed to be selected")
   )
 
@@ -187,7 +189,7 @@ test("dropzone updates the page with an error if 1 file has been dropped", async
     mockDom.fileEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("Only folders are allowed to be selected")
   )
 

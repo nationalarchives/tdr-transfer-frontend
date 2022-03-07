@@ -33,11 +33,14 @@ export class S3Upload {
     files: ITdrFile[],
     callback: TProgressFunction,
     stage: string
-  ) => Promise<{
-    sendData: ServiceOutputTypes[]
-    processedChunks: number
-    totalChunks: number
-  }> = async (consignmentId, userId, files, callback, stage) => {
+  ) => Promise<
+    | {
+        sendData: ServiceOutputTypes[]
+        processedChunks: number
+        totalChunks: number
+      }
+    | Error
+  > = async (consignmentId, userId, files, callback, stage) => {
     if (userId) {
       const totalFiles = files.length
       const totalChunks: number = files.reduce(
@@ -65,7 +68,7 @@ export class S3Upload {
       }
       return { sendData, processedChunks, totalChunks }
     } else {
-      throw new Error("No valid user id found")
+      return Error("No valid user id found")
     }
   }
 

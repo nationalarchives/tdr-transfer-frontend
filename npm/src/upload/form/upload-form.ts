@@ -6,6 +6,7 @@ import {
   addFolderSelectionSuccessMessage,
   displaySelectionSuccessMessage
 } from "./update-and-display-success-message"
+import { isError } from "../../errorhandling"
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
@@ -45,13 +46,13 @@ export class UploadForm {
     this.folderUploader = folderUploader
   }
 
-  consignmentId: () => string = () => {
+  consignmentId: () => string | Error = () => {
     const value: string | null = this.formElement.getAttribute(
       "data-consignment-id"
     )
 
     if (!value) {
-      throw Error("No consignment provided")
+      return Error("No consignment provided")
     }
     return value
   }
@@ -82,35 +83,58 @@ export class UploadForm {
     ev.preventDefault()
     if (this.isJudgmentUser) {
       const fileList: FileList = ev.dataTransfer?.files!
-      this.checkNumberOfObjectsDropped(
+      const resultOrError = this.checkNumberOfObjectsDropped(
         fileList,
         "You are only allowed to drop one file."
       )
-      const files: File[] = this.convertFileListToArray(fileList)
-      const fileName: string = fileList.item(0)?.name!
-      /* checkForCorrectJudgmentFileExtension must be called after the dropped item's type is checked
-      (in convertFileListToArray), otherwise the extension error message will display when folder is dropped */
-      this.checkForCorrectJudgmentFileExtension(fileName)
-      this.selectedFiles = this.convertFilesToIfilesWithPath(files)
-      addFileSelectionSuccessMessage(fileName)
+      if (!isError(resultOrError)) {
+        const files: File[] | Error = this.convertFileListToArray(fileList)
+        if (!isError(files)) {
+          const fileName: string = fileList.item(0)?.name!
+          /* checkForCorrectJudgmentFileExtension must be called after the dropped item's type is checked
+          (in convertFileListToArray), otherwise the extension error message will display when folder is dropped */
+          const extensionError =
+            this.checkForCorrectJudgmentFileExtension(fileName)
+          if (!isError(extensionError)) {
+            this.selectedFiles = this.convertFilesToIfilesWithPath(files)
+            addFileSelectionSuccessMessage(fileName)
+          } else {
+            return extensionError
+          }
+        } else {
+          return files
+        }
+      } else {
+        return resultOrError
+      }
     } else {
       const items: DataTransferItemList = ev.dataTransfer?.items!
-      this.checkNumberOfObjectsDropped(
+      const resultOrError = this.checkNumberOfObjectsDropped(
         items,
         "Only one folder is allowed to be selected"
       )
-      const droppedItem: DataTransferItem | null = items[0]
-      const webkitEntry = droppedItem.webkitGetAsEntry()
-      this.checkIfDroppedItemIsFolder(webkitEntry)
-
-      const files: IFileWithPath[] = await getAllFiles(webkitEntry, [])
-      this.checkIfFolderHasFiles(files)
-
-      this.selectedFiles = files
-      addFolderSelectionSuccessMessage(
-        webkitEntry.name,
-        this.selectedFiles.length
-      )
+      if (!isError(resultOrError)) {
+        const droppedItem: DataTransferItem | null = items[0]
+        const webkitEntry = droppedItem.webkitGetAsEntry()
+        const resultOrError = this.checkIfDroppedItemIsFolder(webkitEntry)
+        if (!isError(resultOrError)) {
+          const files: IFileWithPath[] = await getAllFiles(webkitEntry, [])
+          const folderCheck = this.checkIfFolderHasFiles(files)
+          if (!isError(folderCheck)) {
+            this.selectedFiles = files
+            addFolderSelectionSuccessMessage(
+              webkitEntry.name,
+              this.selectedFiles.length
+            )
+          } else {
+            return folderCheck
+          }
+        } else {
+          return resultOrError
+        }
+      } else {
+        return resultOrError
+      }
     }
     displaySelectionSuccessMessage(this.successMessage, this.warningMessages)
     this.removeDragover()
@@ -122,8 +146,12 @@ export class UploadForm {
 
     if (this.isJudgmentUser) {
       const fileName = this.selectedFiles[0].file.name
-      this.checkForCorrectJudgmentFileExtension(fileName)
-      addFileSelectionSuccessMessage(fileName)
+      const checkOrError = this.checkForCorrectJudgmentFileExtension(fileName)
+      if (!isError(checkOrError)) {
+        addFileSelectionSuccessMessage(fileName)
+      } else {
+        return checkOrError
+      }
     } else {
       const parentFolder = this.getParentFolderName(this.selectedFiles)
       addFolderSelectionSuccessMessage(parentFolder, this.selectedFiles.length)
@@ -152,7 +180,9 @@ export class UploadForm {
     this.itemRetriever.addEventListener("change", this.handleSelectedItems)
   }
 
-  handleFormSubmission: (ev: Event) => void = async (ev: Event) => {
+  handleFormSubmission: (ev: Event) => Promise<void | Error> = async (
+    ev: Event
+  ) => {
     ev.preventDefault()
     const itemSelected: IFileWithPath | undefined = this.selectedFiles[0]
 
@@ -161,17 +191,22 @@ export class UploadForm {
       this.disableSubmitButtonAndDropzone()
 
       const parentFolder = this.getParentFolderName(this.selectedFiles)
-      const uploadFilesInfo: FileUploadInfo = {
-        consignmentId: this.consignmentId(),
-        parentFolder: parentFolder
+      const consignmentIdOrError = this.consignmentId()
+      if (!isError(consignmentIdOrError)) {
+        const consignmentId = consignmentIdOrError
+        const uploadFilesInfo: FileUploadInfo = {
+          consignmentId,
+          parentFolder: parentFolder
+        }
+        this.showUploadingRecordsPage()
+        this.folderUploader(this.selectedFiles, uploadFilesInfo)
+      } else {
+        return consignmentIdOrError
       }
-
-      this.showUploadingRecordsPage()
-      this.folderUploader(this.selectedFiles, uploadFilesInfo)
     } else {
       this.addSubmitListener() // Add submit listener back as we've set it to be removed after one form submission
       this.removeFilesAndDragOver()
-      rejectUserItemSelection(
+      return rejectUserItemSelection(
         this.warningMessages?.submissionWithoutSelectionMessage,
         this.warningMessages,
         this.successMessage,
@@ -228,10 +263,10 @@ export class UploadForm {
     }
   }
 
-  private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void {
+  private checkIfFolderHasFiles(files: File[] | IFileWithPath[]): void | Error {
     if (files === null || files.length === 0) {
       this.removeFilesAndDragOver()
-      rejectUserItemSelection(
+      return rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
         this.warningMessages,
         this.successMessage,
@@ -266,10 +301,10 @@ export class UploadForm {
   private checkNumberOfObjectsDropped(
     droppedObjects: DataTransferItemList | FileList,
     exceptionMessage: string
-  ) {
+  ): Error | void {
     if (droppedObjects.length > 1) {
       this.removeFilesAndDragOver()
-      rejectUserItemSelection(
+      return rejectUserItemSelection(
         this.warningMessages?.multipleItemSelectedMessage,
         this.warningMessages,
         this.successMessage,
@@ -278,28 +313,38 @@ export class UploadForm {
     }
   }
 
-  private convertFileListToArray(fileList: FileList): File[] {
+  private noErrors(arr: (void | File | Error)[]): arr is File[] {
+    const filterFunction = function (el: void | File | Error) {
+      return isError(el)
+    }
+    return arr.filter(filterFunction).length == 0
+  }
+
+  private convertFileListToArray(fileList: FileList): File[] | Error {
     const fileListIndexes = [...Array(fileList.length).keys()]
-    return fileListIndexes.map((i) => {
+    const fileArr: (void | File | Error)[] = fileListIndexes.map((i) => {
       const file: File = fileList[i]
       if (!file.type) {
         this.removeFilesAndDragOver()
-        rejectUserItemSelection(
+        return rejectUserItemSelection(
           this.warningMessages?.incorrectItemSelectedMessage,
           this.warningMessages,
           this.successMessage,
           "Only files are allowed to be selected"
         )
       }
-
       return file
     })
+    if (this.noErrors(fileArr)) {
+      return fileArr
+    }
+    return fileArr.find((a) => isError(a)) as Error
   }
 
   private checkIfDroppedItemIsFolder(webkitEntry: any) {
     if (webkitEntry!.isFile) {
       this.removeFilesAndDragOver()
-      rejectUserItemSelection(
+      return rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
         this.warningMessages,
         this.successMessage,
@@ -321,7 +366,7 @@ export class UploadForm {
       const fileExtension = fileName.slice(indexOfLastDot)
       if (!judgmentFileExtensionsAllowList.includes(fileExtension)) {
         this.removeFilesAndDragOver()
-        rejectUserItemSelection(
+        return rejectUserItemSelection(
           this.warningMessages?.incorrectFileExtensionMessage,
           this.warningMessages,
           this.successMessage,
@@ -329,7 +374,7 @@ export class UploadForm {
         )
       }
     } else {
-      throw "The file does not have a file name!"
+      return Error("The file does not have a file name!")
     }
   }
 }

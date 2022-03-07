@@ -1,28 +1,35 @@
 import Keycloak, { KeycloakInstance } from "keycloak-js"
 import { IKeycloakTokenParsed } from "../upload"
-import { handleUploadError, LoggedOutError } from "../errorhandling"
+import { handleUploadError, isError, LoggedOutError } from "../errorhandling"
 
-export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
-  async () => {
-    const keycloakInstance: Keycloak.KeycloakInstance = Keycloak(
-      `${window.location.origin}/keycloak.json`
-    )
+export const getKeycloakInstance: () => Promise<
+  Keycloak.KeycloakInstance | Error
+> = async () => {
+  const keycloakInstance: Keycloak.KeycloakInstance = Keycloak(
+    `${window.location.origin}/keycloak.json`
+  )
 
+  try {
     const authenticated = await keycloakInstance.init({
       onLoad: "check-sso",
       silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login"
     })
-
-    if (!authenticated) {
-      console.log("User is not authenticated. Redirecting to login page")
-      await keycloakInstance.login({
-        redirectUri: window.location.href,
-        prompt: "login"
-      })
+    if (isError(authenticated)) {
+      return authenticated
+    } else {
+      if (!authenticated) {
+        console.log("User is not authenticated. Redirecting to login page")
+        await keycloakInstance.login({
+          redirectUri: window.location.href,
+          prompt: "login"
+        })
+      }
     }
-
-    return keycloakInstance
+  } catch (e) {
+    return Error(e)
   }
+  return keycloakInstance
+}
 
 const isRefreshTokenExpired: (
   token: IKeycloakTokenParsed | undefined
@@ -60,19 +67,28 @@ export const scheduleTokenRefresh: (
 export const refreshOrReturnToken: (
   keycloak: Keycloak.KeycloakInstance,
   tokenMinValidityInSecs?: number
-) => Promise<string> = async (keycloak, tokenMinValidityInSecs = 30) => {
+) => Promise<string | Error> = async (
+  keycloak,
+  tokenMinValidityInSecs = 30
+) => {
   if (keycloak.isTokenExpired(tokenMinValidityInSecs)) {
     if (isRefreshTokenExpired(keycloak.refreshTokenParsed)) {
-      handleUploadError(
-        new LoggedOutError(keycloak.createLoginUrl(), "User is logged out"),
-        "Refresh token has expired"
+      const error = new LoggedOutError(
+        keycloak.createLoginUrl(),
+        "Refresh token has expired: User is logged out"
       )
+      handleUploadError(error)
+      return error
+    } else {
+      await keycloak.updateToken(tokenMinValidityInSecs).catch((err) => {
+        return new Error(err)
+      })
     }
-    await keycloak.updateToken(tokenMinValidityInSecs)
   }
   if (keycloak.token) {
     return keycloak.token
   } else {
+    //We shouldn't normally throw Errors but this is exceptional
     throw "Something really odd has happened, Keycloak is down or something"
   }
 }

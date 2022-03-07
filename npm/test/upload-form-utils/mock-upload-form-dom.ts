@@ -173,7 +173,9 @@ export class MockUploadFormDom {
   }
 
   setUpFileUploader(isJudgmentUser: boolean): FileUploader {
-    const mockUpdateToken = jest.fn()
+    const mockUpdateToken = jest.fn().mockImplementation((number:number) => {
+      return new Promise((res, _) => res(true))
+    })
     const isTokenExpired = true
     const refreshTokenParsed: KeycloakTokenParsed = {
       exp: Math.round(new Date().getTime() / 1000) + 60
