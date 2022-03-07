@@ -7,6 +7,7 @@ import {
 } from "@nationalarchives/file-information"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
+import { isError } from "../errorhandling"
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
@@ -61,23 +62,41 @@ export class ClientFileProcessing {
     uploadFilesInfo: FileUploadInfo,
     stage: string,
     userId: string | undefined
-  ): Promise<void> {
-    await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
-    const metadata: IFileMetadata[] =
-      await this.clientFileExtractMetadata.extract(
-        files,
-        this.metadataProgressCallback
-      )
-    const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
-      uploadFilesInfo.consignmentId,
-      metadata
+  ): Promise<void | Error> {
+    const uploadResult = await this.clientFileMetadataUpload.startUpload(
+      uploadFilesInfo
     )
-    await this.s3Upload.uploadToS3(
-      uploadFilesInfo.consignmentId,
-      userId,
-      tdrFiles,
-      this.s3ProgressCallback,
-      stage
-    )
+    if (!isError(uploadResult)) {
+      const metadata: IFileMetadata[] | Error =
+        await this.clientFileExtractMetadata.extract(
+          files,
+          this.metadataProgressCallback
+        )
+      if (!isError(metadata)) {
+        const tdrFiles =
+          await this.clientFileMetadataUpload.saveClientFileMetadata(
+            uploadFilesInfo.consignmentId,
+            metadata
+          )
+        if (!isError(tdrFiles)) {
+          const uploadResult = await this.s3Upload.uploadToS3(
+            uploadFilesInfo.consignmentId,
+            userId,
+            tdrFiles,
+            this.s3ProgressCallback,
+            stage
+          )
+          if (isError(uploadResult)) {
+            return uploadResult
+          }
+        } else {
+          return tdrFiles
+        }
+      } else {
+        return metadata
+      }
+    } else {
+      return uploadResult
+    }
   }
 }

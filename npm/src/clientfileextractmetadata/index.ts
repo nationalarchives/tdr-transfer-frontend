@@ -9,11 +9,11 @@ export class ClientFileExtractMetadata {
   async extract(
     files: IFileWithPath[],
     callBack: TProgressFunction
-  ): Promise<IFileMetadata[]> {
+  ): Promise<IFileMetadata[] | Error> {
     try {
       return await extractFileMetadata(files, callBack)
     } catch (e) {
-      throw Error("Client file metadata extraction failed: " + e.message)
+      return Error("Client file metadata extraction failed: " + e.message)
     }
   }
 }

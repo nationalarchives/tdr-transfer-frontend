@@ -1,6 +1,7 @@
 import { GraphqlClient } from "../src/graphql"
 import { DocumentNode, FetchResult } from "@apollo/client/core"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
+import { isError } from "../src/errorhandling"
 import { IFileMetadata } from "@nationalarchives/file-information"
 import { GraphQLError } from "graphql"
 import { mockKeycloakInstance } from "./utils"
@@ -135,7 +136,7 @@ test("startUpload returns error if no data returned", async () => {
       consignmentId: "1",
       parentFolder: "TEST PARENT FOLDER NAME"
     })
-  ).rejects.toStrictEqual(Error("Start upload failed: no data"))
+  ).resolves.toStrictEqual(Error("Start upload failed: no data"))
 })
 
 test("startUpload returns error if returned data contains errors", async () => {
@@ -147,7 +148,7 @@ test("startUpload returns error if returned data contains errors", async () => {
       consignmentId: "1",
       parentFolder: "TEST PARENT FOLDER NAME"
     })
-  ).rejects.toStrictEqual(Error("Start upload failed: error 1,error 2"))
+  ).resolves.toStrictEqual(Error("Start upload failed: error 1,error 2"))
 })
 
 test("saveClientFileMetadata uploads client file metadata", async () => {
@@ -165,11 +166,11 @@ test("saveClientFileMetadata uploads client file metadata", async () => {
   expect(mockGraphqlClient).toHaveBeenCalled()
   expect(result).toHaveLength(2)
 
-  const result1 = result[0]
-  expect(result1.fileId).toBe("0")
-
-  const result2 = result[1]
-  expect(result2.fileId).toBe("1")
+  expect(isError(result)).toBe(false)
+  if(!isError(result)) {
+    expect(result[0].fileId).toBe("0")
+    expect(result[1].fileId).toBe("1")
+  }
 })
 
 test("saveClientFileMetadata fails to upload client file metadata", async () => {
@@ -181,7 +182,7 @@ test("saveClientFileMetadata fails to upload client file metadata", async () => 
 
   await expect(
     uploadMetadata.saveClientFileMetadata("", metadata)
-  ).rejects.toStrictEqual(
+  ).resolves.toStrictEqual(
     Error("Add client file metadata failed: error 1,error 2")
   )
 })

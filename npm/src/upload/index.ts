@@ -5,7 +5,7 @@ import { UpdateConsignmentStatus } from "../updateconsignmentstatus"
 import { FileUploadInfo, UploadForm } from "./form/upload-form"
 import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
-import { handleUploadError } from "../errorhandling"
+import { handleUploadError, isError } from "../errorhandling"
 import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
 import { refreshOrReturnToken, scheduleTokenRefresh } from "../auth"
 import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
@@ -74,26 +74,38 @@ export class FileUploader {
 
     const cookiesUrl = `${this.uploadUrl}/cookies`
     scheduleTokenRefresh(this.keycloak, cookiesUrl)
-    await fetch(cookiesUrl, {
+    const errors: Error[] = []
+    const cookiesResponse = await fetch(cookiesUrl, {
       credentials: "include",
       headers: { Authorization: `Bearer ${refreshedToken}` }
+    }).catch((err) => {
+      return err
     })
-    try {
-      await this.clientFileProcessing.processClientFiles(
+    if (!isError(cookiesResponse)) {
+      const processResult = await this.clientFileProcessing.processClientFiles(
         files,
         uploadFilesInfo,
         this.stage,
         this.keycloak.tokenParsed?.sub
       )
-      await this.updateConsignmentStatus.markConsignmentStatusAsCompleted(
-        uploadFilesInfo
-      )
-
-      // In order to prevent exit confirmation when page redirects to Records page
+      const statusUpdate =
+        await this.updateConsignmentStatus.markConsignmentStatusAsCompleted(
+          uploadFilesInfo
+        )
+      if (isError(processResult)) {
+        errors.push(processResult)
+      }
+      if (isError(statusUpdate)) {
+        errors.push(statusUpdate)
+      }
+    } else {
+      errors.push(cookiesResponse)
+    }
+    if (errors.length == 0) {
       window.removeEventListener("beforeunload", pageUnloadAction)
       this.goToNextPage("#upload-data-form")
-    } catch (e) {
-      handleUploadError(e, "Processing client files failed")
+    } else {
+      errors.forEach((err) => handleUploadError(err))
     }
   }
 
