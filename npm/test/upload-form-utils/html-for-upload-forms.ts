@@ -4,13 +4,14 @@ export const htmlForFolderUploadForm = `
               <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
                   <div class="govuk-form-group">
                       <div class="drag-and-drop">
-                          <div class="govuk-summary-list govuk-file-upload">
+                          <div id="success-message-row" class="govuk-summary-list govuk-file-upload">
                               <div class="govuk-summary-list__row">
                                   <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden=""
                                       tabindex="-1" role="alert" aria-describedby="success-message-text">
-                                      <div>
-                                           <p id="success-message-text">The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected</p>
-                                      </div>
+                                    <div class="success-message-flexbox-container">
+                                        <p id="success-message-text">The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected </p>
+                                        <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
+                                    </div>
                                  </dd>
                               </div>
                           </div>
@@ -67,13 +68,14 @@ export const htmlForFileUploadForm = `
           <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
               <div class="govuk-form-group">
                   <div class="drag-and-drop">
-                      <div class="govuk-summary-list govuk-file-upload">
+                      <div id="success-message-row" class="govuk-summary-list govuk-file-upload">
                           <div class="govuk-summary-list__row">
                               <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden
                                   tabindex="-1" role="alert" aria-describedby="success-message-text">
-                                  <div>
-                                      <p id="success-message-text">The file "<span id="file-name"></span>" has been selected</p>
-                                  </div>
+                                <div class="success-message-flexbox-container">
+                                    <p id="success-message-text">The file "<span id="file-name"></span>" has been selected </p>
+                                    <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
+                                </div>
                               </dd>
                           </div>
                       </div>

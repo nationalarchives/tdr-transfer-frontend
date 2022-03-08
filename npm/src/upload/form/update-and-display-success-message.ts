@@ -30,6 +30,10 @@ export const displaySelectionSuccessMessage = (
   }
 ) => {
   const selectionArea = document.querySelector("#selection-area")
+
+  const successMessageRow: HTMLElement | null = document.querySelector(
+    "#success-message-row"
+  )
   selectionArea?.classList.remove("govuk-form-group--error")
 
   Object.values(warningMessagesToHide).forEach(
@@ -38,6 +42,7 @@ export const displaySelectionSuccessMessage = (
     }
   )
 
+  successMessageRow?.removeAttribute("hidden")
   successMessage?.removeAttribute("hidden")
   successMessage?.focus()
 }

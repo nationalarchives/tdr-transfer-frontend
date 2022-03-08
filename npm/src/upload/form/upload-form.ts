@@ -131,6 +131,22 @@ export class UploadForm {
     displaySelectionSuccessMessage(this.successMessage, this.warningMessages)
   }
 
+  removeSelectedItem = (ev: Event): void => {
+    ev.preventDefault()
+    const successMessageRow: HTMLElement | null = document.querySelector(
+      "#success-message-row"
+    )
+    this.selectedFiles = []
+    successMessageRow?.setAttribute("hidden", "true")
+    this.formElement.reset()
+  }
+
+  addRemoveSelectedItemListener() {
+    const removeSelectionBtn: HTMLElement | null =
+      document.querySelector("#remove-file-btn")
+    removeSelectionBtn?.addEventListener("click", this.removeSelectedItem)
+  }
+
   addFolderListener() {
     this.dropzone.addEventListener("drop", this.handleDroppedItems)
     this.itemRetriever.addEventListener("change", this.handleSelectedItems)
