@@ -64,6 +64,10 @@
   margin-bottom: 0;
 }
 
+.success-message {
+  font-weight: bold;
+}
+
 .success-message-flexbox-container {
   align-items: center;
   display: flex;
@@ -72,9 +76,3 @@
 .success-message-flexbox-item {
   margin-left: auto;
 }
-
-/* stylelint-disable */
-#success-message-text {
-  font-weight: bold;
-}
-/* stylelint-enable */
