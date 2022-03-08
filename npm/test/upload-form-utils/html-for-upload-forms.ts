@@ -9,7 +9,7 @@ export const htmlForFolderUploadForm = `
                                   <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden=""
                                       tabindex="-1" role="alert" aria-describedby="success-message-text">
                                     <div class="success-message-flexbox-container">
-                                        <p id="success-message-text">The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected </p>
+                                        <p id="success-message-text" class="success-message">The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected </p>
                                         <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
                                     </div>
                                  </dd>
@@ -73,7 +73,7 @@ export const htmlForFileUploadForm = `
                               <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden
                                   tabindex="-1" role="alert" aria-describedby="success-message-text">
                                 <div class="success-message-flexbox-container">
-                                    <p id="success-message-text">The file "<span id="file-name"></span>" has been selected </p>
+                                    <p id="success-message-text" class="success-message">The file "<span id="file-name"></span>" has been selected </p>
                                     <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
                                 </div>
                               </dd>
