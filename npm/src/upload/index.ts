@@ -123,6 +123,7 @@ export class FileUploader {
       form.addSubmitListener()
       form.addButtonHighlighter()
       form.addDropzoneHighlighter()
+      form.addRemoveSelectedItemListener()
     }
   }
 }
