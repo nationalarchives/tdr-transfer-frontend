@@ -85,8 +85,8 @@
                 </div>
             </div>
         </form>
-        <!--        Form to redirect user once upload has completed. It sends consignmentId to record processing placeholder page -->
-        @form(routes.FileChecksController.judgmentRecordProcessingPage(consignmentId), Symbol("id") -> "upload-data-form") { }
+        <!--        Form to redirect user once upload has completed. It sends consignmentId to file checks placeholder page -->
+        @form(routes.FileChecksController.judgmentFileChecksPage(consignmentId), Symbol("id") -> "upload-data-form") { }
     </div>
 </div>
 <div id="upload-progress" class="govuk-grid-row" hidden>

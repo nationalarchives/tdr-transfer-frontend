@@ -126,7 +126,7 @@ export const htmlForFileUploadForm = `
               </div>
           </form>
           <!--        Form to redirect user once upload has completed. It sends consignmentId to record processing placeholder page -->
-          @form(routes.FileChecksController.recordProcessingPage(consignmentId), Symbol("id") -> "upload-data-form") { }
+          @form(routes.FileChecksController.fileChecksPage(consignmentId), Symbol("id") -> "upload-data-form") { }
       </div>
   </div>
   <div id="upload-progress" class="govuk-grid-row" hidden>`
