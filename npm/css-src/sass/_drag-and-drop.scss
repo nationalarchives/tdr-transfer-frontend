@@ -57,7 +57,6 @@
 
 .drag-and-drop__success {
   color: govuk-colour('green');
-  font-weight: bold;
   padding-left: 10px;
 }
 
@@ -73,3 +72,9 @@
 .success-message-flexbox-item {
   margin-left: auto;
 }
+
+/* stylelint-disable */
+#success-message-text {
+  font-weight: bold;
+}
+/* stylelint-enable */
