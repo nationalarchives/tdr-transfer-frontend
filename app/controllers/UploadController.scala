@@ -8,11 +8,11 @@ import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakC
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request}
+import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.{ConsignmentService, ConsignmentStatusService}
 import viewsapi.Caching.preventCaching
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UploadController @Inject()(val controllerComponents: SecurityComponents,
@@ -55,18 +55,30 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
 
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
-    } yield {
-      val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
-      val pageHeading = "Uploading court judgment"
-
-      uploadStatus match {
-        case Some("InProgress") =>
-          Ok(views.html.uploadInProgress(consignmentId, pageHeading, request.token.name)).uncache()
-        case Some("Completed") =>
-          Ok(views.html.uploadHasCompleted(consignmentId, pageHeading, request.token.name, isJudgmentUser = true)).uncache()
-        case _ =>
-          Ok(views.html.judgment.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
+      result <- {
+        val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
+        val pageHeading = "Uploading court judgment"
+        uploadStatus match {
+          case Some("InProgress") =>
+            Future(Ok(views.html.uploadInProgress(consignmentId, pageHeading, request.token.name)).uncache())
+          case Some("Completed") =>
+            consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).map(fc => {
+              val usingGoogleChrome = request.headers.toMap.get("sec-ch-ua") match {
+                case userAgentClientHint @ Some(List(_)) => userAgentClientHint.get.head.contains("Google Chrome")
+                case None => false
+              }
+              if(fc.allChecksSucceeded && usingGoogleChrome) {
+                Ok(views.html.fileChecksProgressAlreadyConfirmed(
+                  consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = true
+                )).uncache()
+              } else {
+                Ok(views.html.uploadHasCompleted(consignmentId, pageHeading, request.token.name, isJudgmentUser = true)).uncache()
+              }
+            })
+          case _ =>
+            Future(Ok(views.html.judgment.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache())
+        }
       }
-    }
+    } yield result
   }
 }
