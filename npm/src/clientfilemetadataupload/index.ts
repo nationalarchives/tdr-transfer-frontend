@@ -1,6 +1,6 @@
-import { GraphqlClient } from "../graphql"
+import {GraphqlClient} from "../graphql"
 
-import { IFileMetadata } from "@nationalarchives/file-information"
+import {IFileMetadata} from "@nationalarchives/file-information"
 
 import {
   AddFilesAndMetadata,
@@ -12,9 +12,9 @@ import {
   StartUploadMutationVariables
 } from "@nationalarchives/tdr-generated-graphql"
 
-import { FetchResult } from "@apollo/client/core"
-import { ITdrFile } from "../s3upload"
-import { FileUploadInfo } from "../upload/form/upload-form"
+import {ITdrFile} from "../s3upload"
+import {FileUploadInfo} from "../upload/form/upload-form"
+import {FutureInstance, map, parallel} from "fluture";
 
 declare var METADATA_UPLOAD_BATCH_SIZE: string
 
@@ -25,68 +25,64 @@ export class ClientFileMetadataUpload {
     this.client = client
   }
 
-  async startUpload(uploadFilesInfo: FileUploadInfo): Promise<void> {
+  startUpload(uploadFilesInfo: FileUploadInfo): FutureInstance<unknown, void> {
     const variables: StartUploadMutationVariables = {
       input: uploadFilesInfo
     }
 
-    const result: FetchResult<StartUploadMutation> = await this.client.mutation(
+    return this.client.mutation<StartUploadMutation, StartUploadMutationVariables>(
       StartUpload,
       variables
-    )
-
-    if (!result.data || result.errors) {
-      const errorMessage: string = result.errors
-        ? result.errors.toString()
-        : "no data"
-      throw Error(`Start upload failed: ${errorMessage}`)
-    }
+    ).pipe(map(result => {
+      if (!result.data || result.errors) {
+        const errorMessage: string = result.errors
+          ? result.errors.toString()
+          : "no data"
+        throw Error(`Start upload failed: ${errorMessage}`)
+      }
+    }))
   }
 
-  async saveClientFileMetadata(
+  saveClientFileMetadata(
     consignmentId: string,
     allFileMetadata: IFileMetadata[]
-  ): Promise<ITdrFile[]> {
-    const { metadataInputs, matchFileMap } =
+  ): FutureInstance<unknown, ITdrFile[]> {
+    const {metadataInputs, matchFileMap} =
       this.createMetadataInputsAndFileMap(allFileMetadata)
 
     const metadataBatches: ClientSideMetadataInput[][] =
       this.createMetadataInputBatches(metadataInputs)
 
-    const allFiles: ITdrFile[] = []
-
-    for (const metadataInput of metadataBatches) {
+    return parallel(1)(metadataBatches.map(metadataInput => {
       const variables: AddFilesAndMetadataMutationVariables = {
         input: {
           consignmentId,
           metadataInput
         }
       }
-      const result: FetchResult<AddFilesAndMetadataMutation> =
-        await this.client.mutation(AddFilesAndMetadata, variables)
-
-      if (result.errors) {
-        throw Error(
-          `Add client file metadata failed: ${result.errors.toString()}`
-        )
-      }
-      if (result.data) {
-        result.data.addFilesAndMetadata.forEach((f) => {
-          const fileId: string = f.fileId
-          const file: File | undefined = matchFileMap.get(f.matchId)
-          if (file) {
-            allFiles.push({ fileId, file })
-          } else {
-            throw Error(`Invalid match id ${f.matchId} for file ${fileId}`)
+      return this.client.mutation<AddFilesAndMetadataMutation, AddFilesAndMetadataMutationVariables>(AddFilesAndMetadata, variables)
+        .pipe(map(result => {
+          if (result.errors) {
+            throw Error(
+              `Add client file metadata failed: ${result.errors.toString()}`
+            )
           }
-        })
-      } else {
-        throw Error(
-          `No data found in response for consignment ${consignmentId}`
-        )
-      }
-    }
-    return allFiles
+          if (result.data) {
+            return result.data.addFilesAndMetadata.map((f) => {
+              const fileId: string = f.fileId
+              const file: File | undefined = matchFileMap.get(f.matchId)
+              if (!file) {
+                throw Error(`Invalid match id ${f.matchId} for file ${fileId}`)
+              }
+              return { fileId, file }
+            })
+          } else {
+            throw Error(
+              `No data found in response for consignment ${consignmentId}`
+            )
+          }
+        }))
+    })).pipe(map(files => files.flat()))
   }
 
   createMetadataInputBatches(metadataInputs: ClientSideMetadataInput[]) {
@@ -109,7 +105,7 @@ export class ClientFileMetadataUpload {
   } {
     return allFileMetadata.reduce(
       (result, metadata: IFileMetadata, matchId) => {
-        const { checksum, path, lastModified, file, size } = metadata
+        const {checksum, path, lastModified, file, size} = metadata
         result.matchFileMap.set(matchId, file)
 
         //Files uploaded with 'drag and files' have '/'  prepended, those uploaded with 'browse' don't

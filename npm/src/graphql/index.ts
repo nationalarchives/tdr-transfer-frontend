@@ -10,8 +10,9 @@ import {
   createHttpLink
 } from "@apollo/client/core"
 import "unfetch/polyfill"
-import Keycloak, { KeycloakInstance } from "keycloak-js"
-import { refreshOrReturnToken } from "../auth"
+import Keycloak, {KeycloakInstance} from "keycloak-js"
+import {refreshOrReturnToken} from "../auth"
+import {attemptP, chain, encaseP, FutureInstance, map} from "fluture";
 
 type CommonQueryOptions<T> = Omit<T, "query">
 
@@ -37,20 +38,19 @@ export class GraphqlClient {
 
   private getOptions: <D, V>(
     variables: V
-  ) => Promise<CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>> =
-    async <V>(variables: V) => {
-      const token = await refreshOrReturnToken(
-        this.keycloak,
-        tokenMinValidityInSecs
-      )
-      return {
-        variables,
-        context: {
-          headers: {
-            Authorization: `Bearer ${token}`
+  ) => FutureInstance<unknown, CommonQueryOptions<QueryOptions<V> | MutationOptions<D, V>>> =
+    <D, V>(variables: V) => {
+      return attemptP(() => refreshOrReturnToken(this.keycloak, tokenMinValidityInSecs))
+        .pipe(map(token => {
+          return {
+            variables,
+            context: {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
           }
-        }
-      }
+        }))
     }
 
   query: <D, V>(
@@ -71,16 +71,21 @@ export class GraphqlClient {
   mutation: <D, V>(
     query: DocumentNode,
     variables: V
-  ) => Promise<FetchResult<D>> = async <D, V>(
+  ) => FutureInstance<unknown, FetchResult<D>> = <D, V>(
     mutation: DocumentNode,
     variables: V
   ) => {
-    const options: MutationOptions<D, V> = {
-      mutation,
-      ...(await this.getOptions<D, V>(variables)),
-      fetchPolicy: "no-cache"
-    }
-    const result: FetchResult<D> = await this.client.mutate<D, V>(options)
-    return result
+    return this.getOptions<D, V>(variables)
+      .pipe(map(opts => {
+        const options: MutationOptions<D, V> = {
+          mutation,
+          ...opts,
+          fetchPolicy: "no-cache"
+        }
+        return options
+      }))
+      .pipe(chain((options => {
+        return encaseP(this.client.mutate)<D, V>(options)
+      })))
   }
 }

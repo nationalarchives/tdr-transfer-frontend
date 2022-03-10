@@ -1,6 +1,7 @@
-import Keycloak, { KeycloakInstance } from "keycloak-js"
-import { IKeycloakTokenParsed } from "../upload"
-import { handleUploadError, LoggedOutError } from "../errorhandling"
+import Keycloak, {KeycloakInstance} from "keycloak-js"
+import {IKeycloakTokenParsed} from "../upload"
+import {handleUploadError, LoggedOutError} from "../errorhandling"
+import {attemptP, encaseP, Future, map} from "fluture";
 
 export const getKeycloakInstance: () => Promise<Keycloak.KeycloakInstance> =
   async () => {
@@ -48,7 +49,7 @@ export const scheduleTokenRefresh: (
       refreshOrReturnToken(keycloak).then(() => {
         fetch(cookiesUrl, {
           credentials: "include",
-          headers: { Authorization: `Bearer ${keycloak.token}` }
+          headers: {Authorization: `Bearer ${keycloak.token}`}
         }).then(() => {
           scheduleTokenRefresh(keycloak, cookiesUrl)
         })
@@ -75,4 +76,5 @@ export const refreshOrReturnToken: (
   } else {
     throw "Something really odd has happened, Keycloak is down or something"
   }
+
 }

@@ -79,6 +79,7 @@ export class FileUploader {
       headers: { Authorization: `Bearer ${refreshedToken}` }
     })
     try {
+
       await this.clientFileProcessing.processClientFiles(
         files,
         uploadFilesInfo,

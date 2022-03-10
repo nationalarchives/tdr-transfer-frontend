@@ -4,8 +4,9 @@ import {
   PutObjectCommandInput
 } from "@aws-sdk/client-s3"
 
-import { Upload } from "@aws-sdk/lib-storage"
-import { TProgressFunction } from "@nationalarchives/file-information"
+import {Upload} from "@aws-sdk/lib-storage"
+import {TProgressFunction} from "@nationalarchives/file-information"
+import {attemptP, chain, encase, encaseP, Future, FutureInstance, map, parallel} from "fluture";
 
 export interface ITdrFile {
   fileId: string
@@ -33,40 +34,40 @@ export class S3Upload {
     files: ITdrFile[],
     callback: TProgressFunction,
     stage: string
-  ) => Promise<{
-    sendData: ServiceOutputTypes[]
-    processedChunks: number
-    totalChunks: number
-  }> = async (consignmentId, userId, files, callback, stage) => {
-    if (userId) {
-      const totalFiles = files.length
-      const totalChunks: number = files.reduce(
-        (fileSizeTotal, file) =>
-          fileSizeTotal + (file.file.size ? file.file.size : 1),
-        0
-      )
-      let processedChunks = 0
-      const sendData: ServiceOutputTypes[] = []
-      for (const file of files) {
-        const uploadResult = await this.uploadSingleFile(
-          consignmentId,
-          userId,
-          stage,
-          file,
-          callback,
-          {
-            processedChunks,
-            totalChunks,
-            totalFiles
-          }
-        )
-        sendData.push(uploadResult)
-        processedChunks += file.file.size ? file.file.size : 1
+  ) => FutureInstance<unknown, number> = (consignmentId, userId, files, callback, stage) => {
+    const getUserId: (userId: string | undefined) => string = userId => {
+      if(userId != undefined) {
+        return userId
+      } else {
+        throw new Error("No valid user id found")
       }
-      return { sendData, processedChunks, totalChunks }
-    } else {
-      throw new Error("No valid user id found")
     }
+    const totalFiles = files.length
+    const totalChunks: number = files.reduce(
+      (fileSizeTotal, file) =>
+        fileSizeTotal + (file.file.size ? file.file.size : 1),
+      0
+    )
+
+    let processedChunks = 0
+    return encase(getUserId)(userId)
+      .pipe(chain(userId =>
+        parallel(1)(files.map(file =>
+          this.uploadSingleFile(
+            consignmentId,
+            userId,
+            stage,
+            file,
+            callback,
+            {
+              processedChunks,
+              totalChunks,
+              totalFiles
+            }
+          )
+        ))
+      ))
+      .pipe(map(_ => processedChunks))
   }
 
   private uploadSingleFile: (
@@ -76,7 +77,7 @@ export class S3Upload {
     tdrFile: ITdrFile,
     updateProgressCallback: TProgressFunction,
     progressInfo: IFileProgressInfo
-  ) => Promise<ServiceOutputTypes> = (
+  ) => FutureInstance<unknown, ServiceOutputTypes> = (
     consignmentId,
     userId,
     stage,
@@ -84,7 +85,7 @@ export class S3Upload {
     updateProgressCallback,
     progressInfo
   ) => {
-    const { file, fileId } = tdrFile
+    const {file, fileId} = tdrFile
     const key = `${userId}/${consignmentId}/${fileId}`
     const params: PutObjectCommandInput = {
       Key: key,
@@ -93,9 +94,9 @@ export class S3Upload {
       Body: file
     }
 
-    const progress = new Upload({ client: this.client, params })
+    const progress = new Upload({client: this.client, params})
 
-    const { processedChunks, totalChunks, totalFiles } = progressInfo
+    const {processedChunks, totalChunks, totalFiles} = progressInfo
     if (file.size >= 1) {
       // httpUploadProgress seems to only trigger if file size is greater than 0
       progress.on("httpUploadProgress", (ev) => {
@@ -119,7 +120,7 @@ export class S3Upload {
         updateProgressCallback
       )
     }
-    return progress.done()
+    return attemptP(() => progress.done())
   }
 
   private updateUploadProgress: (
@@ -136,6 +137,6 @@ export class S3Upload {
     const percentageProcessed = Math.round((chunks / totalChunks) * 100)
     const processedFiles = Math.floor((chunks / totalChunks) * totalFiles)
 
-    updateProgressFunction({ processedFiles, percentageProcessed, totalFiles })
+    updateProgressFunction({processedFiles, percentageProcessed, totalFiles})
   }
 }

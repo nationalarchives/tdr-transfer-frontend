@@ -22,17 +22,17 @@ export class UpdateConsignmentStatus {
     const variables: MarkUploadAsCompletedMutationVariables = {
       consignmentId: uploadFilesInfo.consignmentId
     }
-
-    const result: FetchResult<MarkUploadAsCompletedMutation> =
-      await this.client.mutation(MarkUploadAsCompleted, variables)
-
-    if (!result.data || !result.data.markUploadAsCompleted || result.errors) {
-      const errorMessage: string = result.errors
-        ? result.errors.toString()
-        : "no data"
-      throw Error(errorMessage)
-    } else {
-      return result.data.markUploadAsCompleted
-    }
+    return Promise.resolve(2)
+    // const result: FetchResult<MarkUploadAsCompletedMutation> =
+    //   await this.client.mutation(MarkUploadAsCompleted, variables)
+    //
+    // if (!result.data || !result.data.markUploadAsCompleted || result.errors) {
+    //   const errorMessage: string = result.errors
+    //     ? result.errors.toString()
+    //     : "no data"
+    //   throw Error(errorMessage)
+    // } else {
+    //   return result.data.markUploadAsCompleted
+    // }
   }
 }

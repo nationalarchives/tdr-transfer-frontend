@@ -7,6 +7,7 @@ import {
 } from "@nationalarchives/file-information"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
+import {chain, fork, FutureInstance} from "fluture";
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
@@ -62,22 +63,25 @@ export class ClientFileProcessing {
     stage: string,
     userId: string | undefined
   ): Promise<void> {
-    await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
-    const metadata: IFileMetadata[] =
-      await this.clientFileExtractMetadata.extract(
+
+    this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
+      .pipe(chain => this.clientFileExtractMetadata.extract(
         files,
         this.metadataProgressCallback
-      )
-    const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
-      uploadFilesInfo.consignmentId,
-      metadata
-    )
-    await this.s3Upload.uploadToS3(
-      uploadFilesInfo.consignmentId,
-      userId,
-      tdrFiles,
-      this.s3ProgressCallback,
-      stage
-    )
+      ))
+      .pipe(chain(metadata =>
+        this.clientFileMetadataUpload.saveClientFileMetadata(
+          uploadFilesInfo.consignmentId,
+          metadata
+        )
+      )).pipe(chain(tdrFiles => this.s3Upload.uploadToS3(
+        uploadFilesInfo.consignmentId,
+        userId,
+        tdrFiles,
+        this.s3ProgressCallback,
+        stage
+      ))).pipe(fork(console.error)(console.log))
+
+
   }
 }
