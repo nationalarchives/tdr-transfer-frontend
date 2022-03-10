@@ -72,9 +72,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
 
         val recordsPage = if (userType == "judgment") {
-          recordsController.judgmentRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+          recordsController.judgmentFileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         } else {
-          recordsController.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+          recordsController.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         }
 
         val recordsPageAsString = contentAsString(recordsPage)
@@ -91,7 +91,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val controller = new FileChecksController(getUnauthorisedSecurityComponents,
           new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
-        val recordsPage = controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        val recordsPage = controller.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
 
         playStatus(recordsPage) mustBe FOUND
         redirectLocation(recordsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -114,9 +114,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       )
 
       val fileChecksCompletePage = if (userType == "judgment") {
-        controller.judgmentRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        controller.judgmentFileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
       } else {
-        controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        controller.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
       }
 
       playStatus(fileChecksCompletePage) mustBe OK
@@ -124,7 +124,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       contentAsString(fileChecksCompletePage) must include("Your upload and checks have been completed.")
       contentAsString(fileChecksCompletePage) must not include(
         s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
-                                                                                 href="/$pathName/$consignmentId/records">
+                                                                                 href="/$pathName/$consignmentId/file-checks">
         Continue""")
     }
 
@@ -143,16 +143,16 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         frontEndInfoConfiguration
       )
       val fileChecksCompletePage = if (userType == "judgment") {
-        controller.judgmentRecordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        controller.judgmentFileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
       } else {
-        controller.recordProcessingPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        controller.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
       }
       playStatus(fileChecksCompletePage) mustBe OK
       contentAsString(fileChecksCompletePage) must include(expectedTitle)
       contentAsString(fileChecksCompletePage) must include("Your upload and checks have been completed.")
       contentAsString(fileChecksCompletePage) must not include(
         s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
-                                                                                 href="/$pathName/$consignmentId/records">
+                                                                                 href="/$pathName/$consignmentId/file-checks">
         Continue""")
     }
     }
@@ -183,12 +183,12 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val fileChecksPage = url match {
           case "judgment" =>
             setConsignmentTypeResponse(wiremockServer, "standard")
-            controller.judgmentRecordProcessingPage(consignmentId)
-            .apply(FakeRequest(GET, s"/judgment/$consignmentId/records"))
+            controller.judgmentFileChecksPage(consignmentId)
+            .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks"))
           case "consignment" =>
             setConsignmentTypeResponse(wiremockServer, "judgment")
-            controller.recordProcessingPage(consignmentId)
-            .apply(FakeRequest(GET, s"/consignment/$consignmentId/records"))
+            controller.fileChecksPage(consignmentId)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks"))
         }
         playStatus(fileChecksPage) mustBe FORBIDDEN
       }

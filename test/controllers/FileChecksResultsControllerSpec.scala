@@ -89,7 +89,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val recordCheckResultsPage = {
           if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
           else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
-        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/records").withCSRFToken)
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
         if (userType == "judgment") {
@@ -119,7 +119,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           frontEndInfoConfiguration
         )
         val recordChecksResultsPage = controller.fileCheckResultsPage(consignmentId)
-          .apply(FakeRequest(GET, s"consignment/$consignmentId/records-results"))
+          .apply(FakeRequest(GET, s"consignment/$consignmentId/file-checks-results"))
 
         status(recordChecksResultsPage) mustBe FOUND
         redirectLocation(recordChecksResultsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -148,7 +148,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           .willReturn(okJson(exampleApiResponse)))
 
         val results: Throwable = controller.fileCheckResultsPage(consignmentId).apply(
-          FakeRequest(GET, s"consignment/$consignmentId/records-results")
+          FakeRequest(GET, s"consignment/$consignmentId/file-checks-results")
         ).failed.futureValue
 
         results.getMessage mustBe "User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '0a3f617c-04e8-41c2-9f24-99622a779528'"
@@ -179,7 +179,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val recordCheckResultsPage = {
           if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
           else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
-        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/records"))
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
         if (userType == "judgment") {
@@ -215,11 +215,11 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           case "judgment" =>
             mockGraphqlResponse(consignmentType = "standard")
             fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
-            .apply(FakeRequest(GET, s"/judgment/$consignmentId/records-results"))
+            .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks-results"))
           case "consignment" =>
             mockGraphqlResponse(consignmentType = "judgment")
             fileCheckResultsController.fileCheckResultsPage(consignmentId)
-            .apply(FakeRequest(GET, s"/consignment/$consignmentId/records-results"))
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks-results"))
         }
         status(fileCheckResultsPage) mustBe FORBIDDEN
       }
