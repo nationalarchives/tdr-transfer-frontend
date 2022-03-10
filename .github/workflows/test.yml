@@ -10,7 +10,7 @@ permissions:
   contents: read
 jobs:
   test:
-    uses: MancunianSam/github-actions/.github/workflows/ecs_test.yml@main
+    uses: MancunianSam/github-actions/.github/workflows/scala_test.yml@main
     with:
       repo-name: tdr-transfer-frontend
       test-command: |
