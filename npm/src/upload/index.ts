@@ -89,7 +89,7 @@ export class FileUploader {
         uploadFilesInfo
       )
 
-      // In order to prevent exit confirmation when page redirects to Records page
+      // In order to prevent exit confirmation when page redirects to File Checks page
       window.removeEventListener("beforeunload", pageUnloadAction)
       this.goToNextPage("#upload-data-form")
     } catch (e) {
@@ -123,6 +123,7 @@ export class FileUploader {
       form.addSubmitListener()
       form.addButtonHighlighter()
       form.addDropzoneHighlighter()
+      form.addRemoveSelectedItemListener()
     }
   }
 }

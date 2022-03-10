@@ -139,7 +139,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
       uploadPageAsString must include("Uploading records")
       uploadPageAsString must include(
-        s"""      <a href="/consignment/$consignmentId/records" role="button" draggable="false" class="govuk-button govuk-button--primary">
+        s"""      <a href="/consignment/$consignmentId/file-checks" role="button" draggable="false" class="govuk-button govuk-button--primary">
            |        Continue
            |      </a>""".stripMargin)
     }
@@ -201,7 +201,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("Uploading court judgment")
       uploadPageAsString must include("Your upload is complete and has been saved")
       uploadPageAsString must include(
-        s"""      <a href="/judgment/$consignmentId/records" role="button" draggable="false" class="govuk-button govuk-button--primary">
+        s"""      <a href="/judgment/$consignmentId/file-checks" role="button" draggable="false" class="govuk-button govuk-button--primary">
            |        Continue
            |      </a>""".stripMargin)
     }

@@ -12,7 +12,8 @@ import {
   IReader,
   IWebkitEntry
 } from "../src/upload/form/get-files-from-drag-event"
-import {verifyVisibilityOfSuccessMessage} from "./upload-form-utils/verify-visibility-of-success-message";
+import { verifyVisibilityOfSuccessMessage } from "./upload-form-utils/verify-visibility-of-success-message"
+import { displaySelectionSuccessMessage } from "../src/upload/form/update-and-display-success-message"
 
 beforeEach(() => {
   document.body.innerHTML = htmlForFolderUploadForm
@@ -363,4 +364,27 @@ test("clicking the submit button, after selecting a folder, hides 'upload folder
 
   expect(mockDom.uploadYourRecordsSection).toHaveAttribute("hidden", "true")
   expect(mockDom.uploadingRecordsSection).not.toHaveAttribute("hidden")
+})
+
+test("removeSelectedItem function should remove the selected folder", () => {
+  const mockDom = new MockUploadFormDom()
+
+  mockDom.form.selectedFiles.push(dummyIFileWithPath)
+  mockDom.form.removeSelectedItem(new Event("click"))
+
+  expect(mockDom.form.selectedFiles).toHaveLength(0)
+})
+
+test("removeSelectedItem function should hide the success message row", () => {
+  const mockDom = new MockUploadFormDom()
+  mockDom.getFileUploader().initialiseFormListeners()
+
+  expect(mockDom.successMessageRow).not.toHaveAttribute("hidden", "true")
+
+  displaySelectionSuccessMessage(
+    mockDom.form.successMessage,
+    mockDom.form.warningMessages
+  )
+  mockDom.removeButton!.click()
+  expect(mockDom.successMessageRow).toHaveAttribute("hidden", "true")
 })
