@@ -263,4 +263,10 @@ export class MockUploadFormDom {
     this.setUpFileUploader(this.isJudgmentUser)
 
   uploadingRecordsSection = document.querySelector("#upload-progress")
+
+  successMessageRow: HTMLElement | null = document.querySelector(
+    "#success-message-row"
+  )
+
+  removeButton: HTMLElement | null = document.querySelector("#remove-file-btn")
 }
