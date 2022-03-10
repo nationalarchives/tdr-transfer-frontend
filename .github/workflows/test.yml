@@ -1,0 +1,21 @@
+name: TDR Run API tests
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - main
+      - release-*
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  test:
+    uses: MancunianSam/github-actions/.github/workflows/ecs_test.yml@main
+    with:
+      repo-name: tdr-transfer-frontend
+      test-command: |
+        docker build -f Dockerfile-tests -t tests .
+        sbt test scalastyle
+    secrets:
+      MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
+      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
