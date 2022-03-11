@@ -89,6 +89,6 @@ export const refreshOrReturnToken: (
     return keycloak.token
   } else {
     //We shouldn't normally throw Errors but this is exceptional
-    throw "Something really odd has happened, Keycloak is down or something"
+    throw `No token is available on instance ${keycloak.authServerUrl}`
   }
 }
