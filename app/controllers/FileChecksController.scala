@@ -21,7 +21,7 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
                                      val frontEndInfoConfiguration: FrontEndInfoConfiguration
                                     )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  private def getRecordProcessingProgress(request: Request[AnyContent], consignmentId: UUID)
+  private def getFileChecksProgress(request: Request[AnyContent], consignmentId: UUID)
                                          (implicit requestHeader: RequestHeader): Future[FileChecksProgress] = {
     consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       .map {
@@ -33,8 +33,8 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       }
   }
 
-  def recordProcessingPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    getRecordProcessingProgress(request, consignmentId)
+  def fileChecksPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    getFileChecksProgress(request, consignmentId)
       .map {
         fileChecks => if(fileChecks.isComplete) {
           Ok(views.html.fileChecksProgressAlreadyConfirmed(
@@ -46,8 +46,8 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       }
   }
 
-  def judgmentRecordProcessingPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    getRecordProcessingProgress(request, consignmentId)
+  def judgmentFileChecksPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    getFileChecksProgress(request, consignmentId)
       .map {
         fileChecks => if(fileChecks.isComplete) {
           Ok(views.html.fileChecksProgressAlreadyConfirmed(

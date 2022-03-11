@@ -57,12 +57,15 @@
 
 .drag-and-drop__success {
   color: govuk-colour('green');
-  font-weight: bold;
   padding-left: 10px;
 }
 
 .error-messages {
   margin-bottom: 0;
+}
+
+.success-message {
+  font-weight: bold;
 }
 
 .success-message-flexbox-container {
