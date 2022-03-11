@@ -1,5 +1,5 @@
 @import views.html.partials.progressIndicator
-@(name: String, isJudgmentUser: Boolean, fileStatusType: String)(implicit request: RequestHeader, messages: Messages)
+@(name: String, isJudgmentUser: Boolean, fileStatus: String = "")(implicit request: RequestHeader, messages: Messages)
 
 @main("Results of checks", name = name) {
   <div class="govuk-grid-row">
@@ -20,10 +20,10 @@
                 </a>
               </p>
             } else {
-              @if(fileStatusType == "PasswordProtected"){
+              @if(fileStatus == "PasswordProtected"){
                 <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more password protected files.</p>
                 <p>We cannot accept password protected files. Once removed or replaced, try uploading your folder again.</p>
-              } else { @if(fileStatusType == "Zip") {
+              } else { @if(fileStatus == "Zip") {
                 <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more zip files.</p>
                 <p>We cannot accept zip files and similar archival package file formats.
                   These commonly have file extensions such as .zip, .iso, .7z, .rar and others.
