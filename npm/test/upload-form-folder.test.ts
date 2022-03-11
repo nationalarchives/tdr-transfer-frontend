@@ -138,7 +138,7 @@ test("dropzone updates the page with correct folder information if there is a ne
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
 })
 
-test("dropzone updates the page with correct folder information if there is are valid files and an empty directory", async () => {
+test("dropzone updates the page with correct folder information if there are valid files and an empty directory", async () => {
   const mockDom = new MockUploadFormDom()
 
   const dataTransferItemWithNestedDirectory: DataTransferItem = {
