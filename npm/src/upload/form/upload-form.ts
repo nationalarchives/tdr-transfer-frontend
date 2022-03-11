@@ -1,12 +1,17 @@
-import { IFileWithPath } from "@nationalarchives/file-information"
-import { getAllFiles } from "./get-files-from-drag-event"
-import { rejectUserItemSelection } from "./display-warning-message"
+import {IFileWithPath} from "@nationalarchives/file-information"
+import {
+  getAllFiles,
+  IDirectoryWithPath,
+  IEntryWithPath,
+  isFile
+} from "./get-files-from-drag-event"
+import {rejectUserItemSelection} from "./display-warning-message"
 import {
   addFileSelectionSuccessMessage,
   addFolderSelectionSuccessMessage,
   displaySelectionSuccessMessage
 } from "./update-and-display-success-message"
-import { isError } from "../../errorhandling"
+import {isError} from "../../errorhandling"
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
@@ -22,9 +27,9 @@ export class UploadForm {
   formElement: HTMLFormElement
   itemRetriever: HTMLInputElement
   dropzone: HTMLElement
-  selectedFiles: IFileWithPath[]
+  selectedFiles: IEntryWithPath[]
   folderUploader: (
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     uploadFilesInfo: FileUploadInfo
   ) => void
 
@@ -34,7 +39,7 @@ export class UploadForm {
     itemRetriever: HTMLInputElement,
     dropzone: HTMLElement,
     folderUploader: (
-      files: IFileWithPath[],
+      files: IEntryWithPath[],
       uploadFilesInfo: FileUploadInfo
     ) => void
   ) {
@@ -110,21 +115,25 @@ export class UploadForm {
     } else {
       const items: DataTransferItemList = ev.dataTransfer?.items!
       const resultOrError = this.checkNumberOfObjectsDropped(
-        items,
-        "Only one folder is allowed to be selected"
-      )
+          items,
+          "Only one folder is allowed to be selected"
+        )
       if (!isError(resultOrError)) {
         const droppedItem: DataTransferItem | null = items[0]
         const webkitEntry = droppedItem.webkitGetAsEntry()
         const resultOrError = this.checkIfDroppedItemIsFolder(webkitEntry)
         if (!isError(resultOrError)) {
-          const files: IFileWithPath[] = await getAllFiles(webkitEntry, [])
+          const filesAndDirectories: (IFileWithPath | IDirectoryWithPath)[] =
+            await getAllFiles(webkitEntry, [])
+          const files = filesAndDirectories.filter((f) =>
+            isFile(f)
+          ) as IFileWithPath[]
           const folderCheck = this.checkIfFolderHasFiles(files)
           if (!isError(folderCheck)) {
             this.selectedFiles = files
             addFolderSelectionSuccessMessage(
               webkitEntry.name,
-              this.selectedFiles.length
+              this.selectedFiles.filter((f) => isFile(f)).length
             )
           } else {
             return folderCheck
@@ -145,12 +154,15 @@ export class UploadForm {
     this.selectedFiles = this.convertFilesToIfilesWithPath(form!.files!.files!)
 
     if (this.isJudgmentUser) {
-      const fileName = this.selectedFiles[0].file.name
-      const checkOrError = this.checkForCorrectJudgmentFileExtension(fileName)
-      if (!isError(checkOrError)) {
-        addFileSelectionSuccessMessage(fileName)
-      } else {
-        return checkOrError
+      const fileWithPath = this.selectedFiles[0]
+      if (isFile(fileWithPath)) {
+        const fileName = fileWithPath.file.name
+        const checkOrError = this.checkForCorrectJudgmentFileExtension(fileName)
+        if (!isError(checkOrError)) {
+          addFileSelectionSuccessMessage(fileName)
+        } else {
+          return checkOrError
+        }
       }
     } else {
       const parentFolder = this.getParentFolderName(this.selectedFiles)
@@ -184,7 +196,7 @@ export class UploadForm {
     ev: Event
   ) => {
     ev.preventDefault()
-    const itemSelected: IFileWithPath | undefined = this.selectedFiles[0]
+    const itemSelected: IEntryWithPath = this.selectedFiles[0]
 
     if (itemSelected) {
       this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
@@ -198,7 +210,7 @@ export class UploadForm {
           consignmentId,
           parentFolder: parentFolder
         }
-        this.showUploadingRecordsPage()
+        UploadForm.showUploadingRecordsPage()
         this.folderUploader(this.selectedFiles, uploadFilesInfo)
       } else {
         return consignmentIdOrError
@@ -242,16 +254,18 @@ export class UploadForm {
     ".drag-and-drop__success"
   )
 
-  private getParentFolderName(folder: IFileWithPath[]) {
-    const firstItem: FileWithRelativePath = folder[0]
-      .file as FileWithRelativePath
-    const relativePath: string = firstItem.webkitRelativePath
-    const splitPath: string[] = relativePath.split("/")
-    const parentFolder: string = splitPath[0]
-    return parentFolder
+  private getParentFolderName(folder: IEntryWithPath[]) {
+    const firstItem: IEntryWithPath = folder.filter((f) => isFile(f))[0]
+    const relativePath: string = firstItem.path
+    if (relativePath.includes("/")) {
+      const splitPath: string[] = relativePath.split("/")
+      return splitPath[1]
+    } else {
+      return relativePath
+    }
   }
 
-  private showUploadingRecordsPage() {
+  private static showUploadingRecordsPage() {
     const fileUploadPage: HTMLDivElement | null =
       document.querySelector("#file-upload")
     const uploadProgressPage: HTMLDivElement | null =
