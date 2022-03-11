@@ -1,3 +1,5 @@
+import { enableFetchMocks } from "jest-fetch-mock"
+enableFetchMocks()
 import "@testing-library/jest-dom"
 
 import {
@@ -37,7 +39,7 @@ test(`clicking the submit button, without selecting a file, displays a warning m
   )
 
   const submitEvent = mockDom.createSubmitEvent()
-  await expect(mockDom.form.handleFormSubmission(submitEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleFormSubmission(submitEvent)).resolves.toEqual(
     Error("A submission was made without an item being selected")
   )
 
@@ -54,7 +56,7 @@ test("clicking the submit button, without selecting a file, displays a warning m
   )
 
   const submitEvent = mockDom.createSubmitEvent()
-  await expect(mockDom.form.handleFormSubmission(submitEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleFormSubmission(submitEvent)).resolves.toEqual(
     Error("A submission was made without an item being selected")
   )
 
@@ -98,7 +100,7 @@ test("input button updates the page with an error if the file that has been sele
   mockDom.uploadForm!.files = {
     files: [dummyFile]
   }
-  await expect(mockDom.form.handleSelectedItems()).rejects.toEqual(
+  await expect(mockDom.form.handleSelectedItems()).resolves.toEqual(
     Error("Only MS Word docs are allowed to be selected")
   )
 
@@ -143,7 +145,7 @@ test("dropzone updates the page with an error if a non-docx file has been droppe
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("Only MS Word docs are allowed to be selected")
   )
 
@@ -169,7 +171,7 @@ test("dropzone updates the page with an error if more than 1 file has been dropp
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("You are only allowed to drop one file.")
   )
 
@@ -191,7 +193,7 @@ test("dropzone updates the page with an error if a file and a folder has been dr
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("You are only allowed to drop one file.")
   )
 
@@ -213,7 +215,7 @@ test("dropzone updates the page with a error if 1 folder has been dropped", asyn
     mockDom.fileEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("Only files are allowed to be selected")
   )
 
@@ -235,7 +237,7 @@ test("dropzone updates the page with an error if 1 folder with a name ending wit
     mockDom.fileEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("Only files are allowed to be selected")
   )
 

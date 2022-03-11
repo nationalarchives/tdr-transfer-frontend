@@ -116,7 +116,7 @@ test("markConsignmentStatusAsCompleted returns error if no data returned", async
   const uploadMetadata = new UpdateConsignmentStatus(client)
   await expect(
     uploadMetadata.markConsignmentStatusAsCompleted(uploadFilesInfo)
-  ).rejects.toStrictEqual(Error("no data"))
+  ).resolves.toStrictEqual(Error("no data"))
 })
 
 test("markConsignmentStatusAsCompleted returns error if returned data contains errors", async () => {
@@ -125,7 +125,7 @@ test("markConsignmentStatusAsCompleted returns error if returned data contains e
   const uploadMetadata = new UpdateConsignmentStatus(client)
   await expect(
     uploadMetadata.markConsignmentStatusAsCompleted(uploadFilesInfo)
-  ).rejects.toStrictEqual(Error("error 1,error 2"))
+  ).resolves.toStrictEqual(Error("error 1,error 2"))
 })
 
 test("markConsignmentStatusAsCompleted returns error if client fails", async () => {
@@ -134,5 +134,5 @@ test("markConsignmentStatusAsCompleted returns error if client fails", async () 
   const uploadMetadata = new UpdateConsignmentStatus(client)
   await expect(
     uploadMetadata.markConsignmentStatusAsCompleted(uploadFilesInfo)
-  ).rejects.toStrictEqual(Error("error"))
+  ).resolves.toStrictEqual(Error("error"))
 })
