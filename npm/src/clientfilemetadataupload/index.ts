@@ -8,6 +8,7 @@ import {
   AddFilesAndMetadataMutationVariables,
   ClientSideMetadataInput,
   StartUpload,
+  StartUploadInput,
   StartUploadMutation,
   StartUploadMutationVariables
 } from "@nationalarchives/tdr-generated-graphql"
@@ -15,6 +16,7 @@ import {
 import { FetchResult } from "@apollo/client/core"
 import { ITdrFile } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
+import { isError } from "../errorhandling"
 
 declare var METADATA_UPLOAD_BATCH_SIZE: string
 
@@ -25,21 +27,28 @@ export class ClientFileMetadataUpload {
     this.client = client
   }
 
-  async startUpload(uploadFilesInfo: FileUploadInfo): Promise<void> {
+  async startUpload(uploadFilesInfo: FileUploadInfo): Promise<void | Error> {
     const variables: StartUploadMutationVariables = {
       input: uploadFilesInfo
     }
 
-    const result: FetchResult<StartUploadMutation> = await this.client.mutation(
-      StartUpload,
-      variables
-    )
-
-    if (!result.data || result.errors) {
-      const errorMessage: string = result.errors
-        ? result.errors.toString()
-        : "no data"
-      throw Error(`Start upload failed: ${errorMessage}`)
+    const result: FetchResult<StartUploadMutation> | Error = await this.client
+      .mutation<StartUploadMutation, { input: StartUploadInput }>(
+        StartUpload,
+        variables
+      )
+      .catch((err) => {
+        return Error(err)
+      })
+    if (isError(result)) {
+      return result
+    } else {
+      if (!result.data || result.errors) {
+        const errorMessage: string = result.errors
+          ? result.errors.toString()
+          : "no data"
+        return Error(`Start upload failed: ${errorMessage}`)
+      }
     }
   }
 
@@ -47,7 +56,7 @@ export class ClientFileMetadataUpload {
     consignmentId: string,
     allFileMetadata: IFileMetadata[],
     emptyDirectories: string[]
-  ): Promise<ITdrFile[]> {
+  ): Promise<ITdrFile[] | Error> {
     const { metadataInputs, matchFileMap } =
       this.createMetadataInputsAndFileMap(allFileMetadata)
 
@@ -68,7 +77,7 @@ export class ClientFileMetadataUpload {
         await this.client.mutation(AddFilesAndMetadata, variables)
 
       if (result.errors) {
-        throw Error(
+        return Error(
           `Add client file metadata failed: ${result.errors.toString()}`
         )
       }
@@ -79,11 +88,11 @@ export class ClientFileMetadataUpload {
           if (file) {
             allFiles.push({ fileId, file })
           } else {
-            throw Error(`Invalid match id ${f.matchId} for file ${fileId}`)
+            return Error(`Invalid match id ${f.matchId} for file ${fileId}`)
           }
         })
       } else {
-        throw Error(
+        return Error(
           `No data found in response for consignment ${consignmentId}`
         )
       }

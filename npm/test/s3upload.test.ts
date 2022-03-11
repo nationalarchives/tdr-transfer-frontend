@@ -1,4 +1,5 @@
 import { ITdrFile, S3Upload } from "../src/s3upload"
+import { isError } from "../src/errorhandling"
 import { enableFetchMocks } from "jest-fetch-mock"
 enableFetchMocks()
 import { IProgressInformation } from "@nationalarchives/file-information"
@@ -246,9 +247,11 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
     (fileIdTotal, tdrFile) => fileIdTotal + tdrFile.file.size,
     0
   )
-
-  expect(result.totalChunks).toEqual(result.processedChunks)
-  expect(result.totalChunks).toEqual(byteSizeofAllFiles)
+  expect(isError(result)).toBe(false)
+  if(!isError(result)) {
+    expect(result.totalChunks).toEqual(result.processedChunks)
+    expect(result.totalChunks).toEqual(byteSizeofAllFiles)
+  }
 })
 
 test("multiple 0-byte file uploads returns a totalChunks value that equals the same as the length of 'files'", async () => {
@@ -281,9 +284,11 @@ test("multiple 0-byte file uploads returns a totalChunks value that equals the s
     callback,
     ""
   )
-
-  expect(result.totalChunks).toEqual(4)
-  expect(result.totalChunks).toEqual(result.processedChunks)
+  expect(isError(result)).toBe(false)
+  if(!isError(result)) {
+    expect(result.totalChunks).toEqual(4)
+    expect(result.totalChunks).toEqual(result.processedChunks)
+  }
 })
 
 test(`multiple file uploads (some with 0 bytes, some not) returns processedChunks value,
@@ -325,10 +330,13 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
     (tdrFile) => tdrFile.file.size == 0
   ).length
 
-  expect(result.processedChunks).toEqual(
-    byteSizeofAllFiles + numberOfFilesWithZeroBytes
-  )
-  expect(result.totalChunks).toEqual(
-    byteSizeofAllFiles + numberOfFilesWithZeroBytes
-  )
+  expect(isError(result)).toBe(false)
+  if(!isError(result)) {
+    expect(result.processedChunks).toEqual(
+      byteSizeofAllFiles + numberOfFilesWithZeroBytes
+    )
+    expect(result.totalChunks).toEqual(
+      byteSizeofAllFiles + numberOfFilesWithZeroBytes
+    )
+  }
 })

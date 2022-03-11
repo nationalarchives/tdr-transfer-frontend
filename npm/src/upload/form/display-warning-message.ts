@@ -1,10 +1,15 @@
-export const rejectUserItemSelection = (
+export const rejectUserItemSelection: (
   warningMessageToReveal: HTMLElement | null,
   warningMessagesToHide: {
     [s: string]: HTMLElement | null
   },
   successMessageToHide: HTMLElement | null,
   exceptionMessage: string
+) => void | Error = (
+  warningMessageToReveal,
+  warningMessagesToHide,
+  successMessageToHide,
+  exceptionMessage
 ) => {
   const warningMessages: (HTMLElement | null)[] = Object.values(
     warningMessagesToHide
@@ -23,5 +28,5 @@ export const rejectUserItemSelection = (
   warningMessageToReveal?.focus()
   selectionArea?.classList.add("govuk-form-group--error")
 
-  throw new Error(exceptionMessage)
+  return Error(exceptionMessage)
 }

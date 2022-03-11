@@ -5,39 +5,13 @@ beforeEach(() => {
   jest.resetModules()
 })
 
-test("handleUploadError function displays error message and throws error with additional information", () => {
+test("handleUploadError function displays error message", () => {
   setupErrorHtml()
 
   const mockErrorMessage: string = "some error"
   const mockError = new Error(mockErrorMessage)
-
-  expect(() => {
-    handleUploadError(mockError, "Some additional information")
-  }).toThrowError(new Error("Some additional information: some error"))
-
+  handleUploadError(mockError)
   checkExpectedErrorHtmlState(mockErrorMessage)
-})
-
-test("handleUploadError function displays error message and throws error without additional information", () => {
-  setupErrorHtml()
-
-  const mockErrorMessage: string = "some error"
-  const mockError = new Error(mockErrorMessage)
-
-  expect(() => {
-    handleUploadError(mockError)
-  }).toThrowError(new Error("Upload failed: some error"))
-
-  checkExpectedErrorHtmlState(mockErrorMessage)
-})
-
-test("handleUploadError function throws error and does not display error message if error HTML not present", () => {
-  setupNonErrorHtml()
-  const mockError = new Error("some error")
-
-  expect(() => {
-    handleUploadError(mockError)
-  }).toThrowError(new Error("Upload failed: some error"))
 })
 
 function checkExpectedErrorHtmlState(expectedRenderedErrorMessage: string) {
@@ -64,9 +38,6 @@ function checkExpectedLoginErrorHtmlState(expectedLoginUrl: string) {
   const formElement: HTMLFormElement | null = document.querySelector(
     "#file-upload-form"
   )
-  const errorElement: HTMLDivElement | null = document.querySelector(
-    ".govuk-error-summary.logged-out-error"
-  )
   const errorLinkElement: HTMLAnchorElement | null = document.querySelector(
     ".logged-out-error-link"
   )
@@ -84,9 +55,7 @@ test("handleUploadError function displays error message and throws error with ad
     "logged out error"
   )
 
-  expect(() => {
-    handleUploadError(mockError, "Some additional information")
-  }).toThrowError(new Error("Some additional information: logged out error"))
+  handleUploadError(mockError)
 
   checkExpectedLoginErrorHtmlState("http://localhost/loginUrl")
 })
@@ -95,9 +64,7 @@ test("handleUploadError function displays timeout error message for an error dur
   setupProgressBarErrorHtml()
   const mockErr = new Error("Timeout")
   mockErr.name = "TimeoutError"
-  expect(() => {
-    handleUploadError(mockErr)
-  }).toThrowError(new Error("Upload failed: Timeout"))
+  handleUploadError(mockErr)
   checkExpectedUploadProgressErrorState("timeout")
 })
 
@@ -105,19 +72,15 @@ test("handleUploadError function displays access denied error message for an err
   setupProgressBarErrorHtml()
   const mockErr = new Error("Access Denied")
   mockErr.name = "AccessDenied"
-  expect(() => {
-    handleUploadError(mockErr)
-  }).toThrowError(new Error("Upload failed: Access Denied"))
+  handleUploadError(mockErr)
   checkExpectedUploadProgressErrorState("authentication")
 })
 
-test("handleUploadError function displays general error message for an error during upload", () => {
+test("handleUploadError function displays general error message for an error during upload", async () => {
   setupProgressBarErrorHtml()
   const mockErr = new Error("Unexpected")
   mockErr.name = "UnexpectedError"
-  expect(() => {
-    handleUploadError(mockErr)
-  }).toThrowError(new Error("Upload failed: Unexpected"))
+  handleUploadError(mockErr)
   checkDefaultMessageAndProgressBarAreHidden()
   checkExpectedUploadProgressErrorState("general")
 })
