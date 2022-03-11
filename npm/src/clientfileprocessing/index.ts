@@ -8,6 +8,11 @@ import {
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
+import {
+  IEntryWithPath,
+  isDirectory,
+  isFile
+} from "../upload/form/get-files-from-drag-event"
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
@@ -58,7 +63,7 @@ export class ClientFileProcessing {
   }
 
   async processClientFiles(
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     uploadFilesInfo: FileUploadInfo,
     stage: string,
     userId: string | undefined
@@ -67,16 +72,22 @@ export class ClientFileProcessing {
       uploadFilesInfo
     )
     if (!isError(uploadResult)) {
+      const emptyDirectories = files
+        .filter((f) => isDirectory(f))
+        .map((f) => f.path)
+
       const metadata: IFileMetadata[] | Error =
         await this.clientFileExtractMetadata.extract(
-          files,
+          files.filter((f) => isFile(f)) as IFileWithPath[],
           this.metadataProgressCallback
         )
+
       if (!isError(metadata)) {
         const tdrFiles =
           await this.clientFileMetadataUpload.saveClientFileMetadata(
             uploadFilesInfo.consignmentId,
-            metadata
+            metadata,
+            emptyDirectories
           )
         if (!isError(tdrFiles)) {
           const uploadResult = await this.s3Upload.uploadToS3(

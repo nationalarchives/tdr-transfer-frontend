@@ -54,7 +54,8 @@ export class ClientFileMetadataUpload {
 
   async saveClientFileMetadata(
     consignmentId: string,
-    allFileMetadata: IFileMetadata[]
+    allFileMetadata: IFileMetadata[],
+    emptyDirectories: string[]
   ): Promise<ITdrFile[] | Error> {
     const { metadataInputs, matchFileMap } =
       this.createMetadataInputsAndFileMap(allFileMetadata)
@@ -68,7 +69,8 @@ export class ClientFileMetadataUpload {
       const variables: AddFilesAndMetadataMutationVariables = {
         input: {
           consignmentId,
-          metadataInput
+          metadataInput,
+          emptyDirectories
         }
       }
       const result: FetchResult<AddFilesAndMetadataMutation> =
