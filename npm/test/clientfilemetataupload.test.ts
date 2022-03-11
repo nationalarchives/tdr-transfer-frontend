@@ -4,7 +4,7 @@ import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFileMetadata } from "@nationalarchives/file-information"
 import { GraphQLError } from "graphql"
 import { mockKeycloakInstance } from "./utils"
-import { ClientSideMetadataInput } from "@nationalarchives/tdr-generated-graphql"
+import {AddFilesAndMetadataMutationVariables, ClientSideMetadataInput} from "@nationalarchives/tdr-generated-graphql"
 
 jest.mock("../src/graphql")
 
@@ -45,6 +45,7 @@ const mockMetadataWithoutPath = <IFileMetadata>{
 }
 
 class GraphqlClientSuccessAddMetadata {
+  variables?: TMockVariables
   mutation: (
     query: DocumentNode,
     variables: TMockVariables
@@ -52,6 +53,7 @@ class GraphqlClientSuccessAddMetadata {
     query: DocumentNode,
     variables: TMockVariables
   ) => {
+    this.variables = variables
     const data: IMockAddFileMetadata = {
       addFilesAndMetadata: [
         { fileId: "0", matchId: 0 },
@@ -160,7 +162,7 @@ test("saveClientFileMetadata uploads client file metadata", async () => {
   const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
-  const result = await uploadMetadata.saveClientFileMetadata("", metadata)
+  const result = await uploadMetadata.saveClientFileMetadata("", metadata, [])
 
   expect(mockGraphqlClient).toHaveBeenCalled()
   expect(result).toHaveLength(2)
@@ -172,6 +174,24 @@ test("saveClientFileMetadata uploads client file metadata", async () => {
   expect(result2.fileId).toBe("1")
 })
 
+test("saveClientFileMetadata uploads any empty directories", async () => {
+  const mockGraphqlClient = GraphqlClient as jest.Mock
+  const clientSuccess = new GraphqlClientSuccessAddMetadata()
+  mockGraphqlClient.mockImplementation(() => {
+    return clientSuccess
+  })
+
+  const metadata: IFileMetadata[] = [mockMetadata1, mockMetadata2]
+  const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
+  const uploadMetadata = new ClientFileMetadataUpload(client)
+
+  const emptyDirectories = ["empty1", "empty2"];
+  await uploadMetadata.saveClientFileMetadata("", metadata, emptyDirectories)
+
+  const variables = clientSuccess.variables! as any as AddFilesAndMetadataMutationVariables
+  expect(variables.input.emptyDirectories).toEqual(emptyDirectories)
+})
+
 test("saveClientFileMetadata fails to upload client file metadata", async () => {
   mockFailureAddMetadata()
 
@@ -180,7 +200,7 @@ test("saveClientFileMetadata fails to upload client file metadata", async () => 
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
   await expect(
-    uploadMetadata.saveClientFileMetadata("", metadata)
+    uploadMetadata.saveClientFileMetadata("", metadata, [])
   ).rejects.toStrictEqual(
     Error("Add client file metadata failed: error 1,error 2")
   )

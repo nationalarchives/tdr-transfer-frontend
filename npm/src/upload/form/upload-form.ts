@@ -1,5 +1,10 @@
 import { IFileWithPath } from "@nationalarchives/file-information"
-import { getAllFiles } from "./get-files-from-drag-event"
+import {
+  getAllFiles,
+  IDirectoryWithPath,
+  IEntryWithPath,
+  isFile
+} from "./get-files-from-drag-event"
 import { rejectUserItemSelection } from "./display-warning-message"
 import {
   addFileSelectionSuccessMessage,
@@ -21,9 +26,9 @@ export class UploadForm {
   formElement: HTMLFormElement
   itemRetriever: HTMLInputElement
   dropzone: HTMLElement
-  selectedFiles: IFileWithPath[]
+  selectedFiles: IEntryWithPath[]
   folderUploader: (
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     uploadFilesInfo: FileUploadInfo
   ) => void
 
@@ -33,7 +38,7 @@ export class UploadForm {
     itemRetriever: HTMLInputElement,
     dropzone: HTMLElement,
     folderUploader: (
-      files: IFileWithPath[],
+      files: IEntryWithPath[],
       uploadFilesInfo: FileUploadInfo
     ) => void
   ) {
@@ -103,13 +108,17 @@ export class UploadForm {
       const webkitEntry = droppedItem.webkitGetAsEntry()
       this.checkIfDroppedItemIsFolder(webkitEntry)
 
-      const files: IFileWithPath[] = await getAllFiles(webkitEntry, [])
+      const filesAndDirectories: (IFileWithPath | IDirectoryWithPath)[] =
+        await getAllFiles(webkitEntry, [])
+      const files = filesAndDirectories.filter((f) =>
+        isFile(f)
+      ) as IFileWithPath[]
       this.checkIfFolderHasFiles(files)
 
-      this.selectedFiles = files
+      this.selectedFiles = filesAndDirectories
       addFolderSelectionSuccessMessage(
         webkitEntry.name,
-        this.selectedFiles.length
+        this.selectedFiles.filter((f) => isFile(f)).length
       )
     }
     displaySelectionSuccessMessage(this.successMessage, this.warningMessages)
@@ -121,9 +130,12 @@ export class UploadForm {
     this.selectedFiles = this.convertFilesToIfilesWithPath(form!.files!.files!)
 
     if (this.isJudgmentUser) {
-      const fileName = this.selectedFiles[0].file.name
-      this.checkForCorrectJudgmentFileExtension(fileName)
-      addFileSelectionSuccessMessage(fileName)
+      const fileWithPath = this.selectedFiles[0]
+      if (isFile(fileWithPath)) {
+        const fileName = fileWithPath.file.name
+        this.checkForCorrectJudgmentFileExtension(fileName)
+        addFileSelectionSuccessMessage(fileName)
+      }
     } else {
       const parentFolder = this.getParentFolderName(this.selectedFiles)
       addFolderSelectionSuccessMessage(parentFolder, this.selectedFiles.length)
@@ -154,7 +166,7 @@ export class UploadForm {
 
   handleFormSubmission: (ev: Event) => void = async (ev: Event) => {
     ev.preventDefault()
-    const itemSelected: IFileWithPath | undefined = this.selectedFiles[0]
+    const itemSelected: IEntryWithPath = this.selectedFiles[0]
 
     if (itemSelected) {
       this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
@@ -166,7 +178,7 @@ export class UploadForm {
         parentFolder: parentFolder
       }
 
-      this.showUploadingRecordsPage()
+      UploadForm.showUploadingRecordsPage()
       this.folderUploader(this.selectedFiles, uploadFilesInfo)
     } else {
       this.addSubmitListener() // Add submit listener back as we've set it to be removed after one form submission
@@ -207,16 +219,18 @@ export class UploadForm {
     ".drag-and-drop__success"
   )
 
-  private getParentFolderName(folder: IFileWithPath[]) {
-    const firstItem: FileWithRelativePath = folder[0]
-      .file as FileWithRelativePath
-    const relativePath: string = firstItem.webkitRelativePath
-    const splitPath: string[] = relativePath.split("/")
-    const parentFolder: string = splitPath[0]
-    return parentFolder
+  private getParentFolderName(folder: IEntryWithPath[]) {
+    const firstItem: IEntryWithPath = folder.filter((f) => isFile(f))[0]
+    const relativePath: string = firstItem.path
+    if (relativePath.includes("/")) {
+      const splitPath: string[] = relativePath.split("/")
+      return splitPath[1]
+    } else {
+      return relativePath
+    }
   }
 
-  private showUploadingRecordsPage() {
+  private static showUploadingRecordsPage() {
     const fileUploadPage: HTMLDivElement | null =
       document.querySelector("#file-upload")
     const uploadProgressPage: HTMLDivElement | null =

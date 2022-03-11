@@ -3,7 +3,6 @@ import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
 import { UpdateConsignmentStatus } from "../updateconsignmentstatus"
 import { FileUploadInfo, UploadForm } from "./form/upload-form"
-import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError } from "../errorhandling"
 import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
@@ -11,6 +10,7 @@ import { refreshOrReturnToken, scheduleTokenRefresh } from "../auth"
 import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
 import { TdrFetchHandler } from "../s3upload/tdr-fetch-handler"
 import { S3Client } from "@aws-sdk/client-s3"
+import { IEntryWithPath } from "./form/get-files-from-drag-event"
 
 export interface IKeycloakInstance extends KeycloakInstance {
   tokenParsed: IKeycloakTokenParsed
@@ -63,10 +63,10 @@ export class FileUploader {
   }
 
   uploadFiles: (
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     uploadFilesInfo: FileUploadInfo
   ) => Promise<void> = async (
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)

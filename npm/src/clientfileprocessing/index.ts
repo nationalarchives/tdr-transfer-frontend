@@ -7,6 +7,11 @@ import {
 } from "@nationalarchives/file-information"
 import { S3Upload } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
+import {
+  IEntryWithPath,
+  isDirectory,
+  isFile
+} from "../upload/form/get-files-from-drag-event"
 
 export class ClientFileProcessing {
   clientFileMetadataUpload: ClientFileMetadataUpload
@@ -57,20 +62,26 @@ export class ClientFileProcessing {
   }
 
   async processClientFiles(
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     uploadFilesInfo: FileUploadInfo,
     stage: string,
     userId: string | undefined
   ): Promise<void> {
     await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
+    const emptyDirectories = files
+      .filter((f) => isDirectory(f))
+      .map((f) => f.path)
+
     const metadata: IFileMetadata[] =
       await this.clientFileExtractMetadata.extract(
-        files,
+        files.filter((f) => isFile(f)) as IFileWithPath[],
         this.metadataProgressCallback
       )
+
     const tdrFiles = await this.clientFileMetadataUpload.saveClientFileMetadata(
       uploadFilesInfo.consignmentId,
-      metadata
+      metadata,
+      emptyDirectories
     )
     await this.s3Upload.uploadToS3(
       uploadFilesInfo.consignmentId,
