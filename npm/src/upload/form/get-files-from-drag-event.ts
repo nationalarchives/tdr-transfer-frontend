@@ -1,11 +1,25 @@
 import { IFileWithPath } from "@nationalarchives/file-information"
 
+export type IEntryWithPath = IFileWithPath | IDirectoryWithPath
+export type IDirectoryWithPath = Pick<IFileWithPath, "path">
+
+export function isFile(entry: IEntryWithPath): entry is IFileWithPath {
+  return (entry as IFileWithPath).file !== undefined
+}
+
+export function isDirectory(entry: IEntryWithPath): entry is IFileWithPath {
+  return !isFile(entry)
+}
+
 export const getAllFiles: (
   entry: IWebkitEntry,
-  fileInfoInput: IFileWithPath[]
-) => Promise<IFileWithPath[]> = async (entry, fileInfoInput) => {
+  fileInfoInput: IEntryWithPath[]
+) => Promise<IEntryWithPath[]> = async (entry, fileInfoInput) => {
   const reader: IReader = entry.createReader()
   const entries: IWebkitEntry[] = await getEntriesFromReader(reader)
+  if (entry.isDirectory && entries.length === 0) {
+    fileInfoInput.push({ path: entry.fullPath })
+  }
   for (const entry of entries) {
     if (entry.isDirectory) {
       await getAllFiles(entry, fileInfoInput)
