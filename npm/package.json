@@ -65,7 +65,7 @@
     "aws-sdk-client-mock": "^0.6.2",
     "copyfiles": "^2.4.1",
     "dts-bundle": "^0.7.3",
-    "eslint": "^8.10.0",
+    "eslint": "^8.11.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-jest": "^26.1.1",
