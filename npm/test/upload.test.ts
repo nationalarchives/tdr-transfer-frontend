@@ -122,7 +122,9 @@ test("upload function throws an error when upload fails", async () => {
 
 test("upload function refreshes idle session", async () => {
   mockUploadSuccess()
-  const mockUpdateToken = jest.fn()
+  const mockUpdateToken = jest.fn().mockImplementation((_: number) => {
+    return new Promise((res, _) => res(true))
+  })
   const isTokenExpired = true
   const refreshTokenParsed = {
     exp: Math.round(new Date().getTime() / 1000) + 60

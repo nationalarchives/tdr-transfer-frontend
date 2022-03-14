@@ -9,6 +9,7 @@ import {
   GetFileCheckProgressQueryVariables
 } from "@nationalarchives/tdr-generated-graphql"
 import { GraphqlClient } from "../src/graphql"
+import { isError } from "../src/errorhandling"
 import { mockKeycloakInstance } from "./utils"
 import { DocumentNode, GraphQLError } from "graphql"
 import { FetchResult } from "@apollo/client/core"
@@ -72,13 +73,15 @@ test("getFileChecksProgress returns the correct consignment data with a successf
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  const fileChecksProgress: IFileCheckProgress | null =
+  const fileChecksProgress: IFileCheckProgress | Error =
     await getFileChecksProgress(client)
-
-  expect(fileChecksProgress!.antivirusProcessed).toBe(2)
-  expect(fileChecksProgress!.checksumProcessed).toBe(3)
-  expect(fileChecksProgress!.ffidProcessed).toBe(4)
-  expect(fileChecksProgress!.totalFiles).toBe(10)
+  expect(isError(fileChecksProgress)).toBe(false)
+  if(!isError(fileChecksProgress)) {
+    expect(fileChecksProgress!.antivirusProcessed).toBe(2)
+    expect(fileChecksProgress!.checksumProcessed).toBe(3)
+    expect(fileChecksProgress!.ffidProcessed).toBe(4)
+    expect(fileChecksProgress!.totalFiles).toBe(10)
+  }
 })
 
 test("getFileChecksProgress throws an exception with a failed api call", async () => {
@@ -108,7 +111,7 @@ test("getFileChecksProgress throws a exception after errors from a successful ap
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   document.body.innerHTML = `<input id="consignmentId" type="hidden" value="${consignmentId}">`
 
-  await expect(getFileChecksProgress(client)).rejects.toThrow("Add files failed: error 1")
+  await expect(getFileChecksProgress(client)).resolves.toEqual(Error("Add files failed: error 1"))
 })
 
 test("getConsignmentId returns the correct id when the hidden input is present", () => {
@@ -119,5 +122,5 @@ test("getConsignmentId returns the correct id when the hidden input is present",
 
 test("getConsignmentId throws an error when the hidden input is absent", () => {
   document.body.innerHTML = ""
-  expect(() => getConsignmentId()).toThrowError("No consignment provided")
+  expect(getConsignmentId()).toEqual(Error("No consignment provided"))
 })

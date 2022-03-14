@@ -3,14 +3,14 @@ import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
 import { UpdateConsignmentStatus } from "../updateconsignmentstatus"
 import { FileUploadInfo, UploadForm } from "./form/upload-form"
-import { IFileWithPath } from "@nationalarchives/file-information"
 import { IFrontEndInfo } from "../index"
-import { handleUploadError } from "../errorhandling"
+import { handleUploadError, isError } from "../errorhandling"
 import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
 import { refreshOrReturnToken, scheduleTokenRefresh } from "../auth"
 import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
 import { TdrFetchHandler } from "../s3upload/tdr-fetch-handler"
 import { S3Client } from "@aws-sdk/client-s3"
+import { IEntryWithPath } from "./form/get-files-from-drag-event"
 
 export interface IKeycloakInstance extends KeycloakInstance {
   tokenParsed: IKeycloakTokenParsed
@@ -63,10 +63,10 @@ export class FileUploader {
   }
 
   uploadFiles: (
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     uploadFilesInfo: FileUploadInfo
   ) => Promise<void> = async (
-    files: IFileWithPath[],
+    files: IEntryWithPath[],
     uploadFilesInfo: FileUploadInfo
   ) => {
     window.addEventListener("beforeunload", pageUnloadAction)
@@ -74,26 +74,38 @@ export class FileUploader {
 
     const cookiesUrl = `${this.uploadUrl}/cookies`
     scheduleTokenRefresh(this.keycloak, cookiesUrl)
-    await fetch(cookiesUrl, {
+    const errors: Error[] = []
+    const cookiesResponse = await fetch(cookiesUrl, {
       credentials: "include",
       headers: { Authorization: `Bearer ${refreshedToken}` }
+    }).catch((err) => {
+      return err
     })
-    try {
-      await this.clientFileProcessing.processClientFiles(
+    if (!isError(cookiesResponse)) {
+      const processResult = await this.clientFileProcessing.processClientFiles(
         files,
         uploadFilesInfo,
         this.stage,
         this.keycloak.tokenParsed?.sub
       )
-      await this.updateConsignmentStatus.markConsignmentStatusAsCompleted(
-        uploadFilesInfo
-      )
-
-      // In order to prevent exit confirmation when page redirects to File Checks page
+      const statusUpdate =
+        await this.updateConsignmentStatus.markConsignmentStatusAsCompleted(
+          uploadFilesInfo
+        )
+      if (isError(processResult)) {
+        errors.push(processResult)
+      }
+      if (isError(statusUpdate)) {
+        errors.push(statusUpdate)
+      }
+    } else {
+      errors.push(cookiesResponse)
+    }
+    if (errors.length == 0) {
       window.removeEventListener("beforeunload", pageUnloadAction)
       this.goToNextPage("#upload-data-form")
-    } catch (e) {
-      handleUploadError(e, "Processing client files failed")
+    } else {
+      errors.forEach((err) => handleUploadError(err))
     }
   }
 

@@ -1,3 +1,5 @@
+import { enableFetchMocks } from "jest-fetch-mock"
+enableFetchMocks()
 import "@testing-library/jest-dom"
 
 import {
@@ -23,7 +25,7 @@ test("clicking the submit button, without selecting a folder, doesn't reveal the
   const mockDom = new MockUploadFormDom()
 
   const submitEvent = mockDom.createSubmitEvent()
-  await expect(mockDom.form.handleFormSubmission(submitEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleFormSubmission(submitEvent)).resolves.toEqual(
     Error("A submission was made without an item being selected")
   )
 
@@ -36,7 +38,7 @@ test("clicking the submit button, without selecting a folder, displays a warning
   const mockDom = new MockUploadFormDom()
 
   const submitEvent = mockDom.createSubmitEvent()
-  await expect(mockDom.form.handleFormSubmission(submitEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleFormSubmission(submitEvent)).resolves.toEqual(
     Error("A submission was made without an item being selected")
   )
 
@@ -84,7 +86,7 @@ test("dropzone updates the page with an error if there are no files in folder", 
     mockDom.dataTransferItem
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("The folder is empty")
   )
 
@@ -138,6 +140,110 @@ test("dropzone updates the page with correct folder information if there is a ne
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
 })
 
+test("dropzone updates the page with correct folder information if there are valid files and an empty directory", async () => {
+  const mockDom = new MockUploadFormDom()
+
+  const dataTransferItemWithNestedDirectory: DataTransferItem = {
+    ...mockDom.dataTransferItemFields,
+    webkitGetAsEntry: () => nestedDirectoryEntry
+  }
+
+  const nestedDirectoryEntry: IWebkitEntry = {
+    ...mockDom.dataTransferItemFields,
+    createReader: () => nestedDirectoryEntryReader,
+    isFile: false,
+    isDirectory: true,
+    name: "Mock Folder",
+    webkitGetAsEntry: () => mockDom.fileEntry
+  }
+
+  const emptyDirectoryEntry: IWebkitEntry = {
+    ...mockDom.dataTransferItemFields,
+    createReader: () => emptyNestedReader,
+    isFile: false,
+    isDirectory: true,
+    name: "Mock Folder",
+    webkitGetAsEntry: () => mockDom.fileEntry
+  }
+
+  const emptyNestedReader: IReader = {
+    readEntries: (cb) => {
+      cb([])
+    }
+  }
+
+  const mockNestedEntries: IWebkitEntry[][] = [
+    [],
+    [emptyDirectoryEntry],
+    [mockDom.directoryEntry]
+  ] // have to create an entry here to act as top-level directory
+  let nestedDirectoryBatchCount = mockDom.entries.length + 1
+  const nestedDirectoryEntryReader: IReader = {
+    readEntries: (cb) => {
+      nestedDirectoryBatchCount = nestedDirectoryBatchCount - 1
+      cb(mockNestedEntries[nestedDirectoryBatchCount])
+    }
+  }
+
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [getDummyFolder()],
+    dataTransferItemWithNestedDirectory
+  )
+  const dragEvent = new dragEventClass()
+  await mockDom.form.handleDroppedItems(dragEvent)
+
+  expect(mockDom.itemRetrievalSuccessMessage!).not.toHaveAttribute(
+    "hidden",
+    "true"
+  )
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages)
+
+  expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
+  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
+})
+
+test("dropzone updates the page with an error if there is an empty nested folder", async () => {
+  const mockDom = new MockUploadFormDom()
+
+  const dataTransferItemWithNestedDirectory: DataTransferItem = {
+    ...mockDom.dataTransferItemFields,
+    webkitGetAsEntry: () => emptyDirectoryEntry
+  }
+
+  const emptyDirectoryEntry: IWebkitEntry = {
+    ...mockDom.dataTransferItemFields,
+    createReader: () => emptyNestedReader,
+    isFile: false,
+    isDirectory: true,
+    name: "Mock Folder",
+    webkitGetAsEntry: () => mockDom.fileEntry
+  }
+
+  const emptyNestedReader: IReader = {
+    readEntries: (cb) => {
+      cb([])
+    }
+  }
+
+  const dragEventClass = mockDom.addFilesToDragEvent(
+    [getDummyFolder()],
+    dataTransferItemWithNestedDirectory
+  )
+  const dragEvent = new dragEventClass()
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
+    Error("The folder is empty")
+  )
+
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
+    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
+    expectedWarningMessageText: "You can only drop a single folder"
+  })
+  expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
+
+  expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
+  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
+})
+
 test("dropzone updates the page with an error if more than 1 item (2 folders) has been dropped", async () => {
   const mockDom = new MockUploadFormDom()
   const dragEventClass = mockDom.addFilesToDragEvent(
@@ -145,7 +251,7 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("Only one folder is allowed to be selected")
   )
 
@@ -166,7 +272,7 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("Only one folder is allowed to be selected")
   )
 
@@ -187,7 +293,7 @@ test("dropzone updates the page with an error if 1 file has been dropped", async
     mockDom.fileEntry
   )
   const dragEvent = new dragEventClass()
-  await expect(mockDom.form.handleDroppedItems(dragEvent)).rejects.toEqual(
+  await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
     Error("Only folders are allowed to be selected")
   )
 

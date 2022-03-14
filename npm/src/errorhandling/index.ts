@@ -9,10 +9,11 @@ export class LoggedOutError extends Error {
   }
 }
 
-export function handleUploadError(
-  error: Error,
-  additionalLoggingInfo: string = "Upload failed"
-) {
+export function isError(error: Error | any): error is Error {
+  return error != undefined && (error as Error).message !== undefined
+}
+
+export function handleUploadError(error: Error) {
   window.removeEventListener("beforeunload", pageUnloadAction)
   if (error instanceof LoggedOutError) {
     showLoggedOutError(error.loginUrl)
@@ -28,7 +29,6 @@ export function handleUploadError(
       showErrorMessageOnUploadInProgressHalf(error)
     }
   }
-  throw Error(`${additionalLoggingInfo}: ${error.message}`)
 }
 
 function renderErrorMessage(message: string) {
@@ -106,7 +106,6 @@ function showLoggedOutError(login: string) {
     ".logged-out-error-link"
   )
 
-  console.log(uploadForm, progressBarAndMessage)
   if (uploadForm) {
     uploadForm.classList.add("hide")
   }
