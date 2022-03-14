@@ -1,0 +1,34 @@
+queue_rules:
+  - name: default
+    conditions:
+      - check-success=test
+      - "check-success=security/snyk (nationalarchives)"
+pull_request_rules:
+  - name: automatic merge for Scala Steward
+    conditions:
+      - author=scala-steward
+      - check-success=test
+      - "check-success=security/snyk (nationalarchives)"
+      - or:
+          - files=build.sbt
+          - files~=^(!?project/)
+    actions:
+      review:
+        type: APPROVE
+        message: Automatically approving Scala Steward
+      queue:
+        name: default
+  - name: automatic merge for dependabot
+    conditions:
+        - author~=^dependabot(|-preview)\[bot\]$
+        - check-success=test
+        - "check-success=security/snyk (nationalarchives)"
+        - or:
+          - files=npm/package.json
+          - files=npm/package-lock.json
+    actions:
+      review:
+        type: APPROVE
+        message: Automatically approving dependabot
+      queue:
+        name: default
