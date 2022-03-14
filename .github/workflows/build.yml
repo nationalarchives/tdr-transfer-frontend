@@ -9,8 +9,7 @@ jobs:
     with:
       repo-name: tdr-transfer-frontend
       build-command: |
-        docker build -f Dockerfile-tests -t tests .
-        sbt assembly
+        sbt dist
     secrets:
       MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
       WORKFLOW_PAT: ${{ secrets.WORKFLOW_PAT }}

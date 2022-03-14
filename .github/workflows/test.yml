@@ -14,7 +14,8 @@ jobs:
     with:
       repo-name: tdr-transfer-frontend
       test-command: |
-        docker build -f Dockerfile-tests -t tests .
+        npm --prefix npm ci
+        npm --prefix npm run checks
         sbt test
     secrets:
       MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
