@@ -1,6 +1,8 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
@@ -8,6 +10,10 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
 import services.ConsignmentService
 import util.FrontEndTestHelper
+import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcr}
+import io.circe.syntax.EncoderOps
+import io.circe.Printer
+import io.circe.generic.auto._
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -31,6 +37,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val beforeUploadingController = instantiateBeforeUploadingController
       setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse()
 
       val beforeUploadingPage = beforeUploadingController.beforeUploading(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
@@ -69,5 +76,16 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       getValidJudgmentUserKeycloakConfiguration,
       consignmentService
     )
+  }
+
+  private def setConsignmentReferenceResponse(): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcr.Data, gcr.Variables]()
+    val consignmentReferenceResponse: gcr.GetConsignment = new gcr.GetConsignment("TEST-TDR-2021-GB")
+    val data: client.GraphqlData = client.GraphqlData(Some(gcr.Data(Some(consignmentReferenceResponse))), List())
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentReference"))
+      .willReturn(okJson(dataString)))
   }
 }
