@@ -259,7 +259,7 @@ export class UploadForm {
     const relativePath: string = firstItem.path
     if (relativePath.includes("/")) {
       const splitPath: string[] = relativePath.split("/")
-      return splitPath[1]
+      return splitPath[0]
     } else {
       return relativePath
     }
