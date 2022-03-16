@@ -19,8 +19,8 @@ class HomeControllerSpec extends FrontEndTestHelper {
       contentType(home) mustBe Some("text/html")
       contentAsString(home) must include ("The National Archives Transfer Digital Records")
       contentAsString(home) must include ("Use this service to:")
-      contentAsString(home) must include ("Transfer digital records to The National Archives")
-      contentAsString(home) must include ("Transfer court judgments to The National Archives")
+      contentAsString(home) must include ("transfer digital records to The National Archives")
+      contentAsString(home) must include ("transfer court judgments to The National Archives")
       contentAsString(home) must include ("Start now")
     }
 
