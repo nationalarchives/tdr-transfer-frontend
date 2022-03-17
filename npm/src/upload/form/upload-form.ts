@@ -130,7 +130,7 @@ export class UploadForm {
           ) as IFileWithPath[]
           const folderCheck = this.checkIfFolderHasFiles(files)
           if (!isError(folderCheck)) {
-            this.selectedFiles = files
+            this.selectedFiles = filesAndDirectories
             addFolderSelectionSuccessMessage(
               webkitEntry.name,
               this.selectedFiles.filter((f) => isFile(f)).length
