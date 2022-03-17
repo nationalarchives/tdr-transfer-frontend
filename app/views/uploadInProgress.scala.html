@@ -5,7 +5,7 @@
   @main("Upload your records", name = name) {
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("upload.progress"))
+        @progressIndicator(Messages("upload.progress"), Messages("progress.totalSteps"))
         <h1 class="govuk-heading-l">@pageHeading</h1>
 
         <div id="upload-progress-error" class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"
