@@ -130,7 +130,7 @@ export class UploadForm {
           ) as IFileWithPath[]
           const folderCheck = this.checkIfFolderHasFiles(files)
           if (!isError(folderCheck)) {
-            this.selectedFiles = files
+            this.selectedFiles = filesAndDirectories
             addFolderSelectionSuccessMessage(
               webkitEntry.name,
               this.selectedFiles.filter((f) => isFile(f)).length
@@ -259,7 +259,7 @@ export class UploadForm {
     const relativePath: string = firstItem.path
     if (relativePath.includes("/")) {
       const splitPath: string[] = relativePath.split("/")
-      return splitPath[1]
+      return splitPath[0]
     } else {
       return relativePath
     }
