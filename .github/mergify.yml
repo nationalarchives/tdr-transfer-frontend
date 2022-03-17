@@ -18,7 +18,7 @@ pull_request_rules:
         message: Automatically approving Scala Steward
       queue:
         name: default
-  - name: automatic merge for dependabot
+  - name: automatic merge for Dependabot
     conditions:
         - author~=^dependabot(|-preview)\[bot\]$
         - "check-success=test / test"
@@ -29,6 +29,6 @@ pull_request_rules:
     actions:
       review:
         type: APPROVE
-        message: Automatically approving dependabot
+        message: Automatically approving Dependabot
       queue:
         name: default
