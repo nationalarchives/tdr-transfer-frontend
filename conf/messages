@@ -19,12 +19,17 @@ transferComplete.error=There has been an error, contact us.
 progressIndicator.step=Step {0} of {1}
 # Progress indicator step numbers
 seriesDetails.progress=1
+beforeUploading.progress=1
 transferAgreement.progress=2
-beforeUploading.progress=2
+judgmentUpload.progress=2
+judgmentUploadProgress.progress=2
 upload.progress=3
 uploadProgress.progress=3
+judgmentCheckingRecords.progress=3
 checkingRecords.progress=4
+judgmentFileChecksResults.progress=4
 fileChecksResults.progress=4
-judgmentFileChecksResults.progress=5
 confirmTransfer.progress=5
+
 progress.totalSteps=5
+judgmentProgress.totalSteps=4
