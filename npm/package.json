@@ -14,7 +14,10 @@
     "build-css": "npm-run-all add-stylesheet-dir sass-compile compress-css",
     "build:local": "npm-run-all copy-assets build-css build-ts:prod",
     "build": "npm-run-all copy-assets build-css build-ts:prod",
+    "lint": "eslint src/**/*.ts",
+    "stylelint": "npx stylelint **/*.scss",
     "test": "jest",
+    "checks": "npm-run-all lint stylelint test",
     "build-ts:prod": "webpack --mode production",
     "build-ts": "webpack --mode development --watch"
   },
