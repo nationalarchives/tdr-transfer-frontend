@@ -23,7 +23,7 @@ dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.10
 val playPac4jVersion = "10.0.2"
 val pac4jVersion = "4.2.0"
 val akkaVersion = "2.6.3"
-val sttpVersion = "2.2.4"
+val sttpVersion = "2.3.0"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
