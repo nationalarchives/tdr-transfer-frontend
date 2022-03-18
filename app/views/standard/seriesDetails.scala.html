@@ -10,7 +10,7 @@ messages: Messages)
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("seriesDetails.progress"))
+        @progressIndicator(Messages("seriesDetails.progress"), Messages("progress.totalSteps"))
 
         <h1 class="govuk-heading-l">Choose a series</h1>
         @errorSummary(seriesDetailsForm("series"))

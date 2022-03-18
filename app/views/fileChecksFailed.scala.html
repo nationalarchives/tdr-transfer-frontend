@@ -4,7 +4,7 @@
 @main("Results of checks", name = name) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      @progressIndicator(Messages("checkingRecords.progress"))
+      @progressIndicator(Messages("checkingRecords.progress"), Messages("progress.totalSteps"))
       <h1 class="govuk-heading-l">Results of your checks</h1>
 
       <div class="govuk-error-summary" aria-labelledby="error-summary-title"
