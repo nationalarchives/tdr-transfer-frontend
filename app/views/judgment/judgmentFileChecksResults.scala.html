@@ -7,7 +7,7 @@
 @main("Results of checks", name = name) {
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            @progressIndicator(Messages("judgmentFileChecksResults.progress"))
+            @progressIndicator(Messages("judgmentFileChecksResults.progress"), Messages("judgmentProgress.totalSteps"))
             <h1 class="govuk-heading-l">Results of checks</h1>
             <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
             role="status" data-module="success-summary" tabindex="-1">

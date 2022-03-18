@@ -9,7 +9,7 @@
 <noscript>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            @progressIndicator(Messages("upload.progress"))
+            @progressIndicator(Messages("upload.progress"), Messages("progress.totalSteps"))
             <h1 class="govuk-heading-l">Upload your records</h1>
             @noScriptMessage()
         </div>
@@ -17,14 +17,14 @@
 </noscript>
 <div id="file-upload" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("upload.progress"))
+        @progressIndicator(Messages("upload.progress"), Messages("progress.totalSteps"))
         @frontEndInputs(frontEndInfo)
 
         <h1 class="govuk-heading-l">Upload your records</h1>
         <p class="govuk-body">You can only upload one folder to be transferred. If your folder contains files that we cannot accept, you may have to start again.</p>
         <p class="govuk-body">There is no limit to the size of the files but larger files may take longer to be uploaded and checked.</p>
         <div class="govuk-inset-text">
-            We cannot accept files or folders which are password protected, zipped or contain slashes (/ and \) in the name. Please also try and remove any thumbnail images (thumb dbs) and executable files (.exe) from the records before uploading.
+            We cannot accept files or folders which are password protected, zipped or contain slashes (/ and \) in the name. Remove any thumbnail images (thumb dbs) and executable files (.exe) from the records before uploading.
         </div>
         <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
             role="alert" tabindex="-1" data-module="govuk-error-summary">
@@ -92,7 +92,7 @@
 </div>
 <div id="upload-progress" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds" role="status" aria-live="assertive">
-        @progressIndicator(Messages("upload.progress"))
+        @progressIndicator(Messages("upload.progress"), Messages("progress.totalSteps"))
         <h1 class="govuk-heading-l">Uploading records</h1>
         <div id="upload-progress-error" hidden>
             <div class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"
