@@ -8,6 +8,7 @@ jobs:
     uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@main
     with:
       repo-name: tdr-transfer-frontend
+      image-name: transfer-frontend
       build-command: |
         sbt dist
     secrets:
