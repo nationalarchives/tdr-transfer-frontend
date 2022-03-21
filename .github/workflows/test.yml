@@ -5,6 +5,7 @@ on:
     branches-ignore:
       - master
       - release-*
+      - dependabot*
 permissions:
   id-token: write
   contents: read
