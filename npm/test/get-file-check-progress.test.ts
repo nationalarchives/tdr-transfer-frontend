@@ -23,6 +23,7 @@ class GraphqlClientSuccess {
   ) => Promise<FetchResult<GetFileCheckProgressQuery>> = async (_, __) => {
     const data: GetFileCheckProgressQuery = {
       getConsignment: {
+        files: [],
         totalFiles: 10,
         allChecksSucceeded: false,
         fileChecks: {
