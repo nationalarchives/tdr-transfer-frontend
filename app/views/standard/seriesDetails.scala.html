@@ -2,7 +2,8 @@
 @import viewsapi.FormFunctions._
 @import views.html.partials.{errorMessage, errorSummary, inputDropdown, progressIndicator}
 
-@(allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData], name: String)(implicit request: RequestHeader,
+@import java.util.UUID
+@(consignmentId: UUID, allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData], name: String)(implicit request: RequestHeader,
 messages: Messages)
 
 @main("Series Information", hasError = seriesDetailsForm("series").hasErrors, name = name) {
@@ -15,7 +16,7 @@ messages: Messages)
         <h1 class="govuk-heading-l">Choose a series</h1>
         @errorSummary(seriesDetailsForm("series"))
 
-        @form(routes.SeriesDetailsController.seriesSubmit(), (Symbol("novalidate"), "")) {
+        @form(routes.SeriesDetailsController.seriesSubmit(consignmentId), (Symbol("novalidate"), "")) {
             @CSRF.formField
             @inputDropdown(
                 seriesDetailsForm("series"),

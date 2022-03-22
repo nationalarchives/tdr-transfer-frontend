@@ -6,13 +6,14 @@
 # An example controller showing a sample home page
 GET         /                                                              controllers.HomeController.index()
 GET         /homepage                                                      controllers.HomepageController.homepage()
+POST        /homepage                                                      controllers.HomepageController.homepageSubmit()
 GET         /contact                                                       controllers.ContactController.contact()
 GET         /cookies                                                       controllers.CookiesController.cookies()
 GET         /faq                                                           controllers.FaqController.faq()
 GET         /help                                                          controllers.HelpController.help()
 GET         /registration-complete                                         controllers.RegistrationController.complete()
-GET         /series                                                        controllers.SeriesDetailsController.seriesDetails()
-POST        /series                                                        controllers.SeriesDetailsController.seriesSubmit()
+GET         /consignment/:consignmentId/series                             controllers.SeriesDetailsController.seriesDetails(consignmentId: java.util.UUID)
+POST        /consignment/:consignmentId/series                             controllers.SeriesDetailsController.seriesSubmit(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/transfer-agreement                 controllers.TransferAgreementPrivateBetaController.transferAgreement(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/transfer-agreement                 controllers.TransferAgreementPrivateBetaController.transferAgreementSubmit(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/transfer-agreement-continued       controllers.TransferAgreementComplianceController.transferAgreement(consignmentId: java.util.UUID)
@@ -37,7 +38,7 @@ POST        /callback                                                      @org.
 GET         /sign-out                                                      @org.pac4j.play.LogoutController.logout(request: play.mvc.Http.Request)
 
 # Routes for judgment
-POST        /homepage                                                      controllers.HomepageController.judgmentHomepageSubmit()
+POST        /judgment/homepage                                             controllers.HomepageController.judgmentHomepageSubmit()
 GET         /judgment/:consignmentId/before-uploading                      controllers.BeforeUploadingController.beforeUploading(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/upload                                controllers.UploadController.judgmentUploadPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/file-checks                           controllers.FileChecksController.judgmentFileChecksPage(consignmentId: java.util.UUID)

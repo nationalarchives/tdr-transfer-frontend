@@ -27,35 +27,38 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     )(SelectedSeriesData.apply)(SelectedSeriesData.unapply)
   )
 
-  private def getSeriesDetails(request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
+  private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])
+                              (implicit requestHeader: RequestHeader) = {
     seriesService.getSeriesForUser(request.token)
       .map({series =>
         val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
-        status(views.html.standard.seriesDetails(seriesFormData, form, request.token.name))
+        status(views.html.standard.seriesDetails(consignmentId, seriesFormData, form, request.token.name))
       })
   }
 
-  def seriesDetails(): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
-    getSeriesDetails(request, Ok, selectedSeriesForm)
+  def seriesDetails(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
+    //Need to get the status for the series
+
+    getSeriesDetails(consignmentId, request, Ok, selectedSeriesForm)
   }
 
-  def seriesSubmit(): Action[AnyContent] =  standardUserAction { implicit request: Request[AnyContent] =>
+  def seriesSubmit(consignmentId: UUID): Action[AnyContent] =  standardUserAction { implicit request: Request[AnyContent] =>
+    //No longer need to create a consignment
+    //Update with a series id if the status is not completed
+
     val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest()
 
     val errorFunction: Form[SelectedSeriesData] => Future[Result] = { formWithErrors: Form[SelectedSeriesData] =>
-      getSeriesDetails(request, BadRequest, formWithErrors)
+      getSeriesDetails(consignmentId, request, BadRequest, formWithErrors)
     }
 
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
-      consignmentService
-        .createConsignment(Some(UUID.fromString(formData.seriesId)), request.token)
-        .map { consignment =>
-          if (request.token.isJudgmentUser) {
-            Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentid.get))
-          } else {
-            Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignment.consignmentid.get))
-          }
-        }
+      if (request.token.isJudgmentUser) {
+        Future(Redirect(routes.BeforeUploadingController.beforeUploading(consignmentId)))
+      } else {
+        consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
+        Future(Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)))
+      }
     }
 
     formValidationResult.fold(

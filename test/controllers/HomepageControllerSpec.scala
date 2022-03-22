@@ -14,6 +14,7 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures._
+import play.api.Play.materializer
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -55,7 +56,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
         getAuthorisedSecurityComponents,
         getValidStandardUserKeycloakConfiguration,
         consignmentService)
-      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage"))
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
       contentAsString(homepagePage) must include ("Welcome")
@@ -106,7 +107,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val redirect = controller.judgmentHomepageSubmit()
-        .apply(FakeRequest(POST, "/homepage").withCSRFToken)
+        .apply(FakeRequest(POST, "/judgment/homepage").withCSRFToken)
 
       redirectLocation(redirect).get must equal(s"/judgment/$consignmentId/before-uploading")
       wiremockServer.getAllServeEvents.size should equal(1)
@@ -134,6 +135,28 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       val homepagePage = controller.homepage().apply(FakeRequest(POST, "/homepage").withCSRFToken)
       redirectLocation(homepagePage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       status(homepagePage) mustBe SEE_OTHER
+    }
+
+    "create a new consignment for a standard user" in {
+      val controller = new HomepageController(
+        getAuthorisedSecurityComponents,
+        getValidStandardUserKeycloakConfiguration,
+        consignmentService)
+
+      val consignmentId = UUID.fromString("6c5756a9-dd7a-437c-9396-33b227e53768")
+      val addConsignment = AddConsignment(Option(consignmentId), None)
+      val client = graphqlConfig.getClient[Data, Variables]()
+      val dataString = client.GraphqlData(Option(Data(addConsignment)))
+        .asJson.printWith(Printer(dropNullValues = false, ""))
+
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString)))
+
+      val redirect = controller.homepageSubmit()
+        .apply(FakeRequest(POST, "/homepage").withCSRFToken)
+
+      redirectLocation(redirect).get must equal(s"/consignment/$consignmentId/series")
+      wiremockServer.getAllServeEvents.size should equal(1)
     }
   }
 }
