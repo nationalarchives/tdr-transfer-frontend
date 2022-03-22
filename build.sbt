@@ -18,9 +18,9 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3
 
 //Needed to run the tests. Prevents incompatible databind version errors.
 //More details on a similar error here: https://stackoverflow.com/questions/43841091/spark2-1-0-incompatible-jackson-versions-2-7-6
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.10.0" % Test
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.4" % Test
 
-val playPac4jVersion = "11.1.0-PLAY2.8"
+val playPac4jVersion = "10.0.2"
 val pac4jVersion = "4.2.0"
 val akkaVersion = "2.6.3"
 val sttpVersion = "2.2.4"
