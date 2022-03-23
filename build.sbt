@@ -11,7 +11,7 @@ watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
 resolvers += "TDR Releases" at "s3://tdr-releases-mgmt"
 
-scalaVersion := "2.13.3"
+scalaVersion := "2.13.8"
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test
@@ -21,7 +21,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.4" % Test
 
 val playPac4jVersion = "10.0.2"
-val pac4jVersion = "4.2.0"
+val pac4jVersion = "4.5.5"
 val akkaVersion = "2.6.3"
 val sttpVersion = "2.2.4"
 
@@ -39,7 +39,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.206",
   ws,
   "com.github.tomakehurst" % "wiremock-jre8" % "2.26.0" % Test,
-  "org.mockito" % "mockito-core" % "3.3.0" % Test
+  "org.mockito" % "mockito-core" % "3.3.3" % Test
 )
 scalacOptions ++= Seq("-language:implicitConversions")
 
