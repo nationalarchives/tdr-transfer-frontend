@@ -11,7 +11,7 @@ watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
 resolvers += "TDR Releases" at "s3://tdr-releases-mgmt"
 
-scalaVersion := "2.13.3"
+scalaVersion := "2.13.8"
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test
