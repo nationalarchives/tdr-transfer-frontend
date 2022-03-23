@@ -1,0 +1,47 @@
+@import helper._
+@import viewsapi.FormFunctions._
+@import views.html.partials.{errorMessage, errorSummary, inputDropdown, progressIndicator}
+
+@import java.util.UUID
+@(consignmentId: UUID,  name: String)(implicit request: RequestHeader,
+messages: Messages)
+
+@main("Series Information", name = name) {
+@defining(play.core.PlayVersion.current) { version =>
+
+<div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+        @progressIndicator(Messages("seriesDetails.progress"), Messages("progress.totalSteps"))
+
+        <h1 class="govuk-heading-l">Choose a series</h1>
+        <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
+        role="alert" data-module="success-summary" tabindex="-1">
+            <div class="success-summary__body">
+                <h2 class="success-summary__title">You have already chosen a series reference</h2>
+                <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
+            </div>
+        </div>
+@*        @errorSummary(seriesDetailsForm("series"))*@
+
+@*        @form(routes.SeriesDetailsController.seriesSubmit(consignmentId), (Symbol("novalidate"), "")) {
+            @CSRF.formField
+            @inputDropdown(
+                seriesDetailsForm("series"),
+                allSeriesData,
+                Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
+                Symbol("_name") -> "Series Details",
+                Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
+            )*@
+
+        <div class="govuk-button-group">
+            <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button" href="@routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)">
+                    Continue
+            </a>
+
+            <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+        </div>
+        }
+    </div>
+</div>
+
+}

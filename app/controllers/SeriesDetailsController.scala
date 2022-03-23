@@ -10,7 +10,8 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import services.{ConsignmentService, SeriesService}
+import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
+import viewsapi.Caching.preventCaching
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -18,7 +19,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class SeriesDetailsController @Inject()(val controllerComponents: SecurityComponents,
                                         val keycloakConfiguration: KeycloakConfiguration,
                                         seriesService: SeriesService,
-                                        val consignmentService: ConsignmentService
+                                        val consignmentService: ConsignmentService,
+                                        val consignmentStatusService: ConsignmentStatusService,
                                         )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   val selectedSeriesForm = Form(
@@ -29,23 +31,26 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
 
   private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])
                               (implicit requestHeader: RequestHeader) = {
-    seriesService.getSeriesForUser(request.token)
-      .map({series =>
-        val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
-        status(views.html.standard.seriesDetails(consignmentId, seriesFormData, form, request.token.name))
-      })
+    consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).flatMap {
+      consignmentStatus =>
+        val seriesStatus = consignmentStatus.flatMap(_.series)
+        seriesStatus match {
+          case Some("Completed") => Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, request.token.name)).uncache())
+          case _ =>
+            seriesService.getSeriesForUser(request.token)
+              .map({ series =>
+                val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
+                status(views.html.standard.seriesDetails(consignmentId, seriesFormData, form, request.token.name)).uncache()
+              })
+        }
+    }
   }
 
   def seriesDetails(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
-    //Need to get the status for the series
-
     getSeriesDetails(consignmentId, request, Ok, selectedSeriesForm)
   }
 
   def seriesSubmit(consignmentId: UUID): Action[AnyContent] =  standardUserAction { implicit request: Request[AnyContent] =>
-    //No longer need to create a consignment
-    //Update with a series id if the status is not completed
-
     val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest()
 
     val errorFunction: Form[SelectedSeriesData] => Future[Result] = { formWithErrors: Form[SelectedSeriesData] =>
@@ -56,8 +61,14 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
       if (request.token.isJudgmentUser) {
         Future(Redirect(routes.BeforeUploadingController.beforeUploading(consignmentId)))
       } else {
-        consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
-        Future(Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)))
+        for {
+          consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+          confirmTransferStatus = consignmentStatus.flatMap(_.series)
+        } yield confirmTransferStatus match {
+          case Some("Completed") => Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
+          case _ => consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
+            Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
+        }
       }
     }
 
