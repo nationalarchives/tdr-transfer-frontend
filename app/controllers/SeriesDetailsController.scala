@@ -31,17 +31,19 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
 
   private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])
                               (implicit requestHeader: RequestHeader) = {
-    consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).flatMap {
+    consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken).flatMap {
       consignmentStatus =>
-        val seriesStatus = consignmentStatus.flatMap(_.series)
+        val seriesStatus = consignmentStatus.flatMap(_.currentStatus.series)
         seriesStatus match {
-          case Some("Completed") => Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, request.token.name)).uncache())
+          case Some("Completed") =>
+            val seriesFormData = List((consignmentStatus.flatMap(_.series.map(_.seriesid.toString)).get, consignmentStatus.flatMap(_.series.map(_.code)).get))
+            Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, seriesFormData, selectedSeriesForm, request.token.name)).uncache())
           case _ =>
             seriesService.getSeriesForUser(request.token)
-              .map({ series =>
+              .map { series =>
                 val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
                 status(views.html.standard.seriesDetails(consignmentId, seriesFormData, form, request.token.name)).uncache()
-              })
+              }
         }
     }
   }

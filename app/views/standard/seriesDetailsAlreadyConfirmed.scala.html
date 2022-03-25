@@ -3,9 +3,9 @@
 @import views.html.partials.{errorMessage, errorSummary, inputDropdown, progressIndicator}
 
 @import java.util.UUID
-@(consignmentId: UUID,  name: String)(implicit request: RequestHeader,
+@(consignmentId: UUID, allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData], name: String)(implicit request: RequestHeader,
 messages: Messages)
-
+@disabledStatus = {disabled}
 @main("Series Information", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 
@@ -21,17 +21,14 @@ messages: Messages)
                 <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
             </div>
         </div>
-@*        @errorSummary(seriesDetailsForm("series"))*@
 
-@*        @form(routes.SeriesDetailsController.seriesSubmit(consignmentId), (Symbol("novalidate"), "")) {
-            @CSRF.formField
             @inputDropdown(
                 seriesDetailsForm("series"),
                 allSeriesData,
-                Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
                 Symbol("_name") -> "Series Details",
-                Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
-            )*@
+                Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer.",
+                Symbol("_disabledOption") -> disabledStatus,
+            )
 
         <div class="govuk-button-group">
             <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button" href="@routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)">

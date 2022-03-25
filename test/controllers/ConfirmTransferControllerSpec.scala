@@ -463,7 +463,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcstatus.Data, gcstatus.Variables]()
-      val consignmentResponse = gcstatus.Data(Option(GetConsignment(CurrentStatus(None, None, None, Some("Completed")))))
+      val consignmentResponse = gcstatus.Data(Option(GetConsignment(None, CurrentStatus(None, None, None, Some("Completed")))))
       val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlConsignmentStatusResponse(dataString)
@@ -486,7 +486,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcstatus.Data, gcstatus.Variables]()
-      val consignmentResponse = gcstatus.Data(Option(GetConsignment(CurrentStatus(None, None, None, Some("Completed")))))
+      val consignmentResponse = gcstatus.Data(Option(GetConsignment(None, CurrentStatus(None, None, None, Some("Completed")))))
       val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlConsignmentStatusResponse(dataString)
@@ -509,7 +509,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcstatus.Data, gcstatus.Variables]()
-      val consignmentResponse = gcstatus.Data(Option(GetConsignment(CurrentStatus(None, None, None, Some("Completed")))))
+      val consignmentResponse = gcstatus.Data(Option(GetConsignment(None, CurrentStatus(None, None, None, Some("Completed")))))
       val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       mockGraphqlConsignmentStatusResponse(dataString)
@@ -681,7 +681,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
                                               (implicit ec: ExecutionContext) = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcstatus.Data, gcstatus.Variables]()
     val data = client.GraphqlData(Option(gcstatus.Data(Option(gcstatus.GetConsignment(
-      CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, confirmTransferStatus))))), List())
+      None, CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, confirmTransferStatus))))), List())
     val dataString = data.asJson.printWith(Printer(dropNullValues = false, ""))
     val formattedJsonBody =
       s"""{"query":"query getConsignmentStatus($$consignmentId:UUID!){
@@ -696,7 +696,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     val unformattedJsonBody = removeNewLinesAndIndentation(formattedJsonBody)
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(equalToJson(unformattedJsonBody))
+      .withRequestBody(containing("getConsignmentStatus"))
       .willReturn(okJson(dataString))
     )
   }

@@ -11,3 +11,4 @@ npm/css-src/*.css
 npm/dist
 npm/.history
 .DS_Store
+.bsp

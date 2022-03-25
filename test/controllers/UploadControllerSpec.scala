@@ -1,7 +1,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
@@ -288,7 +288,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
                                               (implicit ec: ExecutionContext) = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
     val data = client.GraphqlData(Option(gcs.Data(Option(gcs.GetConsignment(
-      CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, confirmTransferStatus))))), List())
+      None, CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, confirmTransferStatus))))), List())
     val dataString = data.asJson.printWith(Printer(dropNullValues = false, ""))
     val formattedJsonBody =
       """{"query":"query getConsignmentStatus($consignmentId:UUID!){
@@ -303,7 +303,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val unformattedJsonBody = removeNewLinesAndIndentation(formattedJsonBody)
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(equalToJson(unformattedJsonBody))
+      .withRequestBody(containing("getConsignmentStatus"))
       .willReturn(okJson(dataString))
     )
   }
