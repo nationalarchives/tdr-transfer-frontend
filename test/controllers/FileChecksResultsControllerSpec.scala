@@ -284,6 +284,49 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         contentAsString(recordCheckResultsPage) must include("There is a problem")
         resultsPageAsString must include("Return to start")
       }
+
+      s"return the general $userType error page if file checks have failed with PasswordProtected and Zip" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val fileStatus = List(gfcp.GetConsignment.Files(Some("PasswordProtected")), gfcp.GetConsignment.Files(Some("Zip")))
+
+        val data = Data(
+          Option(
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus,
+              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          )
+        )
+        val client = graphQLConfiguration.getClient[Data, Variables]()
+        val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+        mockGraphqlResponse(userType, fileStatusResponse)
+
+        val fileCheckResultsController = new FileChecksResultsController(
+          getAuthorisedSecurityComponents,
+          keycloakConfiguration,
+          new GraphQLConfiguration(app.configuration),
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+
+        val recordCheckResultsPage = {
+          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
+          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+        val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+        if (userType == "judgment") {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("Your file has failed our checks. Please try again.")
+        } else {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("One or more files you uploaded have failed our checks")
+        }
+
+        status(recordCheckResultsPage) mustBe OK
+        contentAsString(recordCheckResultsPage) must include("There is a problem")
+        resultsPageAsString must include("Return to start")
+      }
     }
   }
 
