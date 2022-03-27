@@ -1,0 +1,23 @@
+name: TDR Run API tests
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - master
+      - release-*
+      - dependabot*
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  test:
+    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@main
+    with:
+      repo-name: tdr-transfer-frontend
+      test-command: |
+        npm --prefix npm ci
+        npm --prefix npm run checks
+        sbt test
+    secrets:
+      MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
+      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
