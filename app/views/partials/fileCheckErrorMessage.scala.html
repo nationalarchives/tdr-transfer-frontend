@@ -1,21 +1,31 @@
-@import views.html.partials.fileCheckGeneralErrorMessage
-@(fileStatus: List[String] = Nil)
-@if(fileStatus.contains("PasswordProtected") && fileStatus.contains("Zip")) {
-    @fileCheckGeneralErrorMessage()
-} else {
-    @if(fileStatus.contains("PasswordProtected")) {
-        <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more password protected files.</p>
-        <p>We cannot accept password protected files. Once removed or replaced, try uploading your folder again.</p>
-    } else {
-        @if(fileStatus.contains("Zip")) {
-            <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more zip files.</p>
-            <p>We cannot accept zip files and similar archival package file formats.
+@(fileStatuses: List[String] = Nil)
+@{
+    if(fileStatuses.size == 1 && fileStatuses.contains("PasswordProtected")) {
+            <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more password protected files.</p>
+            <p>We cannot accept password protected files. Once removed or replaced, try uploading your folder again.</p>
+    } else if(fileStatuses.size == 1 && fileStatuses.contains("Zip")) {
+                <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more zip files.</p>
+                <p>
+                We cannot accept zip files and similar archival package file formats.
                 These commonly have file extensions such as .zip, .iso, .7z, .rar and others.
-                please see our <a class="govuk-link" href="@routes.FaqController.faq()" target="_blank" rel="noreferrer noopener">
-                FAQ(Opens in new tab)</a> for a full list.
-                Either remove or unpack your zip and archival package files and try uploading again.</p>
+                please see our
+                <a class="govuk-link" href="@routes.FaqController.faq()" target="_blank" rel="noreferrer noopener">
+                FAQ(Opens in new tab)
+                </a>
+                for a full list.
+                Either remove or unpack your zip and archival package files and try uploading again.
+                </p>
         } else {
-            @fileCheckGeneralErrorMessage()
+                <p class="govuk-body">
+                One or more files you uploaded have failed our checks. Please
+                <a class="govuk-link" href="@routes.ContactController.contact()">contact</a>
+                us to resolve this issue.
+                </p>
+                <p class="govuk-body">Possible failure causes:</p>
+                <ul class="govuk-list govuk-list--bullet">
+                <li>Password protected files</li>
+                <li>Zip files</li>
+                <li>Corrupted files</li>
+                </ul>
         }
-    }
 }
