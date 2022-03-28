@@ -3,7 +3,7 @@ FROM alpine
 RUN addgroup --system frontendgroup && adduser --system frontenduser -G frontendgroup
 WORKDIR play
 COPY target/universal/tdr-transfer-frontend*.zip .
-RUN apk update && apk upgrade p11-kit busybox expat && apk add bash unzip && \
+RUN apk update && apk upgrade p11-kit busybox expat libretls && apk add bash unzip && \
     apk add openjdk15 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community && \
     unzip -qq tdr-transfer-frontend-*.zip
 RUN chown -R frontenduser /play

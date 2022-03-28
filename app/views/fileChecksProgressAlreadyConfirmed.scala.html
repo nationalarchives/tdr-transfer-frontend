@@ -8,7 +8,7 @@
     @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row file-check-progress">
         <div class="govuk-grid-column-two-thirds">
-            @progressIndicator(Messages("checkingRecords.progress"))
+            @progressIndicator(Messages("checkingRecords.progress"), Messages("progress.totalSteps"))
             @frontEndInputs(frontEndInfo)
             <h1 class="govuk-heading-l">@title</h1>
             <input id="consignmentId" type="hidden" value="@consignmentId">
