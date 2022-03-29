@@ -1,10 +1,10 @@
 package configuration
 
-import sttp.client.{NothingT, SttpBackend}
-import sttp.client.asynchttpclient.future.AsyncHttpClientFutureBackend
+import sttp.client3.SttpBackend
+import sttp.client3.asynchttpclient.future.AsyncHttpClientFutureBackend
 
 import scala.concurrent.Future
 
 object GraphQLBackend {
-  implicit val backend: SttpBackend[Future, Nothing, NothingT] = AsyncHttpClientFutureBackend()
+  implicit val backend: SttpBackend[Future, Any] = AsyncHttpClientFutureBackend()
 }
