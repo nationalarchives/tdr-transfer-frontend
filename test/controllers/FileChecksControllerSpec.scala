@@ -206,7 +206,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       Some(
         fileCheck.Data(
           Some(
-            fileCheck.GetConsignment(allChecksSucceeded, Option(""), totalFiles, fileChecks)
+            fileCheck.GetConsignment(allChecksSucceeded, Option(""), totalFiles, Nil, fileChecks)
           )
         )
       )
