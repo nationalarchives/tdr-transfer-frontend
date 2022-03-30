@@ -54,7 +54,7 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
             views.html.standard.transferAgreementPrivateBeta(
               consignmentId, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
           case _ =>
-            throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus")
+            throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
         }
     }
   }
@@ -79,7 +79,7 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
           case None => transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, request.token.bearerAccessToken, formData)
             .map(_ => Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
           case _ =>
-            throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus")
+            throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
         }
       } yield result
     }
