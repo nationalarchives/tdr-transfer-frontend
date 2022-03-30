@@ -9,19 +9,16 @@
       @progressIndicator(Messages("beforeUploading.progress"), Messages("judgmentProgress.totalSteps"))
       <h1 class="govuk-heading-l">Check your file before uploading</h1>
       <p class="govuk-body govuk-!-margin-bottom-1">Your upload must contain the following information:</p>
-      <ul class="govuk-list govuk-list--bullet">
-        <li>neutral citation</li>
-        <li>name(s) of judge(s)</li>
-        <li>name(s) of parties</li>
-        <li>court</li>
-        <li>judgment date</li>
-      </ul>
-      <h2 class="govuk-heading-s">Transferring supplementary material</h2>
-      <p class="govuk-body">If the court judgment you are transferring has supplementary material,
-        please continue to upload the judgment and email the supplementary material to
-        <a href="mailto:judgments@@nationalarchives.gov.uk?subject=@consignmentRef">judgments@@nationalarchives.gov.uk</a>.
-        In the email, please include the consignment reference that you receive at the end of this service.
-      </p>
+      <p class="govuk-body govuk-!-margin-bottom-1">neutral citation, name(s) of judge(s), name(s) of parties, court and judgment date.</p>
+
+      <h2 class="govuk-heading-s">Select <a href="mailto:judgments@@nationalarchives.gov.uk?subject=@consignmentRef">judgments@@nationalarchives.gov.uk</a>
+          to generate an automatic email with reference in order to:
+      </h2>
+    <ul class="govuk-list govuk-list--bullet">
+        <li>Attach and send supplementary material for this judgment.</li>
+        <li>Flag when your record is a new version; quote the details of the original document being replaced.</li>
+        <li>Flag when your record is subject to an anonymisation order.</li>
+    </ul>
       <div class="govuk-button-group">
         <a href="@routes.UploadController.judgmentUploadPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
             Continue
