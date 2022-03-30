@@ -61,7 +61,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val fileChecksData = gfcp.Data(
           Option(
-            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, Nil, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
           )
         )
 
@@ -160,7 +160,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, Nil, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables ]()
