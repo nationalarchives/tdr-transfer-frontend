@@ -1,28 +1,19 @@
 package util
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, equalToJson, okJson, post, urlEqualTo}
-
-import java.io.File
-import java.net.URI
-import java.time.{LocalDateTime, ZoneOffset}
-import java.util
-import java.util.Date
-
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{FrontEndInfoConfiguration, KeycloakConfiguration}
 import org.keycloak.representations.AccessToken
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
-import org.pac4j.core.authorization.authorizer.Authorizer
-import org.pac4j.core.client.{Client, Clients}
+import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
-import org.pac4j.core.context.WebContext
-import org.pac4j.core.credentials.Credentials
+import org.pac4j.core.context.session.SessionStore
 import org.pac4j.core.engine.DefaultSecurityLogic
 import org.pac4j.core.http.ajax.AjaxRequestResolver
-import org.pac4j.core.profile.UserProfile
 import org.pac4j.core.util.Pac4jConstants
 import org.pac4j.oidc.client.OidcClient
 import org.pac4j.oidc.config.OidcConfiguration
@@ -31,7 +22,7 @@ import org.pac4j.oidc.redirect.OidcRedirectionActionBuilder
 import org.pac4j.play.PlayWebContext
 import org.pac4j.play.http.PlayHttpActionAdapter
 import org.pac4j.play.scala.SecurityComponents
-import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
+import org.pac4j.play.store.PlayCacheSessionStore
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures.{PatienceConfig, scaled}
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor2}
@@ -48,6 +39,10 @@ import play.api.test.Injecting
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.FrontEndInfo
 
+import java.io.File
+import java.net.URI
+import java.time.{LocalDateTime, ZoneOffset}
+import java.util.Date
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.existentials
@@ -63,7 +58,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     }
   }
 
-  def setConsignmentTypeResponse(wiremockServer: WireMockServer, consignmentType: String) = {
+  def setConsignmentTypeResponse(wiremockServer: WireMockServer, consignmentType: String): StubMapping = {
     val dataString = s"""{"data": {"getConsignment": {"consignmentType": "$consignmentType"}}}"""
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .withRequestBody(containing("getConsignmentType"))
@@ -79,7 +74,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   def frontEndInfoConfiguration: FrontEndInfoConfiguration = {
     val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
     when(frontEndInfoConfiguration.frontEndInfo).thenReturn(
-      new FrontEndInfo(
+      FrontEndInfo(
         "",
         "",
         "",
@@ -157,16 +152,16 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val profileMap: java.util.LinkedHashMap[String, OidcProfile] = new java.util.LinkedHashMap[String, OidcProfile]
     profileMap.put("OidcClient", profile)
 
-    val sessionStore: PlaySessionStore = mock[PlaySessionStore]
+    val playCacheSessionStore: SessionStore = mock[PlayCacheSessionStore]
 
     //Mock the get method to return the expected map.
-    doAnswer(_ => java.util.Optional.of(profileMap)).when(sessionStore).get(any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES))
+    doAnswer(_ => java.util.Optional.of(profileMap)).when(playCacheSessionStore).get(any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES))
 
     val testConfig = new Config()
 
     //Return true on the isAuthorized method
     val logic = DefaultSecurityLogic.INSTANCE
-    logic.setAuthorizationChecker((_: WebContext, _: util.List[UserProfile], _: String, _: util.Map[String, Authorizer[_ <: UserProfile]], _: util.List[Client[_$1]] forSome {type _$1 <: Credentials}) => true)
+    logic.setAuthorizationChecker((_, _, _, _, _, _) => true)
     testConfig.setSecurityLogic(logic)
 
     //There is a null check for the action adaptor.
@@ -185,18 +180,16 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     new SecurityComponents {
       override def components: ControllerComponents = stubControllerComponents()
       override def config: Config = testConfig
-      override def playSessionStore: PlaySessionStore = sessionStore
+      override def sessionStore: SessionStore = playCacheSessionStore
       //noinspection ScalaStyle
       override def parser: BodyParsers.Default = null
     }
   }
 
   def getUnauthorisedSecurityComponents: SecurityComponents = {
-    val sessionStore: PlaySessionStore = mock[PlaySessionStore]
-
     val testConfig = new Config()
     val logic = DefaultSecurityLogic.INSTANCE
-    logic setAuthorizationChecker((_: WebContext, _: util.List[UserProfile], _: String, _: util.Map[String, Authorizer[_ <: UserProfile]], _: util.List[Client[_$1]] forSome {type _$1 <: Credentials}) => false)
+    logic setAuthorizationChecker((_, _, _, _, _, _) => false)
     testConfig.setSecurityLogic(logic)
 
     //There is a null check for the action adaptor.
@@ -218,13 +211,13 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     doReturn(providerMetadata).when(configuration).getProviderMetadata
 
     val resolver = mock[AjaxRequestResolver]
-    doReturn(false).when(resolver).isAjax(any[PlayWebContext])
+    doReturn(false).when(resolver).isAjax(any[PlayWebContext], any[SessionStore])
 
     // Create a concrete client
     val client = new OidcClient(configuration)
     client.setName("OidcClient")
     client.setAjaxRequestResolver(resolver)
-    client.setRedirectionActionBuilder(new OidcRedirectionActionBuilder(configuration, client))
+    client.setRedirectionActionBuilder(new OidcRedirectionActionBuilder(client))
     client.setCallbackUrl("test")
 
     clients.setClients(client)
@@ -235,7 +228,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     new SecurityComponents {
       override def components: ControllerComponents = stubControllerComponents()
       override def config: Config = testConfig
-      override def playSessionStore: PlaySessionStore = sessionStore
+      override def sessionStore: SessionStore = mock[SessionStore]
       //noinspection ScalaStyle
       override def parser: BodyParsers.Default = null
     }
