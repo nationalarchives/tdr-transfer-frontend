@@ -56,7 +56,7 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
           case None =>
             Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)).uncache()
           case _ =>
-            throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus")
+            throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
         }
     }
   }
@@ -81,7 +81,7 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
           case Some("InProgress") => transferAgreementService.addTransferAgreementCompliance(consignmentId, request.token.bearerAccessToken, formData)
             .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
           case _ =>
-            throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus")
+            throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
         }
       } yield result
     }

@@ -42,14 +42,14 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
             case None =>
               Ok(views.html.standard.upload(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
             case _ =>
-              throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus")
+              throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
           }
         case Some("InProgress") =>
           Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId))
         case None =>
           Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
         case _ =>
-          throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus")
+          throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
       }
     }
   }
@@ -71,7 +71,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
         case None =>
           Ok(views.html.judgment.judgmentUpload(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
         case _ =>
-          throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus")
+          throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
       }
     }
   }

@@ -61,7 +61,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
                 httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
               }
           case _ =>
-            throw new IllegalStateException(s"Unexpected Confirm Transfer status: $confirmTransferStatus")
+            throw new IllegalStateException(s"Unexpected Confirm Transfer status: $confirmTransferStatus for consignment $consignmentId")
         }
     }
   }
@@ -90,7 +90,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
               consignmentExportService.triggerExport(consignmentId, token.toString)
               Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
             case _ =>
-              throw new IllegalStateException(s"Unexpected Confirm Transfer status: $confirmTransferStatus")
+              throw new IllegalStateException(s"Unexpected Confirm Transfer status: $confirmTransferStatus for consignment $consignmentId")
           }
         } yield result
       }
