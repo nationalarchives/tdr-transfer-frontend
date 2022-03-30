@@ -5,12 +5,13 @@ import com.nimbusds.jose.JWSAlgorithm
 import configuration.CustomSavedRequestHandler
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
+import org.pac4j.core.context.session.SessionStore
 import org.pac4j.core.engine.{DefaultCallbackLogic, DefaultSecurityLogic}
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.oidc.client.OidcClient
 import org.pac4j.oidc.config.OidcConfiguration
 import org.pac4j.play.scala.{DefaultSecurityComponents, Pac4jScalaTemplateHelper, SecurityComponents}
-import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
+import org.pac4j.play.store.PlayCacheSessionStore
 import org.pac4j.play.{CallbackController, LogoutController}
 import play.api.{Configuration, Environment}
 
@@ -18,7 +19,7 @@ import play.api.{Configuration, Environment}
 class SecurityModule extends AbstractModule {
   override def configure(): Unit = {
 
-    bind(classOf[PlaySessionStore]).to(classOf[PlayCacheSessionStore])
+    bind(classOf[SessionStore]).to(classOf[PlayCacheSessionStore])
     bind(classOf[SecurityComponents]).to(classOf[DefaultSecurityComponents])
 
     bind(classOf[Pac4jScalaTemplateHelper[CommonProfile]])
@@ -26,7 +27,6 @@ class SecurityModule extends AbstractModule {
     // callback
     val callbackController = new CallbackController()
     callbackController.setDefaultUrl("/")
-    callbackController.setMultiProfile(true)
     callbackController.setRenewSession(false)
     bind(classOf[CallbackController]).toInstance(callbackController)
 
@@ -42,7 +42,7 @@ class SecurityModule extends AbstractModule {
   }
 
   @Provides
-  def provideOidcClient: OidcClient[OidcConfiguration] = {
+  def provideOidcClient: OidcClient = {
     val oidcConfiguration = new OidcConfiguration()
     oidcConfiguration.setClientId("tdr")
     val configuration = Configuration.load(Environment.simple())
@@ -54,13 +54,13 @@ class SecurityModule extends AbstractModule {
     oidcConfiguration.setPreferredJwsAlgorithm(JWSAlgorithm.RS256)
     // Setting this causes pac4j to get a new access token using the refresh token when the original access token expires
     oidcConfiguration.setExpireSessionWithToken(true)
-    val oidcClient = new OidcClient[OidcConfiguration](oidcConfiguration)
+    val oidcClient = new OidcClient(oidcConfiguration)
     oidcClient.setCallbackUrl(callback)
     oidcClient
   }
 
   @Provides
-  def provideConfig(oidcClient: OidcClient[OidcConfiguration]): Config = {
+  def provideConfig(oidcClient: OidcClient): Config = {
     val clients = new Clients(oidcClient)
     val config = new Config(clients)
     config.setHttpActionAdapter(new FrontendHttpActionAdaptor())
