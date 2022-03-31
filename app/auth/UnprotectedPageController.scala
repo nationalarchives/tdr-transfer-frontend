@@ -11,20 +11,20 @@ import javax.inject.Inject
 
 class UnprotectedPageController @Inject ()(val controllerComponents: SecurityComponents) extends Security[CommonProfile] {
 
-  private def getProfile(request: Request[AnyContent]): ProfileManager[CommonProfile] = {
-    val webContext = new PlayWebContext(request, playSessionStore)
-    new ProfileManager[CommonProfile](webContext)
+  private def getProfile(request: Request[AnyContent]): ProfileManager = {
+    val webContext = new PlayWebContext(request)
+    new ProfileManager(webContext, sessionStore)
   }
 
   implicit class RequestUtils(request: Request[AnyContent]) {
     def isLoggedIn: Boolean = {
       val profileManager = getProfile(request)
-      profileManager.get(true).isPresent
+      profileManager.getProfile.isPresent
     }
 
     def name: String = {
       val profileManager = getProfile(request)
-      val profile = profileManager.get(true)
+      val profile = profileManager.getProfile
       if(profile.isPresent){
         val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
         val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
