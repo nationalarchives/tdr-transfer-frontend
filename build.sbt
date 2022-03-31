@@ -42,6 +42,6 @@ libraryDependencies ++= Seq(
 scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
-libraryDependencies += "com.github.karelcemus" %% "play-redis" % "2.6.1"
+libraryDependencies += "com.github.karelcemus" %% "play-redis" % "2.7.0"
 
 pipelineStages := Seq(digest)
