@@ -12,7 +12,7 @@ watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 scalaVersion := "2.13.8"
 
 libraryDependencies += guice
-libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test
+libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 
 //Needed to run the tests. Prevents incompatible databind version errors.
 //More details on a similar error here: https://stackoverflow.com/questions/43841091/spark2-1-0-incompatible-jackson-versions-2-7-6
