@@ -36,7 +36,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.38",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.223",
   ws,
-  "com.github.tomakehurst" % "wiremock-jre8" % "2.26.3" % Test,
+  "com.github.tomakehurst" % "wiremock-jre8" % "2.32.0" % Test,
   "org.mockito" % "mockito-core" % "3.3.3" % Test
 )
 scalacOptions ++= Seq("-language:implicitConversions")
