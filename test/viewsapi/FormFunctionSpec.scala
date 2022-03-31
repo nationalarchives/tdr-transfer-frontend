@@ -1,6 +1,6 @@
 package viewsapi
 
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import play.api.data.Forms.{mapping, nonEmptyText}
 import play.api.data.{Field, Form}
 import play.api.i18n.{DefaultMessagesApi, MessagesImpl}
