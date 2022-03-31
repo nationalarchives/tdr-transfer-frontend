@@ -107,6 +107,8 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
 
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
+
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.compliance)
