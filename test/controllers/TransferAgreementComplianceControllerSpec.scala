@@ -3,7 +3,6 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import errors.AuthorisationException
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
-import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
