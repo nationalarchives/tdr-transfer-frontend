@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, serverError, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment.{AddConsignment, Data, Variables}
-import org.scalatest.Matchers._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status, _}
@@ -14,7 +13,7 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures._
-
+import org.scalatest.matchers.should.Matchers._
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
