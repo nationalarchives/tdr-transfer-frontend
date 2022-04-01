@@ -17,7 +17,7 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import play.api.Configuration
 import play.api.Play.materializer
 import play.api.i18n.Langs

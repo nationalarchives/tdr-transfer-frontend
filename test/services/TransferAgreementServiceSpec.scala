@@ -13,7 +13,9 @@ import graphql.codegen.types.{AddTransferAgreementComplianceInput, AddTransferAg
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
 import sttp.client.HttpError
 import sttp.model.StatusCode
@@ -23,7 +25,7 @@ import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-class TransferAgreementServiceSpec extends FlatSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 
