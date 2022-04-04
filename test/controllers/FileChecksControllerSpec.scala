@@ -7,7 +7,6 @@ import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => fileCheck}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
-import org.scalatest.Matchers._
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}

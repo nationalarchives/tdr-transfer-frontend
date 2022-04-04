@@ -1,6 +1,5 @@
 package util
-import org.scalatest.Matchers._
-import org.scalatest.MustMatchers.convertToAnyMustWrapper
+import org.scalatest.matchers.must.Matchers._
 
 class CheckHtmlOfFormOptions(options: Map[String, String], smallCheckbox: String=" govuk-checkboxes--small") {
   def checkForOptionAndItsAttributes(htmlAsString: String,

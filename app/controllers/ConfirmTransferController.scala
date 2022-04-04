@@ -55,11 +55,13 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
         val confirmTransferStatus = consignmentStatus.flatMap(_.confirmTransfer)
         confirmTransferStatus match {
           case Some("Completed") => Future(Ok(views.html.standard.confirmTransferAlreadyConfirmed(consignmentId, request.token.name)).uncache())
-          case _ =>
+          case None =>
             getConsignmentSummary(request, consignmentId)
               .map { consignmentSummary =>
                 httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
               }
+          case _ =>
+            throw new IllegalStateException(s"Unexpected Confirm Transfer status: $confirmTransferStatus for consignment $consignmentId")
         }
     }
   }
@@ -82,11 +84,13 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
           confirmTransferStatus = consignmentStatus.flatMap(_.confirmTransfer)
           result <- confirmTransferStatus match {
             case Some("Completed") => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
-            case _ =>
+            case None =>
               confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
               consignmentExportService.updateTransferInitiated(consignmentId, token)
               consignmentExportService.triggerExport(consignmentId, token.toString)
               Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
+            case _ =>
+              throw new IllegalStateException(s"Unexpected Confirm Transfer status: $confirmTransferStatus for consignment $consignmentId")
           }
         } yield result
       }

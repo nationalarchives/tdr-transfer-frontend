@@ -1,7 +1,6 @@
 package services
 
 import java.util.UUID
-
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.UpdateTransferInitiated.updateTransferInitiated._
@@ -9,7 +8,8 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-import org.scalatest.{Assertion, Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Configuration
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
@@ -20,7 +20,7 @@ import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-class ConsignmentExportServiceSpec extends WordSpec with Matchers with MockitoSugar {
+class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   "triggerExport" should {
