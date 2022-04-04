@@ -38,6 +38,7 @@ GET         /sign-out                                                      @org.
 
 # Routes for judgment
 POST        /homepage                                                      controllers.HomepageController.judgmentHomepageSubmit()
+GET         /judgment/faq                                                  controllers.FaqController.judgmentFaq()
 GET         /judgment/:consignmentId/before-uploading                      controllers.BeforeUploadingController.beforeUploading(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/upload                                controllers.UploadController.judgmentUploadPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/file-checks                           controllers.FileChecksController.judgmentFileChecksPage(consignmentId: java.util.UUID)
