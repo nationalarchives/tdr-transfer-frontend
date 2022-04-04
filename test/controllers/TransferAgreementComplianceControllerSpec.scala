@@ -3,7 +3,6 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import errors.AuthorisationException
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
-import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
@@ -106,6 +105,8 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.stubTAComplianceResponse(Some(addTransferAgreementResponse), app.configuration)
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+
+      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
 
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
