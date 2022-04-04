@@ -2,7 +2,7 @@ package auth
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
-import org.pac4j.core.profile.{CommonProfile, ProfileManager}
+import org.pac4j.core.profile.ProfileManager
 import org.pac4j.play.PlayWebContext
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
@@ -20,9 +20,9 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   implicit val executionContext: ExecutionContext = consignmentService.ec
 
   implicit def requestToRequestWithToken(request: Request[AnyContent]): RequestWithToken = {
-    val webContext = new PlayWebContext(request, playSessionStore)
-    val profileManager = new ProfileManager[CommonProfile](webContext)
-    val profile = profileManager.get(true)
+    val webContext = new PlayWebContext(request)
+    val profileManager = new ProfileManager(webContext, sessionStore)
+    val profile = profileManager.getProfile
     val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
     val accessToken: Option[Token] = keycloakConfiguration.token(token.getValue)
     RequestWithToken(request, accessToken)

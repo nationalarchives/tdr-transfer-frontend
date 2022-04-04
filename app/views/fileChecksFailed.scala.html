@@ -1,5 +1,6 @@
-@import views.html.partials.progressIndicator
-@(name: String, isJudgmentUser: Boolean)(implicit request: RequestHeader, messages: Messages)
+@import views.html.partials.{progressIndicator, fileCheckErrorMessage}
+
+@(name: String, isJudgmentUser: Boolean, fileStatuses: List[String] = Nil)(implicit request: RequestHeader, messages: Messages)
 
 @main("Results of checks", name = name) {
   <div class="govuk-grid-row">
@@ -20,16 +21,7 @@
                 </a>
               </p>
             } else {
-              <p class="govuk-body">One or more files you uploaded have failed our checks. Please
-                <a class="govuk-link" href="@routes.ContactController.contact()">contact</a>
-                us to resolve this issue.
-              </p>
-              <p class="govuk-body">Possible failure causes:</p>
-              <ul class="govuk-list govuk-list--bullet">
-                <li>Password protected files</li>
-                <li>Zip files</li>
-                <li>Corrupted files</li>
-              </ul>
+              @fileCheckErrorMessage(fileStatuses)
             }
           </div>
       </div>

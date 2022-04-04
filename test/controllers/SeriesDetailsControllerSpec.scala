@@ -3,6 +3,8 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import org.scalatest.matchers.should.Matchers._
+import configuration.GraphQLConfiguration
 import errors.GraphQlException
 import graphql.codegen.AddConsignment.{addConsignment => ac}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment

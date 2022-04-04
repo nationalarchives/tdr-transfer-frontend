@@ -58,10 +58,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"render the $userType fileChecksResults page with the confirmation box" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
 
         val fileChecksData = gfcp.Data(
           Option(
-            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus,
+              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
           )
         )
 
@@ -157,13 +159,144 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the $userType error page if some file checks have failed" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val fileStatus = List(gfcp.GetConsignment.Files(Some("fileStatusValue")))
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus,
+              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables ]()
+        val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+        mockGraphqlResponse(userType, fileStatusResponse)
+
+        val fileCheckResultsController = new FileChecksResultsController(
+          getAuthorisedSecurityComponents,
+          keycloakConfiguration,
+          new GraphQLConfiguration(app.configuration),
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+
+        val recordCheckResultsPage = {
+          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
+          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+        val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+        if (userType == "judgment") {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("Your file has failed our checks. Please try again.")
+        } else {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("One or more files you uploaded have failed our checks")
+        }
+
+        status(recordCheckResultsPage) mustBe OK
+        contentAsString(recordCheckResultsPage) must include("There is a problem")
+        resultsPageAsString must include("Return to start")
+      }
+
+      s"return the passwordProtected $userType error page if file checks have failed with PasswordProtected" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val fileStatus = List(gfcp.GetConsignment.Files(Some("PasswordProtected")))
+
+        val data = Data(
+          Option(
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus,
+              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          )
+        )
+        val client = graphQLConfiguration.getClient[Data, Variables]()
+        val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+        mockGraphqlResponse(userType, fileStatusResponse)
+
+        val fileCheckResultsController = new FileChecksResultsController(
+          getAuthorisedSecurityComponents,
+          keycloakConfiguration,
+          new GraphQLConfiguration(app.configuration),
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+
+        val recordCheckResultsPage = {
+          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
+          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+        val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+        if (userType == "judgment") {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("Your file has failed our checks. Please try again.")
+        } else {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("We cannot accept password protected files. Once removed or replaced, try uploading your folder again.")
+        }
+
+        status(recordCheckResultsPage) mustBe OK
+        contentAsString(recordCheckResultsPage) must include("There is a problem")
+        resultsPageAsString must include("Return to start")
+      }
+
+      s"return the zip $userType error page if file checks have failed with Zip" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val fileStatus = List(gfcp.GetConsignment.Files(Some("Zip")))
+
+        val data = Data(
+          Option(
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus,
+              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          )
+        )
+        val client = graphQLConfiguration.getClient[Data, Variables]()
+        val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+        mockGraphqlResponse(userType, fileStatusResponse)
+
+        val fileCheckResultsController = new FileChecksResultsController(
+          getAuthorisedSecurityComponents,
+          keycloakConfiguration,
+          new GraphQLConfiguration(app.configuration),
+          consignmentService,
+          frontEndInfoConfiguration
+        )
+
+        val recordCheckResultsPage = {
+          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
+          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+        val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+        if (userType == "judgment") {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("Your file has failed our checks. Please try again.")
+        } else {
+          resultsPageAsString must include(expectedTitle)
+          resultsPageAsString must include("We cannot accept zip files and similar archival package file formats.")
+        }
+
+        status(recordCheckResultsPage) mustBe OK
+        contentAsString(recordCheckResultsPage) must include("There is a problem")
+        resultsPageAsString must include("Return to start")
+      }
+
+      s"return the general $userType error page if file checks have failed with PasswordProtected and Zip" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val fileStatus = List(gfcp.GetConsignment.Files(Some("PasswordProtected")), gfcp.GetConsignment.Files(Some("Zip")))
+
+        val data = Data(
+          Option(
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus,
+              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          )
+        )
+        val client = graphQLConfiguration.getClient[Data, Variables]()
         val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse)

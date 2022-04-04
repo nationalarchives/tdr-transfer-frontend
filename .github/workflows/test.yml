@@ -1,11 +1,11 @@
 name: TDR Run API tests
 on:
-  pull_request_target:
+  pull_request:
   push:
     branches-ignore:
       - master
       - release-*
-      - dependabot*
+      - dependabot/**
 permissions:
   id-token: write
   contents: read

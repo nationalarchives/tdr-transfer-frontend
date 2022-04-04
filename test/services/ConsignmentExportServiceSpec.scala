@@ -1,7 +1,6 @@
 package services
 
 import java.util.UUID
-
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.UpdateTransferInitiated.updateTransferInitiated._
@@ -9,18 +8,19 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-import org.scalatest.{Assertion, Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Configuration
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import sangria.ast.Document
-import sttp.client.{NothingT, SttpBackend}
+import sttp.client3.SttpBackend
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-class ConsignmentExportServiceSpec extends WordSpec with Matchers with MockitoSugar {
+class ConsignmentExportServiceSpec extends AnyWordSpec with MockitoSugar {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   "triggerExport" should {
@@ -43,7 +43,7 @@ class ConsignmentExportServiceSpec extends WordSpec with Matchers with MockitoSu
       val tokenCaptor: ArgumentCaptor[BearerAccessToken] = ArgumentCaptor.forClass(classOf[BearerAccessToken])
       val variablesCaptor: ArgumentCaptor[Option[Variables]] = ArgumentCaptor.forClass(classOf[Option[Variables]])
       when(client.getResult[Future](tokenCaptor.capture(), any[Document], variablesCaptor.capture())
-        (any[SttpBackend[Future, Nothing, NothingT]], any[ClassTag[Future[_]]]))
+        (any[SttpBackend[Future, Any]], any[ClassTag[Future[_]]]))
         .thenReturn(Future(GraphQlResponse(Option(Data(Option(1))), List())))
       when(graphQLConfiguration.getClient[Data, Variables]()).thenReturn(client)
       val service = new ConsignmentExportService(wsClient, config, graphQLConfiguration)
@@ -69,7 +69,7 @@ class ConsignmentExportServiceSpec extends WordSpec with Matchers with MockitoSu
     val config = mock[Configuration]
     val client = mock[GraphQLClient[Data, Variables]]
     when(client.getResult[Future](any[BearerAccessToken], any[Document], any[Option[Variables]])
-      (any[SttpBackend[Future, Nothing, NothingT]], any[ClassTag[Future[_]]]))
+      (any[SttpBackend[Future, Any]], any[ClassTag[Future[_]]]))
       .thenReturn(getResultResponse)
     when(graphQLConfiguration.getClient[Data, Variables]()).thenReturn(client)
     val service = new ConsignmentExportService(wsClient, config, graphQLConfiguration)

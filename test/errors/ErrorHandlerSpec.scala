@@ -1,19 +1,20 @@
 package errors
 
 import org.pac4j.core.config.Config
+import org.pac4j.core.context.session.SessionStore
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.play.scala.Pac4jScalaTemplateHelper
-import org.pac4j.play.store.PlaySessionStore
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec._
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.http.Status
 import play.api.i18n.DefaultMessagesApi
 import play.api.test.FakeRequest
 
-class ErrorHandlerSpec extends FlatSpec with Matchers {
+class ErrorHandlerSpec extends AnyFlatSpec with Matchers {
 
-  val sessionStore: PlaySessionStore = mock[PlaySessionStore]
+  val sessionStore: SessionStore = mock[SessionStore]
   val pac4jTemplateHelper : Pac4jScalaTemplateHelper[CommonProfile] = new Pac4jScalaTemplateHelper[CommonProfile](sessionStore, Config.INSTANCE)
   val errorHandler = new ErrorHandler(new DefaultMessagesApi(), pac4jTemplateHelper)
 

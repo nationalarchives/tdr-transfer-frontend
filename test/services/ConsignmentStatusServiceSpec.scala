@@ -4,18 +4,20 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
 import org.mockito.Mockito
-import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.should.Matchers._
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 import configuration.GraphQLBackend._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.wordspec.AnyWordSpec
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-class ConsignmentStatusServiceSpec extends WordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEach {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   private val graphQLConfig = mock[GraphQLConfiguration]

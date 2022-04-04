@@ -257,12 +257,8 @@ export class UploadForm {
   private getParentFolderName(folder: IEntryWithPath[]) {
     const firstItem: IEntryWithPath = folder.filter((f) => isFile(f))[0]
     const relativePath: string = firstItem.path
-    if (relativePath.includes("/")) {
-      const splitPath: string[] = relativePath.split("/")
-      return splitPath[0]
-    } else {
-      return relativePath
-    }
+    const splitPath: string[] = relativePath.split("/")
+    return splitPath[0]
   }
 
   private static showUploadingRecordsPage() {

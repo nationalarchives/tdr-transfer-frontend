@@ -8,7 +8,6 @@ import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
-import org.scalatest.Matchers._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}

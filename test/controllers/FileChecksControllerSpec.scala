@@ -7,7 +7,6 @@ import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => fileCheck}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
-import org.scalatest.Matchers._
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
@@ -202,11 +201,12 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)
     val ffidProgress = fileCheck.GetConsignment.FileChecks.FfidProgress(filesProcessedWithFFID)
     val fileChecks = fileCheck.GetConsignment.FileChecks(antivirusProgress, checksumProgress, ffidProgress)
+    val fileStatus = List(fileCheck.GetConsignment.Files(Some("Success")))
     val data: client.GraphqlData = client.GraphqlData(
       Some(
         fileCheck.Data(
           Some(
-            fileCheck.GetConsignment(allChecksSucceeded, Option(""), totalFiles, fileChecks)
+            fileCheck.GetConsignment(allChecksSucceeded, Option(""), totalFiles, fileStatus, fileChecks)
           )
         )
       )

@@ -1,7 +1,7 @@
 package controllers
 
 import org.mockito.Mockito._
-import org.scalatest.Matchers._
+import org.scalatest.matchers.should.Matchers._
 import play.api.Configuration
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest

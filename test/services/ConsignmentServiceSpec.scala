@@ -18,7 +18,9 @@ import org.mockito.Mockito
 import org.mockito.Mockito._
 import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import sangria.ast.Document
 import sttp.client.{HttpError, NothingT, SttpBackend}
@@ -30,7 +32,7 @@ import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-class ConsignmentServiceSpec extends WordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEach {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 

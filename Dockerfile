@@ -1,9 +1,9 @@
-FROM alpine
+FROM alpine:3.15.3
 #For alpine versions need to create a group before adding a user to the image
 RUN addgroup --system frontendgroup && adduser --system frontenduser -G frontendgroup
 WORKDIR play
 COPY target/universal/tdr-transfer-frontend*.zip .
-RUN apk update && apk upgrade p11-kit busybox expat && apk add bash unzip && \
+RUN apk update && apk upgrade p11-kit busybox expat libretls && apk add bash unzip && \
     apk add openjdk15 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community && \
     unzip -qq tdr-transfer-frontend-*.zip
 RUN chown -R frontenduser /play
