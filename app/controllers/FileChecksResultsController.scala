@@ -30,8 +30,9 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
         )
         Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId, request.token.name))
       } else {
-        Ok(views.html.fileChecksFailed(request.token.name, isJudgmentUser = false))
-      }
+        val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
+        Ok(views.html.fileChecksFailed(request.token.name, isJudgmentUser = false, fileStatusList))
+        }
     })
   }
 
