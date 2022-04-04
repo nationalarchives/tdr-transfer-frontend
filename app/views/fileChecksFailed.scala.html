@@ -1,6 +1,6 @@
 @import views.html.partials.{progressIndicator, fileCheckErrorMessage}
 
-@(name: String, isJudgmentUser: Boolean, fileStatus: List[String] = Nil)(implicit request: RequestHeader, messages: Messages)
+@(name: String, isJudgmentUser: Boolean, fileStatuses: List[String] = Nil)(implicit request: RequestHeader, messages: Messages)
 
 @main("Results of checks", name = name) {
   <div class="govuk-grid-row">
@@ -21,7 +21,7 @@
                 </a>
               </p>
             } else {
-              @fileCheckErrorMessage(fileStatus)
+              @fileCheckErrorMessage(fileStatuses)
             }
           </div>
       </div>
