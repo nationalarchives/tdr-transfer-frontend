@@ -3,6 +3,7 @@
 @{
     val isPasswordProtected = fileStatuses.contains("PasswordProtected")
     val isZip = fileStatuses.contains("Zip")
+
     if(isPasswordProtected && isZip){
         fileCheckGenericErrorMessage()
     } else if(isPasswordProtected) {
