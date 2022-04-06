@@ -1,4 +1,4 @@
-name: TDR Tag and pre deploy
+name: TDR Tag and pre deploy Transfer Frontend
 on:
   push:
     branches:
