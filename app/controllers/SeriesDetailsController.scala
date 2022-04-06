@@ -48,11 +48,11 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     }
   }
 
-  def seriesDetails(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
+  def seriesDetails(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getSeriesDetails(consignmentId, request, Ok, selectedSeriesForm)
   }
 
-  def seriesSubmit(consignmentId: UUID): Action[AnyContent] =  standardUserAction { implicit request: Request[AnyContent] =>
+  def seriesSubmit(consignmentId: UUID): Action[AnyContent] =  standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest()
 
     val errorFunction: Form[SelectedSeriesData] => Future[Result] = { formWithErrors: Form[SelectedSeriesData] =>
