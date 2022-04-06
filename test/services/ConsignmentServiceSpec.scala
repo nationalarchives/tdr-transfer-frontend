@@ -1,6 +1,5 @@
 package services
 
-import java.util.UUID
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
@@ -10,27 +9,25 @@ import graphql.codegen.GetConsignment.{getConsignment => gc}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.GetConsignment
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
-import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId.{Data, Variables}
-import graphql.codegen.types.AddConsignmentInput
+import graphql.codegen.UpdateConsignmentSeriesId.{updateConsignmentSeriesId => ucs}
+import graphql.codegen.types.{AddConsignmentInput, UpdateConsignmentSeriesIdInput}
 import org.keycloak.representations.AccessToken
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito._
 import org.mockito.stubbing.OngoingStubbing
-import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import sangria.ast.Document
-import sttp.client.{HttpError, NothingT, SttpBackend}
+import sttp.client.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.ClassTag
 
 class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEach {
 
@@ -41,6 +38,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val addConsignmentClient = mock[GraphQLClient[addConsignment.Data, addConsignment.Variables]]
   private val getConsignmentFolderInfoClient = mock[GraphQLClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]]
   private val getConsignmentTypeClient = mock[GraphQLClient[gct.Data, gct.Variables]]
+  private val updateConsignmentSeriesIdClient = mock[GraphQLClient[ucs.Data, ucs.Variables]]
   when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(getConsignmentClient)
   when(graphQlConfig.getClient[addConsignment.Data, addConsignment.Variables]()).thenReturn(addConsignmentClient)
   when(graphQlConfig.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()).thenReturn(getConsignmentFolderInfoClient)
@@ -268,18 +266,6 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       mockMissingConsignmentType
       val error = consignmentService.getConsignmentType(consignmentId, bearerAccessToken).failed.futureValue
       error.getMessage should be(s"No consignment type found for consignment $consignmentId")
-    }
-  }
-  "updateSeriesId" should {
-    "return an error if the API fails" in {
-      val client = mock[GraphQLClient[Data, Variables]]
-      when(client.getResult[Future](any[BearerAccessToken], any[Document], any[Option[Variables]])
-        (any[SttpBackend[Future, Nothing, NothingT]], any[ClassTag[Future[_]]]))
-        .thenReturn(Future.failed(new RuntimeException("graphql error")))
-      when(graphQlConfig.getClient[Data, Variables]()).thenReturn(client)
-      val consignmentService = new ConsignmentService(graphQlConfig)
-      consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.randomUUID(), new BearerAccessToken())
-      .failed.futureValue.getMessage should equal("graphql error")
     }
   }
 }

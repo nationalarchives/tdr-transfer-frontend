@@ -15,7 +15,6 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
-import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
