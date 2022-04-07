@@ -10,7 +10,7 @@ dropdownOptions: Seq[(String, String)],
 @import views.html.partials.errorMessage
 
 @elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
-
+@disabledStatus = {@elements.args.get(Symbol("_disabledOption"))}
 <div class="govuk-form-group @elements.setErrorClass()">
     <label class="govuk-label" for="@elements.id">
         @elements.args.get(Symbol("_label"))
@@ -21,13 +21,21 @@ dropdownOptions: Seq[(String, String)],
         class="govuk-select"
         id="@elements.id"
         name="@elements.id"
-        @elements.args.requiredInput()>
-        <option value="" selected>
-          Please choose...
-        </option>
+        @elements.args.requiredInput()
+        @disabledStatus>
 
-        @for(dropdownOption <- dropdownOptions) {
-            <option value="@dropdownOption._1">@dropdownOption._2</option>
+        @if(disabledStatus.toString() != "disabled") {
+            <option value="" selected>
+                Please choose...
+            </option>
+
+            @for(dropdownOption <- dropdownOptions) {
+                <option value="@dropdownOption._1">@dropdownOption._2</option>
+            }
+        } else {
+            @for(dropdownOption <- dropdownOptions) {
+                <option @if(disabledStatus.toString() == "disabled") {selected="selected"} value="@dropdownOption._1">@dropdownOption._2</option>
+            }
         }
     </select>
 </div>

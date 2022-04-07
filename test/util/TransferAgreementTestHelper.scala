@@ -47,7 +47,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
   def mockGetConsignmentStatusGraphqlResponse(config: Configuration, taStatus: Option[String]=None, consignmentType: String = "standard"): StubMapping = {
 
     val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
-    val consignmentResponse = gcs.Data(Option(GetConsignment(CurrentStatus(taStatus, None, None))))
+    val consignmentResponse = gcs.Data(Option(GetConsignment(None, CurrentStatus(None, taStatus, None, None))))
     val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 

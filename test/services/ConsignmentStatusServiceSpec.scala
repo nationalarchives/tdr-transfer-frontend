@@ -34,12 +34,13 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
 
   "consignmentStatus function" should {
     "return the consignment status" in {
-      val data = Option(gcs.Data(Option(gcs.GetConsignment(CurrentStatus(Option("TestStatus1"), Option("TestStatus2"), Option("TestStatus3"))))))
+      val data = Option(gcs.Data(Option(gcs.GetConsignment(None, CurrentStatus(Option("TestStatus1"), Option("TestStatus2"), Option("TestStatus3"),
+        Option("TestStatus4"))))))
       val response = GraphQlResponse(data, Nil)
       when(getConsignmentStatusClient.getResult(token, gcs.document, Some(gcs.Variables(consignmentId))))
         .thenReturn(Future.successful(response))
       val status = consignmentStatusService.consignmentStatus(consignmentId, token).futureValue
-      status should equal(Option(CurrentStatus(Option("TestStatus1"), Option("TestStatus2"), Option("TestStatus3"))))
+      status should equal(Option(CurrentStatus(Option("TestStatus1"), Option("TestStatus2"), Option("TestStatus3"), Option("TestStatus4"))))
     }
 
     "return no consignment status if the consignment doesn't exist" in {
