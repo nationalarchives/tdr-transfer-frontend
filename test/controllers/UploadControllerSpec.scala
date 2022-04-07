@@ -1,7 +1,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
@@ -73,7 +73,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
-      stubGetConsignmentStatusResponse(Some("InProgress"))
+      stubGetConsignmentStatusResponse(transferAgreementStatus = Some("InProgress"))
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       val uploadPage = controller.uploadPage(consignmentId)
@@ -89,7 +89,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
-      stubGetConsignmentStatusResponse(Some("Completed"))
+      stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"))
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       val uploadPage = controller.uploadPage(consignmentId)
@@ -109,7 +109,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
-      stubGetConsignmentStatusResponse(Some("Completed"), Some("InProgress"))
+      stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"), uploadStatus = Some("InProgress"))
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       val uploadPage = controller.uploadPage(consignmentId)
@@ -128,7 +128,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
-      stubGetConsignmentStatusResponse(Some("Completed"), Some("Completed"))
+      stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"), uploadStatus = Some("Completed"))
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       val uploadPage = controller.uploadPage(consignmentId)
@@ -170,7 +170,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
-      stubGetConsignmentStatusResponse(Some("Completed"), Some("InProgress"))
+      stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"), uploadStatus = Some("InProgress"))
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
@@ -189,7 +189,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
-      stubGetConsignmentStatusResponse(Some("Completed"), Some("Completed"))
+      stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"), uploadStatus = Some("Completed"))
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
@@ -280,17 +280,19 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def stubGetConsignmentStatusResponse(transferAgreementStatus: Option[String] = None, uploadStatus: Option[String] = None,
+  private def stubGetConsignmentStatusResponse(seriesStatus: Option[String] = None,
+                                               transferAgreementStatus: Option[String] = None,
+                                               uploadStatus: Option[String] = None,
                                                confirmTransferStatus: Option[String] = None)
                                               (implicit ec: ExecutionContext) = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
     val data = client.GraphqlData(Option(gcs.Data(Option(gcs.GetConsignment(
-      CurrentStatus(transferAgreementStatus, uploadStatus, confirmTransferStatus))))), List())
+      None, CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, confirmTransferStatus))))), List())
     val dataString = data.asJson.printWith(Printer(dropNullValues = false, ""))
     val formattedJsonBody =
       """{"query":"query getConsignmentStatus($consignmentId:UUID!){
                                                        getConsignment(consignmentid:$consignmentId){
-                                                         currentStatus{transferAgreement upload confirmTransfer}
+                                                         currentStatus{series transferAgreement upload confirmTransfer}
                                                        }
                                                 }",
                                                 "variables":{
@@ -300,7 +302,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     val unformattedJsonBody = removeNewLinesAndIndentation(formattedJsonBody)
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(equalToJson(unformattedJsonBody))
+      .withRequestBody(containing("getConsignmentStatus"))
       .willReturn(okJson(dataString))
     )
   }

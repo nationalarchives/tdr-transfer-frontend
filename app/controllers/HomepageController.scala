@@ -23,6 +23,13 @@ class HomepageController @Inject()(val controllerComponents: SecurityComponents,
       )
   }
 
+  def homepageSubmit(): Action[AnyContent] = standardUserAction{
+    implicit request: Request[AnyContent] =>
+      consignmentService.createConsignment(None, request.token).map(consignment =>
+        Redirect(routes.SeriesDetailsController.seriesDetails(consignment.consignmentid.get))
+      )
+  }
+
   def homepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] => {
       if (request.token.isJudgmentUser) {
         Ok(views.html.judgment.judgmentHomepage(request.token.name))

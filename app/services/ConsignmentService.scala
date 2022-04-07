@@ -1,7 +1,6 @@
 package services
 
 import java.util.UUID
-
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment
@@ -12,8 +11,10 @@ import graphql.codegen.GetConsignmentReference.getConsignmentReference
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
-import graphql.codegen.types.AddConsignmentInput
+import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
+import graphql.codegen.types.{AddConsignmentInput, UpdateConsignmentSeriesIdInput}
 import graphql.codegen.{AddConsignment, GetConsignment, GetFileCheckProgress}
+
 import javax.inject.{Inject, Singleton}
 import services.ApiErrorHandling._
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -31,6 +32,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentSummaryClient = graphqlConfiguration.getClient[getConsignmentSummary.Data, getConsignmentSummary.Variables]()
   private val getConsignmentReferenceClient = graphqlConfiguration.getClient[getConsignmentReference.Data, getConsignmentReference.Variables]()
   private val getConsignmentFilesClient = graphqlConfiguration.getClient[getConsignmentFiles.Data, getConsignmentFiles.Variables]()
+  private val updateConsignmentSeriesIdClient = graphqlConfiguration.getClient[updateConsignmentSeriesId.Data, updateConsignmentSeriesId.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
 
   def consignmentExists(consignmentId: UUID,
@@ -89,5 +91,13 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
     sendApiRequest(getConsignmentFilesClient, getConsignmentFiles.document, token, variables)
       .map(data => data.getConsignment.get)
+  }
+
+  def updateSeriesIdOfConsignment(consignmentId: UUID, seriesId: UUID, token: BearerAccessToken): Future[Boolean] = {
+    val updateConsignmentSeriesIdInput = UpdateConsignmentSeriesIdInput(consignmentId, seriesId)
+    val variables = new updateConsignmentSeriesId.Variables(updateConsignmentSeriesIdInput)
+
+    sendApiRequest(updateConsignmentSeriesIdClient, updateConsignmentSeriesId.document, token, variables)
+      .map(data => data.updateConsignmentSeriesId.isDefined)
   }
 }

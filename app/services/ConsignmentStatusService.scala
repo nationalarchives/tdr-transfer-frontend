@@ -19,4 +19,11 @@ class ConsignmentStatusService @Inject()(val graphqlConfiguration: GraphQLConfig
       data.getConsignment.map(_.currentStatus)
     )
   }
+
+  def consignmentStatusSeries(consignmentId: UUID, token: BearerAccessToken): Future[Option[GetConsignment]] = {
+    val variables = new Variables(consignmentId)
+    sendApiRequest(getConsignmentStatusClient, getConsignmentStatus.document, token, variables).map(data =>
+      data.getConsignment
+    )
+  }
 }
