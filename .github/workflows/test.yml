@@ -19,5 +19,4 @@ jobs:
         npm --prefix npm run checks
         sbt test
     secrets:
-      MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
