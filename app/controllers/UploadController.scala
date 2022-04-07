@@ -61,7 +61,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
     } yield {
       val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
-      val pageHeading = "Uploading court judgment"
+      val pageHeading = "Uploading judgment"
 
       uploadStatus match {
         case Some("InProgress") =>

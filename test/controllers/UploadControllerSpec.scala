@@ -159,8 +159,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       status(uploadPage) mustBe OK
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      uploadPageAsString must include("Upload a court judgment")
-      uploadPageAsString must include("You may now upload the court judgment you wish to transfer. You can only upload one file.")
+      uploadPageAsString must include("Upload judgment")
+      uploadPageAsString must include("You may now upload the judgment you wish to transfer. You can only upload one file.")
     }
 
     "render the judgment upload in progress page if the upload is in progress" in {
@@ -178,7 +178,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
-      uploadPageAsString must include("Uploading court judgment")
+      uploadPageAsString must include("Uploading judgment")
       uploadPageAsString must include("Your upload was interrupted and could not be completed.")
     }
 
@@ -197,7 +197,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
-      uploadPageAsString must include("Uploading court judgment")
+      uploadPageAsString must include("Uploading judgment")
       uploadPageAsString must include("Your upload is complete and has been saved")
       uploadPageAsString must include(
         s"""      <a href="/judgment/$consignmentId/file-checks" role="button" draggable="false" class="govuk-button govuk-button--primary">
