@@ -48,11 +48,11 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     }
   }
 
-  def seriesDetails(consignmentId: UUID): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
+  def seriesDetails(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getSeriesDetails(consignmentId, request, Ok, selectedSeriesForm)
   }
 
-  def seriesSubmit(consignmentId: UUID): Action[AnyContent] =  standardUserAction { implicit request: Request[AnyContent] =>
+  def seriesSubmit(consignmentId: UUID): Action[AnyContent] =  standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest()
 
     val errorFunction: Form[SelectedSeriesData] => Future[Result] = { formWithErrors: Form[SelectedSeriesData] =>
@@ -60,17 +60,13 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     }
 
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
-      if (request.token.isJudgmentUser) {
-        Future(Redirect(routes.BeforeUploadingController.beforeUploading(consignmentId)))
-      } else {
-        for {
-          consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
-          confirmTransferStatus = consignmentStatus.flatMap(_.series)
-        } yield confirmTransferStatus match {
-          case Some("Completed") => Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
-          case _ => consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
-            Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
-        }
+      for {
+        consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+        confirmTransferStatus = consignmentStatus.flatMap(_.series)
+      } yield confirmTransferStatus match {
+        case Some("Completed") => Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
+        case _ => consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
+          Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
       }
     }
 
