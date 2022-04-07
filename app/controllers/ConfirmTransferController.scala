@@ -85,10 +85,11 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
           result <- confirmTransferStatus match {
             case Some("Completed") => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
             case None =>
-              confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
-              consignmentExportService.updateTransferInitiated(consignmentId, token)
-              consignmentExportService.triggerExport(consignmentId, token.toString)
-              Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
+              for {
+                _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
+                _ <- consignmentExportService.updateTransferInitiated(consignmentId, token)
+                _ <- consignmentExportService.triggerExport(consignmentId, token.toString)
+              } yield Redirect(routes.TransferCompleteController.transferComplete(consignmentId))
             case _ =>
               throw new IllegalStateException(s"Unexpected Confirm Transfer status: $confirmTransferStatus for consignment $consignmentId")
           }
