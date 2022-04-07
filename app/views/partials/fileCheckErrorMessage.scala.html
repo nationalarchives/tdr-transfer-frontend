@@ -1,9 +1,15 @@
+@import views.html.partials.fileCheckGenericErrorMessage
 @(fileStatuses: List[String] = Nil)
 @{
-    if(fileStatuses.size == 1 && fileStatuses.contains("PasswordProtected")) {
+    val isPasswordProtected = fileStatuses.contains("PasswordProtected")
+    val isZip = fileStatuses.contains("Zip")
+
+    if(isPasswordProtected && isZip){
+        fileCheckGenericErrorMessage()
+    } else if(isPasswordProtected) {
             <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more password protected files.</p>
             <p>We cannot accept password protected files. Once removed or replaced, try uploading your folder again.</p>
-    } else if(fileStatuses.size == 1 && fileStatuses.contains("Zip")) {
+    } else if(isZip) {
                 <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more zip files.</p>
                 <p>
                 We cannot accept zip files and similar archival package file formats.
@@ -16,16 +22,6 @@
                 Either remove or unpack your zip and archival package files and try uploading again.
                 </p>
         } else {
-                <p class="govuk-body">
-                One or more files you uploaded have failed our checks. Please
-                <a class="govuk-link" href="@routes.ContactController.contact()">contact</a>
-                us to resolve this issue.
-                </p>
-                <p class="govuk-body">Possible failure causes:</p>
-                <ul class="govuk-list govuk-list--bullet">
-                <li>Password protected files</li>
-                <li>Zip files</li>
-                <li>Corrupted files</li>
-                </ul>
+                fileCheckGenericErrorMessage()
         }
 }
