@@ -100,6 +100,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       confirmTransferPageAsString must include("Consignment reference")
       confirmTransferPageAsString must include(consignmentSummaryResponse.consignmentReference)
 
+      confirmTransferPageAsString must include (s"""" href="/faq">""")
+
       checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
     }
 

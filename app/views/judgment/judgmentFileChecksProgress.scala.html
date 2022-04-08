@@ -5,7 +5,7 @@
 @import views.html.helper.form
 @(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("Checking your upload", name = name) {
+@main("Checking your upload", name = name, isJudgmentUser = true) {
     @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row file-check-progress">
         <div class="govuk-grid-column-two-thirds">
