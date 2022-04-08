@@ -42,13 +42,18 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
   forAll (fileChecks) { userType =>
     "FileChecksController GET" should {
-      val (pathName, keycloakConfiguration, expectedTitle, expectedText) = if(userType == "judgment") {
-        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Checking your upload", "Your court judgment is being checked for errors")
+      val (pathName, keycloakConfiguration, expectedTitle, expectedText, expectedFaqLink) = if(userType == "judgment") {
+        ("judgment",
+          getValidJudgmentUserKeycloakConfiguration,
+          "Checking your upload",
+          "Your court judgment is being checked for errors",
+          s"""" href="/judgment/faq">""")
       } else {
         ("consignment",
           getValidStandardUserKeycloakConfiguration,
           "Checking your records",
-          "Please wait while your records are being checked. This may take a few minutes.")
+          "Please wait while your records are being checked. This may take a few minutes.",
+          s"""" href="/faq">""")
       }
 
       s"render the $userType fileChecks page if the checks are incomplete" in {
@@ -83,6 +88,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
         recordsPageAsString must include(expectedTitle)
         recordsPageAsString must include(expectedText)
+        recordsPageAsString must include(expectedFaqLink)
       }
 
       s"return a redirect to the auth server with an unauthenticated $userType user" in {
@@ -125,6 +131,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
                                                                                  href="/$pathName/$consignmentId/file-checks">
         Continue""")
+      contentAsString(fileChecksCompletePage) must include(expectedFaqLink)
     }
 
     s"render the $userType file checks complete page if the file checks are complete and all checks are not successful" in {
@@ -153,6 +160,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
                                                                                  href="/$pathName/$consignmentId/file-checks">
         Continue""")
+      contentAsString(fileChecksCompletePage) must include(expectedFaqLink)
     }
     }
   }

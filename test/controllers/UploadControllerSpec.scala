@@ -100,6 +100,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       uploadPageAsString must include("Uploading records")
       uploadPageAsString must include("You can only upload one folder to be transferred")
+      uploadPageAsString must include (s"""" href="/faq">""")
     }
 
     "render the upload in progress page if the upload is in progress" in {
@@ -119,6 +120,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
       uploadPageAsString must include("Uploading records")
       uploadPageAsString must include("Your upload was interrupted and could not be completed.")
+      uploadPageAsString must include (s"""" href="/faq">""")
     }
 
     "render the upload is complete page if the upload has completed" in {
@@ -141,6 +143,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         s"""      <a href="/consignment/$consignmentId/file-checks" role="button" draggable="false" class="govuk-button govuk-button--primary">
            |        Continue
            |      </a>""".stripMargin)
+      uploadPageAsString must include (s"""" href="/faq">""")
     }
 
     "show the judgment upload page for judgments" in {
@@ -161,6 +164,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       uploadPageAsString must include("Upload a court judgment")
       uploadPageAsString must include("You may now upload the court judgment you wish to transfer. You can only upload one file.")
+      uploadPageAsString must include (s"""" href="/judgment/faq">""")
     }
 
     "render the judgment upload in progress page if the upload is in progress" in {
@@ -180,6 +184,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
       uploadPageAsString must include("Uploading court judgment")
       uploadPageAsString must include("Your upload was interrupted and could not be completed.")
+      uploadPageAsString must include (s"""" href="/judgment/faq">""")
     }
 
     "render the judgment upload is complete page if the upload has completed" in {
@@ -203,6 +208,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         s"""      <a href="/judgment/$consignmentId/file-checks" role="button" draggable="false" class="govuk-button govuk-button--primary">
            |        Continue
            |      </a>""".stripMargin)
+      uploadPageAsString must include (s"""" href="/judgment/faq">""")
     }
   }
 
