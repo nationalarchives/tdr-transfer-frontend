@@ -47,6 +47,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       contentType(homepagePage) mustBe Some("text/html")
       contentAsString(homepagePage) must include ("Registration Complete")
       contentAsString(homepagePage) must include ("Thank you for completing your registration")
+      contentAsString(homepagePage) must include (s"""" href="/faq">""")
     }
 
     "render the homepage page with an authenticated standard user" in {
@@ -60,6 +61,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       contentAsString(homepagePage) must include ("Welcome")
       contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
       contentAsString(homepagePage) must include ("Upload your records to start a new transfer")
+      contentAsString(homepagePage) must include (s"""" href="/faq">""")
     }
 
     "render the judgment homepage page with an authenticated judgment user" in {
@@ -76,6 +78,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       contentAsString(homepagePage) must include ("Before you start")
       contentAsString(homepagePage) must include ("You must upload your judgment as a Microsoft Word (.docx) document. Any other formats will not be accepted.")
       contentAsString(homepagePage) must include ("Upload your judgment to start a new transfer")
+      contentAsString(homepagePage) must include (s"""" href="/judgment/faq">""")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {

@@ -11,5 +11,9 @@ class FaqController @Inject()(securityComponents: SecurityComponents) extends Un
   def faq(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.faq(request.isLoggedIn, request.name))
   }
+
+  def judgmentFaq(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    Ok(views.html.judgment.judgmentFaq(request.isLoggedIn, request.name))
+  }
 }
 

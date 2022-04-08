@@ -2,7 +2,7 @@
 @import views.html.helper.form
 @(name: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("Welcome", name = name) {
+@main("Welcome", name = name, isJudgmentUser = true) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">Welcome to the Transfer Digital Records service</h1>
