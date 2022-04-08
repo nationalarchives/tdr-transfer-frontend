@@ -57,6 +57,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
       contentAsString(transferCompleteSubmit) must include("Your file has now been transferred")
       contentAsString(transferCompleteSubmit) must include("to The National Archives.")
+      contentAsString(transferCompleteSubmit) must include("""Transfer Reference: <span class="govuk-!-font-weight-bold">TEST-TDR-2021-GB</span>""")
       contentAsString(transferCompleteSubmit) must include(
         """    <a href="https://www.smartsurvey.co.uk/s/5YDPSA/" class="govuk-link" rel="noreferrer noopener" target="_blank">
         What did you think of this service? (opens in new tab)""")
