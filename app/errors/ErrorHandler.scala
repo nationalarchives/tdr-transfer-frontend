@@ -25,18 +25,27 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
     }).getOrElse("")
   }
 
+  def isJudgmentUser(request: RequestHeader): Boolean = {
+    pac4jTemplateHelper.getCurrentProfiles(request).headOption.exists(profile => {
+      val token = profile.getAttribute("access_token").asInstanceOf[BearerAccessToken]
+      val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
+      parsedToken.getClaim("judgment_user").toString.toBoolean
+    })
+  }
+
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     logger.error(s"Client error with status code $statusCode at path '${request.path}' with message: '$message'")
     val name = getName(request)
+    val isJudgmentUser = isJudgmentUser(request)
     val response = statusCode match {
       case 401 =>
-        Unauthorized(views.html.unauthenticatedError(name)(request2Messages(request), request))
+        Unauthorized(views.html.unauthenticatedError(name, isJudgmentUser)(request2Messages(request), request))
       case 403 =>
-        Forbidden(views.html.forbiddenError(name)(request2Messages(request), request))
+        Forbidden(views.html.forbiddenError(name, isJudgmentUser)(request2Messages(request), request))
       case 404 =>
-        NotFound(views.html.notFoundError(name)(request2Messages(request), request))
+        NotFound(views.html.notFoundError(name, isJudgmentUser)(request2Messages(request), request))
       case _ =>
-        Status(statusCode)(views.html.internalServerError(name)(request2Messages(request), request))
+        Status(statusCode)(views.html.internalServerError(name, isJudgmentUser)(request2Messages(request), request))
     }
 
     Future.successful(response)
