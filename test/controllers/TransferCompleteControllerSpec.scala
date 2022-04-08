@@ -48,6 +48,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       contentAsString(transferCompleteSubmit) must include(
       """    <a href="https://www.smartsurvey.co.uk/s/tdr-feedback/" class="govuk-link" rel="noreferrer noopener" target="_blank">
         What did you think of this service? (opens in new tab)""")
+      contentAsString(transferCompleteSubmit) must include (s"""" href="/faq">""")
     }
 
     "render the success page if the export was triggered successfully for a judgment user" in {
@@ -59,6 +60,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       contentAsString(transferCompleteSubmit) must include(
         """    <a href="https://www.smartsurvey.co.uk/s/5YDPSA/" class="govuk-link" rel="noreferrer noopener" target="_blank">
         What did you think of this service? (opens in new tab)""")
+      contentAsString(transferCompleteSubmit) must include (s"""" href="/judgment/faq">""")
     }
   }
 

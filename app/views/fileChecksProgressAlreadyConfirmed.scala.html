@@ -4,7 +4,7 @@
 
 @(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
 @title = @{if(isJudgmentUser){"Checking your upload"} else {"Checking your records"}}
-@main(title, name = name) {
+@main(title, name = name, isJudgmentUser = isJudgmentUser) {
     @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row file-check-progress">
         <div class="govuk-grid-column-two-thirds">
