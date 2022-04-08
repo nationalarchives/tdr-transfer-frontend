@@ -2,7 +2,7 @@
 
 @(name: String, isJudgmentUser: Boolean, fileStatuses: List[String] = Nil)(implicit request: RequestHeader, messages: Messages)
 
-@main("Results of checks", name = name) {
+@main("Results of checks", name = name, isJudgmentUser = isJudgmentUser) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       @progressIndicator(Messages("checkingRecords.progress"), Messages("progress.totalSteps"))
