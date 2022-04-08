@@ -33,5 +33,17 @@ class UnprotectedPageController @Inject ()(val controllerComponents: SecurityCom
         ""
       }
     }
+
+    def isJudgmentUser: Boolean = {
+        val profileManager = getProfile(request)
+        val profile = profileManager.getProfile
+        if (profile.isPresent) {
+          val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
+          val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
+          parsedToken.getClaim("judgment_user").toString.toBoolean
+        } else {
+         false
+      }
+    }
   }
 }

@@ -6,7 +6,7 @@
 *@
 @import views.html.helper.CSPNonce
 
-@(title: String, hasError: Boolean = false, isLoggedIn: Boolean = true, name: String = "")(content: Html)(implicit messages: Messages, request: RequestHeader)
+@(title: String, hasError: Boolean = false, isLoggedIn: Boolean = true, name: String = "", isJudgmentUser: Boolean = false)(content: Html)(implicit messages: Messages, request: RequestHeader)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -79,9 +79,15 @@
                     <h2 class="govuk-visually-hidden">Support links</h2>
                     <ul class="govuk-footer__inline-list">
                         <li class="govuk-footer__inline-list-item">
-                            <a class="govuk-footer__link" href="@routes.FaqController.faq()">
-                                FAQ
-                            </a>
+                            @if(isJudgmentUser) {
+                                <a class="govuk-footer__link" href="@routes.FaqController.judgmentFaq()">
+                                    FAQ
+                                </a>
+                            } else {
+                                <a class="govuk-footer__link" href="@routes.FaqController.faq()">
+                                    FAQ
+                                </a>
+                            }
                         </li>
                         <li class="govuk-footer__inline-list-item">
                             <a class="govuk-footer__link" href="@routes.ContactController.contact()">
