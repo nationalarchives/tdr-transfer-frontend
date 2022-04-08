@@ -29,7 +29,7 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
     pac4jTemplateHelper.getCurrentProfiles(request).headOption.exists(profile => {
       val token = profile.getAttribute("access_token").asInstanceOf[BearerAccessToken]
       val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
-      parsedToken.getClaim("judgment_user").toString.toBoolean
+      parsedToken.getBooleanClaim("judgment_user")
     })
   }
 

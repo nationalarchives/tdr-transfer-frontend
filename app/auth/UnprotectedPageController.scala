@@ -40,7 +40,7 @@ class UnprotectedPageController @Inject ()(val controllerComponents: SecurityCom
         if (profile.isPresent) {
           val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
           val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
-          parsedToken.getClaim("judgment_user").toString.toBoolean
+          parsedToken.getBooleanClaim("judgment_user")
         } else {
          false
       }
