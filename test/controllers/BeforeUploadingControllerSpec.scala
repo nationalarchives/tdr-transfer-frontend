@@ -49,7 +49,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       beforeUploadingPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
         """ role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
       beforeUploadingPageAsString must include(
-        s"""<a href="mailto:judgments@nationalarchives.gov.uk?subject=TEST-TDR-2021-GB">""" +
+        s"""<a href="mailto:judgments@nationalarchives.gov.uk?subject=Ref: TEST-TDR-2021-GB">""" +
           """judgments@nationalarchives.gov.uk</a>""")
     }
   }
