@@ -18,6 +18,6 @@ class RegistrationController @Inject()(val controllerComponents: SecurityCompone
 
   def complete(): Action[AnyContent] = secureAction {
     implicit request: Request[AnyContent] =>
-      Ok(views.html.registrationComplete(request.token.name, request.token.isJudgmentUser))
+      Ok(views.html.registrationComplete(request.token.name))
   }
 }
