@@ -46,7 +46,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         ("judgment",
           getValidJudgmentUserKeycloakConfiguration,
           "Checking your upload",
-          "Your court judgment is being checked for errors",
+          "Your judgment is being checked for errors",
           s"""" href="/judgment/faq">""")
       } else {
         ("consignment",

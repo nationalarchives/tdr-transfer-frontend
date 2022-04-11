@@ -75,8 +75,9 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
       contentAsString(homepagePage) must include ("Welcome")
       contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(homepagePage) must include ("Upload your court judgment to start a new transfer")
-      contentAsString(homepagePage) must include ("You must upload your court judgment as a Microsoft Word document (.docx).")
+      contentAsString(homepagePage) must include ("Before you start")
+      contentAsString(homepagePage) must include ("You must upload your judgment as a Microsoft Word (.docx) document. Any other formats will not be accepted.")
+      contentAsString(homepagePage) must include ("Upload your judgment to start a new transfer")
       contentAsString(homepagePage) must include (s"""" href="/judgment/faq">""")
     }
 
