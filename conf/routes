@@ -38,8 +38,9 @@ POST        /callback                                                      @org.
 GET         /sign-out                                                      @org.pac4j.play.LogoutController.logout(request: play.mvc.Http.Request)
 
 # Routes for judgment
-POST        /judgment/homepage                                             controllers.HomepageController.judgmentHomepageSubmit()
 GET         /judgment/faq                                                  controllers.FaqController.judgmentFaq()
+POST        /judgment/homepage                                             controllers.HomepageController.judgmentHomepageSubmit()
+GET         /judgment/help                                                 controllers.HelpController.judgmentHelp()
 GET         /judgment/:consignmentId/before-uploading                      controllers.BeforeUploadingController.beforeUploading(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/upload                                controllers.UploadController.judgmentUploadPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/file-checks                           controllers.FileChecksController.judgmentFileChecksPage(consignmentId: java.util.UUID)
