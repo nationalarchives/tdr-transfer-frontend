@@ -1,3 +1,6 @@
-@(step: String, totalSteps: String)(implicit messages: Messages)
-
-    <span class="govuk-caption-l">@Messages("progressIndicator.step", step, totalSteps)</span>
+@(step: String, isJudgmentUser: Boolean=false)(implicit messages: Messages)
+    @if(isJudgmentUser) {
+        <span class="govuk-caption-l">@Messages("progressIndicator.step", step, Messages("judgmentProgress.totalSteps"))</span>
+    } else {
+        <span class="govuk-caption-l">@Messages("progressIndicator.step", step,  Messages("progress.totalSteps"))</span>
+    }
