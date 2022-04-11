@@ -52,6 +52,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
         s"""<a href="mailto:judgments@nationalarchives.gov.uk?subject=Ref: TEST-TDR-2021-GB">""" +
           """judgments@nationalarchives.gov.uk</a>""")
       beforeUploadingPageAsString must include(s"""" href="/judgment/faq">""")
+      beforeUploadingPageAsString must include(s"""" href="/judgment/help">""")
     }
   }
 
