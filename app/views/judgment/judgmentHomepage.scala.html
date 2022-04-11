@@ -2,14 +2,18 @@
 @import views.html.helper.form
 @(name: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("Welcome", name = name) {
+@main("Welcome", name = name, isJudgmentUser = true) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">Welcome to the Transfer Digital Records service</h1>
 
-      <h2 class="govuk-heading-m govuk-!-margin-top-9">Upload your court judgment to start a new transfer</h2>
+      <h2 class="govuk-heading-m govuk-!-margin-top-7">Before you start</h2>
 
-      <p class="govuk-body">You must upload your court judgment as a Microsoft Word document (.docx).</p>
+      <p class="govuk-body">
+        You must upload your judgment as a Microsoft Word (.docx) document. Any other formats will not be accepted.
+      </p>
+
+      <h2 class="govuk-heading-m govuk-!-margin-top-2">Upload your judgment to start a new transfer</h2>
 
       @form(routes.HomepageController.judgmentHomepageSubmit(), (Symbol("novalidate"), "")) {
         @CSRF.formField
