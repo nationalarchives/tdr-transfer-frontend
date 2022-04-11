@@ -57,11 +57,13 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     }
   }
 
-  def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) {
+    implicit request: Request[AnyContent] =>
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+      ref <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
       val pageHeading1stHalf = "Upload judgment"
@@ -74,8 +76,8 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
           Ok(views.html.uploadHasCompleted(consignmentId, pageHeading2ndHalf, request.token.name, isJudgmentUser = true)).uncache()
         case None =>
           Ok(views.html.judgment.judgmentUpload(
-            consignmentId, pageHeading1stHalf, pageHeading2ndHalf, frontEndInfoConfiguration.frontEndInfo, request.token.name)
-          ).uncache()
+            consignmentId, ref.consignmentReference, pageHeading1stHalf, pageHeading2ndHalf, frontEndInfoConfiguration.frontEndInfo,
+            request.token.name)).uncache()
         case _ =>
           throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
       }

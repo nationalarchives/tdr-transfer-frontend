@@ -8,6 +8,7 @@ import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
+import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcr}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks.{AntivirusProgress, ChecksumProgress, FfidProgress}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
@@ -79,6 +80,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           getConsignmentFilesClient.GraphqlData(Option(filePathData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse, filePathResponse)
+        setConsignmentReferenceResponse()
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -98,6 +100,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           resultsPageAsString must include(expectedTitle)
           resultsPageAsString must include("has been successfully checked and is ready to be exported")
           resultsPageAsString must include("Export")
+          resultsPageAsString must include("TEST-TDR-2021-GB")
         } else {
           resultsPageAsString must include(expectedTitle)
           resultsPageAsString must include("has been successfully checked and uploaded")
@@ -377,5 +380,16 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(fileStatusResponse)))
     }
     setConsignmentTypeResponse(wiremockServer, consignmentType)
+  }
+
+  private def setConsignmentReferenceResponse() = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcr.Data, gcr.Variables]()
+    val consignmentReferenceResponse: gcr.GetConsignment = new gcr.GetConsignment("TEST-TDR-2021-GB")
+    val data: client.GraphqlData = client.GraphqlData(Some(gcr.Data(Some(consignmentReferenceResponse))), List())
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentReference"))
+      .willReturn(okJson(dataString)))
   }
 }

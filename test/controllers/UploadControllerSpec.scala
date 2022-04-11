@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
+import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcr}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -153,6 +154,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
+      setConsignmentReferenceResponse()
       stubGetConsignmentStatusResponse()
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
@@ -165,6 +167,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("Upload judgment")
       uploadPageAsString must include("You may now upload the judgment you wish to transfer. You can only upload one file.")
       uploadPageAsString must include (s"""" href="/judgment/faq">""")
+      uploadPageAsString must include ("TEST-TDR-2021-GB")
     }
 
     "render the judgment upload in progress page if the upload is in progress" in {
@@ -176,6 +179,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"), uploadStatus = Some("InProgress"))
       setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse()
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
@@ -185,6 +189,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("Uploading judgment")
       uploadPageAsString must include("Your upload was interrupted and could not be completed.")
       uploadPageAsString must include (s"""" href="/judgment/faq">""")
+//      uploadPageAsString must include ("TEST-TDR-2021-GB")
     }
 
     "render the judgment upload is complete page if the upload has completed" in {
@@ -196,6 +201,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"), uploadStatus = Some("Completed"))
       setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse()
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
@@ -209,6 +215,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |        Continue
            |      </a>""".stripMargin)
       uploadPageAsString must include (s"""" href="/judgment/faq">""")
+//      uploadPageAsString must include (consignmentRef)
     }
   }
 
@@ -315,5 +322,16 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
   private def removeNewLinesAndIndentation(formattedJsonBody: String) = {
     formattedJsonBody.replaceAll("\n\\s*", "")
+  }
+
+  private def setConsignmentReferenceResponse() = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcr.Data, gcr.Variables]()
+    val consignmentReferenceResponse: gcr.GetConsignment = new gcr.GetConsignment("TEST-TDR-2021-GB")
+    val data: client.GraphqlData = client.GraphqlData(Some(gcr.Data(Some(consignmentReferenceResponse))), List())
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentReference"))
+      .willReturn(okJson(dataString)))
   }
 }
