@@ -79,33 +79,37 @@
                     <h2 class="govuk-visually-hidden">Support links</h2>
                     <ul class="govuk-footer__inline-list">
                         <li class="govuk-footer__inline-list-item">
+                          @if(isLoggedIn) {
                             @if(isJudgmentUser) {
-                                <a class="govuk-footer__link" href="@routes.FaqController.judgmentFaq()">
-                                    FAQ
-                                </a>
+                              <a class="govuk-footer__link" href="@routes.FaqController.judgmentFaq()">
+                                FAQ
+                              </a>
                             } else {
-                                <a class="govuk-footer__link" href="@routes.FaqController.faq()">
-                                    FAQ
-                                </a>
+                              <a class="govuk-footer__link" href="@routes.FaqController.faq()">
+                                FAQ
+                              </a>
                             }
+                          }
                         </li>
                         <li class="govuk-footer__inline-list-item">
                             <a class="govuk-footer__link" href="@routes.ContactController.contact()">
                                 Contact
                             </a>
                         </li>
-                        @if(isJudgmentUser) {
-                          <li class="govuk-footer__inline-list-item">
-                            <a class="govuk-footer__link" href="@routes.HelpController.judgmentHelp()">
-                              Help
-                            </a>
-                          </li>
-                        } else {
-                          <li class="govuk-footer__inline-list-item">
-                            <a class="govuk-footer__link" href="@routes.HelpController.judgmentHelp()">
-                              Help
-                            </a>
-                          </li>
+                        @if(isLoggedIn) {
+                          @if(isJudgmentUser) {
+                            <li class="govuk-footer__inline-list-item">
+                              <a class="govuk-footer__link" href="@routes.HelpController.judgmentHelp()">
+                                Help
+                              </a>
+                            </li>
+                          } else {
+                            <li class="govuk-footer__inline-list-item">
+                              <a class="govuk-footer__link" href="@routes.HelpController.judgmentHelp()">
+                                Help
+                              </a>
+                            </li>
+                          }
                         }
                         <li class="govuk-footer__inline-list-item">
                             <a class="govuk-footer__link" href="@routes.CookiesController.cookies()">
