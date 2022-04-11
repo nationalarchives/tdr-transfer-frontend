@@ -66,6 +66,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement-continued" method="POST" novalidate="">""")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
+      transferAgreementPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
     }
 
@@ -173,6 +174,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
+      transferAgreementPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.compliance, Set())
     }
 
@@ -197,6 +199,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
+      transferAgreementPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.compliance, pageOptions)
     }
 
@@ -218,6 +221,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
            |                Continue""".stripMargin)
       transferAgreementPageAsString must include("You have already confirmed all statements")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
+      transferAgreementPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
@@ -239,6 +243,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
            |                Continue""".stripMargin)
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
       taAlreadyConfirmedPageAsString must include (s"""" href="/faq">""")
+      taAlreadyConfirmedPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
@@ -264,6 +269,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
            |                Continue""".stripMargin)
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
       taAlreadyConfirmedPageAsString must include (s"""" href="/faq">""")
+      taAlreadyConfirmedPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
   }

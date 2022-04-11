@@ -101,6 +101,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("Uploading records")
       uploadPageAsString must include("You can only upload one folder to be transferred")
       uploadPageAsString must include (s"""" href="/faq">""")
+      uploadPageAsString must include (s"""" href="/help">""")
     }
 
     "render the upload in progress page if the upload is in progress" in {
@@ -121,6 +122,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("Uploading records")
       uploadPageAsString must include("Your upload was interrupted and could not be completed.")
       uploadPageAsString must include (s"""" href="/faq">""")
+      uploadPageAsString must include (s"""" href="/help">""")
     }
 
     "render the upload is complete page if the upload has completed" in {
@@ -144,6 +146,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |        Continue
            |      </a>""".stripMargin)
       uploadPageAsString must include (s"""" href="/faq">""")
+      uploadPageAsString must include (s"""" href="/help">""")
     }
 
     "show the judgment upload page for judgments" in {
@@ -165,6 +168,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("Upload judgment")
       uploadPageAsString must include("You may now upload the judgment you wish to transfer. You can only upload one file.")
       uploadPageAsString must include (s"""" href="/judgment/faq">""")
+      uploadPageAsString must include (s"""" href="/judgment/help">""")
     }
 
     "render the judgment upload in progress page if the upload is in progress" in {
@@ -185,6 +189,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("Uploading judgment")
       uploadPageAsString must include("Your upload was interrupted and could not be completed.")
       uploadPageAsString must include (s"""" href="/judgment/faq">""")
+      uploadPageAsString must include (s"""" href="/judgment/help">""")
     }
 
     "render the judgment upload is complete page if the upload has completed" in {
@@ -209,6 +214,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |        Continue
            |      </a>""".stripMargin)
       uploadPageAsString must include (s"""" href="/judgment/faq">""")
+      uploadPageAsString must include (s"""" href="/judgment/help">""")
     }
   }
 

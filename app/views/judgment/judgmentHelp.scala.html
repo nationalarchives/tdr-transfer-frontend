@@ -1,11 +1,11 @@
 @(isLoggedIn: Boolean)(implicit messages: Messages, request: RequestHeader)
 
-  @main("Help", isLoggedIn = isLoggedIn) {
+  @main("Help", isLoggedIn = isLoggedIn, isJudgmentUser = true) {
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">Transferring Judgments to The National Archives</h1>
+        <h1 class="govuk-heading-l" id="transferring-judgments">Transferring Judgments to The National Archives</h1>
 
-        <h2 class="govuk-heading-m">A step-by-step guide to using Transfer Digital Records (TDR)</h2>
+        <h2 class="govuk-heading-m" id="step-by-step-guide">A step-by-step guide to using Transfer Digital Records (TDR)</h2>
         <nav aria-label="List">
           <ul class="govuk-list govuk-list--bullet">
             <li><a href="#about">About this service</a></li>
@@ -48,12 +48,12 @@
 
         <h2 class="govuk-heading-m" id="before-you-begin">Before you begin</h2>
 
-        <h3 class="govuk-heading-s">Web browsers</h3>
+        <h3 class="govuk-heading-s" id="web-browsers">Web browsers</h3>
         <p class="govuk-body">
           We do not support Internet Explorer (IE11). We advise you to use a different browser such as Edge, Chrome, Safari or Firefox to ensure you can use this service and all of its features.
         </p>
 
-        <h3 class="govuk-heading-s">Secured access</h3>
+        <h3 class="govuk-heading-s" id="secured-access">Secured access</h3>
         <p class="govuk-body">
           In order to keep the service and your account secure from attack, TDR uses Multi-factor Authentication (MFA), which needs two separate pieces of information in order to authenticate and access the service. This means you will be required to sign in each time using a unique generated ‘one-time password’ (OTP) code that confirms who you are. This can be set up with a free-to-download authenticator app on your smartphone, such as Microsoft Authenticator, Google Authenticator, or FreeOTP. Other authenticators are available.
         </p>
@@ -61,7 +61,7 @@
           Free-to-download apps are available from the App Store for iPhone, or 'Google Play' and 'Play Store'.
         </p>
 
-        <h3 class="govuk-heading-s">File format</h3>
+        <h3 class="govuk-heading-s" id="file-format">File format</h3>
         <p class="govuk-body">
           Double-check your judgment prior to upload to ensure you are sending us the correct file.
         </p>
@@ -72,13 +72,13 @@
           During upload and checking, if we detect a file we cannot accept, you will be notified on screen.
         </p>
 
-        <h3 class="govuk-heading-s">Supplementary material</h3>
+        <h3 class="govuk-heading-s" id="supplementary-material">Supplementary material</h3>
         <p class="govuk-body">
           Occasionally other supporting documents, such as photos, need preserving with the judgment. When this happens, they will need to be emailed to the Case Law editorial team with the transfer reference of the judgment they relate to. Full details on how to do this can be found <a href="#supp-material">
           here</a>.
         </p>
 
-        <h3 class="govuk-heading-s">Contact us</h3>
+        <h3 class="govuk-heading-s" id="contact-us">Contact us</h3>
         <p class="govuk-body">
           If you have a query regarding asking for a TDR account, the transfer process, the status of your transfer, or more general queries regarding the suitability of records for transfer, file format or transfer agreement criteria, email the Judiciary Office Judgments Helpdesk at <a href="mailto:Judgments@@judiciary.uk">
           Judgments@@judiciary.uk</a>.
@@ -101,7 +101,7 @@
             Click on the <span class="govuk-!-font-weight-bold">“Configure OTP, Update Password”</span> link to set up your ‘One-time password’ (OTP), sometimes referred to as ‘One-time PIN’, for secure sign in using two-step authentication.</li>
         </ol>
 
-        <h3 class="govuk-heading-s">Why do I need to use OTP?</h3>
+        <h3 class="govuk-heading-s" id="why-otp">Why do I need to use OTP?</h3>
         <p class="govuk-body">
           In order to keep the service and your account secure from attack, TDR requires Multi-factor Authentication (MFA), which uses two separate pieces of information in order to authenticate and access the service. This means you will be required to sign in each time using OTP, which provides a unique generated one-time code that confirms who you are. This can be set up with a free-to-download authenticator app on your smartphone, such as Microsoft Authenticator, Google Authenticator, or FreeOTP. Other authenticators are available.
         </p>
@@ -153,7 +153,7 @@
         </ol>
 
         <h2 class="govuk-heading-m" id="existing-account-holder">Using the service as an existing account holder</h2>
-        <h3 class="govuk-heading-s">Web browsers</h3>
+        <h3 class="govuk-heading-s" id="web-browsers-access">Web browsers</h3>
         <p class="govuk-body">
           We do not support Internet Explorer (IE11). We advise you to use a different browser such as Edge, Chrome, Safari or Firefox to ensure you can use this service and all of its features.
         </p>
@@ -169,7 +169,7 @@
           Click <span class="govuk-!-font-weight-bold">“Start now”</span> to sign in and begin the transfer process.
         </p>
 
-        <h3 class="govuk-heading-s">Top tip</h3>
+        <h3 class="govuk-heading-s" id="top-tip-bookmark">Top tip</h3>
         <p class="govuk-body">
           Add TDR to your browser’s Favourites or Bookmarks for quick access next time you use the service.
         </p>
@@ -217,12 +217,12 @@
           If your email is not set up to automatically create the email for you, create your own email to send to the same address, manually adding the transfer reference as the subject. You can find this at the end of the transfer process.
         </p>
 
-        <h3 class="govuk-heading-s">Replacement versions</h3>
+        <h3 class="govuk-heading-s" id="replacement-versions">Replacement versions</h3>
         <p class="govuk-body">
           If your judgment is an amended replacement version for an existing judgment, use the same email method to notify the TNA Case Law editorial team. Include the neutral citation reference of the original judgment that it is replacing.
         </p>
 
-        <h3 class="govuk-heading-s">Anonymisation Orders</h3>
+        <h3 class="govuk-heading-s" id="anonymisation-orders">Anonymisation Orders</h3>
         <p class="govuk-body">
           If your judgment has an anonymisation order, use the same email method to notify the Case Law editorial team, include the neutral citation reference and any important information so that the editorial team can give your record the attention it needs. This procedure will become automated in time.
         </p>
@@ -274,7 +274,7 @@
           Click <span class="govuk-!-font-weight-bold">“Export”</span> to transfer your successful upload from TDR to TNA and complete the transfer process.
         </p>
 
-        <h3 class="govuk-heading-s">Error message</h3>
+        <h3 class="govuk-heading-s" id="error-message">Error message</h3>
         <p class="govuk-body">
           In the unlikely event that any issues are found, you will be notified on screen that your upload has failed and asked to begin your transfer again from the TDR Homepage.
         </p>
@@ -310,7 +310,7 @@
           Click <span class="govuk-!-font-weight-bold">“Return to start”</span> to begin a new transfer, or <span class="govuk-!-font-weight-bold">“Sign Out”</span> in the top right corner.
         </p>
 
-        <h3 class="govuk-heading-s">Send us feedback on your experience</h3>
+        <h3 class="govuk-heading-s" id="send-feedback">Send us feedback on your experience</h3>
         <p class="govuk-body">
           Please click the <span class="govuk-!-font-weight-bold">“What did you think of this service?”</span> link to open up an anonymous survey in a new tab and give us feedback to improve the service.
         </p>
@@ -323,72 +323,72 @@
           Each of the following terms is defined within the context of Transfer Digital Records (TDR).
         </p>
 
-        <h3 class="govuk-heading-s">Anonymisation Order</h3>
+        <h3 class="govuk-heading-s" id="glossary-anonymisation-order">Anonymisation Order</h3>
         <p class="govuk-body">
           Specific conditions formerly assigned to protect the identity of one or more parties.
         </p>
 
-        <h3 class="govuk-heading-s">Authenticator app</h3>
+        <h3 class="govuk-heading-s" id="glossary-authenticator-app">Authenticator app</h3>
         <p class="govuk-body">
           A software app that can be downloaded and configured to produce a one-time password (OTP) code unique to the user of the device.
         </p>
 
-        <h3 class="govuk-heading-s">Browser</h3>
+        <h3 class="govuk-heading-s" id="glossary-browser">Browser</h3>
         <p class="govuk-body">
           An application used to access the internet, such as Edge, Chrome, Safari or Firefox.
         </p>
 
-        <h3 class="govuk-heading-s">Judgment</h3>
+        <h3 class="govuk-heading-s" id="glossary-judgment">Judgment</h3>
         <p class="govuk-body">
           A record of a court judgment or tribunal decision.
         </p>
 
-        <h3 class="govuk-heading-s">Microsoft Word (.docx) document</h3>
+        <h3 class="govuk-heading-s" id="glossary-word-document">Microsoft Word (.docx) document</h3>
         <p class="govuk-body">
           A specific electronic file format used for creating documents.
         </p>
 
-        <h3 class="govuk-heading-s">Multi-factor authentication (MFA)</h3>
+        <h3 class="govuk-heading-s" id="glossary-mfa">Multi-factor authentication (MFA)</h3>
         <p class="govuk-body">
           A security feature that uses two separate pieces of information in order to authenticate a genuine account holder. In TDR this is the user’s unique password in combination with an OTP code generated in a configured authenticator app.
         </p>
 
-        <h3 class="govuk-heading-s">Neutral citation</h3>
+        <h3 class="govuk-heading-s" id="glossary-neutral-citation">Neutral citation</h3>
         <p class="govuk-body">
           A reference that makes it easier to find judgments in online resources, such as BAILII. The abbreviation indicates the court in which the case was heard, and the number indicates the case number.
         </p>
 
-        <h3 class="govuk-heading-s">One-time password (OTP)</h3>
+        <h3 class="govuk-heading-s" id="glossary-otp">One-time password (OTP)</h3>
         <p class="govuk-body">
           A unique code specific to a configured account that refreshes every 30 to 60 seconds.
         </p>
 
-        <h3 class="govuk-heading-s">Replacement versions</h3>
+        <h3 class="govuk-heading-s" id="glossary-replacement-versions">Replacement versions</h3>
         <p class="govuk-body">
           An amended replacement version of an existing judgment that has already been published by TNA.
         </p>
 
-        <h3 class="govuk-heading-s">Supplementary material</h3>
+        <h3 class="govuk-heading-s" id="glossary-supplementary-material">Supplementary material</h3>
         <p class="govuk-body">
           Additional specified documents that are directly associated with an individual judgment.
         </p>
 
-        <h3 class="govuk-heading-s">Transfer Digital Records (TDR)</h3>
+        <h3 class="govuk-heading-s" id="glossary-tdr">Transfer Digital Records (TDR)</h3>
         <p class="govuk-body">
           A product that allows specific documents to be transferred electronically and securely to TNA via a web browser.
         </p>
 
-        <h3 class="govuk-heading-s">Transfer reference</h3>
+        <h3 class="govuk-heading-s" id="glossary-transfer-reference">Transfer reference</h3>
         <p class="govuk-body">
           A unique code assigned to your individual transfer (e.g. TDR-2022-1234) that allows us to identify the transaction and judgment within it.
         </p>
 
-        <h3 class="govuk-heading-s">Upload</h3>
+        <h3 class="govuk-heading-s" id="glossary-upload">Upload</h3>
         <p class="govuk-body">
           The action of copying a file into TDR, or the copied file itself.
         </p>
 
-        <h3 class="govuk-heading-s">Validation checks</h3>
+        <h3 class="govuk-heading-s" id="glossary-validation-checks">Validation checks</h3>
         <p class="govuk-body">
           Digital file checking that includes anti-virus check, file authentication, and file-format identification.
         </p>
