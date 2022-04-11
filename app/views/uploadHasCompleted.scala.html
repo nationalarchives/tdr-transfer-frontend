@@ -2,7 +2,7 @@
 @import views.html.partials.progressIndicator
 @(consignmentId: UUID, pageHeading: String, name: String, isJudgmentUser: Boolean)(implicit request: RequestHeader, messages: Messages)
 
-@main("Upload your records", name = name) {
+@main("Upload your records", name = name, isJudgmentUser = isJudgmentUser) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       @progressIndicator(Messages("upload.progress"), Messages("progress.totalSteps"))
