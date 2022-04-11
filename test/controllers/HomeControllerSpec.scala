@@ -22,6 +22,7 @@ class HomeControllerSpec extends FrontEndTestHelper {
       contentAsString(home) must include ("transfer digital records to The National Archives")
       contentAsString(home) must include ("transfer court judgments to The National Archives")
       contentAsString(home) must include ("Start now")
+      contentAsString(home) must include ("/faq")
     }
 
     "render the index page from the application" in {

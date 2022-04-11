@@ -19,7 +19,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.4" % Test
 
 val playPac4jVersion = "11.1.0-PLAY2.8"
-val pac4jVersion = "5.4.1"
+val pac4jVersion = "5.4.2"
 val akkaVersion = "2.6.3"
 val sttpVersion = "2.3.0"
 
@@ -36,7 +36,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.42",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.233",
   ws,
-  "com.github.tomakehurst" % "wiremock-jre8" % "2.32.0" % Test,
+  "com.github.tomakehurst" % "wiremock-jre8" % "2.33.1" % Test,
   "org.mockito" % "mockito-core" % "4.4.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
