@@ -94,11 +94,19 @@
                                 Contact
                             </a>
                         </li>
-                        <li class="govuk-footer__inline-list-item">
-                            <a class="govuk-footer__link" href="@routes.HelpController.help()">
-                                Help
+                        @if(isJudgmentUser) {
+                          <li class="govuk-footer__inline-list-item">
+                            <a class="govuk-footer__link" href="@routes.HelpController.judgmentHelp()">
+                              Help
                             </a>
-                        </li>
+                          </li>
+                        } else {
+                          <li class="govuk-footer__inline-list-item">
+                            <a class="govuk-footer__link" href="@routes.HelpController.help()">
+                              Help
+                            </a>
+                          </li>
+                        }
                         <li class="govuk-footer__inline-list-item">
                             <a class="govuk-footer__link" href="@routes.CookiesController.cookies()">
                               Cookies

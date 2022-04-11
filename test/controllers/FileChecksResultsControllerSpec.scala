@@ -49,10 +49,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   forAll (userTypes) { userType =>
     "FileChecksResultsController GET" should {
 
-      val (pathName, keycloakConfiguration, expectedTitle, expectedFaqLink) = if(userType == "judgment") {
-        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Results of checks", s"""" href="/judgment/faq">""")
+      val (pathName, keycloakConfiguration, expectedTitle, expectedFaqLink, expectedHelpLink) = if(userType == "judgment") {
+        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Results of checks", """" href="/judgment/faq">""", """ href="/judgment/help">""")
       } else {
-        ("consignment", getValidStandardUserKeycloakConfiguration, "Results of your checks", s"""" href="/faq">""")
+        ("consignment", getValidStandardUserKeycloakConfiguration, "Results of your checks", """" href="/faq">""", """href="/help">""")
       }
 
       s"render the $userType fileChecksResults page with the confirmation box" in {
@@ -109,6 +109,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         contentType(recordCheckResultsPage) mustBe Some("text/html")
         resultsPageAsString must include("success-summary")
         resultsPageAsString must include(expectedFaqLink)
+        resultsPageAsString must include(expectedHelpLink)
       }
 
       s"return a redirect to the auth server if an unauthenticated user tries to access the $userType file checks page" in {
