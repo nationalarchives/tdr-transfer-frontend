@@ -19,10 +19,14 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   def consignmentService: ConsignmentService
   implicit val executionContext: ExecutionContext = consignmentService.ec
 
-  implicit def requestToRequestWithToken(request: Request[AnyContent]): RequestWithToken = {
+  def getProfile(request: Request[AnyContent]) = {
     val webContext = new PlayWebContext(request)
     val profileManager = new ProfileManager(webContext, sessionStore)
-    val profile = profileManager.getProfile
+    profileManager.getProfile
+  }
+
+  implicit def requestToRequestWithToken(request: Request[AnyContent]): RequestWithToken = {
+    val profile = getProfile(request)
     val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
     val accessToken: Option[Token] = keycloakConfiguration.token(token.getValue)
     RequestWithToken(request, accessToken)
@@ -52,7 +56,8 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     if (isPermitted) {
       action(request)
     } else {
-      Future.successful(Forbidden(views.html.forbiddenError(request.token.name, request.token.isJudgmentUser)(request2Messages(request), request)))
+
+      Future.successful(Forbidden(views.html.forbiddenError(request.token.name, getProfile(request).isPresent, request.token.isJudgmentUser)(request2Messages(request), request)))
     }
   }
 }
