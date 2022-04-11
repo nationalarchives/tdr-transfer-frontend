@@ -50,6 +50,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement" method="POST" novalidate="">""")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
+      transferAgreementPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
     }
 
@@ -154,6 +155,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
+      transferAgreementPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.privateBeta, Set())
     }
 
@@ -179,6 +181,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
+      transferAgreementPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.privateBeta, pageOptions)
     }
 
@@ -200,6 +203,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
            |                Continue""".stripMargin)
       transferAgreementPageAsString must include("You have already confirmed all statements")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
+      transferAgreementPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
@@ -221,6 +225,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
            |                Continue""".stripMargin)
       transferAgreementPageAsString must include("You have already confirmed all statements")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
+      transferAgreementPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
@@ -243,6 +248,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
            |                Continue""".stripMargin)
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
       taAlreadyConfirmedPageAsString must include (s"""" href="/faq">""")
+      taAlreadyConfirmedPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
@@ -269,6 +275,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
            |                Continue""".stripMargin)
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
       taAlreadyConfirmedPageAsString must include (s"""" href="/faq">""")
+      taAlreadyConfirmedPageAsString must include (s"""" href="/help">""")
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
   }

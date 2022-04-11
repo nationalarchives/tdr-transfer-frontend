@@ -69,6 +69,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesDetailsPage) must include ("id=\"series\"")
       contentAsString(seriesDetailsPage) must include (s"""<option value="${seriesId.toString}">code</option>""")
       contentAsString(seriesDetailsPage) must include (s"""" href="/faq">""")
+      contentAsString(seriesDetailsPage) must include (s"""" href="/help">""")
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
@@ -165,6 +166,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesSubmit) must include("govuk-error-summary")
       contentAsString(seriesSubmit) must include("<title>Error: ")
       contentAsString(seriesSubmit) must include (s"""" href="/faq">""")
+      contentAsString(seriesSubmit) must include (s"""" href="/help">""")
     }
 
     "will send the correct body if it is present on the user" in {
@@ -204,6 +206,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       headers(seriesDetailsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
       contentAsString(seriesDetailsPage) must include ("You have already chosen a series reference")
       contentAsString(seriesDetailsPage) must include (s"""" href="/faq">""")
+      contentAsString(seriesDetailsPage) must include (s"""" href="/help">""")
     }
   }
 
