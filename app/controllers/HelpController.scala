@@ -11,5 +11,9 @@ class HelpController @Inject()(securityComponents: SecurityComponents) extends U
   def help(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.help(request.isLoggedIn, request.isJudgmentUser))
   }
+
+  def judgmentHelp(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
+    Ok(views.html.judgment.judgmentHelp(request.isLoggedIn))
+  }
 }
 
