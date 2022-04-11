@@ -1,29 +1,28 @@
 package controllers
 
-import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
-import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
-import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
-import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcr}
+import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks.{AntivirusProgress, ChecksumProgress, FfidProgress}
+import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.{Data, GetConsignment, Variables}
+import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
+import io.circe.Printer
+import io.circe.generic.auto._
+import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.prop.TableFor1
+import play.api.Play.materializer
+import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.ConsignmentService
 import util.FrontEndTestHelper
-import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.{Data, GetConsignment, Variables}
-import io.circe.Printer
-import io.circe.syntax._
-import io.circe.generic.auto._
-import play.api.Play.materializer
-import play.api.test.CSRFTokenHelper.CSRFRequest
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 class FileChecksResultsControllerSpec extends FrontEndTestHelper {
@@ -80,7 +79,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           getConsignmentFilesClient.GraphqlData(Option(filePathData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse, filePathResponse)
-        setConsignmentReferenceResponse()
+        setConsignmentReferenceResponse(wiremockServer)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -380,16 +379,5 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(fileStatusResponse)))
     }
     setConsignmentTypeResponse(wiremockServer, consignmentType)
-  }
-
-  private def setConsignmentReferenceResponse() = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[gcr.Data, gcr.Variables]()
-    val consignmentReferenceResponse: gcr.GetConsignment = new gcr.GetConsignment("TEST-TDR-2021-GB")
-    val data: client.GraphqlData = client.GraphqlData(Some(gcr.Data(Some(consignmentReferenceResponse))), List())
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentReference"))
-      .willReturn(okJson(dataString)))
   }
 }

@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => fileCheck}
-import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcr}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -67,7 +66,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
         mockGraphqlResponse(dataString, userType)
-        setConsignmentReferenceResponse()
+        setConsignmentReferenceResponse(wiremockServer)
 
         val recordsController = new FileChecksController(
           getAuthorisedSecurityComponents,
@@ -224,16 +223,5 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     )
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     dataString
-  }
-
-  private def setConsignmentReferenceResponse() = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[gcr.Data, gcr.Variables]()
-    val consignmentReferenceResponse: gcr.GetConsignment = new gcr.GetConsignment("TEST-TDR-2021-GB")
-    val data: client.GraphqlData = client.GraphqlData(Some(gcr.Data(Some(consignmentReferenceResponse))), List())
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentReference"))
-      .willReturn(okJson(dataString)))
   }
 }
