@@ -1,6 +1,6 @@
-@(name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(name: String, isLoggedIn: Boolean, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
 
-@main("Page not found", name = name, isJudgmentUser = isJudgmentUser) {
+@main("Page not found", name = name, isLoggedIn = isLoggedIn, isJudgmentUser = isJudgmentUser) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">

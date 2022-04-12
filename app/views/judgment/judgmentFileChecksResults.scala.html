@@ -1,8 +1,8 @@
 @import views.html.helper.CSRF
+@import views.html.partials.{progressIndicator, transferReference}
+
 @import java.util.UUID
-@import viewsapi.FrontEndInfo
-@import views.html.partials.progressIndicator
-@(filename: String, consignmentId: java.util.UUID, name: String)(implicit messages: Messages, request: RequestHeader)
+@(filename: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
 
 @main("Results of checks", name = name, isJudgmentUser = true) {
     <div class="govuk-grid-row">
@@ -28,5 +28,6 @@
                 </form>
             </div>
         </div>
+        @transferReference(consignmentRef)
     </div>
 }

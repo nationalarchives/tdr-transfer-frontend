@@ -22,8 +22,6 @@ class HomeControllerSpec extends FrontEndTestHelper {
       contentAsString(home) must include ("transfer digital records to The National Archives")
       contentAsString(home) must include ("transfer judgments to The National Archives")
       contentAsString(home) must include ("Start now")
-      contentAsString(home) must include ("/faq")
-      contentAsString(home) must include ("/help")
     }
 
     "render the index page from the application" in {
@@ -34,6 +32,17 @@ class HomeControllerSpec extends FrontEndTestHelper {
       contentAsString(home) must include ("Transfer Digital Records")
       contentAsString(home) must include ("Introduction")
       contentAsString(home) must include ("Start now")
+    }
+
+    "show the faq and help buttons if a user is logged in" in {
+      val controller = new HomeController(getAuthorisedSecurityComponents)
+      val home = controller.index().apply(FakeRequest(GET, "/"))
+
+      status(home) mustBe OK
+      contentType(home) mustBe Some("text/html")
+
+      contentAsString(home) must include ("/faq")
+      contentAsString(home) must include ("/help")
     }
 
     "show the sign out button if the user is logged in" in {

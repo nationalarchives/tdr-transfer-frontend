@@ -70,6 +70,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
         mockGraphqlResponse(dataString, userType)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val recordsController = new FileChecksController(
           getAuthorisedSecurityComponents,
