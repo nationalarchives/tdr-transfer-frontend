@@ -1,9 +1,8 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
-@import views.html.partials.{frontEndInputs, progressIndicator}
+@import views.html.partials.{frontEndInputs, progressIndicator, transferReference}
 @import views.html.helper.form
-@import views.html.helper.form
-@(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
 
 @main("Checking your upload", name = name, isJudgmentUser = true) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -20,6 +19,7 @@
             <!--        Form to redirect user once file checks have completed. It sends consignmentId to record results' placeholder page -->
             @form(routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId), Symbol("id") -> "file-checks-form") { }
         </div>
+        @transferReference(consignmentRef)
     </div>
     }
 }

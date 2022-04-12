@@ -1,28 +1,28 @@
 package controllers
 
-import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
-import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
-import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
+import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment.FileChecks.{AntivirusProgress, ChecksumProgress, FfidProgress}
+import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.{Data, GetConsignment, Variables}
+import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
+import io.circe.Printer
+import io.circe.generic.auto._
+import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.prop.TableFor1
+import play.api.Play.materializer
+import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.ConsignmentService
 import util.FrontEndTestHelper
-import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.{Data, GetConsignment, Variables}
-import io.circe.Printer
-import io.circe.syntax._
-import io.circe.generic.auto._
-import play.api.Play.materializer
-import play.api.test.CSRFTokenHelper.CSRFRequest
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 class FileChecksResultsControllerSpec extends FrontEndTestHelper {
@@ -79,6 +79,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           getConsignmentFilesClient.GraphqlData(Option(filePathData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse, filePathResponse)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -98,6 +99,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           resultsPageAsString must include(expectedTitle)
           resultsPageAsString must include("has been successfully checked and is ready to be exported")
           resultsPageAsString must include("Export")
+          resultsPageAsString must include("TEST-TDR-2021-GB")
         } else {
           resultsPageAsString must include(expectedTitle)
           resultsPageAsString must include("has been successfully checked and uploaded")

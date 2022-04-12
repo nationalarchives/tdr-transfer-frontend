@@ -48,13 +48,16 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
 
   def judgmentFileChecksPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getFileChecksProgress(request, consignmentId)
-      .map {
+      .flatMap {
         fileChecks => if(fileChecks.isComplete) {
-          Ok(views.html.fileChecksProgressAlreadyConfirmed(
+          Future(Ok(views.html.fileChecksProgressAlreadyConfirmed(
             consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = true
-          )).uncache()
+          )).uncache())
         } else {
-          Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
+          consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map(r =>
+            Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, r.consignmentReference, frontEndInfoConfiguration.frontEndInfo, request.token.name
+            )).uncache()
+          )
         }
       }
   }
