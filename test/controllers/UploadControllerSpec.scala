@@ -156,6 +156,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
+      setConsignmentReferenceResponse(wiremockServer)
       stubGetConsignmentStatusResponse()
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
@@ -169,6 +170,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("You may now upload the judgment you wish to transfer. You can only upload one file.")
       uploadPageAsString must include (s"""" href="/judgment/faq">""")
       uploadPageAsString must include (s"""" href="/judgment/help">""")
+      uploadPageAsString must include ("TEST-TDR-2021-GB")
     }
 
     "render the judgment upload in progress page if the upload is in progress" in {
@@ -180,6 +182,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"), uploadStatus = Some("InProgress"))
       setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
@@ -201,6 +204,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"), uploadStatus = Some("Completed"))
       setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)

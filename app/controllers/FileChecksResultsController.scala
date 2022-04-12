@@ -39,11 +39,14 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
   def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).flatMap(fileCheck => {
       if (fileCheck.allChecksSucceeded) {
-        consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).map(files => {
-          val filename = files.files.head.metadata.clientSideOriginalFilePath
+        for {
+          filepath <- consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken)
+          reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+        } yield {
+          val filename = filepath.files.head.metadata.clientSideOriginalFilePath
             .getOrElse(throw new IllegalStateException(s"Filename cannot be found for judgment upload: '$consignmentId'"))
-          Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, request.token.name))
-        })
+          Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference.consignmentReference, request.token.name))
+        }
       } else {
         Future(Ok(views.html.fileChecksFailed(request.token.name, isJudgmentUser = true)))
       }
