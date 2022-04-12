@@ -88,7 +88,7 @@
         <!--        Form to redirect user once upload has completed. It sends consignmentId to file checks placeholder page -->
         @form(routes.FileChecksController.judgmentFileChecksPage(consignmentId), Symbol("id") -> "upload-data-form") { }
     </div>
-    @transferReference(consignmentRef)
+    @transferReference(consignmentRef, isJudgmentUser = true)
 </div>
 <div id="upload-progress" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds" role="status" aria-live="assertive">
@@ -126,6 +126,6 @@
             </div>
         </div>
     </div>
-    @transferReference(consignmentRef)
+    @transferReference(consignmentRef, isJudgmentUser = true)
 </div>
 }

@@ -1,9 +1,13 @@
-@(consignmentRef: String)
+@(consignmentRef: String, isJudgmentUser: Boolean)
 <div class="govuk-grid-column-one-third">
     <details open class="govuk-details" data-module="govuk-details">
         <summary class="govuk-details__summary">
             <span class="govuk-details__summary-text">
-                Transfer reference
+                @if(isJudgmentUser){
+                    Transfer reference
+                } else {
+                    Consignment reference
+                }
             </span>
         </summary>
         <div class="govuk-details__text">
