@@ -1,6 +1,6 @@
-@import views.html.partials.{progressIndicator, fileCheckErrorMessage}
+@import views.html.partials.{progressIndicator, fileCheckErrorMessage, transferReference}
 
-@(name: String, isJudgmentUser: Boolean, fileStatuses: List[String] = Nil)(implicit request: RequestHeader, messages: Messages)
+@(name: String, consignmentRef: String, isJudgmentUser: Boolean, fileStatuses: List[String] = Nil)(implicit request: RequestHeader, messages: Messages)
 
 @main("Results of checks", name = name, isJudgmentUser = isJudgmentUser) {
   <div class="govuk-grid-row">
@@ -29,5 +29,6 @@
           Return to start
       </a>
     </div>
+      @transferReference(consignmentRef)
   </div>
 }

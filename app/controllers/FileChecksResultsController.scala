@@ -23,7 +23,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).map(fileCheck => {
       val parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
-      if(fileCheck.allChecksSucceeded) {
+      if (fileCheck.allChecksSucceeded) {
         val consignmentInfo = ConsignmentFolderInfo(
           fileCheck.totalFiles,
           parentFolder
@@ -31,26 +31,41 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
         Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId, request.token.name))
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
-        Ok(views.html.fileChecksFailed(request.token.name, isJudgmentUser = false, fileStatusList))
-        }
+        Ok(views.html.fileChecksFailed(request.token.name, "TEST", isJudgmentUser = false, fileStatusList))
+      }
     })
   }
 
   def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken).flatMap(fileCheck => {
-      if (fileCheck.allChecksSucceeded) {
-        for {
-          filepath <- consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken)
-          reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        } yield {
-          val filename = filepath.files.head.metadata.clientSideOriginalFilePath
-            .getOrElse(throw new IllegalStateException(s"Filename cannot be found for judgment upload: '$consignmentId'"))
-          Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference.consignmentReference, request.token.name))
-        }
-      } else {
-        Future(Ok(views.html.fileChecksFailed(request.token.name, isJudgmentUser = true)))
+      consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).flatMap {
+        reference =>
+          if (fileCheck.allChecksSucceeded) {
+            consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).map(files => {
+              val filename = files.files.head.metadata.clientSideOriginalFilePath.get
+              Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference.consignmentReference, request.token.name))
+            })
+          } else {
+            Future(Ok(views.html.fileChecksFailed(request.token.name, reference.consignmentReference, isJudgmentUser = true)))
+          }
       }
     })
+  }
+
+  def judgmentFileCheckResultsPage2(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    for {
+      fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      if(fileCheck.allChecksSucceeded){
+        consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).flatMap(files => {
+          val filename = files.files.head.metadata.clientSideOriginalFilePath.get
+          Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference.consignmentReference, request.token.name)))
+        })
+      } else {
+        Ok(views.html.fileChecksFailed(request.token.name, reference.consignmentReference, isJudgmentUser = true))
+      }
+    }
   }
 }
 

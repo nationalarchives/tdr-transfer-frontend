@@ -175,6 +175,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -196,7 +197,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         } else {
           resultsPageAsString must include(expectedTitle)
           resultsPageAsString must include("One or more files you uploaded have failed our checks")
-
+          resultsPageAsString must include("TEST-TDR-2021-GB")
         }
 
         status(recordCheckResultsPage) mustBe OK
@@ -220,6 +221,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -264,6 +266,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -308,6 +311,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
