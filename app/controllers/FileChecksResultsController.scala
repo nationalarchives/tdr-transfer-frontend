@@ -41,11 +41,11 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
       if (fileCheck.allChecksSucceeded) {
         for {
           filepath <- consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken)
-          ref <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+          reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         } yield {
           val filename = filepath.files.head.metadata.clientSideOriginalFilePath
             .getOrElse(throw new IllegalStateException(s"Filename cannot be found for judgment upload: '$consignmentId'"))
-          Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, ref.consignmentReference, request.token.name))
+          Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference.consignmentReference, request.token.name))
         }
       } else {
         Future(Ok(views.html.fileChecksFailed(request.token.name, isJudgmentUser = true)))
