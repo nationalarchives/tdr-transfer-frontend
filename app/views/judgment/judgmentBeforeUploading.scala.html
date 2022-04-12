@@ -1,5 +1,6 @@
+@import views.html.partials.{progressIndicator, transferReference}
+
 @import java.util.UUID
-@import views.html.partials.progressIndicator
 
 @(consignmentId: UUID, consignmentRef: String, name: String)(implicit request: RequestHeader, messages: Messages)
 @main("Check your file before uploading", name = name, isJudgmentUser = true) {
@@ -27,6 +28,7 @@
         <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
       </div>
     </div>
+    @transferReference(consignmentRef)
 </div>
 }
 }
