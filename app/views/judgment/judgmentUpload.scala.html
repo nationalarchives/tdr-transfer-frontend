@@ -9,7 +9,7 @@
 <noscript>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            @progressIndicator(Messages("judgmentUpload.progress"), Messages("judgmentProgress.totalSteps"))
+            @progressIndicator(Messages("judgmentUpload.progress"), isJudgmentUser=true)
             <h1 class="govuk-heading-l">@pageHeading1stHalf</h1>
             @noScriptMessage()
         </div>
@@ -17,7 +17,7 @@
 </noscript>
 <div id="file-upload" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("judgmentUpload.progress"), Messages("judgmentProgress.totalSteps"))
+        @progressIndicator(Messages("judgmentUpload.progress"), isJudgmentUser=true)
         @frontEndInputs(frontEndInfo)
 
         <h1 class="govuk-heading-l">@pageHeading1stHalf</h1>
@@ -92,7 +92,7 @@
 </div>
 <div id="upload-progress" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds" role="status" aria-live="assertive">
-        @progressIndicator(Messages("judgmentUpload.progress"), Messages("judgmentProgress.totalSteps"))
+        @progressIndicator(Messages("judgmentUpload.progress"), isJudgmentUser=true)
         <h1 class="govuk-heading-l">@pageHeading2ndHalf</h1>
         <div id="upload-progress-error" hidden>
             <div class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"

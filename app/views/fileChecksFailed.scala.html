@@ -5,7 +5,11 @@
 @main("Results of checks", name = name, isJudgmentUser = isJudgmentUser) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      @progressIndicator(Messages("checkingRecords.progress"), Messages("progress.totalSteps"))
+        @if(isJudgmentUser) {
+            @progressIndicator(Messages("judgmentCheckingRecords.progress"), isJudgmentUser)
+        } else {
+            @progressIndicator(Messages("checkingRecords.progress"), isJudgmentUser)
+        }
       <h1 class="govuk-heading-l">Results of your checks</h1>
 
       <div class="govuk-error-summary" aria-labelledby="error-summary-title"
