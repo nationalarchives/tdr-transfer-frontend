@@ -24,9 +24,9 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
     for {
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
     } yield {
       if (fileCheck.allChecksSucceeded) {
-        val parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
         val consignmentInfo = ConsignmentFolderInfo(
           fileCheck.totalFiles,
           parentFolder
