@@ -19,7 +19,7 @@
             <!--        Form to redirect user once file checks have completed. It sends consignmentId to record results' placeholder page -->
             @form(routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId), Symbol("id") -> "file-checks-form") { }
         </div>
-        @transferReference(consignmentRef)
+        @transferReference(consignmentRef, isJudgmentUser = true)
     </div>
     }
 }
