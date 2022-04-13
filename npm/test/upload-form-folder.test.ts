@@ -103,7 +103,7 @@ test("dropzone updates the page with an error if there are no files in folder", 
 test("dropzone updates the page with correct folder information if there is a nested folder of files in the main folder", async () => {
   const mockDom = new MockUploadFormDom()
 
-  const dataTransferItemWithNestedDirectory: DataTransferItem = {
+  const dataTransferItemWithNestedFolder: DataTransferItem = {
     ...mockDom.dataTransferItemFields,
     webkitGetAsEntry: () => nestedDirectoryEntry
   }
@@ -128,7 +128,7 @@ test("dropzone updates the page with correct folder information if there is a ne
 
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFolder()],
-    dataTransferItemWithNestedDirectory
+    dataTransferItemWithNestedFolder
   )
   const dragEvent = new dragEventClass()
   await mockDom.form.handleDroppedItems(dragEvent)
@@ -140,10 +140,10 @@ test("dropzone updates the page with correct folder information if there is a ne
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
 })
 
-test("dropzone updates the page with correct folder information if there are valid files and an empty directory", async () => {
+test("dropzone updates the page with correct folder information if there are valid files and an empty folder", async () => {
   const mockDom = new MockUploadFormDom()
 
-  const dataTransferItemWithNestedDirectory: DataTransferItem = {
+  const dataTransferItemWithNestedFolder: DataTransferItem = {
     ...mockDom.dataTransferItemFields,
     webkitGetAsEntry: () => nestedDirectoryEntry
   }
@@ -176,7 +176,7 @@ test("dropzone updates the page with correct folder information if there are val
     [],
     [emptyDirectoryEntry],
     [mockDom.directoryEntry]
-  ] // have to create an entry here to act as top-level directory
+  ] // have to create an entry here to act as top-level folder
   let nestedDirectoryBatchCount = mockDom.entries.length + 1
   const nestedDirectoryEntryReader: IReader = {
     readEntries: (cb) => {
@@ -187,7 +187,7 @@ test("dropzone updates the page with correct folder information if there are val
 
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFolder()],
-    dataTransferItemWithNestedDirectory
+    dataTransferItemWithNestedFolder
   )
   const dragEvent = new dragEventClass()
   await mockDom.form.handleDroppedItems(dragEvent)
@@ -205,7 +205,7 @@ test("dropzone updates the page with correct folder information if there are val
 test("dropzone updates the page with an error if there is an empty nested folder", async () => {
   const mockDom = new MockUploadFormDom()
 
-  const dataTransferItemWithNestedDirectory: DataTransferItem = {
+  const dataTransferItemWithNestedFolder: DataTransferItem = {
     ...mockDom.dataTransferItemFields,
     webkitGetAsEntry: () => emptyDirectoryEntry
   }
@@ -227,7 +227,7 @@ test("dropzone updates the page with an error if there is an empty nested folder
 
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFolder()],
-    dataTransferItemWithNestedDirectory
+    dataTransferItemWithNestedFolder
   )
   const dragEvent = new dragEventClass()
   await expect(mockDom.form.handleDroppedItems(dragEvent)).resolves.toEqual(
