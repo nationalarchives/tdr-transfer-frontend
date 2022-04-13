@@ -175,6 +175,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -196,13 +197,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         } else {
           resultsPageAsString must include(expectedTitle)
           resultsPageAsString must include("One or more files you uploaded have failed our checks")
-
         }
 
         status(recordCheckResultsPage) mustBe OK
         contentAsString(recordCheckResultsPage) must include("There is a problem")
         resultsPageAsString must include("Return to start")
         resultsPageAsString must include(expectedFaqLink)
+        resultsPageAsString must include("TEST-TDR-2021-GB")
       }
 
       s"return the passwordProtected $userType error page if file checks have failed with PasswordProtected" in {
@@ -220,6 +221,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -247,6 +249,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         contentAsString(recordCheckResultsPage) must include("There is a problem")
         resultsPageAsString must include("Return to start")
         resultsPageAsString must include(expectedFaqLink)
+        resultsPageAsString must include("TEST-TDR-2021-GB")
       }
 
       s"return the zip $userType error page if file checks have failed with Zip" in {
@@ -264,6 +267,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -291,6 +295,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         contentAsString(recordCheckResultsPage) must include("There is a problem")
         resultsPageAsString must include("Return to start")
         resultsPageAsString must include(expectedFaqLink)
+        resultsPageAsString must include("TEST-TDR-2021-GB")
       }
 
       s"return the general $userType error page if file checks have failed with PasswordProtected and Zip" in {
@@ -308,6 +313,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -335,6 +341,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         contentAsString(recordCheckResultsPage) must include("There is a problem")
         resultsPageAsString must include("Return to start")
         resultsPageAsString must include(expectedFaqLink)
+        resultsPageAsString must include("TEST-TDR-2021-GB")
       }
     }
   }
