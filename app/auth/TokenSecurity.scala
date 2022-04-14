@@ -2,14 +2,14 @@ package auth
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
-import org.pac4j.core.profile.ProfileManager
+import org.pac4j.core.profile.{ProfileManager, UserProfile}
 import org.pac4j.play.PlayWebContext
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
-import java.util.UUID
+import java.util.{Optional, UUID}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait TokenSecurity extends OidcSecurity with I18nSupport {
@@ -33,9 +33,9 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   }
 
   def judgmentTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    consignmentService.getConsignmentType(consignmentId, request.token.bearerAccessToken).flatMap(consignmentType => {
+    consignmentService.getConsignmentType(consignmentId, request.token.bearerAccessToken).flatMap(consignmentType =>
       createResult(action, request, consignmentType == "judgment")
-    })
+    )
   }
 
   def judgmentUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
