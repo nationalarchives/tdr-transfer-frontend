@@ -1,10 +1,7 @@
 package controllers
 
-import java.util.UUID
-
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
@@ -13,6 +10,8 @@ import play.api.mvc._
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
 import viewsapi.Caching.preventCaching
 
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
