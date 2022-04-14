@@ -56,8 +56,15 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     if (isPermitted) {
       action(request)
     } else {
-
-      Future.successful(Forbidden(views.html.forbiddenError(request.token.name, getProfile(request).isPresent, request.token.isJudgmentUser)(request2Messages(request), request)))
+      Future.successful(
+        Forbidden(
+          views.html.forbiddenError(
+            request.token.name,
+            getProfile(request).isPresent,
+            request.token.isJudgmentUser
+          )(request2Messages(request), request)
+        )
+      )
     }
   }
 }
