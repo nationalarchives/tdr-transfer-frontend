@@ -20,39 +20,20 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
                                         val keycloakConfiguration: KeycloakConfiguration,
                                         seriesService: SeriesService,
                                         val consignmentService: ConsignmentService,
-                                        val consignmentStatusService: ConsignmentStatusService,
-                                        )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+                                        val consignmentStatusService: ConsignmentStatusService
+                                       )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  val selectedSeriesForm = Form(
+  val selectedSeriesForm: Form[SelectedSeriesData] = Form(
     mapping(
-      "series" -> text.verifying("Select a series reference", t => !t.isEmpty)
+      "series" -> text.verifying("Select a series reference", t => t.nonEmpty)
     )(SelectedSeriesData.apply)(SelectedSeriesData.unapply)
   )
-
-  private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])
-                              (implicit requestHeader: RequestHeader) = {
-    consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken).flatMap {
-      consignmentStatus =>
-        val seriesStatus = consignmentStatus.flatMap(_.currentStatus.series)
-        seriesStatus match {
-          case Some("Completed") =>
-            val seriesFormData = List((consignmentStatus.flatMap(_.series.map(_.seriesid.toString)).get, consignmentStatus.flatMap(_.series.map(_.code)).get))
-            Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, seriesFormData, selectedSeriesForm, request.token.name)).uncache())
-          case _ =>
-            seriesService.getSeriesForUser(request.token)
-              .map { series =>
-                val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
-                status(views.html.standard.seriesDetails(consignmentId, seriesFormData, form, request.token.name)).uncache()
-              }
-        }
-    }
-  }
 
   def seriesDetails(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getSeriesDetails(consignmentId, request, Ok, selectedSeriesForm)
   }
 
-  def seriesSubmit(consignmentId: UUID): Action[AnyContent] =  standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def seriesSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest()
 
     val errorFunction: Form[SelectedSeriesData] => Future[Result] = { formWithErrors: Form[SelectedSeriesData] =>
@@ -75,6 +56,29 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
       successFunction
     )
   }
+
+  private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])
+                              (implicit requestHeader: RequestHeader) = {
+    consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken).flatMap {
+      consignmentStatus =>
+        val seriesStatus = consignmentStatus.flatMap(_.currentStatus.series)
+        seriesStatus match {
+          case Some("Completed") =>
+            val seriesFormData: List[(String, String)] = List(
+                consignmentStatus.flatMap(_.series.map{
+                  series => (series.seriesid.toString, series.code)
+                }).get
+            )
+            Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, seriesFormData, selectedSeriesForm, request.token.name)).uncache())
+          case _ =>
+            seriesService.getSeriesForUser(request.token)
+              .map { series =>
+                val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
+                status(views.html.standard.seriesDetails(consignmentId, seriesFormData, form, request.token.name)).uncache()
+              }
+        }
+    }
+  }
 }
 
-case class SelectedSeriesData (seriesId: String)
+case class SelectedSeriesData(seriesId: String)
