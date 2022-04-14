@@ -19,7 +19,8 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
                                                       val graphqlConfiguration: GraphQLConfiguration,
                                                       val transferAgreementService: TransferAgreementService,
                                                       val keycloakConfiguration: KeycloakConfiguration,
-                                                      val consignmentService: ConsignmentService)
+                                                      val consignmentService: ConsignmentService,
+                                                      val consignmentStatusService: ConsignmentStatusService)
                                                      (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
   val transferAgreementForm: Form[TransferAgreementComplianceData] = Form(
     mapping(
@@ -40,24 +41,21 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementComplianceData] = transferAgreementForm)
                                         (implicit request: Request[AnyContent]): Future[Result] = {
-    val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
-
-    consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).map {
-      consignmentStatus =>
-        val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
-        val warningMessage = Messages("transferAgreement.warning")
-        transferAgreementStatus match {
-          case Some("Completed") =>
-            Ok(views.html.standard.transferAgreementComplianceAlreadyConfirmed(
-              consignmentId, transferAgreementForm, taFormNamesAndLabels, warningMessage, request.token.name)).uncache()
-          case Some("InProgress") =>
-            httpStatus(views.html.standard.transferAgreementCompliance(
-              consignmentId, taForm, taFormNamesAndLabels, warningMessage, request.token.name)).uncache()
-          case None =>
-            Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)).uncache()
-          case _ =>
-            throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
-        }
+    for {
+      consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+      transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+    } yield transferAgreementStatus match {
+      case Some("Completed") =>
+        Ok(views.html.standard.transferAgreementComplianceAlreadyConfirmed(
+          consignmentId, reference.consignmentReference, transferAgreementForm, taFormNamesAndLabels, request.token.name)).uncache()
+      case Some("InProgress") =>
+        httpStatus(views.html.standard.transferAgreementCompliance(
+          consignmentId, reference.consignmentReference, taForm, taFormNamesAndLabels, request.token.name)).uncache()
+      case None =>
+        Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)).uncache()
+      case _ =>
+        throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
     }
   }
 

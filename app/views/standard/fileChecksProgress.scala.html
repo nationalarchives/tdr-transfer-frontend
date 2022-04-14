@@ -1,7 +1,7 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
-@import views.html.partials.{frontEndInputs, progressIndicator}
-@(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
+@import views.html.partials.{frontEndInputs, progressIndicator, transferReference}
+@(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
 
 @main("Checking records", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -42,6 +42,7 @@
             </form>
 
         </div>
+        @transferReference(consignmentRef, isJudgmentUser = false)
     </div>
     }
 }
