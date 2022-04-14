@@ -39,7 +39,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
 
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
@@ -140,7 +141,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = Seq()
 
@@ -163,7 +165,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("compliance", 2)
 
@@ -189,7 +192,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("InProgress"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
@@ -211,7 +215,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementPrivateBetaController =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
@@ -234,7 +239,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
@@ -257,7 +263,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller =
         taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("compliance", 1)
 

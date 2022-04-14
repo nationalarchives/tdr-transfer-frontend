@@ -8,9 +8,6 @@ import controllers.{TransferAgreementPrivateBetaController, TransferAgreementCom
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
-import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -43,22 +40,6 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
 
   val privateBeta = "privateBeta"
   val compliance = "compliance"
-
-  def mockGetConsignmentStatusGraphqlResponse(config: Configuration, taStatus: Option[String]=None, consignmentType: String = "standard"): StubMapping = {
-
-    val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
-    val consignmentResponse = gcs.Data(Option(GetConsignment(None, CurrentStatus(None, taStatus, None, None))))
-    val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    if (dataString.nonEmpty) {
-      wireMockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentStatus"))
-        .willReturn(okJson(dataString)))
-    }
-
-    setConsignmentTypeResponse(wireMockServer, consignmentType)
-  }
 
   def mockGetConsignmentGraphqlResponse(config: Configuration,
                                         consignmentType: String = "standard"): StubMapping = {
