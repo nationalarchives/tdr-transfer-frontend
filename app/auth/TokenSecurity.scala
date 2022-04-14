@@ -19,7 +19,7 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   def consignmentService: ConsignmentService
   implicit val executionContext: ExecutionContext = consignmentService.ec
 
-  def getProfile(request: Request[AnyContent]) = {
+  def getProfile(request: Request[AnyContent]): Optional[UserProfile] = {
     val webContext = new PlayWebContext(request)
     val profileManager = new ProfileManager(webContext, sessionStore)
     profileManager.getProfile
