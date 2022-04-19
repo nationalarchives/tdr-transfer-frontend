@@ -31,10 +31,10 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
           fileCheck.totalFiles,
           parentFolder
         )
-        Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId, reference.consignmentReference, request.token.name))
+        Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId, reference, request.token.name))
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
-        Ok(views.html.fileChecksFailed(request.token.name, reference.consignmentReference, isJudgmentUser = false, fileStatusList))
+        Ok(views.html.fileChecksFailed(request.token.name, reference, isJudgmentUser = false, fileStatusList))
       }
     }
   }
@@ -46,10 +46,10 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
       result <- if (fileCheck.allChecksSucceeded) {
         consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).flatMap(files => {
           val filename = files.files.head.metadata.clientSideOriginalFilePath.get
-          Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference.consignmentReference, request.token.name)))
+          Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference, request.token.name)))
         })
       } else {
-        Future(Ok(views.html.fileChecksFailed(request.token.name, reference.consignmentReference, isJudgmentUser = true)))
+        Future(Ok(views.html.fileChecksFailed(request.token.name, reference, isJudgmentUser = true)))
       }
     } yield result
   }

@@ -40,10 +40,10 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
     } yield {
       if(fileChecks.isComplete) {
         Ok(views.html.fileChecksProgressAlreadyConfirmed(
-          consignmentId, reference.consignmentReference, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = false
+          consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = false
         )).uncache()
       } else {
-        Ok(views.html.standard.fileChecksProgress(consignmentId, reference.consignmentReference, frontEndInfoConfiguration.frontEndInfo, request.token.name))
+        Ok(views.html.standard.fileChecksProgress(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name))
           .uncache()
       }
     }
@@ -56,10 +56,10 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
     } yield {
       if(fileChecks.isComplete) {
         Ok(views.html.fileChecksProgressAlreadyConfirmed(
-          consignmentId, reference.consignmentReference, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = true
+          consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = true
         )).uncache()
       } else {
-        Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference.consignmentReference, frontEndInfoConfiguration.frontEndInfo,
+        Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo,
           request.token.name)).uncache()
       }
     }

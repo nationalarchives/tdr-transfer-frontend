@@ -38,13 +38,13 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
         case Some("Completed") =>
           uploadStatus match {
             case Some("InProgress") =>
-              Ok(views.html.uploadInProgress(consignmentId, reference.consignmentReference, pageHeading2ndHalf, request.token.name, isJudgmentUser = false))
+              Ok(views.html.uploadInProgress(consignmentId, reference, pageHeading2ndHalf, request.token.name, isJudgmentUser = false))
                 .uncache()
             case Some("Completed") =>
-              Ok(views.html.uploadHasCompleted(consignmentId, reference.consignmentReference, pageHeading2ndHalf, request.token.name, isJudgmentUser = false))
+              Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeading2ndHalf, request.token.name, isJudgmentUser = false))
                 .uncache()
             case None =>
-              Ok(views.html.standard.upload(consignmentId, reference.consignmentReference, pageHeading1stHalf, pageHeading2ndHalf,
+              Ok(views.html.standard.upload(consignmentId, reference, pageHeading1stHalf, pageHeading2ndHalf,
                 frontEndInfoConfiguration.frontEndInfo, request.token.name))
                 .uncache()
             case _ =>
@@ -74,13 +74,13 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
 
       uploadStatus match {
         case Some("InProgress") =>
-          Ok(views.html.uploadInProgress(consignmentId, reference.consignmentReference, pageHeading2ndHalf, request.token.name, isJudgmentUser = true))
+          Ok(views.html.uploadInProgress(consignmentId, reference, pageHeading2ndHalf, request.token.name, isJudgmentUser = true))
             .uncache()
         case Some("Completed") =>
-          Ok(views.html.uploadHasCompleted(consignmentId, reference.consignmentReference, pageHeading2ndHalf, request.token.name, isJudgmentUser = true))
+          Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeading2ndHalf, request.token.name, isJudgmentUser = true))
             .uncache()
         case None =>
-          Ok(views.html.judgment.judgmentUpload(consignmentId, reference.consignmentReference, pageHeading1stHalf, pageHeading2ndHalf,
+          Ok(views.html.judgment.judgmentUpload(consignmentId, reference, pageHeading1stHalf, pageHeading2ndHalf,
             frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
         case _ =>
           throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")

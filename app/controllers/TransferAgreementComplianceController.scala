@@ -48,10 +48,10 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
     } yield transferAgreementStatus match {
       case Some("Completed") =>
         Ok(views.html.standard.transferAgreementComplianceAlreadyConfirmed(
-          consignmentId, reference.consignmentReference, transferAgreementForm, taFormNamesAndLabels, request.token.name)).uncache()
+          consignmentId, reference, transferAgreementForm, taFormNamesAndLabels, request.token.name)).uncache()
       case Some("InProgress") =>
         httpStatus(views.html.standard.transferAgreementCompliance(
-          consignmentId, reference.consignmentReference, taForm, taFormNamesAndLabels, request.token.name)).uncache()
+          consignmentId, reference, taForm, taFormNamesAndLabels, request.token.name)).uncache()
       case None =>
         Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)).uncache()
       case _ =>

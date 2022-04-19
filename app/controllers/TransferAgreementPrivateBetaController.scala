@@ -50,11 +50,11 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
       transferAgreementStatus match {
         case Some("InProgress") | Some("Completed") =>
           Ok(views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(
-            consignmentId, reference.consignmentReference, transferAgreementForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name))
+            consignmentId, reference, transferAgreementForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name))
             .uncache()
         case None => httpStatus(
           views.html.standard.transferAgreementPrivateBeta(
-            consignmentId, reference.consignmentReference, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
+            consignmentId, reference, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
         case _ =>
           throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
       }

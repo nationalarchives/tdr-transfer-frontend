@@ -38,12 +38,12 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
       result <- seriesStatus match {
         case Some("Completed") =>
           val seriesFormData = List((consignmentStatus.flatMap(_.series.map(_.seriesid.toString)).get, consignmentStatus.flatMap(_.series.map(_.code)).get))
-          Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, reference.consignmentReference,
+          Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, reference,
             seriesFormData, selectedSeriesForm, request.token.name)).uncache())
         case _ =>
           seriesService.getSeriesForUser(request.token).map { series =>
               val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
-              status(views.html.standard.seriesDetails(consignmentId, reference.consignmentReference, seriesFormData, form, request.token.name)).uncache()
+              status(views.html.standard.seriesDetails(consignmentId, reference, seriesFormData, form, request.token.name)).uncache()
             }
       }
     } yield result
