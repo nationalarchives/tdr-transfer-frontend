@@ -3,25 +3,25 @@
 @import viewsapi.FrontEndInfo
 @import java.util.UUID
 
-@(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, pageHeading1stHalf: String, pageHeading2ndHalf: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
 @main("Upload your judgment", name = name, isJudgmentUser = true) {
 <noscript>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            @progressIndicator(Messages("judgmentUpload.progress"), Messages("judgmentProgress.totalSteps"))
-            <h1 class="govuk-heading-l">Upload a court judgment</h1>
+            @progressIndicator(Messages("judgmentUpload.progress"), isJudgmentUser=true)
+            <h1 class="govuk-heading-l">@pageHeading1stHalf</h1>
             @noScriptMessage()
         </div>
     </div>
 </noscript>
 <div id="file-upload" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("judgmentUpload.progress"), Messages("judgmentProgress.totalSteps"))
+        @progressIndicator(Messages("judgmentUpload.progress"), isJudgmentUser=true)
         @frontEndInputs(frontEndInfo)
 
-        <h1 class="govuk-heading-l">Upload court judgment</h1>
-        <p class="govuk-body">You may now upload the court judgment you wish to transfer. You can only upload one file.</p>
+        <h1 class="govuk-heading-l">@pageHeading1stHalf</h1>
+        <p class="govuk-body">You may now upload the judgment you wish to transfer. You can only upload one file.</p>
         <div class="govuk-inset-text">
             We only accept Microsoft Word files (.docx).
         </div>
@@ -88,11 +88,12 @@
         <!--        Form to redirect user once upload has completed. It sends consignmentId to file checks placeholder page -->
         @form(routes.FileChecksController.judgmentFileChecksPage(consignmentId), Symbol("id") -> "upload-data-form") { }
     </div>
+    @transferReference(consignmentRef, isJudgmentUser = true)
 </div>
 <div id="upload-progress" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds" role="status" aria-live="assertive">
-        @progressIndicator(Messages("judgmentUpload.progress"), Messages("judgmentProgress.totalSteps"))
-        <h1 class="govuk-heading-l">Uploading court judgment</h1>
+        @progressIndicator(Messages("judgmentUpload.progress"), isJudgmentUser=true)
+        <h1 class="govuk-heading-l">@pageHeading2ndHalf</h1>
         <div id="upload-progress-error" hidden>
             <div class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"
                 role="alert" tabindex="-1" data-module="govuk-error-summary">
@@ -116,7 +117,7 @@
             <div>
                 <span id="upload-status-screen-reader">
                     <label for="upload-records-progress-bar" class="govuk-label progress-label">
-                        Uploading judgment <span id="upload-percentage" role="status" aria-live="polite"></span>
+                        @pageHeading2ndHalf <span id="upload-percentage" role="status" aria-live="polite"></span>
                     </label>
                 </span>
                 <div class="progress-bar">
@@ -125,5 +126,6 @@
             </div>
         </div>
     </div>
+    @transferReference(consignmentRef, isJudgmentUser = true)
 </div>
 }

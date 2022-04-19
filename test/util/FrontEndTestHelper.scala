@@ -65,6 +65,13 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       .willReturn(okJson(dataString)))
   }
 
+  def setConsignmentReferenceResponse(wiremockServer: WireMockServer, consignmentRef: String = "TEST-TDR-2021-GB"): StubMapping = {
+    val dataString = s"""{"data": {"getConsignment": {"consignmentReference": "$consignmentRef"}}}"""
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentReference"))
+      .willReturn(okJson(dataString)))
+  }
+
   val userChecks: TableFor2[KeycloakConfiguration, String] = Table(
     ("user", "url"),
     (getValidJudgmentUserKeycloakConfiguration, "consignment"),

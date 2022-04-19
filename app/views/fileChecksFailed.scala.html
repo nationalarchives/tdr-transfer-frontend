@@ -1,11 +1,15 @@
-@import views.html.partials.{progressIndicator, fileCheckErrorMessage}
+@import views.html.partials.{progressIndicator, fileCheckErrorMessage, transferReference}
 
-@(name: String, isJudgmentUser: Boolean, fileStatuses: List[String] = Nil)(implicit request: RequestHeader, messages: Messages)
+@(name: String, consignmentRef: String, isJudgmentUser: Boolean, fileStatuses: List[String] = Nil)(implicit request: RequestHeader, messages: Messages)
 
 @main("Results of checks", name = name, isJudgmentUser = isJudgmentUser) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      @progressIndicator(Messages("checkingRecords.progress"), Messages("progress.totalSteps"))
+        @if(isJudgmentUser) {
+            @progressIndicator(Messages("judgmentCheckingRecords.progress"), isJudgmentUser)
+        } else {
+            @progressIndicator(Messages("checkingRecords.progress"), isJudgmentUser)
+        }
       <h1 class="govuk-heading-l">Results of your checks</h1>
 
       <div class="govuk-error-summary" aria-labelledby="error-summary-title"
@@ -16,8 +20,8 @@
           <div class="govuk-error-summary__body">
             @if(isJudgmentUser) {
               <p class="govuk-body">Your file has failed our checks. Please try again. If this continues, contact us at
-                <a class="govuk-link" href="mailto:judgments@@nationalarchives.gov.uk" data-hsupport="email">
-                  judgments@@nationalarchives.gov.uk
+                <a class="govuk-link" href="mailto:tdr@@nationalarchives.gov.uk" data-hsupport="email">
+                  tdr@@nationalarchives.gov.uk
                 </a>
               </p>
             } else {
@@ -29,5 +33,6 @@
           Return to start
       </a>
     </div>
+      @transferReference(consignmentRef, isJudgmentUser)
   </div>
 }

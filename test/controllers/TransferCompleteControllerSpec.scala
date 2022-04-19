@@ -1,23 +1,17 @@
 package controllers
 
-import java.util.UUID
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
-import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.GraphQLConfiguration
-import io.circe.Printer
 import org.pac4j.play.scala.SecurityComponents
+import play.api.http.Status.FORBIDDEN
+import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
 import services.ConsignmentService
 import util.FrontEndTestHelper
-import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcr}
-import io.circe.syntax.EncoderOps
-import io.circe.generic.auto._
-import play.api.http.Status.FORBIDDEN
-import play.api.mvc.Result
 
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 class TransferCompleteControllerSpec extends FrontEndTestHelper {
@@ -40,7 +34,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
   "TransferCompleteController GET" should {
     "render the success page if the export was triggered successfully" in {
-      setConsignmentReferenceResponse()
+      setConsignmentReferenceResponse(wiremockServer)
       val transferCompleteSubmit = callTransferComplete("consignment")
       contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
@@ -49,25 +43,28 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       """    <a href="https://www.smartsurvey.co.uk/s/tdr-feedback/" class="govuk-link" rel="noreferrer noopener" target="_blank">
         What did you think of this service? (opens in new tab)""")
       contentAsString(transferCompleteSubmit) must include (s"""" href="/faq">""")
+      contentAsString(transferCompleteSubmit) must include (s"""" href="/help">""")
     }
 
     "render the success page if the export was triggered successfully for a judgment user" in {
-      setConsignmentReferenceResponse()
+      setConsignmentReferenceResponse(wiremockServer)
       val transferCompleteSubmit = callTransferComplete("judgment")
       contentAsString(transferCompleteSubmit) must include("Transfer complete")
       contentAsString(transferCompleteSubmit) must include("TEST-TDR-2021-GB")
-      contentAsString(transferCompleteSubmit) must include("Your file has now been transferred to The National Archives.")
+      contentAsString(transferCompleteSubmit) must include("Your file has now been transferred")
+      contentAsString(transferCompleteSubmit) must include("to The National Archives.")
       contentAsString(transferCompleteSubmit) must include(
         """    <a href="https://www.smartsurvey.co.uk/s/5YDPSA/" class="govuk-link" rel="noreferrer noopener" target="_blank">
         What did you think of this service? (opens in new tab)""")
       contentAsString(transferCompleteSubmit) must include (s"""" href="/judgment/faq">""")
+      contentAsString(transferCompleteSubmit) must include (s"""" href="/judgment/help">""")
     }
   }
 
   forAll(userChecks) { (_, url) =>
     s"The $url upload page" should {
       s"return 403 if the url doesn't match the consignment type" in {
-        setConsignmentReferenceResponse()
+        setConsignmentReferenceResponse(wiremockServer)
         val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, url)
         val consignmentId = UUID.randomUUID()
         setConsignmentTypeResponse(wiremockServer, url)
@@ -84,17 +81,6 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         status(transferCompleteSubmit) mustBe FORBIDDEN
       }
     }
-  }
-
-  private def setConsignmentReferenceResponse(): StubMapping = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[gcr.Data, gcr.Variables]()
-    val consignmentReferenceResponse: gcr.GetConsignment = new gcr.GetConsignment("TEST-TDR-2021-GB")
-    val data: client.GraphqlData = client.GraphqlData(Some(gcr.Data(Some(consignmentReferenceResponse))), List())
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentReference"))
-      .willReturn(okJson(dataString)))
   }
 
   private def instantiateTransferCompleteController(securityComponents: SecurityComponents, path: String) = {
