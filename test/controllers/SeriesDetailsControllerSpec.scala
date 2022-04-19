@@ -54,6 +54,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
       setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentReferenceResponse(wiremockServer)
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
@@ -157,6 +158,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
       setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentReferenceResponse(wiremockServer)
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit(consignmentId).apply(FakeRequest(POST, "/series").withCSRFToken)
@@ -179,6 +181,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
       setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentReferenceResponse(wiremockServer)
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken).futureValue
@@ -204,6 +207,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, f"/consignment/$consignmentId/series").withCSRFToken)
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), seriesStatus = Some("Completed"))
       setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentReferenceResponse(wiremockServer)
 
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
