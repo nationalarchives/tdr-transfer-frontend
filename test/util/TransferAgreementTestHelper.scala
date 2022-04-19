@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import controllers.{TransferAgreementPrivateBetaController, TransferAgreementComplianceController}
+import controllers.{TransferAgreementComplianceController, TransferAgreementPrivateBetaController}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
@@ -14,7 +14,7 @@ import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Configuration
-import services.{ConsignmentService, TransferAgreementService}
+import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 
@@ -110,9 +110,10 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val graphQLConfiguration = new GraphQLConfiguration(config)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
     new TransferAgreementPrivateBetaController(securityComponents, new GraphQLConfiguration(config),
-      transferAgreementService, keycloakConfiguration, consignmentService)
+      transferAgreementService, keycloakConfiguration, consignmentService, consignmentStatusService)
   }
 
   def instantiateTransferAgreementComplianceController(securityComponents: SecurityComponents,
@@ -122,9 +123,10 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val graphQLConfiguration = new GraphQLConfiguration(config)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
     new TransferAgreementComplianceController(securityComponents, new GraphQLConfiguration(config),
-      transferAgreementService, keycloakConfiguration, consignmentService)
+      transferAgreementService, keycloakConfiguration, consignmentService, consignmentStatusService)
   }
 
   def stubTAPrivateBetaResponse(transferAgreement: Option[atapb.AddTransferAgreementPrivateBeta] = None,

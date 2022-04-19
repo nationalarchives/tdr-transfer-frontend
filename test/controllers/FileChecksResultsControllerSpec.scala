@@ -49,10 +49,11 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   forAll (userTypes) { userType =>
     "FileChecksResultsController GET" should {
 
-      val (pathName, keycloakConfiguration, expectedTitle, expectedFaqLink, expectedHelpLink) = if(userType == "judgment") {
-        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Results of checks", """" href="/judgment/faq">""", """ href="/judgment/help">""")
+      val (pathName, keycloakConfiguration, expectedTitle, expectedFaqLink, expectedHelpLink, expectedReference) = if(userType == "judgment") {
+        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Results of checks", """" href="/judgment/faq">""", """ href="/judgment/help">""",
+          "TEST-TDR-2021-GB")
       } else {
-        ("consignment", getValidStandardUserKeycloakConfiguration, "Results of your checks", """" href="/faq">""", """href="/help">""")
+        ("consignment", getValidStandardUserKeycloakConfiguration, "Results of your checks", """" href="/faq">""", """href="/help">""", "TEST-TDR-2021-GB")
       }
 
       s"render the $userType fileChecksResults page with the confirmation box" in {
@@ -99,7 +100,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           resultsPageAsString must include(expectedTitle)
           resultsPageAsString must include("has been successfully checked and is ready to be exported")
           resultsPageAsString must include("Export")
-          resultsPageAsString must include("TEST-TDR-2021-GB")
         } else {
           resultsPageAsString must include(expectedTitle)
           resultsPageAsString must include("has been successfully checked and uploaded")
@@ -112,6 +112,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         resultsPageAsString must include("success-summary")
         resultsPageAsString must include(expectedFaqLink)
         resultsPageAsString must include(expectedHelpLink)
+        resultsPageAsString must include(expectedReference)
       }
 
       s"return a redirect to the auth server if an unauthenticated user tries to access the $userType file checks page" in {
@@ -203,7 +204,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         contentAsString(recordCheckResultsPage) must include("There is a problem")
         resultsPageAsString must include("Return to start")
         resultsPageAsString must include(expectedFaqLink)
-        resultsPageAsString must include("TEST-TDR-2021-GB")
+        resultsPageAsString must include(expectedReference)
       }
 
       s"return the passwordProtected $userType error page if file checks have failed with PasswordProtected" in {
@@ -249,7 +250,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         contentAsString(recordCheckResultsPage) must include("There is a problem")
         resultsPageAsString must include("Return to start")
         resultsPageAsString must include(expectedFaqLink)
-        resultsPageAsString must include("TEST-TDR-2021-GB")
+        resultsPageAsString must include(expectedReference)
       }
 
       s"return the zip $userType error page if file checks have failed with Zip" in {
@@ -295,7 +296,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         contentAsString(recordCheckResultsPage) must include("There is a problem")
         resultsPageAsString must include("Return to start")
         resultsPageAsString must include(expectedFaqLink)
-        resultsPageAsString must include("TEST-TDR-2021-GB")
+        resultsPageAsString must include(expectedReference)
       }
 
       s"return the general $userType error page if file checks have failed with PasswordProtected and Zip" in {
@@ -341,7 +342,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         contentAsString(recordCheckResultsPage) must include("There is a problem")
         resultsPageAsString must include("Return to start")
         resultsPageAsString must include(expectedFaqLink)
-        resultsPageAsString must include("TEST-TDR-2021-GB")
+        resultsPageAsString must include(expectedReference)
       }
     }
   }

@@ -67,6 +67,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesDetailsPage) must include (s"""<option value="${seriesId.toString}">code</option>""")
       contentAsString(seriesDetailsPage) must include (s"""" href="/faq">""")
       contentAsString(seriesDetailsPage) must include (s"""" href="/help">""")
+      contentAsString(seriesDetailsPage) must include ("TEST-TDR-2021-GB")
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
@@ -166,6 +167,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesSubmit) must include("<title>Error: ")
       contentAsString(seriesSubmit) must include (s"""" href="/faq">""")
       contentAsString(seriesSubmit) must include (s"""" href="/help">""")
+      contentAsString(seriesSubmit) must include ("TEST-TDR-2021-GB")
     }
 
     "will send the correct body if it is present on the user" in {
