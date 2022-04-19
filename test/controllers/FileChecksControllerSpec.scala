@@ -42,18 +42,22 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
   forAll (fileChecks) { userType =>
     "FileChecksController GET" should {
-      val (pathName, keycloakConfiguration, expectedTitle, expectedText, expectedFaqLink) = if(userType == "judgment") {
+      val (pathName, keycloakConfiguration, expectedTitle, expectedText, expectedFaqLink, expectedHelpLink) = if(userType == "judgment") {
         ("judgment",
           getValidJudgmentUserKeycloakConfiguration,
           "Checking your upload",
-          "Your court judgment is being checked for errors",
-          s"""" href="/judgment/faq">""")
+          "Your judgment is being checked for errors",
+          """" href="/judgment/faq">""",
+          """href="/judgment/help">"""
+        )
       } else {
         ("consignment",
           getValidStandardUserKeycloakConfiguration,
           "Checking your records",
           "Please wait while your records are being checked. This may take a few minutes.",
-          s"""" href="/faq">""")
+          """" href="/faq">""",
+          """" href="/help">""",
+        )
       }
 
       s"render the $userType fileChecks page if the checks are incomplete" in {
@@ -66,6 +70,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
         mockGraphqlResponse(dataString, userType)
+        setConsignmentReferenceResponse(wiremockServer)
 
         val recordsController = new FileChecksController(
           getAuthorisedSecurityComponents,
@@ -89,6 +94,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         recordsPageAsString must include(expectedTitle)
         recordsPageAsString must include(expectedText)
         recordsPageAsString must include(expectedFaqLink)
+        recordsPageAsString must include(expectedHelpLink)
       }
 
       s"return a redirect to the auth server with an unauthenticated $userType user" in {

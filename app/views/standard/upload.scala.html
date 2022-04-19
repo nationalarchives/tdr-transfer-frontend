@@ -3,24 +3,24 @@
 @import viewsapi.FrontEndInfo
 
 @import java.util.UUID
-@(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, pageHeading1stHalf:String, pageHeading2ndHalf: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
-@main("Upload your records", name = name) {
+@main(pageHeading1stHalf, name = name) {
 <noscript>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            @progressIndicator(Messages("upload.progress"), Messages("progress.totalSteps"))
-            <h1 class="govuk-heading-l">Upload your records</h1>
+            @progressIndicator(Messages("upload.progress"))
+            <h1 class="govuk-heading-l">@pageHeading1stHalf</h1>
             @noScriptMessage()
         </div>
     </div>
 </noscript>
 <div id="file-upload" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("upload.progress"), Messages("progress.totalSteps"))
+        @progressIndicator(Messages("upload.progress"))
         @frontEndInputs(frontEndInfo)
 
-        <h1 class="govuk-heading-l">Upload your records</h1>
+        <h1 class="govuk-heading-l">@pageHeading1stHalf</h1>
         <p class="govuk-body">You can only upload one folder to be transferred. If your folder contains files that we cannot accept, you may have to start again.</p>
         <p class="govuk-body">There is no limit to the size of the files but larger files may take longer to be uploaded and checked.</p>
         <div class="govuk-inset-text">
@@ -92,8 +92,8 @@
 </div>
 <div id="upload-progress" class="govuk-grid-row" hidden>
     <div class="govuk-grid-column-two-thirds" role="status" aria-live="assertive">
-        @progressIndicator(Messages("upload.progress"), Messages("progress.totalSteps"))
-        <h1 class="govuk-heading-l">Uploading records</h1>
+        @progressIndicator(Messages("upload.progress"))
+        <h1 class="govuk-heading-l">@pageHeading2ndHalf</h1>
         <div id="upload-progress-error" hidden>
             <div class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"
                 role="alert" tabindex="-1" data-module="govuk-error-summary">
@@ -117,7 +117,7 @@
             <div>
                 <span id="upload-status-screen-reader">
                     <label for="upload-records-progress-bar" class="govuk-label progress-label">
-                        Uploading records <span id="upload-percentage" role="status" aria-live="polite"></span>
+                        @pageHeading2ndHalf <span id="upload-percentage" role="status" aria-live="polite"></span>
                     </label>
                 </span>
                 <div class="progress-bar">

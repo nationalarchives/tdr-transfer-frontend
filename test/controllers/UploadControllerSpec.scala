@@ -101,6 +101,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("Uploading records")
       uploadPageAsString must include("You can only upload one folder to be transferred")
       uploadPageAsString must include (s"""" href="/faq">""")
+      uploadPageAsString must include (s"""" href="/help">""")
     }
 
     "render the upload in progress page if the upload is in progress" in {
@@ -121,6 +122,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("Uploading records")
       uploadPageAsString must include("Your upload was interrupted and could not be completed.")
       uploadPageAsString must include (s"""" href="/faq">""")
+      uploadPageAsString must include (s"""" href="/help">""")
     }
 
     "render the upload is complete page if the upload has completed" in {
@@ -144,6 +146,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |        Continue
            |      </a>""".stripMargin)
       uploadPageAsString must include (s"""" href="/faq">""")
+      uploadPageAsString must include (s"""" href="/help">""")
     }
 
     "show the judgment upload page for judgments" in {
@@ -153,6 +156,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService)
 
+      setConsignmentReferenceResponse(wiremockServer)
       stubGetConsignmentStatusResponse()
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
@@ -162,9 +166,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       status(uploadPage) mustBe OK
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      uploadPageAsString must include("Upload a court judgment")
-      uploadPageAsString must include("You may now upload the court judgment you wish to transfer. You can only upload one file.")
+      uploadPageAsString must include("Upload judgment")
+      uploadPageAsString must include("You may now upload the judgment you wish to transfer. You can only upload one file.")
       uploadPageAsString must include (s"""" href="/judgment/faq">""")
+      uploadPageAsString must include (s"""" href="/judgment/help">""")
+      uploadPageAsString must include ("TEST-TDR-2021-GB")
     }
 
     "render the judgment upload in progress page if the upload is in progress" in {
@@ -176,15 +182,17 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"), uploadStatus = Some("InProgress"))
       setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
       val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
-      uploadPageAsString must include("Uploading court judgment")
+      uploadPageAsString must include("Uploading judgment")
       uploadPageAsString must include("Your upload was interrupted and could not be completed.")
       uploadPageAsString must include (s"""" href="/judgment/faq">""")
+      uploadPageAsString must include (s"""" href="/judgment/help">""")
     }
 
     "render the judgment upload is complete page if the upload has completed" in {
@@ -196,19 +204,21 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       stubGetConsignmentStatusResponse(transferAgreementStatus = Some("Completed"), uploadStatus = Some("Completed"))
       setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
 
       val uploadPage = controller.judgmentUploadPage(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
       val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
-      uploadPageAsString must include("Uploading court judgment")
+      uploadPageAsString must include("Uploading judgment")
       uploadPageAsString must include("Your upload is complete and has been saved")
       uploadPageAsString must include(
         s"""      <a href="/judgment/$consignmentId/file-checks" role="button" draggable="false" class="govuk-button govuk-button--primary">
            |        Continue
            |      </a>""".stripMargin)
       uploadPageAsString must include (s"""" href="/judgment/faq">""")
+      uploadPageAsString must include (s"""" href="/judgment/help">""")
     }
   }
 

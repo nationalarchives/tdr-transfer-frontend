@@ -5,7 +5,11 @@
 @main("Upload your records", name = name, isJudgmentUser = isJudgmentUser) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      @progressIndicator(Messages("upload.progress"), Messages("progress.totalSteps"))
+        @if(isJudgmentUser) {
+            @progressIndicator(Messages("judgmentUpload.progress"), isJudgmentUser)
+        } else {
+            @progressIndicator(Messages("upload.progress"), isJudgmentUser)
+        }
       <h1 class="govuk-heading-l">@pageHeading</h1>
       <p class="govuk-body">Your upload is complete and has been saved. You cannot make amendments to your upload or add additional files.</p>
       <p class="govuk-body">Please click 'Continue' to proceed with your transfer.</p>
