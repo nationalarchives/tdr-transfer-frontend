@@ -249,7 +249,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         val controller = new UploadController(getAuthorisedSecurityComponents,
           graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService)
 
-        setConsignmentStatusResponse(app.configuration, wiremockServer)
+        setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some("InProgress"))
 
         val uploadPage = url match {
           case "judgment" =>
@@ -273,7 +273,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         val controller = new UploadController(getAuthorisedSecurityComponents,
           graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService)
 
-        setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some("InProgress"))
+        setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some("Completed"))
 
         val uploadPage = url match {
           case "judgment" =>
