@@ -39,6 +39,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration)
+      setConsignmentReferenceResponse(wiremockServer)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued").withCSRFToken)
@@ -56,6 +57,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
+      setConsignmentReferenceResponse(wiremockServer)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued").withCSRFToken)
@@ -67,6 +69,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement-continued" method="POST" novalidate="">""")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
       transferAgreementPageAsString must include (s"""" href="/help">""")
+      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
     }
 
@@ -160,6 +163,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
+      setConsignmentReferenceResponse(wiremockServer)
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = Seq()
 
@@ -175,6 +179,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include("error")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
       transferAgreementPageAsString must include (s"""" href="/help">""")
+      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
       taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.compliance, Set())
     }
 
@@ -182,6 +187,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("InProgress"))
+      setConsignmentReferenceResponse(wiremockServer)
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("privateBeta", 2)
 
@@ -200,6 +206,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include("error")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
       transferAgreementPageAsString must include (s"""" href="/help">""")
+      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
       taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.compliance, pageOptions)
     }
 
@@ -208,6 +215,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
+      setConsignmentReferenceResponse(wiremockServer)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued").withCSRFToken)
@@ -222,6 +230,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include("You have already confirmed all statements")
       transferAgreementPageAsString must include (s"""" href="/faq">""")
       transferAgreementPageAsString must include (s"""" href="/help">""")
+      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
@@ -230,6 +239,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
+      setConsignmentReferenceResponse(wiremockServer)
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement-continued").withCSRFToken)
@@ -244,6 +254,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
       taAlreadyConfirmedPageAsString must include (s"""" href="/faq">""")
       taAlreadyConfirmedPageAsString must include (s"""" href="/help">""")
+      taAlreadyConfirmedPageAsString must include ("TEST-TDR-2021-GB")
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
@@ -252,6 +263,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
       taHelper.mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
+      setConsignmentReferenceResponse(wiremockServer)
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("privateBeta", 1)
 
@@ -270,6 +282,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
       taAlreadyConfirmedPageAsString must include (s"""" href="/faq">""")
       taAlreadyConfirmedPageAsString must include (s"""" href="/help">""")
+      taAlreadyConfirmedPageAsString must include ("TEST-TDR-2021-GB")
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
   }

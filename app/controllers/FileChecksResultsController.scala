@@ -31,10 +31,10 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
           fileCheck.totalFiles,
           parentFolder
         )
-        Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId, request.token.name))
+        Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId, reference, request.token.name))
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
-        Ok(views.html.fileChecksFailed(request.token.name, reference.consignmentReference, isJudgmentUser = false, fileStatusList))
+        Ok(views.html.fileChecksFailed(request.token.name, reference, isJudgmentUser = false, fileStatusList))
       }
     }
   }
@@ -43,12 +43,13 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
     for {
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      result <- fileCheck.allChecksSucceeded match {
-        case true => consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).flatMap(files => {
+      result <- if (fileCheck.allChecksSucceeded) {
+        consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).flatMap(files => {
           val filename = files.files.head.metadata.clientSideOriginalFilePath.get
-          Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference.consignmentReference, request.token.name)))
+          Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference, request.token.name)))
         })
-        case _ => Future(Ok(views.html.fileChecksFailed(request.token.name, reference.consignmentReference, isJudgmentUser = true)))
+      } else {
+        Future(Ok(views.html.fileChecksFailed(request.token.name, reference, isJudgmentUser = true)))
       }
     } yield result
   }
