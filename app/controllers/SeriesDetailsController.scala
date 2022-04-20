@@ -1,10 +1,7 @@
 package controllers
 
-import java.util.UUID
-
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
@@ -13,6 +10,8 @@ import play.api.mvc._
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
 import viewsapi.Caching.preventCaching
 
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -20,40 +19,20 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
                                         val keycloakConfiguration: KeycloakConfiguration,
                                         seriesService: SeriesService,
                                         val consignmentService: ConsignmentService,
-                                        val consignmentStatusService: ConsignmentStatusService,
-                                        )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+                                        val consignmentStatusService: ConsignmentStatusService
+                                       )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  val selectedSeriesForm = Form(
+  val selectedSeriesForm: Form[SelectedSeriesData] = Form(
     mapping(
-      "series" -> text.verifying("Select a series reference", t => !t.isEmpty)
+      "series" -> text.verifying("Select a series reference", t => t.nonEmpty)
     )(SelectedSeriesData.apply)(SelectedSeriesData.unapply)
   )
-
-  private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])
-                              (implicit requestHeader: RequestHeader) = {
-    for {
-      consignmentStatus <- consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken)
-      seriesStatus = consignmentStatus.flatMap(_.currentStatus.series)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      result <- seriesStatus match {
-        case Some("Completed") =>
-          val seriesFormData = List((consignmentStatus.flatMap(_.series.map(_.seriesid.toString)).get, consignmentStatus.flatMap(_.series.map(_.code)).get))
-          Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, reference,
-            seriesFormData, selectedSeriesForm, request.token.name)).uncache())
-        case _ =>
-          seriesService.getSeriesForUser(request.token).map { series =>
-              val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
-              status(views.html.standard.seriesDetails(consignmentId, reference, seriesFormData, form, request.token.name)).uncache()
-            }
-      }
-    } yield result
-  }
 
   def seriesDetails(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getSeriesDetails(consignmentId, request, Ok, selectedSeriesForm)
   }
 
-  def seriesSubmit(consignmentId: UUID): Action[AnyContent] =  standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def seriesSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedSeriesData] = selectedSeriesForm.bindFromRequest()
 
     val errorFunction: Form[SelectedSeriesData] => Future[Result] = { formWithErrors: Form[SelectedSeriesData] =>
@@ -76,6 +55,30 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
       successFunction
     )
   }
+
+  private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])
+                              (implicit requestHeader: RequestHeader) = {
+    for {
+      consignmentStatus <- consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken)
+      seriesStatus = consignmentStatus.flatMap(_.currentStatus.series)
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      result <- seriesStatus match {
+        case Some("Completed") =>
+          val seriesFormData: List[(String, String)] = List(
+            consignmentStatus.flatMap(_.series.map{
+              series => (series.seriesid.toString, series.code)
+            }).get
+          )
+          Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, reference,
+            seriesFormData, selectedSeriesForm, request.token.name)).uncache())
+        case _ =>
+          seriesService.getSeriesForUser(request.token).map { series =>
+            val seriesFormData: List[(String, String)] = series.map(s => (s.seriesid.toString, s.code))
+            status(views.html.standard.seriesDetails(consignmentId, reference, seriesFormData, form, request.token.name)).uncache()
+          }
+      }
+    } yield result
+  }
 }
 
-case class SelectedSeriesData (seriesId: String)
+case class SelectedSeriesData(seriesId: String)

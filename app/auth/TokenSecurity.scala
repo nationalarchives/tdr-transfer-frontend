@@ -2,14 +2,14 @@ package auth
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
-import org.pac4j.core.profile.ProfileManager
+import org.pac4j.core.profile.{ProfileManager, UserProfile}
 import org.pac4j.play.PlayWebContext
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
-import java.util.UUID
+import java.util.{Optional, UUID}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait TokenSecurity extends OidcSecurity with I18nSupport {
@@ -19,7 +19,7 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   def consignmentService: ConsignmentService
   implicit val executionContext: ExecutionContext = consignmentService.ec
 
-  def getProfile(request: Request[AnyContent]) = {
+  def getProfile(request: Request[AnyContent]): Optional[UserProfile] = {
     val webContext = new PlayWebContext(request)
     val profileManager = new ProfileManager(webContext, sessionStore)
     profileManager.getProfile
@@ -33,9 +33,9 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   }
 
   def judgmentTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    consignmentService.getConsignmentType(consignmentId, request.token.bearerAccessToken).flatMap(consignmentType => {
+    consignmentService.getConsignmentType(consignmentId, request.token.bearerAccessToken).flatMap(consignmentType =>
       createResult(action, request, consignmentType == "judgment")
-    })
+    )
   }
 
   def judgmentUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
@@ -56,8 +56,15 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     if (isPermitted) {
       action(request)
     } else {
-
-      Future.successful(Forbidden(views.html.forbiddenError(request.token.name, getProfile(request).isPresent, request.token.isJudgmentUser)(request2Messages(request), request)))
+      Future.successful(
+        Forbidden(
+          views.html.forbiddenError(
+            request.token.name,
+            getProfile(request).isPresent,
+            request.token.isJudgmentUser
+          )(request2Messages(request), request)
+        )
+      )
     }
   }
 }
