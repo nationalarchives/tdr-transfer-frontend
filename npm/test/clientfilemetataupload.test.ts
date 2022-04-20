@@ -175,7 +175,7 @@ test("saveClientFileMetadata uploads client file metadata", async () => {
   }
 })
 
-test("saveClientFileMetadata uploads any empty directories", async () => {
+test("saveClientFileMetadata uploads any empty folders", async () => {
   const mockGraphqlClient = GraphqlClient as jest.Mock
   const clientSuccess = new GraphqlClientSuccessAddMetadata()
   mockGraphqlClient.mockImplementation(() => {
@@ -186,11 +186,11 @@ test("saveClientFileMetadata uploads any empty directories", async () => {
   const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
   const uploadMetadata = new ClientFileMetadataUpload(client)
 
-  const emptyDirectories = ["empty1", "empty2"];
-  await uploadMetadata.saveClientFileMetadata("", metadata, emptyDirectories)
+  const emptyFolders = ["empty1", "empty2"];
+  await uploadMetadata.saveClientFileMetadata("", metadata, emptyFolders)
 
   const variables = clientSuccess.variables! as any as AddFilesAndMetadataMutationVariables
-  expect(variables.input.emptyDirectories).toEqual(emptyDirectories)
+  expect(variables.input.emptyDirectories).toEqual(emptyFolders)
 })
 
 test("saveClientFileMetadata fails to upload client file metadata", async () => {

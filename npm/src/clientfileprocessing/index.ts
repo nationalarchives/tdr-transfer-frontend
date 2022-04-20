@@ -72,7 +72,7 @@ export class ClientFileProcessing {
       uploadFilesInfo
     )
     if (!isError(uploadResult)) {
-      const emptyDirectories = files
+      const emptyFolders = files
         .filter((f) => isDirectory(f))
         .map((f) => f.path)
 
@@ -87,7 +87,7 @@ export class ClientFileProcessing {
           await this.clientFileMetadataUpload.saveClientFileMetadata(
             uploadFilesInfo.consignmentId,
             metadata,
-            emptyDirectories
+            emptyFolders
           )
         if (!isError(tdrFiles)) {
           const uploadResult = await this.s3Upload.uploadToS3(

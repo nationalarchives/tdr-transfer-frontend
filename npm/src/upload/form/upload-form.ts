@@ -123,14 +123,14 @@ export class UploadForm {
         const webkitEntry = droppedItem.webkitGetAsEntry()
         const resultOrError = this.checkIfDroppedItemIsFolder(webkitEntry)
         if (!isError(resultOrError)) {
-          const filesAndDirectories: (IFileWithPath | IDirectoryWithPath)[] =
+          const filesAndFolders: (IFileWithPath | IDirectoryWithPath)[] =
             await getAllFiles(webkitEntry, [])
-          const files = filesAndDirectories.filter((f) =>
+          const files = filesAndFolders.filter((f) =>
             isFile(f)
           ) as IFileWithPath[]
           const folderCheck = this.checkIfFolderHasFiles(files)
           if (!isError(folderCheck)) {
-            this.selectedFiles = filesAndDirectories
+            this.selectedFiles = filesAndFolders
             addFolderSelectionSuccessMessage(
               webkitEntry.name,
               this.selectedFiles.filter((f) => isFile(f)).length
