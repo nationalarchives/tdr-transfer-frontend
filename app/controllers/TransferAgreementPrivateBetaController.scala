@@ -44,20 +44,26 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
       transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
+      seriesStatus = consignmentStatus.flatMap(_.series)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val warningMessage = Messages("transferAgreement.warning")
-      transferAgreementStatus match {
-        case Some("InProgress") | Some("Completed") =>
-          Ok(views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(
-            consignmentId, reference, transferAgreementForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name))
-            .uncache()
-        case None => httpStatus(
-          views.html.standard.transferAgreementPrivateBeta(
-            consignmentId, reference, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
-        case _ =>
-          throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
+      seriesStatus match {
+        case Some("Completed") =>
+          transferAgreementStatus match {
+            case Some("InProgress") | Some("Completed") =>
+              Ok(views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(
+                consignmentId, reference, transferAgreementForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name))
+                .uncache()
+            case None => httpStatus(
+              views.html.standard.transferAgreementPrivateBeta(
+                consignmentId, reference, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
+            case _ =>
+              throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
+          }
+        case _ => Redirect(routes.SeriesDetailsController.seriesDetails(consignmentId))
       }
+
     }
   }
 

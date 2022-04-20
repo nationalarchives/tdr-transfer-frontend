@@ -40,22 +40,29 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
   )
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementComplianceData] = transferAgreementForm)
-                                        (implicit request: Request[AnyContent]): Future[Result] = {
+                                             (implicit request: Request[AnyContent]): Future[Result] = {
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
       transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
+      seriesStatus = consignmentStatus.flatMap(_.series)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-    } yield transferAgreementStatus match {
-      case Some("Completed") =>
-        Ok(views.html.standard.transferAgreementComplianceAlreadyConfirmed(
-          consignmentId, reference, transferAgreementForm, taFormNamesAndLabels, request.token.name)).uncache()
-      case Some("InProgress") =>
-        httpStatus(views.html.standard.transferAgreementCompliance(
-          consignmentId, reference, taForm, taFormNamesAndLabels, request.token.name)).uncache()
-      case None =>
-        Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)).uncache()
-      case _ =>
-        throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
+    } yield {
+      seriesStatus match {
+        case Some("Completed") =>
+          transferAgreementStatus match {
+            case Some("Completed") =>
+              Ok(views.html.standard.transferAgreementComplianceAlreadyConfirmed(
+                consignmentId, reference, transferAgreementForm, taFormNamesAndLabels, request.token.name)).uncache()
+            case Some("InProgress") =>
+              httpStatus(views.html.standard.transferAgreementCompliance(
+                consignmentId, reference, taForm, taFormNamesAndLabels, request.token.name)).uncache()
+            case None =>
+              Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)).uncache()
+            case _ =>
+              throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
+          }
+        case _ => Redirect(routes.SeriesDetailsController.seriesDetails(consignmentId))
+      }
     }
   }
 
