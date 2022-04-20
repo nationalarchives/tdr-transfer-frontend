@@ -79,11 +79,11 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       .map(data => data.getConsignment.get)
   }
 
-  def getConsignmentRef(consignmentId: UUID, token: BearerAccessToken): Future[getConsignmentReference.GetConsignment] = {
+  def getConsignmentRef(consignmentId: UUID, token: BearerAccessToken): Future[String] = {
     val variables: getConsignmentReference.Variables = new getConsignmentReference.Variables(consignmentId)
 
     sendApiRequest(getConsignmentReferenceClient, getConsignmentReference.document, token, variables)
-      .map(data => data.getConsignment.get)
+      .map(data => data.getConsignment.get.consignmentReference)
   }
 
   def getConsignmentFilePath(consignmentId: UUID, token: BearerAccessToken): Future[getConsignmentFiles.GetConsignment] = {

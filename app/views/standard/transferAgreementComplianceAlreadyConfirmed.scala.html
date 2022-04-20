@@ -2,9 +2,10 @@
 @import java.util.UUID
 
 @import scala.language.postfixOps
-@import views.html.partials.{transferAgreementFormGroup, transferAgreementHeader}
+@import views.html.partials.{transferAgreementFormGroup, transferAgreementHeader, transferReference}
 
-@(consignmentId: UUID, transferAgreementFormData: Form[TransferAgreementComplianceData], taFormNamesAndLabels: Seq[(String, String)], warningMessage: String, name: String)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, transferAgreementFormData: Form[TransferAgreementComplianceData], taFormNamesAndLabels: Seq[(String, String)],
+        name: String)(implicit request: RequestHeader, messages: Messages)
 @main("Transfer agreement", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
@@ -27,6 +28,7 @@
             <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
         </div>
     </div>
+    @transferReference(consignmentRef, isJudgmentUser = false)
 </div>
 }
 }

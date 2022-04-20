@@ -1,6 +1,6 @@
 @import java.util.UUID
-@import views.html.partials.progressIndicator
-@(consignmentId: UUID, pageHeading: String, name: String, isJudgmentUser: Boolean)(implicit request: RequestHeader, messages: Messages)
+@import views.html.partials.{progressIndicator, transferReference}
+@(consignmentId: UUID, consignmentRef: String, pageHeading: String, name: String, isJudgmentUser: Boolean)(implicit request: RequestHeader, messages: Messages)
 
 @main("Upload your records", name = name, isJudgmentUser = isJudgmentUser) {
   <div class="govuk-grid-row">
@@ -18,5 +18,6 @@
         Continue
       </a>
     </div>
+    @transferReference(consignmentRef, isJudgmentUser)
   </div>
 }
