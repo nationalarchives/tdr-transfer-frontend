@@ -34,32 +34,35 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
   }
 
   def fileChecksPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    getFileChecksProgress(request, consignmentId)
-      .map {
-        fileChecks => if(fileChecks.isComplete) {
-          Ok(views.html.fileChecksProgressAlreadyConfirmed(
-            consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = false
-          )).uncache()
-        } else {
-          Ok(views.html.standard.fileChecksProgress(consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
-        }
+    for {
+      fileChecks <- getFileChecksProgress(request, consignmentId)
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      if(fileChecks.isComplete) {
+        Ok(views.html.fileChecksProgressAlreadyConfirmed(
+          consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = false
+        )).uncache()
+      } else {
+        Ok(views.html.standard.fileChecksProgress(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name))
+          .uncache()
       }
+    }
   }
 
   def judgmentFileChecksPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    getFileChecksProgress(request, consignmentId)
-      .flatMap {
-        fileChecks => if(fileChecks.isComplete) {
-          Future(Ok(views.html.fileChecksProgressAlreadyConfirmed(
-            consignmentId, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = true
-          )).uncache())
-        } else {
-          consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map(r =>
-            Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, r.consignmentReference, frontEndInfoConfiguration.frontEndInfo, request.token.name
-            )).uncache()
-          )
-        }
+    for {
+      fileChecks <- getFileChecksProgress(request, consignmentId)
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      if(fileChecks.isComplete) {
+        Ok(views.html.fileChecksProgressAlreadyConfirmed(
+          consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = true
+        )).uncache()
+      } else {
+        Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo,
+          request.token.name)).uncache()
       }
+    }
   }
 }
 

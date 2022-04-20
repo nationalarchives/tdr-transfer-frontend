@@ -1,8 +1,8 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
-@import views.html.partials.{frontEndInputs, progressIndicator}
+@import views.html.partials.{frontEndInputs, progressIndicator, transferReference}
 
-@(consignmentId: UUID, frontEndInfo: FrontEndInfo, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
 @title = @{if(isJudgmentUser){"Checking your upload"} else {"Checking your records"}}
 @main(title, name = name, isJudgmentUser = isJudgmentUser) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -27,6 +27,7 @@
                 </a>
             </div>
         </div>
+        @transferReference(consignmentRef, isJudgmentUser)
     </div>
     }
 }
