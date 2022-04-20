@@ -4,20 +4,17 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import controllers.{TransferAgreementPrivateBetaController, TransferAgreementComplianceController}
+import controllers.{TransferAgreementComplianceController, TransferAgreementPrivateBetaController}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
-import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Configuration
-import services.{ConsignmentService, TransferAgreementService}
+import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 
@@ -43,22 +40,6 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
 
   val privateBeta = "privateBeta"
   val compliance = "compliance"
-
-  def mockGetConsignmentStatusGraphqlResponse(config: Configuration, taStatus: Option[String]=None, consignmentType: String = "standard"): StubMapping = {
-
-    val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
-    val consignmentResponse = gcs.Data(Option(GetConsignment(None, CurrentStatus(None, taStatus, None, None))))
-    val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    if (dataString.nonEmpty) {
-      wireMockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentStatus"))
-        .willReturn(okJson(dataString)))
-    }
-
-    setConsignmentTypeResponse(wireMockServer, consignmentType)
-  }
 
   def mockGetConsignmentGraphqlResponse(config: Configuration,
                                         consignmentType: String = "standard"): StubMapping = {
@@ -129,9 +110,10 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val graphQLConfiguration = new GraphQLConfiguration(config)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
     new TransferAgreementPrivateBetaController(securityComponents, new GraphQLConfiguration(config),
-      transferAgreementService, keycloakConfiguration, consignmentService)
+      transferAgreementService, keycloakConfiguration, consignmentService, consignmentStatusService)
   }
 
   def instantiateTransferAgreementComplianceController(securityComponents: SecurityComponents,
@@ -141,9 +123,10 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val graphQLConfiguration = new GraphQLConfiguration(config)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
     new TransferAgreementComplianceController(securityComponents, new GraphQLConfiguration(config),
-      transferAgreementService, keycloakConfiguration, consignmentService)
+      transferAgreementService, keycloakConfiguration, consignmentService, consignmentStatusService)
   }
 
   def stubTAPrivateBetaResponse(transferAgreement: Option[atapb.AddTransferAgreementPrivateBeta] = None,

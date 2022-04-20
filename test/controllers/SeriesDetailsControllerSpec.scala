@@ -6,9 +6,6 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import errors.GraphQlException
 import graphql.codegen.AddConsignment.{addConsignment => ac}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
-import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetSeries.{getSeries => gs}
 import io.circe.Printer
 import io.circe.generic.auto._
@@ -16,7 +13,6 @@ import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
-import play.api.Configuration
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -56,7 +52,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
-      mockGetConsignmentStatusGraphqlResponse(app.configuration, None)
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
+      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentReferenceResponse(wiremockServer)
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
@@ -70,6 +68,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesDetailsPage) must include (s"""<option value="${seriesId.toString}">code</option>""")
       contentAsString(seriesDetailsPage) must include (s"""" href="/faq">""")
       contentAsString(seriesDetailsPage) must include (s"""" href="/help">""")
+      contentAsString(seriesDetailsPage) must include ("TEST-TDR-2021-GB")
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
@@ -123,7 +122,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
-      mockGetConsignmentStatusGraphqlResponse(app.configuration, None)
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
+      setConsignmentTypeResponse(wiremockServer,"standard")
 
       val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration,
         seriesService, consignmentService, consignmentStatusService)
@@ -156,7 +156,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
-      mockGetConsignmentStatusGraphqlResponse(app.configuration, None)
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
+      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentReferenceResponse(wiremockServer)
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit(consignmentId).apply(FakeRequest(POST, "/series").withCSRFToken)
@@ -167,6 +169,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       contentAsString(seriesSubmit) must include("<title>Error: ")
       contentAsString(seriesSubmit) must include (s"""" href="/faq">""")
       contentAsString(seriesSubmit) must include (s"""" href="/help">""")
+      contentAsString(seriesSubmit) must include ("TEST-TDR-2021-GB")
     }
 
     "will send the correct body if it is present on the user" in {
@@ -176,7 +179,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
-      mockGetConsignmentStatusGraphqlResponse(app.configuration, None)
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
+      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentReferenceResponse(wiremockServer)
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken).futureValue
@@ -188,7 +193,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "will return forbidden if the pages are accessed by a judgment user" in {
       mockGetSeries()
-      mockGetConsignmentStatusGraphqlResponse(app.configuration, None, "judgment")
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), seriesStatus = None)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val seriesGet = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
       val seriesPost = controller.seriesSubmit(consignmentId).apply(FakeRequest().withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
@@ -199,7 +205,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "render the series 'already confirmed' page with an authenticated user if series status is 'Completed'" in {
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, f"/consignment/$consignmentId/series").withCSRFToken)
-      mockGetConsignmentStatusGraphqlResponse(app.configuration, Some("Completed"))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), seriesStatus = Some("Completed"))
+      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentReferenceResponse(wiremockServer)
 
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
@@ -219,21 +227,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     new SeriesDetailsController(securityComponents, keycloakConfiguration,
       seriesService, consignmentService, consignmentStatusService)
-  }
-
-  def mockGetConsignmentStatusGraphqlResponse(config: Configuration, seriesStatus: Option[String] = None, consignmentType: String = "standard"): StubMapping = {
-    val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
-    val consignmentResponse = gcs.Data(Option(GetConsignment(Some(Series(seriesId, "MOCK1")), CurrentStatus(seriesStatus, None, None, None))))
-    val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    if (dataString.nonEmpty) {
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentStatus"))
-        .willReturn(okJson(dataString)))
-    }
-
-    setConsignmentTypeResponse(wiremockServer, consignmentType)
   }
 
   def mockGetSeries(): StubMapping = {
