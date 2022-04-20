@@ -64,12 +64,16 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       result <- seriesStatus match {
         case Some("Completed") =>
-          val seriesFormData = List((consignmentStatus.flatMap(_.series.map(_.seriesid.toString)).get, consignmentStatus.flatMap(_.series.map(_.code)).get))
+          val seriesFormData: List[(String, String)] = List(
+            consignmentStatus.flatMap(_.series.map{
+              series => (series.seriesid.toString, series.code)
+            }).get
+          )
           Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, reference,
             seriesFormData, selectedSeriesForm, request.token.name)).uncache())
         case _ =>
           seriesService.getSeriesForUser(request.token).map { series =>
-            val seriesFormData = series.map(s => (s.seriesid.toString, s.code))
+            val seriesFormData: List[(String, String)] = series.map(s => (s.seriesid.toString, s.code))
             status(views.html.standard.seriesDetails(consignmentId, reference, seriesFormData, form, request.token.name)).uncache()
           }
       }
