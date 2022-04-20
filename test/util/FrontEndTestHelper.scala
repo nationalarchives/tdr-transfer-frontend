@@ -5,7 +5,13 @@ import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
-import configuration.{FrontEndInfoConfiguration, KeycloakConfiguration}
+import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
+import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
+import io.circe.Printer
+import io.circe.generic.auto._
+import io.circe.syntax._
 import org.keycloak.representations.AccessToken
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
@@ -30,7 +36,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
-import play.api.Application
+import play.api.{Application, Configuration}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{BodyParsers, ControllerComponents}
@@ -42,7 +48,8 @@ import viewsapi.FrontEndInfo
 import java.io.File
 import java.net.URI
 import java.time.{LocalDateTime, ZoneOffset}
-import java.util.Date
+import java.util.{Date, UUID}
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.existentials
@@ -69,6 +76,25 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val dataString = s"""{"data": {"getConsignment": {"consignmentReference": "$consignmentRef"}}}"""
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .withRequestBody(containing("getConsignmentReference"))
+      .willReturn(okJson(dataString)))
+  }
+
+  def setConsignmentStatusResponse(config: Configuration,
+                                   wiremockServer: WireMockServer,
+                                   seriesId: Option[UUID] = None,
+                                   seriesStatus: Option[String] = None,
+                                   transferAgreementStatus: Option[String] = None,
+                                   uploadStatus: Option[String] = None,
+                                   confirmTransferStatus: Option[String] = None): StubMapping = {
+    val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
+    val consignmentResponse = gcs.Data(Option(GetConsignment(
+      Some(Series(seriesId.getOrElse(UUID.randomUUID()), "MOCK1")),
+      CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, confirmTransferStatus))))
+    val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentStatus"))
       .willReturn(okJson(dataString)))
   }
 
