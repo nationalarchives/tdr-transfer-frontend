@@ -44,7 +44,7 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
       transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
-      seriesStatus = consignmentStatus.flatMap(_.series)
+      seriesStatus: Option[String] = consignmentStatus.flatMap(_.series)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       seriesStatus match {

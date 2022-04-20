@@ -43,8 +43,8 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
                                         (implicit request: Request[AnyContent]): Future[Result] = {
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
-      transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
-      seriesStatus = consignmentStatus.flatMap(_.series)
+      transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
+      seriesStatus: Option[String] = consignmentStatus.flatMap(_.series)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val warningMessage = Messages("transferAgreement.warning")
