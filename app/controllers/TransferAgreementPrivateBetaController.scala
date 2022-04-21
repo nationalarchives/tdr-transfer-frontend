@@ -63,7 +63,6 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
           }
         case _ => Redirect(routes.SeriesDetailsController.seriesDetails(consignmentId))
       }
-
     }
   }
 
