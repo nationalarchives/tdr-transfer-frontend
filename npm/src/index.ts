@@ -1,17 +1,8 @@
-import { GraphqlClient } from "./graphql"
-import { getKeycloakInstance } from "./auth"
-import { FileUploader } from "./upload"
-import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
-import { goToNextPage } from "./nextpageredirect/next-page-redirect"
-import { FileChecks } from "./filechecks"
 import { initAll } from "govuk-frontend"
-import { UpdateConsignmentStatus } from "./updateconsignmentstatus"
-import { handleUploadError, isError } from "./errorhandling"
 
 window.onload = function () {
-  initAll()
-
-  renderModules()
+    initAll()
+    renderModules()
 }
 
 export interface IFrontEndInfo {
@@ -41,59 +32,68 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
   }
 }
 
-export const renderModules = () => {
+export const renderModules = async () => {
   const uploadContainer: HTMLDivElement | null =
     document.querySelector("#file-upload")
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
+  const errorHandlingModule = await import('./errorhandling');
+  const authModule = await import('./auth')
+  const graphQlModule = await import('./graphql')
+  const uploadModule = await import('./upload')
+  const metadataUploadModule = await import('./clientfilemetadataupload')
+  const nextPageModule = await import('./nextpageredirect/next-page-redirect')
+  const fileChecksModule = await import('./filechecks')
+  const consignmentStatusModule = await import('./updateconsignmentstatus')
+
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
-    if (!isError(frontEndInfo)) {
-      getKeycloakInstance().then((keycloak) => {
-        if (!isError(keycloak)) {
-          const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
-          const clientFileProcessing = new ClientFileMetadataUpload(
+    if (!errorHandlingModule.isError(frontEndInfo)) {
+      authModule.getKeycloakInstance().then((keycloak) => {
+        if (!errorHandlingModule.isError(keycloak)) {
+          const graphqlClient = new graphQlModule.GraphqlClient(frontEndInfo.apiUrl, keycloak)
+          const clientFileProcessing = new metadataUploadModule.ClientFileMetadataUpload(
             graphqlClient
           )
-          const updateConsignmentStatus = new UpdateConsignmentStatus(
+          const updateConsignmentStatus = new consignmentStatusModule.UpdateConsignmentStatus(
             graphqlClient
           )
-          new FileUploader(
+          new uploadModule.FileUploader(
             clientFileProcessing,
             updateConsignmentStatus,
             frontEndInfo,
-            goToNextPage,
+            nextPageModule.goToNextPage,
             keycloak
           ).initialiseFormListeners()
         } else {
-          handleUploadError(keycloak)
+          errorHandlingModule.handleUploadError(keycloak)
         }
       })
     } else {
-      handleUploadError(frontEndInfo)
+      errorHandlingModule.handleUploadError(frontEndInfo)
     }
   }
   if (fileChecksContainer) {
     const frontEndInfo = getFrontEndInfo()
-    if (!isError(frontEndInfo)) {
-      getKeycloakInstance().then((keycloak) => {
-        if (!isError(keycloak)) {
-          const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
+    if (!errorHandlingModule.isError(frontEndInfo)) {
+      authModule.getKeycloakInstance().then((keycloak) => {
+        if (!errorHandlingModule.isError(keycloak)) {
+          const graphqlClient = new graphQlModule.GraphqlClient(frontEndInfo.apiUrl, keycloak)
           const isJudgmentUser = keycloak.tokenParsed?.judgment_user
-          const resultOrError = new FileChecks(
+          const resultOrError = new fileChecksModule.FileChecks(
             graphqlClient
-          ).updateFileCheckProgress(isJudgmentUser, goToNextPage)
-          if (isError(resultOrError)) {
-            handleUploadError(resultOrError)
+          ).updateFileCheckProgress(isJudgmentUser, nextPageModule.goToNextPage)
+          if (errorHandlingModule.isError(resultOrError)) {
+            errorHandlingModule.handleUploadError(resultOrError)
           }
         } else {
-          handleUploadError(keycloak)
+          errorHandlingModule.handleUploadError(keycloak)
         }
       })
     } else {
-      handleUploadError(frontEndInfo)
+      errorHandlingModule.handleUploadError(frontEndInfo)
     }
   }
 }

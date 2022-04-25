@@ -2,8 +2,8 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "noImplicitAny": true,
-    "module": "es6",
-    "target": "es2016",
+    "module": "esnext",
+    "target": "es2017",
     "lib": ["es2017", "dom"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
