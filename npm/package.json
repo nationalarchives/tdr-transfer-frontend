@@ -45,7 +45,7 @@
     "@aws-sdk/client-s3": "^3.76.0",
     "@aws-sdk/lib-storage": "^3.76.0",
     "@nationalarchives/file-information": "^1.0.306",
-    "@nationalarchives/tdr-generated-graphql": "1.0.204",
+    "@nationalarchives/tdr-generated-graphql": "1.0.205",
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
     "govuk-frontend": "^4.0.0",
