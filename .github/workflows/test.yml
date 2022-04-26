@@ -17,6 +17,6 @@ jobs:
       test-command: |
         npm --prefix npm ci
         npm --prefix npm run checks
-        sbt test
+        sbt test scalastyle
     secrets:
       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
