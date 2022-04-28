@@ -198,6 +198,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         } else {
           resultsPageAsString must include(expectedTitle)
           resultsPageAsString must include("One or more files you uploaded have failed our checks")
+          resultsPageAsString must include(
+            "<a class=\"govuk-link\" href=\"mailto:tdr@nationalachives.gov.uk?subject=Ref: TEST-TDR-2021-GB - Problem with Results of checks\">" +
+              "tdr@nationalachives.gov.uk</a>"
+          )
         }
 
         status(recordCheckResultsPage) mustBe OK
@@ -336,6 +340,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         } else {
           resultsPageAsString must include(expectedTitle)
           resultsPageAsString must include("One or more files you uploaded have failed our checks")
+          resultsPageAsString must include(
+            "<a class=\"govuk-link\" href=\"mailto:tdr@nationalachives.gov.uk?subject=Ref: TEST-TDR-2021-GB - Problem with Results of checks\">" +
+              "tdr@nationalachives.gov.uk</a>"
+          )
         }
 
         status(recordCheckResultsPage) mustBe OK
