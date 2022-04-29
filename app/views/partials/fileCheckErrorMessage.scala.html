@@ -1,11 +1,11 @@
 @import views.html.partials.fileCheckGenericErrorMessage
-@(fileStatuses: List[String] = Nil)
+@(fileStatuses: List[String] = Nil, consignmentRef: String)
 @{
     val isPasswordProtected = fileStatuses.contains("PasswordProtected")
     val isZip = fileStatuses.contains("Zip")
 
     if(isPasswordProtected && isZip){
-        fileCheckGenericErrorMessage()
+        fileCheckGenericErrorMessage(consignmentRef)
     } else if(isPasswordProtected) {
             <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more password protected files.</p>
             <p>We cannot accept password protected files. Once removed or replaced, try uploading your folder again.</p>
@@ -22,6 +22,6 @@
                 Either remove or unpack your zip and archival package files and try uploading again.
                 </p>
         } else {
-                fileCheckGenericErrorMessage()
+                fileCheckGenericErrorMessage(consignmentRef)
         }
 }
