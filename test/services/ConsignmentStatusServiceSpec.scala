@@ -72,7 +72,7 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
       val response = GraphQlResponse(getConsignmentData, Nil)
       when(getConsignmentStatusClient.getResult(token, gcs.document, Some(gcs.Variables(consignmentId))))
         .thenReturn(Future.successful(response))
-      val status = consignmentStatusService.consignmentStatus(consignmentId, token).futureValue
+      val status = consignmentStatusService.getConsignmentStatus(consignmentId, token).futureValue
       status should equal(Option.empty)
     }
   }
