@@ -26,7 +26,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     for {
-      consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+      consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
@@ -65,7 +65,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     for {
-      consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+      consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)

@@ -43,7 +43,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
 
   def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+      consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
       exportStatus = consignmentStatus.flatMap(_.export)
       result <- exportStatus match {
         case Some("Completed") =>

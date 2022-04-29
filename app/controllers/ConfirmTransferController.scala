@@ -50,7 +50,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
   private def loadStandardPageBasedOnCtStatus(consignmentId: UUID, httpStatus: Status,
                                               finalTransferForm: Form[FinalTransferConfirmationData] = finalTransferConfirmationForm)
                                              (implicit request: Request[AnyContent]): Future[Result] = {
-    consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken).flatMap {
+    consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken).flatMap {
       consignmentStatus =>
         val exportTransferStatus = consignmentStatus.flatMap(_.export)
         exportTransferStatus match {
@@ -80,7 +80,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
         val token: BearerAccessToken = request.token.bearerAccessToken
 
         for {
-          consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+          consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
           exportStatus = consignmentStatus.flatMap(_.export)
           result <- exportStatus match {
             case Some("Completed") => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
@@ -106,7 +106,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
   def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
-        consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+        consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
         exportStatus = consignmentStatus.flatMap(_.export)
         res <- {
           exportStatus match {
