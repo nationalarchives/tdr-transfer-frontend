@@ -19,10 +19,11 @@ import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.ConsignmentService
+import services.{ConsignmentService, ConsignmentStatusService}
 import util.FrontEndTestHelper
 
 import java.util.UUID
+import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 
 class FileChecksResultsControllerSpec extends FrontEndTestHelper {
@@ -59,6 +60,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"render the $userType fileChecksResults page with the confirmation box" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+        setConsignmentStatusResponse(app.configuration, wiremockServer)
         val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
 
         val fileChecksData = gfcp.Data(
@@ -87,6 +90,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           keycloakConfiguration,
           new GraphQLConfiguration(app.configuration),
           consignmentService,
+          consignmentStatusService,
           frontEndInfoConfiguration
         )
 
@@ -118,11 +122,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return a redirect to the auth server if an unauthenticated user tries to access the $userType file checks page" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
         val controller = new FileChecksResultsController(
           getUnauthorisedSecurityComponents,
           getValidKeycloakConfiguration,
           new GraphQLConfiguration(app.configuration),
           consignmentService,
+          consignmentStatusService,
           frontEndInfoConfiguration
         )
         val recordChecksResultsPage = controller.fileCheckResultsPage(consignmentId)
@@ -135,11 +141,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return an error if an authenticated user tries to get information for a consignment they don't own from the $userType file checks page" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
         val controller = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
           getValidKeycloakConfiguration,
           new GraphQLConfiguration(app.configuration),
           consignmentService,
+          consignmentStatusService,
           frontEndInfoConfiguration
         )
         val exampleApiResponse = "{\"fileChecksData\":{" +
@@ -164,6 +172,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the $userType error page if some file checks have failed" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+        setConsignmentStatusResponse(app.configuration, wiremockServer)
         val fileStatus = List(gfcp.GetConsignment.Files(Some("fileStatusValue")))
 
         val data = Data(
@@ -183,6 +193,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           keycloakConfiguration,
           new GraphQLConfiguration(app.configuration),
           consignmentService,
+          consignmentStatusService,
           frontEndInfoConfiguration
         )
 
@@ -210,6 +221,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the passwordProtected $userType error page if file checks have failed with PasswordProtected" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+        setConsignmentStatusResponse(app.configuration, wiremockServer)
         val fileStatus = List(gfcp.GetConsignment.Files(Some("PasswordProtected")))
 
         val data = Data(
@@ -229,6 +242,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           keycloakConfiguration,
           new GraphQLConfiguration(app.configuration),
           consignmentService,
+          consignmentStatusService,
           frontEndInfoConfiguration
         )
 
@@ -256,6 +270,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the zip $userType error page if file checks have failed with Zip" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+        setConsignmentStatusResponse(app.configuration, wiremockServer)
         val fileStatus = List(gfcp.GetConsignment.Files(Some("Zip")))
 
         val data = Data(
@@ -275,6 +291,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           keycloakConfiguration,
           new GraphQLConfiguration(app.configuration),
           consignmentService,
+          consignmentStatusService,
           frontEndInfoConfiguration
         )
 
@@ -302,6 +319,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       s"return the general $userType error page if file checks have failed with PasswordProtected and Zip" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+        setConsignmentStatusResponse(app.configuration, wiremockServer)
         val fileStatus = List(gfcp.GetConsignment.Files(Some("PasswordProtected")), gfcp.GetConsignment.Files(Some("Zip")))
 
         val data = Data(
@@ -321,6 +340,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           keycloakConfiguration,
           new GraphQLConfiguration(app.configuration),
           consignmentService,
+          consignmentStatusService,
           frontEndInfoConfiguration
         )
 
@@ -347,17 +367,51 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  "render the 'transfer has already been confirmed' page with an authenticated judgment user if export status is 'Completed'" in {
+    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+    val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+    val fileCheckResultsController = new FileChecksResultsController(
+      getAuthorisedSecurityComponents,
+      getValidJudgmentUserKeycloakConfiguration,
+      new GraphQLConfiguration(app.configuration),
+      consignmentService,
+      consignmentStatusService,
+      frontEndInfoConfiguration
+    )
+    setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("Completed"))
+    setConsignmentTypeResponse(wiremockServer, "judgment")
+    setConsignmentReferenceResponse(wiremockServer)
+
+    val transferAlreadyCompletedPage = fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
+      .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks").withCSRFToken)
+
+    val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
+
+    status(transferAlreadyCompletedPage) mustBe OK
+    contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
+    headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+    transferAlreadyCompletedPageAsString must include(
+      s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
+    transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
+    transferAlreadyCompletedPageAsString must include (s"""" href="/faq">""")
+    transferAlreadyCompletedPageAsString must include (s"""" href="/help">""")
+  }
+
   forAll(userChecks) { (user, url) =>
     s"The $url upload page" should {
       s"return 403 if the url doesn't match the consignment type" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
           user,
           new GraphQLConfiguration(app.configuration),
           consignmentService,
+          consignmentStatusService,
           frontEndInfoConfiguration
         )
 

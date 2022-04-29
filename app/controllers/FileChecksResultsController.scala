@@ -1,14 +1,15 @@
 package controllers
 
 import java.util.UUID
-
 import auth.TokenSecurity
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.ConsignmentService
+import services.{ConsignmentService, ConsignmentStatusService}
+import viewsapi.Caching.preventCaching
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -17,6 +18,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
                                             val keycloakConfiguration: KeycloakConfiguration,
                                             val graphqlConfiguration: GraphQLConfiguration,
                                             val consignmentService: ConsignmentService,
+                                            val consignmentStatusService: ConsignmentStatusService,
                                             val frontEndInfoConfiguration: FrontEndInfoConfiguration
                                            )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
@@ -41,15 +43,30 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
 
   def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      result <- if (fileCheck.allChecksSucceeded) {
-        consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken).flatMap(files => {
-          val filename = files.files.head.metadata.clientSideOriginalFilePath.get
-          Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference, request.token.name)))
-        })
-      } else {
-        Future(Ok(views.html.fileChecksFailed(request.token.name, reference, isJudgmentUser = true)))
+      consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+      exportStatus = consignmentStatus.flatMap(_.export)
+      result <- exportStatus match {
+        case Some("Completed") =>
+          Future(Ok(views.html.transferAlreadyCompleted(consignmentId, request.token.name, isJudgmentUser = true)).uncache())
+        case None =>
+          for {
+            fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
+            reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+            result <-
+              if (fileCheck.allChecksSucceeded) {
+                consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken)
+                  .flatMap(
+                    files => {
+                      val filename = files.files.head.metadata.clientSideOriginalFilePath.get
+                      Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference, request.token.name)).uncache())
+                    }
+                  )
+              } else {
+                Future(Ok(views.html.fileChecksFailed(request.token.name, reference, isJudgmentUser = true)).uncache())
+              }
+          } yield result
+        case _ =>
+          throw new IllegalStateException(s"Unexpected Export status: $exportStatus for consignment $consignmentId")
       }
     } yield result
   }
