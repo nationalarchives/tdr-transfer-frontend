@@ -16,7 +16,7 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
                                            val keycloakConfiguration: KeycloakConfiguration,
                                            val consignmentService: ConsignmentService)
                                           (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
-  
+
   def transferComplete(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { consignmentReference =>
@@ -31,4 +31,3 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
       }
   }
 }
-
