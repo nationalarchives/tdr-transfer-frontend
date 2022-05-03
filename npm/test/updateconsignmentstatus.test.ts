@@ -10,7 +10,9 @@ import {
 
 jest.mock("../src/graphql")
 
-type IMockMarkUploadAsCompletedData = { markUploadAsCompleted: number } | null
+type IMockUpdateConsignmentStatusData = {
+  updateConsignmentStatus: number
+} | null
 
 type TMockVariables = string
 
@@ -18,11 +20,13 @@ class GraphqlClientSuccessUpdateStatusToComplete {
   mutation: (
     query: DocumentNode,
     variables: TMockVariables
-  ) => Promise<FetchResult<IMockMarkUploadAsCompletedData>> = async (
+  ) => Promise<FetchResult<IMockUpdateConsignmentStatusData>> = async (
     query: DocumentNode,
     variables: TMockVariables
   ) => {
-    const data: IMockMarkUploadAsCompletedData = { markUploadAsCompleted: 1 }
+    const data: IMockUpdateConsignmentStatusData = {
+      updateConsignmentStatus: 1
+    }
     return { data }
   }
 }
@@ -31,11 +35,11 @@ class GraphqlClientFailureUpdateStatusToComplete {
   mutation: (
     query: DocumentNode,
     variables: TMockVariables
-  ) => Promise<FetchResult<IMockMarkUploadAsCompletedData>> = async (
+  ) => Promise<FetchResult<IMockUpdateConsignmentStatusData>> = async (
     query: DocumentNode,
     variables: TMockVariables
   ) => {
-    const data: IMockMarkUploadAsCompletedData = null
+    const data: IMockUpdateConsignmentStatusData = null
     return { data }
   }
 }
@@ -44,7 +48,7 @@ class GraphqlClientDataErrorUpdateStatusToComplete {
   mutation: (
     query: DocumentNode,
     variables: TMockVariables
-  ) => Promise<FetchResult<IMockMarkUploadAsCompletedData>> = async (
+  ) => Promise<FetchResult<IMockUpdateConsignmentStatusData>> = async (
     query: DocumentNode,
     variables: TMockVariables
   ) => {
@@ -98,41 +102,41 @@ const uploadFilesInfo = {
   parentFolder: "TEST PARENT FOLDER NAME"
 }
 
-test("markConsignmentStatusAsCompleted returns the status of 1", async () => {
+test("markUploadStatusAsCompleted returns the status of 1", async () => {
   mockSuccessUpdateStatusToComplete()
 
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const updateConsignmentStatus = new UpdateConsignmentStatus(client)
-  const result = await updateConsignmentStatus.markConsignmentStatusAsCompleted(
+  const result = await updateConsignmentStatus.markUploadStatusAsCompleted(
     uploadFilesInfo
   )
 
   expect(result).toEqual(1)
 })
 
-test("markConsignmentStatusAsCompleted returns error if no data returned", async () => {
+test("markUploadStatusAsCompleted returns error if no data returned", async () => {
   mockFailureUpdateStatusToComplete()
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new UpdateConsignmentStatus(client)
   await expect(
-    uploadMetadata.markConsignmentStatusAsCompleted(uploadFilesInfo)
+    uploadMetadata.markUploadStatusAsCompleted(uploadFilesInfo)
   ).resolves.toStrictEqual(Error("no data"))
 })
 
-test("markConsignmentStatusAsCompleted returns error if returned data contains errors", async () => {
+test("markUploadStatusAsCompleted returns error if returned data contains errors", async () => {
   mockDataErrorsUpdateStatusToComplete()
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new UpdateConsignmentStatus(client)
   await expect(
-    uploadMetadata.markConsignmentStatusAsCompleted(uploadFilesInfo)
+    uploadMetadata.markUploadStatusAsCompleted(uploadFilesInfo)
   ).resolves.toStrictEqual(Error("error 1,error 2"))
 })
 
-test("markConsignmentStatusAsCompleted returns error if client fails", async () => {
+test("markUploadStatusAsCompleted returns error if client fails", async () => {
   mockFailure()
   const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
   const uploadMetadata = new UpdateConsignmentStatus(client)
   await expect(
-    uploadMetadata.markConsignmentStatusAsCompleted(uploadFilesInfo)
+    uploadMetadata.markUploadStatusAsCompleted(uploadFilesInfo)
   ).resolves.toStrictEqual(Error("error"))
 })

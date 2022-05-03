@@ -12,7 +12,7 @@ import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
 import { UpdateConsignmentStatus } from "../src/updateconsignmentstatus"
 import { DocumentNode, FetchResult } from "@apollo/client/core"
-import { MarkUploadAsCompletedMutation } from "@nationalarchives/tdr-generated-graphql"
+import { UpdateConsignmentStatusMutation } from "@nationalarchives/tdr-generated-graphql"
 import { KeycloakInstance } from "keycloak-js"
 jest.mock("../src/clientfileprocessing")
 jest.mock("../src/graphql")
@@ -61,9 +61,9 @@ class GraphqlClientSuccess {
   mutation: (
     query: DocumentNode,
     variables: any
-  ) => Promise<FetchResult<MarkUploadAsCompletedMutation>> = async (_, __) => {
-    const data: MarkUploadAsCompletedMutation = {
-      markUploadAsCompleted: 1
+  ) => Promise<FetchResult<UpdateConsignmentStatusMutation>> = async (_, __) => {
+    const data: UpdateConsignmentStatusMutation = {
+      updateConsignmentStatus: 1
     }
     return { data }
   }
