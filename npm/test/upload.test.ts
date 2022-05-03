@@ -110,10 +110,12 @@ test("upload function throws an error when upload fails", async () => {
 
   const uploadFiles = setUpFileUploader()
 
-  await expect(uploadFiles.uploadFiles([dummyFile], {
-    consignmentId: "12345",
-    parentFolder: "TEST PARENT FOLDER NAME"
-  })).rejects.toThrow("Some error")
+  await expect(
+    uploadFiles.uploadFiles([dummyFile], {
+      consignmentId: "12345",
+      parentFolder: "TEST PARENT FOLDER NAME"
+    })
+  ).rejects.toThrow("Some error")
 
   expect(mockGoToNextPage).not.toHaveBeenCalled()
 
