@@ -2,10 +2,10 @@
 
 transferAgreement.warning=This service is in private beta. During this time, the Transfer Digital Records service can only accept records that are in English, are Public Records and are Crown Copyright. For more information, please see our <a href="@routes.FaqController.faq()#other-languages" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> if you need to transfer records that this service cannot currently handle.
 
-upload.dragAndDropFolderErrorMessage=You can only drop a single folder
+upload.dragAndDropFolderErrorMessage=You can only drop a single folder.
 upload.dragAndDropFileErrorMessage=You must upload a file
-upload.dragAndDropMultipleFilesErrorMessage=You must upload a single file
-upload.dragAndDropMultipleFoldersErrorMessage=You must upload a single folder
+upload.dragAndDropMultipleFilesErrorMessage=You can not upload single files. Please add your files to a folder and try uploading again.
+upload.dragAndDropMultipleFoldersErrorMessage=You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders.
 upload.nonWordDocSelectedErrorMessage=You must upload your judgment as a Microsoft Word file (.docx)
 upload.submissionWithoutAFolderMessage=Select a folder to upload.
 upload.submissionWithoutAFileMessage=You did not select a file for upload.

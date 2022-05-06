@@ -177,7 +177,7 @@ test("dropzone updates the page with an error if more than 1 file has been dropp
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.multipleItemSelected!,
-    expectedWarningMessageText: "You must upload a single file"
+    expectedWarningMessageText: "You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders."
   })
   verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 })
@@ -189,7 +189,7 @@ test("dropzone updates the page with an error if a file and a folder has been dr
     judgmentUploadPageSpecificWarningMessages()
   )
   const dragEventClass = mockDom.addFilesToDragEvent(
-    [getDummyFolder(), getDummyFile("Mock File.docx", "docx")],
+    [getDummyFile("Mock File.docx", "docx"), getDummyFolder()],
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
@@ -199,7 +199,7 @@ test("dropzone updates the page with an error if a file and a folder has been dr
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.multipleItemSelected!,
-    expectedWarningMessageText: "You must upload a single file"
+    expectedWarningMessageText: "You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders."
   })
   verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 })
