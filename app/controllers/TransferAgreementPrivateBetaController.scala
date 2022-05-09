@@ -42,7 +42,7 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData] = transferAgreementForm)
                                         (implicit request: Request[AnyContent]): Future[Result] = {
     for {
-      consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+      consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
       transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
       seriesStatus: Option[String] = consignmentStatus.flatMap(_.series)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
@@ -79,7 +79,7 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
       val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
       for {
-        consignmentStatus <- consignmentStatusService.consignmentStatus(consignmentId, request.token.bearerAccessToken)
+        consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
         transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
         result <- transferAgreementStatus match {
           case Some("InProgress") => Future(Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
