@@ -1,14 +1,26 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
+import errors.AuthorisationException
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.Metadata
+import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
+import io.circe.Printer
+import io.circe.generic.auto._
+import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
+import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.http.Status.FORBIDDEN
 import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
 import services.ConsignmentService
+import uk.gov.nationalarchives.tdr.GraphQLClient
+import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import util.FrontEndTestHelper
 
 import java.util.UUID
@@ -59,6 +71,41 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       contentAsString(transferCompleteSubmit) must include (s"""" href="/judgment/faq">""")
       contentAsString(transferCompleteSubmit) must include (s"""" href="/judgment/help">""")
     }
+
+    "downloadReport should have the correct headers and rows" in {
+      val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, "standard")
+      val consignmentId = UUID.randomUUID()
+      mockGetConsignmentForExport()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val downloadReport = controller.downloadReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
+
+      contentAsString(downloadReport) must include(
+        "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified"
+      )
+      contentAsString(downloadReport) must include("Filepath/SomeFile,SomeFile,File,1,Crown Copyright,Public Record,TNA,English,Open")
+    }
+
+    "throw an authorisation exception when the user does not have permission to download the report" in {
+      val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, "standard")
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val consignmentId = UUID.randomUUID()
+      val client = new GraphQLConfiguration(app.configuration).getClient[gcfe.Data, gcfe.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(
+        Some(gcfe.Data(None)),
+        List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentForExport"))
+        .willReturn(okJson(dataString)))
+
+      val downloadReport = controller.downloadReport(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
+
+      val failure: Throwable = downloadReport.failed.futureValue
+
+      failure mustBe an[AuthorisationException]
+    }
   }
 
   forAll(userChecks) { (_, url) =>
@@ -105,5 +152,21 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       controller.transferComplete(consignmentId)
         .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
     }
+  }
+
+  private def mockGetConsignmentForExport() = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcfe.Data, gcfe.Variables]()
+    val consignmentResponse = gcfe.Data(Option(GetConsignment(UUID.randomUUID(), None, None, None, "TDR-2022", None, None, None,
+      List(
+        Files(UUID.randomUUID(), Some("File"), Some("SomeFile"),
+          Metadata(Some(1L), None, Some("Filepath/SomeFile"), Some("Open"), Some("TNA"), Some("English"), Some("Public Record"), Some("Crown Copyright"), None),
+          None, None))))
+    )
+    val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentForExport"))
+      .willReturn(okJson(dataString)))
   }
 }
