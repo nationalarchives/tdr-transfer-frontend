@@ -2,7 +2,7 @@
 @import views.html.partials.returnToStartPage
 @import views.html.partials.feedbackSurvey
 @import views.html.helper.form
-@(consignmentReference: String, name: String)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentReference: String, name: String)(implicit messages: Messages, request: RequestHeader)
     @main("Transfer complete", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
             <div class="govuk-grid-row">
@@ -26,8 +26,8 @@
 
                     <p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, please contact us.</p>
 
-                    @form(routes.TransferCompleteController.downloadReport(UUID.fromString("a5b7c42c-f44e-4f0e-b392-3baf65c83f9a"))){
-                        <input type="submit" class="govuk-button" name="export" value="Export as .csv">
+                    @form(routes.TransferCompleteController.downloadReport(consignmentId)){
+                        <input type="submit" class="govuk-button" name="export" value="Export as CSV">
                         }
 
                     @feedbackSurvey("https://www.smartsurvey.co.uk/s/tdr-feedback/")

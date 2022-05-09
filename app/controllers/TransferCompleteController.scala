@@ -20,7 +20,7 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
   def transferComplete(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { consignmentReference =>
-        Ok(views.html.standard.transferComplete(consignmentReference, request.token.name))
+        Ok(views.html.standard.transferComplete(consignmentId, consignmentReference, request.token.name))
       }
   }
 
@@ -32,7 +32,7 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
   }
 
   def downloadReport(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val header = "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified"
+    val headers = "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified"
     consignmentService.getConsignmentExport(consignmentId, request.token.bearerAccessToken)
       .map { result =>
         val rows = result.foldLeft(List[String]()) {
@@ -50,7 +50,7 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
           ).toCSV
         }
 
-        Ok(header + "\n" + rows.mkString("\n"))
+        Ok(headers + "\n" + rows.mkString("\n"))
           .as("text/csv")
           .withHeaders(
             "Content-Disposition" -> "attachment; filename=report.csv"
