@@ -1,9 +1,10 @@
 import { GraphqlClient } from "../graphql"
 
 import {
-  MarkUploadAsCompleted,
-  MarkUploadAsCompletedMutation,
-  MarkUploadAsCompletedMutationVariables
+  UpdateConsignmentStatus as UCS,
+  ConsignmentStatusInput,
+  UpdateConsignmentStatusMutation,
+  UpdateConsignmentStatusMutationVariables
 } from "@nationalarchives/tdr-generated-graphql"
 
 import { FetchResult } from "@apollo/client/core"
@@ -17,29 +18,37 @@ export class UpdateConsignmentStatus {
     this.client = client
   }
 
-  async markConsignmentStatusAsCompleted(
+  async markUploadStatusAsCompleted(
     uploadFilesInfo: FileUploadInfo
   ): Promise<number | void | Error> {
-    const variables: MarkUploadAsCompletedMutationVariables = {
-      consignmentId: uploadFilesInfo.consignmentId
+    const updateConsignmentStatusInput: ConsignmentStatusInput = {
+      consignmentId: uploadFilesInfo.consignmentId,
+      statusType: "Upload",
+      statusValue: "Completed"
+    }
+    const variables: UpdateConsignmentStatusMutationVariables = {
+      updateConsignmentStatusInput
     }
 
-    const result: FetchResult<MarkUploadAsCompletedMutation> | Error =
-      await this.client
-        .mutation(MarkUploadAsCompleted, variables)
-        .catch((err) => {
-          return err
-        })
+    const result: FetchResult<UpdateConsignmentStatusMutation> | Error =
+      await this.client.mutation(UCS, variables).catch((err) => {
+        return err
+      })
+
     if (isError(result)) {
       return result
     } else {
-      if (!result.data || !result.data.markUploadAsCompleted || result.errors) {
+      if (
+        !result.data ||
+        !result.data.updateConsignmentStatus ||
+        result.errors
+      ) {
         const errorMessage: string = result.errors
           ? result.errors.toString()
           : "no data"
         return Error(errorMessage)
       } else {
-        return result.data.markUploadAsCompleted
+        return result.data.updateConsignmentStatus
       }
     }
   }
