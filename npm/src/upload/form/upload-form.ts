@@ -114,7 +114,7 @@ export class UploadForm {
       }
     } else {
       const items: DataTransferItemList = ev.dataTransfer?.items!
-      const resultOrError = this.checkNumberOfObjectsDropped(
+      const resultOrError = this.checkNumberOfFoldersOrFilesDropped(
           items,
           "Only one folder is allowed to be selected"
         )
@@ -245,6 +245,9 @@ export class UploadForm {
     multipleItemSelectedMessage: document.querySelector(
       "#multiple-selection-failure"
     ),
+    multipleFolderSelectedMessage: document.querySelector(
+      "#multiple-folder-selection-failure"
+    ),
     submissionWithoutSelectionMessage: document.querySelector(
       "#nothing-selected-submission-message"
     )
@@ -320,6 +323,31 @@ export class UploadForm {
         this.successMessage,
         exceptionMessage
       )
+    }
+  }
+
+  private checkNumberOfFoldersOrFilesDropped(
+    droppedObjects: DataTransferItemList | FileList,
+    exceptionMessage: string
+  ): Error | void {
+    if (droppedObjects.length > 1) {
+      this.removeFilesAndDragOver()
+      // Check if the item is folder
+      if (droppedObjects[0].type === "") {
+        return rejectUserItemSelection(
+            this.warningMessages?.multipleFolderSelectedMessage,
+            this.warningMessages,
+            this.successMessage,
+            exceptionMessage
+        )
+      } else {
+        return rejectUserItemSelection(
+            this.warningMessages?.multipleItemSelectedMessage,
+            this.warningMessages,
+            this.successMessage,
+            exceptionMessage
+        )
+      }
     }
   }
 
