@@ -18,14 +18,19 @@ export const htmlForFolderUploadForm = `
                           <div>
                               <div class="govuk-form-group">
                                   <div id="selection-area">
+                                      <div id="multiple-folder-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="multiple-folder-selected-message-text">
+                                          <p id="multiple-folder-selected-message-text" class="govuk-error-message">
+                                              <span class="govuk-visually-hidden">Error:</span> You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders.
+                                          </p>
+                                      </div>
                                       <div id="multiple-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="multiple-object-type-selected-message-text">
                                           <p id="multiple-object-type-selected-message-text" class="govuk-error-message">
-                                              <span class="govuk-visually-hidden">Error:</span> You must upload a single folder
+                                              <span class="govuk-visually-hidden">Error:</span> You can not upload single files. Please add your files to a folder and try uploading again.
                                           </p>
                                       </div>
                                       <div id="item-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="wrong-object-type-selected-message-text">
                                           <p id="wrong-object-type-selected-message-text" class="govuk-error-message">
-                                              <span class="govuk-visually-hidden">Error:</span> You can only drop a single folder
+                                              <span class="govuk-visually-hidden">Error:</span> You can only drop a single folder.
                                           </p>
                                       </div>
                                       <div id="nothing-selected-submission-message" class="govuk-form-group govuk-form-group--error error-messages" tabindex="-1" role="alert" aria-describedby="submission-without-anything-selected-text">
@@ -86,6 +91,11 @@ export const htmlForFileUploadForm = `
                                       <p id="non-word-doc-selected-message-text" class="govuk-error-message">
                                           <span class="govuk-visually-hidden">Error:</span> You must upload your judgment as a Microsoft Word file (.docx)
                                       </p>
+                                  </div>
+                                  <div id="multiple-folder-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="multiple-folder-selected-message-text">
+                                          <p id="multiple-folder-selected-message-text" class="govuk-error-message">
+                                              <span class="govuk-visually-hidden">Error:</span> You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders.
+                                          </p>
                                   </div>
                                   <div id="multiple-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="" tabindex="-1" role="alert" aria-describedby="multiple-object-type-selected-message-text">
                                       <p id="multiple-object-type-selected-message-text" class="govuk-error-message">
