@@ -92,7 +92,7 @@ test("dropzone updates the page with an error if there are no files in folder", 
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
-    expectedWarningMessageText: "You can only drop a single folder"
+    expectedWarningMessageText: "You can only drop a single folder."
   })
   verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 
@@ -236,7 +236,7 @@ test("dropzone updates the page with an error if there is an empty nested folder
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
-    expectedWarningMessageText: "You can only drop a single folder"
+    expectedWarningMessageText: "You can only drop a single folder."
   })
   expect(mockDom.itemRetrievalSuccessMessage).toHaveAttribute("hidden", "true")
 
@@ -256,8 +256,8 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.multipleItemSelected!,
-    expectedWarningMessageText: "You must upload a single folder"
+    warningMessageElements: mockDom.warningMessages.multipleFolderSelectedMessage!,
+    expectedWarningMessageText: "You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders."
   })
   verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 
@@ -277,8 +277,8 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.multipleItemSelected!,
-    expectedWarningMessageText: "You must upload a single folder"
+    warningMessageElements: mockDom.warningMessages.multipleFolderSelectedMessage!,
+    expectedWarningMessageText: "You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders."
   })
   verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 
@@ -299,7 +299,7 @@ test("dropzone updates the page with an error if 1 file has been dropped", async
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
     warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
-    expectedWarningMessageText: "You can only drop a single folder"
+    expectedWarningMessageText: "You can only drop a single folder."
   })
   verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, false)
 
