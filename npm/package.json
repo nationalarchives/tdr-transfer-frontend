@@ -42,7 +42,7 @@
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
     "@apollo/client": "^3.6.2",
-    "@aws-sdk/client-s3": "^3.86.0",
+    "@aws-sdk/client-s3": "^3.87.0",
     "@aws-sdk/lib-storage": "^3.85.0",
     "@nationalarchives/file-information": "^1.0.310",
     "@nationalarchives/tdr-generated-graphql": "1.0.211",
@@ -72,7 +72,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jest": "^26.1.5",
     "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^8.0.0",
+    "husky": "^8.0.1",
     "jest": "^27.5.1",
     "jest-fetch-mock": "^3.0.3",
     "lint-staged": "^12.4.1",
