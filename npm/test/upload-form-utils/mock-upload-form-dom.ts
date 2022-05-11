@@ -244,6 +244,12 @@ export class MockUploadFormDom {
         "#multiple-object-type-selected-message-text"
       )
     },
+    multipleFolderSelectedMessage: {
+      messageElement: document.querySelector("#multiple-folder-selection-failure"),
+      messageElementText: document.querySelector(
+        "#multiple-folder-selected-message-text"
+      )
+    },
     submissionWithoutSelection: {
       messageElement: document.querySelector(
         "#nothing-selected-submission-message"
