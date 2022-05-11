@@ -84,6 +84,16 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       contentAsString(homepagePage) must include (s"""" href="/judgment/help">""")
     }
 
+    "return a redirect to the judgment homepage page with an authenticated judgment" in {
+      val controller = new HomepageController(
+        getAuthorisedSecurityComponents,
+        getValidJudgmentUserKeycloakConfiguration,
+        consignmentService)
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
+      status(homepagePage) mustBe SEE_OTHER
+      redirectLocation(homepagePage) must be(Some(s"/judgment/homepage"))
+    }
+
     "return a redirect to the auth server with an unauthenticated user" in {
       val controller = new HomepageController(
         getUnauthorisedSecurityComponents,
