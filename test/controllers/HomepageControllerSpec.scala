@@ -71,7 +71,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
         getAuthorisedSecurityComponents,
         getValidJudgmentUserKeycloakConfiguration,
         consignmentService)
-      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
+      val homepagePage = controller.judgmentHomepage().apply(FakeRequest(GET, "/judgment/homepage").withCSRFToken)
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
 
