@@ -1,13 +1,14 @@
 import { ITdrFileWithPath, S3Upload } from "../src/s3upload"
 import { isError } from "../src/errorhandling"
 import { enableFetchMocks } from "jest-fetch-mock"
-enableFetchMocks()
 import {
   IFileWithPath,
   IProgressInformation
 } from "@nationalarchives/file-information"
-import { mockLibStorageUpload, mockClient } from "aws-sdk-client-mock"
-import {S3Client, ServiceInputTypes} from "@aws-sdk/client-s3"
+import { mockClient, mockLibStorageUpload } from "aws-sdk-client-mock"
+import { S3Client, ServiceInputTypes } from "@aws-sdk/client-s3"
+
+enableFetchMocks()
 
 interface createTdrFileParameters {
   fileId?: string
@@ -15,6 +16,7 @@ interface createTdrFileParameters {
   filename?: string
   fileSize?: number
 }
+
 interface ITdrFileWithPathAndBits extends ITdrFileWithPath {
   bits: Buffer
 }
@@ -52,7 +54,7 @@ const createTdrFile = ({
     },
     closed: Promise.resolve(undefined),
     read() {
-      if(count == 0) {
+      if (count == 0) {
         return Promise.resolve({
           done: true,
           value: undefined
@@ -117,7 +119,7 @@ test("a single file upload returns the correct key", async () => {
     jest.fn(),
     ""
   )
-  let input = mockUpload.call(0).args[0].input as {Key: string}
+  let input = mockUpload.call(0).args[0].input as { Key: string }
 
   expect(input.Key).toEqual(
     `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5`
@@ -154,12 +156,20 @@ test("multiple file uploads return the correct params", async () => {
   const tdrFileWithPath4 = createTdrFile({
     fileId: "6b6694d0-814c-4978-8dee-56ec920a0102"
   })
-  const files: ITdrFileWithPathAndBits[] = [tdrFileWithPath1, tdrFileWithPath2, tdrFileWithPath3, tdrFileWithPath4]
+  const files: ITdrFileWithPathAndBits[] = [
+    tdrFileWithPath1,
+    tdrFileWithPath2,
+    tdrFileWithPath3,
+    tdrFileWithPath4
+  ]
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.reset()
   mockUpload.resolves({})
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "https://tdr-fake-url.com/fake")
-  const result = await s3Upload.uploadToS3(
+  const s3Upload = new S3Upload(
+    s3Mock as unknown as S3Client,
+    "https://tdr-fake-url.com/fake"
+  )
+  await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
     files,
@@ -213,11 +223,7 @@ test("multiple file uploads call the callback correctly", async () => {
     callback,
     ""
   )
-  checkCallbackCalls(
-    callback,
-    4,
-    [25, 50, 75, 100]
-  )
+  checkCallbackCalls(callback, 4, [25, 50, 75, 100])
 })
 
 test("when there is an error with the upload, an error is returned", async () => {
@@ -236,7 +242,7 @@ test("when there is an error with the upload, an error is returned", async () =>
 })
 
 test("a single file upload calls the callback correctly with a different chunk size", async () => {
-  const tdrFileWithPath = createTdrFile({fileSize: 10 * 1024 * 1024})
+  const tdrFileWithPath = createTdrFile({ fileSize: 10 * 1024 * 1024 })
   const callback = jest.fn()
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
@@ -257,7 +263,12 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
   const tdrFileWithPath2 = createTdrFile({})
   const tdrFileWithPath3 = createTdrFile({})
   const tdrFileWithPath4 = createTdrFile({})
-  const tdrFilesWithPath: ITdrFileWithPath[] = [tdrFileWithPath1, tdrFileWithPath2, tdrFileWithPath3, tdrFileWithPath4]
+  const tdrFilesWithPath: ITdrFileWithPath[] = [
+    tdrFileWithPath1,
+    tdrFileWithPath2,
+    tdrFileWithPath3,
+    tdrFileWithPath4
+  ]
 
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
@@ -270,11 +281,12 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
     ""
   )
   const byteSizeofAllFiles = tdrFilesWithPath.reduce(
-    (fileIdTotal, tdrFileWithPath) => fileIdTotal + tdrFileWithPath.fileWithPath.file.size,
+    (fileIdTotal, tdrFileWithPath) =>
+      fileIdTotal + tdrFileWithPath.fileWithPath.file.size,
     0
   )
   expect(isError(result)).toBe(false)
-  if(!isError(result)) {
+  if (!isError(result)) {
     expect(result.totalChunks).toEqual(result.processedChunks)
     expect(result.totalChunks).toEqual(byteSizeofAllFiles)
   }
@@ -298,7 +310,12 @@ test("multiple 0-byte file uploads returns a totalChunks value that equals the s
     fileId: "6b6694d0-814c-4978-8dee-56ec920a0102",
     bits: ""
   })
-  const tdrFilesWithPath: ITdrFileWithPath[] = [tdrFileWithPath1, tdrFileWithPath2, tdrFileWithPath3, tdrFileWithPath4]
+  const tdrFilesWithPath: ITdrFileWithPath[] = [
+    tdrFileWithPath1,
+    tdrFileWithPath2,
+    tdrFileWithPath3,
+    tdrFileWithPath4
+  ]
 
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
@@ -311,7 +328,7 @@ test("multiple 0-byte file uploads returns a totalChunks value that equals the s
     ""
   )
   expect(isError(result)).toBe(false)
-  if(!isError(result)) {
+  if (!isError(result)) {
     expect(result.totalChunks).toEqual(4)
     expect(result.totalChunks).toEqual(result.processedChunks)
   }
@@ -334,7 +351,12 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
     fileId: "6b6694d0-814c-4978-8dee-56ec920a0102",
     bits: "bits4"
   })
-  const tdrFilesWithPath: ITdrFileWithPath[] = [tdrFileWithPath1, tdrFileWithPath2, tdrFileWithPath3, tdrFileWithPath4]
+  const tdrFilesWithPath: ITdrFileWithPath[] = [
+    tdrFileWithPath1,
+    tdrFileWithPath2,
+    tdrFileWithPath3,
+    tdrFileWithPath4
+  ]
 
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
@@ -348,7 +370,8 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
   )
 
   const byteSizeofAllFiles = tdrFilesWithPath.reduce(
-    (fileIdTotal, tdrFileWithPath) => fileIdTotal + tdrFileWithPath.fileWithPath.file.size,
+    (fileIdTotal, tdrFileWithPath) =>
+      fileIdTotal + tdrFileWithPath.fileWithPath.file.size,
     0
   )
 
@@ -357,7 +380,7 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
   ).length
 
   expect(isError(result)).toBe(false)
-  if(!isError(result)) {
+  if (!isError(result)) {
     expect(result.processedChunks).toEqual(
       byteSizeofAllFiles + numberOfFilesWithZeroBytes
     )
