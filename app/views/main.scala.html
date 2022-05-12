@@ -80,6 +80,21 @@
                     <h2 class="govuk-visually-hidden">Support links</h2>
                     <ul class="govuk-footer__inline-list">
                         @if(isLoggedIn) {
+                            @if(isJudgmentUser) {
+                                <li class="govuk-footer__inline-list-item">
+                                    <a class="govuk-footer__link" href="@routes.HelpController.judgmentHelp()">
+                                        Help
+                                    </a>
+                                </li>
+                            } else {
+                                <li class="govuk-footer__inline-list-item">
+                                    <a class="govuk-footer__link" href="@routes.HelpController.help()">
+                                        Help
+                                    </a>
+                                </li>
+                            }
+                        }
+                        @if(isLoggedIn) {
                           <li class="govuk-footer__inline-list-item">
                             @if(isJudgmentUser) {
                               <a class="govuk-footer__link" href="@routes.FaqController.judgmentFaq()">
@@ -97,21 +112,6 @@
                                 Contact
                             </a>
                         </li>
-                        @if(isLoggedIn) {
-                          @if(isJudgmentUser) {
-                            <li class="govuk-footer__inline-list-item">
-                              <a class="govuk-footer__link" href="@routes.HelpController.judgmentHelp()">
-                                Help
-                              </a>
-                            </li>
-                          } else {
-                            <li class="govuk-footer__inline-list-item">
-                              <a class="govuk-footer__link" href="@routes.HelpController.help()">
-                                Help
-                              </a>
-                            </li>
-                          }
-                        }
                         <li class="govuk-footer__inline-list-item">
                             <a class="govuk-footer__link" href="@routes.CookiesController.cookies()">
                               Cookies
