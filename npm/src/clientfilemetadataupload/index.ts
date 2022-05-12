@@ -18,7 +18,6 @@ import { ITdrFile } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
 
-declare var METADATA_UPLOAD_BATCH_SIZE: string
 
 export class ClientFileMetadataUpload {
   client: GraphqlClient
@@ -60,58 +59,39 @@ export class ClientFileMetadataUpload {
     const { metadataInputs, matchFileMap } =
       this.createMetadataInputsAndFileMap(allFileMetadata)
 
-    const metadataBatches: ClientSideMetadataInput[][] =
-      this.createMetadataInputBatches(metadataInputs)
-
     const allFiles: ITdrFile[] = []
 
-    for (const metadataInput of metadataBatches) {
-      const variables: AddFilesAndMetadataMutationVariables = {
-        input: {
-          consignmentId,
-          metadataInput,
-          emptyDirectories: emptyFolders
-        }
+    const variables: AddFilesAndMetadataMutationVariables = {
+      input: {
+        consignmentId,
+        metadataInput: metadataInputs,
+        emptyDirectories: emptyFolders
       }
-      const result: FetchResult<AddFilesAndMetadataMutation> =
-        await this.client.mutation(AddFilesAndMetadata, variables)
+    }
+    const result: FetchResult<AddFilesAndMetadataMutation> =
+      await this.client.mutation(AddFilesAndMetadata, variables)
 
-      if (result.errors) {
-        return Error(
-          `Add client file metadata failed: ${result.errors.toString()}`
-        )
-      }
-      if (result.data) {
-        result.data.addFilesAndMetadata.forEach((f) => {
-          const fileId: string = f.fileId
-          const file: File | undefined = matchFileMap.get(f.matchId)
-          if (file) {
-            allFiles.push({ fileId, file })
-          } else {
-            return Error(`Invalid match id ${f.matchId} for file ${fileId}`)
-          }
-        })
-      } else {
-        return Error(
-          `No data found in response for consignment ${consignmentId}`
-        )
-      }
+    if (result.errors) {
+      return Error(
+        `Add client file metadata failed: ${result.errors.toString()}`
+      )
+    }
+    if (result.data) {
+      result.data.addFilesAndMetadata.forEach((f) => {
+        const fileId: string = f.fileId
+        const file: File | undefined = matchFileMap.get(f.matchId)
+        if (file) {
+          allFiles.push({fileId, file})
+        } else {
+          return Error(`Invalid match id ${f.matchId} for file ${fileId}`)
+        }
+      })
+    } else {
+      return Error(
+        `No data found in response for consignment ${consignmentId}`
+      )
     }
     return allFiles
-  }
-
-  createMetadataInputBatches(metadataInputs: ClientSideMetadataInput[]) {
-    const batches: ClientSideMetadataInput[][] = []
-    // METADATA_UPLOAD_BATCH_SIZE comes in as a string despite typescript thinking it's a number.
-    // This means that on the first pass of the loop, index is set to "0250" and then exits.
-    // Setting the type to string and parsing the number sets the batches correctly.
-    const batchSize = parseInt(METADATA_UPLOAD_BATCH_SIZE, 10)
-
-    for (let index = 0; index < metadataInputs.length; index += batchSize) {
-      batches.push(metadataInputs.slice(index, index + batchSize))
-    }
-
-    return batches
   }
 
   createMetadataInputsAndFileMap(allFileMetadata: IFileMetadata[]): {
