@@ -18,7 +18,6 @@ import { ITdrFile } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
 
-
 export class ClientFileMetadataUpload {
   client: GraphqlClient
 
@@ -81,15 +80,13 @@ export class ClientFileMetadataUpload {
         const fileId: string = f.fileId
         const file: File | undefined = matchFileMap.get(f.matchId)
         if (file) {
-          allFiles.push({fileId, file})
+          allFiles.push({ fileId, file })
         } else {
           return Error(`Invalid match id ${f.matchId} for file ${fileId}`)
         }
       })
     } else {
-      return Error(
-        `No data found in response for consignment ${consignmentId}`
-      )
+      return Error(`No data found in response for consignment ${consignmentId}`)
     }
     return allFiles
   }
