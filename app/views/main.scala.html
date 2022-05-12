@@ -86,26 +86,23 @@
                                         Help
                                     </a>
                                 </li>
+                                <li class="govuk-footer__inline-list-item">
+                                    <a class="govuk-footer__link" href="@routes.FaqController.judgmentFaq()">
+                                        FAQ
+                                    </a>
+                                </li>
                             } else {
                                 <li class="govuk-footer__inline-list-item">
                                     <a class="govuk-footer__link" href="@routes.HelpController.help()">
                                         Help
                                     </a>
                                 </li>
+                                <li class="govuk-footer__inline-list-item">
+                                    <a class="govuk-footer__link" href="@routes.FaqController.faq()">
+                                        FAQ
+                                    </a>
+                                </li>
                             }
-                        }
-                        @if(isLoggedIn) {
-                          <li class="govuk-footer__inline-list-item">
-                            @if(isJudgmentUser) {
-                              <a class="govuk-footer__link" href="@routes.FaqController.judgmentFaq()">
-                                FAQ
-                              </a>
-                              } else {
-                                <a class="govuk-footer__link" href="@routes.FaqController.faq()">
-                                  FAQ
-                                </a>
-                              }
-                          </li>
                         }
                         <li class="govuk-footer__inline-list-item">
                             <a class="govuk-footer__link" href="@routes.ContactController.contact()">
