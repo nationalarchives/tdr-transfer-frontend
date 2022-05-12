@@ -112,6 +112,7 @@ test("a single file upload returns the correct key", async () => {
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -119,8 +120,8 @@ test("a single file upload returns the correct key", async () => {
     jest.fn(),
     ""
   )
-  let input = mockUpload.call(0).args[0].input as { Key: string }
 
+  const input = mockUpload.call(0).args[0].input as { Key: string }
   expect(input.Key).toEqual(
     `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5`
   )
@@ -132,6 +133,7 @@ test("a single file upload calls the callback correctly", async () => {
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -139,29 +141,18 @@ test("a single file upload calls the callback correctly", async () => {
     callback,
     ""
   )
+
   checkCallbackCalls(callback, 1, [100])
 })
 
 test("multiple file uploads return the correct params", async () => {
   const callback = jest.fn()
-  const tdrFileWithPath1 = createTdrFile({
-    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
-  })
-  const tdrFileWithPath2 = createTdrFile({
-    fileId: "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1"
-  })
-  const tdrFileWithPath3 = createTdrFile({
-    fileId: "56b34fbb-2eac-401e-a89a-0dc9b2013863"
-  })
-  const tdrFileWithPath4 = createTdrFile({
-    fileId: "6b6694d0-814c-4978-8dee-56ec920a0102"
-  })
-  const files: ITdrFileWithPathAndBits[] = [
-    tdrFileWithPath1,
-    tdrFileWithPath2,
-    tdrFileWithPath3,
-    tdrFileWithPath4
-  ]
+  const tdrFilesWithPathAndBits: ITdrFileWithPathAndBits[] = [
+    { fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5" },
+    { fileId: "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1" },
+    { fileId: "56b34fbb-2eac-401e-a89a-0dc9b2013863" },
+    { fileId: "6b6694d0-814c-4978-8dee-56ec920a0102" }
+  ].map((tdrFileParams) => createTdrFile(tdrFileParams))
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.reset()
   mockUpload.resolves({})
@@ -169,10 +160,11 @@ test("multiple file uploads return the correct params", async () => {
     s3Mock as unknown as S3Client,
     "https://tdr-fake-url.com/fake"
   )
+
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
-    files,
+    tdrFilesWithPathAndBits,
     callback,
     ""
   )
@@ -191,7 +183,7 @@ test("multiple file uploads return the correct params", async () => {
 
   fileIds.forEach((fileId) => {
     const fileIndex = fileIds.indexOf(fileId)
-    const tdrFileWithPath = files[fileIndex]
+    const tdrFileWithPath = tdrFilesWithPathAndBits[fileIndex]
     const fileObject = tdrFileWithPath.fileWithPath
     const putObjectParams = getPutObjectParamsUploaded(fileIndex)
 
@@ -206,23 +198,22 @@ test("multiple file uploads return the correct params", async () => {
 })
 
 test("multiple file uploads call the callback correctly", async () => {
-  const files: ITdrFileWithPath[] = [
-    createTdrFile({}),
-    createTdrFile({}),
-    createTdrFile({}),
-    createTdrFile({})
-  ]
+  const tdrFilesWithPath: ITdrFileWithPath[] = [{}, {}, {}, {}].map(
+    (tdrFileParams) => createTdrFile(tdrFileParams)
+  )
   const callback = jest.fn()
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
-    files,
+    tdrFilesWithPath,
     callback,
     ""
   )
+
   checkCallbackCalls(callback, 4, [25, 50, 75, 100])
 })
 
@@ -231,6 +222,7 @@ test("when there is an error with the upload, an error is returned", async () =>
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.rejects("error")
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
   const result = s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -238,6 +230,7 @@ test("when there is an error with the upload, an error is returned", async () =>
     jest.fn(),
     ""
   )
+
   await expect(result).rejects.toEqual(Error("error"))
 })
 
@@ -247,6 +240,7 @@ test("a single file upload calls the callback correctly with a different chunk s
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -254,25 +248,24 @@ test("a single file upload calls the callback correctly with a different chunk s
     callback,
     ""
   )
+
   checkCallbackCalls(callback, 1, [50, 100])
 })
 
 test("multiple file uploads of more than 0 bytes returns the correct, same number of bytes provided as uploaded", async () => {
   const callback = jest.fn()
-  const tdrFileWithPath1 = createTdrFile({})
-  const tdrFileWithPath2 = createTdrFile({})
-  const tdrFileWithPath3 = createTdrFile({})
-  const tdrFileWithPath4 = createTdrFile({})
-  const tdrFilesWithPath: ITdrFileWithPath[] = [
-    tdrFileWithPath1,
-    tdrFileWithPath2,
-    tdrFileWithPath3,
-    tdrFileWithPath4
-  ]
-
+  const tdrFilesWithPath: ITdrFileWithPath[] = [{}, {}, {}, {}].map(
+    (tdrFileParams) => createTdrFile(tdrFileParams)
+  )
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const byteSizeofAllFiles = tdrFilesWithPath.reduce(
+    (fileIdTotal, tdrFileWithPath) =>
+      fileIdTotal + tdrFileWithPath.fileWithPath.file.size,
+    0
+  )
+
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -280,11 +273,7 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
     callback,
     ""
   )
-  const byteSizeofAllFiles = tdrFilesWithPath.reduce(
-    (fileIdTotal, tdrFileWithPath) =>
-      fileIdTotal + tdrFileWithPath.fileWithPath.file.size,
-    0
-  )
+
   expect(isError(result)).toBe(false)
   if (!isError(result)) {
     expect(result.totalChunks).toEqual(result.processedChunks)
@@ -294,32 +283,16 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
 
 test("multiple 0-byte file uploads returns a totalChunks value that equals the same as the length of 'files'", async () => {
   const callback = jest.fn()
-  const tdrFileWithPath1 = createTdrFile({
-    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5",
-    bits: ""
-  })
-  const tdrFileWithPath2 = createTdrFile({
-    fileId: "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1",
-    bits: ""
-  })
-  const tdrFileWithPath3 = createTdrFile({
-    fileId: "56b34fbb-2eac-401e-a89a-0dc9b2013863",
-    bits: ""
-  })
-  const tdrFileWithPath4 = createTdrFile({
-    fileId: "6b6694d0-814c-4978-8dee-56ec920a0102",
-    bits: ""
-  })
   const tdrFilesWithPath: ITdrFileWithPath[] = [
-    tdrFileWithPath1,
-    tdrFileWithPath2,
-    tdrFileWithPath3,
-    tdrFileWithPath4
-  ]
-
+    { fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", bits: "" },
+    { fileId: "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1", bits: "" },
+    { fileId: "56b34fbb-2eac-401e-a89a-0dc9b2013863", bits: "" },
+    { fileId: "6b6694d0-814c-4978-8dee-56ec920a0102", bits: "" }
+  ].map((tdrFileParams) => createTdrFile(tdrFileParams))
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -327,6 +300,7 @@ test("multiple 0-byte file uploads returns a totalChunks value that equals the s
     callback,
     ""
   )
+
   expect(isError(result)).toBe(false)
   if (!isError(result)) {
     expect(result.totalChunks).toEqual(4)
@@ -337,30 +311,25 @@ test("multiple 0-byte file uploads returns a totalChunks value that equals the s
 test(`multiple file uploads (some with 0 bytes, some not) returns processedChunks value,
             equal to byte size of files + length of 'files' with 0 bytes`, async () => {
   const callback = jest.fn()
-  const tdrFileWithPath1 = createTdrFile({
-    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
-  })
-  const tdrFileWithPath2 = createTdrFile({
-    fileId: "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1"
-  })
-  const tdrFileWithPath3 = createTdrFile({
-    fileId: "56b34fbb-2eac-401e-a89a-0dc9b2013863",
-    bits: "bits3"
-  })
-  const tdrFileWithPath4 = createTdrFile({
-    fileId: "6b6694d0-814c-4978-8dee-56ec920a0102",
-    bits: "bits4"
-  })
   const tdrFilesWithPath: ITdrFileWithPath[] = [
-    tdrFileWithPath1,
-    tdrFileWithPath2,
-    tdrFileWithPath3,
-    tdrFileWithPath4
-  ]
+    { fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5", bits: "" },
+    { fileId: "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1", bits: "" },
+    { fileId: "56b34fbb-2eac-401e-a89a-0dc9b2013863", bits: "bits3" },
+    { fileId: "6b6694d0-814c-4978-8dee-56ec920a0102", bits: "bits4" }
+  ].map((tdrFileParams) => createTdrFile(tdrFileParams))
+  const byteSizeofAllFiles = tdrFilesWithPath.reduce(
+    (fileIdTotal, tdrFileWithPath) =>
+      fileIdTotal + tdrFileWithPath.fileWithPath.file.size,
+    0
+  )
+  const numberOfFilesWithZeroBytes = tdrFilesWithPath.filter(
+    (tdrFileWithPath) => tdrFileWithPath.fileWithPath.file.size == 0
+  ).length
 
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.resolves({})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
@@ -368,16 +337,6 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
     callback,
     ""
   )
-
-  const byteSizeofAllFiles = tdrFilesWithPath.reduce(
-    (fileIdTotal, tdrFileWithPath) =>
-      fileIdTotal + tdrFileWithPath.fileWithPath.file.size,
-    0
-  )
-
-  const numberOfFilesWithZeroBytes = tdrFilesWithPath.filter(
-    (tdrFileWithPath) => tdrFileWithPath.fileWithPath.file.size == 0
-  ).length
 
   expect(isError(result)).toBe(false)
   if (!isError(result)) {
