@@ -5,11 +5,14 @@ import {
 } from "@aws-sdk/client-s3"
 
 import { Upload } from "@aws-sdk/lib-storage"
-import { TProgressFunction } from "@nationalarchives/file-information"
+import {
+  IFileWithPath,
+  TProgressFunction
+} from "@nationalarchives/file-information"
 
-export interface ITdrFile {
+export interface ITdrFileWithPath {
   fileId: string
-  file: File
+  fileWithPath: IFileWithPath
 }
 
 interface IFileProgressInfo {
@@ -30,7 +33,7 @@ export class S3Upload {
   uploadToS3: (
     consignmentId: string,
     userId: string | undefined,
-    files: ITdrFile[],
+    iTdrFilesWithPath: ITdrFileWithPath[],
     callback: TProgressFunction,
     stage: string
   ) => Promise<
@@ -40,22 +43,25 @@ export class S3Upload {
         totalChunks: number
       }
     | Error
-  > = async (consignmentId, userId, files, callback, stage) => {
+  > = async (consignmentId, userId, iTdrFilesWithPath, callback, stage) => {
     if (userId) {
-      const totalFiles = files.length
-      const totalChunks: number = files.reduce(
-        (fileSizeTotal, file) =>
-          fileSizeTotal + (file.file.size ? file.file.size : 1),
+      const totalFiles = iTdrFilesWithPath.length
+      const totalChunks: number = iTdrFilesWithPath.reduce(
+        (fileSizeTotal, tdrFileWithPath) =>
+          fileSizeTotal +
+          (tdrFileWithPath.fileWithPath.file.size
+            ? tdrFileWithPath.fileWithPath.file.size
+            : 1),
         0
       )
       let processedChunks = 0
       const sendData: ServiceOutputTypes[] = []
-      for (const file of files) {
+      for (const tdrFileWithPath of iTdrFilesWithPath) {
         const uploadResult = await this.uploadSingleFile(
           consignmentId,
           userId,
           stage,
-          file,
+          tdrFileWithPath,
           callback,
           {
             processedChunks,
@@ -64,7 +70,9 @@ export class S3Upload {
           }
         )
         sendData.push(uploadResult)
-        processedChunks += file.file.size ? file.file.size : 1
+        processedChunks += tdrFileWithPath.fileWithPath.file.size
+          ? tdrFileWithPath.fileWithPath.file.size
+          : 1
       }
       return { sendData, processedChunks, totalChunks }
     } else {
@@ -76,30 +84,31 @@ export class S3Upload {
     consignmentId: string,
     userId: string,
     stage: string,
-    tdrFile: ITdrFile,
+    tdrFileWithPath: ITdrFileWithPath,
     updateProgressCallback: TProgressFunction,
     progressInfo: IFileProgressInfo
   ) => Promise<ServiceOutputTypes> = (
     consignmentId,
     userId,
     stage,
-    tdrFile,
+    tdrFileWithPath,
     updateProgressCallback,
     progressInfo
   ) => {
-    const { file, fileId } = tdrFile
+    const { fileWithPath, fileId } = tdrFileWithPath
     const key = `${userId}/${consignmentId}/${fileId}`
     const params: PutObjectCommandInput = {
       Key: key,
       Bucket: this.uploadUrl,
       ACL: "bucket-owner-read",
-      Body: file
+      Body: fileWithPath.file,
+      Tagging: `filePath=${encodeURIComponent(fileWithPath.path)}`
     }
 
     const progress = new Upload({ client: this.client, params })
 
     const { processedChunks, totalChunks, totalFiles } = progressInfo
-    if (file.size >= 1) {
+    if (fileWithPath.file.size >= 1) {
       // httpUploadProgress seems to only trigger if file size is greater than 0
       progress.on("httpUploadProgress", (ev) => {
         const loaded = ev.loaded

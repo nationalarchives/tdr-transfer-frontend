@@ -250,7 +250,7 @@ test("createMetadataInputsAndFileMap returns metadata inputs and file map", () =
 
   expect(matchFileMap.size).toEqual(2)
   for (let i = 0; i < metadataInputs.length; i += 1) {
-    expect(matchFileMap.get(i)).toEqual(metadata[i].file)
+    expect(matchFileMap.get(i)?.file).toEqual(metadata[i].file)
   }
 })
 
