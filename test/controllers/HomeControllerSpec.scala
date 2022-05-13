@@ -20,20 +20,8 @@ class HomeControllerSpec extends FrontEndTestHelper {
 
       status(home) mustBe OK
       contentType(home) mustBe Some("text/html")
-
-      pageAsString must include ("<title>Introduction</title>")
-      pageAsString must include ("This is a new service – your feedback will help us to improve it. Please")
-      pageAsString must include ("href=\"/contact\">get in touch (opens in new tab).</a>")
-      pageAsString must include ("The National Archives Transfer Digital Records")
-      pageAsString must include ("Use this service to:")
-      pageAsString must include ("transfer digital records to The National Archives")
-      pageAsString must include ("transfer judgments to The National Archives")
-      pageAsString must include ("Start now")
+      checkForContentOnHomePage(pageAsString, signedIn = false)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false)
-
-      pageAsString must not include ("/faq")
-      pageAsString must not include ("/help")
-      pageAsString must not include ("Sign out")
     }
 
     "render the index page from a new instance of controller if a user is logged in" in {
@@ -44,18 +32,11 @@ class HomeControllerSpec extends FrontEndTestHelper {
       status(home) mustBe OK
       contentType(home) mustBe Some("text/html")
 
-      pageAsString must include ("<title>Introduction</title>")
-      pageAsString must include ("This is a new service – your feedback will help us to improve it. Please")
-      pageAsString must include ("href=\"/contact\">get in touch (opens in new tab).</a>")
-      pageAsString must include ("The National Archives Transfer Digital Records")
-      pageAsString must include ("Use this service to:")
-      pageAsString must include ("transfer digital records to The National Archives")
-      pageAsString must include ("transfer judgments to The National Archives")
-      pageAsString must include ("Start now")
+      checkForContentOnHomePage(pageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString)
+
       pageAsString must include ("/faq")
       pageAsString must include ("/help")
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString)
     }
 
     "render the index page from the application" in {
@@ -65,17 +46,22 @@ class HomeControllerSpec extends FrontEndTestHelper {
 
       status(home) mustBe OK
       contentType(home) mustBe Some("text/html")
-
-      pageAsString must include ("<title>Introduction</title>")
-      pageAsString must include ("This is a new service – your feedback will help us to improve it. Please")
-      pageAsString must include ("href=\"/contact\">get in touch (opens in new tab).</a>")
-      pageAsString must include ("The National Archives Transfer Digital Records")
-      pageAsString must include ("Use this service to:")
-      pageAsString must include ("transfer digital records to The National Archives")
-      pageAsString must include ("transfer judgments to The National Archives")
-      pageAsString must include ("Start now")
+      checkForContentOnHomePage(pageAsString, signedIn = false)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false)
+    }
+  }
 
+  private def checkForContentOnHomePage(pageAsString: String, signedIn: Boolean = true): Unit = {
+    pageAsString must include ("<title>Introduction</title>")
+    pageAsString must include ("This is a new service – your feedback will help us to improve it. Please")
+    pageAsString must include ("href=\"/contact\">get in touch (opens in new tab).</a>")
+    pageAsString must include ("The National Archives Transfer Digital Records")
+    pageAsString must include ("Use this service to:")
+    pageAsString must include ("transfer digital records to The National Archives")
+    pageAsString must include ("transfer judgments to The National Archives")
+    pageAsString must include ("Start now")
+
+    if(!signedIn) {
       pageAsString must not include ("/faq")
       pageAsString must not include ("/help")
       pageAsString must not include ("Sign out")
