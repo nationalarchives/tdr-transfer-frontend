@@ -8,7 +8,7 @@ import util.FrontEndTestHelper
 import scala.concurrent._
 
 class HomeControllerSpec extends FrontEndTestHelper {
-
+//test
   "HomeController GET" should {
 
     "render the index page from a new instance of controller" in {
