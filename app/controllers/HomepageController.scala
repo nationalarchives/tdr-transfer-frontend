@@ -30,10 +30,11 @@ class HomepageController @Inject()(val controllerComponents: SecurityComponents,
       )
   }
 
-  def homepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] => {
+  def homepage(): Action[AnyContent] = secureAction {
+    implicit request: Request[AnyContent] => {
       if (request.token.isJudgmentUser) {
         Redirect(routes.HomepageController.judgmentHomepage())
-      } else if(request.token.isStandardUser){
+      } else if(request.token.isStandardUser) {
         Ok(views.html.standard.homepage(request.token.name))
       } else {
         Ok(views.html.registrationComplete(request.token.name))
@@ -41,9 +42,15 @@ class HomepageController @Inject()(val controllerComponents: SecurityComponents,
     }
   }
 
-  def judgmentHomepage(): Action[AnyContent] = judgmentUserAction {
+  def judgmentHomepage(): Action[AnyContent] = secureAction {
     implicit request: Request[AnyContent] => {
-      Future(Ok(views.html.judgment.judgmentHomepage(request.token.name)))
+      if (request.token.isJudgmentUser) {
+        Ok(views.html.judgment.judgmentHomepage(request.token.name))
+      } else if(request.token.isStandardUser) {
+        Redirect(routes.HomepageController.homepage())
+      } else {
+        Ok(views.html.registrationComplete(request.token.name))
+      }
     }
   }
 }
