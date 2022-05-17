@@ -6,7 +6,6 @@ module.exports = {
     TDR_IDENTITY_POOL_ID: "TEST_IDENTITY_POOL",
     API_URL: true,
     STAGE: "stage",
-    REGION: "region",
-    METADATA_UPLOAD_BATCH_SIZE: 3
+    REGION: "region"
   }
 }

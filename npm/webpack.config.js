@@ -23,13 +23,6 @@ module.exports = {
     extensions: [".ts", ".js", ".mjs"],
     fallback: { util: require.resolve("util/"), events: require.resolve("events") }
   },
-  plugins: [
-    new webpack.DefinePlugin({
-      METADATA_UPLOAD_BATCH_SIZE: JSON.stringify(
-        `${process.env.METADATA_UPLOAD_BATCH_SIZE || 250}`
-      )
-    })
-  ],
   output: {
     filename: "main.js",
     path: path.resolve(__dirname, "../public/javascripts")
