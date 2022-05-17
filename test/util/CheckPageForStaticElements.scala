@@ -1,7 +1,6 @@
 package util
 
 import org.scalatest.matchers.must.Matchers._
-import play.api.test.Helpers.contentAsString
 
 class CheckPageForStaticElements() {
   def checkContentOfPagesThatUseMainScala(page: String, signedIn: Boolean=true, userType: String=""): Unit = {
@@ -31,11 +30,11 @@ class CheckPageForStaticElements() {
       )
 
       if(userType == "judgment") {
-        page must include ("Judgment User")
+        page must include ("Judgment Username")
         page must include ("""href="/judgment/faq">""")
         page must include ("""href="/judgment/help">""")
       } else if(userType == "standard") {
-        page must include ("Standard User")
+        page must include ("Standard Username")
         page must include ("""href="/faq">""")
         page must include ("""href="/help">""")
       }
