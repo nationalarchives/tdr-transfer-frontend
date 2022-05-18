@@ -89,9 +89,7 @@ export class ClientFileMetadataUpload {
         }
       })
     } else {
-      return Error(
-        `No data found in response for consignment ${consignmentId}`
-      )
+      return Error(`No data found in response for consignment ${consignmentId}`)
     }
     return allFiles
   }
