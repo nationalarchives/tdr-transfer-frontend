@@ -8,12 +8,13 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status, _}
 import services.ConsignmentService
-import util.FrontEndTestHelper
+import util.{CheckPageForStaticElements, FrontEndTestHelper}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
+
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
@@ -34,6 +35,8 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
+  val checkPageForStaticElements = new CheckPageForStaticElements
+
   "HomepageController GET" should {
 
     "render the registration complete page with an authenticated user with no user type" in {
@@ -43,12 +46,14 @@ class HomepageControllerSpec extends FrontEndTestHelper {
         consignmentService
       )
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage"))
+      val homepagePageAsString = contentAsString(homepagePage)
+
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
-      contentAsString(homepagePage) must include ("Registration Complete")
-      contentAsString(homepagePage) must include ("Thank you for completing your registration")
-      contentAsString(homepagePage) must include (s"""" href="/faq">""")
-      contentAsString(homepagePage) must include (s"""" href="/help">""")
+      homepagePageAsString must include ("Registration Complete")
+      homepagePageAsString must include ("Thank you for completing your registration")
+      homepagePageAsString must include ("Next Steps")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString)
     }
 
     "render the homepage page with an authenticated standard user" in {
@@ -56,14 +61,16 @@ class HomepageControllerSpec extends FrontEndTestHelper {
         getAuthorisedSecurityComponents,
         getValidStandardUserKeycloakConfiguration,
         consignmentService)
+      val userType = "standard"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
+      val homepagePageAsString = contentAsString(homepagePage)
+
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
-      contentAsString(homepagePage) must include ("Welcome")
-      contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(homepagePage) must include ("Upload your records to start a new transfer")
-      contentAsString(homepagePage) must include (s"""" href="/faq">""")
-      contentAsString(homepagePage) must include (s"""" href="/help">""")
+
+      homepagePageAsString must include ("Upload your records to start a new transfer")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType)
+      checkForContentOnHomepagePage(homepagePageAsString,  userType = userType)
     }
 
     "render the judgment homepage page with an authenticated judgment user" in {
@@ -71,25 +78,57 @@ class HomepageControllerSpec extends FrontEndTestHelper {
         getAuthorisedSecurityComponents,
         getValidJudgmentUserKeycloakConfiguration,
         consignmentService)
-      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
+      val userType = "judgment"
+      val homepagePage = controller.judgmentHomepage().apply(FakeRequest(GET, s"/$userType/homepage").withCSRFToken)
+      val homepagePageAsString = contentAsString(homepagePage)
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
 
-      contentAsString(homepagePage) must include ("Welcome")
-      contentAsString(homepagePage) must include ("Welcome to the Transfer Digital Records service")
-      contentAsString(homepagePage) must include ("Before you start")
-      contentAsString(homepagePage) must include ("You must upload your judgment as a Microsoft Word (.docx) document. Any other formats will not be accepted.")
-      contentAsString(homepagePage) must include ("Upload your judgment to start a new transfer")
-      contentAsString(homepagePage) must include (s"""" href="/judgment/faq">""")
-      contentAsString(homepagePage) must include (s"""" href="/judgment/help">""")
+      homepagePageAsString must include ("Before you start")
+      homepagePageAsString must include ("You must upload your judgment as a Microsoft Word (.docx) document. Any other formats will not be accepted.")
+      homepagePageAsString must include ("Upload your judgment to start a new transfer")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType)
+      checkForContentOnHomepagePage(homepagePageAsString,  userType = userType)
     }
 
-    "return a redirect to the auth server with an unauthenticated user" in {
+    "return a redirect to the judgment homepage page with an authenticated judgment user" in {
+      val controller = new HomepageController(
+        getAuthorisedSecurityComponents,
+        getValidJudgmentUserKeycloakConfiguration,
+        consignmentService)
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
+
+      status(homepagePage) mustBe SEE_OTHER
+      redirectLocation(homepagePage) must be(Some("/judgment/homepage"))
+    }
+
+    "return a redirect to the standard homepage page with an authenticated standard user" in {
+      val controller = new HomepageController(
+        getAuthorisedSecurityComponents,
+        getValidStandardUserKeycloakConfiguration,
+        consignmentService)
+      val homepagePage = controller.judgmentHomepage().apply(FakeRequest(GET, "/judgment/homepage").withCSRFToken)
+
+      status(homepagePage) mustBe SEE_OTHER
+      redirectLocation(homepagePage) must be(Some("/homepage"))
+    }
+
+    "return a redirect from the standard homepage to the auth server with an unauthenticated user" in {
       val controller = new HomepageController(
         getUnauthorisedSecurityComponents,
         getValidKeycloakConfiguration,
         consignmentService)
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage"))
+      redirectLocation(homepagePage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      status(homepagePage) mustBe FOUND
+    }
+
+    "return a redirect from the judgment homepage to the auth server with an unauthenticated user" in {
+      val controller = new HomepageController(
+        getUnauthorisedSecurityComponents,
+        getValidKeycloakConfiguration,
+        consignmentService)
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/judgment/homepage"))
       redirectLocation(homepagePage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       status(homepagePage) mustBe FOUND
     }
@@ -163,5 +202,17 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       redirectLocation(redirect).get must equal(s"/consignment/$consignmentId/series")
       wiremockServer.getAllServeEvents.size should equal(1)
     }
+  }
+
+  private def checkForContentOnHomepagePage(pageAsString: String, userType: String = "standard"): Unit = {
+    pageAsString must include ("<title>Welcome</title>")
+    pageAsString must include ("Welcome to the Transfer Digital Records service")
+    pageAsString must include ("Start transfer")
+    if(userType == "judgment") {
+      pageAsString must include ("""<form action="/judgment/homepage" method="POST" novalidate="">""")
+    } else {
+      pageAsString must include ("""<form action="/homepage" method="POST" novalidate="">""")
+    }
+
   }
 }
