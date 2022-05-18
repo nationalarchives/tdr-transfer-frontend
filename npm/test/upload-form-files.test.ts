@@ -189,7 +189,7 @@ test("dropzone updates the page with an error if a file and a folder has been dr
     judgmentUploadPageSpecificWarningMessages()
   )
   const dragEventClass = mockDom.addFilesToDragEvent(
-    [getDummyFolder(), getDummyFile("Mock File.docx", "docx")],
+    [getDummyFile("Mock File.docx", "docx"), getDummyFolder()],
     mockDom.directoryEntry
   )
   const dragEvent = new dragEventClass()
