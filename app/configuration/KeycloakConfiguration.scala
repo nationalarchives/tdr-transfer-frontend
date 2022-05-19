@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext
 
 class KeycloakConfiguration @Inject ()(configuration: Configuration)(implicit val executionContext: ExecutionContext) {
   def token(value: String): Option[Token] = {
-    implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(s"${configuration.get[String]("auth.url")}/auth", "tdr", 3600)
+    implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(s"${configuration.get[String]("auth.url")}", "tdr", 3600)
     KeycloakUtils().token(value).toOption
   }
 }
