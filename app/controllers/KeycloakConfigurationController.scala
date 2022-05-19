@@ -18,7 +18,7 @@ class KeycloakConfigurationController @Inject ()(val controllerComponents: Secur
   def keycloak: Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     val authUrl = configuration.get[String]("auth.url")
     Ok(Json.obj(
-      "auth-server-url" -> s"$authUrl/auth",
+      "auth-server-url" -> s"$authUrl",
       "resource" -> "tdr-fe",
       "realm" -> "tdr",
       "ssl-required" -> "external"))
