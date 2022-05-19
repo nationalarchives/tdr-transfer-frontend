@@ -17,7 +17,7 @@ class KeycloakConfigurationControllerSpec extends FrontEndTestHelper {
       doAnswer(_ => authUrl).when(configuration).get[String]("auth.url")
       val controller = new KeycloakConfigurationController(getAuthorisedSecurityComponents, configuration)
       val expectedResult: JsValue = Json.obj(
-        "auth-server-url" -> s"$authUrl/auth",
+        "auth-server-url" -> s"$authUrl",
         "resource" -> "tdr-fe",
         "realm" -> "tdr",
         "ssl-required" -> "external")
