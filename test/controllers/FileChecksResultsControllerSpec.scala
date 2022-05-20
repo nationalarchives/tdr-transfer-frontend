@@ -388,7 +388,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       consignmentStatusService,
       frontEndInfoConfiguration
     )
-    setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("Completed"))
+    setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("InProgress"))
     setConsignmentTypeResponse(wiremockServer, "judgment")
     setConsignmentReferenceResponse(wiremockServer)
 
