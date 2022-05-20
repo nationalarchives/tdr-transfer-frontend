@@ -50,7 +50,7 @@ class SecurityModule extends AbstractModule {
     val callback = configuration.get[String]("auth.callback")
     val secret = configuration.get[String]("auth.secret")
     oidcConfiguration.setSecret(secret)
-    oidcConfiguration.setDiscoveryURI(s"$authUrl/auth/realms/tdr/.well-known/openid-configuration")
+    oidcConfiguration.setDiscoveryURI(s"$authUrl/realms/tdr/.well-known/openid-configuration")
     oidcConfiguration.setPreferredJwsAlgorithm(JWSAlgorithm.RS256)
     // Setting this causes pac4j to get a new access token using the refresh token when the original access token expires
     oidcConfiguration.setExpireSessionWithToken(true)
