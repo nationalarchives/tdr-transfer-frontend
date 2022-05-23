@@ -34,6 +34,22 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
 
   "TransferAgreementPrivateBetaController GET" should {
 
+    "render the series page with an authenticated user if series status is not 'Completed'" in {
+      val consignmentId = UUID.randomUUID()
+
+      val controller: TransferAgreementPrivateBetaController =
+        taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val transferAgreementPage = controller.transferAgreement(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
+
+      playStatus(transferAgreementPage) mustBe SEE_OTHER
+      redirectLocation(transferAgreementPage).get must equal(s"/consignment/$consignmentId/series")
+    }
+
     "render the transfer agreement page with an authenticated user if consignment status is not 'InProgress' or not 'Completed'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
@@ -50,10 +66,9 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement" method="POST" novalidate="">""")
-      transferAgreementPageAsString must include (s"""" href="/faq">""")
-      transferAgreementPageAsString must include (s"""" href="/help">""")
-      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
+
+      taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+      checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
     }
 
@@ -156,13 +171,13 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
+      taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+      checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, incompleteTransferAgreementForm.toMap)
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
-      transferAgreementPageAsString must include (s"""" href="/faq">""")
-      transferAgreementPageAsString must include (s"""" href="/help">""")
-      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
-      taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.privateBeta, Set())
+
+      taHelper.checkHtmlContentForErrorMessages(transferAgreementPageAsString, taHelper.privateBeta, Set())
     }
 
     "display errors when a partially complete private form is submitted" in {
@@ -185,13 +200,12 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       }.toSet
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
+      taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+      checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, incompleteTransferAgreementForm.toMap)
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
-      transferAgreementPageAsString must include (s"""" href="/faq">""")
-      transferAgreementPageAsString must include (s"""" href="/help">""")
-      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
-      taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.privateBeta, pageOptions)
+      taHelper.checkHtmlContentForErrorMessages(transferAgreementPageAsString, taHelper.privateBeta, pageOptions)
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if consignment status is 'InProgress'" in {
@@ -209,13 +223,9 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include(
-        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued">
-           |                Continue""".stripMargin)
-      transferAgreementPageAsString must include("You have already confirmed all statements")
-      transferAgreementPageAsString must include (s"""" href="/faq">""")
-      transferAgreementPageAsString must include (s"""" href="/help">""")
-      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
+
+      taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString)
+      checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString)
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
@@ -234,13 +244,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include(
-        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued">
-           |                Continue""".stripMargin)
-      transferAgreementPageAsString must include("You have already confirmed all statements")
-      transferAgreementPageAsString must include (s"""" href="/faq">""")
-      transferAgreementPageAsString must include (s"""" href="/help">""")
-      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
+      taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString)
+      checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString)
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
     }
 
@@ -260,13 +265,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       playStatus(taAlreadyConfirmedPage) mustBe OK
       contentType(taAlreadyConfirmedPage) mustBe Some("text/html")
       headers(taAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      taAlreadyConfirmedPageAsString must include(
-        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued">
-           |                Continue""".stripMargin)
-      taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
-      taAlreadyConfirmedPageAsString must include (s"""" href="/faq">""")
-      taAlreadyConfirmedPageAsString must include (s"""" href="/help">""")
-      taAlreadyConfirmedPageAsString must include ("TEST-TDR-2021-GB")
+      taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
+      checkForExpectedTAPrivateBetaPageContent(taAlreadyConfirmedPageAsString)
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
     }
 
@@ -290,30 +290,9 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       playStatus(taAlreadyConfirmedPage) mustBe OK
       contentType(taAlreadyConfirmedPage) mustBe Some("text/html")
       headers(taAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      taAlreadyConfirmedPageAsString must include(
-        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued">
-           |                Continue""".stripMargin)
-      taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
-      taAlreadyConfirmedPageAsString must include (s"""" href="/faq">""")
-      taAlreadyConfirmedPageAsString must include (s"""" href="/help">""")
-      taAlreadyConfirmedPageAsString must include ("TEST-TDR-2021-GB")
+      taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
+      checkForExpectedTAPrivateBetaPageContent(taAlreadyConfirmedPageAsString)
       taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
-    }
-
-    "render the series page with an authenticated user if series status is not 'Completed'" in {
-      val consignmentId = UUID.randomUUID()
-
-      val controller: TransferAgreementPrivateBetaController =
-        taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
-
-      val transferAgreementPage = controller.transferAgreement(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
-
-      playStatus(transferAgreementPage) mustBe SEE_OTHER
-      redirectLocation(transferAgreementPage).get must equal(s"/consignment/$consignmentId/series")
     }
   }
 
@@ -329,6 +308,29 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
       }
       playStatus(transferAgreement) mustBe FORBIDDEN
+    }
+  }
+
+  private def checkForExpectedTAPrivateBetaPageContent(pageAsString: String, taAlreadyConfirmed: Boolean=true): Unit = {
+    pageAsString must include ("<title>Transfer agreement</title>")
+    pageAsString must include ("""<h1 class="govuk-heading-l">Transfer agreement</h1>""")
+    pageAsString must include (
+      """|    <strong class="govuk-warning-text__text">
+         |      <span class="govuk-warning-text__assistive">Warning</span>
+         |      transferAgreement.warning
+         |    </strong>""".stripMargin
+    )
+
+    if(taAlreadyConfirmed) {
+      pageAsString must include(
+        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued">
+           |                Continue""".stripMargin
+      )
+
+    } else {
+      pageAsString must include(
+        """<form action="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement" method="POST" novalidate="">"""
+      )
     }
   }
 }
