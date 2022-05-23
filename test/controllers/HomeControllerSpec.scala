@@ -1,11 +1,8 @@
 package controllers
 
-import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test._
 import util.{CheckPageForStaticElements, FrontEndTestHelper}
-
-import scala.concurrent._
 
 class HomeControllerSpec extends FrontEndTestHelper {
 
@@ -21,7 +18,7 @@ class HomeControllerSpec extends FrontEndTestHelper {
       status(home) mustBe OK
       contentType(home) mustBe Some("text/html")
       checkForContentOnHomePage(pageAsString, signedIn = false)
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, consignmentExists = false)
     }
 
     "render the index page from a new instance of controller if a user is logged in" in {
@@ -33,7 +30,7 @@ class HomeControllerSpec extends FrontEndTestHelper {
       contentType(home) mustBe Some("text/html")
 
       checkForContentOnHomePage(pageAsString)
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, consignmentExists = false)
 
       pageAsString must include ("/faq")
       pageAsString must include ("/help")
@@ -47,7 +44,7 @@ class HomeControllerSpec extends FrontEndTestHelper {
       status(home) mustBe OK
       contentType(home) mustBe Some("text/html")
       checkForContentOnHomePage(pageAsString, signedIn = false)
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, consignmentExists = false)
     }
   }
 
