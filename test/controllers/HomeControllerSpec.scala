@@ -1,11 +1,8 @@
 package controllers
 
-import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test._
 import util.{CheckPageForStaticElements, FrontEndTestHelper}
-
-import scala.concurrent._
 
 class HomeControllerSpec extends FrontEndTestHelper {
 
