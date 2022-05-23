@@ -99,7 +99,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, pageRequiresAwsServices=true)
       checkForExpectedPageContentOnMainUploadPage(uploadPageAsString)
       uploadPageAsString must include ("<title>Upload your records</title>")
       uploadPageAsString must include ("""<h1 class="govuk-heading-l">Upload your records</h1>""")
@@ -146,7 +146,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       )
     }
 
-    "render the 'upload in progress' page if the upload is in progress" in {
+    "render the 'upload in progress' page if a standard upload is in progress" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
@@ -168,7 +168,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, uploadStatus = uploadStatus)
     }
 
-    "render the 'upload is complete' page if the upload has completed" in {
+    "render 'upload is complete' page if a standard upload has completed" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
@@ -213,7 +213,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, pageRequiresAwsServices=true)
       checkForExpectedPageContentOnMainUploadPage(uploadPageAsString)
       uploadPageAsString must include ("<title>Upload your judgment</title>")
       uploadPageAsString must include ("""<h1 class="govuk-heading-l">Upload judgment</h1>""")
@@ -249,7 +249,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         """<p class="govuk-body">Do not close your browser window while your file is being uploaded. This could take a few minutes.</p>""")
     }
 
-    "render the judgment 'upload in progress' page if the 'upload is in progress'" in {
+    "render the 'upload in progress' page if a judgment file upload is in progress" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
