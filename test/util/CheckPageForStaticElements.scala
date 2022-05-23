@@ -33,6 +33,7 @@ class CheckPageForStaticElements() {
         page must include ("""href="/judgment/faq">""")
         page must include ("""href="/judgment/help">""")
         if(consignmentExists) {
+          page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
           page must include ("Transfer reference")
           page must include ("TEST-TDR-2021-GB")
         }
@@ -41,6 +42,7 @@ class CheckPageForStaticElements() {
         page must include ("""href="/faq">""")
         page must include ("""href="/help">""")
         if(consignmentExists) {
+          page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
           page must include ("Consignment reference")
           page must include ("TEST-TDR-2021-GB")
         }

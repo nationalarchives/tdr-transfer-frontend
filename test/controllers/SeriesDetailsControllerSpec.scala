@@ -250,7 +250,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkForExpectedSeriesPageContent(pageAsString: String, seriesAlreadyChosen: Boolean=false): Unit = {
-    pageAsString must include ("progressIndicator.step")
     pageAsString must include ("Choose a series")
     pageAsString must include ("Please choose an existing series reference for the records you would like to transfer.")
 
