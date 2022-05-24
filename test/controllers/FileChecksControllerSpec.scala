@@ -11,7 +11,7 @@ import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import services.ConsignmentService
-import util.FrontEndTestHelper
+import util.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -40,25 +40,37 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     "standard"
   )
 
+  val checkPageForStaticElements = new CheckPageForStaticElements
+
   forAll (fileChecks) { userType =>
     "FileChecksController GET" should {
-      val (pathName, keycloakConfiguration, expectedTitle, expectedText, expectedFaqLink, expectedHelpLink, expectedReference) = if(userType == "judgment") {
+      val (pathName, keycloakConfiguration, expectedTitle, expectedHeading, expectedInstruction, expectedForm) = if(userType == "judgment") {
         ("judgment",
           getValidJudgmentUserKeycloakConfiguration,
-          "Checking your upload",
-          "Your judgment is being checked for errors",
-          """" href="/judgment/faq">""",
-          """href="/judgment/help">""",
-          "TEST-TDR-2021-GB"
+          "<title>Checking your upload</title>",
+          """<h1 class="govuk-heading-l">Checking your upload""",
+          """            <p class="govuk-body">Your judgment is being checked for errors.
+            |              This may take a few minutes. Once your judgment has been checked, you will be redirected automatically.
+            |            </p>""".stripMargin,
+          s"""<form action="/judgment/$consignmentId/file-checks-results" method="GET" id="file-checks-form">""".stripMargin
         )
       } else {
         ("consignment",
           getValidStandardUserKeycloakConfiguration,
-          "Checking your records",
-          "Please wait while your records are being checked. This may take a few minutes.",
-          """" href="/faq">""",
-          """" href="/help">""",
-          "TEST-TDR-2021-GB"
+          "<title>Checking your records</title>",
+          """<h1 class="govuk-heading-l">Checking your records</h1>""",
+          """            <p class="govuk-body">Please wait while your records are being checked. This may take a few minutes.</p>
+            |            <p class="govuk-body">The following checks are now being performed:</p>
+            |            <ul class="govuk-list govuk-list--bullet">
+            |                <li>Anti-virus scanning</li>
+            |                <li>Identifying file formats</li>
+            |                <li>Validating data integrity</li>
+            |            </ul>""".stripMargin,
+          s"""            <form action="/consignment/$consignmentId/file-checks-results">
+            |                <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button govuk-button--disabled" disabled>
+            |                Continue
+            |                </button>
+            |            </form>""".stripMargin
         )
       }
 
@@ -74,7 +86,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         mockGraphqlResponse(dataString, userType)
         setConsignmentReferenceResponse(wiremockServer)
 
-        val recordsController = new FileChecksController(
+        val fileChecksController = new FileChecksController(
           getAuthorisedSecurityComponents,
           new GraphQLConfiguration(app.configuration),
           keycloakConfiguration,
@@ -82,22 +94,43 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           frontEndInfoConfiguration
         )
 
-        val recordsPage = if (userType == "judgment") {
-          recordsController.judgmentFileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+        val fileChecksPage = if (userType == "judgment") {
+          fileChecksController.judgmentFileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         } else {
-          recordsController.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+          fileChecksController.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         }
 
-        val recordsPageAsString = contentAsString(recordsPage)
+        val fileChecksPageAsString = contentAsString(fileChecksPage)
 
-        playStatus(recordsPage) mustBe OK
-        contentType(recordsPage) mustBe Some("text/html")
-        headers(recordsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        recordsPageAsString must include(expectedTitle)
-        recordsPageAsString must include(expectedText)
-        recordsPageAsString must include(expectedFaqLink)
-        recordsPageAsString must include(expectedHelpLink)
-        recordsPageAsString must include(expectedReference)
+        playStatus(fileChecksPage) mustBe OK
+        contentType(fileChecksPage) mustBe Some("text/html")
+        headers(fileChecksPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(fileChecksPageAsString, userType = userType)
+        fileChecksPageAsString must include(expectedTitle)
+        fileChecksPageAsString must include(expectedHeading)
+        fileChecksPageAsString must include(expectedInstruction)
+        if(userType == "judgment") {
+          fileChecksPageAsString must include("""<input id="consignmentId" type="hidden" value="b5bbe4d6-01a7-4305-99ef-9fce4a67917a">""")
+        } else {
+          fileChecksPageAsString must include(
+          """            <p class="govuk-body govuk-!-margin-bottom-7">For more information on these checks, please see our
+            |                <a href="/faq#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> for this service.
+            |            </p>""".stripMargin
+          )
+          fileChecksPageAsString must include(
+          """                <div class="govuk-notification-banner__header">
+            |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+            |                        Important
+            |                    </h2>
+            |                </div>
+            |                <div class="govuk-notification-banner__content">
+            |                    <p class="govuk-notification-banner__heading">Your records have been checked</p>
+            |                    <p class="govuk-body">Please click 'Continue' to see your results.</p>
+            |                </div>""".stripMargin
+          )
+        }
+        fileChecksPageAsString must include(expectedForm)
       }
 
       s"return a redirect to the auth server with an unauthenticated $userType user" in {
@@ -105,14 +138,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val controller = new FileChecksController(getUnauthorisedSecurityComponents,
           new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
-        val recordsPage = controller.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+        val fileChecksPage = controller.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
 
-        playStatus(recordsPage) mustBe FOUND
-        redirectLocation(recordsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+        playStatus(fileChecksPage) mustBe FOUND
+        redirectLocation(fileChecksPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       }
 
       s"render the $userType file checks complete page if the file checks are complete and all checks are successful" in {
-        print("\n\nblah", userType, pathName, expectedTitle)
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val dataString: String = progressData(40, 40, 40, allChecksSucceeded = true)
@@ -123,7 +155,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val controller = new FileChecksController(
           getAuthorisedSecurityComponents,
           new GraphQLConfiguration(app.configuration),
-          getValidJudgmentUserKeycloakConfiguration,
+          keycloakConfiguration,
           consignmentService,
           frontEndInfoConfiguration
         )
@@ -134,15 +166,19 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           controller.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         }
 
+        val fileChecksCompletePageAsString = contentAsString(fileChecksCompletePage)
+
         playStatus(fileChecksCompletePage) mustBe OK
-        contentAsString(fileChecksCompletePage) must include(expectedTitle)
-        contentAsString(fileChecksCompletePage) must include("Your upload and checks have been completed.")
-        contentAsString(fileChecksCompletePage) must not include (
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(fileChecksCompletePageAsString, userType = userType)
+        fileChecksCompletePageAsString must include(expectedTitle)
+        fileChecksCompletePageAsString must include(expectedHeading)
+        fileChecksCompletePageAsString must include("Your upload and checks have been completed.")
+        fileChecksCompletePageAsString must not include (
           s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
                                                                                  href="/$pathName/$consignmentId/file-checks">
-        Continue""")
-        contentAsString(fileChecksCompletePage) must include(expectedFaqLink)
-        contentAsString(fileChecksCompletePage) must include(expectedReference)
+        Continue"""
+        )
       }
 
       s"render the $userType file checks complete page if the file checks are complete and all checks are not successful" in {
@@ -156,7 +192,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val controller = new FileChecksController(
           getAuthorisedSecurityComponents,
           new GraphQLConfiguration(app.configuration),
-          getValidJudgmentUserKeycloakConfiguration,
+          keycloakConfiguration,
           consignmentService,
           frontEndInfoConfiguration
         )
@@ -165,19 +201,21 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         } else {
           controller.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         }
+        val fileChecksCompletePageAsString = contentAsString(fileChecksCompletePage)
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(fileChecksCompletePageAsString, userType = userType)
         playStatus(fileChecksCompletePage) mustBe OK
-        contentAsString(fileChecksCompletePage) must include(expectedTitle)
-        contentAsString(fileChecksCompletePage) must include("Your upload and checks have been completed.")
-        contentAsString(fileChecksCompletePage) must not include (
+        fileChecksCompletePageAsString must include(expectedTitle)
+        fileChecksCompletePageAsString must include(expectedHeading)
+        fileChecksCompletePageAsString must include("Your upload and checks have been completed.")
+        fileChecksCompletePageAsString must not include (
           s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
                                                                                  href="/$pathName/$consignmentId/file-checks">
-        Continue""")
-        contentAsString(fileChecksCompletePage) must include(expectedFaqLink)
-        contentAsString(fileChecksCompletePage) must include(expectedReference)
+        Continue"""
+        )
       }
     }
   }
-
 
   private def mockGraphqlResponse(dataString: String, userType: String) = {
     setConsignmentTypeResponse(wiremockServer, userType)
