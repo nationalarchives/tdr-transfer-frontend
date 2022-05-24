@@ -44,14 +44,14 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
   def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       exportStatus = consignmentStatus.flatMap(_.export)
       result <- exportStatus match {
         case Some("Completed") =>
-          Future(Ok(views.html.transferAlreadyCompleted(consignmentId, request.token.name, isJudgmentUser = true)).uncache())
+          Future(Ok(views.html.transferAlreadyCompleted(consignmentId, reference, request.token.name, isJudgmentUser = true)).uncache())
         case None =>
           for {
             fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
-            reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
                 consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken)
