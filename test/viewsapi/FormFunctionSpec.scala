@@ -93,7 +93,7 @@ class FormFunctionSpec extends FrontEndTestHelper {
     }
 
     "return checked if the option is selected" in {
-      val filledForm = form.fill(TestData("test"))
+      val filledForm = form.fill(TestData("true"))
       val res = FormFunctions.formDataOptions(filledForm)
         .shouldOptionBeSelected("id")
       res should be("checked")
@@ -109,6 +109,14 @@ class FormFunctionSpec extends FrontEndTestHelper {
       val res = FormFunctions.formDataOptions(form)
         .shouldOptionBeSelected("invalid")
       res should be("")
+    }
+
+    "return exception if the option selected exists but value is not 'true' or 'false'" in {
+      val filledForm = form.fill(TestData("invalid"))
+      val thrownException =
+        the[IllegalStateException] thrownBy FormFunctions.formDataOptions(filledForm).shouldOptionBeSelected("id")
+
+      thrownException.getMessage should equal ("Unexpected value: Some(invalid). value must be 'true' or 'false'")
     }
   }
 }
