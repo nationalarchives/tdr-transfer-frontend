@@ -46,7 +46,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
       consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
       exportStatus = consignmentStatus.flatMap(_.export)
       result <- exportStatus match {
-        case Some("InProgress") =>
+        case Some("InProgress") | Some("Completed") | Some("Failed") =>
           Future(Ok(views.html.transferAlreadyCompleted(consignmentId, request.token.name, isJudgmentUser = true)).uncache())
         case None =>
           for {
