@@ -15,6 +15,7 @@ import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.prop.TableFor1
 import play.api.Configuration
 import play.api.Play.materializer
 import play.api.i18n.Langs
@@ -59,6 +60,12 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   val checkHtmlOfFormOptions = new CheckHtmlOfFormOptions(options)
   val consignmentId: UUID = UUID.randomUUID()
+  val consignmentStatuses: TableFor1[String] = Table(
+    "Consignment status",
+    "Completed",
+    "InProgress",
+    "Failed"
+  )
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
@@ -97,8 +104,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       confirmTransferPageAsString must include("Consignment reference")
       confirmTransferPageAsString must include(consignmentSummaryResponse.consignmentReference)
 
-      confirmTransferPageAsString must include (s"""" href="/faq">""")
-      confirmTransferPageAsString must include (s"""" href="/help">""")
+      confirmTransferPageAsString must include(s"""" href="/faq">""")
+      confirmTransferPageAsString must include(s"""" href="/help">""")
 
       checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
     }
@@ -471,28 +478,30 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       wiremockServer.getAllServeEvents.size() should equal(4)
     }
 
-    "render the confirm transfer 'already confirmed' page with an authenticated standard user if export status is 'Completed'" in {
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-      setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("InProgress"))
-      setConsignmentTypeResponse(wiremockServer,"standard")
+    forAll(consignmentStatuses) { consignmentStatus =>
+      s"render the confirm transfer 'already confirmed' page with an authenticated standard user if export status is '$consignmentStatus'" in {
+        val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+        setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+        setConsignmentTypeResponse(wiremockServer, "standard")
 
-      val transferControllerPage = controller.confirmTransfer(consignmentId)
-        .apply(FakeRequest(GET, f"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
-      val confirmTransferPageAsString = contentAsString(transferControllerPage)
+        val transferControllerPage = controller.confirmTransfer(consignmentId)
+          .apply(FakeRequest(GET, f"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+        val confirmTransferPageAsString = contentAsString(transferControllerPage)
 
-      playStatus(transferControllerPage) mustBe OK
-      contentType(transferControllerPage) mustBe Some("text/html")
-      headers(transferControllerPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      confirmTransferPageAsString must include(
-        s"""href="/consignment/$consignmentId/transfer-complete">Continue""".stripMargin)
-      confirmTransferPageAsString must include("Your transfer has already been completed")
+        playStatus(transferControllerPage) mustBe OK
+        contentType(transferControllerPage) mustBe Some("text/html")
+        headers(transferControllerPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+        confirmTransferPageAsString must include(
+          s"""href="/consignment/$consignmentId/transfer-complete">Continue""".stripMargin)
+        confirmTransferPageAsString must include("Your transfer has already been completed")
+      }
     }
 
     "render the confirm transfer 'already confirmed' page with an authenticated user if the standard user navigates back to the " +
       "confirmTransfer after previously successfully submitting the transfer" in {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("InProgress"))
-      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val ctAlreadyConfirmedPage = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
@@ -511,11 +520,11 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = false)
       setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("InProgress"))
-      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
       val ctAlreadyConfirmedPage = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(incompleteTransferConfirmationForm:_*)
+          .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
           .withCSRFToken)
       val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
 
@@ -527,28 +536,30 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       ctAlreadyConfirmedPageAsString must include("Your transfer has already been completed")
     }
 
-    "render the transfer 'already confirmed' page with an authenticated judgment user if export status is 'Completed'" in {
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-      setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("InProgress"))
-      setConsignmentTypeResponse(wiremockServer,"judgment")
+    forAll(consignmentStatuses) { consignmentStatus =>
+      s"render the transfer 'already confirmed' page with an authenticated judgment user if export status is '$consignmentStatus'" in {
+        val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+        setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+        setConsignmentTypeResponse(wiremockServer, "judgment")
 
-      val transferAlreadyCompletedPage = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
-        .apply(FakeRequest(GET, f"/judgment/$consignmentId/file-checks-results").withCSRFToken)
-      val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
+        val transferAlreadyCompletedPage = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
+          .apply(FakeRequest(GET, f"/judgment/$consignmentId/file-checks-results").withCSRFToken)
+        val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
 
-      playStatus(transferAlreadyCompletedPage) mustBe OK
-      contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
-      headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAlreadyCompletedPageAsString must include(
-        s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
-      transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
+        playStatus(transferAlreadyCompletedPage) mustBe OK
+        contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
+        headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+        transferAlreadyCompletedPageAsString must include(
+          s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
+        transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
+      }
     }
 
     "render the confirm transfer 'already confirmed' page with an authenticated judgment user if the user navigates back to the " +
       "confirmTransfer after previously successfully submitting the transfer" in {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("InProgress"))
-      setConsignmentTypeResponse(wiremockServer,"judgment")
+      setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val transferAlreadyCompletedPage = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/judgment/$consignmentId/file-checks-results").withCSRFToken)
@@ -567,11 +578,11 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = false)
       setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("InProgress"))
-      setConsignmentTypeResponse(wiremockServer,"judgment")
+      setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val transferAlreadyCompletedPage = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/judgment/$consignmentId/file-checks-results")
-          .withFormUrlEncodedBody(incompleteTransferConfirmationForm:_*)
+          .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
           .withCSRFToken)
       val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
 
@@ -593,14 +604,14 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
           case "judgment" =>
             mockGraphqlConsignmentSummaryResponse()
             controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
-            .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-              .withCSRFToken)
+              .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
+                .withCSRFToken)
           case "consignment" =>
             mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
             controller.finalTransferConfirmationSubmit(consignmentId)
-            .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-              .withCSRFToken
-            )
+              .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
+                .withCSRFToken
+              )
         }
         playStatus(fileChecksPage) mustBe FORBIDDEN
       }
@@ -608,7 +619,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   }
 
   private def mockGraphqlConsignmentSummaryResponse(dataString: String = "", consignmentType: String = "standard") = {
-    if(dataString.nonEmpty) {
+    if (dataString.nonEmpty) {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentSummary"))
         .willReturn(okJson(dataString)))
