@@ -1,8 +1,6 @@
 @import java.util.UUID
-@import views.html.partials.progressIndicator
 @import views.html.partials.returnToStartPage
 
-@import views.html.partials.transferReference
 @(consignmentId: UUID, name: String, isJudgmentUser: Boolean=false)(implicit request: RequestHeader, messages: Messages)
 
 @main("Transfer Already Completed", name = name, isJudgmentUser = isJudgmentUser) {
