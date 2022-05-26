@@ -4,7 +4,7 @@ import {
   IFileWithPath,
   TProgressFunction
 } from "@nationalarchives/file-information"
-import {getErrorMessage} from "../errorhandling";
+import { getErrorMessage } from "../errorhandling"
 
 export class ClientFileExtractMetadata {
   async extract(
@@ -14,7 +14,9 @@ export class ClientFileExtractMetadata {
     try {
       return await extractFileMetadata(files, callBack)
     } catch (e) {
-      return Error("Client file metadata extraction failed: " + getErrorMessage(e))
+      return Error(
+        "Client file metadata extraction failed: " + getErrorMessage(e)
+      )
     }
   }
 }
