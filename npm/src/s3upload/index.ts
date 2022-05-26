@@ -101,8 +101,7 @@ export class S3Upload {
       Key: key,
       Bucket: this.uploadUrl,
       ACL: "bucket-owner-read",
-      Body: fileWithPath.file,
-      Tagging: `filePath=${encodeURIComponent(fileWithPath.path)}`
+      Body: fileWithPath.file
     }
 
     const progress = new Upload({ client: this.client, params })
