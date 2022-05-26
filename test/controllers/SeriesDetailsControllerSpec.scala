@@ -19,7 +19,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
-import util.FrontEndTestHelper
+import util.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -43,6 +43,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
+  val checkPageForStaticElements = new CheckPageForStaticElements
+
   "SeriesDetailsController GET" should {
 
     "render the correct series details page with an authenticated user" in {
@@ -59,16 +61,15 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
 
+      val seriesDetailsPageAsString = contentAsString(seriesDetailsPage)
+
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
-      contentAsString(seriesDetailsPage) must include ("Series Information")
-      contentAsString(seriesDetailsPage) must include ("Choose a series")
-      contentAsString(seriesDetailsPage) must include ("Please choose an existing series reference for the records you would like to transfer.")
-      contentAsString(seriesDetailsPage) must include ("id=\"series\"")
-      contentAsString(seriesDetailsPage) must include (s"""<option value="${seriesId.toString}">code</option>""")
-      contentAsString(seriesDetailsPage) must include (s"""" href="/faq">""")
-      contentAsString(seriesDetailsPage) must include (s"""" href="/help">""")
-      contentAsString(seriesDetailsPage) must include ("TEST-TDR-2021-GB")
+      seriesDetailsPageAsString must include ("<title>Series Information</title>")
+      seriesDetailsPageAsString must include ("""<option value="" selected>
+                                    |                Please choose...""".stripMargin)
+      checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString)
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
@@ -163,13 +164,21 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit(consignmentId).apply(FakeRequest(POST, "/series").withCSRFToken)
       playStatus(seriesSubmit) mustBe BAD_REQUEST
-      contentAsString(seriesSubmit) must include("govuk-error-message")
-      contentAsString(seriesSubmit) must include("error.required")
-      contentAsString(seriesSubmit) must include("govuk-error-summary")
-      contentAsString(seriesSubmit) must include("<title>Error: ")
-      contentAsString(seriesSubmit) must include (s"""" href="/faq">""")
-      contentAsString(seriesSubmit) must include (s"""" href="/help">""")
-      contentAsString(seriesSubmit) must include ("TEST-TDR-2021-GB")
+
+      val seriesSubmitAsString = contentAsString(seriesSubmit)
+
+      contentType(seriesSubmit) mustBe Some("text/html")
+      contentAsString(seriesSubmit) must include ("<title>Error: Series Information</title>")
+      seriesSubmitAsString must include("govuk-error-summary")
+      seriesSubmitAsString must include ("There is a problem")
+      seriesSubmitAsString must include ("<a href=\"#error-series\">error.required</a>")
+      seriesSubmitAsString must include("govuk-error-message")
+      seriesSubmitAsString must include("class=\"govuk-visually-hidden\">Error:")
+      seriesSubmitAsString must include ("""<option value="" selected>
+                               |                Please choose...""".stripMargin)
+
+      checkForExpectedSeriesPageContent(seriesSubmitAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesSubmitAsString)
     }
 
     "will send the correct body if it is present on the user" in {
@@ -202,19 +211,21 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       playStatus(seriesPost) mustBe FORBIDDEN
     }
 
-    "render the series 'already confirmed' page with an authenticated user if series status is 'Completed'" in {
+    "render the series 'already chosen' page with an authenticated user if series status is 'Completed'" in {
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, f"/consignment/$consignmentId/series").withCSRFToken)
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), seriesStatus = Some("Completed"))
       setConsignmentTypeResponse(wiremockServer,"standard")
       setConsignmentReferenceResponse(wiremockServer)
+      val seriesDetailsPageAsString = contentAsString(seriesDetailsPage)
 
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
       headers(seriesDetailsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      contentAsString(seriesDetailsPage) must include ("You have already chosen a series reference")
-      contentAsString(seriesDetailsPage) must include (s"""" href="/faq">""")
-      contentAsString(seriesDetailsPage) must include (s"""" href="/help">""")
+      seriesDetailsPageAsString must include ("You have already chosen a series reference")
+      seriesDetailsPageAsString must include ("Click 'Continue' to proceed with your transfer.")
+      checkForExpectedSeriesPageContent(seriesDetailsPageAsString, seriesAlreadyChosen = true)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString)
     }
   }
 
@@ -229,12 +240,26 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       seriesService, consignmentService, consignmentStatusService)
   }
 
-  def mockGetSeries(): StubMapping = {
+  private def mockGetSeries(): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
     val data: client.GraphqlData = client.GraphqlData(Some(
       gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "code", Option.empty)))))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .willReturn(okJson(dataString)))
+  }
+
+  private def checkForExpectedSeriesPageContent(pageAsString: String, seriesAlreadyChosen: Boolean=false): Unit = {
+    pageAsString must include ("progressIndicator.step")
+    pageAsString must include ("Choose a series")
+    pageAsString must include ("Please choose an existing series reference for the records you would like to transfer.")
+
+    if(seriesAlreadyChosen) {
+      pageAsString must include ("""<select class="govuk-select" id="series" name="series"  disabled>""")
+      pageAsString must include (s"""<option selected="selected" value="$seriesId">MOCK1</option>""")
+    } else {
+      pageAsString must include ("""<select class="govuk-select" id="series" name="series"  >""")
+      pageAsString must include (s"""<option value="$seriesId">code</option>""")
+    }
   }
 }

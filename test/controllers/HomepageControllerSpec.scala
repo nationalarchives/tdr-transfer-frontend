@@ -53,7 +53,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must include ("Registration Complete")
       homepagePageAsString must include ("Thank you for completing your registration")
       homepagePageAsString must include ("Next Steps")
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, consignmentExists = false)
     }
 
     "render the homepage page with an authenticated standard user" in {
@@ -69,7 +69,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       contentType(homepagePage) mustBe Some("text/html")
 
       homepagePageAsString must include ("Upload your records to start a new transfer")
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString,  userType = userType)
     }
 
@@ -87,7 +87,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must include ("Before you start")
       homepagePageAsString must include ("You must upload your judgment as a Microsoft Word (.docx) document. Any other formats will not be accepted.")
       homepagePageAsString must include ("Upload your judgment to start a new transfer")
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString,  userType = userType)
     }
 
