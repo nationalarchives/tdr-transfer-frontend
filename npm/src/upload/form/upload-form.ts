@@ -124,7 +124,7 @@ export class UploadForm {
         const resultOrError = this.checkIfDroppedItemIsFolder(webkitEntry)
         if (!isError(resultOrError)) {
           const filesAndFolders: (IFileWithPath | IDirectoryWithPath)[] =
-            await getAllFiles(webkitEntry, [])
+            await getAllFiles(webkitEntry as any, [])
           const files = filesAndFolders.filter((f) =>
             isFile(f)
           ) as IFileWithPath[]
@@ -132,7 +132,7 @@ export class UploadForm {
           if (!isError(folderCheck)) {
             this.selectedFiles = filesAndFolders
             addFolderSelectionSuccessMessage(
-              webkitEntry.name,
+              webkitEntry!.name,
               this.selectedFiles.filter((f) => isFile(f)).length
             )
           } else {
