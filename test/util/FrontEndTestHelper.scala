@@ -109,10 +109,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
     when(frontEndInfoConfiguration.frontEndInfo).thenReturn(
       FrontEndInfo(
-        "",
-        "",
-        "",
-        ""
+        "https://mock-api-url.com/graphql",
+        "mockStage",
+        "mockRegion",
+        "https://mock-upload-url.com"
       ))
     frontEndInfoConfiguration
   }
