@@ -159,17 +159,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
-        if (userType == "judgment") {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("has been successfully checked and is ready to be exported")
-          resultsPageAsString must include("Export")
-        } else {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("has been successfully checked and uploaded")
-          resultsPageAsString must include("Click 'Continue' to proceed with your transfer")
-          resultsPageAsString must include("Continue")
-        }
-
         status(recordCheckResultsPage) mustBe 200
         contentType(recordCheckResultsPage) mustBe Some("text/html")
 
@@ -264,18 +253,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
-
-        if (userType == "judgment") {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("Your file has failed our checks. Please try again.")
-        } else {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("One or more files you uploaded have failed our checks")
-          resultsPageAsString must include(
-            "<a class=\"govuk-link\" href=\"mailto:tdr@nationalachives.gov.uk?subject=Ref: TEST-TDR-2021-GB - Problem with Results of checks\">" +
-              "tdr@nationalachives.gov.uk</a>"
-          )
-        }
 
         status(recordCheckResultsPage) mustBe OK
 
