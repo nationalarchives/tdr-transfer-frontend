@@ -1,16 +1,7 @@
-import { GraphqlClient } from "./graphql"
-import { getKeycloakInstance } from "./auth"
-import { FileUploader } from "./upload"
-import { ClientFileMetadataUpload } from "./clientfilemetadataupload"
-import { goToNextPage } from "./nextpageredirect/next-page-redirect"
-import { FileChecks } from "./filechecks"
 import { initAll } from "govuk-frontend"
-import { UpdateConsignmentStatus } from "./updateconsignmentstatus"
-import { handleUploadError, isError } from "./errorhandling"
 
 window.onload = function () {
   initAll()
-
   renderModules()
 }
 
@@ -41,7 +32,7 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
   }
 }
 
-export const renderModules = () => {
+export const renderModules = async () => {
   const uploadContainer: HTMLDivElement | null =
     document.querySelector("#file-upload")
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
@@ -50,50 +41,66 @@ export const renderModules = () => {
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
-    if (!isError(frontEndInfo)) {
-      getKeycloakInstance().then((keycloak) => {
-        if (!isError(keycloak)) {
-          const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
-          const clientFileProcessing = new ClientFileMetadataUpload(
+    const errorHandlingModule = await import("./errorhandling")
+    if (!errorHandlingModule.isError(frontEndInfo)) {
+      const authModule = await import("./auth")
+      authModule.getKeycloakInstance().then(async (keycloak) => {
+        if (!errorHandlingModule.isError(keycloak)) {
+          const graphQlModule = await import("./graphql")
+          const graphqlClient = new graphQlModule.GraphqlClient(
+            frontEndInfo.apiUrl,
+            keycloak
+          )
+          const metadataUploadModule = await import("./clientfilemetadataupload")
+          const clientFileProcessing = new metadataUploadModule.ClientFileMetadataUpload(
             graphqlClient
           )
-          const updateConsignmentStatus = new UpdateConsignmentStatus(
-            graphqlClient
-          )
-          new FileUploader(
+          const consignmentStatusModule = await import("./updateconsignmentstatus")
+          const nextPageModule = await import("./nextpageredirect/next-page-redirect")
+          const uploadModule = await import("./upload")
+          const updateConsignmentStatus = new consignmentStatusModule.UpdateConsignmentStatus(graphqlClient)
+          new uploadModule.FileUploader(
             clientFileProcessing,
             updateConsignmentStatus,
             frontEndInfo,
-            goToNextPage,
+            nextPageModule.goToNextPage,
             keycloak
           ).initialiseFormListeners()
         } else {
-          handleUploadError(keycloak)
+          errorHandlingModule.handleUploadError(keycloak)
         }
       })
     } else {
-      handleUploadError(frontEndInfo)
+      errorHandlingModule.handleUploadError(frontEndInfo)
     }
   }
   if (fileChecksContainer) {
     const frontEndInfo = getFrontEndInfo()
-    if (!isError(frontEndInfo)) {
-      getKeycloakInstance().then((keycloak) => {
-        if (!isError(keycloak)) {
-          const graphqlClient = new GraphqlClient(frontEndInfo.apiUrl, keycloak)
+    const errorHandlingModule = await import("./errorhandling")
+    if (!errorHandlingModule.isError(frontEndInfo)) {
+      const authModule = await import("./auth")
+      authModule.getKeycloakInstance().then(async (keycloak) => {
+        if (!errorHandlingModule.isError(keycloak)) {
+          const graphQlModule = await import("./graphql")
+          const graphqlClient = new graphQlModule.GraphqlClient(
+            frontEndInfo.apiUrl,
+            keycloak
+          )
           const isJudgmentUser = keycloak.tokenParsed?.judgment_user
-          const resultOrError = new FileChecks(
+          const fileChecksModule = await import("./filechecks")
+          const nextPageModule = await import("./nextpageredirect/next-page-redirect")
+          const resultOrError = new fileChecksModule.FileChecks(
             graphqlClient
-          ).updateFileCheckProgress(isJudgmentUser, goToNextPage)
-          if (isError(resultOrError)) {
-            handleUploadError(resultOrError)
+          ).updateFileCheckProgress(isJudgmentUser, nextPageModule.goToNextPage)
+          if (errorHandlingModule.isError(resultOrError)) {
+            errorHandlingModule.handleUploadError(resultOrError)
           }
         } else {
-          handleUploadError(keycloak)
+          errorHandlingModule.handleUploadError(keycloak)
         }
       })
     } else {
-      handleUploadError(frontEndInfo)
+      errorHandlingModule.handleUploadError(frontEndInfo)
     }
   }
 }
