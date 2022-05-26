@@ -47,20 +47,27 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     "standard"
   )
 
+  val consignmentStatuses: TableFor1[String] = Table(
+    "Consignment status",
+    "Completed",
+    "InProgress",
+    "Failed"
+  )
+
   val checkPageForStaticElements = new CheckPageForStaticElements
   val expectedSuccessSummaryTitle: String =
-  """                <h2 class="success-summary__title" id="success-summary-title">
-    |                    Success
-    |                </h2>""".stripMargin
+    """                <h2 class="success-summary__title" id="success-summary-title">
+      |                    Success
+      |                </h2>""".stripMargin
   val expectedFailureReturnButton: String =
-   """      <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
+    """      <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
       |          Return to start
       |      </a>""".stripMargin
 
   val expectedFailureTitle: String =
-   """          <h2 class="govuk-error-summary__title" id="error-summary-title">
-    |              There is a problem
-    |          </h2>""".stripMargin
+    """          <h2 class="govuk-error-summary__title" id="error-summary-title">
+      |              There is a problem
+      |          </h2>""".stripMargin
 
   forAll (userTypes) { userType =>
     "FileChecksResultsController GET" should {
@@ -438,44 +445,46 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  "render the 'transfer has already been confirmed' page with an authenticated judgment user if export status is 'Completed'" in {
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-    val userType = "judgment"
-    val fileCheckResultsController = new FileChecksResultsController(
-      getAuthorisedSecurityComponents,
-      getValidJudgmentUserKeycloakConfiguration,
-      new GraphQLConfiguration(app.configuration),
-      consignmentService,
-      consignmentStatusService,
-      frontEndInfoConfiguration
-    )
-    setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("Completed"))
-    setConsignmentTypeResponse(wiremockServer, userType)
-    setConsignmentReferenceResponse(wiremockServer)
+  forAll(consignmentStatuses) { consignmentStatus =>
+    s"render the 'transfer has already been confirmed' page with an authenticated judgment user if export status is '$consignmentStatus'" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val userType = "judgment"
+      val fileCheckResultsController = new FileChecksResultsController(
+        getAuthorisedSecurityComponents,
+        getValidJudgmentUserKeycloakConfiguration,
+        new GraphQLConfiguration(app.configuration),
+        consignmentService,
+        consignmentStatusService,
+        frontEndInfoConfiguration
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+      setConsignmentTypeResponse(wiremockServer, userType)
+      setConsignmentReferenceResponse(wiremockServer)
 
-    val transferAlreadyCompletedPage = fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
-      .apply(FakeRequest(GET, s"/$userType/$consignmentId/file-checks").withCSRFToken)
+      val transferAlreadyCompletedPage = fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/$userType/$consignmentId/file-checks").withCSRFToken)
 
-    val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
+      val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
 
-    status(transferAlreadyCompletedPage) mustBe OK
-    contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
-    headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+      status(transferAlreadyCompletedPage) mustBe OK
+      contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
+      headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-    checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = userType)
-    transferAlreadyCompletedPageAsString must include("<title>Transfer Already Completed</title>")
-    transferAlreadyCompletedPageAsString must include (
-    """                <h1 class="govuk-heading-l">Your transfer has already been completed</h1>
-      |                <p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>""".stripMargin
-    )
-    transferAlreadyCompletedPageAsString must include(
-      s"""                    <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
-         |                        href="/$userType/$consignmentId/transfer-complete">Continue
-         |                    </a>""".stripMargin
-    )
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = userType)
+      transferAlreadyCompletedPageAsString must include("<title>Transfer Already Completed</title>")
+      transferAlreadyCompletedPageAsString must include (
+      """                <h1 class="govuk-heading-l">Your transfer has already been completed</h1>
+        |                <p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>""".stripMargin
+      )
+      transferAlreadyCompletedPageAsString must include(
+        s"""                    <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
+           |                        href="/$userType/$consignmentId/transfer-complete">Continue
+           |                    </a>""".stripMargin
+      )
+    }
   }
 
   forAll(userChecks) { (user, url) =>
