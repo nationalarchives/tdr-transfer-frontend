@@ -54,7 +54,8 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
       consignmentStatus =>
         val exportTransferStatus = consignmentStatus.flatMap(_.export)
         exportTransferStatus match {
-          case Some("Completed") => Future(Ok(views.html.transferAlreadyCompleted(consignmentId, request.token.name)).uncache())
+          case Some("InProgress") | Some("Completed") | Some("Failed") =>
+            Future(Ok(views.html.transferAlreadyCompleted(consignmentId, request.token.name)).uncache())
           case None =>
             getConsignmentSummary(request, consignmentId)
               .map { consignmentSummary =>
@@ -110,7 +111,7 @@ class ConfirmTransferController @Inject()(val controllerComponents: SecurityComp
         exportStatus = consignmentStatus.flatMap(_.export)
         res <- {
           exportStatus match {
-            case Some("Completed") =>
+            case Some("InProgress") | Some("Completed") | Some("Failed") =>
               Future(Ok(views.html.transferAlreadyCompleted(consignmentId, request.token.name, isJudgmentUser = true)).uncache())
             case None =>
               val token: BearerAccessToken = request.token.bearerAccessToken
