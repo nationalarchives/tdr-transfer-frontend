@@ -1,8 +1,8 @@
 @import views.html.partials.{progressIndicator, fileCheckErrorMessage, transferReference}
 
-@(name: String, consignmentRef: String, isJudgmentUser: Boolean, fileStatuses: List[String] = Nil)(implicit request: RequestHeader, messages: Messages)
+@(name: String, title: String, consignmentRef: String, isJudgmentUser: Boolean, fileStatuses: List[String] = Nil)(implicit request: RequestHeader, messages: Messages)
 
-@main("Results of checks", name = name, isJudgmentUser = isJudgmentUser) {
+@main(title, name = name, isJudgmentUser = isJudgmentUser) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         @if(isJudgmentUser) {
@@ -10,7 +10,7 @@
         } else {
             @progressIndicator(Messages("checkingRecords.progress"), isJudgmentUser)
         }
-      <h1 class="govuk-heading-l">Results of checks</h1>
+      <h1 class="govuk-heading-l">@title</h1>
 
       <div class="govuk-error-summary" aria-labelledby="error-summary-title"
       role="alert" data-module="govuk-error-summary" tabindex="-1">

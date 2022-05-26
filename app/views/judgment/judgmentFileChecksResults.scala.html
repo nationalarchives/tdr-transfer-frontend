@@ -2,13 +2,13 @@
 @import views.html.partials.{progressIndicator, transferReference}
 
 @import java.util.UUID
-@(filename: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+@(filename: String, title: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("Results of checks", name = name, isJudgmentUser = true) {
+@main(title, name = name, isJudgmentUser = true) {
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             @progressIndicator(Messages("judgmentFileChecksResults.progress"), isJudgmentUser=true)
-            <h1 class="govuk-heading-l">Results of checks</h1>
+            <h1 class="govuk-heading-l">@title</h1>
             <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
             role="status" data-module="success-summary" tabindex="-1">
                 <h2 class="success-summary__title" id="success-summary-title">
