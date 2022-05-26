@@ -95,8 +95,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       } else {
         ("consignment",
           getValidStandardUserKeycloakConfiguration,
-          "<title>Results of checks</title>",
-          """<h1 class="govuk-heading-l">Results of checks</h1>""",
+          "<title>Results of your checks</title>",
+          """<h1 class="govuk-heading-l">Results of your checks</h1>""",
           """                    <p class="govuk-body">Your folder 'parentFolder' containing 1 item has been successfully checked and uploaded.</p>
             |                    <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""".stripMargin,
           s"""            <a href="/consignment/$consignmentId/confirm-transfer" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
