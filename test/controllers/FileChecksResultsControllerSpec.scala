@@ -47,6 +47,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     "standard"
   )
 
+  val consignmentStatuses: TableFor1[String] = Table(
+    "Consignment status",
+    "Completed",
+    "InProgress",
+    "Failed"
+  )
+
   forAll (userTypes) { userType =>
     "FileChecksResultsController GET" should {
 
@@ -375,34 +382,36 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  "render the 'transfer has already been confirmed' page with an authenticated judgment user if export status is 'Completed'" in {
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-    val fileCheckResultsController = new FileChecksResultsController(
-      getAuthorisedSecurityComponents,
-      getValidJudgmentUserKeycloakConfiguration,
-      new GraphQLConfiguration(app.configuration),
-      consignmentService,
-      consignmentStatusService,
-      frontEndInfoConfiguration
-    )
-    setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("Completed"))
-    setConsignmentTypeResponse(wiremockServer, "judgment")
-    setConsignmentReferenceResponse(wiremockServer)
+  forAll(consignmentStatuses) { consignmentStatus =>
+    s"render the 'transfer has already been confirmed' page with an authenticated judgment user if export status is '$consignmentStatus'" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val fileCheckResultsController = new FileChecksResultsController(
+        getAuthorisedSecurityComponents,
+        getValidJudgmentUserKeycloakConfiguration,
+        new GraphQLConfiguration(app.configuration),
+        consignmentService,
+        consignmentStatusService,
+        frontEndInfoConfiguration
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
 
-    val transferAlreadyCompletedPage = fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
-      .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks").withCSRFToken)
+      val transferAlreadyCompletedPage = fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks").withCSRFToken)
 
-    val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
+      val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
 
-    status(transferAlreadyCompletedPage) mustBe OK
-    contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
-    headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-    transferAlreadyCompletedPageAsString must include(
-      s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
-    transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
+      status(transferAlreadyCompletedPage) mustBe OK
+      contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
+      headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+      transferAlreadyCompletedPageAsString must include(
+        s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
+      transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
+    }
   }
 
   forAll(userChecks) { (user, url) =>

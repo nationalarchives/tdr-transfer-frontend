@@ -7,7 +7,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
 import services.ConsignmentService
-import util.FrontEndTestHelper
+import util.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -26,6 +26,8 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
+  val checkPageForStaticElements = new CheckPageForStaticElements
+
   "BeforeUploadingController GET" should {
     "render the before uploading page for judgments" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
@@ -39,14 +41,29 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
 
       playStatus(beforeUploadingPage) mustBe OK
       contentType(beforeUploadingPage) mustBe Some("text/html")
-      beforeUploadingPageAsString must include("Your upload must contain the following information:")
-      beforeUploadingPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
-        """ role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(beforeUploadingPageAsString)
+      beforeUploadingPageAsString must include("""<h1 class="govuk-heading-l">Check your file before uploading</h1>""")
       beforeUploadingPageAsString must include(
-        s"""<a href="mailto:judgments@nationalarchives.gov.uk?subject=Ref: TEST-TDR-2021-GB">""" +
-          """judgments@nationalarchives.gov.uk</a>""")
-      beforeUploadingPageAsString must include(s"""" href="/judgment/faq">""")
-      beforeUploadingPageAsString must include(s"""" href="/judgment/help">""")
+      """<p class="govuk-body govuk-!-margin-bottom-1">Your upload must contain the following information:</p>"""
+      )
+      beforeUploadingPageAsString must include(
+        """<p class="govuk-body govuk-!-margin-bottom-1">neutral citation, name(s) of judge(s), name(s) of parties, court and judgment date.</p>"""
+      )
+      beforeUploadingPageAsString must include(
+        """<h2 class="govuk-heading-s">Select <a href="mailto:judgments@nationalarchives.gov.uk?subject=Ref: TEST-TDR-2021-GB">""" +
+          """judgments@nationalarchives.gov.uk</a>"""
+      )
+      beforeUploadingPageAsString must include(
+        """    <ul class="govuk-list govuk-list--bullet">
+          |        <li>Attach and send supplementary material for this judgment.</li>
+          |        <li>Flag when your judgment is a new version; quote the details of the original document being replaced.</li>
+          |        <li>Flag when your judgment is subject to an anonymisation order.</li>
+          |    </ul>""".stripMargin
+      )
+      beforeUploadingPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
+        """ role="button" draggable="false" class="govuk-button" data-module="govuk-button">"""
+      )
     }
   }
 
