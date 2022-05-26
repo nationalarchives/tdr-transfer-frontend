@@ -36,7 +36,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
         Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId, reference, request.token.name))
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
-        Ok(views.html.fileChecksFailed(request.token.name, reference, isJudgmentUser = false, fileStatusList))
+        Ok(views.html.fileChecksResultsFailed(request.token.name, reference, isJudgmentUser = false, fileStatusList))
       }
     }
   }
@@ -62,7 +62,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
                     }
                   )
               } else {
-                Future(Ok(views.html.fileChecksFailed(request.token.name, reference, isJudgmentUser = true)).uncache())
+                Future(Ok(views.html.fileChecksResultsFailed(request.token.name, reference, isJudgmentUser = true)).uncache())
               }
           } yield result
         case _ =>
