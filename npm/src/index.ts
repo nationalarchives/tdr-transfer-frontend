@@ -51,14 +51,20 @@ export const renderModules = async () => {
             frontEndInfo.apiUrl,
             keycloak
           )
-          const metadataUploadModule = await import("./clientfilemetadataupload")
-          const clientFileProcessing = new metadataUploadModule.ClientFileMetadataUpload(
-            graphqlClient
+          const metadataUploadModule = await import(
+            "./clientfilemetadataupload"
           )
-          const consignmentStatusModule = await import("./updateconsignmentstatus")
-          const nextPageModule = await import("./nextpageredirect/next-page-redirect")
+          const clientFileProcessing =
+            new metadataUploadModule.ClientFileMetadataUpload(graphqlClient)
+          const consignmentStatusModule = await import(
+            "./updateconsignmentstatus"
+          )
+          const nextPageModule = await import(
+            "./nextpageredirect/next-page-redirect"
+          )
           const uploadModule = await import("./upload")
-          const updateConsignmentStatus = new consignmentStatusModule.UpdateConsignmentStatus(graphqlClient)
+          const updateConsignmentStatus =
+            new consignmentStatusModule.UpdateConsignmentStatus(graphqlClient)
           new uploadModule.FileUploader(
             clientFileProcessing,
             updateConsignmentStatus,
@@ -88,7 +94,9 @@ export const renderModules = async () => {
           )
           const isJudgmentUser = keycloak.tokenParsed?.judgment_user
           const fileChecksModule = await import("./filechecks")
-          const nextPageModule = await import("./nextpageredirect/next-page-redirect")
+          const nextPageModule = await import(
+            "./nextpageredirect/next-page-redirect"
+          )
           const resultOrError = new fileChecksModule.FileChecks(
             graphqlClient
           ).updateFileCheckProgress(isJudgmentUser, nextPageModule.goToNextPage)
