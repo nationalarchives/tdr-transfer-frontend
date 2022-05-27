@@ -105,7 +105,7 @@ test("dropzone updates the page with correct folder information if there is a ne
 
   const dataTransferItemWithNestedFolder: DataTransferItem = {
     ...mockDom.dataTransferItemFields,
-    webkitGetAsEntry: () => nestedDirectoryEntry
+    webkitGetAsEntry: () => nestedDirectoryEntry as unknown as FileSystemEntry
   }
 
   const nestedDirectoryEntry: IWebkitEntry = {
@@ -114,7 +114,7 @@ test("dropzone updates the page with correct folder information if there is a ne
     isFile: false,
     isDirectory: true,
     name: "Mock Folder",
-    webkitGetAsEntry: () => mockDom.fileEntry
+    webkitGetAsEntry: () => mockDom.fileEntry as unknown as FileSystemEntry
   }
 
   const mockNestedEntries: IWebkitEntry[][] = [[], [mockDom.directoryEntry]] // have to create an entry here to act as top-level directory
@@ -145,7 +145,7 @@ test("dropzone updates the page with correct folder information if there are val
 
   const dataTransferItemWithNestedFolder: DataTransferItem = {
     ...mockDom.dataTransferItemFields,
-    webkitGetAsEntry: () => nestedDirectoryEntry
+    webkitGetAsEntry: () => nestedDirectoryEntry as unknown as FileSystemEntry
   }
 
   const nestedDirectoryEntry: IWebkitEntry = {
@@ -154,7 +154,7 @@ test("dropzone updates the page with correct folder information if there are val
     isFile: false,
     isDirectory: true,
     name: "Mock Folder",
-    webkitGetAsEntry: () => mockDom.fileEntry
+    webkitGetAsEntry: () => mockDom.fileEntry as unknown as FileSystemEntry
   }
 
   const emptyDirectoryEntry: IWebkitEntry = {
@@ -163,7 +163,7 @@ test("dropzone updates the page with correct folder information if there are val
     isFile: false,
     isDirectory: true,
     name: "Mock Folder",
-    webkitGetAsEntry: () => mockDom.fileEntry
+    webkitGetAsEntry: () => mockDom.fileEntry as unknown as FileSystemEntry
   }
 
   const emptyNestedReader: IReader = {
@@ -207,7 +207,7 @@ test("dropzone updates the page with an error if there is an empty nested folder
 
   const dataTransferItemWithNestedFolder: DataTransferItem = {
     ...mockDom.dataTransferItemFields,
-    webkitGetAsEntry: () => emptyDirectoryEntry
+    webkitGetAsEntry: () => emptyDirectoryEntry as unknown as FileSystemEntry
   }
 
   const emptyDirectoryEntry: IWebkitEntry = {
@@ -216,7 +216,7 @@ test("dropzone updates the page with an error if there is an empty nested folder
     isFile: false,
     isDirectory: true,
     name: "Mock Folder",
-    webkitGetAsEntry: () => mockDom.fileEntry
+    webkitGetAsEntry: () => mockDom.fileEntry as unknown as FileSystemEntry
   }
 
   const emptyNestedReader: IReader = {

@@ -86,7 +86,7 @@ export class MockUploadFormDom {
     isDirectory: false,
     webkitGetAsEntry: () => ({
       isFile: true
-    })
+    }) as FileSystemEntry
   }
 
   directoryEntry: IWebkitEntry = {
@@ -95,12 +95,12 @@ export class MockUploadFormDom {
     isFile: false,
     isDirectory: true,
     name: "Mock Folder",
-    webkitGetAsEntry: () => this.fileEntry
+    webkitGetAsEntry: () => this.fileEntry as unknown as FileSystemEntry
   }
 
   dataTransferItem: DataTransferItem = {
     ...this.dataTransferItemFields,
-    webkitGetAsEntry: () => this.directoryEntry
+    webkitGetAsEntry: () => this.directoryEntry as unknown as FileSystemEntry
   }
 
   addFilesToDragEvent = (
