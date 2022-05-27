@@ -1,6 +1,11 @@
 import Keycloak, { KeycloakInstance } from "keycloak-js"
 import { IKeycloakTokenParsed } from "../upload"
-import { handleUploadError, isError, LoggedOutError } from "../errorhandling"
+import {
+  getErrorMessage,
+  handleUploadError,
+  isError,
+  LoggedOutError
+} from "../errorhandling"
 
 export const getKeycloakInstance: () => Promise<
   Keycloak.KeycloakInstance | Error
@@ -26,7 +31,7 @@ export const getKeycloakInstance: () => Promise<
       }
     }
   } catch (e) {
-    return Error(e)
+    return Error(getErrorMessage(e))
   }
   return keycloakInstance
 }
