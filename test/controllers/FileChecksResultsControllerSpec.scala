@@ -411,8 +411,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       transferAlreadyCompletedPageAsString must include(
         s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
       transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
-      transferAlreadyCompletedPageAsString must include (s"""" href="/faq">""")
-      transferAlreadyCompletedPageAsString must include (s"""" href="/help">""")
     }
   }
 
