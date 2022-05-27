@@ -3,7 +3,7 @@ import {
   getAllFiles,
   IDirectoryWithPath,
   IEntryWithPath,
-  isFile
+  isFile, IWebkitEntry
 } from "./get-files-from-drag-event"
 import {rejectUserItemSelection} from "./display-warning-message"
 import {
@@ -124,7 +124,7 @@ export class UploadForm {
         const resultOrError = this.checkIfDroppedItemIsFolder(webkitEntry)
         if (!isError(resultOrError)) {
           const filesAndFolders: (IFileWithPath | IDirectoryWithPath)[] =
-            await getAllFiles(webkitEntry, [])
+            await getAllFiles(webkitEntry as unknown as IWebkitEntry, [])
           const files = filesAndFolders.filter((f) =>
             isFile(f)
           ) as IFileWithPath[]
@@ -132,7 +132,7 @@ export class UploadForm {
           if (!isError(folderCheck)) {
             this.selectedFiles = filesAndFolders
             addFolderSelectionSuccessMessage(
-              webkitEntry.name,
+              webkitEntry!.name,
               this.selectedFiles.filter((f) => isFile(f)).length
             )
           } else {
