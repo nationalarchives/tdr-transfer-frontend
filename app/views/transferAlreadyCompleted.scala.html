@@ -1,7 +1,8 @@
 @import java.util.UUID
 @import views.html.partials.returnToStartPage
 
-@(consignmentId: UUID, name: String, isJudgmentUser: Boolean=false)(implicit request: RequestHeader, messages: Messages)
+@import views.html.partials.transferReference
+@(consignmentId: UUID, consignmentRef: String, name: String, isJudgmentUser: Boolean=false)(implicit request: RequestHeader, messages: Messages)
 
 @main("Transfer Already Completed", name = name, isJudgmentUser = isJudgmentUser) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -20,6 +21,7 @@
                     @returnToStartPage("govuk-button--secondary")
                 </div>
             </div>
+            @transferReference(consignmentRef, isJudgmentUser)
         </div>
     }
 }
