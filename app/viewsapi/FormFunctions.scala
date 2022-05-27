@@ -14,8 +14,9 @@ object FormFunctions {
       } else {
         val optionSelected = args.data.get(option)
         optionSelected match {
-          case Some(_) => "checked"
+          case Some("true") | Some("false") => "checked" // we're only using 'true' values for now but might use 'false' in future
           case None => ""
+          case _ => throw new IllegalStateException(s"Unexpected value: $optionSelected. value must be 'true' or 'false'")
         }
       }
     }
