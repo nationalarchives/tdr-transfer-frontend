@@ -1,11 +1,10 @@
 @import java.util.UUID
-@import views.html.partials.progressIndicator
 @import views.html.partials.returnToStartPage
 
 @import views.html.partials.transferReference
-@(consignmentId: UUID, name: String, isJudgmentUser: Boolean=false)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, name: String, isJudgmentUser: Boolean=false)(implicit request: RequestHeader, messages: Messages)
 
-@main("Transfer Already Completed", name = name) {
+@main("Transfer Already Completed", name = name, isJudgmentUser = isJudgmentUser) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
@@ -22,6 +21,7 @@
                     @returnToStartPage("govuk-button--secondary")
                 </div>
             </div>
+            @transferReference(consignmentRef, isJudgmentUser)
         </div>
     }
 }

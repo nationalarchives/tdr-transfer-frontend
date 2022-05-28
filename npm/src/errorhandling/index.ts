@@ -9,6 +9,11 @@ export class LoggedOutError extends Error {
   }
 }
 
+export function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message
+  return String(error)
+}
+
 export function isError(error: Error | any): error is Error {
   return error != undefined && (error as Error).message !== undefined
 }
