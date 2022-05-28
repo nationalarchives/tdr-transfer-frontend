@@ -7,13 +7,12 @@ export const getKeycloakInstance: () => Promise<
   const keycloakInstance: Keycloak.KeycloakInstance = new Keycloak(
     `${window.location.origin}/keycloak.json`
   )
-
+  const errorHandlingModule = await import("../errorhandling")
   try {
     const authenticated = await keycloakInstance.init({
       onLoad: "check-sso",
       silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login"
     })
-    const errorHandlingModule = await import("../errorhandling")
     if (errorHandlingModule.isError(authenticated)) {
       return authenticated
     } else {
@@ -26,7 +25,7 @@ export const getKeycloakInstance: () => Promise<
       }
     }
   } catch (e) {
-    return Error(getErrorMessage(e))
+    return Error(errorHandlingModule.getErrorMessage(e))
   }
   return keycloakInstance
 }
