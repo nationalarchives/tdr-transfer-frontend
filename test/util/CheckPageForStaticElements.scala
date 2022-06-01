@@ -3,7 +3,11 @@ package util
 import org.scalatest.matchers.must.Matchers._
 
 class CheckPageForStaticElements() {
-  def checkContentOfPagesThatUseMainScala(page: String, signedIn: Boolean=true, userType: String="", consignmentExists: Boolean=true): Unit = {
+  def checkContentOfPagesThatUseMainScala(page: String,
+                                          signedIn: Boolean=true,
+                                          userType: String="",
+                                          consignmentExists: Boolean=true,
+                                          pageRequiresAwsServices: Boolean=false): Unit = {
     page must include ("""
     |    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     |    <meta name="robots" content="noindex">
@@ -46,6 +50,14 @@ class CheckPageForStaticElements() {
           page must include ("Consignment reference")
           page must include ("TEST-TDR-2021-GB")
         }
+      }
+      if(pageRequiresAwsServices){
+          page must include (
+          """<input type="hidden" class="api-url" value="https://mock-api-url.com/graphql">
+            |<input type="hidden" class="stage" value="mockStage">
+            |<input type="hidden" class="region" value="mockRegion">
+            |<input type="hidden" class="upload-url" value="https://mock-upload-url.com">""".stripMargin
+        )
       }
     }
   }

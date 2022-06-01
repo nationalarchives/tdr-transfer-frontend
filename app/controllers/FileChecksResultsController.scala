@@ -23,6 +23,7 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
                                            )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    val pageTitle = "Results of your checks"
     for {
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
@@ -33,36 +34,37 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
           fileCheck.totalFiles,
           parentFolder
         )
-        Ok(views.html.standard.fileChecksResults(consignmentInfo, consignmentId, reference, request.token.name))
+        Ok(views.html.standard.fileChecksResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
-        Ok(views.html.fileChecksFailed(request.token.name, reference, isJudgmentUser = false, fileStatusList))
+        Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
       }
     }
   }
 
   def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    val pageTitle = "Results of checks"
     for {
       consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       exportStatus = consignmentStatus.flatMap(_.export)
       result <- exportStatus match {
-        case Some("Completed") =>
-          Future(Ok(views.html.transferAlreadyCompleted(consignmentId, request.token.name, isJudgmentUser = true)).uncache())
+        case Some("InProgress") | Some("Completed") | Some("Failed") =>
+          Future(Ok(views.html.transferAlreadyCompleted(consignmentId, reference, request.token.name, isJudgmentUser = true)).uncache())
         case None =>
           for {
             fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
-            reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
                 consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken)
                   .flatMap(
                     files => {
                       val filename = files.files.head.metadata.clientSideOriginalFilePath.get
-                      Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, consignmentId, reference, request.token.name)).uncache())
+                      Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, pageTitle, consignmentId, reference, request.token.name)).uncache())
                     }
                   )
               } else {
-                Future(Ok(views.html.fileChecksFailed(request.token.name, reference, isJudgmentUser = true)).uncache())
+                Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
               }
           } yield result
         case _ =>
