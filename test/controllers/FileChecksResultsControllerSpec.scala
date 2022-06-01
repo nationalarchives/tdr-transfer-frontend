@@ -20,7 +20,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.{ConsignmentService, ConsignmentStatusService}
-import util.FrontEndTestHelper
+import util.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -47,14 +47,73 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     "standard"
   )
 
+  val consignmentStatuses: TableFor1[String] = Table(
+    "Consignment status",
+    "Completed",
+    "InProgress",
+    "Failed"
+  )
+
+  val checkPageForStaticElements = new CheckPageForStaticElements
+  val expectedSuccessSummaryTitle: String =
+    """                <h2 class="success-summary__title" id="success-summary-title">
+      |                    Success
+      |                </h2>""".stripMargin
+  val expectedFailureReturnButton: String =
+    """      <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
+      |          Return to start
+      |      </a>""".stripMargin
+
+  val expectedFailureTitle: String =
+    """          <h2 class="govuk-error-summary__title" id="error-summary-title">
+      |              There is a problem
+      |          </h2>""".stripMargin
+
   forAll (userTypes) { userType =>
     "FileChecksResultsController GET" should {
 
-      val (pathName, keycloakConfiguration, expectedTitle, expectedFaqLink, expectedHelpLink, expectedReference) = if(userType == "judgment") {
-        ("judgment", getValidJudgmentUserKeycloakConfiguration, "Results of checks", """" href="/judgment/faq">""", """ href="/judgment/help">""",
-          "TEST-TDR-2021-GB")
+      val (pathName, keycloakConfiguration, expectedTitle,
+          expectedHeading, expectedSuccessMessage,
+          buttonToProgress, expectedGenericErrorMessage) = if(userType == "judgment") {
+        ("judgment",
+          getValidJudgmentUserKeycloakConfiguration,
+          "<title>Results of checks</title>",
+          """<h1 class="govuk-heading-l">Results of checks</h1>""",
+          """<p class="govuk-body">Your file 'test file.docx' has been successfully checked and is ready to be exported for publication.</p>""",
+          s"""                <form method="post" action="/judgment/$consignmentId/file-checks-results">
+            |                    <input type="hidden" name="csrfToken" value="[0-9a-z\\-]+"/>
+            |                    <button class="govuk-button" type="submit" role="button" draggable="false">
+            |                        Export
+            |                    </button>
+            |                </form>""".stripMargin,
+          """              <p class="govuk-body">Your file has failed our checks. Please try again. If this continues, contact us at
+            |                <a class="govuk-link" href="mailto:tdr@nationalarchives.gov.uk" data-hsupport="email">
+            |                  tdr@nationalarchives.gov.uk
+            |                </a>
+            |              </p>""".stripMargin
+        )
       } else {
-        ("consignment", getValidStandardUserKeycloakConfiguration, "Results of your checks", """" href="/faq">""", """href="/help">""", "TEST-TDR-2021-GB")
+        ("consignment",
+          getValidStandardUserKeycloakConfiguration,
+          "<title>Results of your checks</title>",
+          """<h1 class="govuk-heading-l">Results of your checks</h1>""",
+          """                    <p class="govuk-body">Your folder 'parentFolder' containing 1 item has been successfully checked and uploaded.</p>
+            |                    <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""".stripMargin,
+          s"""            <a href="/consignment/$consignmentId/confirm-transfer" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+            |                Continue
+            |            </a>""".stripMargin,
+          """              <p class="govuk-body">
+            |    One or more files you uploaded have failed our checks. Contact us at
+            |    <a class="govuk-link" href="mailto:tdr@nationalachives.gov.uk?subject=Ref: TEST-TDR-2021-GB - Problem with Results of checks">tdr@nationalachives.gov.uk</a>
+            |    if the problem persists.
+            |</p>
+            |<p class="govuk-body">Possible failure causes:</p>
+            |<ul class="govuk-list govuk-list--bullet">
+            |    <li>Password protected files</li>
+            |    <li>Zip files</li>
+            |    <li>Corrupted files</li>
+            |</ul>""".stripMargin
+        )
       }
 
       s"render the $userType fileChecksResults page with the confirmation box" in {
@@ -72,7 +131,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         )
 
         val filePathData = gcf.Data(
-          Option(gcf.GetConsignment(List(Files(Metadata(Some("test file.docx")))))          )
+          Option(gcf.GetConsignment(List(Files(Metadata(Some("test file.docx"))))))
         )
 
         val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables ]()
@@ -100,23 +159,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
-        if (userType == "judgment") {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("has been successfully checked and is ready to be exported")
-          resultsPageAsString must include("Export")
-        } else {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("has been successfully checked and uploaded")
-          resultsPageAsString must include("Click 'Continue' to proceed with your transfer")
-          resultsPageAsString must include("Continue")
-        }
-
         status(recordCheckResultsPage) mustBe 200
         contentType(recordCheckResultsPage) mustBe Some("text/html")
-        resultsPageAsString must include("success-summary")
-        resultsPageAsString must include(expectedFaqLink)
-        resultsPageAsString must include(expectedHelpLink)
-        resultsPageAsString must include(expectedReference)
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
+        resultsPageAsString must include(expectedTitle)
+        resultsPageAsString must include(expectedHeading)
+        resultsPageAsString must include(expectedSuccessSummaryTitle)
+        resultsPageAsString must include(expectedSuccessMessage)
+        resultsPageAsString must include regex(buttonToProgress)
       }
 
       s"return a redirect to the auth server if an unauthenticated user tries to access the $userType file checks page" in {
@@ -203,23 +254,14 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
-        if (userType == "judgment") {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("Your file has failed our checks. Please try again.")
-        } else {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("One or more files you uploaded have failed our checks")
-          resultsPageAsString must include(
-            "<a class=\"govuk-link\" href=\"mailto:tdr@nationalachives.gov.uk?subject=Ref: TEST-TDR-2021-GB - Problem with Results of checks\">" +
-              "tdr@nationalachives.gov.uk</a>"
-          )
-        }
-
         status(recordCheckResultsPage) mustBe OK
-        contentAsString(recordCheckResultsPage) must include("There is a problem")
-        resultsPageAsString must include("Return to start")
-        resultsPageAsString must include(expectedFaqLink)
-        resultsPageAsString must include(expectedReference)
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
+        resultsPageAsString must include(expectedTitle)
+        resultsPageAsString must include(expectedHeading)
+        resultsPageAsString must include(expectedFailureTitle)
+        resultsPageAsString must include(expectedGenericErrorMessage)
+        resultsPageAsString must include(expectedFailureReturnButton)
       }
 
       s"return the passwordProtected $userType error page if file checks have failed with PasswordProtected" in {
@@ -257,18 +299,21 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
         if (userType == "judgment") {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("Your file has failed our checks. Please try again.")
+          resultsPageAsString must include(expectedGenericErrorMessage)
         } else {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("We cannot accept password protected files. Once removed or replaced, try uploading your folder again.")
+          resultsPageAsString must include(
+          """              <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more password protected files.</p>""" +
+          """<p>We cannot accept password protected files. Once removed or replaced, try uploading your folder again.</p>"""
+          )
         }
 
         status(recordCheckResultsPage) mustBe OK
-        contentAsString(recordCheckResultsPage) must include("There is a problem")
-        resultsPageAsString must include("Return to start")
-        resultsPageAsString must include(expectedFaqLink)
-        resultsPageAsString must include(expectedReference)
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
+        resultsPageAsString must include(expectedTitle)
+        resultsPageAsString must include(expectedHeading)
+        resultsPageAsString must include(expectedFailureTitle)
+        resultsPageAsString must include(expectedFailureReturnButton)
       }
 
       s"return the zip $userType error page if file checks have failed with Zip" in {
@@ -306,18 +351,29 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
         if (userType == "judgment") {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("Your file has failed our checks. Please try again.")
+          resultsPageAsString must include(expectedGenericErrorMessage)
         } else {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("We cannot accept zip files and similar archival package file formats.")
+          resultsPageAsString must include(
+          """              <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more zip files.</p><p>
+            |                We cannot accept zip files and similar archival package file formats.
+            |                These commonly have file extensions such as .zip, .iso, .7z, .rar and others.
+            |                please see our
+            |                <a class="govuk-link" href="/faq" target="_blank" rel="noreferrer noopener">
+            |                FAQ(Opens in new tab)
+            |                </a>
+            |                for a full list.
+            |                Either remove or unpack your zip and archival package files and try uploading again.
+            |                </p>""".stripMargin
+          )
         }
 
         status(recordCheckResultsPage) mustBe OK
-        contentAsString(recordCheckResultsPage) must include("There is a problem")
-        resultsPageAsString must include("Return to start")
-        resultsPageAsString must include(expectedFaqLink)
-        resultsPageAsString must include(expectedReference)
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
+        resultsPageAsString must include(expectedTitle)
+        resultsPageAsString must include(expectedHeading)
+        resultsPageAsString must include(expectedFailureTitle)
+        resultsPageAsString must include(expectedFailureReturnButton)
       }
 
       s"return the general $userType error page if file checks have failed with PasswordProtected and Zip" in {
@@ -354,57 +410,58 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
-        if (userType == "judgment") {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("Your file has failed our checks. Please try again.")
-        } else {
-          resultsPageAsString must include(expectedTitle)
-          resultsPageAsString must include("One or more files you uploaded have failed our checks")
-          resultsPageAsString must include(
-            "<a class=\"govuk-link\" href=\"mailto:tdr@nationalachives.gov.uk?subject=Ref: TEST-TDR-2021-GB - Problem with Results of checks\">" +
-              "tdr@nationalachives.gov.uk</a>"
-          )
-        }
-
         status(recordCheckResultsPage) mustBe OK
-        contentAsString(recordCheckResultsPage) must include("There is a problem")
-        resultsPageAsString must include("Return to start")
-        resultsPageAsString must include(expectedFaqLink)
-        resultsPageAsString must include(expectedReference)
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
+        resultsPageAsString must include(expectedTitle)
+        resultsPageAsString must include(expectedHeading)
+        resultsPageAsString must include(expectedFailureTitle)
+        resultsPageAsString must include(expectedGenericErrorMessage)
+        resultsPageAsString must include(expectedFailureReturnButton)
       }
     }
   }
 
-  "render the 'transfer has already been confirmed' page with an authenticated judgment user if export status is 'Completed'" in {
-    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-    val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-    val fileCheckResultsController = new FileChecksResultsController(
-      getAuthorisedSecurityComponents,
-      getValidJudgmentUserKeycloakConfiguration,
-      new GraphQLConfiguration(app.configuration),
-      consignmentService,
-      consignmentStatusService,
-      frontEndInfoConfiguration
-    )
-    setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some("Completed"))
-    setConsignmentTypeResponse(wiremockServer, "judgment")
-    setConsignmentReferenceResponse(wiremockServer)
+  forAll(consignmentStatuses) { consignmentStatus =>
+    s"render the 'transfer has already been confirmed' page with an authenticated judgment user if export status is '$consignmentStatus'" in {
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val userType = "judgment"
+      val fileCheckResultsController = new FileChecksResultsController(
+        getAuthorisedSecurityComponents,
+        getValidJudgmentUserKeycloakConfiguration,
+        new GraphQLConfiguration(app.configuration),
+        consignmentService,
+        consignmentStatusService,
+        frontEndInfoConfiguration
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+      setConsignmentTypeResponse(wiremockServer, userType)
+      setConsignmentReferenceResponse(wiremockServer)
 
-    val transferAlreadyCompletedPage = fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
-      .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks").withCSRFToken)
+      val transferAlreadyCompletedPage = fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/$userType/$consignmentId/file-checks").withCSRFToken)
 
-    val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
+      val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
 
-    status(transferAlreadyCompletedPage) mustBe OK
-    contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
-    headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-    transferAlreadyCompletedPageAsString must include(
-      s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
-    transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
-    transferAlreadyCompletedPageAsString must include (s"""" href="/faq">""")
-    transferAlreadyCompletedPageAsString must include (s"""" href="/help">""")
+      status(transferAlreadyCompletedPage) mustBe OK
+      contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
+      headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = userType)
+      transferAlreadyCompletedPageAsString must include("<title>Transfer Already Completed</title>")
+      transferAlreadyCompletedPageAsString must include (
+      """                <h1 class="govuk-heading-l">Your transfer has already been completed</h1>
+        |                <p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>""".stripMargin
+      )
+      transferAlreadyCompletedPageAsString must include(
+        s"""                    <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
+           |                        href="/$userType/$consignmentId/transfer-complete">Continue
+           |                    </a>""".stripMargin
+      )
+    }
   }
 
   forAll(userChecks) { (user, url) =>
