@@ -3,9 +3,7 @@ import { renderModules } from "../src/index"
 
 jest.mock("../src/auth")
 import { getKeycloakInstance } from "../src/auth"
-import {createMockKeycloakInstance} from "./utils";
-
-beforeEach(() => jest.resetModules())
+import { createMockKeycloakInstance } from "./utils"
 
 const mockKeycloak: KeycloakInstance = createMockKeycloakInstance()
 
@@ -32,7 +30,7 @@ test("renderModules calls authorisation when upload form present on page", async
     "</div>" +
     "</div>"
 
-  renderModules()
+  await renderModules()
   expect(keycloakInstance).toBeCalledTimes(1)
 
   keycloakInstance.mockRestore()
