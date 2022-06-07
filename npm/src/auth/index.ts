@@ -1,25 +1,19 @@
-import Keycloak, { KeycloakInstance } from "keycloak-js"
+import Keycloak from "keycloak-js"
 import { IKeycloakTokenParsed } from "../upload"
-import {
-  getErrorMessage,
-  handleUploadError,
-  isError,
-  LoggedOutError
-} from "../errorhandling"
 
 export const getKeycloakInstance: () => Promise<
   Keycloak.KeycloakInstance | Error
 > = async () => {
-  const keycloakInstance: Keycloak.KeycloakInstance = Keycloak(
+  const keycloakInstance: Keycloak.KeycloakInstance = new Keycloak(
     `${window.location.origin}/keycloak.json`
   )
-
+  const errorHandlingModule = await import("../errorhandling")
   try {
     const authenticated = await keycloakInstance.init({
       onLoad: "check-sso",
       silentCheckSsoRedirectUri: window.location.origin + "/silent-sso-login"
     })
-    if (isError(authenticated)) {
+    if (errorHandlingModule.isError(authenticated)) {
       return authenticated
     } else {
       if (!authenticated) {
@@ -31,7 +25,7 @@ export const getKeycloakInstance: () => Promise<
       }
     }
   } catch (e) {
-    return Error(getErrorMessage(e))
+    return Error(errorHandlingModule.getErrorMessage(e))
   }
   return keycloakInstance
 }
@@ -44,7 +38,7 @@ const isRefreshTokenExpired: (
 }
 
 export const scheduleTokenRefresh: (
-  keycloak: KeycloakInstance,
+  keycloak: Keycloak.KeycloakInstance,
   cookiesUrl: string,
   idleSessionMinValiditySecs?: number
 ) => void = (keycloak, cookiesUrl, idleSessionMinValiditySecs = 60) => {
@@ -78,11 +72,12 @@ export const refreshOrReturnToken: (
 ) => {
   if (keycloak.isTokenExpired(tokenMinValidityInSecs)) {
     if (isRefreshTokenExpired(keycloak.refreshTokenParsed)) {
-      const error = new LoggedOutError(
+      const errorHandlingModule = await import("../errorhandling")
+      const error = new errorHandlingModule.LoggedOutError(
         keycloak.createLoginUrl(),
         "Refresh token has expired: User is logged out"
       )
-      handleUploadError(error)
+      errorHandlingModule.handleUploadError(error)
       return error
     } else {
       await keycloak.updateToken(tokenMinValidityInSecs).catch((err) => {
