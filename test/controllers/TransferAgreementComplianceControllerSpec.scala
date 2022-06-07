@@ -10,7 +10,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{FrontEndTestHelper, TransferAgreementTestHelper}
+import util.{CheckPageForStaticElements, FrontEndTestHelper, TransferAgreementTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -31,15 +31,33 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
   }
 
   val taHelper = new TransferAgreementTestHelper(wiremockServer)
+  val checkPageForStaticElements = new CheckPageForStaticElements
+  val userType = "standard"
 
   "TransferAgreementComplianceController GET" should {
+
+    "render the series page with an authenticated user if series status is not 'Completed'" in {
+      val consignmentId = UUID.randomUUID()
+
+      val controller: TransferAgreementComplianceController =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val transferAgreementPage = controller.transferAgreement(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
+
+      playStatus(transferAgreementPage) mustBe SEE_OTHER
+      redirectLocation(transferAgreementPage).get must equal(s"/consignment/$consignmentId/series")
+    }
 
     "redirect to the transfer agreement page with an authenticated user if consignment status is 'None'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementComplianceController =
-        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"))
-      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentTypeResponse(wiremockServer, userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
@@ -56,9 +74,9 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
     "render the transfer agreement (continued) page with an authenticated user if consignment status is 'InProgress'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementComplianceController =
-        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("InProgress"))
-      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentTypeResponse(wiremockServer, userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
@@ -68,11 +86,11 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include(s"""<form action="/consignment/$consignmentId/transfer-agreement-continued" method="POST" novalidate="">""")
-      transferAgreementPageAsString must include (s"""" href="/faq">""")
-      transferAgreementPageAsString must include (s"""" href="/help">""")
-      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=userType)
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
+      taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+      checkForExpectedTACompliancePageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -111,11 +129,11 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       )
       taHelper.stubTAComplianceResponse(Some(addTransferAgreementResponse), app.configuration)
 
-      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentTypeResponse(wiremockServer, userType)
       setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("InProgress"))
 
       val controller: TransferAgreementComplianceController =
-        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.compliance)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest().withFormUrlEncodedBody(completedTransferAgreementForm:_*).withCSRFToken)
@@ -128,7 +146,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.stubTAComplianceResponse(config=app.configuration, errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
 
       val controller: TransferAgreementComplianceController =
-        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.compliance)
       val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
         .apply(FakeRequest(POST, f"/consignment/$consignmentId/upload")
@@ -162,9 +180,9 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
     "display errors when an empty compliance form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementComplianceController =
-        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("InProgress"))
-      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentTypeResponse(wiremockServer, userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = Seq()
@@ -179,15 +197,17 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, incompleteTransferAgreementForm.toMap)
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
-      transferAgreementPageAsString must include (s"""" href="/faq">""")
-      transferAgreementPageAsString must include (s"""" href="/help">""")
-      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
-      taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.compliance, Set())
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=userType)
+      taHelper.checkHtmlContentForErrorMessages(transferAgreementPageAsString, taHelper.compliance, Set())
+      taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+      checkForExpectedTACompliancePageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
     }
 
     "display errors when a partially complete compliance form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
+      val controller =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("InProgress"))
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
@@ -204,21 +224,22 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       }.toSet
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=userType)
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, incompleteTransferAgreementForm.toMap)
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
-      transferAgreementPageAsString must include (s"""" href="/faq">""")
-      transferAgreementPageAsString must include (s"""" href="/help">""")
-      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
-      taHelper.checkHtmlContentForErrorSummary(transferAgreementPageAsString, taHelper.compliance, pageOptions)
+
+      taHelper.checkHtmlContentForErrorMessages(transferAgreementPageAsString, taHelper.compliance, pageOptions)
+      taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+      checkForExpectedTACompliancePageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
     }
 
     "render the transfer agreement (continued) 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller: TransferAgreementComplianceController =
-        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
-      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentTypeResponse(wiremockServer, userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
@@ -228,22 +249,20 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       playStatus(transferAgreementPage) mustBe OK
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      transferAgreementPageAsString must include(
-        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
-           |                Continue""".stripMargin)
-      transferAgreementPageAsString must include("You have already confirmed all statements")
-      transferAgreementPageAsString must include (s"""" href="/faq">""")
-      transferAgreementPageAsString must include (s"""" href="/help">""")
-      transferAgreementPageAsString must include ("TEST-TDR-2021-GB")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=userType)
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formSuccessfullySubmitted = true)
+      taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString)
+      checkForExpectedTACompliancePageContent(transferAgreementPageAsString)
     }
 
     "render the transfer agreement (continued) 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
       "after successfully submitting transfer agreement form having previously submitted an empty form" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
+      val controller =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
-      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentTypeResponse(wiremockServer, userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
@@ -253,22 +272,20 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       playStatus(taAlreadyConfirmedPage) mustBe OK
       contentType(taAlreadyConfirmedPage) mustBe Some("text/html")
       headers(taAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      taAlreadyConfirmedPageAsString must include(
-        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
-           |                Continue""".stripMargin)
-      taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
-      taAlreadyConfirmedPageAsString must include (s"""" href="/faq">""")
-      taAlreadyConfirmedPageAsString must include (s"""" href="/help">""")
-      taAlreadyConfirmedPageAsString must include ("TEST-TDR-2021-GB")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType=userType)
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
+      taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
+      checkForExpectedTACompliancePageContent(taAlreadyConfirmedPageAsString)
     }
 
     "render the transfer agreement (continued) 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
       "after successfully submitting transfer agreement form having previously submitted a partially complete form" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration)
+      val controller =
+        taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
-      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentTypeResponse(wiremockServer, userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("privateBeta", 1)
@@ -282,31 +299,11 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       playStatus(taAlreadyConfirmedPage) mustBe OK
       contentType(taAlreadyConfirmedPage) mustBe Some("text/html")
       headers(taAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      taAlreadyConfirmedPageAsString must include(
-        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
-           |                Continue""".stripMargin)
-      taAlreadyConfirmedPageAsString must include("You have already confirmed all statements")
-      taAlreadyConfirmedPageAsString must include (s"""" href="/faq">""")
-      taAlreadyConfirmedPageAsString must include (s"""" href="/help">""")
-      taAlreadyConfirmedPageAsString must include ("TEST-TDR-2021-GB")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType=userType)
       taHelper.checkHtmlOfComplianceFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formSuccessfullySubmitted = true)
-    }
-
-    "render the series page with an authenticated user if series status is not 'Completed'" in {
-      val consignmentId = UUID.randomUUID()
-
-      val controller: TransferAgreementPrivateBetaController =
-        taHelper.instantiateTransferAgreementPrivateBetaController(getAuthorisedSecurityComponents, app.configuration)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
-
-      val transferAgreementPage = controller.transferAgreement(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
-      val transferAgreementPageAsString = contentAsString(transferAgreementPage)
-
-      playStatus(transferAgreementPage) mustBe SEE_OTHER
-      redirectLocation(transferAgreementPage).get must equal(s"/consignment/$consignmentId/series")
+      taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
+      checkForExpectedTACompliancePageContent(taAlreadyConfirmedPageAsString)
     }
   }
 
@@ -322,6 +319,21 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement-continued").withCSRFToken)
       }
       playStatus(transferAgreement) mustBe FORBIDDEN
+    }
+  }
+
+  private def checkForExpectedTACompliancePageContent(pageAsString: String, taAlreadyConfirmed: Boolean=true): Unit = {
+    pageAsString must include ("<title>Transfer agreement continued</title>")
+    pageAsString must include ("""<h1 class="govuk-heading-l">Transfer agreement continued</h1>""")
+    if(taAlreadyConfirmed) {
+      pageAsString must include(
+        s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
+           |                Continue""".stripMargin
+      )
+    } else {
+      pageAsString must include(
+        """<form action="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued" method="POST" novalidate="">"""
+      )
     }
   }
 }
