@@ -2,12 +2,18 @@
 @import views.html.partials.returnToStartPage
 
 @import views.html.partials.transferReference
+@import views.html.partials.progressIndicator
 @(consignmentId: UUID, consignmentRef: String, name: String, isJudgmentUser: Boolean=false)(implicit request: RequestHeader, messages: Messages)
 
 @main("Transfer Already Completed", name = name, isJudgmentUser = isJudgmentUser) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
+                @if(isJudgmentUser) {
+                    @progressIndicator(Messages("judgmentFileChecksResults.progress"), isJudgmentUser)
+                } else {
+                    @progressIndicator(Messages("confirmTransfer.progress"), isJudgmentUser)
+                }
                 <h1 class="govuk-heading-l">Your transfer has already been completed</h1>
                 <p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>
 
