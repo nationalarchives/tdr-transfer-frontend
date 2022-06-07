@@ -80,7 +80,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     options(optionsType).dropRight(numberOfValuesToRemove)
   }
 
-  def checkHtmlContentForErrorSummary(htmlAsString: String, optionType: String, optionsSelected: Set[String]): Unit = {
+  def checkHtmlContentForErrorMessages(htmlAsString: String, optionType: String, optionsSelected: Set[String]): Unit = {
 
     val potentialErrorsOnPage = Map(
       "privateBeta" ->  Map(
@@ -96,10 +96,24 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
 
     val errorsThatShouldBeOnPage: Map[String, String] = potentialErrorsOnPage(optionType).filter {
-      case (errorName, _) => !optionsSelected.contains(errorName)
+      case (errorLabel, _) => !optionsSelected.contains(errorLabel)
     }
 
-    errorsThatShouldBeOnPage.values.foreach(error => htmlAsString must include(error))
+    errorsThatShouldBeOnPage.foreach {
+      case (errorLabel, errorMessage) =>
+        // IntelliJ keeps removing trailing spaces so need use hashes and then replace with spaces during execution
+        htmlAsString must include(
+          s"""            <input
+             |################
+             |                class="govuk-checkboxes__input"
+             |                id="$errorLabel"
+             |                name="$errorLabel"
+             |                type="checkbox"
+             |                value="true"
+             |                 />""".stripMargin.replaceAll("################", "                ")
+        )
+        htmlAsString must include(errorMessage)
+    }
   }
 
   def instantiateTransferAgreementPrivateBetaController(securityComponents: SecurityComponents,
@@ -157,6 +171,17 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     wireMockServer.stubFor(post(urlEqualTo("/graphql"))
       .willReturn(okJson(dataString)))
+  }
+
+  def checkForExpectedTAPageContent(pageAsString: String, taAlreadyConfirmed: Boolean=true): Unit = {
+    if(taAlreadyConfirmed) {
+      pageAsString must include("You have already confirmed all statements")
+      pageAsString must include("Click 'Continue' to proceed with your transfer.")
+    } else {
+      pageAsString must include (
+        "You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor."
+      )
+    }
   }
 
 }
