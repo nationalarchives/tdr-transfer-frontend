@@ -32,7 +32,6 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
 
   val taHelper = new TransferAgreementTestHelper(wiremockServer)
   val checkPageForStaticElements = new CheckPageForStaticElements
-  val userType = "standard"
 
   "TransferAgreementComplianceController GET" should {
 
@@ -57,7 +56,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"))
-      setConsignmentTypeResponse(wiremockServer, userType)
+      setConsignmentTypeResponse(wiremockServer, taHelper.userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
@@ -76,7 +75,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("InProgress"))
-      setConsignmentTypeResponse(wiremockServer, userType)
+      setConsignmentTypeResponse(wiremockServer, taHelper.userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
@@ -129,7 +128,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       )
       taHelper.stubTAComplianceResponse(Some(addTransferAgreementResponse), app.configuration)
 
-      setConsignmentTypeResponse(wiremockServer, userType)
+      setConsignmentTypeResponse(wiremockServer, taHelper.userType)
       setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("InProgress"))
 
       val controller: TransferAgreementComplianceController =
@@ -182,7 +181,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("InProgress"))
-      setConsignmentTypeResponse(wiremockServer, userType)
+      setConsignmentTypeResponse(wiremockServer, taHelper.userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = Seq()
@@ -242,7 +241,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller: TransferAgreementComplianceController =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
-      setConsignmentTypeResponse(wiremockServer, userType)
+      setConsignmentTypeResponse(wiremockServer, taHelper.userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val transferAgreementPage = controller.transferAgreement(consignmentId)
@@ -288,7 +287,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       val controller =
         taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, app.configuration, getValidStandardUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
-      setConsignmentTypeResponse(wiremockServer, userType)
+      setConsignmentTypeResponse(wiremockServer, taHelper.userType)
       setConsignmentReferenceResponse(wiremockServer)
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm("privateBeta", 1)
