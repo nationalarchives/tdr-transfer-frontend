@@ -28,7 +28,7 @@ import play.api.test.WsTestClient.InternalWSClient
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{CheckHtmlOfFormOptions, EnglishLang, FrontEndTestHelper}
+import util.{CheckHtmlOfFormOptions, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -55,11 +55,18 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   val langs: Langs = new EnglishLang
 
   val options = Map(
-    "openRecords" -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-    "transferLegalCustody" -> "I confirm that I am transferring legal custody of these records to The National Archives."
+    "openRecords" -> (
+      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
+      "All records must be confirmed as open before proceeding"
+    ),
+    "transferLegalCustody" -> (
+      "I confirm that I am transferring legal custody of these records to The National Archives.",
+      "Transferral of legal custody of all records must be confirmed before proceeding"
+    )
   )
 
   val checkHtmlOfFormOptions = new CheckHtmlOfFormOptions(options)
+  val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.randomUUID()
   val consignmentStatuses: TableFor1[String] = Table(
     "Consignment status",
@@ -153,16 +160,11 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
-      confirmTransferPageAsString must include("govuk-error-message")
-      confirmTransferPageAsString must include("error")
-
-      confirmTransferPageAsString must include("There is a problem")
-      confirmTransferPageAsString must include("#error-openRecords")
-      confirmTransferPageAsString must include("#error-transferLegalCustody")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, formStatus="PartiallySubmitted")
     }
 
-    "display correct error when only the open records option is selected and the final transfer confirmation form is submitted" in {
+    "display correct error when only the 'open records' option is selected and the final transfer confirmation form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
@@ -181,20 +183,15 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
-      confirmTransferPageAsString must include("govuk-error-message")
-      confirmTransferPageAsString must include("error")
-
-      confirmTransferPageAsString must include("There is a problem")
-      confirmTransferPageAsString must include("#error-transferLegalCustody")
-      confirmTransferPageAsString must include("Transferral of legal custody of all records must be confirmed before proceeding")
-
-      confirmTransferPageAsString must not include "#error-openRecords"
-      confirmTransferPageAsString must not include "All records must be confirmed as open before proceeding"
-
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, incompleteTransferConfirmationForm.toMap)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(
+        confirmTransferPageAsString,
+        incompleteTransferConfirmationForm.toMap,
+        formStatus="PartiallySubmitted"
+      )
     }
 
-    "display correct error when only the transfer legal custody option is selected and the final transfer confirmation form is submitted" in {
+    "display correct error when only the 'transfer legal custody' option is selected and the final transfer confirmation form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
@@ -213,17 +210,12 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
-      confirmTransferPageAsString must include("govuk-error-message")
-      confirmTransferPageAsString must include("error")
-
-      confirmTransferPageAsString must include("There is a problem")
-      confirmTransferPageAsString must include("#error-openRecords")
-      confirmTransferPageAsString must include("All records must be confirmed as open before proceeding")
-
-      confirmTransferPageAsString must not include "#error-transferLegalCustody"
-      confirmTransferPageAsString must not include "Transferral of legal custody of all records must be confirmed before"
-
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, incompleteTransferConfirmationForm.toMap)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(
+        confirmTransferPageAsString,
+        incompleteTransferConfirmationForm.toMap,
+        formStatus="PartiallySubmitted"
+      )
     }
 
     "add a final transfer confirmation when a valid form is submitted and the api response is successful" in {
@@ -746,5 +738,15 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   private def removeNewLinesAndIndentation(formattedJsonBody: String) = {
     formattedJsonBody.replaceAll("\n\\s*", "")
+  }
+
+  private def checkForCommonElementsOnConfirmationPage(transferAlreadyConfirmedPageAsString: String, transferType: String="consignment") = {
+    transferAlreadyConfirmedPageAsString must include(
+      """                <h1 class="govuk-heading-l">Your transfer has already been completed</h1>
+        |                <p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>""".stripMargin
+    )
+    transferAlreadyConfirmedPageAsString must include(
+      s"""href="/$transferType/$consignmentId/transfer-complete">Continue""".stripMargin
+    )
   }
 }
