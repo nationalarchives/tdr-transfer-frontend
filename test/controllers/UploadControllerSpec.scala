@@ -81,7 +81,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement-continued")
     }
 
-    "show the upload page if the transfer agreement for that consignment has been agreed to in full" in {
+    "show the standard upload page if the transfer agreement for that consignment has been agreed to in full" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
@@ -99,7 +99,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, pageRequiresAwsServices=true)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "standard", pageRequiresAwsServices=true)
       checkForExpectedPageContentOnMainUploadPage(uploadPageAsString)
       uploadPageAsString must include ("<title>Upload your records</title>")
       uploadPageAsString must include ("""<h1 class="govuk-heading-l">Upload your records</h1>""")
@@ -164,7 +164,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       status(uploadPage) mustBe OK
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "standard")
       checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, uploadStatus = uploadStatus)
     }
 
@@ -186,7 +186,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       status(uploadPage) mustBe OK
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "standard")
       checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, uploadStatus = uploadStatus)
       uploadPageAsString must include(
         s"""      <a href="/consignment/$consignmentId/file-checks" role="button" draggable="false" class="govuk-button govuk-button--primary">
@@ -213,7 +213,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
       headers(uploadPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, pageRequiresAwsServices=true)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "judgment", pageRequiresAwsServices=true)
       checkForExpectedPageContentOnMainUploadPage(uploadPageAsString)
       uploadPageAsString must include ("<title>Upload your judgment</title>")
       uploadPageAsString must include ("""<h1 class="govuk-heading-l">Upload judgment</h1>""")
@@ -266,7 +266,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       status(uploadPage) mustBe OK
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "judgment")
       checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, userType="judgment", uploadStatus = uploadStatus)
     }
 
@@ -292,7 +292,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |      </a>""".stripMargin
       )
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "judgment")
       checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, userType="judgment", uploadStatus = uploadStatus)
     }
   }
