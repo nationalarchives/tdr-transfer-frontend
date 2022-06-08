@@ -7,7 +7,6 @@ import errors.AuthorisationException
 import graphql.codegen.AddFinalJudgmentTransferConfirmation.{addFinalJudgmentTransferConfirmation => afjtc}
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
-import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcf}
 import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcs}
 import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
 import io.circe.Printer
@@ -668,14 +667,14 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
           case "judgment" =>
             mockGraphqlConsignmentSummaryResponse()
             controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
-              .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-                .withCSRFToken)
+            .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
+              .withCSRFToken)
           case "consignment" =>
             mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
             controller.finalTransferConfirmationSubmit(consignmentId)
-              .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-                .withCSRFToken
-              )
+            .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
+              .withCSRFToken
+            )
         }
         playStatus(fileChecksPage) mustBe FORBIDDEN
       }
@@ -683,7 +682,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   }
 
   private def mockGraphqlConsignmentSummaryResponse(dataString: String = "", consignmentType: String = "standard") = {
-    if (dataString.nonEmpty) {
+    if(dataString.nonEmpty) {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentSummary"))
         .willReturn(okJson(dataString)))
@@ -778,10 +777,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .withRequestBody(equalToJson(utQuery))
       .willReturn(okJson(utDataString)))
-  }
-
-  private def removeNewLinesAndIndentation(formattedJsonBody: String) = {
-    formattedJsonBody.replaceAll("\n\\s*", "")
   }
 
   private def checkForCommonElementsOnConfirmationPage(transferAlreadyConfirmedPageAsString: String, transferType: String="consignment") = {
