@@ -99,42 +99,6 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     options(optionsType).dropRight(numberOfValuesToRemove)
   }
 
-  def checkHtmlContentForErrorMessages(htmlAsString: String, optionType: String, optionsSelected: Set[String]): Unit = {
-
-    val potentialErrorsOnPage = Map(
-      "privateBeta" ->  Map(
-        "publicRecord" -> "All records must be confirmed as public before proceeding",
-        "crownCopyright" -> "All records must be confirmed Crown Copyright before proceeding",
-        "english" -> "All records must be confirmed as English language before proceeding"
-      ),
-      "compliance" -> Map(
-        "droAppraisalSelection" -> "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records",
-        "droSensitivity" -> "Departmental Records Officer (DRO) must have signed off sensitivity review",
-        "openRecords" -> "All records must be open"
-      )
-    )
-
-    val errorsThatShouldBeOnPage: Map[String, String] = potentialErrorsOnPage(optionType).filter {
-      case (errorLabel, _) => !optionsSelected.contains(errorLabel)
-    }
-
-    errorsThatShouldBeOnPage.foreach {
-      case (errorLabel, errorMessage) =>
-        // IntelliJ keeps removing trailing spaces so need use hashes and then replace with spaces during execution
-        htmlAsString must include(
-          s"""            <input
-             |################
-             |                class="govuk-checkboxes__input"
-             |                id="$errorLabel"
-             |                name="$errorLabel"
-             |                type="checkbox"
-             |                value="true"
-             |                 />""".stripMargin.replaceAll("################", "                ")
-        )
-        htmlAsString must include(errorMessage)
-    }
-  }
-
   def instantiateTransferAgreementPrivateBetaController(securityComponents: SecurityComponents,
                                                         config: Configuration,
                                                         keycloakConfiguration: KeycloakConfiguration =
