@@ -5,8 +5,9 @@ import org.scalatest.matchers.must.Matchers._
 class CheckPageForStaticElements() {
   def checkContentOfPagesThatUseMainScala(page: String,
                                           signedIn: Boolean=true,
-                                          userType: String="",
+                                          userType: String,
                                           consignmentExists: Boolean=true,
+                                          transferStillInProgress: Boolean=true,
                                           pageRequiresAwsServices: Boolean=false): Unit = {
     page must include ("""
     |    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,11 +28,15 @@ class CheckPageForStaticElements() {
     page must include (", except where otherwise stated")
     page must include ("© Crown copyright")
     if(signedIn){
-      checkContentOfSignedInPagesThatUseMainScala(page, userType, consignmentExists, pageRequiresAwsServices)
+      checkContentOfSignedInPagesThatUseMainScala(page, userType, consignmentExists, transferStillInProgress, pageRequiresAwsServices)
     }
   }
 
-  private def checkContentOfSignedInPagesThatUseMainScala(page: String, userType: String, consignmentExists: Boolean, pageRequiresAwsServices: Boolean) = {
+  private def checkContentOfSignedInPagesThatUseMainScala(page: String,
+                                                          userType: String,
+                                                          consignmentExists: Boolean,
+                                                          transferStillInProgress: Boolean,
+                                                          pageRequiresAwsServices: Boolean) = {
     page must include (
       """<a href="/sign-out" class="govuk-header__link">
         |                            Sign out""".stripMargin
@@ -41,18 +46,24 @@ class CheckPageForStaticElements() {
       page must include ("""href="/judgment/faq">""")
       page must include ("""href="/judgment/help">""")
       if(consignmentExists) {
-        page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
-        page must include ("Transfer reference")
         page must include ("TEST-TDR-2021-GB")
+
+        if(transferStillInProgress) {
+          page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
+          page must include ("Transfer reference")
+        }
       }
     } else if(userType == "standard") {
       page must include ("Standard Username")
       page must include ("""href="/faq">""")
       page must include ("""href="/help">""")
       if(consignmentExists) {
-        page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
-        page must include ("Consignment reference")
         page must include ("TEST-TDR-2021-GB")
+
+        if(transferStillInProgress) {
+          page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
+          page must include ("Consignment reference")
+        }
       }
     }
     if(pageRequiresAwsServices){

@@ -59,7 +59,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         " If you do not receive an email, please contact us.</p>"
       )
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferCompletePageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(
+        transferCompletePageAsString,
+        userType = "standard",
+        transferStillInProgress=false
+      )
       checkTransferCompletePageForCommonElements(transferCompletePageAsString)
     }
 
@@ -86,7 +90,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         """                    <p class="govuk-body">Do not delete the original file you uploaded until you have been notified.</p>"""
       )
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferCompletePageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(
+        transferCompletePageAsString,
+        userType = "judgment",
+        transferStillInProgress=false
+      )
       checkTransferCompletePageForCommonElements(transferCompletePageAsString, survey="5YDPSA")
     }
   }
@@ -119,7 +127,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     if (path.equals("judgment")) {
       new TransferCompleteController(securityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService)
     } else {
-      new TransferCompleteController(securityComponents, getValidKeycloakConfiguration, consignmentService)
+      new TransferCompleteController(securityComponents, getValidStandardUserKeycloakConfiguration, consignmentService)
     }
   }
 

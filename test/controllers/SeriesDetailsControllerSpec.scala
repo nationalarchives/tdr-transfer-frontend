@@ -69,7 +69,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       seriesDetailsPageAsString must include ("""<option value="" selected>
                                     |                Please choose...""".stripMargin)
       checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
@@ -178,7 +178,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
                                |                Please choose...""".stripMargin)
 
       checkForExpectedSeriesPageContent(seriesSubmitAsString)
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesSubmitAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesSubmitAsString, userType = "standard")
     }
 
     "will send the correct body if it is present on the user" in {
@@ -225,7 +225,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       seriesDetailsPageAsString must include ("You have already chosen a series reference")
       seriesDetailsPageAsString must include ("Click 'Continue' to proceed with your transfer.")
       checkForExpectedSeriesPageContent(seriesDetailsPageAsString, seriesAlreadyChosen = true)
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
     }
   }
 
