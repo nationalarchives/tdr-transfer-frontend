@@ -26,39 +26,42 @@ class CheckPageForStaticElements() {
     )
     page must include (", except where otherwise stated")
     page must include ("© Crown copyright")
-
     if(signedIn){
-      page must include (
+      checkContentOfSignedInPagesThatUseMainScala(page, userType, consignmentExists, pageRequiresAwsServices)
+    }
+  }
+
+  private def checkContentOfSignedInPagesThatUseMainScala(page: String, userType: String, consignmentExists: Boolean, pageRequiresAwsServices: Boolean) = {
+    page must include (
       """<a href="/sign-out" class="govuk-header__link">
-      |                            Sign out""".stripMargin
+        |                            Sign out""".stripMargin
+    )
+    if(userType == "judgment") {
+      page must include ("Judgment Username")
+      page must include ("""href="/judgment/faq">""")
+      page must include ("""href="/judgment/help">""")
+      if(consignmentExists) {
+        page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
+        page must include ("Transfer reference")
+        page must include ("TEST-TDR-2021-GB")
+      }
+    } else if(userType == "standard") {
+      page must include ("Standard Username")
+      page must include ("""href="/faq">""")
+      page must include ("""href="/help">""")
+      if(consignmentExists) {
+        page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
+        page must include ("Consignment reference")
+        page must include ("TEST-TDR-2021-GB")
+      }
+    }
+    if(pageRequiresAwsServices){
+      page must include (
+        """<input type="hidden" class="api-url" value="https://mock-api-url.com/graphql">
+          |<input type="hidden" class="stage" value="mockStage">
+          |<input type="hidden" class="region" value="mockRegion">
+          |<input type="hidden" class="upload-url" value="https://mock-upload-url.com">""".stripMargin
       )
-      if(userType == "judgment") {
-        page must include ("Judgment Username")
-        page must include ("""href="/judgment/faq">""")
-        page must include ("""href="/judgment/help">""")
-        if(consignmentExists) {
-          page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
-          page must include ("Transfer reference")
-          page must include ("TEST-TDR-2021-GB")
-        }
-      } else if(userType == "standard") {
-        page must include ("Standard Username")
-        page must include ("""href="/faq">""")
-        page must include ("""href="/help">""")
-        if(consignmentExists) {
-          page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
-          page must include ("Consignment reference")
-          page must include ("TEST-TDR-2021-GB")
-        }
-      }
-      if(pageRequiresAwsServices){
-          page must include (
-          """<input type="hidden" class="api-url" value="https://mock-api-url.com/graphql">
-            |<input type="hidden" class="stage" value="mockStage">
-            |<input type="hidden" class="region" value="mockRegion">
-            |<input type="hidden" class="upload-url" value="https://mock-upload-url.com">""".stripMargin
-        )
-      }
     }
   }
 }
