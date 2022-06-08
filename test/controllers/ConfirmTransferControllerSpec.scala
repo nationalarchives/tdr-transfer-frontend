@@ -227,7 +227,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = false)
+      val incompleteTransferConfirmationForm = Seq(("openRecords", "true"))
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
@@ -254,7 +254,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = false, transferLegalCustodyValue = true)
+      val incompleteTransferConfirmationForm = Seq(("transferLegalCustody", "true"))
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
@@ -284,7 +284,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest()
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken)
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe SEE_OTHER
@@ -303,7 +303,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       val finalTransferConfirmationSubmitResult = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest()
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken)
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe SEE_OTHER
@@ -317,7 +317,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken)
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
@@ -331,7 +331,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitResult = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken)
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
@@ -352,7 +352,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken)
       mockGraphqlConsignmentSummaryResponse()
 
@@ -368,7 +368,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitResult = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken)
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
@@ -388,7 +388,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult: Result = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken
         ).futureValue
 
@@ -407,7 +407,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -427,7 +427,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -446,7 +446,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken
         ).futureValue
 
@@ -465,7 +465,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken
         ).futureValue
 
@@ -482,7 +482,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -499,7 +499,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -518,7 +518,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken
         ).futureValue
 
@@ -570,13 +570,13 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       "render the confirm transfer 'already confirmed' page with an authenticated user if the standard user navigates back to the " +
         s"confirmTransfer after previously submitting an incorrect form and the export status is '$consignmentStatus'" in {
         val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-        val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = false)
+        val incompleteTransferConfirmationForm = Seq(("openRecords", "true"))
         setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentTypeResponse(wiremockServer, "standard")
 
         val ctAlreadyConfirmedPage = controller.finalTransferConfirmationSubmit(consignmentId)
-          .apply(FakeRequest(POST, f"/consignment/$consignmentId/confirm-transfer")
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
             .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
             .withCSRFToken)
         val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
@@ -638,7 +638,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         s"confirmTransfer after previously submitting an incorrect form and the export status is '$consignmentStatus'" in {
         val controller =
           instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-        val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = false)
+        val incompleteTransferConfirmationForm = Seq()
         setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentTypeResponse(wiremockServer, "judgment")
@@ -708,19 +708,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     val totalFiles: Int = 4
     val consignmentReference = "TEST-TDR-2021-GB"
     new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
-  }
-
-  private def finalTransferConfirmationForm(openRecordsValue: Boolean, transferLegalCustodyValue: Boolean): Seq[(String, String)] = {
-    Seq(
-      ("openRecords", openRecordsValue.toString),
-      ("transferLegalCustody", transferLegalCustodyValue.toString)
-    )
-  }
-
-  private def finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed: Boolean): Seq[(String, String)] = {
-    Seq(
-      ("legalCustodyTransferConfirmed", legalCustodyTransferConfirmed.toString)
-    )
   }
 
   private def createFinalTransferConfirmationResponse = new aftc.AddFinalTransferConfirmation(
