@@ -106,5 +106,54 @@ export const renderModules = async () => {
     } else {
       errorHandlingModule.handleUploadError(frontEndInfo)
     }
+  } else {
+    const authModule = await import("./auth")
+    const errorHandlingModule = await import("./errorhandling")
+    authModule.getKeycloakInstance().then((keycloak) => {
+      const now: () => number = () => Math.round(new Date().getTime() / 1000)
+      console.log(Math.round(new Date().getTime() / 1000))
+      const timeToExpiry = 120 //You are x number of time from expiry this should match the 5-minute text
+      //Set min validity to the length of the access token, so it will always get a new one.
+      const minValidity = 300 //This will be set to 1 hour(seconds)
+      const timeoutCheck = setInterval(() => {
+        if (!errorHandlingModule.isError(keycloak)) {
+          console.log(keycloak.refreshTokenParsed!.exp! - now())
+          //Set to -120 because SSO session doesn't expire exactly on the set time
+          if (keycloak.refreshTokenParsed!.exp! - now() < -120) {
+            console.log("5 minutes up, the session has expired")
+            location.reload() //refresh the page which will bring the user to the login screen
+          } else if (keycloak.refreshTokenParsed!.exp! - now() < timeToExpiry) {
+            showModal()
+          }
+        }
+      }, 2000)
+
+      const showModal: () => void = () => {
+        const timeoutDialog: HTMLDialogElement | null =
+          document.querySelector(".timeout-dialog")
+        //Method for extending the keycloak session
+        const updateToken: () => void = () => {
+          if (!errorHandlingModule.isError(keycloak)) {
+            keycloak.updateToken(minValidity).then((e) => {
+              if (e && timeoutDialog && timeoutDialog.open) {
+                timeoutDialog.close()
+              }
+            })
+          }
+        }
+        if (timeoutDialog && !timeoutDialog.open) {
+          timeoutDialog.showModal()
+          const extendTimeout: HTMLButtonElement | null =
+            document.querySelector("#extend-timeout")
+          //This will clear the dialog box and update the keycloak session extending it
+          if (extendTimeout) {
+            extendTimeout.addEventListener("click", (ev) => {
+              ev.preventDefault()
+              updateToken()
+            })
+          }
+        }
+      }
+    })
   }
 }
