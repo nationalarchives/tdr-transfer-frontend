@@ -98,23 +98,77 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(confirmTransferPage) mustBe OK
       contentType(confirmTransferPage) mustBe Some("text/html")
-      confirmTransferPageAsString must include("Confirm transfer")
+      confirmTransferPageAsString must include("<title>Confirm transfer</title>")
+      confirmTransferPageAsString must include("""<h1 class="govuk-heading-l">Confirm transfer</h1>""")
+      confirmTransferPageAsString must include("""<p class="govuk-body">Here is a summary of the records you have uploaded.</p>""")
 
-      confirmTransferPageAsString must include("Series reference")
-      confirmTransferPageAsString must include(consignmentSummaryResponse.series.get.code)
+      confirmTransferPageAsString must include(
+        """                    <dt class="govuk-summary-list__key govuk-!-width-one-half">
+          |                        Series reference
+          |                    </dt>""".stripMargin
+      )
 
-      confirmTransferPageAsString must include("Transferring body")
-      confirmTransferPageAsString must include(consignmentSummaryResponse.transferringBody.get.name)
+      confirmTransferPageAsString must include(
+        s"""                    <dd class="govuk-summary-list__value">
+           |                        ${consignmentSummaryResponse.series.get.code}
+           |                    </dd>""".stripMargin
+      )
 
-      confirmTransferPageAsString must include("Files uploaded for transfer")
-      confirmTransferPageAsString must include(s"${consignmentSummaryResponse.totalFiles} files uploaded")
+      confirmTransferPageAsString must include(
+        """                    <dt class="govuk-summary-list__key">
+          |                        Consignment reference
+          |                    </dt>""".stripMargin
+      )
 
-      confirmTransferPageAsString must include("Consignment reference")
-      confirmTransferPageAsString must include(consignmentSummaryResponse.consignmentReference)
+      confirmTransferPageAsString must include(
+        s"""                    <dd class="govuk-summary-list__value">
+           |                        ${consignmentSummaryResponse.consignmentReference}
+           |                    </dd>""".stripMargin
+      )
 
-      confirmTransferPageAsString must include(s"""" href="/faq">""")
-      confirmTransferPageAsString must include(s"""" href="/help">""")
+      confirmTransferPageAsString must include(
+        s"""                    <dt class="govuk-summary-list__key">
+           |                        Transferring body
+           |                    </dt>""".stripMargin
+      )
 
+      confirmTransferPageAsString must include(
+        s"""                    <dd class="govuk-summary-list__value">
+           |                        ${consignmentSummaryResponse.transferringBody.get.name}
+           |                    </dd>""".stripMargin
+      )
+
+      confirmTransferPageAsString must include(
+        s"""                    <dt class="govuk-summary-list__key">
+           |                        Files uploaded for transfer
+           |                    </dt>""".stripMargin
+      )
+
+      confirmTransferPageAsString must include(
+        s"""                    <dd class="govuk-summary-list__value">
+           |                        ${consignmentSummaryResponse.totalFiles} files uploaded
+           |                    </dd>""".stripMargin
+      )
+
+      confirmTransferPageAsString must include(
+        s"""<form action="/consignment/$consignmentId/confirm-transfer" method="POST" novalidate="">"""
+      )
+
+      confirmTransferPageAsString must include regex(
+        s"""<input type="hidden" name="csrfToken" value="[0-9a-z\\-]+"/>"""
+      )
+
+      confirmTransferPageAsString must include(
+        """<p class="govuk-body">Please confirm you would like to transfer custody of the records to The National Archives.</p>"""
+      )
+
+      confirmTransferPageAsString must include (
+        """                    <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+          |                        Transfer your records
+          |                    </button>""".stripMargin
+      )
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
       checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
     }
 
@@ -478,16 +532,16 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentTypeResponse(wiremockServer, "standard")
 
-        val transferControllerPage = controller.confirmTransfer(consignmentId)
+        val ctAlreadyConfirmedPage = controller.confirmTransfer(consignmentId)
           .apply(FakeRequest(GET, f"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
-        val confirmTransferPageAsString = contentAsString(transferControllerPage)
+        val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
 
-        playStatus(transferControllerPage) mustBe OK
-        contentType(transferControllerPage) mustBe Some("text/html")
-        headers(transferControllerPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        confirmTransferPageAsString must include(
-          s"""href="/consignment/$consignmentId/transfer-complete">Continue""".stripMargin)
-        confirmTransferPageAsString must include("Your transfer has already been completed")
+        playStatus(ctAlreadyConfirmedPage) mustBe OK
+        contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
+        headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
+        checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
       }
     }
 
@@ -506,9 +560,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(ctAlreadyConfirmedPage) mustBe OK
         contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
         headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        ctAlreadyConfirmedPageAsString must include(
-          s"""href="/consignment/$consignmentId/transfer-complete">Continue""".stripMargin)
-        ctAlreadyConfirmedPageAsString must include("Your transfer has already been completed")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
+        checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
       }
     }
 
@@ -573,9 +627,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(transferAlreadyCompletedPage) mustBe OK
         contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
         headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        transferAlreadyCompletedPageAsString must include(
-          s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
-        transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = "judgment")
+        checkForCommonElementsOnConfirmationPage(transferAlreadyCompletedPageAsString, transferType = "judgment")
       }
     }
 
@@ -598,9 +652,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(transferAlreadyCompletedPage) mustBe OK
         contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
         headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        transferAlreadyCompletedPageAsString must include(
-          s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
-        transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = "judgment")
+        checkForCommonElementsOnConfirmationPage(transferAlreadyCompletedPageAsString, transferType = "judgment")
       }
     }
   }
