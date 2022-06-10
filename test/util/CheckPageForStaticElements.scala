@@ -3,6 +3,7 @@ package util
 import org.scalatest.matchers.must.Matchers._
 
 class CheckPageForStaticElements() {
+  //scalastyle:off method.length
   def checkContentOfPagesThatUseMainScala(page: String,
                                           signedIn: Boolean=true,
                                           userType: String="",
@@ -32,6 +33,18 @@ class CheckPageForStaticElements() {
       """<a href="/sign-out" class="govuk-header__link">
       |                            Sign out""".stripMargin
       )
+      page must include ("""    <dialog class="timeout-dialog">
+                           |        <div>
+                           |            <h2 class="govuk-heading-m">You have been inactive for more than 30 minutes.</h2>
+                           |            <p class="govuk-body">You will be logged out if you do not respond in 5 minutes. We do this to keep your information secure.</p>
+                           |        </div>
+                           |        <div class="govuk-button-group">
+                           |            <button id="extend-timeout" class="govuk-button" role="button">
+                           |                Keep me signed in
+                           |            </button>
+                           |            <a class="govuk-link" href="/sign-out">Sign me out</a>
+                           |        </div>
+                           |    </dialog>""".stripMargin)
       if(userType == "judgment") {
         page must include ("Judgment Username")
         page must include ("""href="/judgment/faq">""")
@@ -61,4 +74,5 @@ class CheckPageForStaticElements() {
       }
     }
   }
+  //scalastyle:on method.length
 }

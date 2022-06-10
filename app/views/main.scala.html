@@ -48,7 +48,7 @@
                         </a>
                     </li>
                     <li class="govuk-header__navigation-item">
-                        <a href="/sign-out" id="sign-out__link" class="govuk-header__link">
+                        <a href="/sign-out" class="govuk-header__link">
                             Sign out
                         </a>
                     </li>
@@ -73,22 +73,20 @@
         </main>
     </div>
 
-        @if(isLoggedIn) {
-            <dialog class="timeout-dialog">
-                <div class="timeout__content">
-                    <div>
-                        <h2>You have been inactive for more than 30 minutes.</h2>
-                        <h3>You will be logged out if you do not respond in 5 minutes. We do this to keep your information secure.</h3>
-                    </div>
-                </div>
-                <div class="govuk-button-group">
-                    <button id="extend-timeout" class="govuk-button" role="button">
-                        Keep me signed in
-                    </button>
-                    <a class="govuk-link" href="/sign-out">Sign me out</a>
-                </div>
-            </dialog>
-        }
+    @if(isLoggedIn) {
+    <dialog class="timeout-dialog">
+        <div>
+            <h2 class="govuk-heading-m">You have been inactive for more than 30 minutes.</h2>
+            <p class="govuk-body">You will be logged out if you do not respond in 5 minutes. We do this to keep your information secure.</p>
+        </div>
+        <div class="govuk-button-group">
+            <button id="extend-timeout" class="govuk-button" role="button">
+                Keep me signed in
+            </button>
+            <a class="govuk-link" href="/sign-out">Sign me out</a>
+        </div>
+    </dialog>
+    }
 
     <footer class="govuk-footer " role="contentinfo">
         <div class="govuk-width-container ">
