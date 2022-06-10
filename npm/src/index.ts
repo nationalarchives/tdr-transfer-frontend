@@ -113,8 +113,8 @@ export const renderModules = async () => {
     const errorHandlingModule = await import("./errorhandling")
     authModule.getKeycloakInstance().then((keycloak) => {
       const now: () => number = () => Math.round(new Date().getTime() / 1000)
-      //Set timeToExpiry to how many seconds from expiry you want the dialog log box to appear
-      const timeToExpiry = 300
+      //Set timeToShowDialog to how many seconds from expiry you want the dialog log box to appear
+      const timeToShowDialog = 300
       //Set min validity to the length of the access token + 300 second, so it will always get a new one.
       const minValidity = 3600 + 300
       setInterval(() => {
@@ -122,7 +122,7 @@ export const renderModules = async () => {
           const timeUntilExpire = keycloak.refreshTokenParsed!.exp! - now()
           if (timeUntilExpire < 0) {
             keycloak.logout()
-          } else if (timeUntilExpire < timeToExpiry) {
+          } else if (timeUntilExpire < timeToShowDialog) {
             showModal()
           }
         }
