@@ -91,7 +91,7 @@ test("renderModules does not call authorisation when the front end info is missi
   keycloakInstance.mockRestore()
 })
 
-test("renderModules calls authorisation when dialog is present link present on page", async () => {
+test("renderModules calls authorisation when dialog is present on page", async () => {
   const keycloakInstance = getKeycloakInstance as jest.Mock
   keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
 
@@ -103,7 +103,7 @@ test("renderModules calls authorisation when dialog is present link present on p
   keycloakInstance.mockRestore()
 })
 
-test("renderModules does not call authorisation when dialog box is present on page", async () => {
+test("renderModules does not call authorisation when dialog box is not present on page", async () => {
   const keycloakInstance = getKeycloakInstance as jest.Mock
   keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
 

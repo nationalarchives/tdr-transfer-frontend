@@ -113,24 +113,23 @@ export const renderModules = async () => {
     const errorHandlingModule = await import("./errorhandling")
     authModule.getKeycloakInstance().then((keycloak) => {
       const now: () => number = () => Math.round(new Date().getTime() / 1000)
-      console.log(now())
-      const timeToExpiry = 60 //You are x number of time from expiry this should match the 5-minute text
-      //Set min validity to the length of the access token, so it will always get a new one.
-      const minValidity = 300 //This will be set to 1 hour(seconds)
+      //Set timeToExpiry to how many seconds from expiry you want the dialog log box to appear
+      const timeToExpiry = 300
+      //Set min validity to the length of the access token + 300 second, so it will always get a new one.
+      const minValidity = 3600 + 300
       setInterval(() => {
         if (!errorHandlingModule.isError(keycloak)) {
-          console.log(keycloak.refreshTokenParsed!.exp! - now())
-          if (keycloak.refreshTokenParsed!.exp! - now() < 0) {
-            console.log("5 minutes up, the session has expired")
+          const timeUntilExpire = keycloak.refreshTokenParsed!.exp! - now()
+          if (timeUntilExpire < 0) {
             keycloak.logout()
-          } else if (keycloak.refreshTokenParsed!.exp! - now() < timeToExpiry) {
+          } else if (timeUntilExpire < timeToExpiry) {
             showModal()
           }
         }
       }, 2000)
 
       const showModal: () => void = () => {
-        //Method for extending the keycloak session
+        //Function for extending the keycloak session
         const updateToken: () => void = () => {
           if (!errorHandlingModule.isError(keycloak)) {
             keycloak.updateToken(minValidity).then((e) => {
@@ -144,7 +143,6 @@ export const renderModules = async () => {
           timeoutDialog.showModal()
           const extendTimeout: HTMLButtonElement | null =
             document.querySelector("#extend-timeout")
-          //This will clear the dialog box and update the keycloak session extending it
           if (extendTimeout) {
             extendTimeout.addEventListener("click", (ev) => {
               ev.preventDefault()
