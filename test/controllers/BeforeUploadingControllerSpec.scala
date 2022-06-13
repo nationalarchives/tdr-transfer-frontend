@@ -42,7 +42,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       playStatus(beforeUploadingPage) mustBe OK
       contentType(beforeUploadingPage) mustBe Some("text/html")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(beforeUploadingPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(beforeUploadingPageAsString, userType = "judgment")
       beforeUploadingPageAsString must include("""<h1 class="govuk-heading-l">Check your file before uploading</h1>""")
       beforeUploadingPageAsString must include(
       """<p class="govuk-body govuk-!-margin-bottom-1">Your upload must contain the following information:</p>"""

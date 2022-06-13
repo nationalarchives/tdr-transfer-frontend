@@ -17,7 +17,7 @@ class SignOutControllerSpec extends FrontEndTestHelper {
       status(signOutPage) mustBe OK
       contentType(signOutPage) mustBe Some("text/html")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(signOutPageAsString, signedIn = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(signOutPageAsString, signedIn = false, userType = "")
       signOutPageAsString must include ("<title>Signed out</title>")
       signOutPageAsString must include ("""<h1 class="govuk-heading-l">You have successfully signed out</h1>""")
       signOutPageAsString must include ("""<p class="govuk-body">Thanks for using the Transfer Digital Records service.</p>""")
