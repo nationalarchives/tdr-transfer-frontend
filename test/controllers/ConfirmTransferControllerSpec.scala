@@ -27,7 +27,7 @@ import play.api.test.WsTestClient.InternalWSClient
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{CheckHtmlOfFormOptions, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
+import util.{CheckFormOptionsHtml, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -64,7 +64,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     )
   )
 
-  val checkHtmlOfFormOptions = new CheckHtmlOfFormOptions(options)
+  val checkHtmlOfFormOptions = new CheckFormOptionsHtml(options)
   val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.randomUUID()
   val consignmentStatuses: TableFor1[String] = Table(

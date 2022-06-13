@@ -53,8 +53,8 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
   )
 
-  val checkHtmlOfPrivateBetaFormOptions = new CheckHtmlOfFormOptions(privateBetaOptions, "")
-  val checkHtmlOfComplianceFormOptions = new CheckHtmlOfFormOptions(complianceOptions, "")
+  val checkHtmlOfPrivateBetaFormOptions = new CheckFormOptionsHtml(privateBetaOptions, "")
+  val checkHtmlOfComplianceFormOptions = new CheckFormOptionsHtml(complianceOptions, "")
 
   val privateBeta = "privateBeta"
   val compliance = "compliance"
