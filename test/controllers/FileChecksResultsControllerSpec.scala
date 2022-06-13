@@ -79,11 +79,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           getValidJudgmentUserKeycloakConfiguration,
           "<title>Results of checks</title>",
           """<h1 class="govuk-heading-l">Results of checks</h1>""",
-          """<p class="govuk-body">Your file 'test file.docx' has been successfully checked and is ready to be exported for publication.</p>""",
+          s"""                    <p class="govuk-body">Your uploaded file 'test file.docx' has now been validated.</p>
+          |                    <p class="govuk-body">Click 'Continue' to transfer it to The National Archives.</p>""".stripMargin,
           s"""                <form method="post" action="/judgment/$consignmentId/file-checks-results">
             |                    <input type="hidden" name="csrfToken" value="[0-9a-z\\-]+"/>
             |                    <button class="govuk-button" type="submit" role="button" draggable="false">
-            |                        Export
+            |                        Continue
             |                    </button>
             |                </form>""".stripMargin,
           """              <p class="govuk-body">Your file has failed our checks. Please try again. If this continues, contact us at
@@ -165,7 +166,9 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
         resultsPageAsString must include(expectedTitle)
         resultsPageAsString must include(expectedHeading)
-        resultsPageAsString must include(expectedSuccessSummaryTitle)
+        if (userType != "judgment") {
+          resultsPageAsString must include(expectedSuccessSummaryTitle)
+        }
         resultsPageAsString must include(expectedSuccessMessage)
         resultsPageAsString must include regex(buttonToProgress)
       }
