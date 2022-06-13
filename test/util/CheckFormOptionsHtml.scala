@@ -3,7 +3,7 @@ package util
 import org.scalatest.Assertion
 import org.scalatest.matchers.must.Matchers._
 
-class CheckHtmlOfFormOptions(options: Map[String, (String, String)], smallCheckbox: String=" govuk-checkboxes--small") {
+class CheckFormOptionsHtml(options: Map[String, (String, String)], smallCheckbox: String=" govuk-checkboxes--small") {
   def checkForOptionAndItsAttributes(htmlAsString: String,
                                      optionsSelected: Map[String, String]=Map(),
                                      formStatus: String="NotSubmitted"): Unit = {
