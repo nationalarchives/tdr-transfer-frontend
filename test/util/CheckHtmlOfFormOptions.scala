@@ -1,4 +1,5 @@
 package util
+
 import org.scalatest.Assertion
 import org.scalatest.matchers.must.Matchers._
 

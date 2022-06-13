@@ -538,7 +538,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(ctAlreadyConfirmedPage) mustBe OK
         contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
         headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-
         checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
         checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
       }
@@ -559,7 +558,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(ctAlreadyConfirmedPage) mustBe OK
         contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
         headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-
         checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
         checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
       }
