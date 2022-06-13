@@ -7,7 +7,6 @@ import errors.AuthorisationException
 import graphql.codegen.AddFinalJudgmentTransferConfirmation.{addFinalJudgmentTransferConfirmation => afjtc}
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
-import graphql.codegen.GetConsignmentReference.{getConsignmentReference => gcf}
 import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcs}
 import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
 import io.circe.Printer
@@ -28,7 +27,7 @@ import play.api.test.WsTestClient.InternalWSClient
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{CheckHtmlOfFormOptions, EnglishLang, FrontEndTestHelper}
+import util.{CheckFormOptionsHtml, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -55,11 +54,18 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   val langs: Langs = new EnglishLang
 
   val options = Map(
-    "openRecords" -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-    "transferLegalCustody" -> "I confirm that I am transferring legal custody of these records to The National Archives."
+    "openRecords" -> (
+      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
+      "All records must be confirmed as open before proceeding"
+    ),
+    "transferLegalCustody" -> (
+      "I confirm that I am transferring legal custody of these records to The National Archives.",
+      "Transferral of legal custody of all records must be confirmed before proceeding"
+    )
   )
 
-  val checkHtmlOfFormOptions = new CheckHtmlOfFormOptions(options)
+  val checkHtmlOfFormOptions = new CheckFormOptionsHtml(options)
+  val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.randomUUID()
   val consignmentStatuses: TableFor1[String] = Table(
     "Consignment status",
@@ -91,23 +97,77 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(confirmTransferPage) mustBe OK
       contentType(confirmTransferPage) mustBe Some("text/html")
-      confirmTransferPageAsString must include("Confirm transfer")
+      confirmTransferPageAsString must include("<title>Confirm transfer</title>")
+      confirmTransferPageAsString must include("""<h1 class="govuk-heading-l">Confirm transfer</h1>""")
+      confirmTransferPageAsString must include("""<p class="govuk-body">Here is a summary of the records you have uploaded.</p>""")
 
-      confirmTransferPageAsString must include("Series reference")
-      confirmTransferPageAsString must include(consignmentSummaryResponse.series.get.code)
+      confirmTransferPageAsString must include(
+        """                    <dt class="govuk-summary-list__key govuk-!-width-one-half">
+          |                        Series reference
+          |                    </dt>""".stripMargin
+      )
 
-      confirmTransferPageAsString must include("Transferring body")
-      confirmTransferPageAsString must include(consignmentSummaryResponse.transferringBody.get.name)
+      confirmTransferPageAsString must include(
+        s"""                    <dd class="govuk-summary-list__value">
+           |                        ${consignmentSummaryResponse.series.get.code}
+           |                    </dd>""".stripMargin
+      )
 
-      confirmTransferPageAsString must include("Files uploaded for transfer")
-      confirmTransferPageAsString must include(s"${consignmentSummaryResponse.totalFiles} files uploaded")
+      confirmTransferPageAsString must include(
+        """                    <dt class="govuk-summary-list__key">
+          |                        Consignment reference
+          |                    </dt>""".stripMargin
+      )
 
-      confirmTransferPageAsString must include("Consignment reference")
-      confirmTransferPageAsString must include(consignmentSummaryResponse.consignmentReference)
+      confirmTransferPageAsString must include(
+        s"""                    <dd class="govuk-summary-list__value">
+           |                        ${consignmentSummaryResponse.consignmentReference}
+           |                    </dd>""".stripMargin
+      )
 
-      confirmTransferPageAsString must include(s"""" href="/faq">""")
-      confirmTransferPageAsString must include(s"""" href="/help">""")
+      confirmTransferPageAsString must include(
+        s"""                    <dt class="govuk-summary-list__key">
+           |                        Transferring body
+           |                    </dt>""".stripMargin
+      )
 
+      confirmTransferPageAsString must include(
+        s"""                    <dd class="govuk-summary-list__value">
+           |                        ${consignmentSummaryResponse.transferringBody.get.name}
+           |                    </dd>""".stripMargin
+      )
+
+      confirmTransferPageAsString must include(
+        s"""                    <dt class="govuk-summary-list__key">
+           |                        Files uploaded for transfer
+           |                    </dt>""".stripMargin
+      )
+
+      confirmTransferPageAsString must include(
+        s"""                    <dd class="govuk-summary-list__value">
+           |                        ${consignmentSummaryResponse.totalFiles} files uploaded
+           |                    </dd>""".stripMargin
+      )
+
+      confirmTransferPageAsString must include(
+        s"""<form action="/consignment/$consignmentId/confirm-transfer" method="POST" novalidate="">"""
+      )
+
+      confirmTransferPageAsString must include regex(
+        s"""<input type="hidden" name="csrfToken" value="[0-9a-z\\-]+"/>"""
+      )
+
+      confirmTransferPageAsString must include(
+        """<p class="govuk-body">Please confirm you would like to transfer custody of the records to The National Archives.</p>"""
+      )
+
+      confirmTransferPageAsString must include (
+        """                    <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+          |                        Transfer your records
+          |                    </button>""".stripMargin
+      )
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
       checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
     }
 
@@ -153,16 +213,11 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
-      confirmTransferPageAsString must include("govuk-error-message")
-      confirmTransferPageAsString must include("error")
-
-      confirmTransferPageAsString must include("There is a problem")
-      confirmTransferPageAsString must include("#error-openRecords")
-      confirmTransferPageAsString must include("#error-transferLegalCustody")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, formStatus="PartiallySubmitted")
     }
 
-    "display correct error when only the open records option is selected and the final transfer confirmation form is submitted" in {
+    "display correct error when only the 'open records' option is selected and the final transfer confirmation form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
@@ -171,7 +226,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = false)
+      val incompleteTransferConfirmationForm = Seq(("openRecords", "true"))
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
@@ -181,20 +236,15 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
-      confirmTransferPageAsString must include("govuk-error-message")
-      confirmTransferPageAsString must include("error")
-
-      confirmTransferPageAsString must include("There is a problem")
-      confirmTransferPageAsString must include("#error-transferLegalCustody")
-      confirmTransferPageAsString must include("Transferral of legal custody of all records must be confirmed before proceeding")
-
-      confirmTransferPageAsString must not include "#error-openRecords"
-      confirmTransferPageAsString must not include "All records must be confirmed as open before proceeding"
-
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, incompleteTransferConfirmationForm.toMap)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(
+        confirmTransferPageAsString,
+        incompleteTransferConfirmationForm.toMap,
+        formStatus="PartiallySubmitted"
+      )
     }
 
-    "display correct error when only the transfer legal custody option is selected and the final transfer confirmation form is submitted" in {
+    "display correct error when only the 'transfer legal custody' option is selected and the final transfer confirmation form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
       val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
@@ -203,7 +253,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-      val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = false, transferLegalCustodyValue = true)
+      val incompleteTransferConfirmationForm = Seq(("transferLegalCustody", "true"))
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
           .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
@@ -213,17 +263,12 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
-      confirmTransferPageAsString must include("govuk-error-message")
-      confirmTransferPageAsString must include("error")
-
-      confirmTransferPageAsString must include("There is a problem")
-      confirmTransferPageAsString must include("#error-openRecords")
-      confirmTransferPageAsString must include("All records must be confirmed as open before proceeding")
-
-      confirmTransferPageAsString must not include "#error-transferLegalCustody"
-      confirmTransferPageAsString must not include "Transferral of legal custody of all records must be confirmed before"
-
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, incompleteTransferConfirmationForm.toMap)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
+      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(
+        confirmTransferPageAsString,
+        incompleteTransferConfirmationForm.toMap,
+        formStatus="PartiallySubmitted"
+      )
     }
 
     "add a final transfer confirmation when a valid form is submitted and the api response is successful" in {
@@ -238,7 +283,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest()
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken)
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe SEE_OTHER
@@ -257,7 +302,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       val finalTransferConfirmationSubmitResult = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest()
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken)
 
       playStatus(finalTransferConfirmationSubmitResult) mustBe SEE_OTHER
@@ -271,7 +316,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken)
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
@@ -285,7 +330,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitResult = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken)
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
@@ -306,7 +351,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken)
       mockGraphqlConsignmentSummaryResponse()
 
@@ -322,7 +367,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitResult = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken)
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
@@ -342,7 +387,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitResult: Result = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken
         ).futureValue
 
@@ -361,7 +406,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -381,7 +426,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -400,7 +445,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken
         ).futureValue
 
@@ -419,7 +464,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken
         ).futureValue
 
@@ -436,7 +481,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -453,7 +498,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitError: Throwable = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed = true): _*)
+          .withFormUrlEncodedBody(Seq(("legalCustodyTransferConfirmed", "true")): _*)
           .withCSRFToken
         ).failed.futureValue
 
@@ -472,7 +517,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       controller.finalTransferConfirmationSubmit(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-          .withFormUrlEncodedBody(finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = true): _*)
+          .withFormUrlEncodedBody(Seq(("openRecords", "true"), ("transferLegalCustody", "true")): _*)
           .withCSRFToken
         ).futureValue
 
@@ -486,16 +531,15 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentTypeResponse(wiremockServer, "standard")
 
-        val transferControllerPage = controller.confirmTransfer(consignmentId)
+        val ctAlreadyConfirmedPage = controller.confirmTransfer(consignmentId)
           .apply(FakeRequest(GET, f"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
-        val confirmTransferPageAsString = contentAsString(transferControllerPage)
+        val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
 
-        playStatus(transferControllerPage) mustBe OK
-        contentType(transferControllerPage) mustBe Some("text/html")
-        headers(transferControllerPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        confirmTransferPageAsString must include(
-          s"""href="/consignment/$consignmentId/transfer-complete">Continue""".stripMargin)
-        confirmTransferPageAsString must include("Your transfer has already been completed")
+        playStatus(ctAlreadyConfirmedPage) mustBe OK
+        contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
+        headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
+        checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
       }
     }
 
@@ -514,9 +558,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(ctAlreadyConfirmedPage) mustBe OK
         contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
         headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        ctAlreadyConfirmedPageAsString must include(
-          s"""href="/consignment/$consignmentId/transfer-complete">Continue""".stripMargin)
-        ctAlreadyConfirmedPageAsString must include("Your transfer has already been completed")
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
+        checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
       }
     }
 
@@ -524,13 +567,13 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       "render the confirm transfer 'already confirmed' page with an authenticated user if the standard user navigates back to the " +
         s"confirmTransfer after previously submitting an incorrect form and the export status is '$consignmentStatus'" in {
         val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-        val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = false)
+        val incompleteTransferConfirmationForm = Seq(("openRecords", "true"))
         setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentTypeResponse(wiremockServer, "standard")
 
         val ctAlreadyConfirmedPage = controller.finalTransferConfirmationSubmit(consignmentId)
-          .apply(FakeRequest(POST, f"/consignment/$consignmentId/confirm-transfer")
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
             .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
             .withCSRFToken)
         val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
@@ -538,15 +581,16 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(ctAlreadyConfirmedPage) mustBe OK
         contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
         headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        ctAlreadyConfirmedPageAsString must include(
-          s"""href="/consignment/$consignmentId/transfer-complete">Continue""".stripMargin)
-        ctAlreadyConfirmedPageAsString must include("Your transfer has already been completed")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
+        checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
       }
     }
 
     forAll(consignmentStatuses) { consignmentStatus =>
       s"render the transfer 'already confirmed' page with an authenticated judgment user if export status is '$consignmentStatus'" in {
-        val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+        val controller =
+          instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
         setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentTypeResponse(wiremockServer, "judgment")
@@ -558,16 +602,17 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(transferAlreadyCompletedPage) mustBe OK
         contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
         headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        transferAlreadyCompletedPageAsString must include(
-          s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
-        transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = "judgment")
+        checkForCommonElementsOnConfirmationPage(transferAlreadyCompletedPageAsString, transferType = "judgment")
       }
     }
 
     forAll(consignmentStatuses) { consignmentStatus =>
       "render the confirm transfer 'already confirmed' page with an authenticated judgment user if the user navigates back to the " +
         s"confirmTransfer after previously successfully submitting the transfer and the export status is '$consignmentStatus'" in {
-        val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+        val controller =
+          instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
         setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentTypeResponse(wiremockServer, "judgment")
@@ -579,17 +624,18 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(transferAlreadyCompletedPage) mustBe OK
         contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
         headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        transferAlreadyCompletedPageAsString must include(
-          s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
-        transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = "judgment")
+        checkForCommonElementsOnConfirmationPage(transferAlreadyCompletedPageAsString, transferType = "judgment")
       }
     }
 
     forAll(consignmentStatuses) { consignmentStatus =>
       "render the confirm transfer 'already confirmed' page with an authenticated user if the judgment user navigates back to the " +
         s"confirmTransfer after previously submitting an incorrect form and the export status is '$consignmentStatus'" in {
-        val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-        val incompleteTransferConfirmationForm = finalTransferConfirmationForm(openRecordsValue = true, transferLegalCustodyValue = false)
+        val controller =
+          instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
+        val incompleteTransferConfirmationForm = Seq()
         setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentTypeResponse(wiremockServer, "judgment")
@@ -603,9 +649,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         playStatus(transferAlreadyCompletedPage) mustBe OK
         contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
         headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        transferAlreadyCompletedPageAsString must include(
-          s"""href="/judgment/$consignmentId/transfer-complete">Continue""".stripMargin)
-        transferAlreadyCompletedPageAsString must include("Your transfer has already been completed")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = "judgment")
+        checkForCommonElementsOnConfirmationPage(transferAlreadyCompletedPageAsString, transferType = "judgment")
       }
     }
   }
@@ -619,14 +665,14 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
           case "judgment" =>
             mockGraphqlConsignmentSummaryResponse()
             controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
-              .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-                .withCSRFToken)
+            .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
+              .withCSRFToken)
           case "consignment" =>
             mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
             controller.finalTransferConfirmationSubmit(consignmentId)
-              .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-                .withCSRFToken
-              )
+            .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
+              .withCSRFToken
+            )
         }
         playStatus(fileChecksPage) mustBe FORBIDDEN
       }
@@ -634,7 +680,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   }
 
   private def mockGraphqlConsignmentSummaryResponse(dataString: String = "", consignmentType: String = "standard") = {
-    if (dataString.nonEmpty) {
+    if(dataString.nonEmpty) {
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentSummary"))
         .willReturn(okJson(dataString)))
@@ -659,19 +705,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     val totalFiles: Int = 4
     val consignmentReference = "TEST-TDR-2021-GB"
     new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
-  }
-
-  private def finalTransferConfirmationForm(openRecordsValue: Boolean, transferLegalCustodyValue: Boolean): Seq[(String, String)] = {
-    Seq(
-      ("openRecords", openRecordsValue.toString),
-      ("transferLegalCustody", transferLegalCustodyValue.toString)
-    )
-  }
-
-  private def finalJudgmentTransferConfirmationForm(legalCustodyTransferConfirmed: Boolean): Seq[(String, String)] = {
-    Seq(
-      ("legalCustodyTransferConfirmed", legalCustodyTransferConfirmed.toString)
-    )
   }
 
   private def createFinalTransferConfirmationResponse = new aftc.AddFinalTransferConfirmation(
@@ -744,7 +777,13 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       .willReturn(okJson(utDataString)))
   }
 
-  private def removeNewLinesAndIndentation(formattedJsonBody: String) = {
-    formattedJsonBody.replaceAll("\n\\s*", "")
+  private def checkForCommonElementsOnConfirmationPage(transferAlreadyConfirmedPageAsString: String, transferType: String="consignment") = {
+    transferAlreadyConfirmedPageAsString must include(
+      """                <h1 class="govuk-heading-l">Your transfer has already been completed</h1>
+        |                <p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>""".stripMargin
+    )
+    transferAlreadyConfirmedPageAsString must include(
+      s"""href="/$transferType/$consignmentId/transfer-complete">Continue""".stripMargin
+    )
   }
 }

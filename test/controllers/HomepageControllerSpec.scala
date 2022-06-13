@@ -53,7 +53,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must include ("Registration Complete")
       homepagePageAsString must include ("Thank you for completing your registration")
       homepagePageAsString must include ("Next Steps")
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, consignmentExists = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = "", consignmentExists = false)
     }
 
     "render the homepage page with an authenticated standard user" in {
