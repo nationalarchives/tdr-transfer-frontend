@@ -3,11 +3,11 @@ package util
 import org.scalatest.matchers.must.Matchers._
 
 class CheckPageForStaticElements() {
-  //scalastyle:off method.length
   def checkContentOfPagesThatUseMainScala(page: String,
                                           signedIn: Boolean=true,
-                                          userType: String="",
+                                          userType: String,
                                           consignmentExists: Boolean=true,
+                                          transferStillInProgress: Boolean=true,
                                           pageRequiresAwsServices: Boolean=false): Unit = {
     page must include ("""
     |    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,52 +27,52 @@ class CheckPageForStaticElements() {
     )
     page must include (", except where otherwise stated")
     page must include ("© Crown copyright")
-
     if(signedIn){
-      page must include (
-      """<a href="/sign-out" class="govuk-header__link">
-      |                            Sign out""".stripMargin
-      )
-      page must include ("""    <dialog class="timeout-dialog">
-                           |        <div>
-                           |            <h2 class="govuk-heading-m">You have been inactive for more than 30 minutes.</h2>
-                           |            <p class="govuk-body">You will be logged out if you do not respond in 5 minutes. We do this to keep your information secure.</p>
-                           |        </div>
-                           |        <div class="govuk-button-group">
-                           |            <button id="extend-timeout" class="govuk-button" role="button">
-                           |                Keep me signed in
-                           |            </button>
-                           |            <a class="govuk-link" href="/sign-out">Sign me out</a>
-                           |        </div>
-                           |    </dialog>""".stripMargin)
-      if(userType == "judgment") {
-        page must include ("Judgment Username")
-        page must include ("""href="/judgment/faq">""")
-        page must include ("""href="/judgment/help">""")
-        if(consignmentExists) {
-          page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
-          page must include ("Transfer reference")
-          page must include ("TEST-TDR-2021-GB")
-        }
-      } else if(userType == "standard") {
-        page must include ("Standard Username")
-        page must include ("""href="/faq">""")
-        page must include ("""href="/help">""")
-        if(consignmentExists) {
-          page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
-          page must include ("Consignment reference")
-          page must include ("TEST-TDR-2021-GB")
-        }
-      }
-      if(pageRequiresAwsServices){
-          page must include (
-          """<input type="hidden" class="api-url" value="https://mock-api-url.com/graphql">
-            |<input type="hidden" class="stage" value="mockStage">
-            |<input type="hidden" class="region" value="mockRegion">
-            |<input type="hidden" class="upload-url" value="https://mock-upload-url.com">""".stripMargin
-        )
-      }
+      checkContentOfSignedInPagesThatUseMainScala(page, userType, consignmentExists, transferStillInProgress, pageRequiresAwsServices)
     }
   }
-  //scalastyle:on method.length
+
+  private def checkContentOfSignedInPagesThatUseMainScala(page: String,
+                                                          userType: String,
+                                                          consignmentExists: Boolean,
+                                                          transferStillInProgress: Boolean,
+                                                          pageRequiresAwsServices: Boolean) = {
+    page must include (
+      """<a href="/sign-out" class="govuk-header__link">
+        |                            Sign out""".stripMargin
+    )
+    if(userType == "judgment") {
+      page must include ("Judgment Username")
+      page must include ("""href="/judgment/faq">""")
+      page must include ("""href="/judgment/help">""")
+      if(consignmentExists) {
+        page must include ("TEST-TDR-2021-GB")
+
+        if(transferStillInProgress) {
+          page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
+          page must include ("Transfer reference")
+        }
+      }
+    } else if(userType == "standard") {
+      page must include ("Standard Username")
+      page must include ("""href="/faq">""")
+      page must include ("""href="/help">""")
+      if(consignmentExists) {
+        page must include ("TEST-TDR-2021-GB")
+
+        if(transferStillInProgress) {
+          page must include ("""<span class="govuk-caption-l">progressIndicator.step</span>""")
+          page must include ("Consignment reference")
+        }
+      }
+    }
+    if(pageRequiresAwsServices){
+      page must include (
+        """<input type="hidden" class="api-url" value="https://mock-api-url.com/graphql">
+          |<input type="hidden" class="stage" value="mockStage">
+          |<input type="hidden" class="region" value="mockRegion">
+          |<input type="hidden" class="upload-url" value="https://mock-upload-url.com">""".stripMargin
+      )
+    }
+  }
 }

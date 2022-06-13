@@ -24,22 +24,41 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val privateBetaOptions = Map(
-    "publicRecord" -> "I confirm that the records are Public Records.",
-    "crownCopyright" -> "I confirm that the records are all Crown Copyright.",
-    "english" -> "I confirm that the records are all in English."
+    "publicRecord" -> (
+      "I confirm that the records are Public Records.",
+      "All records must be confirmed as public before proceeding"
+    ),
+    "crownCopyright" -> (
+      "I confirm that the records are all Crown Copyright.",
+      "All records must be confirmed Crown Copyright before proceeding"
+    ),
+    "english" -> (
+      "I confirm that the records are all in English.",
+      "All records must be confirmed as English language before proceeding"
+    )
   )
 
   val complianceOptions = Map(
-    "droAppraisalSelection" -> "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
-    "droSensitivity" -> "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
-    "openRecords" -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records."
+    "droAppraisalSelection" -> (
+      "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
+      "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records"
+    ),
+    "droSensitivity" -> (
+      "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
+      "Departmental Records Officer (DRO) must have signed off sensitivity review"
+    ),
+    "openRecords" -> (
+      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
+      "All records must be open"
+    )
   )
 
-  val checkHtmlOfPrivateBetaFormOptions = new CheckHtmlOfFormOptions(privateBetaOptions, "")
-  val checkHtmlOfComplianceFormOptions = new CheckHtmlOfFormOptions(complianceOptions, "")
+  val checkHtmlOfPrivateBetaFormOptions = new CheckFormOptionsHtml(privateBetaOptions, "")
+  val checkHtmlOfComplianceFormOptions = new CheckFormOptionsHtml(complianceOptions, "")
 
   val privateBeta = "privateBeta"
   val compliance = "compliance"
+  val userType = "standard"
 
   def mockGetConsignmentGraphqlResponse(config: Configuration,
                                         consignmentType: String = "standard"): StubMapping = {
@@ -78,42 +97,6 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
 
     options(optionsType).dropRight(numberOfValuesToRemove)
-  }
-
-  def checkHtmlContentForErrorMessages(htmlAsString: String, optionType: String, optionsSelected: Set[String]): Unit = {
-
-    val potentialErrorsOnPage = Map(
-      "privateBeta" ->  Map(
-        "publicRecord" -> "All records must be confirmed as public before proceeding",
-        "crownCopyright" -> "All records must be confirmed Crown Copyright before proceeding",
-        "english" -> "All records must be confirmed as English language before proceeding"
-      ),
-      "compliance" -> Map(
-        "droAppraisalSelection" -> "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records",
-        "droSensitivity" -> "Departmental Records Officer (DRO) must have signed off sensitivity review",
-        "openRecords" -> "All records must be open"
-      )
-    )
-
-    val errorsThatShouldBeOnPage: Map[String, String] = potentialErrorsOnPage(optionType).filter {
-      case (errorLabel, _) => !optionsSelected.contains(errorLabel)
-    }
-
-    errorsThatShouldBeOnPage.foreach {
-      case (errorLabel, errorMessage) =>
-        // IntelliJ keeps removing trailing spaces so need use hashes and then replace with spaces during execution
-        htmlAsString must include(
-          s"""            <input
-             |################
-             |                class="govuk-checkboxes__input"
-             |                id="$errorLabel"
-             |                name="$errorLabel"
-             |                type="checkbox"
-             |                value="true"
-             |                 />""".stripMargin.replaceAll("################", "                ")
-        )
-        htmlAsString must include(errorMessage)
-    }
   }
 
   def instantiateTransferAgreementPrivateBetaController(securityComponents: SecurityComponents,
