@@ -28,9 +28,9 @@ import scala.concurrent.ExecutionContext
 class SeriesDetailsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  val consignmentId = UUID.randomUUID()
-  val seriesId = UUID.fromString("1ebba1f2-5cd9-4379-a26e-f544e6d6f5e3")
-  val bodyId = UUID.fromString("327068c7-a650-4f40-8f7d-c650d5acd7b0")
+  val consignmentId: UUID = UUID.randomUUID()
+  val seriesId: UUID = UUID.fromString("1ebba1f2-5cd9-4379-a26e-f544e6d6f5e3")
+  val bodyId: UUID = UUID.fromString("327068c7-a650-4f40-8f7d-c650d5acd7b0")
 
   val wiremockServer = new WireMockServer(9006)
 
