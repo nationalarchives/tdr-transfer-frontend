@@ -59,9 +59,9 @@ class HomeControllerSpec extends FrontEndTestHelper {
     pageAsString must include ("Start now")
 
     if(!signedIn) {
-      pageAsString must not include ("/faq")
-      pageAsString must not include ("/help")
-      pageAsString must not include ("Sign out")
+      pageAsString must not include "/faq"
+      pageAsString must not include "/help"
+      pageAsString must not include "Sign out"
     }
   }
 }
