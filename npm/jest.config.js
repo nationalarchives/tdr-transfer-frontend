@@ -1,5 +1,8 @@
 module.exports = {
   preset: "ts-jest",
+  moduleNameMapper: {
+    "govuk-frontend": "<rootDir>/src/govuk-frontend.d.ts"
+  },
   testEnvironment: 'jsdom',
   globals: {
     TDR_IDENTITY_PROVIDER_NAME: "TEST_AUTH_URL",
