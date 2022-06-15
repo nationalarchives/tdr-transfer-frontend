@@ -16,6 +16,7 @@ import { UpdateConsignmentStatusMutation } from "@nationalarchives/tdr-generated
 import { KeycloakInstance } from "keycloak-js"
 jest.mock("../src/clientfileprocessing")
 jest.mock("../src/graphql")
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 beforeEach(() => {
   jest.clearAllMocks()
