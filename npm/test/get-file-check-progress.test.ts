@@ -15,6 +15,7 @@ import { DocumentNode, GraphQLError } from "graphql"
 import { FetchResult } from "@apollo/client/core"
 
 jest.mock("../src/graphql")
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 class GraphqlClientSuccess {
   mutation: (

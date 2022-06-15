@@ -1,7 +1,7 @@
 import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
 enableFetchMocks()
 import {createMockKeycloakInstance} from "./utils";
-
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 const keycloakMock = {
   __esModule: true,
   namedExport: jest.fn(),
@@ -180,7 +180,7 @@ test("'scheduleTokenRefresh' should call the cookies endpoint to refresh the sig
   jest.runAllTimers()
   const response = await fetchMock.mock
   const calls = response.calls
-  expect(calls.length).toBe(2)
+  expect(calls.length).toBe(1)
   expect(response!.calls[0][0]).toBe(cookiesUrl)
   const headers = response!.calls[0]![1]!.headers as {Authorization: string}
   expect(headers["Authorization"]).toBe("Bearer fake-auth-token")

@@ -5,6 +5,8 @@ beforeEach(() => {
   jest.resetModules()
 })
 
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
+
 test("handleUploadError function displays error message", () => {
   setupErrorHtml()
 
