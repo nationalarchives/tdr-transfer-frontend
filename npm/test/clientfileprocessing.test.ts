@@ -16,6 +16,7 @@ import { S3Client, ServiceOutputTypes } from "@aws-sdk/client-s3"
 jest.mock("../src/clientfilemetadataupload")
 jest.mock("../src/clientfileextractmetadata")
 jest.mock("../src/s3upload")
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 beforeEach(() => jest.resetModules())
 

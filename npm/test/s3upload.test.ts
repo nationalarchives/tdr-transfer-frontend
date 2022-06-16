@@ -5,10 +5,12 @@ import {
   IFileWithPath,
   IProgressInformation
 } from "@nationalarchives/file-information"
-import { mockClient, mockLibStorageUpload } from "aws-sdk-client-mock"
+import { mockClient } from "aws-sdk-client-mock"
+import { mockLibStorageUpload } from "aws-sdk-client-mock/libStorage"
 import { S3Client, ServiceInputTypes } from "@aws-sdk/client-s3"
 
 enableFetchMocks()
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 interface createTdrFileParameters {
   fileId?: string

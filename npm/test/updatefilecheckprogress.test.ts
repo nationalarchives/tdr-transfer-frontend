@@ -19,6 +19,8 @@ import { IFileCheckProgress } from "../src/filechecks/get-file-check-progress"
 import { haveFileChecksCompleted } from "../src/filechecks/verify-checks-have-completed"
 import { displayChecksCompletedBanner } from "../src/filechecks/display-checks-completed-banner"
 
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
+
 jest.mock(
   "../src/filechecks/get-file-check-progress",
   () => mockGetFileCheckProgress

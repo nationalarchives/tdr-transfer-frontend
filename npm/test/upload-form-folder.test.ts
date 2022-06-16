@@ -17,6 +17,8 @@ import {
 import { verifyVisibilityOfSuccessMessage } from "./upload-form-utils/verify-visibility-of-success-message"
 import { displaySelectionSuccessMessage } from "../src/upload/form/update-and-display-success-message"
 
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
+
 beforeEach(() => {
   document.body.innerHTML = htmlForFolderUploadForm
 })
