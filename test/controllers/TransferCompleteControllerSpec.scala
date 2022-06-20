@@ -19,10 +19,9 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
 import services.ConsignmentService
-import util.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.FrontEndTestHelper
+import util.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
