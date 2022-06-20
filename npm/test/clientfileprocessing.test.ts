@@ -8,7 +8,7 @@ import {
   IFileWithPath
 } from "@nationalarchives/file-information"
 import { ClientFileExtractMetadata } from "../src/clientfileextractmetadata"
-import { S3Upload, ITdrFile } from "../src/s3upload"
+import { S3Upload, ITdrFileWithPath } from "../src/s3upload"
 import { mockKeycloakInstance } from "./utils"
 import { FileUploadInfo } from "../src/upload/form/upload-form"
 import { S3Client, ServiceOutputTypes } from "@aws-sdk/client-s3"
@@ -16,6 +16,7 @@ import { S3Client, ServiceOutputTypes } from "@aws-sdk/client-s3"
 jest.mock("../src/clientfilemetadataupload")
 jest.mock("../src/clientfileextractmetadata")
 jest.mock("../src/s3upload")
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 beforeEach(() => jest.resetModules())
 
@@ -27,7 +28,7 @@ class S3UploadMock extends S3Upload {
   uploadToS3: (
     consignmentId: string,
     userId: string | undefined,
-    files: ITdrFile[],
+    files: ITdrFileWithPath[],
     callback: TProgressFunction,
     stage: string,
     chunkSize?: number
@@ -131,7 +132,7 @@ const mockS3UploadFailure: (message: string) => void = (message: string) => {
     return {
       uploadToS3: (
         consignmentId: string,
-        files: ITdrFile[],
+        files: ITdrFileWithPath[],
         stage: string,
         chunkSize?: number
       ) => {

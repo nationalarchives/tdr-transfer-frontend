@@ -109,10 +109,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
     when(frontEndInfoConfiguration.frontEndInfo).thenReturn(
       FrontEndInfo(
-        "",
-        "",
-        "",
-        ""
+        "https://mock-api-url.com/graphql",
+        "mockStage",
+        "mockRegion",
+        "https://mock-upload-url.com"
       ))
     frontEndInfoConfiguration
   }
@@ -141,6 +141,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     accessToken.setOtherClaims("body", "Body")
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     accessToken.setOtherClaims("standard_user", "true")
+    accessToken.setName("Standard Username")
     val token = Token(accessToken, new BearerAccessToken)
     doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
     keycloakMock
@@ -152,6 +153,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     accessToken.setOtherClaims("body", "Body")
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     accessToken.setOtherClaims("judgment_user", "true")
+    accessToken.setName("Judgment Username")
     val token = Token(accessToken, new BearerAccessToken)
     doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
     keycloakMock

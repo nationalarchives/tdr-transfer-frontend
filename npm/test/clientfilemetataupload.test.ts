@@ -8,6 +8,7 @@ import { mockKeycloakInstance } from "./utils"
 import {AddFilesAndMetadataMutationVariables, ClientSideMetadataInput} from "@nationalarchives/tdr-generated-graphql"
 
 jest.mock("../src/graphql")
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 type IMockAddFileData = {
   addFilesAndMetadata: [{ fileId: string; matchId: number }]
@@ -207,29 +208,6 @@ test("saveClientFileMetadata fails to upload client file metadata", async () => 
   )
 })
 
-test("createMetadataInputBatches generates batches of the defined size", () => {
-  const input1 = generateMockMetadataInput(1)
-  const input2 = generateMockMetadataInput(2)
-  const input3 = generateMockMetadataInput(3)
-  const input4 = generateMockMetadataInput(4)
-  const input5 = generateMockMetadataInput(5)
-
-  const inputs: ClientSideMetadataInput[] = [
-    input1,
-    input2,
-    input3,
-    input4,
-    input5
-  ]
-  const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
-  const uploadMetadata = new ClientFileMetadataUpload(client)
-
-  const result = uploadMetadata.createMetadataInputBatches(inputs)
-  expect(result).toHaveLength(2)
-  expect(result[0]).toEqual([input1, input2, input3])
-  expect(result[1]).toEqual([input4, input5])
-})
-
 test("createMetadataInputsAndFileMap returns metadata inputs and file map", () => {
   const metadata: IFileMetadata[] = [mockMetadata1, mockMetadata2]
   const client = new GraphqlClient("https://example.com", mockKeycloakInstance)
@@ -250,7 +228,7 @@ test("createMetadataInputsAndFileMap returns metadata inputs and file map", () =
 
   expect(matchFileMap.size).toEqual(2)
   for (let i = 0; i < metadataInputs.length; i += 1) {
-    expect(matchFileMap.get(i)).toEqual(metadata[i].file)
+    expect(matchFileMap.get(i)?.file).toEqual(metadata[i].file)
   }
 })
 

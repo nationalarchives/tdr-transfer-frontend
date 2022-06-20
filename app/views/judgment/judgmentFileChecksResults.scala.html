@@ -2,20 +2,18 @@
 @import views.html.partials.{progressIndicator, transferReference}
 
 @import java.util.UUID
-@(filename: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+@(filename: String, title: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("Results of checks", name = name, isJudgmentUser = true) {
+@main(title, name = name, isJudgmentUser = true) {
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             @progressIndicator(Messages("judgmentFileChecksResults.progress"), isJudgmentUser=true)
-            <h1 class="govuk-heading-l">Results of checks</h1>
-            <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
+            <h1 class="govuk-heading-l">@title</h1>
+            <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary__body"
             role="status" data-module="success-summary" tabindex="-1">
-                <h2 class="success-summary__title" id="success-summary-title">
-                    Success
-                </h2>
                 <div class="success-summary__body">
-                    <p class="govuk-body">Your file '@{filename}' has been successfully checked and is ready to be exported for publication.</p>
+                    <p class="govuk-body">Your uploaded file '@{filename}' has now been validated.</p>
+                    <p class="govuk-body">Click 'Continue' to transfer it to The National Archives.</p>
                 </div>
             </div>
             <div>
@@ -23,7 +21,7 @@
                 <form method="post" action="@routes.ConfirmTransferController.finalJudgmentTransferConfirmationSubmit(consignmentId)">
                     @CSRF.formField
                     <button class="govuk-button" type="submit" role="button" draggable="false">
-                        Export
+                        Continue
                     </button>
                 </form>
             </div>

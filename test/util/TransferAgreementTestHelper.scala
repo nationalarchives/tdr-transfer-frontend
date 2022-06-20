@@ -24,22 +24,41 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val privateBetaOptions = Map(
-    "publicRecord" -> "I confirm that the records are Public Records.",
-    "crownCopyright" -> "I confirm that the records are all Crown Copyright.",
-    "english" -> "I confirm that the records are all in English."
+    "publicRecord" -> (
+      "I confirm that the records are Public Records.",
+      "All records must be confirmed as public before proceeding"
+    ),
+    "crownCopyright" -> (
+      "I confirm that the records are all Crown Copyright.",
+      "All records must be confirmed Crown Copyright before proceeding"
+    ),
+    "english" -> (
+      "I confirm that the records are all in English.",
+      "All records must be confirmed as English language before proceeding"
+    )
   )
 
   val complianceOptions = Map(
-    "droAppraisalSelection" -> "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
-    "droSensitivity" -> "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
-    "openRecords" -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records."
+    "droAppraisalSelection" -> (
+      "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
+      "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records"
+    ),
+    "droSensitivity" -> (
+      "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
+      "Departmental Records Officer (DRO) must have signed off sensitivity review"
+    ),
+    "openRecords" -> (
+      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
+      "All records must be open"
+    )
   )
 
-  val checkHtmlOfPrivateBetaFormOptions = new CheckHtmlOfFormOptions(privateBetaOptions, "")
-  val checkHtmlOfComplianceFormOptions = new CheckHtmlOfFormOptions(complianceOptions, "")
+  val checkHtmlOfPrivateBetaFormOptions = new CheckFormOptionsHtml(privateBetaOptions, "")
+  val checkHtmlOfComplianceFormOptions = new CheckFormOptionsHtml(complianceOptions, "")
 
   val privateBeta = "privateBeta"
   val compliance = "compliance"
+  val userType = "standard"
 
   def mockGetConsignmentGraphqlResponse(config: Configuration,
                                         consignmentType: String = "standard"): StubMapping = {
@@ -78,28 +97,6 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
 
     options(optionsType).dropRight(numberOfValuesToRemove)
-  }
-
-  def checkHtmlContentForErrorSummary(htmlAsString: String, optionType: String, optionsSelected: Set[String]): Unit = {
-
-    val potentialErrorsOnPage = Map(
-      "privateBeta" ->  Map(
-        "publicRecord" -> "All records must be confirmed as public before proceeding",
-        "crownCopyright" -> "All records must be confirmed Crown Copyright before proceeding",
-        "english" -> "All records must be confirmed as English language before proceeding"
-      ),
-      "compliance" -> Map(
-        "droAppraisalSelection" -> "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records",
-        "droSensitivity" -> "Departmental Records Officer (DRO) must have signed off sensitivity review",
-        "openRecords" -> "All records must be open"
-      )
-    )
-
-    val errorsThatShouldBeOnPage: Map[String, String] = potentialErrorsOnPage(optionType).filter {
-      case (errorName, _) => !optionsSelected.contains(errorName)
-    }
-
-    errorsThatShouldBeOnPage.values.foreach(error => htmlAsString must include(error))
   }
 
   def instantiateTransferAgreementPrivateBetaController(securityComponents: SecurityComponents,
@@ -157,6 +154,17 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     wireMockServer.stubFor(post(urlEqualTo("/graphql"))
       .willReturn(okJson(dataString)))
+  }
+
+  def checkForExpectedTAPageContent(pageAsString: String, taAlreadyConfirmed: Boolean=true): Unit = {
+    if(taAlreadyConfirmed) {
+      pageAsString must include("You have already confirmed all statements")
+      pageAsString must include("Click 'Continue' to proceed with your transfer.")
+    } else {
+      pageAsString must include (
+        "You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor."
+      )
+    }
   }
 
 }

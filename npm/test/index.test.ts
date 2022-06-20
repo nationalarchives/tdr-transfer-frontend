@@ -2,10 +2,9 @@ import { KeycloakInstance } from "keycloak-js"
 import { renderModules } from "../src/index"
 
 jest.mock("../src/auth")
+jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 import { getKeycloakInstance } from "../src/auth"
-import {createMockKeycloakInstance} from "./utils";
-
-beforeEach(() => jest.resetModules())
+import { createMockKeycloakInstance } from "./utils"
 
 const mockKeycloak: KeycloakInstance = createMockKeycloakInstance()
 
@@ -32,7 +31,7 @@ test("renderModules calls authorisation when upload form present on page", async
     "</div>" +
     "</div>"
 
-  renderModules()
+  await renderModules()
   expect(keycloakInstance).toBeCalledTimes(1)
 
   keycloakInstance.mockRestore()

@@ -1,58 +1,67 @@
 package controllers
 
-import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test._
-import util.FrontEndTestHelper
-
-import scala.concurrent._
+import util.{CheckPageForStaticElements, FrontEndTestHelper}
 
 class HomeControllerSpec extends FrontEndTestHelper {
 
+  val checkPageForStaticElements = new CheckPageForStaticElements
+
   "HomeController GET" should {
 
-    "render the index page from a new instance of controller" in {
+    "render the index page from a new instance of controller if a user is logged out" in {
       val controller = new HomeController(getUnauthorisedSecurityComponents)
       val home = controller.index().apply(FakeRequest(GET, "/"))
+      val pageAsString = contentAsString(home)
 
       status(home) mustBe OK
       contentType(home) mustBe Some("text/html")
-      contentAsString(home) must include ("The National Archives Transfer Digital Records")
-      contentAsString(home) must include ("Use this service to:")
-      contentAsString(home) must include ("transfer digital records to The National Archives")
-      contentAsString(home) must include ("transfer judgments to The National Archives")
-      contentAsString(home) must include ("Start now")
+      checkForContentOnHomePage(pageAsString, signedIn = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, userType = "", consignmentExists = false)
+    }
+
+    "render the index page from a new instance of controller if a user is logged in" in {
+      val controller = new HomeController(getAuthorisedSecurityComponents)
+      val home = controller.index().apply(FakeRequest(GET, "/"))
+      val pageAsString = contentAsString(home)
+
+      status(home) mustBe OK
+      contentType(home) mustBe Some("text/html")
+
+      checkForContentOnHomePage(pageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, userType = "", consignmentExists = false)
+
+      pageAsString must include ("/faq")
+      pageAsString must include ("/help")
     }
 
     "render the index page from the application" in {
       val controller = inject[HomeController]
       val home = controller.index().apply(FakeRequest(GET, "/"))
-
-      status(home) mustBe OK
-      contentAsString(home) must include ("Transfer Digital Records")
-      contentAsString(home) must include ("Introduction")
-      contentAsString(home) must include ("Start now")
-    }
-
-    "show the faq and help buttons if a user is logged in" in {
-      val controller = new HomeController(getAuthorisedSecurityComponents)
-      val home = controller.index().apply(FakeRequest(GET, "/"))
+      val pageAsString = contentAsString(home)
 
       status(home) mustBe OK
       contentType(home) mustBe Some("text/html")
-
-      contentAsString(home) must include ("/faq")
-      contentAsString(home) must include ("/help")
+      checkForContentOnHomePage(pageAsString, signedIn = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, signedIn = false, userType = "", consignmentExists = false)
     }
+  }
 
-    "show the sign out button if the user is logged in" in {
-      val controller = new HomeController(getAuthorisedSecurityComponents)
-      val home = controller.index().apply(FakeRequest(GET, "/"))
+  private def checkForContentOnHomePage(pageAsString: String, signedIn: Boolean = true): Unit = {
+    pageAsString must include ("<title>Introduction</title>")
+    pageAsString must include ("This is a new service – your feedback will help us to improve it. Please")
+    pageAsString must include ("href=\"/contact\">get in touch (opens in new tab).</a>")
+    pageAsString must include ("The National Archives Transfer Digital Records")
+    pageAsString must include ("Use this service to:")
+    pageAsString must include ("transfer digital records to The National Archives")
+    pageAsString must include ("transfer judgments to The National Archives")
+    pageAsString must include ("Start now")
 
-      status(home) mustBe OK
-      contentType(home) mustBe Some("text/html")
-
-      contentAsString(home) must include ("Sign out")
+    if(!signedIn) {
+      pageAsString must not include "/faq"
+      pageAsString must not include "/help"
+      pageAsString must not include "Sign out"
     }
   }
 }
