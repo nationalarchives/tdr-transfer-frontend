@@ -49,18 +49,3 @@ const refreshToken = async (keycloak: Keycloak): Promise<void> => {
     })
   }
 }
-
-export function countdown(
-  time: number,
-  progressCallback: (arg0: number) => void,
-  doneCallback: () => void
-) {
-  progressCallback(time)
-  setTimeout(function () {
-    if (time > 1) {
-      countdown(time - 1, progressCallback, doneCallback)
-    } else {
-      doneCallback()
-    }
-  }, 1000)
-}
