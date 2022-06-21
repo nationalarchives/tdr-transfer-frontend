@@ -115,7 +115,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       mockGetConsignmentForExport()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      val downloadReport = controller.downloadReport(consignmentId)
+      val downloadReport = controller.downloadReport(consignmentId, "TEST-TDR-2021-GB")
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
 
       contentAsString(downloadReport) must include(
@@ -137,7 +137,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         .withRequestBody(containing("getConsignmentForExport"))
         .willReturn(okJson(dataString)))
 
-      val downloadReport = controller.downloadReport(consignmentId)
+      val downloadReport = controller.downloadReport(consignmentId, "TEST-TDR-2021-GB")
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
 
       val failure: Throwable = downloadReport.failed.futureValue
