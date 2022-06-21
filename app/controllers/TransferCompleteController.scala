@@ -58,7 +58,6 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
             s"Content-Disposition" -> s"attachment; filename=${consignmentRef}.csv"
           )
       }
-
   }
 
   implicit class CSVWrapper(val prod: Product) {
