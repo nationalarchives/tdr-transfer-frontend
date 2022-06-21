@@ -31,7 +31,8 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
       }
   }
 
-  def downloadReport(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def downloadReport(consignmentId: UUID, consignmentRef: String): Action[AnyContent] = standardTypeAction(consignmentId)
+  { implicit request: Request[AnyContent] =>
     val headers = "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,TransferInitiatedDatetime"
     consignmentService.getConsignmentExport(consignmentId, request.token.bearerAccessToken)
       .map { result =>
@@ -54,7 +55,7 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
         Ok(headers + "\n" + rows.mkString("\n"))
           .as("text/csv")
           .withHeaders(
-            "Content-Disposition" -> "attachment; filename=report.csv"
+            s"Content-Disposition" -> s"attachment; filename=${consignmentRef}.csv"
           )
       }
 
