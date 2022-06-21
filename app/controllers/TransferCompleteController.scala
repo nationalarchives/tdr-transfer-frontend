@@ -7,7 +7,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
@@ -32,10 +32,11 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
   }
 
   def downloadReport(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val headers = "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified"
+    val headers = "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,TransferInitiatedDatetime"
     consignmentService.getConsignmentExport(consignmentId, request.token.bearerAccessToken)
       .map { result =>
-        val rows = result.foldLeft(List[String]()) {
+        val transferInitiated = result.transferInitiatedDatetime
+        val rows = result.files.foldLeft(List[String]()) {
           case (record, file) => record :+ ReportCsv(
             file.metadata.clientSideOriginalFilePath,
             file.fileName,
@@ -46,10 +47,10 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
             file.metadata.heldBy,
             file.metadata.language,
             file.metadata.foiExemptionCode,
-            file.metadata.clientSideLastModifiedDate
+            file.metadata.clientSideLastModifiedDate,
+            transferInitiated
           ).toCSV
         }
-
         Ok(headers + "\n" + rows.mkString("\n"))
           .as("text/csv")
           .withHeaders(
@@ -76,5 +77,6 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
                        heldBy: Option[String],
                        language: Option[String],
                        exemptionCode: Option[String],
-                       lastModified: Option[LocalDateTime])
+                       lastModified: Option[LocalDateTime],
+                       zoneDateTime: Option[ZonedDateTime])
 }

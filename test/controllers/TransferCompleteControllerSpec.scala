@@ -119,7 +119,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
 
       contentAsString(downloadReport) must include(
-        "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified"
+        "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,TransferInitiatedDatetime"
       )
       contentAsString(downloadReport) must include("Filepath/SomeFile,SomeFile,File,1,Crown Copyright,Public Record,TNA,English,Open")
     }
