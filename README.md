@@ -49,6 +49,19 @@ development environment for the other TDR services.
 
 When you log into the site, you will need to log in as a user from the Integration environment.
 
+#### Troubleshooting
+
+If you encounter the following error when trying to run in Intellij:
+
+`java.io.IOException: Cannot run program "npm" (in directory "/home/thomas/Tdr/tdr-transfer-frontend/npm"): error=2, No such file or directory`
+
+This is because NVM installs npm in a non-standard location.
+
+To resolve need to create a sym link with the install version of npm. Run the following commands:
+
+- `sudo ln -s /home/{username}/.nvm/versions/node/{version}/bin/npm /usr/bin/npm`; and
+-  `sudo ln -s /home/{username}/.nvm/versions/node/{version}/bin/node /usr/bin/node`
+
 [auth-admin]: https://auth.tdr-integration.nationalarchives.gov.uk/auth/admin
 
 ### Incognito mode
