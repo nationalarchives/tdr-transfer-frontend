@@ -49,7 +49,8 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   "TransferCompleteController GET" should {
     "render the success page if the export was triggered successfully" in {
       setConsignmentReferenceResponse(wiremockServer)
-      val transferCompletePage = callTransferComplete("consignment")
+      val consignmentId = UUID.randomUUID()
+      val transferCompletePage = callTransferComplete("consignment", consignmentId)
       val transferCompletePageAsString = contentAsString(transferCompletePage)
 
       transferCompletePageAsString must include(
@@ -62,6 +63,12 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         |                            Consignment reference: <span class="govuk-!-font-weight-bold">TEST-TDR-2021-GB</span>
         |                        </div>""".stripMargin
       )
+      transferCompletePageAsString must include(
+        s"""                    <p class="govuk-body">Download a printable report of the
+           |                        <a class="govuk-link" href=/consignment/${consignmentId}/download-report?ref=TEST-TDR-2021-GB>
+           |                            records that you have transferred with the metadata included.
+           |                        </a>
+           |                    </p>""".stripMargin)
       transferCompletePageAsString must include(
         """                    <p class="govuk-body">We have now received your records. Please do not delete the original files you uploaded""" +
         " until you are notified that your records have been preserved.</p>"
@@ -178,9 +185,8 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def callTransferComplete(path: String): Future[Result] = {
+  private def callTransferComplete(path: String, consignmentId: UUID = UUID.randomUUID()): Future[Result] = {
     val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, path)
-    val consignmentId = UUID.randomUUID()
     if (path.equals("judgment")) {
       setConsignmentTypeResponse(wiremockServer, "judgment")
       controller.judgmentTransferComplete(consignmentId)
