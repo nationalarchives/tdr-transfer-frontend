@@ -299,7 +299,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken)
       val actualResults = getConsignmentExport.futureValue
 
-      actualResults shouldBe graphQlExportData
+      actualResults should be (graphQlExportData)
     }
 
     "return an error if the API fails" in {
