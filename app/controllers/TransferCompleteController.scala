@@ -55,7 +55,7 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
         Ok(headers + "\n" + rows.mkString("\n"))
           .as("text/csv")
           .withHeaders(
-            s"Content-Disposition" -> s"attachment; filename=${consignmentRef}.csv"
+            s"Content-Disposition" -> s"attachment; filename=$consignmentRef.csv"
           )
       }
   }
@@ -78,5 +78,5 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
                        language: Option[String],
                        exemptionCode: Option[String],
                        lastModified: Option[LocalDateTime],
-                       zoneDateTime: Option[ZonedDateTime])
+                       transferInitiated: Option[ZonedDateTime])
 }
