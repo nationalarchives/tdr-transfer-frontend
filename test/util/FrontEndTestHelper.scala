@@ -111,6 +111,13 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     (getValidStandardUserKeycloakConfiguration, "judgment")
   )
 
+  val consignmentStatuses: TableFor1[String] = Table(
+    "Export status",
+    "InProgress",
+    "Completed",
+    "Failed"
+  )
+
   def frontEndInfoConfiguration: FrontEndInfoConfiguration = {
     val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
     when(frontEndInfoConfiguration.frontEndInfo).thenReturn(

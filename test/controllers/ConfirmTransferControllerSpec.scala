@@ -67,12 +67,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   val checkHtmlOfFormOptions = new CheckFormOptionsHtml(options)
   val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.randomUUID()
-  val consignmentStatuses: TableFor1[String] = Table(
-    "Consignment status",
-    "InProgress",
-    "Completed",
-    "Failed"
-  )
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
