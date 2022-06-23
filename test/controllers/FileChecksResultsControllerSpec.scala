@@ -49,8 +49,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
   val consignmentStatuses: TableFor1[String] = Table(
     "Consignment status",
-    "Completed",
     "InProgress",
+    "Completed",
     "Failed"
   )
 

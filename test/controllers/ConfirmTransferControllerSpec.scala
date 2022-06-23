@@ -69,8 +69,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   val consignmentId: UUID = UUID.randomUUID()
   val consignmentStatuses: TableFor1[String] = Table(
     "Consignment status",
-    "Completed",
     "InProgress",
+    "Completed",
     "Failed"
   )
 
