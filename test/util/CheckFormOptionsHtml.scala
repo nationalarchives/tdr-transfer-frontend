@@ -4,6 +4,17 @@ import org.scalatest.Assertion
 import org.scalatest.matchers.must.Matchers._
 
 class CheckFormOptionsHtml(options: Map[String, (String, String)], smallCheckbox: String=" govuk-checkboxes--small") {
+  def generateWaysToIncorrectlySubmitAForm(): Seq[Seq[(String, String)]] = {
+    val possibleOptions: Seq[String] = options.keys.toList
+    val optionsToSelectToGenerateFormErrors =
+      for {
+        numberRangeOfOptionsToSelect <- (1 until possibleOptions.length).toList
+        optionsToSelect <- possibleOptions.combinations(numberRangeOfOptionsToSelect)
+      } yield optionsToSelect.map(option => (option, "true"))
+
+    optionsToSelectToGenerateFormErrors
+  }
+
   def checkForOptionAndItsAttributes(htmlAsString: String,
                                      optionsSelected: Map[String, String]=Map(),
                                      formStatus: String="NotSubmitted"): Unit = {
