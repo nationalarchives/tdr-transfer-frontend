@@ -35,6 +35,6 @@ export class FileChecks {
       } else {
         return fileChecksProgress
       }
-    }, 20000)
+    }, 5000)
   }
 }
