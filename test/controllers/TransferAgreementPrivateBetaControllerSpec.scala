@@ -10,7 +10,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{CheckPageForStaticElements, FrontEndTestHelper, TransferAgreementTestHelper}
+import util.{CheckFormOptionsHtml, CheckPageForStaticElements, FrontEndTestHelper, TransferAgreementTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -32,8 +32,9 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
 
   val taHelper = new TransferAgreementTestHelper(wiremockServer)
   val checkPageForStaticElements = new CheckPageForStaticElements
+  val formOptions: CheckFormOptionsHtml = taHelper.checkHtmlOfPrivateBetaFormOptions
   val optionsToSelectToGenerateFormErrors: Seq[Seq[(String, String)]] =
-    taHelper.checkHtmlOfPrivateBetaFormOptions.generateWaysToIncorrectlySubmitAForm()
+    formOptions.generateWaysToIncorrectlySubmitAForm()
 
   "TransferAgreementPrivateBetaController GET" should {
 
@@ -81,7 +82,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=taHelper.userType)
       taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
       checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
-      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
+      formOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -206,7 +207,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
-      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(
+      formOptions.checkForOptionAndItsAttributes(
         transferAgreementPageAsString,
         incompleteTransferAgreementForm.toMap,
         "PartiallySubmitted"
@@ -243,7 +244,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
           val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
 
           playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
-          taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(
+          formOptions.checkForOptionAndItsAttributes(
             transferAgreementPageAsString,
             incompleteTransferAgreementForm.toMap,
             "PartiallySubmitted"
@@ -278,7 +279,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=taHelper.userType)
-      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formStatus = "Submitted")
+      formOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formStatus = "Submitted")
       taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString)
       checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString)
     }
@@ -304,7 +305,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=taHelper.userType)
-      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formStatus = "Submitted")
+      formOptions.checkForOptionAndItsAttributes(transferAgreementPageAsString, formStatus = "Submitted")
       taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString)
       checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString)
     }
@@ -333,7 +334,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType=taHelper.userType)
       taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
       checkForExpectedTAPrivateBetaPageContent(taAlreadyConfirmedPageAsString)
-      taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formStatus = "Submitted")
+      formOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formStatus = "Submitted")
     }
 
     optionsToSelectToGenerateFormErrors.foreach {
@@ -368,7 +369,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
           checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType=taHelper.userType)
           taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
           checkForExpectedTAPrivateBetaPageContent(taAlreadyConfirmedPageAsString)
-          taHelper.checkHtmlOfPrivateBetaFormOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formStatus = "Submitted")
+          formOptions.checkForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formStatus = "Submitted")
         }
     }
   }
