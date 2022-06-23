@@ -1,16 +1,16 @@
 package controllers
 
-import java.util.UUID
-
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import javax.inject.Inject
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request, RequestHeader}
+import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.time.{LocalDateTime, ZonedDateTime}
+import java.util.UUID
+import javax.inject.Inject
+import scala.concurrent.ExecutionContext
 
 class TransferCompleteController @Inject()(val controllerComponents: SecurityComponents,
                                            val keycloakConfiguration: KeycloakConfiguration,
@@ -20,7 +20,7 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
   def transferComplete(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { consignmentReference =>
-        Ok(views.html.standard.transferComplete(consignmentReference, request.token.name))
+        Ok(views.html.standard.transferComplete(consignmentId, consignmentReference, request.token.name))
       }
   }
 
@@ -30,4 +30,53 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
         Ok(views.html.judgment.judgmentComplete(consignmentReference, request.token.name))
       }
   }
+
+  def downloadReport(consignmentId: UUID, consignmentRef: String): Action[AnyContent] = standardTypeAction(consignmentId)
+  { implicit request: Request[AnyContent] =>
+    val headers = "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,TransferInitiatedDatetime"
+    consignmentService.getConsignmentExport(consignmentId, request.token.bearerAccessToken)
+      .map { result =>
+        val transferInitiated = result.transferInitiatedDatetime
+        val rows = result.files.foldLeft(List[String]()) {
+          case (record, file) => record :+ ReportCsv(
+            file.metadata.clientSideOriginalFilePath,
+            file.fileName,
+            file.fileType,
+            file.metadata.clientSideFileSize,
+            file.metadata.rightsCopyright,
+            file.metadata.legalStatus,
+            file.metadata.heldBy,
+            file.metadata.language,
+            file.metadata.foiExemptionCode,
+            file.metadata.clientSideLastModifiedDate,
+            transferInitiated
+          ).toCSV
+        }
+        Ok(headers + "\n" + rows.mkString("\n"))
+          .as("text/csv")
+          .withHeaders(
+            s"Content-Disposition" -> s"attachment; filename=$consignmentRef.csv"
+          )
+      }
+  }
+
+  implicit class CSVWrapper(val prod: Product) {
+    def toCSV: String = prod.productIterator.map {
+      case Some(value) => value
+      case None => ""
+      case rest => rest
+    }.mkString(",")
+  }
+
+  case class ReportCsv(filepath: Option[String],
+                       filename: Option[String],
+                       filetype: Option[String],
+                       filesize: Option[Long],
+                       rightsCopyright: Option[String],
+                       legalStatus: Option[String],
+                       heldBy: Option[String],
+                       language: Option[String],
+                       exemptionCode: Option[String],
+                       lastModified: Option[LocalDateTime],
+                       transferInitiated: Option[ZonedDateTime])
 }
