@@ -41,12 +41,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  val userTypes: TableFor1[String] = Table(
-    "User type",
-    "judgment",
-    "standard"
-  )
-
   val consignmentStatuses: TableFor1[String] = Table(
     "Consignment status",
     "InProgress",
