@@ -23,7 +23,7 @@ import scala.concurrent.ExecutionContext
 class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontEndTestHelper{
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  val privateBetaOptions = Map(
+  lazy val privateBetaOptions = Map(
     "publicRecord" -> (
       "I confirm that the records are Public Records.",
       "All records must be confirmed as public before proceeding"
@@ -38,7 +38,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
   )
 
-  val complianceOptions = Map(
+  lazy val complianceOptions = Map(
     "droAppraisalSelection" -> (
       "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
       "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records"
@@ -53,8 +53,8 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
   )
 
-  val checkHtmlOfPrivateBetaFormOptions = new CheckFormOptionsHtml(privateBetaOptions, "")
-  val checkHtmlOfComplianceFormOptions = new CheckFormOptionsHtml(complianceOptions, "")
+  lazy val checkHtmlOfPrivateBetaFormOptions = new CheckFormOptionsHtml(privateBetaOptions, "")
+  lazy val checkHtmlOfComplianceFormOptions = new CheckFormOptionsHtml(complianceOptions, "")
 
   val privateBeta = "privateBeta"
   val compliance = "compliance"
@@ -78,7 +78,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     setConsignmentTypeResponse(wireMockServer, consignmentType)
   }
 
-  def getTransferAgreementForm(optionsType: String, numberOfValuesToRemove: Int=0): Seq[(String, String)] = {
+  def getTransferAgreementForm(optionsType: String): Seq[(String, String)] = {
     val value = "true"
 
     val options = Map(
@@ -96,7 +96,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
         )
     )
 
-    options(optionsType).dropRight(numberOfValuesToRemove)
+    options(optionsType)
   }
 
   def instantiateTransferAgreementPrivateBetaController(securityComponents: SecurityComponents,
