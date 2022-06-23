@@ -31,7 +31,7 @@ import org.pac4j.play.scala.SecurityComponents
 import org.pac4j.play.store.PlayCacheSessionStore
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures.{PatienceConfig, scaled}
-import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor2}
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1, TableFor2}
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -98,6 +98,12 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       .withRequestBody(containing("getConsignmentStatus"))
       .willReturn(okJson(dataString)))
   }
+
+  val userTypes: TableFor1[String] = Table(
+    "User type",
+    "judgment",
+    "standard"
+  )
 
   val userChecks: TableFor2[KeycloakConfiguration, String] = Table(
     ("user", "url"),
