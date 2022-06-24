@@ -11,6 +11,7 @@ import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.G
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.UpdateConsignmentSeriesId.{updateConsignmentSeriesId => ucs}
 import graphql.codegen.types.{AddConsignmentInput, UpdateConsignmentSeriesIdInput}
+import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
 import org.keycloak.representations.AccessToken
 import org.mockito.Mockito
 import org.mockito.Mockito._
@@ -39,10 +40,12 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val getConsignmentFolderInfoClient = mock[GraphQLClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]]
   private val getConsignmentTypeClient = mock[GraphQLClient[gct.Data, gct.Variables]]
   private val updateConsignmentSeriesIdClient = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+  private val getConsignmentForExportClient = mock[GraphQLClient[gcfe.Data, gcfe.Variables]]
   when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(getConsignmentClient)
   when(graphQlConfig.getClient[addConsignment.Data, addConsignment.Variables]()).thenReturn(addConsignmentClient)
   when(graphQlConfig.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()).thenReturn(getConsignmentFolderInfoClient)
   when(graphQlConfig.getClient[gct.Data, gct.Variables]()).thenReturn(getConsignmentTypeClient)
+  when(graphQlConfig.getClient[gcfe.Data, gcfe.Variables]()).thenReturn(getConsignmentForExportClient)
 
   private val consignmentService = new ConsignmentService(graphQlConfig)
 
@@ -217,7 +220,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
     getConsignmentDetails should be(GetConsignment(0, None))
   }
-  
+
   "getConsignmentType" should {
     def mockGraphqlResponse(consignmentType: String): OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = {
       val response = GraphQlResponse(
@@ -266,6 +269,55 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       mockMissingConsignmentType
       val error = consignmentService.getConsignmentType(consignmentId, bearerAccessToken).failed.futureValue
       error.getMessage should be(s"No consignment type found for consignment $consignmentId")
+    }
+  }
+
+  "getConsignmentExport" should {
+    "return export information about a consignment when given a consignment ID" in {
+      val fileId = UUID.randomUUID()
+      val filename = "filename"
+      val filetype = Some("File")
+      val filepath = "filepath"
+      val exemptionCode = Some("Open")
+      val heldBy = Some("TNA")
+      val language = Some("English")
+      val legalStatus = Some("Public Record")
+      val rightsCopyright = Some("Crown Copyright")
+      val graphQlExportData = gcfe.GetConsignment(consignmentId, None, None, None, "TEST-TDR-2021-GB", None, None, None,
+        List(gcfe.GetConsignment.Files(fileId, filetype, fileName = Some(filename),
+          metadata = gcfe.GetConsignment.Files.Metadata(None, None, clientSideOriginalFilePath = Some(s"$filepath/$filename"),
+            exemptionCode, heldBy, language, legalStatus, rightsCopyright, None),
+          ffidMetadata = None, antivirusMetadata = None))
+      )
+      val response = GraphQlResponse(
+        Some(gcfe.Data(Some(graphQlExportData))),
+        Nil)
+
+      when(getConsignmentForExportClient.getResult(bearerAccessToken, gcfe.document, Some(gcfe.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
+
+      val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken)
+      val actualResults = getConsignmentExport.futureValue
+
+      actualResults should be (graphQlExportData)
+    }
+
+    "return an error if the API fails" in {
+      when(getConsignmentForExportClient.getResult(bearerAccessToken, gcfe.document, Some(gcfe.Variables(consignmentId))))
+        .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+      val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken).failed.futureValue
+
+      getConsignmentExport shouldBe a[HttpError]
+    }
+
+    "return an error if there is an error from the API" in {
+      when(getConsignmentForExportClient.getResult(bearerAccessToken, gcfe.document, Some(gcfe.Variables(consignmentId))))
+        .thenReturn(Future.successful(GraphQlResponse(None, List(NotAuthorisedError("error", Nil, Nil)))))
+
+      val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken).failed.futureValue
+
+      getConsignmentExport.getMessage should be("error")
     }
   }
 }

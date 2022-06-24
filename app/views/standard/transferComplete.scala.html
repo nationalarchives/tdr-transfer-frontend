@@ -1,7 +1,8 @@
 @import java.util.UUID
 @import views.html.partials.returnToStartPage
 @import views.html.partials.feedbackSurvey
-@(consignmentReference: String, name: String)(implicit messages: Messages, request: RequestHeader)
+@import views.html.helper.form
+@(consignmentId: UUID, consignmentReference: String, name: String)(implicit messages: Messages, request: RequestHeader)
     @main("Transfer complete", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
             <div class="govuk-grid-row">
@@ -20,6 +21,12 @@
                     </div>
 
                     <p class="govuk-body">We have now received your records. Please do not delete the original files you uploaded until you are notified that your records have been preserved.</p>
+
+                    <p class="govuk-body">Download a printable report of the
+                        <a class="govuk-link" href=@routes.TransferCompleteController.downloadReport(consignmentId, consignmentReference)>
+                            records that you have transferred with the metadata included.
+                        </a>
+                    </p>
 
                     <h2 class="govuk-heading-m govuk-!-margin-top-2">What happens next</h2>
 
