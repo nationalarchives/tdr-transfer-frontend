@@ -1,0 +1,31 @@
+@import helper._
+
+@()(implicit messages: Messages, request: RequestHeader)
+
+@main("Navigation - Spike") {
+    <h1>Some heading</h1>
+
+    @form(action = routes.NavigationController.submit()) {
+        <div>
+            <input type="checkbox" name="6" id="id_6" />
+            <label for="id_6">Id 6</label>
+        </div>
+        <div>
+            <input type="checkbox" name="7" id="id_7" />
+            <label for="id_7">Id 7</label>
+        </div>
+        <div>
+            <input type="checkbox" name="8" id="id_8" />
+            <label for="id_8">Id 8</label>
+        </div>
+        <div>
+            <input type="checkbox" name="9" id="id_9" />
+            <label for="id_9">Id 9</label>
+        </div>
+        <div>
+            <button type="submit">Update post</button>
+            <input type="submit" name="submit" value="Submit"/>
+            <input type="hidden" id="previouslySelected" name="previouslySelectedId" value="1,2,3,4,5"/>
+        </div>
+    }
+}
