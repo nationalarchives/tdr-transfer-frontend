@@ -51,11 +51,17 @@ const createMockKeycloak = (
     refreshTokenParsed
   )
 }
+const initialiseSessionTimer = async (now: Date) => {
+  jest.setSystemTime(now)
+  await initialiseSessionTimeout()
+  jest.runOnlyPendingTimers()
+}
 
 beforeEach(() => {
   fetchMock.mockClear()
   jest.clearAllMocks()
   jest.resetModules()
+  jest.useFakeTimers()
 })
 
 test("'initialiseSessionTimeout' should refresh tokens if the user clicks to extend the session", async () => {
@@ -75,12 +81,7 @@ test("'initialiseSessionTimeout' should refresh tokens if the user clicks to ext
   )
 
   keycloakMock.default.mockImplementation(() => mockKeycloak)
-  jest.useFakeTimers()
-  jest.setSystemTime(now)
-
-  await initialiseSessionTimeout()
-  jest.runOnlyPendingTimers()
-
+  await initialiseSessionTimer(now)
   expect(timeoutDialog.open).toEqual(true)
 
   extendTimeout.click()
@@ -107,11 +108,7 @@ test("'initialiseSessionTimeout' should sign the user out if the session expires
   )
 
   keycloakMock.default.mockImplementation(() => mockKeycloak)
-  jest.useFakeTimers()
-  jest.setSystemTime(now)
-
-  await initialiseSessionTimeout()
-  jest.runOnlyPendingTimers()
+  await initialiseSessionTimer(now)
 
   expect(timeoutDialog.open).toEqual(true)
   jest.useRealTimers()
