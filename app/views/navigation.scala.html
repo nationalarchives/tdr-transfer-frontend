@@ -1,31 +1,27 @@
 @import helper._
 
-@()(implicit messages: Messages, request: RequestHeader)
+@(nodesFormData: Form[NodesFormData])(implicit messages: Messages, request: RequestHeader)
 
 @main("Navigation - Spike") {
     <h1>Some heading</h1>
 
-    @form(action = routes.NavigationController.submit()) {
-        <div>
-            <input type="checkbox" name="6" id="id_6" />
-            <label for="id_6">Id 6</label>
-        </div>
-        <div>
-            <input type="checkbox" name="7" id="id_7" />
-            <label for="id_7">Id 7</label>
-        </div>
-        <div>
-            <input type="checkbox" name="8" id="id_8" />
-            <label for="id_8">Id 8</label>
-        </div>
-        <div>
-            <input type="checkbox" name="9" id="id_9" />
-            <label for="id_9">Id 9</label>
-        </div>
-        <div>
-            <button type="submit">Update post</button>
-            <input type="submit" name="submit" value="Submit"/>
-            <input type="hidden" id="previouslySelected" name="previouslySelectedId" value="1,2,3,4,5"/>
-        </div>
-    }
+    <div class="govuk-form-group ">
+        @form(action = routes.NavigationController.submit()) {
+            <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
+                @inputCheckboxGroup(
+                    nodesFormData("selected"),
+                    options = nodesFormData.value.get.nodesToDisplay.map(d => d.nodeIdStr -> d.displayName),
+                    Symbol("_label") -> "Items",
+                    Symbol("_error") -> nodesFormData("selected").error.map(_.withMessage("something went wrong")))
+
+            </fieldset>
+            <div>
+                <input type="hidden" id="previouslySelected" name="previouslySelected" value="@{nodesFormData.value.get.previouslySelected}"/>
+                <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                    Select
+                </button>
+            </div>
+        }
+    </div>
+
 }
