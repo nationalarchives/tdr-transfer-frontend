@@ -38,6 +38,8 @@ export const renderModules = async () => {
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
+  const timeoutDialog: HTMLDialogElement | null =
+    document.querySelector(".timeout-dialog")
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
@@ -106,5 +108,8 @@ export const renderModules = async () => {
     } else {
       errorHandlingModule.handleUploadError(frontEndInfo)
     }
+  } else if (timeoutDialog) {
+    const sessionTimeoutModule = await import("./auth/session-timeout")
+    await sessionTimeoutModule.initialiseSessionTimeout()
   }
 }

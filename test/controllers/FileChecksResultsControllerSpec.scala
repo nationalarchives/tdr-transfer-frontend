@@ -14,7 +14,6 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-import org.scalatest.prop.TableFor1
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
@@ -40,19 +39,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     wiremockServer.resetAll()
     wiremockServer.stop()
   }
-
-  val userTypes: TableFor1[String] = Table(
-    "User type",
-    "judgment",
-    "standard"
-  )
-
-  val consignmentStatuses: TableFor1[String] = Table(
-    "Consignment status",
-    "Completed",
-    "InProgress",
-    "Failed"
-  )
 
   val checkPageForStaticElements = new CheckPageForStaticElements
   val expectedSuccessSummaryTitle: String =
