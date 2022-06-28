@@ -42,7 +42,7 @@ class CheckPageForStaticElements() {
       """<a href="/sign-out" class="govuk-header__link">
         |                            Sign out""".stripMargin
     )
-    page must include ("""<dialog class="timeout-dialog">
+    page must include ("""<dialog class="timeout-dialog" role="status" aria-live="assertive">
                          |        <div>
                          |            <h2 class="govuk-heading-m">You have been inactive for more than 55 minutes.</h2>
                          |            <p class="govuk-body">If you do not respond within 5 minutes, you will be logged out to keep your information secure.</p>
