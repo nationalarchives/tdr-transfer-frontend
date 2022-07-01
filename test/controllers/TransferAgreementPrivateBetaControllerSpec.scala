@@ -223,7 +223,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
     optionsToSelectToGenerateFormErrors.foreach {
       optionsToSelect =>
         val optionsAsString: String = optionsToSelect.map(optionAndValue => optionAndValue._1).mkString(", ")
-        s"display errors when a partially complete private form (only these options: $optionsAsString selected) is submitted" in {
+        s"display errors when a partially complete private beta form (only these options: $optionsAsString selected) is submitted" in {
           val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
           val controller: TransferAgreementPrivateBetaController =
             taHelper.instantiateTransferAgreementPrivateBetaController(
