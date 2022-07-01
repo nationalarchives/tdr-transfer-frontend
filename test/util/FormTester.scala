@@ -3,10 +3,25 @@ package util
 import org.scalatest.Assertion
 import org.scalatest.matchers.must.Matchers._
 
-class CheckFormOptionsHtml(options: Map[String, (String, String)], smallCheckbox: String=" govuk-checkboxes--small") {
-  def checkForOptionAndItsAttributes(htmlAsString: String,
-                                     optionsSelected: Map[String, String]=Map(),
-                                     formStatus: String="NotSubmitted"): Unit = {
+class FormTester(options: Map[String, (String, String)], smallCheckbox: String=" govuk-checkboxes--small") {
+  def generateWaysToIncorrectlySubmitAForm(): Seq[Seq[(String, String)]] = {
+    val possibleOptions: Seq[String] = options.keys.toList
+    val optionsToSelectToGenerateFormErrors =
+      for {
+        numberRangeOfOptionsToSelect <- (1 until possibleOptions.length).toList
+        optionsToSelect <- possibleOptions.combinations(numberRangeOfOptionsToSelect)
+      } yield optionsToSelect.map(option => (option, "true"))
+
+    optionsToSelectToGenerateFormErrors
+  }
+
+  def checkHtmlForOptionAndItsAttributes(htmlAsString: String,
+                                         optionsSelected: Map[String, String]=Map(),
+                                         formStatus: String="NotSubmitted"): Unit = {
+
+    assert(checkIfCorrectOptionsWerePassedIntoForm(optionsSelected),
+      s"\nThe option(s) selected ${optionsSelected.keys.mkString(", ")}, do not match the options passed into this class")
+
     options.foreach {
       case (optionName, (label, errorMessage) ) =>
         val htmlErrorSummary = s"""                        <a href="#error-$optionName">$errorMessage</a>"""
@@ -36,6 +51,11 @@ class CheckFormOptionsHtml(options: Map[String, (String, String)], smallCheckbox
         }
     }
   }
+
+  private def checkIfCorrectOptionsWerePassedIntoForm(optionsSelected: Map[String, String]): Boolean =
+    optionsSelected.keys.toList.forall(
+      optionSelected => options.keys.toList.contains(optionSelected)
+    )
 
   private def addValuesToAttributes(name: String,
                                         label: String,
