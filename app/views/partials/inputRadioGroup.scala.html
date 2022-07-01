@@ -13,7 +13,7 @@ args: (Symbol, Any)*
 
 <div class="govuk-form-group @elements.setErrorClass()">
     <label class="govuk-label">
-        @elements.args.get(Symbol("_name"))
+        @elements.args.get(Symbol("_label"))
     </label>
     @errorMessage(elements)
     <div class="govuk-radios govuk-radios--small govuk-radios--inline" id="@elements.id">
