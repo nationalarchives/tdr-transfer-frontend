@@ -21,8 +21,8 @@ messages: Messages)
             @inputDropdown(
                 seriesDetailsForm("series"),
                 allSeriesData,
+                ("", "Please choose..."),
                 Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
-                Symbol("_name") -> "Series Details",
                 Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
             )
 
