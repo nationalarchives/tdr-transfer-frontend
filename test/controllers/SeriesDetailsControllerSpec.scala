@@ -19,7 +19,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
-import util.{CheckPageForStaticElements, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap

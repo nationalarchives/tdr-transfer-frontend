@@ -1,4 +1,4 @@
-package util
+package testUtils
 
 import org.scalatest.Assertion
 import org.scalatest.matchers.must.Matchers._
