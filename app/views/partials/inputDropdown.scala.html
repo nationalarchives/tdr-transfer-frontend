@@ -2,6 +2,7 @@
 
 @(field: Field,
 dropdownOptions: Seq[(String, String)],
+defaultDropdownOption: (String, String),
  args: (Symbol, Any)*
 )(implicit messages: Messages)
 
@@ -19,12 +20,14 @@ dropdownOptions: Seq[(String, String)],
     @errorMessage(elements)
     <select class="govuk-select" id="@elements.id" name="@elements.id" @elements.args.requiredInput() @disabledStatus>
         @if(disabledStatus.toString() != "disabled") {
-            <option value="" selected>
-                Please choose...
-            </option>
+            @if(defaultDropdownOption._1 == "") {
+                <option value="@defaultDropdownOption._1" selected>
+                    @defaultDropdownOption._2
+                </option>
+            }
 
             @for(dropdownOption <- dropdownOptions) {
-                <option value="@dropdownOption._1">@dropdownOption._2</option>
+                <option @if(dropdownOption._1 == defaultDropdownOption._1 && defaultDropdownOption._1 != "") {selected="selected"} value="@dropdownOption._1">@dropdownOption._2</option>
             }
         } else {
             @for(dropdownOption <- dropdownOptions) {
