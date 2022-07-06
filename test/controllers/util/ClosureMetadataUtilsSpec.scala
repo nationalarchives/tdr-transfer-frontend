@@ -1,0 +1,154 @@
+package controllers.util
+
+import graphql.codegen.GetClosureMetadata.closureMetadata.ClosureMetadata
+import graphql.codegen.types.DataType.{Boolean, DateTime, Text}
+import graphql.codegen.types.PropertyType.{Defined, Supplied}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers._
+import org.scalatestplus.mockito.MockitoSugar
+
+import scala.collection.immutable.ListSet
+
+class ClosureMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
+  private val allProperties: List[ClosureMetadata] = (1 to 10).toList.map(
+    number => {
+      val dataType = List(Text, DateTime)
+      val numberOfValues = number % 4
+      ClosureMetadata(
+        s"TestProperty$number",
+        Some(s"It's the Test Property $number"),
+        Some(s"Test Property $number"),
+        if(numberOfValues > 2) {Defined} else Supplied,
+        Some(s"Test Property Group $number"),
+        if(numberOfValues == 2) {Boolean} else dataType(number % dataType.length),
+        editable = true,
+        multiValue = if(numberOfValues > 1) {true} else {false},
+        Some(s"TestValue $number"),
+        (1 to numberOfValues).toList.map(
+          valueNumber =>
+            ClosureMetadata.Values(
+              s"TestValue $valueNumber",
+              (1 to number % 6).toList.map(
+                depNumber => {
+                  val propertyNumber = depNumber * 2 % 11
+                  ClosureMetadata.Values.Dependencies(// as long as the name is accurate, all other info in the Dependencies does not really matter
+                    s"TestProperty$propertyNumber",
+                    Some(s"It's the Test Property $propertyNumber"),
+                    Some(s"Test Property $propertyNumber"),
+                    Defined,
+                    Some(s"Test Dependency Group $propertyNumber"),
+                    Text,
+                    editable = true,
+                    multiValue = false,
+                    Some(s"TestValue $propertyNumber")
+                  )
+                }
+              )
+            )
+        )
+      )
+    }
+  )
+
+  private val closureMetadataUtils = new ClosureMetadataUtils(allProperties)
+
+
+  "getClosureMetadataProperties" should "return the list of properties requested" in {
+    val namesOfPropertiesToGet = allProperties.map(_.name).toSet
+    val listOfPropertiesRetrieved: Set[ClosureMetadata] = closureMetadataUtils.getClosureMetadataProperties(namesOfPropertiesToGet)
+
+    val propertiesRetrievedEqualPropertiesRequested = listOfPropertiesRetrieved.forall(
+      propertyRetrieved =>
+        namesOfPropertiesToGet.contains(propertyRetrieved.name)
+    )
+    propertiesRetrievedEqualPropertiesRequested should equal(true)
+  }
+
+  "getClosureMetadataProperties" should "throw an 'NoSuchElementException' if any properties requested are not present" in {
+    val namesOfPropertiesToGet = Set("TestProperty11", "TestProperty3")
+
+    val thrownException: NoSuchElementException =
+      the[NoSuchElementException] thrownBy closureMetadataUtils.getClosureMetadataProperties(namesOfPropertiesToGet)
+
+    thrownException.getMessage should equal("key not found: TestProperty11")
+  }
+
+  "getValuesOfProperties" should "return the values for a given property" in {
+    val namesOfPropertiesAndTheirExpectedValues = Map(
+      "TestProperty5" -> List("TestValue 1"),
+      "TestProperty5" -> List("TestValue 1", "TestValue 2", "TestValue 3"),
+      "TestProperty5" -> List("TestValue 1")
+    )
+
+    val actualPropertiesAndTheirValues: Map[String, List[ClosureMetadata.Values]] =
+      closureMetadataUtils.getValuesOfProperties(namesOfPropertiesAndTheirExpectedValues.keys.toSet)
+
+    namesOfPropertiesAndTheirExpectedValues.foreach {
+      case (propertyName, expectedValues) =>
+        actualPropertiesAndTheirValues(propertyName).map(_.value) should equal(expectedValues)
+    }
+  }
+
+  "getValuesOfProperties" should "throw an 'NoSuchElementException' if any properties (from which to obtain values from) are not present" in {
+    val namesOfPropertiesToGet = Set("TestProperty2", "TestProperty12", "TestProperty4")
+
+    val thrownException: NoSuchElementException =
+      the[NoSuchElementException] thrownBy closureMetadataUtils.getClosureMetadataProperties(namesOfPropertiesToGet)
+
+    thrownException.getMessage should equal("key not found: TestProperty12")
+  }
+
+  "convertPropertiesToFields" should "convert properties to fields for the form, if given correctly formatted properties" in {
+    val propertiesToConvertToFields: Set[ClosureMetadata] = allProperties.toSet
+    val fieldValuesByDataType: Set[(FieldValues, String)] = closureMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
+    val allFieldValues: Map[String, Iterable[FieldValues]] = fieldValuesByDataType.map(_._1).groupBy(_.fieldId)
+
+    propertiesToConvertToFields.foreach{
+      property =>
+        val field = allFieldValues(property.name).head
+
+        field.fieldId should equal(property.name)
+        if(property.dataType == DateTime) field.fieldOptions.length should equal(3) else field.fieldOptions.length should equal(property.values.length)
+        field.fieldHint should equal(property.description.getOrElse(""))
+        field.fieldLabel should equal(property.fullName.get)
+        field.fieldRequired should equal(if(property.propertyGroup.getOrElse("") == "MandatoryMetadata") true else false)
+    }
+  }
+
+  "sortMetadataIntoCorrectPageOrder" should "order the fields in the correct way for the add closure metadata page" in {
+    val fieldLabelsInCorrectOrder =  ListSet("FOI decision asserted", "Closure start date", "Closure period", "FOI exemption code", "Is the title closed?")
+    val fieldLabelsInIncorrectOrder = Set("FOI exemption code", "Closure start date", "FOI decision asserted", "Is the title closed?", "Closure period")
+    val fieldsInIncorrectOrder = generateMockFieldValues(fieldLabelsInIncorrectOrder)
+
+    val retrievedFieldsInCorrectOrder: Set[(FieldValues, String)] = closureMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsInIncorrectOrder)
+    val retrievedFieldLabelsInCorrectOrder = retrievedFieldsInCorrectOrder.map(_._1.fieldLabel)
+
+    fieldLabelsInCorrectOrder should equal(retrievedFieldLabelsInCorrectOrder)
+  }
+
+  "sortMetadataIntoCorrectPageOrder" should "throw an 'NoSuchElementException' if any field label has an unexpected name" in {
+    val fieldLabelsInIncorrectOrder = Set("OI exemption code", "Closure start date", "FOI decision asserted", "Is the title closed?", "Closure period")
+    val fieldsInIncorrectOrder = generateMockFieldValues(fieldLabelsInIncorrectOrder)
+
+    val thrownException: NoSuchElementException =
+      the[NoSuchElementException] thrownBy closureMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsInIncorrectOrder)
+
+    thrownException.getMessage should equal("None.get")
+  }
+
+  private def generateMockFieldValues(fieldLabelsInIncorrectOrder: Set[String]): Set[(FieldValues, String)] =
+    fieldLabelsInIncorrectOrder.map{
+      fieldLabel =>
+        FieldValues(
+          fieldLabel.replace(" ", ""),
+          fieldOptions=Seq(("MockValue", "MockValue")),
+          selectedFieldOption=Some(Seq(("MockValue", "MockValue"))),
+          multiValueSelect=true,
+          fieldLabel,
+          fieldHint="",
+          fieldRequired=true
+        ) ->
+          "dataType"
+  }
+}

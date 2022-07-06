@@ -1,0 +1,112 @@
+package controllers.util
+
+import graphql.codegen.GetClosureMetadata.closureMetadata.ClosureMetadata
+import graphql.codegen.types.DataType
+import graphql.codegen.types.DataType._
+import graphql.codegen.types.PropertyType.{Defined, Supplied}
+
+import scala.collection.immutable.ListSet
+
+class ClosureMetadataUtils(allClosureMetadataProperties: List[ClosureMetadata]) {
+  private val allClosureMetadataPropertiesByName: Map[String, List[ClosureMetadata]] = allClosureMetadataProperties.groupBy(_.name)
+
+  def getClosureMetadataProperties(propertiesToGet: Set[String]): Set[ClosureMetadata] =
+    propertiesToGet.flatMap(property => allClosureMetadataPropertiesByName(property))
+
+  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: Set[String]): Map[String, List[ClosureMetadata.Values]] = {
+    val propertiesToGetValuesFrom: Set[ClosureMetadata] = getClosureMetadataProperties(namesOfPropertiesToGetValuesFrom)
+    propertiesToGetValuesFrom.map(property => property.name -> property.values).toMap
+  }
+
+  def convertPropertiesToFields(dependencyProperties: Set[ClosureMetadata]): Set[(FieldValues, String)] =
+    dependencyProperties.map {
+      dependencyProperty => {
+        val (options, selectedOption) = generateFieldOptions(dependencyProperty, dependencyProperty.dataType)
+        FieldValues(
+          dependencyProperty.name,
+          fieldOptions=options,
+          selectedFieldOption=selectedOption,
+          multiValueSelect=if(dependencyProperty.multiValue) true else false,
+          fieldLabel=convertDbNameToFieldLabel(dependencyProperty.fullName.get),
+          fieldHint=getFieldHints(dependencyProperty.name, dependencyProperty.description.getOrElse("")
+          ), // <- Use this until descriptions are added, then use dependencyProperty.description.getOrElse("")
+          fieldRequired=if(dependencyProperty.propertyGroup.getOrElse("") == "MandatoryMetadata") true else false
+        ) ->
+        dependencyProperty.dataType.toString
+      }
+    }
+
+  def sortMetadataIntoCorrectPageOrder(fieldValuesAndType: Set[(FieldValues, String)]): ListSet[(FieldValues, String)] = {
+    val addClosureMetadataPageOrder: ListSet[String] =
+      ListSet("FOI decision asserted", "Closure start date", "Closure period", "FOI exemption code", "Is the title closed?")
+    addClosureMetadataPageOrder.map(label =>
+      fieldValuesAndType.find {
+        case (fieldValue, dataType) => fieldValue.fieldLabel.toLowerCase() == label.toLowerCase()
+      }.get
+    )
+  }
+
+  private def generateFieldOptions(property: ClosureMetadata, dataType: DataType): (Seq[(String, String)], Option[Seq[(String, String)]]) =
+    dataType match {
+      case Boolean =>
+        val radioOptions = Seq(("Yes", "true"), ("No", "false"))
+        val optionThatShouldBeSelected = getDefaultValue(radioOptions, property.defaultValue)
+        (radioOptions, optionThatShouldBeSelected)
+      case DateTime =>
+        val blankDate = Seq(("Day", "DD"), ("Month", "MM"), ("Year", "YYYY"))
+        (blankDate, Some(blankDate))
+      case Integer =>
+        val numberBoxSuffixAndValue = Seq(("years", "0"))
+        val numberBoxSuffixAndValueThatShouldBePresent = Seq(("years", property.defaultValue.getOrElse("0")))
+        (numberBoxSuffixAndValue, Some(numberBoxSuffixAndValueThatShouldBePresent))
+      case Text =>
+        if(property.propertyType == Defined) {
+          val options: Seq[(String, String)] = property.values.map(valueObject => (valueObject.value, valueObject.value))
+          val optionThatShouldBeSelected: Option[Seq[(String, String)]] = getDefaultValue(options, property.defaultValue)
+          (options, optionThatShouldBeSelected)
+        } else if(property.propertyType == Supplied) {
+          (Seq(), None)
+        } else {
+          (Seq((property.name, property.fullName.getOrElse(""))), None)
+        }
+      // We don't have any examples of Decimal yet, so this is in the case Decimal or something else gets used
+      case _ => throw new IllegalArgumentException(s"$dataType is not a supported dataType")
+    }
+
+  private def getDefaultValue(options: Seq[(String, String)], defaultValue: Option[String]): Option[Seq[(String, String)]] =
+    defaultValue.map(defaultVal =>
+      options.filter {
+        case (label, value) => value == defaultVal.toLowerCase()
+      }
+    )
+
+  private def convertDbNameToFieldLabel(dbName: String): String = {
+    val dbAndFieldLabel = Map(
+      "Foi Exemption Asserted" -> "FOI decision asserted",
+      "Closure Start Date" -> "Closure start date",
+      "Closure Period" -> "Closure period",
+      "Foi Exemption Code" -> "FOI exemption code",
+      "Title Public" -> "Is the title closed?"
+    )
+    dbAndFieldLabel.getOrElse(dbName, dbName)
+  }
+
+  private def getFieldHints(fieldId: String, defaultHint: String): String = {
+    val fieldLabelAndHints = Map(
+      "FoiExemptionAsserted" -> "Date of the Advisory Council Approval",
+      "ClosureStartDate" -> "Date of the record from when the closure starts. It is usually the last date modified.",
+      "ClosurePeriod" -> "Number of years the record is closed from the closure start date",
+      "FoiExemptionCode" -> "Select the exemption code that applies"
+    )
+    fieldLabelAndHints.getOrElse(fieldId, defaultHint)
+  }
+}
+
+case class FieldValues(fieldId: String,
+                       fieldOptions: Seq[(String, String)],
+                       selectedFieldOption: Option[Seq[(String, String)]],
+                       multiValueSelect: Boolean,
+                       fieldLabel: String,
+                       fieldHint: String,
+                       fieldRequired: Boolean=true,
+                       fieldErrors: List[String]=Nil)
