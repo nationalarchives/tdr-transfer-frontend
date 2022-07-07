@@ -1,6 +1,7 @@
 export const htmlForFolderUploadForm = `
       <div id="file-upload" class="govuk-grid-row">
           <div class="govuk-grid-column-two-thirds">
+              <input name="csrfToken" value="abcde">
               <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
                   <div class="govuk-form-group">
                       <div class="drag-and-drop">
@@ -70,6 +71,7 @@ export const htmlForFolderUploadForm = `
 export const htmlForFileUploadForm = `
   <div id="file-upload" class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
+          <input name="csrfToken" value="abcde">
           <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
               <div class="govuk-form-group">
                   <div class="drag-and-drop">

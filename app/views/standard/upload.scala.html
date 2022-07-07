@@ -16,6 +16,7 @@
     </div>
 </noscript>
 <div id="file-upload" class="govuk-grid-row" hidden>
+    @CSRF.formField
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("upload.progress"))
         @frontEndInputs(frontEndInfo)

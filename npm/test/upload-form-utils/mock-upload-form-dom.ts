@@ -7,7 +7,6 @@ import {
 import { FileUploader } from "../../src/upload"
 import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
 import { createMockKeycloakInstance } from "../utils"
-import { GraphqlClient } from "../../src/graphql"
 import { IFrontEndInfo } from "../../src"
 import { ClientFileMetadataUpload } from "../../src/clientfilemetadataupload"
 import { UpdateConsignmentStatus } from "../../src/updateconsignmentstatus"
@@ -187,18 +186,15 @@ export class MockUploadFormDom {
       refreshTokenParsed,
       isJudgmentUser
     )
-    const client = new GraphqlClient(
-      "https://example.com",
-      mockKeycloakInstance
-    )
+
     const frontendInfo: IFrontEndInfo = {
       apiUrl: "",
       region: "",
       stage: "test",
       uploadUrl: ""
     }
-    const uploadMetadata = new ClientFileMetadataUpload(client)
-    const updateConsignmentStatus = new UpdateConsignmentStatus(client)
+    const uploadMetadata = new ClientFileMetadataUpload()
+    const updateConsignmentStatus = new UpdateConsignmentStatus()
     return new FileUploader(
       uploadMetadata,
       updateConsignmentStatus,
