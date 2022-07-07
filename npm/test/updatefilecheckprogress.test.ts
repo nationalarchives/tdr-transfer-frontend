@@ -13,9 +13,6 @@ const mockDisplayChecksCompletedBanner = {
 }
 
 import { FileChecks } from "../src/filechecks"
-import { GraphqlClient } from "../src/graphql"
-import { mockKeycloakInstance } from "./utils"
-import { IFileCheckProgress } from "../src/filechecks/get-file-check-progress"
 import { haveFileChecksCompleted } from "../src/filechecks/verify-checks-have-completed"
 import { displayChecksCompletedBanner } from "../src/filechecks/display-checks-completed-banner"
 
@@ -67,8 +64,7 @@ const typesOfProgress: {
     totalFiles: 2
   }
 }
-const client = new GraphqlClient("https://test.im", mockKeycloakInstance)
-const fileChecks = new FileChecks(client)
+const fileChecks = new FileChecks()
 
 const mockGetFileChecksProgress: (progressType: string) => void = (
   progressType: string

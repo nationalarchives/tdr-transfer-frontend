@@ -12,8 +12,8 @@ export function isDirectory(entry: IEntryWithPath): entry is IFileWithPath {
 }
 
 export const getAllFiles: (
-    entry: IWebkitEntry | null,
-    fileInfoInput: IEntryWithPath[]
+  entry: IWebkitEntry | null,
+  fileInfoInput: IEntryWithPath[]
 ) => Promise<IEntryWithPath[]> = async (entry, fileInfoInput) => {
   const reader: IReader = entry!.createReader()
   const entries: IWebkitEntry[] = await getEntriesFromReader(reader)
