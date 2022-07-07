@@ -28,7 +28,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     request.body.asJson.flatMap(body => {
       decode[ConsignmentStatusInput](body.toString).toOption
     }) match {
-      case None => throw new Exception(s"Incorrect data provided ${request.body}")
+      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
       case Some(input) => uploadService.updateConsignmentStatus(input, request.token.bearerAccessToken).map(_.toString).map(Ok(_))
     }
   }
@@ -37,7 +37,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     request.body.asJson.flatMap(body => {
       decode[StartUploadInput](body.toString).toOption
     }) match {
-      case None => throw new Exception(s"Incorrect data provided ${request.body}")
+      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
       case Some(input) => uploadService.startUpload(input, request.token.bearerAccessToken).map(Ok(_))
     }
   }
