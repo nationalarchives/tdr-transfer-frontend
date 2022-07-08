@@ -23,7 +23,7 @@ import scala.concurrent.ExecutionContext
 class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontEndTestHelper{
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  val privateBetaOptions = Map(
+  lazy val privateBetaOptions = Map(
     "publicRecord" -> (
       "I confirm that the records are Public Records.",
       "All records must be confirmed as public before proceeding"
@@ -38,7 +38,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
   )
 
-  val complianceOptions = Map(
+  lazy val complianceOptions = Map(
     "droAppraisalSelection" -> (
       "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
       "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records"
@@ -53,8 +53,8 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
   )
 
-  val checkHtmlOfPrivateBetaFormOptions = new CheckFormOptionsHtml(privateBetaOptions, "")
-  val checkHtmlOfComplianceFormOptions = new CheckFormOptionsHtml(complianceOptions, "")
+  lazy val checkHtmlOfPrivateBetaFormOptions = new FormTester(privateBetaOptions, "")
+  lazy val checkHtmlOfComplianceFormOptions = new FormTester(complianceOptions, "")
 
   val privateBeta = "privateBeta"
   val compliance = "compliance"
@@ -78,7 +78,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     setConsignmentTypeResponse(wireMockServer, consignmentType)
   }
 
-  def getTransferAgreementForm(optionsType: String, numberOfValuesToRemove: Int=0): Seq[(String, String)] = {
+  def getTransferAgreementForm(optionsType: String): Seq[(String, String)] = {
     val value = "true"
 
     val options = Map(
@@ -96,7 +96,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
         )
     )
 
-    options(optionsType).dropRight(numberOfValuesToRemove)
+    options(optionsType)
   }
 
   def instantiateTransferAgreementPrivateBetaController(securityComponents: SecurityComponents,
@@ -158,13 +158,13 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
 
   def checkForExpectedTAPageContent(pageAsString: String, taAlreadyConfirmed: Boolean=true): Unit = {
     if(taAlreadyConfirmed) {
-      pageAsString must include("You have already confirmed all statements")
-      pageAsString must include("Click 'Continue' to proceed with your transfer.")
+      pageAsString must include("""            <h2 class="success-summary__title">You have already confirmed all statements</h2>""")
+      pageAsString must include("""            <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""")
     } else {
       pageAsString must include (
-        "You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor."
+        """        <p class="govuk-body">You must confirm all statements before proceeding. """ +
+        """If you cannot, please close your browser and contact your transfer advisor.</p>"""
       )
     }
   }
-
 }
