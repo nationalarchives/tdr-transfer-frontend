@@ -1,27 +1,19 @@
-@(fields: Field*)(implicit messages: Messages)
+@(elementErrors: Map[String, Seq[String]])(implicit messages: Messages)
 
 @import views.html.helper._
 
-@elements = @{
-    fields.toList.map(field => FieldElements(field.id, field, null, Map(), messages))
-}
-
-
-@if(elements.exists(element => element.hasErrors)) {
+@if(elementErrors.nonEmpty) {
     <div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
         <h2 class="govuk-error-summary__title" id="error-summary-title">
             There is a problem
         </h2>
         <div class="govuk-error-summary__body">
             <ul class="govuk-list govuk-error-summary__list">
-            @for(element <- elements) {
-                @for(error <- element.errors) {
-                    <li>
-                        <a href="#error-@element.id">@error</a>
-                    </li>
-                }
+            @for((elementId, elementError) <- elementErrors) {
+                <li>
+                    <a href="#error-@elementId">@elementError</a>
+                </li>
             }
-
             </ul>
         </div>
     </div>

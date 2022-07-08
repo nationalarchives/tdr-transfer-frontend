@@ -14,8 +14,10 @@
             <h1 class="govuk-heading-l">Confirm transfer</h1>
             <p class="govuk-body">Here is a summary of the records you have uploaded.</p>
             @errorSummary(
-              finalTransferConfirmationForm("openRecords"),
-              finalTransferConfirmationForm("transferLegalCustody")
+              Map(
+                  finalTransferConfirmationForm("openRecords").id -> finalTransferConfirmationForm("openRecords").errors.headOption,
+                  finalTransferConfirmationForm("transferLegalCustody").id -> finalTransferConfirmationForm("transferLegalCustody").errors.headOption
+              ).collect { case (id, Some(formError)) => id -> formError.messages}
             )
             <dl class="govuk-summary-list">
                 <div class="govuk-summary-list__row">
@@ -62,20 +64,32 @@
                 <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
                     <!-- Open records & transfer legal custody -->
                     @inputSingleCheckbox(
-                    finalTransferConfirmationForm("openRecords"),
-                    Symbol("_label") -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-                    Symbol("_value") -> "true",
-                    Symbol("_smallCheckbox") -> true,
-                    Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("openRecords"),
-                    Symbol("_requiredOption") -> true
+                        finalTransferConfirmationForm("openRecords").id,
+                        Map(
+                            Symbol("_label") -> "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
+                            Symbol("_value") -> "true",
+                            Symbol("_smallCheckbox") -> true,
+                            Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("openRecords"),
+                            Symbol("_requiredOption") -> true
+                        ),
+                        finalTransferConfirmationForm("openRecords").errors.headOption match {
+                            case Some(formError) => formError.messages
+                            case None => Nil
+                        }
                     )
                     @inputSingleCheckbox(
-                    finalTransferConfirmationForm("transferLegalCustody"),
-                    Symbol("_label") -> "I confirm that I am transferring legal custody of these records to The National Archives.",
-                    Symbol("_value") -> "true",
-                    Symbol("_smallCheckbox") -> true,
-                    Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
-                    Symbol("_requiredOption") -> true
+                        finalTransferConfirmationForm("transferLegalCustody").id,
+                        Map(
+                            Symbol("_label") -> "I confirm that I am transferring legal custody of these records to The National Archives.",
+                            Symbol("_value") -> "true",
+                            Symbol("_smallCheckbox") -> true,
+                            Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
+                            Symbol("_requiredOption") -> true
+                        ),
+                        finalTransferConfirmationForm("transferLegalCustody").errors.headOption match {
+                            case Some(formError) => formError.messages
+                            case None => Nil
+                        }
                     )
                 </fieldset>
             </div>

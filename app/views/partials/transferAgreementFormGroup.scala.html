@@ -14,13 +14,19 @@
   @if(!formAlreadySubmitted) @{CSRF.formField} else {}
   @for((name, label) <- taFormNamesAndLabels) {
     @inputSingleCheckbox(
-        transferAgreementFormData(name),
-        Symbol("_label") -> label,
-        Symbol("_value") -> "true",
-        Symbol("_smallCheckbox") -> false,
-        Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected(name, formAlreadySubmitted),
-        Symbol("_requiredOption") -> true,
-        Symbol("_disabledOption") -> disabledStatus
+        transferAgreementFormData(name).id,
+        Map(
+            Symbol("_label") -> label,
+            Symbol("_value") -> "true",
+            Symbol("_smallCheckbox") -> false,
+            Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected(name, formAlreadySubmitted),
+            Symbol("_requiredOption") -> true,
+            Symbol("_disabledOption") -> disabledStatus
+        ),
+        transferAgreementFormData(name).errors.headOption match {
+            case Some(formError) => formError.messages
+            case None => Nil
+        }
     )
   }
 </div>

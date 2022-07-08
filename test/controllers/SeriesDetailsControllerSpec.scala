@@ -66,8 +66,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
       seriesDetailsPageAsString must include ("<title>Series Information</title>")
-      seriesDetailsPageAsString must include ("""<option value="" selected>
-                                    |                Please choose...""".stripMargin)
+      seriesDetailsPageAsString must include ("""    <option value="" selected>
+                                    |                    Please choose...""".stripMargin)
       checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
 
@@ -174,8 +174,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       seriesSubmitAsString must include ("<a href=\"#error-series\">error.required</a>")
       seriesSubmitAsString must include("govuk-error-message")
       seriesSubmitAsString must include("class=\"govuk-visually-hidden\">Error:")
-      seriesSubmitAsString must include ("""<option value="" selected>
-                               |                Please choose...""".stripMargin)
+      seriesSubmitAsString must include ("""    <option value="" selected>
+                               |                    Please choose...""".stripMargin)
 
       checkForExpectedSeriesPageContent(seriesSubmitAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesSubmitAsString, userType = "standard")
