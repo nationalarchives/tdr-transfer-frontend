@@ -1,0 +1,25 @@
+
+@(inputTextLabel: String, inputTextHint: String, suffixText: String="", inputType: String, defaultText: String, inputTextDataType: String="none")
+<div class="govuk-form-group">
+    <h2 class="govuk-label-wrapper">
+        <label class="govuk-label govuk-label--m" for=@suffixText>
+            @inputTextLabel
+        </label>
+    </h2>
+    <div id="date-input-with-suffix-hint" class="govuk-hint">
+        @inputTextHint
+    </div>
+    @if(suffixText != "") {
+        <div class="govuk-input__wrapper">
+            <input
+                class="govuk-input govuk-input--width-5"
+                id=@suffixText
+                name=@suffixText
+                type=@inputType
+                placeholder=@defaultText
+                inputmode=@inputTextDataType
+            >
+            <div class="govuk-input__suffix" aria-hidden="true">@suffixText</div>
+        </div>
+    }
+</div>
