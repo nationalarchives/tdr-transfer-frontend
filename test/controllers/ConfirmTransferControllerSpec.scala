@@ -26,7 +26,7 @@ import play.api.test.WsTestClient.InternalWSClient
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import testUtils.{CheckFormOptionsHtml, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
+import testUtils.{FormTester, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -63,7 +63,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     )
   )
 
-  val checkHtmlOfFormOptions = new CheckFormOptionsHtml(options)
+  val formTester = new FormTester(options)
   val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.randomUUID()
 
@@ -161,7 +161,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -207,7 +207,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, formStatus="PartiallySubmitted")
+      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, formStatus="PartiallySubmitted")
     }
 
     "display correct error when only the 'open records' option is selected and the final transfer confirmation form is submitted" in {
@@ -230,7 +230,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(
+      formTester.checkHtmlForOptionAndItsAttributes(
         confirmTransferPageAsString,
         incompleteTransferConfirmationForm.toMap,
         formStatus="PartiallySubmitted"
@@ -257,7 +257,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(
+      formTester.checkHtmlForOptionAndItsAttributes(
         confirmTransferPageAsString,
         incompleteTransferConfirmationForm.toMap,
         formStatus="PartiallySubmitted"
