@@ -1,0 +1,33 @@
+@(dateInputHeading: String, dateInputHint: String, dateOptions: Seq[(String, String)])
+
+<div class="govuk-form-group">
+    <fieldset class="govuk-fieldset" role="group" aria-describedby="date-input-hint">
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+            <h2 class="govuk-label govuk-label--m">
+                @dateInputHeading
+            </h2>
+        </legend>
+        <div id="date-input-hint" class="govuk-hint">
+            @dateInputHint
+        </div>
+        <div class="govuk-date-input" id="">
+            @for((dateOption, placeholderText) <- dateOptions) {
+                <div class="govuk-date-input__item">
+                    <div class="govuk-form-group">
+                        <label class="govuk-label govuk-date-input__label" for="date-input-@{dateOption.toLowerCase()}">
+                            @dateOption
+                        </label>
+                        <input class="govuk-input govuk-date-input__input govuk-input--width-@{if(placeholderText.length > 2) placeholderText.length - 1 else placeholderText.length}"
+                               id="date-input-@{dateOption.toLowerCase()}"
+                               name="date-input-day-@{dateOption.toLowerCase()}"
+                               type="number"
+                               inputmode="numeric"
+                               placeholder="@{placeholderText.toLowerCase()}"
+                               maxlength="@placeholderText.length"
+                        >
+                    </div>
+                </div>
+                }
+        </div>
+    </fieldset>
+</div>
