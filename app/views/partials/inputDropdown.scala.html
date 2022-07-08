@@ -1,37 +1,53 @@
 @* dropdownOptions as Tuple until data model clearer *@
 
-@(field: Field,
+@(fieldId: String,
 dropdownOptions: Seq[(String, String)],
-defaultDropdownOption: (String, String),
- args: (Symbol, Any)*
+selectedDropdownOption: Seq[(String, String)],
+attributes: Map[Symbol, Any],
+fieldErrors: Seq[Any]
 )(implicit messages: Messages)
 
 @import views.html.helper._
 @import viewsapi.FormFunctions._
 @import views.html.partials.errorMessage
 
-@elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
-@disabledStatus = {@elements.args.get(Symbol("_disabledOption"))}
-<div class="govuk-form-group @elements.setErrorClass()">
-    <label class="govuk-label" for="@elements.id">
-        @elements.args.get(Symbol("_label"))
-        @elements.args.requiredLabelSuffix()
+@defaultDropdownOption = @{selectedDropdownOption.head}
+@disabledStatus = {@attributes.get(Symbol("_disabledOption"))}
+@largeLabelAndHint = @{attributes.getOrElse(Symbol("_largeLabelAndHint"), "")}
+
+<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+@if(largeLabelAndHint != "") {
+    <h2 class="govuk-label-wrapper">
+        <label class="govuk-label govuk-label--m" for="@fieldId">
+            @attributes.get(Symbol("_label"))
+            @attributes.requiredLabelSuffix()
+        </label>
+    </h2>
+    <div id="@fieldId-hint" class="govuk-hint">
+        @largeLabelAndHint
+    </div>
+
+    } else {
+    <label class="govuk-label" for="@fieldId">
+        @attributes.get(Symbol("_label"))
+        @attributes.requiredLabelSuffix()
     </label>
-    @errorMessage(elements)
-    <select class="govuk-select" id="@elements.id" name="@elements.id" @elements.args.requiredInput() @disabledStatus>
+}
+    @errorMessage(fieldId, fieldErrors)
+    <select class="govuk-select" id="@fieldId" name="@fieldId" @attributes.requiredInput() @disabledStatus>
         @if(disabledStatus.toString() != "disabled") {
             @if(defaultDropdownOption._1 == "") {
-                <option value="@defaultDropdownOption._1" selected>
+                <option value="" selected>
                     @defaultDropdownOption._2
                 </option>
             }
 
             @for(dropdownOption <- dropdownOptions) {
-                <option @if(dropdownOption._1 == defaultDropdownOption._1 && defaultDropdownOption._1 != "") {selected="selected"} value="@dropdownOption._1">@dropdownOption._2</option>
+                <option @if(dropdownOption._1 == defaultDropdownOption._1 && defaultDropdownOption._1 != ""){selected="selected" }value="@dropdownOption._1">@dropdownOption._2</option>
             }
         } else {
             @for(dropdownOption <- dropdownOptions) {
-                <option @if(disabledStatus.toString() == "disabled") {selected="selected"} value="@dropdownOption._1">@dropdownOption._2</option>
+                <option @if(disabledStatus.toString() == "disabled"){selected="selected" }value="@dropdownOption._1">@dropdownOption._2</option>
             }
         }
     </select>
