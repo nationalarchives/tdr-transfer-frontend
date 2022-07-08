@@ -1,0 +1,98 @@
+@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@import helper.{inputRadioGroup => _, _}
+@import java.util.UUID
+
+@import scala.language.postfixOps
+@import views.html.partials.{inputDate, inputText, errorSummary, inputDropdown, progressIndicator}
+
+@import views.html.partials.transferReference
+@import views.html.partials.inputRadioGroup
+
+@import controllers.util.FieldValues
+
+@(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: Set[(FieldValues, String)], name: String, fileName: String="[selected file/folder name to go here]")(implicit request: RequestHeader, messages: Messages)
+@main(s"Add closure fields to '${fileName}'", name = name, isJudgmentUser = false) {
+    @defining(play.core.PlayVersion.current) { version =>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                @progressIndicator(Messages("addClosureMetadata.progress"))
+                <h1 class="govuk-heading-l">Add closure metadata to '@fileName'</h1>
+                <p class="govuk-body">Enter metadata for closure fields here.</p>
+                @errorSummary(
+                    fieldsToApplyToFile.collect{
+                        case (fieldToApplyToFile, dataType) if fieldToApplyToFile.fieldErrors.nonEmpty =>
+                            (fieldToApplyToFile.fieldId, fieldToApplyToFile.fieldErrors)
+                    }.toMap
+                )
+                @form(
+                    routes.ConfirmTransferController.confirmTransfer(consignmentId),
+                    (Symbol("novalidate"), "")
+                ) {
+                    @for((fieldToApplyToFile, dataType) <- fieldsToApplyToFile) {
+                        @{dataType match {
+                            case "Boolean" => inputRadioGroup(
+                                fieldToApplyToFile.fieldId,
+                                fieldToApplyToFile.fieldOptions,
+                                fieldToApplyToFile.selectedFieldOption.getOrElse(Seq(("",""))),
+                                Map(
+                                    Symbol("_label") -> fieldToApplyToFile.fieldLabel,
+                                    Symbol("_requiredOption") -> fieldToApplyToFile.fieldRequired,
+                                    Symbol("_largeOption") -> true,
+                                    Symbol("_newlineOption") -> true,
+                                    Symbol("_disabledOption") -> ""
+                                ),
+                                fieldToApplyToFile.fieldErrors
+                            )
+                            case "DateTime" => inputDate(fieldToApplyToFile.fieldLabel, fieldToApplyToFile.fieldHint, fieldToApplyToFile.fieldOptions)
+                            case "Decimal" | "Integer" => inputText(
+                                fieldToApplyToFile.fieldLabel,
+                                fieldToApplyToFile.fieldHint,
+                                fieldToApplyToFile.fieldOptions.head._1,
+                                "number",
+                                fieldToApplyToFile.fieldOptions.head._2,
+                                "numeric"
+                            )
+                            case "Text" =>
+                                if(fieldToApplyToFile.multiValueSelect) {
+                                    println(fieldsToApplyToFile)
+                                    //could theoretically be a checkbox or radio (since radios are not always boolean)
+                                    inputDropdown(
+                                        fieldToApplyToFile.fieldId,
+                                        fieldToApplyToFile.fieldOptions,
+                                        fieldToApplyToFile.selectedFieldOption.getOrElse(Seq(("",""))),
+                                        Map(
+                                            Symbol("_label") -> fieldToApplyToFile.fieldLabel,
+                                            Symbol("_largeLabelAndHint") -> fieldToApplyToFile.fieldHint,
+                                            Symbol("_disabledOption") -> ""
+                                        ),
+                                        fieldToApplyToFile.fieldErrors
+                                    )
+                                } else {
+                                    inputText(
+                                        fieldToApplyToFile.fieldLabel,
+                                        fieldToApplyToFile.fieldHint,
+                                        fieldToApplyToFile.fieldOptions.head._1,
+                                        fieldToApplyToFile.fieldOptions.head._2,
+                                        "text"
+                                    )
+                                }
+                        }
+                        }
+                    }
+                    <div class="govuk-button-group">
+                            <!-- Continue -->
+                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                            Continue
+                        </button>
+                            <!-- Redirects to Homepage for now but will probably just take you back to previous page -->
+                        <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+                        </div>
+                    </div>
+                }
+            @transferReference(consignmentRef, isJudgmentUser = false)
+            </div>
+
+        </div>
+    }
+}
+
