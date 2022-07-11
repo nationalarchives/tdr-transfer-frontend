@@ -33,7 +33,7 @@ class UploadService @Inject()(val graphqlConfiguration: GraphQLConfiguration)(im
     )
   }
 
-  def saveMetadata(addFileAndMetadataInput: AddFileAndMetadataInput, token: BearerAccessToken): Future[List[afam.AddFilesAndMetadata]] = {
+  def saveClientMetadata(addFileAndMetadataInput: AddFileAndMetadataInput, token: BearerAccessToken): Future[List[afam.AddFilesAndMetadata]] = {
     val variables = afam.Variables(addFileAndMetadataInput)
     sendApiRequest(addFilesAndMetadataClient, afam.document, token, variables).map(data =>
       data.addFilesAndMetadata
