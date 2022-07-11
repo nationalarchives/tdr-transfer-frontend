@@ -1,24 +1,24 @@
 package controllers.util
 
-import graphql.codegen.GetClosureMetadata.closureMetadata.ClosureMetadata
+import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType
 import graphql.codegen.types.DataType._
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 
 import scala.collection.immutable.ListSet
 
-class ClosureMetadataUtils(allClosureMetadataProperties: List[ClosureMetadata]) {
-  private val allClosureMetadataPropertiesByName: Map[String, List[ClosureMetadata]] = allClosureMetadataProperties.groupBy(_.name)
+class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
+  private val allCustomMetadataPropertiesByName: Map[String, List[CustomMetadata]] = allCustomMetadataProperties.groupBy(_.name)
 
-  def getClosureMetadataProperties(propertiesToGet: Set[String]): Set[ClosureMetadata] =
-    propertiesToGet.flatMap(property => allClosureMetadataPropertiesByName(property))
+  def getCustomMetadataProperties(propertiesToGet: Set[String]): Set[CustomMetadata] =
+    propertiesToGet.flatMap(property => allCustomMetadataPropertiesByName(property))
 
-  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: Set[String]): Map[String, List[ClosureMetadata.Values]] = {
-    val propertiesToGetValuesFrom: Set[ClosureMetadata] = getClosureMetadataProperties(namesOfPropertiesToGetValuesFrom)
+  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: Set[String]): Map[String, List[CustomMetadata.Values]] = {
+    val propertiesToGetValuesFrom: Set[CustomMetadata] = getCustomMetadataProperties(namesOfPropertiesToGetValuesFrom)
     propertiesToGetValuesFrom.map(property => property.name -> property.values).toMap
   }
 
-  def convertPropertiesToFields(dependencyProperties: Set[ClosureMetadata]): Set[(FieldValues, String)] =
+  def convertPropertiesToFields(dependencyProperties: Set[CustomMetadata]): Set[(FieldValues, String)] =
     dependencyProperties.map {
       dependencyProperty => {
         val (options, selectedOption) = generateFieldOptions(dependencyProperty, dependencyProperty.dataType)
@@ -46,7 +46,7 @@ class ClosureMetadataUtils(allClosureMetadataProperties: List[ClosureMetadata]) 
     )
   }
 
-  private def generateFieldOptions(property: ClosureMetadata, dataType: DataType): (Seq[(String, String)], Option[Seq[(String, String)]]) =
+  private def generateFieldOptions(property: CustomMetadata, dataType: DataType): (Seq[(String, String)], Option[Seq[(String, String)]]) =
     dataType match {
       case Boolean =>
         val radioOptions = Seq(("Yes", "true"), ("No", "false"))

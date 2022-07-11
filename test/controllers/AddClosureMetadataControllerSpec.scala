@@ -4,9 +4,9 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import errors.GraphQlException
-import graphql.codegen.GetClosureMetadata.closureMetadata.ClosureMetadata.Values
-import graphql.codegen.GetClosureMetadata.closureMetadata.ClosureMetadata.Values.Dependencies
-import graphql.codegen.GetClosureMetadata.{closureMetadata => cm}
+import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
+import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
+import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import io.circe.Printer
@@ -122,12 +122,12 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
   private def mockGraphqlResponse() = {
     val client: GraphQLClient[cm.Data, cm.Variables] = new GraphQLConfiguration(app.configuration).getClient[cm.Data, cm.Variables]()
-    val closureMetadataResponse: cm.Data = getDataObject
-    val data: client.GraphqlData = client.GraphqlData(Some(closureMetadataResponse))
+    val customMetadataResponse: cm.Data = getDataObject
+    val data: client.GraphqlData = client.GraphqlData(Some(customMetadataResponse))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("closureMetadata"))
+      .withRequestBody(containing("customMetadata"))
       .willReturn(okJson(dataString)))
   }
 
@@ -136,45 +136,45 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     // no longer needed, the real names have to be returned
     cm.Data(
       List(
-        cm.ClosureMetadata("ClosureType", None, Some("Closure Type"), Defined, Some("MandatoryClosure"), Text, true, false, Some("open_on_transfer"),
+        cm.CustomMetadata("ClosureType", None, Some("Closure Type"), Defined, Some("MandatoryClosure"), Text, true, false, Some("open_on_transfer"),
           List(
             Values("closed_for",
               List(
-                Dependencies("FoiExemptionAsserted", None, Some("Foi Exemption Asserted"), Supplied, Some("MandatoryClosure"), DateTime, true, false, None),
-                Dependencies("ClosurePeriod", None, Some("Closure Period"), Supplied, Some("MandatoryClosure"), Integer, true, false, None),
-                Dependencies("ClosureStartDate", None, Some("Closure Start Date"), Supplied, Some("OptionalClosure"), DateTime, true, false, None),
-                Dependencies("FoiExemptionCode", None, Some("Foi Exemption Code"), Defined, Some("MandatoryClosure"), Text, true, true, None),
-                Dependencies("TitlePublic", None, Some("Title Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, None),
-                Dependencies("DescriptionPublic", None, Some("Description Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, None))),
+                Dependencies("FoiExemptionAsserted"),
+                Dependencies("ClosurePeriod"),
+                Dependencies("ClosureStartDate"),
+                Dependencies("FoiExemptionCode"),
+                Dependencies("TitlePublic"),
+                Dependencies("DescriptionPublic"))),
             Values("open_on_transfer",
               List(
-                Dependencies("TitlePublic", None, Some("Title Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, None),
-                Dependencies("DescriptionPublic", None, Some("Description Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, None))))),
-        cm.ClosureMetadata(
+                Dependencies("TitlePublic"),
+                Dependencies("DescriptionPublic"))))),
+        cm.CustomMetadata(
           "ClosurePeriod", None, Some("Closure Period"), Supplied, Some("MandatoryClosure"), Integer, true, false, Some("0"), List(Values("0", List()))),
-        cm.ClosureMetadata(
+        cm.CustomMetadata(
           "DescriptionPublic", None, Some("Description Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, Some("True"),
           List(
             Values("True", List()),
             Values("False",
               List(
-                Dependencies("DescriptionAlternate", None, Some("Description Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, Some("Mock description")))))),
-        cm.ClosureMetadata(
+                Dependencies("DescriptionAlternate"))))),
+        cm.CustomMetadata(
           "TitlePublic", None, Some("Title Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, Some("True"),
           List(
             Values("False",
               List(
-                Dependencies("TitleAlternate", None, Some("Title Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, Some("Mock description")))),
+                Dependencies("TitleAlternate"))),
             Values("True", List()))),
-        cm.ClosureMetadata(
+        cm.CustomMetadata(
           "ClosureStartDate", None, Some("Closure Start Date"), Supplied, Some("OptionalClosure"), DateTime, true, false, None, List()),
-        cm.ClosureMetadata(
+        cm.CustomMetadata(
           "DescriptionAlternate", None, Some("Description Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, None, List()),
-        cm.ClosureMetadata(
+        cm.CustomMetadata(
           "TitleAlternate", None, Some("Title Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, None, List()),
-        cm.ClosureMetadata(
+        cm.CustomMetadata(
           "FoiExemptionAsserted", None, Some("Foi Exemption Asserted"), Supplied, Some("MandatoryClosure"), DateTime, true, false, None, List()),
-        cm.ClosureMetadata(
+        cm.CustomMetadata(
           "FoiExemptionCode", None, Some("Foi Exemption Code"), Defined, Some("MandatoryClosure"), Text, true, true, Some("mock code1"),
           List(
             Values("mock code1", List()), Values("mock code2", List())))))
