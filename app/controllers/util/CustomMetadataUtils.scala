@@ -41,7 +41,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       ListSet("FOI decision asserted", "Closure start date", "Closure period", "FOI exemption code", "Is the title closed?")
     addClosureMetadataPageOrder.map(label =>
       fieldValuesAndType.find {
-        case (fieldValue, dataType) => fieldValue.fieldLabel.toLowerCase() == label.toLowerCase()
+        case (fieldValue, _) => fieldValue.fieldLabel.toLowerCase() == label.toLowerCase()
       }.get
     )
   }
@@ -76,7 +76,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   private def getDefaultValue(options: Seq[(String, String)], defaultValue: Option[String]): Option[Seq[(String, String)]] =
     defaultValue.map(defaultVal =>
       options.filter {
-        case (label, value) => value == defaultVal.toLowerCase()
+        case (_, value) => value == defaultVal.toLowerCase()
       }
     )
 
