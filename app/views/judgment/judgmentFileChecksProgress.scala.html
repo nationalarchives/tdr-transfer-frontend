@@ -1,4 +1,5 @@
 @import java.util.UUID
+@import helper._
 @import viewsapi.FrontEndInfo
 @import views.html.partials.{frontEndInputs, progressIndicator, transferReference}
 @import views.html.helper.form
@@ -7,6 +8,7 @@
 @main("Checking your upload", name = name, isJudgmentUser = true) {
     @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row file-check-progress">
+        @CSRF.formField
         <div class="govuk-grid-column-two-thirds">
 
             @progressIndicator(Messages("judgmentCheckingRecords.progress"), isJudgmentUser=true)
