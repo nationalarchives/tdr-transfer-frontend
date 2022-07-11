@@ -28,6 +28,7 @@
                     routes.ConfirmTransferController.confirmTransfer(consignmentId),
                     (Symbol("novalidate"), "")
                 ) {
+                    @CSRF.formField
                     @for((fieldToApplyToFile, dataType) <- fieldsToApplyToFile) {
                         @{dataType match {
                             case "Boolean" => inputRadioGroup(
