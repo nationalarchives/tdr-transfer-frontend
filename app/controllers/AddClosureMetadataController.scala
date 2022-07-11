@@ -2,8 +2,8 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.GetClosureMetadata.closureMetadata.ClosureMetadata
-import controllers.util.ClosureMetadataUtils
+import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
+import controllers.util.CustomMetadataUtils
 import controllers.util.FieldValues
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
@@ -27,27 +27,27 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
     implicit request: Request[AnyContent] =>
       for {
         consignmentRef <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        closureMetadata <- customMetadataService.getClosureMetadata(consignmentId, request.token.bearerAccessToken)
-        closureMetadataUtils = new ClosureMetadataUtils(closureMetadata)
+        customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
+        customMetadataUtils = new CustomMetadataUtils(customMetadata)
         propertyName = Set("ClosureType")
         value = "closed_for"
 
-        dependencyProperties: Set[ClosureMetadata] = getDependenciesFromValue(closureMetadataUtils, propertyName, value: String)
+        dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, propertyName, value: String)
           .filterNot(_.name == "DescriptionPublic")
 
-        fieldsForForm: Set[(FieldValues, String)] = closureMetadataUtils.convertPropertiesToFields(dependencyProperties)
-        orderedFieldsForForm = closureMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsForForm)
+        fieldsForForm: Set[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(dependencyProperties)
+        orderedFieldsForForm = customMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsForForm)
       } yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, orderedFieldsForForm, request.token.name)).uncache()
   }
 
-  private def getDependenciesFromValue(customMetadataUtils: ClosureMetadataUtils,
+  private def getDependenciesFromValue(customMetadataUtils: CustomMetadataUtils,
                                        propertyName: Set[String],
-                                       valueToGetDependenciesFrom: String): Set[ClosureMetadata] = {
-    val valuesByProperties: Map[String, List[ClosureMetadata.Values]] = customMetadataUtils.getValuesOfProperties(propertyName)
-    val allValuesForProperty: Seq[ClosureMetadata.Values] = valuesByProperties(propertyName.head)
-    val value: ClosureMetadata.Values = allValuesForProperty.find(_.value == valueToGetDependenciesFrom).get
+                                       valueToGetDependenciesFrom: String): Set[CustomMetadata] = {
+    val valuesByProperties: Map[String, List[CustomMetadata.Values]] = customMetadataUtils.getValuesOfProperties(propertyName)
+    val allValuesForProperty: Seq[CustomMetadata.Values] = valuesByProperties(propertyName.head)
+    val value: CustomMetadata.Values = allValuesForProperty.find(_.value == valueToGetDependenciesFrom).get
     val dependencyNames: Seq[String] = value.dependencies.map(_.name)
     // Dependencies are slightly shorter versions of the properties (missing the "values" field)
-    customMetadataUtils.getClosureMetadataProperties(dependencyNames.toSet)
+    customMetadataUtils.getCustomMetadataProperties(dependencyNames.toSet)
   }
 }

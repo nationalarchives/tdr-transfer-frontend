@@ -1,6 +1,6 @@
 package controllers.util
 
-import graphql.codegen.GetClosureMetadata.closureMetadata.ClosureMetadata
+import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import org.scalatest.BeforeAndAfterEach
@@ -10,12 +10,12 @@ import org.scalatestplus.mockito.MockitoSugar
 
 import scala.collection.immutable.ListSet
 
-class ClosureMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
-  private val allProperties: List[ClosureMetadata] = (1 to 10).toList.map(
+class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
+  private val allProperties: List[CustomMetadata] = (1 to 10).toList.map(
     number => {
       val dataType = List(Text, DateTime)
       val numberOfValues = number % 4
-      ClosureMetadata(
+      CustomMetadata(
         s"TestProperty$number",
         Some(s"It's the Test Property $number"),
         Some(s"Test Property $number"),
@@ -27,22 +27,12 @@ class ClosureMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with Before
         Some(s"TestValue $number"),
         (1 to numberOfValues).toList.map(
           valueNumber =>
-            ClosureMetadata.Values(
+            CustomMetadata.Values(
               s"TestValue $valueNumber",
               (1 to number % 6).toList.map(
                 depNumber => {
                   val propertyNumber = depNumber * 2 % 11
-                  ClosureMetadata.Values.Dependencies(// as long as the name is accurate, all other info in the Dependencies does not really matter
-                    s"TestProperty$propertyNumber",
-                    Some(s"It's the Test Property $propertyNumber"),
-                    Some(s"Test Property $propertyNumber"),
-                    Defined,
-                    Some(s"Test Dependency Group $propertyNumber"),
-                    Text,
-                    editable = true,
-                    multiValue = false,
-                    Some(s"TestValue $propertyNumber")
-                  )
+                  CustomMetadata.Values.Dependencies(s"TestProperty$propertyNumber")
                 }
               )
             )
@@ -51,12 +41,12 @@ class ClosureMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with Before
     }
   )
 
-  private val closureMetadataUtils = new ClosureMetadataUtils(allProperties)
+  private val customMetadataUtils = new CustomMetadataUtils(allProperties)
 
 
-  "getClosureMetadataProperties" should "return the list of properties requested" in {
+  "getCustomMetadataProperties" should "return the list of properties requested" in {
     val namesOfPropertiesToGet = allProperties.map(_.name).toSet
-    val listOfPropertiesRetrieved: Set[ClosureMetadata] = closureMetadataUtils.getClosureMetadataProperties(namesOfPropertiesToGet)
+    val listOfPropertiesRetrieved: Set[CustomMetadata] = customMetadataUtils.getCustomMetadataProperties(namesOfPropertiesToGet)
 
     val propertiesRetrievedEqualPropertiesRequested = listOfPropertiesRetrieved.forall(
       propertyRetrieved =>
@@ -65,11 +55,11 @@ class ClosureMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with Before
     propertiesRetrievedEqualPropertiesRequested should equal(true)
   }
 
-  "getClosureMetadataProperties" should "throw an 'NoSuchElementException' if any properties requested are not present" in {
+  "getCustomMetadataProperties" should "throw an 'NoSuchElementException' if any properties requested are not present" in {
     val namesOfPropertiesToGet = Set("TestProperty11", "TestProperty3")
 
     val thrownException: NoSuchElementException =
-      the[NoSuchElementException] thrownBy closureMetadataUtils.getClosureMetadataProperties(namesOfPropertiesToGet)
+      the[NoSuchElementException] thrownBy customMetadataUtils.getCustomMetadataProperties(namesOfPropertiesToGet)
 
     thrownException.getMessage should equal("key not found: TestProperty11")
   }
@@ -81,8 +71,8 @@ class ClosureMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with Before
       "TestProperty5" -> List("TestValue 1")
     )
 
-    val actualPropertiesAndTheirValues: Map[String, List[ClosureMetadata.Values]] =
-      closureMetadataUtils.getValuesOfProperties(namesOfPropertiesAndTheirExpectedValues.keys.toSet)
+    val actualPropertiesAndTheirValues: Map[String, List[CustomMetadata.Values]] =
+      customMetadataUtils.getValuesOfProperties(namesOfPropertiesAndTheirExpectedValues.keys.toSet)
 
     namesOfPropertiesAndTheirExpectedValues.foreach {
       case (propertyName, expectedValues) =>
@@ -94,14 +84,14 @@ class ClosureMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with Before
     val namesOfPropertiesToGet = Set("TestProperty2", "TestProperty12", "TestProperty4")
 
     val thrownException: NoSuchElementException =
-      the[NoSuchElementException] thrownBy closureMetadataUtils.getClosureMetadataProperties(namesOfPropertiesToGet)
+      the[NoSuchElementException] thrownBy customMetadataUtils.getCustomMetadataProperties(namesOfPropertiesToGet)
 
     thrownException.getMessage should equal("key not found: TestProperty12")
   }
 
   "convertPropertiesToFields" should "convert properties to fields for the form, if given correctly formatted properties" in {
-    val propertiesToConvertToFields: Set[ClosureMetadata] = allProperties.toSet
-    val fieldValuesByDataType: Set[(FieldValues, String)] = closureMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
+    val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
+    val fieldValuesByDataType: Set[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
     val allFieldValues: Map[String, Iterable[FieldValues]] = fieldValuesByDataType.map(_._1).groupBy(_.fieldId)
 
     propertiesToConvertToFields.foreach{
@@ -121,7 +111,7 @@ class ClosureMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with Before
     val fieldLabelsInIncorrectOrder = Set("FOI exemption code", "Closure start date", "FOI decision asserted", "Is the title closed?", "Closure period")
     val fieldsInIncorrectOrder = generateMockFieldValues(fieldLabelsInIncorrectOrder)
 
-    val retrievedFieldsInCorrectOrder: Set[(FieldValues, String)] = closureMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsInIncorrectOrder)
+    val retrievedFieldsInCorrectOrder: Set[(FieldValues, String)] = customMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsInIncorrectOrder)
     val retrievedFieldLabelsInCorrectOrder = retrievedFieldsInCorrectOrder.map(_._1.fieldLabel)
 
     fieldLabelsInCorrectOrder should equal(retrievedFieldLabelsInCorrectOrder)
@@ -132,7 +122,7 @@ class ClosureMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with Before
     val fieldsInIncorrectOrder = generateMockFieldValues(fieldLabelsInIncorrectOrder)
 
     val thrownException: NoSuchElementException =
-      the[NoSuchElementException] thrownBy closureMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsInIncorrectOrder)
+      the[NoSuchElementException] thrownBy customMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsInIncorrectOrder)
 
     thrownException.getMessage should equal("None.get")
   }

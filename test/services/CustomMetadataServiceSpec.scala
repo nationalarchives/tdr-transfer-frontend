@@ -4,7 +4,7 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend.backend
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
-import graphql.codegen.GetClosureMetadata.{closureMetadata => cm}
+import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.types.DataType.Text
 import graphql.codegen.types.PropertyType.Defined
 import org.mockito.Mockito
@@ -26,22 +26,22 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   private val graphQLConfig = mock[GraphQLConfiguration]
-  private val closureMetadataClient = mock[GraphQLClient[cm.Data, cm.Variables]]
+  private val customMetadataClient = mock[GraphQLClient[cm.Data, cm.Variables]]
   private val token = new BearerAccessToken("some-token")
   private val consignmentId = UUID.fromString("e1ca3948-ee41-4e80-85e6-2123040c135d")
-  when(graphQLConfig.getClient[cm.Data, cm.Variables]()).thenReturn(closureMetadataClient)
+  when(graphQLConfig.getClient[cm.Data, cm.Variables]()).thenReturn(customMetadataClient)
 
   private val customMetadataService = new CustomMetadataService(graphQLConfig)
 
   override def afterEach(): Unit = {
-    Mockito.reset(closureMetadataClient)
+    Mockito.reset(customMetadataClient)
   }
 
-  "closureMetadata" should "return the all closure metadata" in {
+  "customMetadata" should "return the all closure metadata" in {
     val data: Option[cm.Data] = Some(
       cm.Data(
         List(
-          cm.ClosureMetadata(
+          cm.CustomMetadata(
             "TestProperty",
             Some("It's the Test Property"),
             Some("Test Property"),
@@ -52,25 +52,13 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
             multiValue = false,
             Some("TestValue"),
             List(
-              cm.ClosureMetadata.Values(
+              cm.CustomMetadata.Values(
                 "TestValue",
-                List(
-                  cm.ClosureMetadata.Values.Dependencies(
-                    "TestDependency",
-                    Some("It's the Test Dependency"),
-                    Some("Test Dependency"),
-                    Defined,
-                    Some("Test Dependency Group"),
-                    Text,
-                    editable = false,
-                    multiValue = false,
-                    Some("TestDependencyValue")
-                  )
-                )
+                List(cm.CustomMetadata.Values.Dependencies("TestDependency"))
               )
             )
           ),
-          cm.ClosureMetadata(
+          cm.CustomMetadata(
             "TestDependency",
             Some("It's the Test Dependency"),
             Some("Test Dependency"),
@@ -86,13 +74,13 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
       )
     )
     val response = GraphQlResponse(data, Nil)
-    when(closureMetadataClient.getResult(token, cm.document, Some(cm.Variables(consignmentId))))
+    when(customMetadataClient.getResult(token, cm.document, Some(cm.Variables(consignmentId))))
       .thenReturn(Future.successful(response))
 
-    val status: List[cm.ClosureMetadata] = customMetadataService.getClosureMetadata(consignmentId, token).futureValue
+    val status: List[cm.CustomMetadata] = customMetadataService.getCustomMetadata(consignmentId, token).futureValue
     status should equal(
       List(
-        cm.ClosureMetadata(
+        cm.CustomMetadata(
           "TestProperty",
           Some("It's the Test Property"),
           Some("Test Property"),
@@ -103,25 +91,13 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
           multiValue = false,
           Some("TestValue"),
           List(
-            cm.ClosureMetadata.Values(
+            cm.CustomMetadata.Values(
               "TestValue",
-              List(
-                cm.ClosureMetadata.Values.Dependencies(
-                  "TestDependency",
-                  Some("It's the Test Dependency"),
-                  Some("Test Dependency"),
-                  Defined,
-                  Some("Test Dependency Group"),
-                  Text,
-                  editable = false,
-                  multiValue = false,
-                  Some("TestDependencyValue")
-                )
-              )
+              List(cm.CustomMetadata.Values.Dependencies("TestDependency"))
             )
           )
         ),
-        cm.ClosureMetadata(
+        cm.CustomMetadata(
           "TestDependency",
           Some("It's the Test Dependency"),
           Some("Test Dependency"),
@@ -137,19 +113,19 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
     )
   }
 
-  "closureMetadata" should "return an error if the API call fails" in {
-    when(closureMetadataClient.getResult(token, cm.document, Some(cm.Variables(consignmentId))))
+  "customMetadata" should "return an error if the API call fails" in {
+    when(customMetadataClient.getResult(token, cm.document, Some(cm.Variables(consignmentId))))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-    customMetadataService.getClosureMetadata(consignmentId, token).failed.futureValue shouldBe a[HttpError]
+    customMetadataService.getCustomMetadata(consignmentId, token).failed.futureValue shouldBe a[HttpError]
   }
 
-  "closureMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
+  "customMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
     val response = GraphQlResponse[cm.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
-    when(closureMetadataClient.getResult(token, cm.document, Some(cm.Variables(consignmentId))))
+    when(customMetadataClient.getResult(token, cm.document, Some(cm.Variables(consignmentId))))
       .thenReturn(Future.successful(response))
 
-    val results = customMetadataService.getClosureMetadata(consignmentId, token).failed
+    val results = customMetadataService.getCustomMetadata(consignmentId, token).failed
       .futureValue.asInstanceOf[AuthorisationException]
 
     results shouldBe a[AuthorisationException]
