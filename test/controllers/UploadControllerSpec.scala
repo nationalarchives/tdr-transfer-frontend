@@ -416,7 +416,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
-      val saveMetadataResponse = controller.saveMetadata()
+      val saveMetadataResponse = controller.saveClientMetadata()
         .apply(FakeRequest(POST, s"/save-metadata")
           .withJsonBody(Json.parse(addFileAndMetadataInput.asJson.noSpaces))
           .withCSRFToken
@@ -436,7 +436,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
-      val saveMetadataResponse = controller.saveMetadata()
+      val saveMetadataResponse = controller.saveClientMetadata()
         .apply(FakeRequest(POST, s"/save-metadata")
           .withJsonBody(Json.parse("""{"bad": "data"}"""))
           .withCSRFToken
@@ -457,7 +457,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         .withRequestBody(containing("addFilesAndMetadata"))
         .willReturn(serverError()))
 
-      val saveMetadataResponse = controller.saveMetadata()
+      val saveMetadataResponse = controller.saveClientMetadata()
         .apply(FakeRequest(POST, s"/save-metadata")
           .withJsonBody(Json.parse(addFileAndMetadataInput.asJson.noSpaces))
           .withCSRFToken

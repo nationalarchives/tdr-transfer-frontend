@@ -22,7 +22,7 @@ class UploadServiceSpec extends AnyFlatSpec {
   private val graphQlConfig = mock[GraphQLConfiguration]
   private val token = new BearerAccessToken("some-token")
 
-  "startUpload" should "returns the correct data" in {
+  "startUpload" should "return the correct data" in {
     val input = StartUploadInput(UUID.randomUUID(), "parent")
     val graphQlClientForStartUpload = mock[GraphQLClient[su.Data, su.Variables]]
     when(graphQlConfig.getClient[su.Data, su.Variables]())
@@ -37,7 +37,7 @@ class UploadServiceSpec extends AnyFlatSpec {
     response should equal("ok")
   }
 
-  "saveMetadata" should "returns the correct data" in {
+  "saveMetadata" should "return the correct data" in {
     val graphQlClientForAddFilesAndMetadata = mock[GraphQLClient[afam.Data, afam.Variables]]
     when(graphQlConfig.getClient[afam.Data, afam.Variables]())
       .thenReturn(graphQlClientForAddFilesAndMetadata)
@@ -51,7 +51,7 @@ class UploadServiceSpec extends AnyFlatSpec {
     when(graphQlClientForAddFilesAndMetadata.getResult(token, afam.document, Some(afam.Variables(addFileAndMetadataInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val response = new UploadService(graphQlConfig).saveMetadata(addFileAndMetadataInput, token).futureValue
+    val response = new UploadService(graphQlConfig).saveClientMetadata(addFileAndMetadataInput, token).futureValue
     response.size should equal(1)
     response.head should equal(input)
   }

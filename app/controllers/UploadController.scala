@@ -42,11 +42,11 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     }
   }
 
-  def saveMetadata(): Action[AnyContent] = secureAction.async { implicit request =>
+  def saveClientMetadata(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {
       decode[AddFileAndMetadataInput](body.toString()).toOption
     }) match {
-      case Some(metadataInput) => uploadService.saveMetadata(metadataInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
+      case Some(metadataInput) => uploadService.saveClientMetadata(metadataInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
       case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
     }
   }
@@ -60,20 +60,20 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     } yield {
       val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
       val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
-      val pageHeading1stHalf = "Upload your records"
-      val pageHeading2ndHalf = "Uploading records"
+      val pageHeadingUpload = "Upload your records"
+      val pageHeadingUploading = "Uploading records"
 
       transferAgreementStatus match {
         case Some("Completed") =>
           uploadStatus match {
             case Some("InProgress") =>
-              Ok(views.html.uploadInProgress(consignmentId, reference, pageHeading2ndHalf, request.token.name, isJudgmentUser = false))
+              Ok(views.html.uploadInProgress(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = false))
                 .uncache()
             case Some("Completed") =>
-              Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeading2ndHalf, request.token.name, isJudgmentUser = false))
+              Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = false))
                 .uncache()
             case None =>
-              Ok(views.html.standard.upload(consignmentId, reference, pageHeading1stHalf, pageHeading2ndHalf,
+              Ok(views.html.standard.upload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading,
                 frontEndInfoConfiguration.frontEndInfo, request.token.name))
                 .uncache()
             case _ =>
