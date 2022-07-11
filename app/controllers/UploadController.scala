@@ -98,18 +98,18 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       } yield {
         val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
-        val pageHeading1stHalf = "Upload judgment"
-        val pageHeading2ndHalf = "Uploading judgment"
+        val pageHeadingUpload = "Upload judgment"
+        val pageHeadingUploading = "Uploading judgment"
 
         uploadStatus match {
           case Some("InProgress") =>
-            Ok(views.html.uploadInProgress(consignmentId, reference, pageHeading2ndHalf, request.token.name, isJudgmentUser = true))
+            Ok(views.html.uploadInProgress(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
               .uncache()
           case Some("Completed") =>
-            Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeading2ndHalf, request.token.name, isJudgmentUser = true))
+            Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
               .uncache()
           case None =>
-            Ok(views.html.judgment.judgmentUpload(consignmentId, reference, pageHeading1stHalf, pageHeading2ndHalf,
+            Ok(views.html.judgment.judgmentUpload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading,
               frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
           case _ =>
             throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
