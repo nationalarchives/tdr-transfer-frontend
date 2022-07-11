@@ -136,8 +136,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
           selectedFieldOption=Some(Seq(("MockValue", "MockValue"))),
           multiValueSelect=true,
           fieldLabel,
-          fieldHint="",
-          fieldRequired=true
+          fieldHint=""
         ) ->
           "dataType"
   }

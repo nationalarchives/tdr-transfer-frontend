@@ -36,7 +36,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
           .filterNot(_.name == "DescriptionPublic")
 
         fieldsForForm: Set[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(dependencyProperties)
-        orderedFieldsForForm = customMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsForForm)
+        orderedFieldsForForm: ListSet[(FieldValues, String)] = customMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsForForm)
       } yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, orderedFieldsForForm, request.token.name)).uncache()
   }
 
