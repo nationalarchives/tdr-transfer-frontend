@@ -48,6 +48,7 @@
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
     "govuk-frontend": "^4.2.0",
+    "nhsuk-frontend": "^6.1.1",
     "graphql": "^16.5.0",
     "keycloak-js": "18.0.1",
     "minify": "^9.1.0",

@@ -1,0 +1,40 @@
+@import views.html.partials.transferReference
+
+@import java.util.UUID
+@(consignmentId: UUID, rootFolderId: UUID, rootFolderName: String, consignmentRef: String, name: String)(implicit request: RequestHeader, messages: Messages)
+
+@main("Closure metadata", name = name) {
+    @defining(play.core.PlayVersion.current) { version =>
+
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+
+                <h1 class="govuk-heading-l">Closure metadata</h1>
+                <h1 class="govuk-heading-s">Folder uploaded: @rootFolderName</h1>
+                <p class="govuk-body">You can now add or edit closure metadata to your records.</p>
+                <div class="nhsuk-card nhsuk-card--clickable">
+                    <div class="nhsuk-card__content">
+                        <h2 class="nhsuk-card__heading nhsuk-heading-m">
+                            <a class="nhsuk-card__link" href="/consignment/@consignmentId/additional-metadata/closure/selected-summary">All files and folders</a>
+                        </h2>
+                        <p class="nhsuk-card__description">
+                            If you'd like to add or edit closure metadata to your records, you can do so here.</p>
+                    </div>
+                </div>
+                <div class="nhsuk-card nhsuk-card--clickable">
+                    <div class="nhsuk-card__content">
+                        <h2 class="nhsuk-card__heading nhsuk-heading-m">
+                            <a class="nhsuk-card__link" href="/consignment/@consignmentId/additional-metadata/@rootFolderId">Individual files and folders</a>
+                        </h2>
+                        <p class="nhsuk-card__description">
+                            If you'd like to add or edit closure metadata to your records, you can do so here.</p>
+                    </div>
+                </div>
+                <a href="/consignment/@consignmentId/additional-metadata" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                    Back to overview
+                </a>
+            </div>
+            @transferReference(consignmentRef, isJudgmentUser = false)
+        </div>
+    }
+}

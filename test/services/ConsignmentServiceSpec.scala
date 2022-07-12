@@ -54,6 +54,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val token = new Token(accessToken, bearerAccessToken)
   private val consignmentId = UUID.fromString("180f9166-fe3c-486e-b9ab-6dfa5f3058dc")
   private val seriesId = Some(UUID.fromString("d54a5118-33a0-4ba2-8030-d16efcf1d1f4"))
+  private val userId = UUID.randomUUID()
 
   override def afterEach(): Unit = {
     Mockito.reset(getConsignmentClient)
@@ -63,7 +64,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
   "consignmentExists" should {
     "return true when given a valid consignment id" in {
-      val response = GraphQlResponse(Some(gc.Data(Some(gc.GetConsignment(consignmentId, seriesId)))), Nil)
+      val response = GraphQlResponse(Some(gc.Data(Some(gc.GetConsignment(consignmentId, seriesId, None, "ref")))), Nil)
       when(getConsignmentClient.getResult(bearerAccessToken, gc.document, Some(gc.Variables(consignmentId))))
         .thenReturn(Future.successful(response))
 
@@ -319,5 +320,41 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
       getConsignmentExport.getMessage should be("error")
     }
+  }
+
+  "getConsignmentDetails" should {
+    "return consignment details for given consignment id" in {
+      val parentFolder = Some("ParentFolder")
+      val consignmentRef = "Test-Ref"
+      val response = GraphQlResponse(Some(gc.Data(Some(gc.GetConsignment(userId, seriesId, parentFolder, consignmentRef)))), Nil)
+      when(getConsignmentClient.getResult(bearerAccessToken, gc.document, Some(gc.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
+
+      val getConsignment = consignmentService.getConsignmentDetails(consignmentId, bearerAccessToken)
+      val getConsignmentDetails = getConsignment.futureValue
+
+      getConsignmentDetails.consignmentReference should be(consignmentRef)
+      getConsignmentDetails.parentFolder should be(parentFolder)
+      getConsignmentDetails.seriesid should be(seriesId)
+      getConsignmentDetails.userid should be(userId)
+    }
+  }
+
+  "return an error if the API fails" in {
+    when(getConsignmentClient.getResult(bearerAccessToken, gc.document, Some(gc.Variables(consignmentId))))
+      .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+    val getConsignmentDetails = consignmentService.getConsignmentDetails(consignmentId, bearerAccessToken).failed.futureValue
+
+    getConsignmentDetails shouldBe a[HttpError]
+  }
+
+  "return an error if there is an error from the API" in {
+    when(getConsignmentClient.getResult(bearerAccessToken, gc.document, Some(gc.Variables(consignmentId))))
+      .thenReturn(Future.successful(GraphQlResponse(None, List(NotAuthorisedError("error", Nil, Nil)))))
+
+    val getConsignmentDetails = consignmentService.getConsignmentDetails(consignmentId, bearerAccessToken).failed.futureValue
+
+    getConsignmentDetails.getMessage should be("error")
   }
 }
