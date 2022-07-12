@@ -26,8 +26,8 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
           dependencyProperty.name,
           fieldOptions=options,
           selectedFieldOption=selectedOption,
-          multiValueSelect=if(dependencyProperty.multiValue) true else false,
-          fieldLabel=convertDbNameToFieldLabel(dependencyProperty.fullName.get),
+          multiValueSelect=dependencyProperty.multiValue,
+          fieldLabel=convertDbNameToFieldLabel(dependencyProperty.fullName.getOrElse("")),
           fieldHint=getFieldHints(dependencyProperty.name, dependencyProperty.description.getOrElse("")
           ), // <- Use this until descriptions are added, then use dependencyProperty.description.getOrElse("")
           fieldRequired=if(dependencyProperty.propertyGroup.getOrElse("") == "MandatoryMetadata") true else false
