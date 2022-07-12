@@ -11,7 +11,7 @@
 @import controllers.util.FieldValues
 
 @(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: Set[(FieldValues, String)], name: String, fileName: String="[selected file/folder name to go here]")(implicit request: RequestHeader, messages: Messages)
-@main(s"Add closure fields to '${fileName}'", name = name, isJudgmentUser = false) {
+@main(s"Add closure fields to '$fileName'", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
