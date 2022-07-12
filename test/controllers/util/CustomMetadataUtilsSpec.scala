@@ -9,8 +9,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
 
-import scala.collection.immutable.ListSet
-
 class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
   private val allProperties: List[CustomMetadata] = (1 to 10).toList.map(
     number => {
@@ -105,40 +103,5 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         field.fieldLabel should equal(property.fullName.get)
         field.fieldRequired should equal(if(property.propertyGroup.getOrElse("") == "MandatoryMetadata") true else false)
     }
-  }
-
-  "sortMetadataIntoCorrectPageOrder" should "order the fields in the correct way for the add closure metadata page" in {
-    val fieldLabelsInCorrectOrder =  ListSet("FOI decision asserted", "Closure start date", "Closure period", "FOI exemption code", "Is the title closed?")
-    val fieldLabelsInIncorrectOrder = Set("FOI exemption code", "Closure start date", "FOI decision asserted", "Is the title closed?", "Closure period")
-    val fieldsInIncorrectOrder = generateMockFieldValues(fieldLabelsInIncorrectOrder)
-
-    val retrievedFieldsInCorrectOrder: Set[(FieldValues, String)] = customMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsInIncorrectOrder)
-    val retrievedFieldLabelsInCorrectOrder = retrievedFieldsInCorrectOrder.map(_._1.fieldLabel)
-
-    fieldLabelsInCorrectOrder should equal(retrievedFieldLabelsInCorrectOrder)
-  }
-
-  "sortMetadataIntoCorrectPageOrder" should "throw an 'NoSuchElementException' if any field label has an unexpected name" in {
-    val fieldLabelsInIncorrectOrder = Set("OI exemption code", "Closure start date", "FOI decision asserted", "Is the title closed?", "Closure period")
-    val fieldsInIncorrectOrder = generateMockFieldValues(fieldLabelsInIncorrectOrder)
-
-    val thrownException: NoSuchElementException =
-      the[NoSuchElementException] thrownBy customMetadataUtils.sortMetadataIntoCorrectPageOrder(fieldsInIncorrectOrder)
-
-    thrownException.getMessage should equal("None.get")
-  }
-
-  private def generateMockFieldValues(fieldLabelsInIncorrectOrder: Set[String]): Set[(FieldValues, String)] =
-    fieldLabelsInIncorrectOrder.map{
-      fieldLabel =>
-        FieldValues(
-          fieldLabel.replace(" ", ""),
-          fieldOptions=Seq(("MockValue", "MockValue")),
-          selectedFieldOption=Some(Seq(("MockValue", "MockValue"))),
-          multiValueSelect=true,
-          fieldLabel,
-          fieldHint=""
-        ) ->
-          "dataType"
   }
 }
