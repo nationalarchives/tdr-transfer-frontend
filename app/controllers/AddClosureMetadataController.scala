@@ -42,11 +42,11 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
 
   private def getDependenciesFromValue(customMetadataUtils: CustomMetadataUtils,
                                        propertyName: Set[String],
-                                       valueToGetDependenciesFrom: String): Set[CustomMetadata] = {
+                                       valueNameWithDependencies: String): Set[CustomMetadata] = {
     val valuesByProperties: Map[String, List[CustomMetadata.Values]] = customMetadataUtils.getValuesOfProperties(propertyName)
     val allValuesForProperty: Seq[CustomMetadata.Values] = valuesByProperties(propertyName.head)
-    val value: CustomMetadata.Values = allValuesForProperty.find(_.value == valueToGetDependenciesFrom).get
-    val dependencyNames: Seq[String] = value.dependencies.map(_.name)
+    val valueWithDependencies: Option[CustomMetadata.Values] = allValuesForProperty.find(_.value == valueNameWithDependencies)
+    val dependencyNames: Seq[String] = valueWithDependencies.map(_.dependencies.map(_.name)).getOrElse(Nil)
     customMetadataUtils.getCustomMetadataProperties(dependencyNames.toSet)
   }
 }
