@@ -1,7 +1,5 @@
 @(elementErrors: Map[String, Seq[String]])(implicit messages: Messages)
 
-@import views.html.helper._
-
 @if(elementErrors.nonEmpty) {
     <div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
         <h2 class="govuk-error-summary__title" id="error-summary-title">
