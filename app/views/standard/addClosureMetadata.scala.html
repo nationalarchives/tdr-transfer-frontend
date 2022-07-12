@@ -8,8 +8,7 @@
 @import views.html.partials.transferReference
 @import views.html.partials.inputRadioGroup
 
-@import controllers.util.FieldValues
-
+@import controllers.util.CustomMetadataUtils.FieldValues
 @(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: Set[(FieldValues, String)], name: String, fileName: String="[selected file/folder name to go here]")(implicit request: RequestHeader, messages: Messages)
 @main(s"Add closure fields to '$fileName'", name = name) {
     @defining(play.core.PlayVersion.current) { version =>

@@ -1,5 +1,6 @@
 package controllers.util
 
+import controllers.util.CustomMetadataUtils.FieldValues
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType
 import graphql.codegen.types.DataType._
@@ -102,11 +103,15 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   }
 }
 
-case class FieldValues(fieldId: String,
-                       fieldOptions: Seq[(String, String)],
-                       selectedFieldOption: Option[Seq[(String, String)]],
-                       multiValueSelect: Boolean,
-                       fieldLabel: String,
-                       fieldHint: String,
-                       fieldRequired: Boolean=true,
-                       fieldErrors: List[String]=Nil)
+object CustomMetadataUtils {
+  def apply(allCustomMetadataProperties: List[CustomMetadata]): CustomMetadataUtils = new CustomMetadataUtils(allCustomMetadataProperties)
+
+  case class FieldValues(fieldId: String,
+                         fieldOptions: Seq[(String, String)],
+                         selectedFieldOption: Option[Seq[(String, String)]],
+                         multiValueSelect: Boolean,
+                         fieldLabel: String,
+                         fieldHint: String,
+                         fieldRequired: Boolean=true,
+                         fieldErrors: List[String]=Nil)
+}

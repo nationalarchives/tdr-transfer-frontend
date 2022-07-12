@@ -1,5 +1,6 @@
 package controllers.util
 
+import controllers.util.CustomMetadataUtils.FieldValues
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
@@ -41,7 +42,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     }
   )
 
-  private val customMetadataUtils = new CustomMetadataUtils(allProperties)
+  private val customMetadataUtils = CustomMetadataUtils(allProperties)
 
 
   "getCustomMetadataProperties" should "return the list of properties requested" in {
