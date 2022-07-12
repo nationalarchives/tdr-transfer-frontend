@@ -4,7 +4,7 @@ import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import controllers.util.CustomMetadataUtils
-import controllers.util.FieldValues
+import controllers.util.CustomMetadataUtils.FieldValues
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
@@ -28,7 +28,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
       for {
         consignmentRef <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
-        customMetadataUtils = new CustomMetadataUtils(customMetadata)
+        customMetadataUtils = CustomMetadataUtils(customMetadata)
         propertyName = Set("ClosureType")
         value = "closed_for"
 
