@@ -1,17 +1,18 @@
-import {IFileWithPath} from "@nationalarchives/file-information"
+import { IFileWithPath } from "@nationalarchives/file-information"
 import {
   getAllFiles,
   IDirectoryWithPath,
   IEntryWithPath,
-  isFile, IWebkitEntry
+  isFile,
+  IWebkitEntry
 } from "./get-files-from-drag-event"
-import {rejectUserItemSelection} from "./display-warning-message"
+import { rejectUserItemSelection } from "./display-warning-message"
 import {
   addFileSelectionSuccessMessage,
   addFolderSelectionSuccessMessage,
   displaySelectionSuccessMessage
 } from "./update-and-display-success-message"
-import {isError} from "../../errorhandling"
+import { isError } from "../../errorhandling"
 
 interface FileWithRelativePath extends File {
   webkitRelativePath: string
@@ -115,9 +116,9 @@ export class UploadForm {
     } else {
       const items: DataTransferItemList = ev.dataTransfer?.items!
       const resultOrError = this.checkNumberOfFoldersOrFilesDropped(
-          items,
-          "Only one folder is allowed to be selected"
-        )
+        items,
+        "Only one folder is allowed to be selected"
+      )
       if (!isError(resultOrError)) {
         const droppedItem: DataTransferItem | null = items[0]
         const webkitEntry = droppedItem.webkitGetAsEntry()
@@ -335,17 +336,17 @@ export class UploadForm {
       // Check if the item is folder
       if (droppedObjects[0].type === "") {
         return rejectUserItemSelection(
-            this.warningMessages?.multipleFolderSelectedMessage,
-            this.warningMessages,
-            this.successMessage,
-            exceptionMessage
+          this.warningMessages?.multipleFolderSelectedMessage,
+          this.warningMessages,
+          this.successMessage,
+          exceptionMessage
         )
       } else {
         return rejectUserItemSelection(
-            this.warningMessages?.multipleItemSelectedMessage,
-            this.warningMessages,
-            this.successMessage,
-            exceptionMessage
+          this.warningMessages?.multipleItemSelectedMessage,
+          this.warningMessages,
+          this.successMessage,
+          exceptionMessage
         )
       }
     }
