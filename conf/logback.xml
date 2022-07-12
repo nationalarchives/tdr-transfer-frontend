@@ -13,8 +13,9 @@
 
   <logger name="play" level="INFO" />
   <logger name="application" level="DEBUG" />
+  <logger name="org.keycloak.adapters.KeycloakDeployment" level="WARN"/>
 
-  <root level="WARN">
+  <root level="INFO">
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
 
