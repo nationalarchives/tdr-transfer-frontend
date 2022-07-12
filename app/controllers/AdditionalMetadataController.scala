@@ -24,5 +24,48 @@ class AdditionalMetadataController @Inject () (val consignmentService: Consignme
         case None => Future.failed(new IllegalStateException("Parent folder not found"))
       }
     } yield response
+import play.api.i18n.I18nSupport
+import play.api.mvc.{Action, AnyContent, Request}
+import services.ConsignmentService
+
+import java.time.{LocalDateTime, ZonedDateTime}
+import java.util.UUID
+import javax.inject.Inject
+import scala.concurrent.ExecutionContext
+
+class AdditionalMetadataController @Inject()(val controllerComponents: SecurityComponents,
+                                             val keycloakConfiguration: KeycloakConfiguration,
+                                             val consignmentService: ConsignmentService)
+                                            (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+  def getPaginatedFiles(consignmentId: UUID, page: Int): Action[AnyContent] = standardTypeAction(consignmentId)
+  { implicit request: Request[AnyContent] =>
+    //val hasPrevious = page = 0
+    //val hasNext = page != totalPage
+    consignmentService.getConsignmentPaginatedFile(consignmentId, page, request.token.bearerAccessToken)
+      .map { paginatedFiles =>
+        val nextCursor = paginatedFiles.paginatedFiles.edges.get.last.get.node.fileName
+        println(nextCursor)
+        println("total files: " + paginatedFiles.totalFiles)
+        println("start cursor: " + paginatedFiles.paginatedFiles.pageInfo.startCursor)
+        println("end cursor: " + paginatedFiles.paginatedFiles.pageInfo.endCursor)
+        println("has next page: " + paginatedFiles.paginatedFiles.pageInfo.hasNextPage)
+        println("has previous page: " + paginatedFiles.paginatedFiles.pageInfo.hasPreviousPage)
+        println("Edges: " + paginatedFiles.paginatedFiles.edges)
+        val limit = 2
+        val totalFiles = paginatedFiles.totalFiles
+        val totalPages = Math.ceil(totalFiles/limit) //totalItems divided by the limit rounded up
+        println(totalPages)
+        val parentFolder = paginatedFiles.parentFolder.get
+        Ok(views.html.standard.additionalMetadata(consignmentId,
+          "consignmentRef",
+          request.token.name,
+          parentFolder,
+          totalFiles,
+          totalPages.toInt,
+          limit,
+          page,
+          paginatedFiles.paginatedFiles.edges.get.flatten)
+        )
+      }
   }
 }
