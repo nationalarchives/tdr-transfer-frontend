@@ -11,6 +11,7 @@ import graphql.codegen.GetConsignmentReference.getConsignmentReference
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
+import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types.{AddConsignmentInput, UpdateConsignmentSeriesIdInput}
@@ -25,7 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguration)
                                   (implicit val ec: ExecutionContext) {
-
+  private val getFileCheckProgressClient = graphqlConfiguration.getClient[gfcp.Data, gfcp.Variables]()
   private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
   private val addConsignmentClient = graphqlConfiguration.getClient[addConsignment.Data, addConsignment.Variables]()
   private val getConsignmentFileCheckClient = graphqlConfiguration.getClient[getFileCheckProgress.Data, getFileCheckProgress.Variables]()
@@ -36,6 +37,17 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentExportClient = graphqlConfiguration.getClient[getConsignmentForExport.Data, getConsignmentForExport.Variables]()
   private val updateConsignmentSeriesIdClient = graphqlConfiguration.getClient[updateConsignmentSeriesId.Data, updateConsignmentSeriesId.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
+
+
+  def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
+    val variables = gfcp.Variables(consignmentId)
+    sendApiRequest(getFileCheckProgressClient, gfcp.document, token, variables).map(data => {
+      data.getConsignment match {
+        case Some(progress) => progress
+        case None => throw new RuntimeException(s"No data found for file checks for consignment $consignmentId")
+      }
+    })
+  }
 
   def consignmentExists(consignmentId: UUID,
                         token: BearerAccessToken): Future[Boolean] = {
