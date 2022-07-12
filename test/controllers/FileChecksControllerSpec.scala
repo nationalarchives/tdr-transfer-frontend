@@ -1,13 +1,15 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{status, _}
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => fileCheck}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
+import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1}
+import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import services.ConsignmentService
@@ -16,6 +18,7 @@ import util.{CheckPageForStaticElements, FrontEndTestHelper}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenPropertyChecks {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -95,9 +98,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
 
         val fileChecksPage = if (userType == "judgment") {
-          fileChecksController.judgmentFileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+          fileChecksController.judgmentFileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
         } else {
-          fileChecksController.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
+          fileChecksController.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
         }
 
         val fileChecksPageAsString = contentAsString(fileChecksPage)
@@ -214,6 +217,45 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         Continue"""
         )
       }
+    }
+  }
+
+  "FileChecksController fileCheckProgress" should {
+    "call the fileCheckProgress endpoint" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val controller = new FileChecksController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),getValidStandardUserKeycloakConfiguration,
+        consignmentService,frontEndInfoConfiguration)
+
+      mockGraphqlResponse(progressData(1, 1, 1, allChecksSucceeded = true), "standard")
+
+      val fileChecksResults = controller.fileCheckProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress")
+          .withCSRFToken
+        )
+
+      playStatus(fileChecksResults) mustBe OK
+
+      wiremockServer.getAllServeEvents.asScala.nonEmpty must be(true)
+    }
+
+    "throw an error if the API returns an error" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val controller = new FileChecksController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),getValidStandardUserKeycloakConfiguration,
+        consignmentService,frontEndInfoConfiguration)
+
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getFileCheckProgress"))
+        .willReturn(serverError()))
+
+      val saveMetadataResponse = controller.fileCheckProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress")
+          .withCSRFToken
+        )
+
+      val exception: Throwable = saveMetadataResponse.failed.futureValue
+      exception.getMessage must startWith("Unexpected response from GraphQL API")
     }
   }
 
