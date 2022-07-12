@@ -1,4 +1,3 @@
-import { GraphqlClient } from "../graphql"
 import { haveFileChecksCompleted } from "./verify-checks-have-completed"
 import { displayChecksCompletedBanner } from "./display-checks-completed-banner"
 import {
@@ -8,12 +7,6 @@ import {
 import { isError } from "../errorhandling"
 
 export class FileChecks {
-  client: GraphqlClient
-
-  constructor(client: GraphqlClient) {
-    this.client = client
-  }
-
   updateFileCheckProgress: (
     isJudgmentUser: boolean,
     goToNextPage: (formId: string) => void
@@ -23,7 +16,7 @@ export class FileChecks {
   ) => {
     const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
       const fileChecksProgress: IFileCheckProgress | Error =
-        await getFileChecksProgress(this.client)
+        await getFileChecksProgress()
       if (!isError(fileChecksProgress)) {
         const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
         if (checksCompleted) {
