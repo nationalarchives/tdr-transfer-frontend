@@ -47,7 +47,6 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
     val allValuesForProperty: Seq[CustomMetadata.Values] = valuesByProperties(propertyName.head)
     val value: CustomMetadata.Values = allValuesForProperty.find(_.value == valueToGetDependenciesFrom).get
     val dependencyNames: Seq[String] = value.dependencies.map(_.name)
-    // Dependencies are slightly shorter versions of the properties (missing the "values" field)
     customMetadataUtils.getCustomMetadataProperties(dependencyNames.toSet)
   }
 }
