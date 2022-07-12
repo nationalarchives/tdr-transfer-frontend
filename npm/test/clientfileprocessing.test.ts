@@ -1,24 +1,25 @@
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
-import { GraphqlClient } from "../src/graphql"
 import { ClientFileProcessing } from "../src/clientfileprocessing"
 import {
-  IFileMetadata,
   TProgressFunction,
-  IProgressInformation,
-  IFileWithPath
+  IProgressInformation, IFileWithPath, IFileMetadata,
 } from "@nationalarchives/file-information"
-import { ClientFileExtractMetadata } from "../src/clientfileextractmetadata"
 import { S3Upload, ITdrFileWithPath } from "../src/s3upload"
-import { mockKeycloakInstance } from "./utils"
-import { FileUploadInfo } from "../src/upload/form/upload-form"
 import { S3Client, ServiceOutputTypes } from "@aws-sdk/client-s3"
+import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
+import {FileUploadInfo} from "../src/upload/form/upload-form";
+import {ClientFileExtractMetadata} from "../src/clientfileextractmetadata";
+enableFetchMocks()
 
 jest.mock("../src/clientfilemetadataupload")
 jest.mock("../src/clientfileextractmetadata")
 jest.mock("../src/s3upload")
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
-beforeEach(() => jest.resetModules())
+beforeEach(() => {
+  fetchMock.resetMocks()
+  jest.resetModules()
+})
 
 class S3UploadMock extends S3Upload {
   constructor() {
@@ -148,11 +149,7 @@ test("client file metadata successfully uploaded", async () => {
   mockMetadataExtractSuccess()
   mockMetadataUploadSuccess()
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
-
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
     new S3UploadMock()
@@ -176,10 +173,7 @@ test("metadataProgressCallback function updates the progress bar to a maximum of
     processedFiles: 0
   }
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
@@ -200,10 +194,7 @@ test("metadataProgressCallback function does not change the HTML state if no pro
     processedFiles: 0
   }
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
@@ -224,10 +215,7 @@ test("metadataProgressCallback function updates the progress bar with the percen
     processedFiles: 0
   }
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
@@ -242,11 +230,7 @@ test("metadataProgressCallback function updates the progress bar with the percen
 test("file successfully uploaded to s3", async () => {
   mockMetadataExtractSuccess()
   mockMetadataUploadSuccess()
-
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
   const s3UploadMock = new S3UploadMock()
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3UploadMock)
   await expect(
@@ -270,10 +254,7 @@ test("s3ProgressCallback function updates the progress bar with the percentage p
     processedFiles: 0
   }
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
@@ -294,10 +275,7 @@ test("s3ProgressCallback function updates progress bar from a minimum of 50 perc
     processedFiles: 0
   }
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
@@ -318,10 +296,7 @@ test("s3ProgressCallback function updates the progress bar to a maximum of 100 p
     processedFiles: 0
   }
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
 
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
@@ -337,10 +312,7 @@ test("Error thrown if processing files fails", async () => {
   mockMetadataExtractSuccess()
   mockUploadFileInformationFailure()
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
     new S3UploadMock()
@@ -360,10 +332,7 @@ test("Error thrown if processing file metadata fails", async () => {
   mockMetadataExtractSuccess()
   mockUploadMetadataFailure()
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
     new S3UploadMock()
@@ -383,10 +352,7 @@ test("Error thrown if extracting file metadata fails", async () => {
   mockMetadataExtractFailure()
   mockMetadataUploadSuccess()
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
   const fileProcessing = new ClientFileProcessing(
     metadataUpload,
     new S3UploadMock()
@@ -407,10 +373,7 @@ test("Error thrown if S3 upload fails", async () => {
   mockMetadataUploadSuccess()
   mockS3UploadFailure("Some S3 error")
 
-  const client = new GraphqlClient("test", mockKeycloakInstance)
-  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload(
-    client
-  )
+  const metadataUpload: ClientFileMetadataUpload = new ClientFileMetadataUpload()
   const s3Upload = new S3Upload(new S3Client({}), "")
   const fileProcessing = new ClientFileProcessing(metadataUpload, s3Upload)
 
