@@ -1,6 +1,6 @@
 @import java.util.UUID
 @import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles.Edges
-@(consignmentId: UUID, consignmentReference: String, name: String, parentFolder:String, totalFiles: Int, totalPages: Int, limit:Option[Int], currentPage: Int, files: List[Edges])(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentReference: String, name: String, parentFolder:String, totalFiles: Int, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, files: List[Edges])(implicit messages: Messages, request: RequestHeader)
 @main("Additional Metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
@@ -43,7 +43,18 @@
                                     <div class="govuk-checkboxes__item">
                                         <input class="govuk-checkboxes__input" id="Subfolder-Lemon-drizzle" name="organisation" type="checkbox" value="hmrc">
                                         <label class="govuk-label govuk-checkboxes__label" for="Subfolder-Lemon-drizzle">
-                                            <a href="#">@{if(item.node.fileType.get == "Folder")"📁" else "📊"} @item.node.fileName.get</a>
+                                            @{
+                                                val isFolder = item.node.fileType.get == "Folder"
+                                                val link = if(isFolder) {
+                                                    routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, page = 1, limit, item.node.fileId)
+                                                } else {
+                                                    //Should Add Link to edit Metadata
+                                                    routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, page = 4, limit, item.node.fileId)
+                                                }
+                                                <a href={s"$link"}>
+                                                {if(isFolder)"📁" else "📊"}{item.node.fileName.get}</a>
+                                            }
+@*                                            <a href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, page = 1, limit, item.node.fileId)">@{if(item.node.fileType.get == "Folder")"📁" else "📊"} @item.node.fileName.get</a>*@
                                         </label>
                                     </div>
                                 </td>
@@ -55,7 +66,7 @@
 
                 <nav class="govuk-pagination" role="navigation" aria-label="results">
                     <div class="govuk-pagination__prev">
-                        <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage-1, limit)" rel="prev">
+                        <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage-1, limit, selectedFolderId)" rel="prev">
                             <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
                                 <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
                             </svg>
@@ -64,14 +75,14 @@
                     <ul class="govuk-pagination__list">
                         @for(page <- 1 to totalPages){
                             <li class="govuk-pagination__item @if(currentPage == page){govuk-pagination__item--current}">
-                                <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, page, limit)" aria-label="Page "@page aria-current="page">
+                                <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, page, limit, selectedFolderId)" aria-label="Page "@page aria-current="page">
                                 @page
                                 </a>
                             </li>
                         }
                     </ul>
                     <div class="govuk-pagination__next">
-                        <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage+1, limit)"> <span class="govuk-pagination__link-title">Next</span> <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                        <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage+1, limit, selectedFolderId)"> <span class="govuk-pagination__link-title">Next</span> <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
                             <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
                         </svg></a>
                     </div>
