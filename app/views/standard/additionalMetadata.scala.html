@@ -1,8 +1,6 @@
 @import java.util.UUID
-@import play.api.data._
-@import play.api.data.Forms._
 @import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles.Edges
-@(consignmentId: UUID, consignmentReference: String, name: String, parentFolder:String, totalFiles: Int, totalPages: Int, limit:Int, currentPage: Int, files: List[Edges])(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentReference: String, name: String, parentFolder:String, totalFiles: Int, totalPages: Int, limit:Option[Int], currentPage: Int, files: List[Edges])(implicit messages: Messages, request: RequestHeader)
 @main("Additional Metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
@@ -36,7 +34,7 @@
                 </div>*@
 
                 <section id="page-1">
-                    <p class="govuk-pagination__results">Showing <b>1</b> to <b>@limit</b> of <b>@totalFiles</b> results</p>
+                    <p class="govuk-pagination__results">Showing <b>1</b> to <b>5</b> of <b>@totalFiles</b> results</p>
                     <table class="govuk-table">
                         <tbody class="govuk-table__body">
                         @files.map { item =>
@@ -57,7 +55,7 @@
 
                 <nav class="govuk-pagination" role="navigation" aria-label="results">
                     <div class="govuk-pagination__prev">
-                        <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage-1)" rel="prev">
+                        <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage-1, limit)" rel="prev">
                             <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
                                 <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
                             </svg>
@@ -65,15 +63,15 @@
                     </div>
                     <ul class="govuk-pagination__list">
                         @for(page <- 1 to totalPages){
-                            <li class="govuk-pagination__item @if(currentPage == page -1){govuk-pagination__item--current}">
-                                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page "@page aria-current="page">
+                            <li class="govuk-pagination__item @if(currentPage == page){govuk-pagination__item--current}">
+                                <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, page, limit)" aria-label="Page "@page aria-current="page">
                                 @page
                                 </a>
                             </li>
                         }
                     </ul>
                     <div class="govuk-pagination__next">
-                        <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage+1)"> <span class="govuk-pagination__link-title">Next</span> <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                        <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage+1, limit)"> <span class="govuk-pagination__link-title">Next</span> <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
                             <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
                         </svg></a>
                     </div>
