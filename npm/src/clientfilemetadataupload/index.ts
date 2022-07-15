@@ -24,7 +24,8 @@ export class ClientFileMetadataUpload {
       body: JSON.stringify(uploadFilesInfo),
       headers: {
         "Content-Type": "application/json",
-        "Csrf-Token": csrfInput.value
+        "Csrf-Token": csrfInput.value,
+        "X-Requested-With": "XMLHttpRequest"
       }
     }).catch((err) => {
       return Error(err)
@@ -61,7 +62,8 @@ export class ClientFileMetadataUpload {
       body: JSON.stringify(input),
       headers: {
         "Content-Type": "application/json",
-        "Csrf-Token": csrfInput.value
+        "Csrf-Token": csrfInput.value,
+        "X-Requested-With": "XMLHttpRequest"
       }
     }).catch((err) => {
       return Error(err)
