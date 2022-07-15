@@ -46,7 +46,7 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
         val totalPages = paginatedFiles.paginatedFiles.totalPages.get
         val parentFolder = paginatedFiles.parentFolder.get
         Ok(views.html.standard.additionalMetadata(consignmentId,
-          "consignmentRef", //Use
+          "consignmentRef", //Use An actual reference
           request.token.name,
           parentFolder,
           totalFiles,
