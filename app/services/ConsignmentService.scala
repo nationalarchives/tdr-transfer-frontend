@@ -38,6 +38,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentFilesClient = graphqlConfiguration.getClient[getConsignmentFiles.Data, getConsignmentFiles.Variables]()
   private val getConsignmentExportClient = graphqlConfiguration.getClient[getConsignmentForExport.Data, getConsignmentForExport.Variables]()
   private val getConsignmentPaginatedFilesClient = graphqlConfiguration.getClient[gcpf.Data, gcpf.Variables]()
+//  private val getConsignmentPaginatedFilesClient2 = graphqlConfiguration.getClient[gcpf2.Data, gcpf2.Variables]()
   private val updateConsignmentSeriesIdClient = graphqlConfiguration.getClient[updateConsignmentSeriesId.Data, updateConsignmentSeriesId.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
 
@@ -135,12 +136,21 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       .map(data => data.getConsignment.get)
   }
 
-  def getConsignmentPaginatedFile(consignmentId: UUID, page: Int, token: BearerAccessToken): Future[gcpf.GetConsignment] = {
+  def getConsignmentPaginatedFile(consignmentId: UUID, page: Int, limit: Option[Int], token: BearerAccessToken): Future[gcpf.GetConsignment] = {
     val fileFiltersInput = Some(FileFilters(None, Some(UUID.fromString("fef08add-774e-42de-bd84-98a6c97868b5"))))
-    val paginatedInput = Some(PaginationInput(2, Some(page), None, fileFiltersInput)) //Some("BANANA.docx")
+    val paginatedInput = Some(PaginationInput(limit, Some(page), None, fileFiltersInput)) //Some("BANANA.docx")
     val variables: gcpf.Variables = new gcpf.Variables(consignmentId, paginatedInput)
 
     sendApiRequest(getConsignmentPaginatedFilesClient, gcpf.document, token, variables)
       .map(data => data.getConsignment.get)//.map(_.paginatedFiles).get)
   }
+
+//  def getConsignmentPaginatedFile2(consignmentId: UUID, page: Int, limit: Option[Int], token: BearerAccessToken): Future[gcpf2.GetConsignment] = {
+//    val fileFiltersInput = Some(FileFilters(None, Some(UUID.fromString("fef08add-774e-42de-bd84-98a6c97868b5"))))
+//    val paginatedInput = Some(PaginationInput(limit, Some(page), None, fileFiltersInput)) //Some("BANANA.docx")
+//    val variables: gcpf2.Variables = new gcpf2.Variables(consignmentId, paginatedInput)
+//
+//    sendApiRequest(getConsignmentPaginatedFilesClient2, gcpf2.document, token, variables)
+//      .map(data => data.getConsignment.get)//.map(_.paginatedFiles).get)
+//  }
 }
