@@ -17,10 +17,9 @@ class AdditionalMetadataController @Inject () (val consignmentService: Consignme
 
   def start(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      folderDetails <- consignmentService.getConsignmentFolderInfo(consignmentId, request.token.bearerAccessToken)
-      response <- folderDetails.parentFolder match {
-        case Some(folder) => Future(Ok(views.html.standard.additionalMetadataStart(folder, reference, consignmentId, request.token.name)))
+      consignment <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
+      response <- consignment.parentFolder match {
+        case Some(folder) => Future(Ok(views.html.standard.additionalMetadataStart(folder, consignment.consignmentReference, consignmentId, request.token.name)))
         case None => Future.failed(new IllegalStateException("Parent folder not found"))
       }
     } yield response
