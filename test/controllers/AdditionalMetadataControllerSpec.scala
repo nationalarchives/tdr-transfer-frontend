@@ -33,8 +33,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val parentFolder = "parentFolder"
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentFolderInfoResponse(wiremockServer, Option(parentFolder))
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -83,8 +82,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
     "will return an error if the parent folder is missing" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentFolderInfoResponse(wiremockServer, None)
+      setConsignmentDetailsResponse(wiremockServer, None)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
