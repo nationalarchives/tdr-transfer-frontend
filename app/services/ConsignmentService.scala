@@ -26,6 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguration)
                                   (implicit val ec: ExecutionContext) {
+
   private val getFileCheckProgressClient = graphqlConfiguration.getClient[gfcp.Data, gfcp.Variables]()
   private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
   private val addConsignmentClient = graphqlConfiguration.getClient[addConsignment.Data, addConsignment.Variables]()
@@ -47,6 +48,16 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
         case None => throw new RuntimeException(s"No data found for file checks for consignment $consignmentId")
       }
     })
+  }
+
+  def getConsignmentDetails(consignmentId: UUID, token: BearerAccessToken): Future[getConsignment.GetConsignment] = {
+    val variables: getConsignment.Variables = new GetConsignment.getConsignment.Variables(consignmentId)
+
+    sendApiRequest(getConsignmentClient, getConsignment.document, token, variables)
+      .map(data => data.getConsignment match {
+        case Some(consignment) => consignment
+        case None => throw new IllegalStateException(s"No consignment found for consignment $consignmentId")
+      })
   }
 
   def consignmentExists(consignmentId: UUID,
