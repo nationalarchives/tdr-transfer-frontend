@@ -1,7 +1,9 @@
+@import helper._
 @import java.util.UUID
 @import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles.Edges
 @import views.html.partials.transferReference
-@(consignmentId: UUID, consignmentReference: String, name: String, parentFolder:String, totalFiles: Int, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, files: List[Edges])(implicit messages: Messages, request: RequestHeader)
+@import views.html.partials.inputSingleCheckbox
+@(consignmentId: UUID, consignmentReference: String, name: String, parentFolder:String, totalFiles: Int, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, files: List[Edges], nodesFormData: Form[NodesFormData])(implicit messages: Messages, request: RequestHeader)
 @main("Additional Metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
@@ -34,7 +36,7 @@
                     </a>
                 </div>*@
 
-                <section id="page-1">
+                <section id="page-@currentPage">
                     <p class="govuk-pagination__results">Showing <b>1</b> to <b>@files.length</b> of <b>@totalFiles</b> results</p>
                     <table class="govuk-table">
                         <tbody class="govuk-table__body">
@@ -92,6 +94,39 @@
                         </div>
                     }
                 </nav>
+
+                <div class="govuk-form-group ">
+                @form(action = routes.AdditionalMetadataController.submit(consignmentId, currentPage, limit, selectedFolderId)) {
+                    @CSRF.formField
+@*                    @for(temp <- nodesFormData.value.get.nodesToDisplay){
+                        @checkbox(
+                            nodesFormData("selected"),
+                            Symbol("_label") -> temp.displayName,
+                            Symbol("_value") -> temp.nodeIdStr
+                        )
+                        @inputSingleCheckbox(
+                            nodesFormData(temp.nodeIdStr),
+                            Symbol("_label") -> temp.displayName,
+                            Symbol("_value") -> temp.nodeIdStr,
+                            Symbol("_checkedOption") -> ""
+                        )
+                    }*@
+                    <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
+                    @inputCheckboxGroup(
+                        nodesFormData("selected"),
+                        options = nodesFormData.value.get.nodesToDisplay.map(d => d.nodeIdStr -> d.displayName),
+                        Symbol("_label") -> "Items",
+//                        Symbol("checked") -> "checked"
+                        )
+                    </fieldset>
+                    <div>
+                        <input type="hidden" id="previouslySelected" name="previouslySelected" value="@{nodesFormData.value.get.previouslySelected}"/>
+                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                            Select
+                        </button>
+                    </div>
+                }
+                </div>
             </div>
 @*            transferReference("consignmentRef", isJudgmentUser = false)*@
         </div>
