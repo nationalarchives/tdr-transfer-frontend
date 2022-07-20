@@ -28,20 +28,26 @@ class NavigationController @Inject()(securityComponents: SecurityComponents) ext
   def navigation(previouslySelectedIds: String = ""): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     //Ids would be the details of child files/folders for the viewed folder via a call to the API
     val ids = Seq(1, 2, 3, 4 ,5)
-    Ok(views.html.navigation(navigationForm.fill(NodesFormData(ids.map(id => NodesToDisplay(id.toString, s"ID $id")), previouslySelectedIds, List()))))
+    Ok(views.html.navigation(navigationForm.fill(
+      NodesFormData(ids.map(id => NodesToDisplay(id.toString, s"ID $id")), previouslySelectedIds, List())), List("A", "B", "C")))
   }
 
   def submit(): Action[AnyContent] = Action { implicit request: Request[AnyContent] => {
       val ids = Seq(6, 7, 8, 9)
       val errorFunction: Form[NodesFormData] => Result = { formWithErrors: Form[NodesFormData] =>
-        Ok(views.html.navigation(navigationForm.fill(NodesFormData(ids.map(id => NodesToDisplay(id.toString, s"ID $id")), "", List()))))
+        Ok(views.html.navigation(navigationForm.fill(
+          NodesFormData(ids.map(id => NodesToDisplay(id.toString, s"ID $id")), "", List())), List("A", "B", "C")))
       }
 
       val successFunction: NodesFormData => Result = { formData: NodesFormData =>
         val selected: String = formData.selected.mkString(",")
         val previouslySelectedIds: String = formData.previouslySelected + selected
+        println(s"Previously selected Ids: $previouslySelectedIds")
 
-        Ok(views.html.navigation(navigationForm.fill(NodesFormData(ids.map(id => NodesToDisplay(id.toString, s"ID $id")), previouslySelectedIds, List()))))
+        Ok(views.html.navigation(
+          navigationForm.fill(
+            NodesFormData(ids.map(
+              id => NodesToDisplay(id.toString, s"ID $id")), previouslySelectedIds, List())), List("A", "B", "C")))
       }
 
       val formValidationResult: Form[NodesFormData] = navigationForm.bindFromRequest()
@@ -53,5 +59,7 @@ class NavigationController @Inject()(securityComponents: SecurityComponents) ext
   }
 }
 
-case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay], previouslySelected: String, selected: List[String])
+case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay],
+                         previouslySelected: String,
+                         selected: List[String])
 case class NodesToDisplay(nodeIdStr: String, displayName: String, isSelected: Boolean = false)

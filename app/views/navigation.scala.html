@@ -1,6 +1,6 @@
 @import helper._
 
-@(nodesFormData: Form[NodesFormData])(implicit messages: Messages, request: RequestHeader)
+@(nodesFormData: Form[NodesFormData], pagesToDisplay: List[String])(implicit messages: Messages, request: RequestHeader)
 
 @main("Navigation - Spike") {
     <h1>Some heading</h1>
@@ -21,6 +21,14 @@
                     Select
                 </button>
             </div>
+            @for(page <- pagesToDisplay) {
+                <div>
+                    <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="@page">
+                    Page @page
+                    </button>
+                </div>
+            }
+
         }
     </div>
 
