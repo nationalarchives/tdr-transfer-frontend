@@ -3,7 +3,7 @@ package controllers
 import java.util.UUID
 import auth.TokenSecurity
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
-
+import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
@@ -31,6 +31,12 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
                             fileCheckProgress.fileChecks.checksumProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
                             fileCheckProgress.fileChecks.ffidProgress.filesProcessed * 100 / fileCheckProgress.totalFiles)
       }
+  }
+
+  def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
+    consignmentService.fileCheckProgress(consignmentId, request.token.bearerAccessToken)
+      .map(_.asJson.noSpaces)
+      .map(Ok(_))
   }
 
   def fileChecksPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>

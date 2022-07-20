@@ -1,5 +1,6 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
+@import helper._
 @import views.html.partials.{frontEndInputs, progressIndicator, transferReference}
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
 
@@ -34,6 +35,7 @@
                     <p class="govuk-body">Please click 'Continue' to see your results.</p>
                 </div>
             </div>
+            @CSRF.formField
             <form action="@routes.FileChecksResultsController.fileCheckResultsPage(consignmentId)">
                 <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button govuk-button--disabled" disabled>
                 Continue

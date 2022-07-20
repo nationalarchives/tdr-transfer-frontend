@@ -1,55 +1,40 @@
-import { GraphqlClient } from "../graphql"
-
 import {
   IFileMetadata,
   IFileWithPath
 } from "@nationalarchives/file-information"
 
 import {
-  AddFilesAndMetadata,
-  AddFilesAndMetadataMutation,
-  AddFilesAndMetadataMutationVariables,
+  AddFileAndMetadataInput,
   ClientSideMetadataInput,
-  StartUpload,
-  StartUploadInput,
-  StartUploadMutation,
-  StartUploadMutationVariables
+  FileMatches
 } from "@nationalarchives/tdr-generated-graphql"
 
-import { FetchResult } from "@apollo/client/core"
 import { ITdrFileWithPath } from "../s3upload"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
 
 export class ClientFileMetadataUpload {
-  client: GraphqlClient
-
-  constructor(client: GraphqlClient) {
-    this.client = client
-  }
-
   async startUpload(uploadFilesInfo: FileUploadInfo): Promise<void | Error> {
-    const variables: StartUploadMutationVariables = {
-      input: uploadFilesInfo
-    }
+    const csrfInput: HTMLInputElement = document.querySelector(
+      "input[name='csrfToken']"
+    )!
+    const result: Response | Error = await fetch("/start-upload", {
+      credentials: "include",
+      method: "POST",
+      body: JSON.stringify(uploadFilesInfo),
+      headers: {
+        "Content-Type": "application/json",
+        "Csrf-Token": csrfInput.value,
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    }).catch((err) => {
+      return Error(err)
+    })
 
-    const result: FetchResult<StartUploadMutation> | Error = await this.client
-      .mutation<StartUploadMutation, { input: StartUploadInput }>(
-        StartUpload,
-        variables
-      )
-      .catch((err) => {
-        return Error(err)
-      })
     if (isError(result)) {
       return result
-    } else {
-      if (!result.data || result.errors) {
-        const errorMessage: string = result.errors
-          ? result.errors.toString()
-          : "no data"
-        return Error(`Start upload failed: ${errorMessage}`)
-      }
+    } else if (result.status != 200) {
+      return Error(`Start upload failed: ${result.statusText}`)
     }
   }
 
@@ -62,24 +47,35 @@ export class ClientFileMetadataUpload {
       this.createMetadataInputsAndFileMap(allFileMetadata)
 
     const allFiles: ITdrFileWithPath[] = []
+    const csrfInput: HTMLInputElement = document.querySelector(
+      "input[name='csrfToken']"
+    )!
 
-    const variables: AddFilesAndMetadataMutationVariables = {
-      input: {
-        consignmentId,
-        metadataInput: metadataInputs,
-        emptyDirectories: emptyFolders
+    const input: AddFileAndMetadataInput = {
+      consignmentId,
+      metadataInput: metadataInputs,
+      emptyDirectories: emptyFolders
+    }
+    const result: Response | Error = await fetch("/save-metadata", {
+      credentials: "include",
+      method: "POST",
+      body: JSON.stringify(input),
+      headers: {
+        "Content-Type": "application/json",
+        "Csrf-Token": csrfInput.value,
+        "X-Requested-With": "XMLHttpRequest"
       }
-    }
-    const result: FetchResult<AddFilesAndMetadataMutation> =
-      await this.client.mutation(AddFilesAndMetadata, variables)
+    }).catch((err) => {
+      return Error(err)
+    })
 
-    if (result.errors) {
-      return Error(
-        `Add client file metadata failed: ${result.errors.toString()}`
-      )
-    }
-    if (result.data) {
-      result.data.addFilesAndMetadata.forEach((f) => {
+    if (isError(result)) {
+      return result
+    } else if (result.status != 200) {
+      return Error(`Add client file metadata failed: ${result.statusText}`)
+    } else {
+      const matches = (await result.json()) as Array<FileMatches>
+      matches.forEach((f) => {
         const fileId: string = f.fileId
         const file: IFileWithPath | undefined = matchFileMap.get(f.matchId)
         if (file) {
@@ -88,8 +84,6 @@ export class ClientFileMetadataUpload {
           return Error(`Invalid match id ${f.matchId} for file ${fileId}`)
         }
       })
-    } else {
-      return Error(`No data found in response for consignment ${consignmentId}`)
     }
     return allFiles
   }

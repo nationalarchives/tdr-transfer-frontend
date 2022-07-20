@@ -1,5 +1,6 @@
 @import 'overrides/all';
 @import '../../node_modules/govuk-frontend/govuk/all';
+@import '../../node_modules/nhsuk-frontend/packages/nhsuk';
 
 @import 'header';
 @import 'drag-and-drop';
@@ -38,4 +39,10 @@
 
 .transfer-complete p {
   margin: 0;
+}
+
+.timeout-dialog {
+  max-width: 350px;
+  padding-left: 30px;
+  padding-right: 30px;
 }

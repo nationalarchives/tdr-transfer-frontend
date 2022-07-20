@@ -15,7 +15,6 @@ import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
-import org.scalatest.prop.TableFor1
 import play.api.Configuration
 import play.api.Play.materializer
 import play.api.i18n.Langs
@@ -27,7 +26,7 @@ import play.api.test.WsTestClient.InternalWSClient
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{CheckFormOptionsHtml, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
+import util.{FormTester, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -64,15 +63,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     )
   )
 
-  val checkHtmlOfFormOptions = new CheckFormOptionsHtml(options)
+  val formTester = new FormTester(options)
   val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.randomUUID()
-  val consignmentStatuses: TableFor1[String] = Table(
-    "Consignment status",
-    "Completed",
-    "InProgress",
-    "Failed"
-  )
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
@@ -168,7 +161,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -214,7 +207,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(confirmTransferPageAsString, formStatus="PartiallySubmitted")
+      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, formStatus="PartiallySubmitted")
     }
 
     "display correct error when only the 'open records' option is selected and the final transfer confirmation form is submitted" in {
@@ -237,7 +230,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(
+      formTester.checkHtmlForOptionAndItsAttributes(
         confirmTransferPageAsString,
         incompleteTransferConfirmationForm.toMap,
         formStatus="PartiallySubmitted"
@@ -264,7 +257,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      checkHtmlOfFormOptions.checkForOptionAndItsAttributes(
+      formTester.checkHtmlForOptionAndItsAttributes(
         confirmTransferPageAsString,
         incompleteTransferConfirmationForm.toMap,
         formStatus="PartiallySubmitted"
@@ -524,134 +517,64 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       wiremockServer.getAllServeEvents.size() should equal(4)
     }
 
-    forAll(consignmentStatuses) { consignmentStatus =>
-      s"render the confirm transfer 'already confirmed' page with an authenticated standard user if export status is '$consignmentStatus'" in {
-        val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-        setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
-        setConsignmentReferenceResponse(wiremockServer)
-        setConsignmentTypeResponse(wiremockServer, "standard")
+    forAll(userTypes) { userType =>
+      forAll(consignmentStatuses) { consignmentStatus =>
+        s"render the confirm transfer 'already confirmed' page with an authenticated $userType user if export status is '$consignmentStatus'" in {
+          val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+          setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+          setConsignmentReferenceResponse(wiremockServer)
+          setConsignmentTypeResponse(wiremockServer, "standard")
 
-        val ctAlreadyConfirmedPage = controller.confirmTransfer(consignmentId)
-          .apply(FakeRequest(GET, f"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
-        val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
+          val ctAlreadyConfirmedPage = controller.confirmTransfer(consignmentId)
+            .apply(FakeRequest(GET, f"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+          val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
 
-        playStatus(ctAlreadyConfirmedPage) mustBe OK
-        contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
-        headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
-        checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
-      }
-    }
+          playStatus(ctAlreadyConfirmedPage) mustBe OK
+          contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
+          headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
+          checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
+        }
 
-    forAll(consignmentStatuses) { consignmentStatus =>
-      "render the confirm transfer 'already confirmed' page with an authenticated user if the standard user navigates back to the " +
-        s"confirmTransfer after previously successfully submitting the transfer and the export status is '$consignmentStatus'" in {
-        val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-        setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
-        setConsignmentReferenceResponse(wiremockServer)
-        setConsignmentTypeResponse(wiremockServer, "standard")
+        s"render the confirm transfer 'already confirmed' page with an authenticated user if the $userType user navigates back to the " +
+          s"confirmTransfer after previously successfully submitting the transfer and the export status is '$consignmentStatus'" in {
+          val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+          setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+          setConsignmentReferenceResponse(wiremockServer)
+          setConsignmentTypeResponse(wiremockServer, "standard")
 
-        val ctAlreadyConfirmedPage = controller.finalTransferConfirmationSubmit(consignmentId)
-          .apply(FakeRequest(POST, f"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
-        val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
+          val ctAlreadyConfirmedPage = controller.finalTransferConfirmationSubmit(consignmentId)
+            .apply(FakeRequest(POST, f"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+          val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
 
-        playStatus(ctAlreadyConfirmedPage) mustBe OK
-        contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
-        headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
-        checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
-      }
-    }
+          playStatus(ctAlreadyConfirmedPage) mustBe OK
+          contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
+          headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
+          checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
+        }
 
-    forAll(consignmentStatuses) { consignmentStatus =>
-      "render the confirm transfer 'already confirmed' page with an authenticated user if the standard user navigates back to the " +
-        s"confirmTransfer after previously submitting an incorrect form and the export status is '$consignmentStatus'" in {
-        val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-        val incompleteTransferConfirmationForm = Seq(("openRecords", "true"))
-        setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
-        setConsignmentReferenceResponse(wiremockServer)
-        setConsignmentTypeResponse(wiremockServer, "standard")
+        s"render the confirm transfer 'already confirmed' page with an authenticated user if the $userType user navigates back to the " +
+          s"confirmTransfer after previously submitting an incorrect form and the export status is '$consignmentStatus'" in {
+          val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
+          val incompleteTransferConfirmationForm = Seq(("openRecords", "true"))
+          setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+          setConsignmentReferenceResponse(wiremockServer)
+          setConsignmentTypeResponse(wiremockServer, "standard")
 
-        val ctAlreadyConfirmedPage = controller.finalTransferConfirmationSubmit(consignmentId)
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-            .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
-            .withCSRFToken)
-        val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
+          val ctAlreadyConfirmedPage = controller.finalTransferConfirmationSubmit(consignmentId)
+            .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
+              .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
+              .withCSRFToken)
+          val ctAlreadyConfirmedPageAsString = contentAsString(ctAlreadyConfirmedPage)
 
-        playStatus(ctAlreadyConfirmedPage) mustBe OK
-        contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
-        headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+          playStatus(ctAlreadyConfirmedPage) mustBe OK
+          contentType(ctAlreadyConfirmedPage) mustBe Some("text/html")
+          headers(ctAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
-        checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
-      }
-    }
-
-    forAll(consignmentStatuses) { consignmentStatus =>
-      s"render the transfer 'already confirmed' page with an authenticated judgment user if export status is '$consignmentStatus'" in {
-        val controller =
-          instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-        setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
-        setConsignmentReferenceResponse(wiremockServer)
-        setConsignmentTypeResponse(wiremockServer, "judgment")
-
-        val transferAlreadyCompletedPage = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
-          .apply(FakeRequest(GET, f"/judgment/$consignmentId/file-checks-results").withCSRFToken)
-        val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
-
-        playStatus(transferAlreadyCompletedPage) mustBe OK
-        contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
-        headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-
-        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = "judgment")
-        checkForCommonElementsOnConfirmationPage(transferAlreadyCompletedPageAsString, transferType = "judgment")
-      }
-    }
-
-    forAll(consignmentStatuses) { consignmentStatus =>
-      "render the confirm transfer 'already confirmed' page with an authenticated judgment user if the user navigates back to the " +
-        s"confirmTransfer after previously successfully submitting the transfer and the export status is '$consignmentStatus'" in {
-        val controller =
-          instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-        setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
-        setConsignmentReferenceResponse(wiremockServer)
-        setConsignmentTypeResponse(wiremockServer, "judgment")
-
-        val transferAlreadyCompletedPage = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
-          .apply(FakeRequest(POST, f"/judgment/$consignmentId/file-checks-results").withCSRFToken)
-        val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
-
-        playStatus(transferAlreadyCompletedPage) mustBe OK
-        contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
-        headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-
-        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = "judgment")
-        checkForCommonElementsOnConfirmationPage(transferAlreadyCompletedPageAsString, transferType = "judgment")
-      }
-    }
-
-    forAll(consignmentStatuses) { consignmentStatus =>
-      "render the confirm transfer 'already confirmed' page with an authenticated user if the judgment user navigates back to the " +
-        s"confirmTransfer after previously submitting an incorrect form and the export status is '$consignmentStatus'" in {
-        val controller =
-          instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-        val incompleteTransferConfirmationForm = Seq()
-        setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
-        setConsignmentReferenceResponse(wiremockServer)
-        setConsignmentTypeResponse(wiremockServer, "judgment")
-
-        val transferAlreadyCompletedPage = controller.finalJudgmentTransferConfirmationSubmit(consignmentId)
-          .apply(FakeRequest(POST, f"/judgment/$consignmentId/file-checks-results")
-            .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
-            .withCSRFToken)
-        val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
-
-        playStatus(transferAlreadyCompletedPage) mustBe OK
-        contentType(transferAlreadyCompletedPage) mustBe Some("text/html")
-        headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-
-        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = "judgment")
-        checkForCommonElementsOnConfirmationPage(transferAlreadyCompletedPageAsString, transferType = "judgment")
+          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(ctAlreadyConfirmedPageAsString, userType = "standard")
+          checkForCommonElementsOnConfirmationPage(ctAlreadyConfirmedPageAsString)
+        }
       }
     }
   }

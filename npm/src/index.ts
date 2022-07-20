@@ -38,6 +38,8 @@ export const renderModules = async () => {
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
+  const timeoutDialog: HTMLDialogElement | null =
+    document.querySelector(".timeout-dialog")
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
@@ -46,14 +48,9 @@ export const renderModules = async () => {
       const authModule = await import("./auth")
       const keycloak = await authModule.getKeycloakInstance()
       if (!errorHandlingModule.isError(keycloak)) {
-        const graphQlModule = await import("./graphql")
-        const graphqlClient = new graphQlModule.GraphqlClient(
-          frontEndInfo.apiUrl,
-          keycloak
-        )
         const metadataUploadModule = await import("./clientfilemetadataupload")
         const clientFileProcessing =
-          new metadataUploadModule.ClientFileMetadataUpload(graphqlClient)
+          new metadataUploadModule.ClientFileMetadataUpload()
         const consignmentStatusModule = await import(
           "./updateconsignmentstatus"
         )
@@ -62,7 +59,7 @@ export const renderModules = async () => {
         )
         const uploadModule = await import("./upload")
         const updateConsignmentStatus =
-          new consignmentStatusModule.UpdateConsignmentStatus(graphqlClient)
+          new consignmentStatusModule.UpdateConsignmentStatus()
         new uploadModule.FileUploader(
           clientFileProcessing,
           updateConsignmentStatus,
@@ -84,19 +81,16 @@ export const renderModules = async () => {
       const authModule = await import("./auth")
       const keycloak = await authModule.getKeycloakInstance()
       if (!errorHandlingModule.isError(keycloak)) {
-        const graphQlModule = await import("./graphql")
-        const graphqlClient = new graphQlModule.GraphqlClient(
-          frontEndInfo.apiUrl,
-          keycloak
-        )
         const isJudgmentUser = keycloak.tokenParsed?.judgment_user
         const fileChecksModule = await import("./filechecks")
         const nextPageModule = await import(
           "./nextpageredirect/next-page-redirect"
         )
-        const resultOrError = new fileChecksModule.FileChecks(
-          graphqlClient
-        ).updateFileCheckProgress(isJudgmentUser, nextPageModule.goToNextPage)
+        const resultOrError =
+          new fileChecksModule.FileChecks().updateFileCheckProgress(
+            isJudgmentUser,
+            nextPageModule.goToNextPage
+          )
         if (errorHandlingModule.isError(resultOrError)) {
           errorHandlingModule.handleUploadError(resultOrError)
         }
@@ -106,5 +100,8 @@ export const renderModules = async () => {
     } else {
       errorHandlingModule.handleUploadError(frontEndInfo)
     }
+  } else if (timeoutDialog) {
+    const sessionTimeoutModule = await import("./auth/session-timeout")
+    await sessionTimeoutModule.initialiseSessionTimeout()
   }
 }
