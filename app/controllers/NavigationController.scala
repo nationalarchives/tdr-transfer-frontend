@@ -22,7 +22,8 @@ class NavigationController @Inject()(securityComponents: SecurityComponents) ext
         )(NodesToDisplay.apply)(NodesToDisplay.unapply)
     ),
    "previouslySelected" -> text,
-   "selected" -> list(text)
+   "selected" -> list(text),
+   "pageSelected" -> text
   )(NodesFormData.apply)(NodesFormData.unapply))
 
   def navigation(previouslySelectedIds: String = ""): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
@@ -42,12 +43,12 @@ class NavigationController @Inject()(securityComponents: SecurityComponents) ext
       val successFunction: NodesFormData => Result = { formData: NodesFormData =>
         val selected: String = formData.selected.mkString(",")
         val previouslySelectedIds: String = formData.previouslySelected + selected
-        println(s"Previously selected Ids: $previouslySelectedIds")
+        val currentPage: String = formData.pageSelected
 
         Ok(views.html.navigation(
           navigationForm.fill(
             NodesFormData(ids.map(
-              id => NodesToDisplay(id.toString, s"ID $id")), previouslySelectedIds, List())), List("A", "B", "C")))
+              id => NodesToDisplay(id.toString, s"ID $id")), previouslySelectedIds, List(), currentPage)), List("A", "B", "C")))
       }
 
       val formValidationResult: Form[NodesFormData] = navigationForm.bindFromRequest()
@@ -61,5 +62,6 @@ class NavigationController @Inject()(securityComponents: SecurityComponents) ext
 
 case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay],
                          previouslySelected: String,
-                         selected: List[String])
+                         selected: List[String],
+                         pageSelected: String = "A")
 case class NodesToDisplay(nodeIdStr: String, displayName: String, isSelected: Boolean = false)

@@ -21,15 +21,23 @@
                     Select
                 </button>
             </div>
+            <nav class="govuk-pagination" role="navigation" aria-label="results">
+                <ul class="govuk-pagination__list">
             @for(page <- pagesToDisplay) {
-                <div>
-                    <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="@page">
-                    Page @page
+                <li class="govuk-pagination__item @if(nodesFormData.value.get.pageSelected == page){govuk-pagination__item--current}">
+                    <button id="pageSelected" name="pageSelected" data-prevent-double-click="true" class="govuk-link govuk-pagination__link"
+                            type="submit" data-module="govuk-button" role="link" value="@page">
+                        @page
                     </button>
-                </div>
+                </li>
             }
+                </ul>
+            </nav>
+            <div>
+                <p>Current page is @{nodesFormData.value.get.pageSelected}</p>
+                <p>Previously selected ids are: @{nodesFormData.value.get.previouslySelected}</p>
+            </div>
 
         }
     </div>
-
 }
