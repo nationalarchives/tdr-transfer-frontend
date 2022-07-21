@@ -45,3 +45,10 @@
   padding-left: 30px;
   padding-right: 30px;
 }
+
+.govuk-pagination__item > button {
+  background: none!important;
+  border: none;
+  padding: 0!important;
+  cursor: pointer;
+}
