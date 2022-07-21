@@ -52,7 +52,8 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
       ),
       "previouslySelected" -> text,
       "selected" -> list(text),
-      "pageSelected" -> number
+      "pageSelected" -> number,
+      "folderSelected" -> text
     )(NodesFormData.apply)(NodesFormData.unapply))
 
   def getPaginatedFiles(consignmentId: UUID, page: Int, limit: Option[Int], selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId)
@@ -67,7 +68,7 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
 
         val edges = paginatedFiles.paginatedFiles.edges.get.flatten
 
-        val nodesToDisplay = generateNodesToDisplay(edges, List())
+        val nodesToDisplay = generateNodesToDisplay(edges, Set())
 
         Ok(views.html.standard.additionalMetadata(
           consignmentId,
@@ -80,7 +81,7 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
           page,
           selectedFolderId,
           paginatedFiles.paginatedFiles.edges.get.flatten,
-          navigationForm.fill(NodesFormData(nodesToDisplay, previouslySelectedIds, selected = List(), page)))
+          navigationForm.fill(NodesFormData(nodesToDisplay, previouslySelectedIds, selected = List(), page, selectedFolderId.toString)))
         )
       }
   }
@@ -88,16 +89,10 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
   def submit(consignmentId: UUID, page: Int, limit: Option[Int], selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId)
   { implicit request: Request[AnyContent] =>
     val errorFunction: Form[NodesFormData] => Future[Result]  = { formWithErrors: Form[NodesFormData] =>
+      println(formWithErrors.value.get.folderSelected)
       println("ERROR")
-      val selected: String = formWithErrors.value.get.selected.mkString(",")
-      println("Current Selection: " + selected)
-      val previouslySelectedIds: String = formWithErrors.value.get.previouslySelected + selected + ","
-      val pageToGo = formWithErrors.value.get.goToPage
-      println("Page to Go: " + pageToGo)
       consignmentService.getConsignmentPaginatedFile(consignmentId, page - 1, limit, selectedFolderId, request.token.bearerAccessToken)
         .map { paginatedFiles =>
-          val edges = paginatedFiles.paginatedFiles.edges.get.flatten
-          println("All Selection: " + previouslySelectedIds)
           Ok(views.html.standard.additionalMetadata(
             consignmentId,
             "consignmentReference",
@@ -117,15 +112,17 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
       val selected: String = formData.selected.mkString(",")
       println("Current Selection: " + selected)
       val previouslySelectedIds: String = formData.previouslySelected + selected + ","
-      val pageToGo = formData.goToPage
+      val pageToGo = formData.pageSelected
       println("Page to Go: " + pageToGo)
-      consignmentService.getConsignmentPaginatedFile(consignmentId, pageToGo -1, limit, selectedFolderId, request.token.bearerAccessToken)
+      val folderSelected = formData.folderSelected
+      consignmentService.getConsignmentPaginatedFile(consignmentId, pageToGo -1, limit, UUID.fromString(folderSelected), request.token.bearerAccessToken)
         .map { paginatedFiles =>
           val edges: List[PaginatedFiles.Edges] = paginatedFiles.paginatedFiles.edges.get.flatten
           println("All Selection: " + previouslySelectedIds)
 
-          val ids: List[String] = previouslySelectedIds.split(",").toList
-          println("Total Selection: " + ids.length)
+          val ids: Set[String] = previouslySelectedIds.split(",").toSet.filter(_.nonEmpty)
+          println("Total Selection: " + ids.size)
+          ids.foreach(println)
 
           val nodesToDisplay = generateNodesToDisplay(edges, ids)
 
@@ -140,7 +137,7 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
             pageToGo,
             selectedFolderId,
             paginatedFiles.paginatedFiles.edges.get.flatten,
-            navigationForm.fill(NodesFormData(nodesToDisplay, previouslySelectedIds, List(), pageToGo)))
+            navigationForm.fill(NodesFormData(nodesToDisplay, previouslySelectedIds, List(), pageToGo, folderSelected)))
           )
         }
     }
@@ -152,7 +149,7 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
     )
   }
 
-  private def generateNodesToDisplay(edges: List[PaginatedFiles.Edges], ids: List[String]): List[NodesToDisplay] = {
+  private def generateNodesToDisplay(edges: List[PaginatedFiles.Edges], ids: Set[String]): List[NodesToDisplay] = {
     edges.map(edge => {
       val isSelected = ids.contains(edge.node.fileId.toString)
       val isFolder = edge.node.fileType.get == "Folder"
@@ -166,5 +163,5 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
   }
 }
 
-case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay], previouslySelected: String, selected: List[String], goToPage: Int)
+case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay], previouslySelected: String, selected: List[String], pageSelected: Int, folderSelected: String)
 case class NodesToDisplay(nodeIdStr: String, displayName: String, isSelected: Boolean = false, isFolder: Boolean = false)
