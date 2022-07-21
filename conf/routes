@@ -30,6 +30,7 @@ GET         /consignment/:consignmentId/confirm-transfer                   contr
 POST        /consignment/:consignmentId/confirm-transfer                   controllers.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/transfer-complete                  controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/download-report                    controllers.TransferCompleteController.downloadReport(consignmentId: java.util.UUID, ref: String)
+GET         /consignment/:consignmentId/additional-metadata                controllers.AdditionalMetadataController.start(consignmentId: java.util.UUID)
 GET         /signed-out                                                    controllers.SignOutController.signedOut()
 
 GET         /keycloak.json                                                 controllers.KeycloakConfigurationController.keycloak()

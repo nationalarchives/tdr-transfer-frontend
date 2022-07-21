@@ -35,7 +35,8 @@ export const getFileChecksProgress: () => Promise<
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Csrf-Token": csrfInput.value
+        "Csrf-Token": csrfInput.value,
+        "X-Requested-With": "XMLHttpRequest"
       }
     }).catch((err) => {
       return Error(err)
