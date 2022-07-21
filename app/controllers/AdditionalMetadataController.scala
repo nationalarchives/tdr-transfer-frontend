@@ -2,6 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
@@ -25,7 +26,7 @@ class AdditionalMetadataController @Inject () (val consignmentService: Consignme
       }
     } yield response
 import play.api.data.Form
-import play.api.data.Forms.{boolean, list, mapping, nonEmptyText, seq, text}
+import play.api.data.Forms.{boolean, list, mapping, nonEmptyText, number, seq, text}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ConsignmentService
@@ -45,11 +46,13 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
         mapping(
           "nodeIdStr" -> nonEmptyText,
           "displayName" -> nonEmptyText,
-          "isSelected" -> boolean
+          "isSelected" -> boolean,
+          "isFolder" -> boolean
         )(NodesToDisplay.apply)(NodesToDisplay.unapply)
       ),
       "previouslySelected" -> text,
-      "selected" -> list(text)
+      "selected" -> list(text),
+      "pageSelected" -> number
     )(NodesFormData.apply)(NodesFormData.unapply))
 
   def getPaginatedFiles(consignmentId: UUID, page: Int, limit: Option[Int], selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId)
@@ -64,6 +67,8 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
 
         val edges = paginatedFiles.paginatedFiles.edges.get.flatten
 
+        val nodesToDisplay = generateNodesToDisplay(edges, List())
+
         Ok(views.html.standard.additionalMetadata(
           consignmentId,
           "consignmentRef", //Use An actual reference
@@ -75,19 +80,24 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
           page,
           selectedFolderId,
           paginatedFiles.paginatedFiles.edges.get.flatten,
-          navigationForm.fill(NodesFormData(edges.map(edge =>
-            NodesToDisplay(edge.node.fileId.toString, edge.node.fileName.get)), previouslySelectedIds, selected = List())))
+          navigationForm.fill(NodesFormData(nodesToDisplay, previouslySelectedIds, selected = List(), page)))
         )
       }
   }
   //scalastyle:off
   def submit(consignmentId: UUID, page: Int, limit: Option[Int], selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId)
   { implicit request: Request[AnyContent] =>
-    val ids = Seq(6, 7, 8, 9)
     val errorFunction: Form[NodesFormData] => Future[Result]  = { formWithErrors: Form[NodesFormData] =>
-//      Ok(views.html.standard.additionalMetadata(navigationForm.fill(NodesFormData(ids.map(id => NodesToDisplay(id.toString, s"ID $id")), "", List()))))
+      println("ERROR")
+      val selected: String = formWithErrors.value.get.selected.mkString(",")
+      println("Current Selection: " + selected)
+      val previouslySelectedIds: String = formWithErrors.value.get.previouslySelected + selected + ","
+      val pageToGo = formWithErrors.value.get.goToPage
+      println("Page to Go: " + pageToGo)
       consignmentService.getConsignmentPaginatedFile(consignmentId, page - 1, limit, selectedFolderId, request.token.bearerAccessToken)
         .map { paginatedFiles =>
+          val edges = paginatedFiles.paginatedFiles.edges.get.flatten
+          println("All Selection: " + previouslySelectedIds)
           Ok(views.html.standard.additionalMetadata(
             consignmentId,
             "consignmentReference",
@@ -104,17 +114,21 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
     }
 
     val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
-      println(formData)
-      consignmentService.getConsignmentPaginatedFile(consignmentId, page - 1, limit, selectedFolderId, request.token.bearerAccessToken)
+      val selected: String = formData.selected.mkString(",")
+      println("Current Selection: " + selected)
+      val previouslySelectedIds: String = formData.previouslySelected + selected + ","
+      val pageToGo = formData.goToPage
+      println("Page to Go: " + pageToGo)
+      consignmentService.getConsignmentPaginatedFile(consignmentId, pageToGo -1, limit, selectedFolderId, request.token.bearerAccessToken)
         .map { paginatedFiles =>
-          val selected: String = formData.selected.mkString(",")
-          println("Current Selection: " + selected)
-          val previouslySelectedIds: String = formData.previouslySelected + selected + ","
-          val edges = paginatedFiles.paginatedFiles.edges.get.flatten
+          val edges: List[PaginatedFiles.Edges] = paginatedFiles.paginatedFiles.edges.get.flatten
           println("All Selection: " + previouslySelectedIds)
 
-          //      Ok(views.html.standard.additionalMetadata(navigationForm.
-          //      fill(NodesFormData(ids.map(id => NodesToDisplay(id.toString, s"ID $id")), previouslySelectedIds, List()))))
+          val ids: List[String] = previouslySelectedIds.split(",").toList
+          println("Total Selection: " + ids.length)
+
+          val nodesToDisplay = generateNodesToDisplay(edges, ids)
+
           Ok(views.html.standard.additionalMetadata(
             consignmentId,
             "consignmentReference",
@@ -123,10 +137,10 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
             paginatedFiles.totalFiles,
             paginatedFiles.paginatedFiles.totalPages.get,
             limit,
-            page, selectedFolderId,
+            pageToGo,
+            selectedFolderId,
             paginatedFiles.paginatedFiles.edges.get.flatten,
-            navigationForm.fill(NodesFormData(edges.map(edge =>
-              NodesToDisplay(edge.node.fileId.toString, edge.node.fileName.get)), previouslySelectedIds, List())))
+            navigationForm.fill(NodesFormData(nodesToDisplay, previouslySelectedIds, List(), pageToGo)))
           )
         }
     }
@@ -137,7 +151,20 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
       successFunction
     )
   }
+
+  private def generateNodesToDisplay(edges: List[PaginatedFiles.Edges], ids: List[String]): List[NodesToDisplay] = {
+    edges.map(edge => {
+      val isSelected = ids.contains(edge.node.fileId.toString)
+      val isFolder = edge.node.fileType.get == "Folder"
+      NodesToDisplay(
+        edge.node.fileId.toString,
+        edge.node.fileName.get,
+        isSelected,
+        isFolder
+      )
+    })
+  }
 }
 
-case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay], previouslySelected: String, selected: List[String])
-case class NodesToDisplay(nodeIdStr: String, displayName: String, isSelected: Boolean = false)
+case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay], previouslySelected: String, selected: List[String], goToPage: Int)
+case class NodesToDisplay(nodeIdStr: String, displayName: String, isSelected: Boolean = false, isFolder: Boolean = false)

@@ -35,27 +35,25 @@
                         Search
                     </a>
                 </div>*@
-
+                @form(action = routes.AdditionalMetadataController.submit(consignmentId, currentPage, limit, selectedFolderId)) {
+                    @CSRF.formField
+                <input type="hidden" id="previouslySelected" name="previouslySelected" value="@{nodesFormData.value.get.previouslySelected}"/>
                 <section id="page-@currentPage">
                     <p class="govuk-pagination__results">Showing <b>1</b> to <b>@files.length</b> of <b>@totalFiles</b> results</p>
                     <table class="govuk-table">
                         <tbody class="govuk-table__body">
-                        @files.map { item =>
+                        @nodesFormData.value.get.nodesToDisplay.map { node =>
                             <tr class="govuk-table__row">
                                 <td class="govuk-table__cell">
                                     <div class="govuk-checkboxes__item">
-                                        <input class="govuk-checkboxes__input" id="@item.node.fileId" name="@item.node.fileName" type="checkbox" value="@item.node.fileId">
-                                        <label class="govuk-label govuk-checkboxes__label" for="@item.node.fileId">
-                                            @{
-                                                val isFolder = item.node.fileType.get == "Folder"
-                                                val link = if(isFolder) {
-                                                    routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, page = 1, limit, item.node.fileId)
-                                                } else {
-                                                    //Should Add Link to edit Metadata
-                                                    routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, page = 4, limit, item.node.fileId)
-                                                }
-                                                <a href={s"$link"}>
-                                                {if(isFolder)"📁" else "📊"}{item.node.fileName.get}</a>
+                                        <input class="govuk-checkboxes__input" id="@node.nodeIdStr" name="selected[]" type="checkbox" value="@node.nodeIdStr" @{if(node.isSelected) "checked"}>
+                                        <label class="govuk-label govuk-checkboxes__label" for="@node.nodeIdStr">
+                                            @if(node.isFolder) {
+                                                <button name="pageSelected" data-prevent-double-click="true" type="submit" role="button" value="1">
+                                                📁 @node.displayName
+                                                </button>
+                                            } else {
+                                                📊 @node.displayName
                                             }
                                         </label>
                                     </div>
@@ -69,36 +67,50 @@
                 <nav class="govuk-pagination" role="navigation" aria-label="results">
                     @if(currentPage != 1) {
                         <div class="govuk-pagination__prev">
-                            <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage-1, limit, selectedFolderId)" rel="prev">
+                            <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="@{currentPage - 1}">
+                                Previous
+                            </button>
+@*                            <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage-1, limit, selectedFolderId)" rel="prev">
                                 <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
                                     <path d=""></path>
                                 </svg>
-                                <span class="govuk-pagination__link-title">Previous</span></a>
+                                <span class="govuk-pagination__link-title">Previous</span></a>*@
                         </div>
                     }
                     <ul class="govuk-pagination__list">
                         @for(page <- 1 to totalPages){
                             <li class="govuk-pagination__item @if(currentPage == page){govuk-pagination__item--current}">
-                                <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, page, limit, selectedFolderId)" aria-label="Page "@page aria-current="page">
+                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-link govuk-pagination__link" type="submit" data-module="govuk-button" role="button" value="@{page}">
                                 @page
-                                </a>
+                                </button>
+@*                                <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, page, limit, selectedFolderId)" aria-label="Page "@page aria-current="page">
+                                @page
+                                </a>*@
                             </li>
                         }
                     </ul>
                     @if(currentPage != totalPages) {
                         <div class="govuk-pagination__next">
-                            <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage + 1, limit, selectedFolderId)"> <span class="govuk-pagination__link-title">
+                            <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="@{currentPage + 1}">
+                                Next
+                            </button>
+@*                            <a class="govuk-link govuk-pagination__link" href="@routes.AdditionalMetadataController.getPaginatedFiles(consignmentId, currentPage + 1, limit, selectedFolderId)"> <span class="govuk-pagination__link-title">
                                 Next</span> <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
                                 <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
-                            </svg></a>
+                            </svg></a>*@
                         </div>
                     }
                 </nav>
+                }
+            </div>
+        </div>
+    }
+}
 
-                <div class="govuk-form-group ">
+@*                <div class="govuk-form-group ">
                 @form(action = routes.AdditionalMetadataController.submit(consignmentId, currentPage, limit, selectedFolderId)) {
                     @CSRF.formField
-@*                    @for(temp <- nodesFormData.value.get.nodesToDisplay){
+*@@*                    @for(temp <- nodesFormData.value.get.nodesToDisplay){
                         @checkbox(
                             nodesFormData("selected"),
                             Symbol("_label") -> temp.displayName,
@@ -110,7 +122,7 @@
                             Symbol("_value") -> temp.nodeIdStr,
                             Symbol("_checkedOption") -> ""
                         )
-                    }*@
+                    }*@@*
                     <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
                     @inputCheckboxGroup(
                         nodesFormData("selected"),
@@ -126,9 +138,4 @@
                         </button>
                     </div>
                 }
-                </div>
-            </div>
-@*            transferReference("consignmentRef", isJudgmentUser = false)*@
-        </div>
-    }
-}
+                </div>*@
