@@ -69,7 +69,7 @@ class FormTester(options: Map[String, (String, String)], smallCheckbox: String="
        |                $checkedStatus
        |                class="govuk-checkboxes__input"
        |                id="$name"
-       |                name="$name"
+       |                name="inputcheckbox-$name"
        |                type="checkbox"
        |                value="true"
        |                $disabledStatus />
