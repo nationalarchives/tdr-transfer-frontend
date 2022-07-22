@@ -57,6 +57,7 @@
                                 fieldToApplyToFile.fieldHint,
                                 fieldToApplyToFile.fieldOptions,
                                 "number",
+                                fieldToApplyToFile.fieldError,
                                 "numeric"
                             )
                             case "Text" =>
@@ -80,7 +81,8 @@
                                         fieldToApplyToFile.fieldLabel,
                                         fieldToApplyToFile.fieldHint,
                                         fieldToApplyToFile.fieldOptions,
-                                        "text"
+                                        "text",
+                                        fieldToApplyToFile.fieldError
                                     )
                                 }
                         }
