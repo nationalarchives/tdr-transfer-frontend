@@ -23,7 +23,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       dependencyProperty => {
         val (options, selectedOption) = generateFieldOptions(dependencyProperty, dependencyProperty.dataType)
         FieldValues(
-          dependencyProperty.name,
+          dependencyProperty.name.toLowerCase(),
           fieldOptions=options,
           selectedFieldOption=selectedOption,
           multiValueSelect=if(dependencyProperty.multiValue) true else false,
@@ -49,15 +49,19 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   private def generateFieldOptions(property: CustomMetadata, dataType: DataType): (Seq[(String, String)], Option[Seq[(String, String)]]) =
     dataType match {
       case Boolean =>
-        val radioOptions = Seq(("Yes", "true"), ("No", "false"))
-        val optionThatShouldBeSelected = getDefaultValue(radioOptions, property.defaultValue)
+        val radioOptions = Seq(("Yes", "yes"), ("No", "no"))
+        val defaultValue = property.defaultValue match {
+          case Some("True") => Some("yes")
+          case _ => Some("no")
+        }
+        val optionThatShouldBeSelected = getDefaultValue(radioOptions, defaultValue)
         (radioOptions, optionThatShouldBeSelected)
       case DateTime =>
-        val blankDate = Seq(("Day", "DD"), ("Month", "MM"), ("Year", "YYYY"))
-        (blankDate, Some(blankDate))
+        val blankDates = Seq(("Day", "DD"), ("Month", "MM"), ("Year", "YYYY"))
+        (blankDates, Some(blankDates))
       case Integer =>
-        val numberBoxSuffixAndValue = Seq(("years", "0"))
-        val numberBoxSuffixAndValueThatShouldBePresent = Seq(("years", property.defaultValue.getOrElse("0")))
+        val numberBoxSuffixAndValue = Seq(("years", property.defaultValue.getOrElse("0")))
+        val numberBoxSuffixAndValueThatShouldBePresent = Seq(("years", "0"))
         (numberBoxSuffixAndValue, Some(numberBoxSuffixAndValueThatShouldBePresent))
       case Text =>
         if(property.propertyType == Defined) {
@@ -109,4 +113,4 @@ case class FieldValues(fieldId: String,
                        fieldLabel: String,
                        fieldHint: String,
                        fieldRequired: Boolean=true,
-                       fieldErrors: List[String]=Nil)
+                       fieldError: List[String]=Nil)

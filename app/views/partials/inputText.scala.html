@@ -1,5 +1,12 @@
-
-@(inputTextLabel: String, inputTextHint: String, suffixText: String="", inputType: String, defaultText: String, inputTextDataType: String="none")
+@(fieldId: String, inputTextLabel: String, inputTextHint: String, fieldOptions: Seq[(String, String)], inputType: String, enteredOptions: Option[Seq[(String, String)]], inputTextDataType: String="text")
+@suffixText = @{fieldOptions.head._1}
+@defaultText = @{fieldOptions.head._2}
+@enteredText = @{
+    enteredOptions match {
+        case Some(Seq((suffixText: String, enteredText: String))) => enteredText
+        case _ => ""
+    }
+}
 <div class="govuk-form-group">
     <h2 class="govuk-label-wrapper">
         <label class="govuk-label govuk-label--m" for=@suffixText>
@@ -14,8 +21,9 @@
             <input
                 class="govuk-input govuk-input--width-5"
                 id=@suffixText
-                name=@suffixText
+                name=input@inputTextDataType-@fieldId-@suffixText.toLowerCase()
                 type=@inputType
+                value="@enteredText"
                 placeholder=@defaultText
                 inputmode=@inputTextDataType
             >

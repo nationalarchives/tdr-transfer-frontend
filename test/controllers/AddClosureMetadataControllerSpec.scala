@@ -1,5 +1,6 @@
 package controllers
 
+import akka.Done
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
@@ -15,6 +16,7 @@ import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Play.materializer
+import play.api.cache.AsyncCacheApi
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
@@ -23,7 +25,9 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.util.UUID
-import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -109,14 +113,15 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
-
+    val cache: AsyncCacheApi = MockAsyncCacheApi()
 
     new AddClosureMetadataController(
       securityComponents,
       new GraphQLConfiguration(app.configuration),
       getValidStandardUserKeycloakConfiguration,
       consignmentService,
-      customMetadataService
+      customMetadataService,
+      cache
     )
   }
 
@@ -179,4 +184,18 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           List(
             Values("mock code1", List()), Values("mock code2", List())))))
   }
+}
+
+case class MockAsyncCacheApi()(implicit val ec: ExecutionContext) extends AsyncCacheApi {
+  override def set(key: String, value: Any, expiration: Duration): Future[Done] = {
+    Future(Done)
+  }
+
+  override def remove(key: String): Future[Done] = ???
+
+  override def getOrElseUpdate[A](key: String, expiration: Duration)(orElse: => Future[A])(implicit evidence$1: ClassTag[A]): Future[A] = ???
+
+  override def get[T](key: String)(implicit evidence$2: ClassTag[T]): Future[Option[T]] = ???
+
+  override def removeAll(): Future[Done] = ???
 }

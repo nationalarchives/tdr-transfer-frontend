@@ -20,14 +20,15 @@
                 <p class="govuk-body">Enter metadata for closure fields here.</p>
                 @errorSummary(
                     fieldsToApplyToFile.collect{
-                        case (fieldToApplyToFile, dataType) if fieldToApplyToFile.fieldErrors.nonEmpty =>
-                            (fieldToApplyToFile.fieldId, fieldToApplyToFile.fieldErrors)
+                        case (fieldToApplyToFile, dataType) if fieldToApplyToFile.fieldError.nonEmpty =>
+                            (fieldToApplyToFile.fieldId, fieldToApplyToFile.fieldError)
                     }.toMap
                 )
                 @form(
-                    routes.ConfirmTransferController.confirmTransfer(consignmentId),
+                    routes.AddClosureMetadataController.addClosureMetadataSubmit(consignmentId),
                     (Symbol("novalidate"), "")
                 ) {
+                    @CSRF.formField
                     @for((fieldToApplyToFile, dataType) <- fieldsToApplyToFile) {
                         @{dataType match {
                             case "Boolean" => inputRadioGroup(
@@ -39,22 +40,30 @@
                                     Symbol("_requiredOption") -> fieldToApplyToFile.fieldRequired,
                                     Symbol("_largeOption") -> true,
                                     Symbol("_newlineOption") -> true,
-                                    Symbol("_disabledOption") -> ""
+                                    Symbol("_disabledOption") -> "",
+                                    Symbol("_dynamicForm") -> true
                                 ),
-                                fieldToApplyToFile.fieldErrors
+                                fieldToApplyToFile.fieldError
                             )
-                            case "DateTime" => inputDate(fieldToApplyToFile.fieldLabel, fieldToApplyToFile.fieldHint, fieldToApplyToFile.fieldOptions)
-                            case "Decimal" | "Integer" => inputText(
+                            case "DateTime" => inputDate(
+                                fieldToApplyToFile.fieldId,
                                 fieldToApplyToFile.fieldLabel,
                                 fieldToApplyToFile.fieldHint,
-                                fieldToApplyToFile.fieldOptions.head._1,
+                                fieldToApplyToFile.fieldOptions,
+                                fieldToApplyToFile.selectedFieldOption,
+                                fieldToApplyToFile.fieldError
+                            )
+                            case "Decimal" | "Integer" => inputText(
+                                fieldToApplyToFile.fieldId,
+                                fieldToApplyToFile.fieldLabel,
+                                fieldToApplyToFile.fieldHint,
+                                fieldToApplyToFile.fieldOptions,
                                 "number",
-                                fieldToApplyToFile.fieldOptions.head._2,
+                                fieldToApplyToFile.selectedFieldOption,
                                 "numeric"
                             )
                             case "Text" =>
                                 if(fieldToApplyToFile.multiValueSelect) {
-                                    println(fieldsToApplyToFile)
                                     //could theoretically be a checkbox or radio (since radios are not always boolean)
                                     inputDropdown(
                                         fieldToApplyToFile.fieldId,
@@ -63,17 +72,19 @@
                                         Map(
                                             Symbol("_label") -> fieldToApplyToFile.fieldLabel,
                                             Symbol("_largeLabelAndHint") -> fieldToApplyToFile.fieldHint,
-                                            Symbol("_disabledOption") -> ""
+                                            Symbol("_disabledOption") -> "",
+                                            Symbol("_dynamicForm") -> true
                                         ),
-                                        fieldToApplyToFile.fieldErrors
+                                        fieldToApplyToFile.fieldError
                                     )
                                 } else {
                                     inputText(
+                                        fieldToApplyToFile.fieldId,
                                         fieldToApplyToFile.fieldLabel,
                                         fieldToApplyToFile.fieldHint,
-                                        fieldToApplyToFile.fieldOptions.head._1,
-                                        fieldToApplyToFile.fieldOptions.head._2,
-                                        "text"
+                                        fieldToApplyToFile.fieldOptions,
+                                        "text",
+                                        fieldToApplyToFile.selectedFieldOption
                                     )
                                 }
                         }

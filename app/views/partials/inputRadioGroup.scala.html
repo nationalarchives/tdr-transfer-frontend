@@ -24,10 +24,10 @@ fieldErrors: List[String]
             <div class="govuk-radios__item">
                 <input
                         class="govuk-radios__input"
-                        id="@fieldId@value"
-                        name="@fieldId"
+                        id="@fieldId-@value"
+                        name="inputradio-@fieldId"
                         type="radio"
-                        value="@value"
+                        value="@label"
                         @isDisabled
                         @{if(label == selectedRadioOption.head._1) "checked" else ""}
                         @attributes.requiredInput()

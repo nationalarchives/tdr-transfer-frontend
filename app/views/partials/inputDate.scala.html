@@ -1,6 +1,24 @@
-@(dateInputHeading: String, dateInputHint: String, dateOptions: Seq[(String, String)])
+@(fieldId: String,
+dateInputHeading: String,
+dateInputHint: String,
+dateOptions: Seq[(String, String)],
+enteredDateOptions: Option[Seq[(String, String)]],
+fieldErrors: List[String])(implicit messages: Messages)
 
-<div class="govuk-form-group">
+@import views.html.partials.errorMessage
+
+@enteredDates = @{enteredDateOptions.getOrElse(Seq())}
+@enteredDatesWithPlaceholderText = @{
+    dateOptions.map {
+        case (unitOfTime, placeholder) => (
+            unitOfTime,
+            enteredDates.toMap.getOrElse(unitOfTime.toLowerCase(), ""),
+            placeholder
+        )
+    }
+}
+
+<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
     <fieldset class="govuk-fieldset" role="group" aria-describedby="date-input-hint">
         <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
             <h2 class="govuk-label govuk-label--m">
@@ -10,19 +28,29 @@
         <div id="date-input-hint" class="govuk-hint">
             @dateInputHint
         </div>
+            @errorMessage(fieldId, fieldErrors)
         <div class="govuk-date-input" id="">
-            @for((dateOption, placeholderText) <- dateOptions) {
+            @for((dateOption, value, placeholderText) <- enteredDatesWithPlaceholderText) {
                 <div class="govuk-date-input__item">
                     <div class="govuk-form-group">
                         <label class="govuk-label govuk-date-input__label" for="date-input-@{dateOption.toLowerCase()}">
                             @dateOption
                         </label>
-                        <input class="govuk-input govuk-date-input__input govuk-input--width-@{if(placeholderText.length > 2) placeholderText.length - 1 else placeholderText.length}"
+                        <input class="govuk-input
+                                      govuk-date-input__input
+                                      govuk-input--width-@{if(placeholderText.length > 2) placeholderText.length - 1 else placeholderText.length}
+                                      @{if(fieldErrors.headOption
+                                              .getOrElse("")
+                                              .toLowerCase()
+                                              .contains(dateOption.toLowerCase())
+                                      ) "govuk-input--error" else ""
+                                      }"
                                id="date-input-@{dateOption.toLowerCase()}"
-                               name="date-input-day-@{dateOption.toLowerCase()}"
+                               name="inputdate-@fieldId-@dateOption.toLowerCase()"
+                               value="@value"
                                type="number"
                                inputmode="numeric"
-                               placeholder="@{placeholderText.toLowerCase()}"
+                               placeholder="@placeholderText.toLowerCase()"
                                maxlength="@placeholderText.length"
                         >
                     </div>

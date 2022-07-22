@@ -1,7 +1,7 @@
 package controllers.util
 
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
-import graphql.codegen.types.DataType.{Boolean, DateTime, Text}
+import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -11,17 +11,17 @@ import org.scalatestplus.mockito.MockitoSugar
 import scala.collection.immutable.ListSet
 
 class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
-  private val allProperties: List[CustomMetadata] = (1 to 10).toList.map(
+  private val dataType = List(Text, DateTime)
+  val allProperties: List[CustomMetadata] = (1 to 10).toList.map(
     number => {
-      val dataType = List(Text, DateTime)
-      val numberOfValues = number % 4
+      val numberOfValues = number % 5
       CustomMetadata(
         s"TestProperty$number",
         Some(s"It's the Test Property $number"),
         Some(s"Test Property $number"),
-        if(numberOfValues > 2) {Defined} else Supplied,
+        if(numberOfValues > 2) Defined else Supplied,
         Some(s"Test Property Group $number"),
-        if(numberOfValues == 2) {Boolean} else dataType(number % dataType.length),
+        if(numberOfValues == 1) {Integer} else if(numberOfValues == 2) {Boolean} else dataType(number % dataType.length),
         editable = true,
         multiValue = if(numberOfValues > 1) {true} else {false},
         Some(s"TestValue $number"),
@@ -66,9 +66,10 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
 
   "getValuesOfProperties" should "return the values for a given property" in {
     val namesOfPropertiesAndTheirExpectedValues = Map(
-      "TestProperty5" -> List("TestValue 1"),
-      "TestProperty5" -> List("TestValue 1", "TestValue 2", "TestValue 3"),
-      "TestProperty5" -> List("TestValue 1")
+      "TestProperty1" -> List("TestValue 1"),
+      "TestProperty2" -> List("TestValue 1", "TestValue 2"),
+      "TestProperty3" -> List("TestValue 1", "TestValue 2", "TestValue 3"),
+      "TestProperty8" -> List("TestValue 1", "TestValue 2", "TestValue 3"),
     )
 
     val actualPropertiesAndTheirValues: Map[String, List[CustomMetadata.Values]] =
@@ -96,9 +97,8 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
 
     propertiesToConvertToFields.foreach{
       property =>
-        val field = allFieldValues(property.name).head
-
-        field.fieldId should equal(property.name)
+        val field = allFieldValues(property.name.toLowerCase()).head
+        field.fieldId should equal(property.name.toLowerCase())
         if(property.dataType == DateTime) field.fieldOptions.length should equal(3) else field.fieldOptions.length should equal(property.values.length)
         field.fieldHint should equal(property.description.getOrElse(""))
         field.fieldLabel should equal(property.fullName.get)
