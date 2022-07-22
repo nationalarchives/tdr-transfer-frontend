@@ -1,0 +1,38 @@
+@import views.html.partials.{transferReference, progressIndicator}
+@import java.util.UUID
+
+@(parentFolder: String, consignmentRef: String, consignmentId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
+@main(title = "Add, edit or delete metadata", name = name) {
+  @defining(play.core.PlayVersion.current) { version =>
+    @progressIndicator(Messages("additionalMetadataStart.progress"))
+    <div class="govuk-grid-row additional-metadata-start">
+      <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">Add, edit or delete metadata</h1>
+        <h2 class="govuk-heading-s">Folder uploaded: @parentFolder</h2>
+        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records. Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>
+
+        <div class="nhsuk-card nhsuk-card--clickable">
+          <div class="nhsuk-card__content">
+            <h2 class="nhsuk-card__heading nhsuk-heading-m">
+              <a class="nhsuk-card__link" href="#">Descriptive metadata</a>
+            </h2>
+            <p class="nhsuk-card__description">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>
+          </div>
+        </div>
+        <p>
+        <div class="nhsuk-card nhsuk-card--clickable">
+          <div class="nhsuk-card__content">
+            <h2 class="nhsuk-card__heading nhsuk-heading-m">
+              <a class="nhsuk-card__link" href="#">Closure metadata</a>
+            </h2>
+            <p class="nhsuk-card__description">If you'd like to add or edit closure metadata to your records, you can do so here.</p>
+          </div>
+        </div>
+        <a href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          Continue
+        </a>
+      </div>
+      @transferReference(consignmentRef, isJudgmentUser = false)
+    </div>
+  }
+}

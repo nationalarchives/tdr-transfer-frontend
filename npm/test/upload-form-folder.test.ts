@@ -1,4 +1,4 @@
-import { enableFetchMocks } from "jest-fetch-mock"
+import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 enableFetchMocks()
 import "@testing-library/jest-dom"
 
@@ -20,12 +20,13 @@ import { displaySelectionSuccessMessage } from "../src/upload/form/update-and-di
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 beforeEach(() => {
+  fetchMock.resetMocks()
+  fetchMock.mockResponse(JSON.stringify({updateConsignmentStatus: 1}))
   document.body.innerHTML = htmlForFolderUploadForm
 })
 
 test("clicking the submit button, without selecting a folder, doesn't reveal the progress bar and disable the buttons on the page", async () => {
   const mockDom = new MockUploadFormDom()
-
   const submitEvent = mockDom.createSubmitEvent()
   await expect(mockDom.form.handleFormSubmission(submitEvent)).resolves.toEqual(
     Error("A submission was made without an item being selected")

@@ -1,23 +1,12 @@
-import { GraphqlClient } from "../graphql"
-
 import {
-  UpdateConsignmentStatus as UCS,
   ConsignmentStatusInput,
-  UpdateConsignmentStatusMutation,
-  UpdateConsignmentStatusMutationVariables
+  UpdateConsignmentStatusMutation
 } from "@nationalarchives/tdr-generated-graphql"
 
-import { FetchResult } from "@apollo/client/core"
 import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
 
 export class UpdateConsignmentStatus {
-  client: GraphqlClient
-
-  constructor(client: GraphqlClient) {
-    this.client = client
-  }
-
   async markUploadStatusAsCompleted(
     uploadFilesInfo: FileUploadInfo
   ): Promise<number | void | Error> {
@@ -26,30 +15,30 @@ export class UpdateConsignmentStatus {
       statusType: "Upload",
       statusValue: "Completed"
     }
-    const variables: UpdateConsignmentStatusMutationVariables = {
-      updateConsignmentStatusInput
-    }
-
-    const result: FetchResult<UpdateConsignmentStatusMutation> | Error =
-      await this.client.mutation(UCS, variables).catch((err) => {
-        return err
-      })
+    const csrfInput: HTMLInputElement = document.querySelector(
+      "input[name='csrfToken']"
+    )!
+    const result: Response | Error = await fetch("/update-consignment-status", {
+      credentials: "include",
+      method: "POST",
+      body: JSON.stringify(updateConsignmentStatusInput),
+      headers: {
+        "Content-Type": "application/json",
+        "Csrf-Token": csrfInput.value,
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    }).catch((err) => {
+      return Error(err)
+    })
 
     if (isError(result)) {
       return result
+    } else if (result.status != 200) {
+      return Error(`Update consignment status failed: ${result.statusText}`)
     } else {
-      if (
-        !result.data ||
-        !result.data.updateConsignmentStatus ||
-        result.errors
-      ) {
-        const errorMessage: string = result.errors
-          ? result.errors.toString()
-          : "no data"
-        return Error(errorMessage)
-      } else {
-        return result.data.updateConsignmentStatus
-      }
+      const response: UpdateConsignmentStatusMutation =
+        (await result.json()) as UpdateConsignmentStatusMutation
+      return response.updateConsignmentStatus!
     }
   }
 }

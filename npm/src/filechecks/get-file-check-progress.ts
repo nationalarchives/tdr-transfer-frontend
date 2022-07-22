@@ -1,10 +1,8 @@
 import {
-  GetFileCheckProgress,
+  Consignment,
   GetFileCheckProgressQuery,
   GetFileCheckProgressQueryVariables
 } from "@nationalarchives/tdr-generated-graphql"
-import { FetchResult } from "@apollo/client/core"
-import { GraphqlClient } from "../graphql"
 import { isError } from "../errorhandling"
 
 export interface IFileCheckProgress {
@@ -23,33 +21,40 @@ export const getConsignmentId: () => string | Error = () => {
   return consignmentIdElement.value
 }
 
-export const getFileChecksProgress: (
-  client: GraphqlClient
-) => Promise<IFileCheckProgress | Error> = async (client) => {
+export const getFileChecksProgress: () => Promise<
+  IFileCheckProgress | Error
+> = async () => {
   const consignmentId = getConsignmentId()
   if (!isError(consignmentId)) {
-    const variables: GetFileCheckProgressQueryVariables = {
-      consignmentId
-    }
+    const csrfInput: HTMLInputElement = document.querySelector(
+      "input[name='csrfToken']"
+    )!
 
-    const result: FetchResult<GetFileCheckProgressQuery> =
-      await client.mutation(GetFileCheckProgress, variables)
+    const result: Response | Error = await fetch("file-check-progress", {
+      credentials: "include",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Csrf-Token": csrfInput.value,
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    }).catch((err) => {
+      return Error(err)
+    })
 
-    if (!result.data || result.errors) {
-      const errorMessage: string = result.errors
-        ? result.errors.toString()
-        : "no data"
-      return Error(`Add files failed: ${errorMessage}`)
+    if (isError(result)) {
+      return result
+    } else if (result.status != 200) {
+      return Error(`Add client file metadata failed: ${result.statusText}`)
     } else {
-      const getConsignment = result.data.getConsignment
-
-      if (getConsignment) {
-        const fileChecks = getConsignment.fileChecks
+      const response = (await result.json()) as Consignment
+      if (response) {
+        const fileChecks = response.fileChecks
         return {
           antivirusProcessed: fileChecks.antivirusProgress.filesProcessed,
           checksumProcessed: fileChecks.checksumProgress.filesProcessed,
           ffidProcessed: fileChecks.ffidProgress.filesProcessed,
-          totalFiles: getConsignment.totalFiles
+          totalFiles: response.totalFiles
         }
       } else {
         return Error(
