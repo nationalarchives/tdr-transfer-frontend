@@ -58,8 +58,8 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
         val optionThatShouldBeSelected = getDefaultValue(radioOptions, defaultValue)
         (radioOptions, optionThatShouldBeSelected)
       case DateTime =>
-        val blankDate = Seq(("Day", "DD"), ("Month", "MM"), ("Year", "YYYY"))
-        (blankDate, Some(blankDate))
+        val blankDates = Seq(("Day", "DD"), ("Month", "MM"), ("Year", "YYYY"))
+        (blankDates, Some(blankDates))
       case Integer =>
         val numberBoxSuffixAndValue = Seq(("years", "0"))
         val numberBoxSuffixAndValueThatShouldBePresent = Seq(("years", property.defaultValue.getOrElse("0")))
