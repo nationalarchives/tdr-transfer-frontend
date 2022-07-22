@@ -1,6 +1,6 @@
 @* dropdownOptions as Tuple until data model clearer *@
 
-@(fieldId: String,
+@(fieldName: String,
 dropdownOptions: Seq[(String, String)],
 selectedDropdownOption: Seq[(String, String)],
 attributes: Map[Symbol, Any],
@@ -13,7 +13,8 @@ fieldErrors: Seq[Any]
 @defaultDropdownOption = @{selectedDropdownOption.head}
 @disabledStatus = {@attributes.get(Symbol("_disabledOption"))}
 @largeLabelAndHint = @{attributes.getOrElse(Symbol("_largeLabelAndHint"), "")}
-
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
+@fieldId = @{if(isDynamicForm) s"inputdropdown-$fieldName" else fieldName}
 <div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
 @if(largeLabelAndHint != "") {
     <h2 class="govuk-label-wrapper">
