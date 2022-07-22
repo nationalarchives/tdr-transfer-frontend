@@ -1,6 +1,6 @@
 @(fieldId: String,
 attributes: Map[Symbol, Any],
-fieldErrors: Seq[String]
+fieldError: Seq[String]
 )(implicit messages: Messages)
 
 @import views.html.partials.errorMessage
@@ -12,8 +12,8 @@ fieldErrors: Seq[String]
 @checkedStatus = {@attributes.get(Symbol("_checkedOption"))}
 @isSmallCheckbox = {@attributes.get(Symbol("_smallCheckbox"))}
 
-    <div class="govuk-checkboxes @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
-        @errorMessage(fieldId, fieldErrors)
+    <div class="govuk-checkboxes @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
+        @errorMessage(fieldId, fieldError)
         <div class='govuk-checkboxes__item@if(isSmallCheckbox.toString() == "true"){ govuk-checkboxes--small}'>
             <input
                 @checkedStatus

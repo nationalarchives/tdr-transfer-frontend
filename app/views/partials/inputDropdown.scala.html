@@ -4,7 +4,7 @@
 dropdownOptions: Seq[(String, String)],
 selectedDropdownOption: Seq[(String, String)],
 attributes: Map[Symbol, Any],
-fieldErrors: Seq[Any]
+fieldError: Seq[Any]
 )(implicit messages: Messages)
 
 @import viewsapi.FormFunctions._
@@ -15,7 +15,7 @@ fieldErrors: Seq[Any]
 @largeLabelAndHint = @{attributes.getOrElse(Symbol("_largeLabelAndHint"), "")}
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @fieldId = @{if(isDynamicForm) s"inputdropdown-$fieldName" else fieldName}
-<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+<div class="govuk-form-group @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
 @if(largeLabelAndHint != "") {
     <h2 class="govuk-label-wrapper">
         <label class="govuk-label govuk-label--m" for="@fieldId">
@@ -33,7 +33,7 @@ fieldErrors: Seq[Any]
         @attributes.requiredLabelSuffix()
     </label>
 }
-    @errorMessage(fieldId, fieldErrors)
+    @errorMessage(fieldId, fieldError)
     <select class="govuk-select" id="@fieldId" name="@fieldId" @attributes.requiredInput() @disabledStatus>
         @if(disabledStatus.toString() != "disabled") {
             @if(defaultDropdownOption._1 == "") {

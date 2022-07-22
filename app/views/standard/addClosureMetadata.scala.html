@@ -19,8 +19,8 @@
                 <p class="govuk-body">Enter metadata for closure fields here.</p>
                 @errorSummary(
                     fieldsToApplyToFile.collect{
-                        case (fieldToApplyToFile, dataType) if fieldToApplyToFile.fieldErrors.nonEmpty =>
-                            (fieldToApplyToFile.fieldId, fieldToApplyToFile.fieldErrors)
+                        case (fieldToApplyToFile, dataType) if fieldToApplyToFile.fieldError.nonEmpty =>
+                            (fieldToApplyToFile.fieldId, fieldToApplyToFile.fieldError)
                     }.toMap
                 )
                 @form(
@@ -41,7 +41,7 @@
                                     Symbol("_newlineOption") -> true,
                                     Symbol("_disabledOption") -> ""
                                 ),
-                                fieldToApplyToFile.fieldErrors
+                                fieldToApplyToFile.fieldError
                             )
                             case "DateTime" => inputDate(
                                 fieldToApplyToFile.fieldId,
@@ -49,7 +49,7 @@
                                 fieldToApplyToFile.fieldHint,
                                 fieldToApplyToFile.fieldOptions,
                                 fieldToApplyToFile.selectedFieldOption,
-                                fieldToApplyToFile.fieldErrors
+                                fieldToApplyToFile.fieldError
                             )
                             case "Decimal" | "Integer" => inputText(
                                 fieldToApplyToFile.fieldId,
@@ -72,7 +72,7 @@
                                             Symbol("_disabledOption") -> "",
                                             Symbol("_dynamicForm") -> true
                                         ),
-                                        fieldToApplyToFile.fieldErrors
+                                        fieldToApplyToFile.fieldError
                                     )
                                 } else {
                                     inputText(

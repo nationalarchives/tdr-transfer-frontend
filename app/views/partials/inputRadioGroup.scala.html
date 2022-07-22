@@ -2,7 +2,7 @@
 radioOptions: Seq[(String, String)],
 selectedRadioOption: Seq[(String, String)],
 attributes: Map[Symbol, Any],
-fieldErrors: List[String]
+fieldError: List[String]
 )(implicit messages: Messages)
 
 @import viewsapi.FormFunctions._
@@ -12,12 +12,12 @@ fieldErrors: List[String]
 @radioOptionsSize = @{if(attributes.get(Symbol("_largeOption")).contains(true)) "" else "govuk-radios--small"}
 @optionSize = @{if(attributes.get(Symbol("_newlineOption")).contains(true)) "" else "govuk-radios--inline"}
 
-<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+<div class="govuk-form-group @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
     <fieldset class="govuk-fieldset">
         <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
             @attributes.get(Symbol("_label"))
         </legend>
-        @errorMessage(fieldId, fieldErrors)
+        @errorMessage(fieldId, fieldError)
         <div class="govuk-radios" @radioOptionsSize @optionSize id="@fieldId">
             @radioOptions.map {case (label, value) =>
             <div class="govuk-radios__item">
