@@ -50,8 +50,12 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   private def generateFieldOptions(property: CustomMetadata, dataType: DataType): (Seq[(String, String)], Option[Seq[(String, String)]]) =
     dataType match {
       case Boolean =>
-        val radioOptions = Seq(("Yes", "true"), ("No", "false"))
-        val optionThatShouldBeSelected = getDefaultValue(radioOptions, property.defaultValue)
+        val radioOptions = Seq(("Yes", "yes"), ("No", "no"))
+        val defaultValue = property.defaultValue match {
+          case Some("True") => Some("yes")
+          case _ => Some("no")
+        }
+        val optionThatShouldBeSelected = getDefaultValue(radioOptions, defaultValue)
         (radioOptions, optionThatShouldBeSelected)
       case DateTime =>
         val blankDate = Seq(("Day", "DD"), ("Month", "MM"), ("Year", "YYYY"))
