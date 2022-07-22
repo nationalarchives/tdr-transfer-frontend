@@ -61,8 +61,8 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
         val blankDates = Seq(("Day", "DD"), ("Month", "MM"), ("Year", "YYYY"))
         (blankDates, Some(blankDates))
       case Integer =>
-        val numberBoxSuffixAndValue = Seq(("years", "0"))
-        val numberBoxSuffixAndValueThatShouldBePresent = Seq(("years", property.defaultValue.getOrElse("0")))
+        val numberBoxSuffixAndValue = Seq(("years", property.defaultValue.getOrElse("0")))
+        val numberBoxSuffixAndValueThatShouldBePresent = Seq(("years", "0"))
         (numberBoxSuffixAndValue, Some(numberBoxSuffixAndValueThatShouldBePresent))
       case Text =>
         if(property.propertyType == Defined) {
