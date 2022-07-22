@@ -24,7 +24,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       dependencyProperty => {
         val (options, selectedOption) = generateFieldOptions(dependencyProperty, dependencyProperty.dataType)
         FieldValues(
-          dependencyProperty.name,
+          dependencyProperty.name.toLowerCase(),
           fieldOptions=options,
           selectedFieldOption=selectedOption,
           multiValueSelect=dependencyProperty.multiValue,
