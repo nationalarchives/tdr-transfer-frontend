@@ -43,8 +43,9 @@
                                 ),
                                 fieldToApplyToFile.fieldErrors
                             )
-                            case "DateTime" => inputDate(fieldToApplyToFile.fieldLabel, fieldToApplyToFile.fieldHint, fieldToApplyToFile.fieldOptions)
+                            case "DateTime" => inputDate(fieldToApplyToFile.fieldId, fieldToApplyToFile.fieldLabel, fieldToApplyToFile.fieldHint, fieldToApplyToFile.fieldOptions)
                             case "Decimal" | "Integer" => inputText(
+                                fieldToApplyToFile.fieldId,
                                 fieldToApplyToFile.fieldLabel,
                                 fieldToApplyToFile.fieldHint,
                                 fieldToApplyToFile.fieldOptions.head._1,
@@ -68,6 +69,7 @@
                                     )
                                 } else {
                                     inputText(
+                                        fieldToApplyToFile.fieldId,
                                         fieldToApplyToFile.fieldLabel,
                                         fieldToApplyToFile.fieldHint,
                                         fieldToApplyToFile.fieldOptions.head._1,
