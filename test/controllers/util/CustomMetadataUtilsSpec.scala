@@ -96,9 +96,8 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
 
     propertiesToConvertToFields.foreach{
       property =>
-        val field = allFieldValues(property.name).head
-
-        field.fieldId should equal(property.name)
+        val field = allFieldValues(property.name.toLowerCase()).head
+        field.fieldId should equal(property.name.toLowerCase())
         if(property.dataType == DateTime) field.fieldOptions.length should equal(3) else field.fieldOptions.length should equal(property.values.length)
         field.fieldHint should equal(property.description.getOrElse(""))
         field.fieldLabel should equal(property.fullName.get)
