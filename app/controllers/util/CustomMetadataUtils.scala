@@ -113,5 +113,5 @@ object CustomMetadataUtils {
                          fieldLabel: String,
                          fieldHint: String,
                          fieldRequired: Boolean=true,
-                         fieldErrors: List[String]=Nil)
+                         fieldError: List[String]=Nil)
 }

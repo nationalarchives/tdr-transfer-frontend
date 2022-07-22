@@ -3,7 +3,7 @@ dateInputHeading: String,
 dateInputHint: String,
 dateOptions: Seq[(String, String)],
 enteredDateOptions: Option[Seq[(String, String)]],
-fieldErrors: List[String])(implicit messages: Messages)
+fieldError: List[String])(implicit messages: Messages)
 
 @import views.html.partials.errorMessage
 
@@ -18,7 +18,7 @@ fieldErrors: List[String])(implicit messages: Messages)
     }
 }
 
-<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+<div class="govuk-form-group @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
     <fieldset class="govuk-fieldset" role="group" aria-describedby="date-input-hint">
         <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
             <h2 class="govuk-label govuk-label--m">
@@ -28,7 +28,7 @@ fieldErrors: List[String])(implicit messages: Messages)
         <div id="date-input-hint" class="govuk-hint">
             @dateInputHint
         </div>
-            @errorMessage(fieldId, fieldErrors)
+            @errorMessage(fieldId, fieldError)
         <div class="govuk-date-input" id="">
             @for((dateOption, value, placeholderText) <- enteredDatesWithPlaceholderText) {
                 <div class="govuk-date-input__item">
@@ -39,7 +39,7 @@ fieldErrors: List[String])(implicit messages: Messages)
                         <input class="govuk-input
                                       govuk-date-input__input
                                       govuk-input--width-@{if(placeholderText.length > 2) placeholderText.length - 1 else placeholderText.length}
-                                      @{if(fieldErrors.headOption
+                                      @{if(fieldError.headOption
                                               .getOrElse("")
                                               .toLowerCase()
                                               .contains(dateOption.toLowerCase())
