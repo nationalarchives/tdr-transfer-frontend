@@ -1,4 +1,4 @@
-@(inputTextLabel: String, inputTextHint: String, suffixText: String="", inputType: String, defaultText: String, inputTextDataType: String="text")
+@(fieldId: String, inputTextLabel: String, inputTextHint: String, suffixText: String="", inputType: String, defaultText: String, inputTextDataType: String="text")
 <div class="govuk-form-group">
     <h2 class="govuk-label-wrapper">
         <label class="govuk-label govuk-label--m" for=@suffixText>
@@ -13,7 +13,7 @@
             <input
                 class="govuk-input govuk-input--width-5"
                 id=@suffixText
-                name=@suffixText
+                name=input@inputTextDataType-@fieldId-@suffixText.toLowerCase()
                 type=@inputType
                 placeholder=@defaultText
                 inputmode=@inputTextDataType
