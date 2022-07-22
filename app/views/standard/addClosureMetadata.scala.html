@@ -43,7 +43,13 @@
                                 ),
                                 fieldToApplyToFile.fieldErrors
                             )
-                            case "DateTime" => inputDate(fieldToApplyToFile.fieldId, fieldToApplyToFile.fieldLabel, fieldToApplyToFile.fieldHint, fieldToApplyToFile.fieldOptions)
+                            case "DateTime" => inputDate(
+                                fieldToApplyToFile.fieldId,
+                                fieldToApplyToFile.fieldLabel,
+                                fieldToApplyToFile.fieldHint,
+                                fieldToApplyToFile.fieldOptions,
+                                fieldToApplyToFile.selectedFieldOption
+                            )
                             case "Decimal" | "Integer" => inputText(
                                 fieldToApplyToFile.fieldId,
                                 fieldToApplyToFile.fieldLabel,
