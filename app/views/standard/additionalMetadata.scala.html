@@ -46,11 +46,13 @@
                             <tr class="govuk-table__row">
                                 <td class="govuk-table__cell">
                                     <div class=@{if(!node.isFolder)"govuk-checkboxes__item" else ""}>
+                                        <input type='hidden' id="@node.nodeIdStr" name='allNodes[]' value="@node.nodeIdStr">
                                         <input class="govuk-checkboxes__input" id="@node.nodeIdStr" name="selected[]" type="checkbox" value="@node.nodeIdStr" @{if(node.isSelected) "checked"}>
                                         <label class="govuk-label govuk-checkboxes__label" for="@node.nodeIdStr">
                                             @if(node.isFolder) {
-                                                <button name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="@node.nodeIdStr">
-                                                📁 @node.displayName
+                                                📁
+                                                <button id="folderSelected" name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="@node.nodeIdStr">
+                                                @node.displayName
                                                 </button>
                                             } else {
                                                 📊 @node.displayName
@@ -101,6 +103,7 @@
                         </div>
                     }
                 </nav>
+                    @*These hidden fields need to be at the bottom because POST requests will call the first Input*@
                     <input type="hidden" id="pageSelected" name="pageSelected" value="1"/>
                     <input type="hidden" id="folderSelected" name="folderSelected" value="@{nodesFormData.value.get.folderSelected}"/>
                 }
