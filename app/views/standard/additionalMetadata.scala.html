@@ -3,7 +3,7 @@
 @import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles.Edges
 @import views.html.partials.transferReference
 @import views.html.partials.inputSingleCheckbox
-@(consignmentId: UUID, consignmentReference: String, name: String, parentFolder:String, totalFiles: Int, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, files: List[Edges], nodesFormData: Form[NodesFormData])(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentReference: String, name: String, parentFolder:String, totalFiles: Int, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, nodesFormData: Form[NodesFormData])(implicit messages: Messages, request: RequestHeader)
 @main("Additional Metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
@@ -39,7 +39,7 @@
                     @CSRF.formField
                 <input type="hidden" id="previouslySelected" name="previouslySelected" value="@{nodesFormData.value.get.previouslySelected}"/>
                 <section id="page-@currentPage">
-                    <p class="govuk-pagination__results">Showing <b>1</b> to <b>@files.length</b> of <b>@totalFiles</b> results</p>
+                    <p class="govuk-pagination__results">Showing <b>1</b> to <b>@nodesFormData.value.get.nodesToDisplay.length</b> of <b>@totalFiles</b> results</p>
                     <table class="govuk-table">
                         <tbody class="govuk-table__body">
                         @nodesFormData.value.get.nodesToDisplay.map { node =>
