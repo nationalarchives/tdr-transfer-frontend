@@ -81,7 +81,6 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
           limit,
           page,
           selectedFolderId,
-          paginatedFiles.paginatedFiles.edges.get.flatten,
           navigationForm.fill(NodesFormData(nodesToDisplay, previouslySelectedIds, selected = List(), List(), page, selectedFolderId.toString)))
         )
       }
@@ -90,7 +89,6 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
   def submit(consignmentId: UUID, page: Int, limit: Option[Int], selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId)
   { implicit request: Request[AnyContent] =>
     val errorFunction: Form[NodesFormData] => Future[Result]  = { formWithErrors: Form[NodesFormData] =>
-      println(formWithErrors.value.get.folderSelected)
       println("ERROR")
       consignmentService.getConsignmentPaginatedFile(consignmentId, page - 1, limit, selectedFolderId, request.token.bearerAccessToken)
         .map { paginatedFiles =>
@@ -102,8 +100,8 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
             paginatedFiles.totalFiles,
             paginatedFiles.paginatedFiles.totalPages.get,
             limit,
-            page, selectedFolderId,
-            paginatedFiles.paginatedFiles.edges.get.flatten,
+            page,
+            selectedFolderId,
             formWithErrors)
           )
         }
@@ -116,37 +114,17 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
       consignmentService.getConsignmentPaginatedFile(consignmentId, pageToGo -1, limit, UUID.fromString(folderSelected), request.token.bearerAccessToken)
         .map { paginatedFiles =>
           val edges: List[PaginatedFiles.Edges] = paginatedFiles.paginatedFiles.edges.get.flatten
-
-          val selected = formData.selected.mkString(",")
+          val selected = formData.selected//.mkString(",")
           println("Current Selection:" + selected)
           val allNodes = formData.allNodes//.mkString(",")
           println("All Nodes:" + allNodes)
 
-          //compare the selected node ids against allNodes and filter out the selected nodes from that list
-//          val removeSelected = allNodes.filter(x => !selected.contains(x))
-//          println("removeSelected: " + removeSelected)
-          //remove all the filtered nodes from the previously selected ids / add the selected nodes
-
-          //Add the selected to the previouslySelected
-
-          val previouslySelectedIds: String = formData.previouslySelected + "," + selected
+          val previouslySelectedIds: String = formData.previouslySelected + "," + selected.mkString(",")
           println("All Selection: " + previouslySelectedIds)
 
-          //Filter out selected Nodes
-          val removeSelected = allNodes.filter(x => !selected.contains(x)).mkString(",")
-          println("remove selected:" + removeSelected)
+          val updatedSelection = handleDeselection(selected, formData.allNodes, previouslySelectedIds)
 
-          //Remove the Filtered Nodes from the PreviouslySelected
-          val removeFrom = previouslySelectedIds.split(",").toSet.filter(x => !removeSelected.contains(x))
-          println("Remove Filtered Nodes from previously selected:"+removeFrom)
-          //Add selected Nodes
-
-          val ids: Set[String] = previouslySelectedIds.split(",").toSet.filter(id => id.nonEmpty)
-/*          println("Total Selection: " + ids.size)
-          ids.foreach(println)*/
-
-          val nodesToDisplay = generateNodesToDisplay(edges, removeFrom)
-
+          val nodesToDisplay = generateNodesToDisplay(edges, updatedSelection)
 
           println("*******************")
 
@@ -160,8 +138,7 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
             limit,
             pageToGo,
             selectedFolderId,
-            paginatedFiles.paginatedFiles.edges.get.flatten,
-            navigationForm.fill(NodesFormData(nodesToDisplay, removeFrom.mkString(","), List(), List(), pageToGo, folderSelected)))
+            navigationForm.fill(NodesFormData(nodesToDisplay, updatedSelection.mkString(","), List(), List(), pageToGo, folderSelected)))
           )
         }
     }
@@ -171,6 +148,14 @@ class AdditionalMetadataController @Inject()(val controllerComponents: SecurityC
       errorFunction,
       successFunction
     )
+  }
+
+  private def handleDeselection(selected: List[String], allNodes: List[String], previouslySelectedIds: String): Set[String] = {
+    //Filter out selected Nodes
+    val allNodesWithoutSelection = allNodes.filter(x => !selected.contains(x)).mkString(",")
+    println("allNodesWithoutSelection:" + allNodesWithoutSelection)
+    //Remove the Filtered Nodes from the PreviouslySelected
+    previouslySelectedIds.split(",").toSet.filter(previouslySelectedId => !allNodesWithoutSelection.contains(previouslySelectedId))
   }
 
   private def generateNodesToDisplay(edges: List[PaginatedFiles.Edges], ids: Set[String]): List[NodesToDisplay] = {
