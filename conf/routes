@@ -32,6 +32,8 @@ POST        /consignment/:consignmentId/confirm-transfer                   contr
 GET         /consignment/:consignmentId/transfer-complete                  controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/download-report                    controllers.TransferCompleteController.downloadReport(consignmentId: java.util.UUID, ref: String)
 GET         /consignment/:consignmentId/additional-metadata                controllers.AdditionalMetadataController.start(consignmentId: java.util.UUID)
+GET         /consignment/:consignmentId/additional-metadata/:folderId/:page controllers.AdditionalMetadataController.getPaginatedFiles(consignmentId: java.util.UUID, page: Int, limit: Option[Int], folderId: java.util.UUID)
+POST        /consignment/:consignmentId/additional-metadata/:folderId/:page controllers.AdditionalMetadataController.submit(consignmentId: java.util.UUID, page: Int, limit: Option[Int], folderId: java.util.UUID)
 GET         /signed-out                                                    controllers.SignOutController.signedOut()
 
 GET         /keycloak.json                                                 controllers.KeycloakConfigurationController.keycloak()
