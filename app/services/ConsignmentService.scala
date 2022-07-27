@@ -137,8 +137,8 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
   def getConsignmentPaginatedFile(consignmentId: UUID, page: Int, limit: Option[Int],
                                   selectedFolderId: UUID, token: BearerAccessToken): Future[gcpf.GetConsignment] = {
-    val fileFiltersInput = Some(FileFilters(None, Some(selectedFolderId)))
-    val paginatedInput = Some(PaginationInput(limit, Some(page), None, fileFiltersInput)) //Some("BANANA.docx")
+    val fileFiltersInput = Some(FileFilters(None, None, parentId = Some(selectedFolderId)))
+    val paginatedInput = Some(PaginationInput(limit, Some(page), None, fileFiltersInput))
     val variables: gcpf.Variables = new gcpf.Variables(consignmentId, paginatedInput)
 
     sendApiRequest(getConsignmentPaginatedFilesClient, gcpf.document, token, variables)
