@@ -1,26 +1,26 @@
 package services
 
-import java.util.UUID
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles
+import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentReference.getConsignmentReference
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
-import graphql.codegen.types.{AddConsignmentInput, UpdateConsignmentSeriesIdInput}
-import graphql.codegen.{AddConsignment, GetConsignment, GetFileCheckProgress}
-
-import javax.inject.{Inject, Singleton}
+import graphql.codegen.types.{AddConsignmentInput, FileFilters, UpdateConsignmentSeriesIdInput}
+import graphql.codegen.{AddConsignment, GetConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
 import services.ApiErrorHandling._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -29,6 +29,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
   private val getFileCheckProgressClient = graphqlConfiguration.getClient[gfcp.Data, gfcp.Variables]()
   private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
+  private val getConsignmentFilesMetadataClient = graphqlConfiguration.getClient[gcfm.Data, gcfm.Variables]()
   private val addConsignmentClient = graphqlConfiguration.getClient[addConsignment.Data, addConsignment.Variables]()
   private val getConsignmentFileCheckClient = graphqlConfiguration.getClient[getFileCheckProgress.Data, getFileCheckProgress.Variables]()
   private val getConsignmentFolderDetailsClient = graphqlConfiguration.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()
@@ -54,6 +55,19 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
     val variables: getConsignment.Variables = new GetConsignment.getConsignment.Variables(consignmentId)
 
     sendApiRequest(getConsignmentClient, getConsignment.document, token, variables)
+      .map(data => data.getConsignment match {
+        case Some(consignment) => consignment
+        case None => throw new IllegalStateException(s"No consignment found for consignment $consignmentId")
+      })
+  }
+
+  def getConsignmentFileMetadata(consignmentId: UUID, token: BearerAccessToken, selectedFileIds: Option[List[UUID]] = None): Future[gcfm.GetConsignment] = {
+
+    val fileFilters = if (selectedFileIds.isEmpty) None else Some(FileFilters(None, selectedFileIds, None))
+    val variables: gcfm.Variables =
+      new GetConsignmentFilesMetadata.getConsignmentFilesMetadata.Variables(consignmentId, fileFilters)
+
+    sendApiRequest(getConsignmentFilesMetadataClient, gcfm.document, token, variables)
       .map(data => data.getConsignment match {
         case Some(consignment) => consignment
         case None => throw new IllegalStateException(s"No consignment found for consignment $consignmentId")
