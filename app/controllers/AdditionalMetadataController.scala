@@ -2,7 +2,6 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms.{boolean, list, mapping, nonEmptyText, number, seq, text}
@@ -11,7 +10,7 @@ import services.ConsignmentService
 
 import java.util.UUID
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class AdditionalMetadataController @Inject()(val consignmentService: ConsignmentService,
                                              val keycloakConfiguration: KeycloakConfiguration,
