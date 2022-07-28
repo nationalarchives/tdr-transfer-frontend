@@ -1,0 +1,63 @@
+@import views.html.partials.{transferReference}
+@import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.Metadata
+
+@(fileName: String, consignmentRef: String, metadata: Metadata, name: String)(implicit messages: Messages, request: RequestHeader)
+@main(title = "Edit metadata for a single file", name = name) {
+  @defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-xl">
+          Add or edit closure metadata for a single file
+        </h1>
+        <p class="govuk-body">You can now add new metadata fields or edit existing ones.</p>
+
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">
+              Name
+            </dt>
+            <dd class="govuk-summary-list__value">
+              @fileName
+            </dd>
+          </div>
+
+            <!-- closure stuff here -->
+          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+            <dt class="govuk-summary-list__key">
+              FOI decision asserted
+            </dt>
+            <dd class="govuk-summary-list__value">
+
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+            <dt class="govuk-summary-list__key">
+              Closure start date
+            </dt>
+            <dd class="govuk-summary-list__value">
+
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+            <dt class="govuk-summary-list__key">
+              Closure period
+            </dt>
+            <dd class="govuk-summary-list__value">
+
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+            <dt class="govuk-summary-list__key">
+              FOI example code
+            </dt>
+            <dd class="govuk-summary-list__value">
+              @metadata.foiExemptionCode
+            </dd>
+          </div>
+        </dl>
+      </div>
+      @transferReference(consignmentRef, isJudgmentUser = false)
+
+    </div>
+  }
+}
