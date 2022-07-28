@@ -79,9 +79,15 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       .willReturn(okJson(dataString)))
   }
 
-  def setConsignmentDetailsResponse(wiremockServer: WireMockServer, parentFolder: Option[String], consignmentReference: String = "TEST-TDR-2021-GB"): StubMapping = {
+  def setConsignmentDetailsResponse(
+                                     wiremockServer: WireMockServer,
+                                     parentFolder: Option[String],
+                                     consignmentReference: String = "TEST-TDR-2021-GB",
+                                     parentFolderId: Option[UUID]): StubMapping = {
     val folderOrNull = parentFolder.map(folder => s""" "$folder" """).getOrElse("null")
-    val dataString = s"""{"data": {"getConsignment": {"consignmentReference": "$consignmentReference", "parentFolder": $folderOrNull, "userid" : "${UUID.randomUUID()}", "seriesid": "${UUID.randomUUID()}"}}} """
+    val folderIdOrNull = parentFolderId.map(id => s""" "$id" """).getOrElse("null")
+    val dataString =
+      s"""{"data": {"getConsignment": {"consignmentReference": "$consignmentReference", "parentFolder": $folderOrNull, "parentFolderId": $folderIdOrNull, "userid" : "${UUID.randomUUID()}", "seriesid": "${UUID.randomUUID()}"}}} """
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .withRequestBody(containing("getConsignment($consignmentId:UUID!)"))
