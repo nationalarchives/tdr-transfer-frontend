@@ -6,7 +6,6 @@ import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms.{boolean, list, mapping, nonEmptyText, number, seq, text}
-import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ConsignmentService
 
@@ -16,9 +15,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AdditionalMetadataController @Inject()(val consignmentService: ConsignmentService,
                                              val keycloakConfiguration: KeycloakConfiguration,
-                                             val controllerComponents: SecurityComponents
-                                            )
-                                            (implicit val ec: ExecutionContext) extends TokenSecurity {//with I18nSupport
+                                             val controllerComponents: SecurityComponents)
+                                            (implicit val ec: ExecutionContext) extends TokenSecurity {
 
   val navigationForm: Form[NodesFormData] = Form(
     mapping(
@@ -52,43 +50,34 @@ class AdditionalMetadataController @Inject()(val consignmentService: Consignment
   { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentPaginatedFile(consignmentId, page - 1, limit, selectedFolderId, request.token.bearerAccessToken)
       .map { paginatedFiles =>
-        val totalFiles = paginatedFiles.totalFiles
         val totalPages = paginatedFiles.paginatedFiles.totalPages.get
         val parentFolder = paginatedFiles.parentFolder.get
-
         val previouslySelectedIds: String = ""
-
         val edges = paginatedFiles.paginatedFiles.edges.get.flatten
-
         val nodesToDisplay = generateNodesToDisplay(edges, Set())
 
         Ok(views.html.standard.additionalMetadata(
           consignmentId,
-          "consignmentRef", //Use An actual reference
           request.token.name,
           parentFolder,
-          totalFiles,
           totalPages,
           limit,
           page,
           selectedFolderId,
-          navigationForm.fill(NodesFormData(nodesToDisplay, previouslySelectedIds, selected = List(), List(), page, selectedFolderId.toString)))
+          navigationForm.fill(NodesFormData(nodesToDisplay, previouslySelectedIds, selected = List(), allNodes = List(), page, selectedFolderId.toString)))
         )
       }
   }
-  //scalastyle:off
+
   def submit(consignmentId: UUID, page: Int, limit: Option[Int], selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId)
   { implicit request: Request[AnyContent] =>
     val errorFunction: Form[NodesFormData] => Future[Result]  = { formWithErrors: Form[NodesFormData] =>
-      println("ERROR")
       consignmentService.getConsignmentPaginatedFile(consignmentId, page - 1, limit, selectedFolderId, request.token.bearerAccessToken)
         .map { paginatedFiles =>
           Ok(views.html.standard.additionalMetadata(
             consignmentId,
-            "consignmentReference",
             request.token.name,
             paginatedFiles.parentFolder.get,
-            paginatedFiles.totalFiles,
             paginatedFiles.paginatedFiles.totalPages.get,
             limit,
             page,
@@ -100,31 +89,20 @@ class AdditionalMetadataController @Inject()(val consignmentService: Consignment
 
     val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
       val pageToGo = formData.pageSelected
-      println("Page to Go: " + pageToGo)
       val folderSelected = formData.folderSelected
+      //PageToGo -1 so that the pagination number matches that of the page in the url
       consignmentService.getConsignmentPaginatedFile(consignmentId, pageToGo -1, limit, UUID.fromString(folderSelected), request.token.bearerAccessToken)
         .map { paginatedFiles =>
           val edges: List[PaginatedFiles.Edges] = paginatedFiles.paginatedFiles.edges.get.flatten
-          val selected = formData.selected//.mkString(",")
-          println("Current Selection:" + selected)
-          val allNodes = formData.allNodes//.mkString(",")
-          println("All Nodes:" + allNodes)
-
+          val selected = formData.selected
           val previouslySelectedIds: String = formData.previouslySelected + "," + selected.mkString(",")
-          println("All Selection: " + previouslySelectedIds)
-
           val updatedSelection = handleDeselection(selected, formData.allNodes, previouslySelectedIds)
-
           val nodesToDisplay = generateNodesToDisplay(edges, updatedSelection)
-
-          println("*******************")
 
           Ok(views.html.standard.additionalMetadata(
             consignmentId,
-            "consignmentReference",
             request.token.name,
             paginatedFiles.parentFolder.get,
-            paginatedFiles.totalFiles,
             paginatedFiles.paginatedFiles.totalPages.get,
             limit,
             pageToGo,
@@ -144,7 +122,6 @@ class AdditionalMetadataController @Inject()(val consignmentService: Consignment
   private def handleDeselection(selected: List[String], allNodes: List[String], previouslySelectedIds: String): Set[String] = {
     //Filter out selected Nodes
     val allNodesWithoutSelection = allNodes.filter(x => !selected.contains(x)).mkString(",")
-    println("allNodesWithoutSelection:" + allNodesWithoutSelection)
     //Remove the Filtered Nodes from the PreviouslySelected
     previouslySelectedIds.split(",").toSet.filter(previouslySelectedId => !allNodesWithoutSelection.contains(previouslySelectedId))
   }
@@ -163,5 +140,11 @@ class AdditionalMetadataController @Inject()(val consignmentService: Consignment
   }
 }
 
-case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay], previouslySelected: String, selected: List[String], allNodes: List[String], pageSelected: Int, folderSelected: String)
+case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay],
+                          previouslySelected: String,
+                          selected: List[String],
+                          allNodes: List[String],
+                          pageSelected: Int,
+                          folderSelected: String)
+
 case class NodesToDisplay(nodeIdStr: String, displayName: String, isSelected: Boolean = false, isFolder: Boolean = false)

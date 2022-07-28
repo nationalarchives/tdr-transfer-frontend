@@ -3,7 +3,7 @@
 @import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles.Edges
 @import views.html.partials.transferReference
 @import views.html.partials.inputSingleCheckbox
-@(consignmentId: UUID, consignmentReference: String, name: String, parentFolder:String, totalFiles: Int, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, nodesFormData: Form[NodesFormData])(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, name: String, folderUploaded:String, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, nodesFormData: Form[NodesFormData])(implicit messages: Messages, request: RequestHeader)
 @main("Additional Metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
@@ -11,14 +11,21 @@
                 <h1 class="govuk-heading-l">
                     Add or edit closure metadata on file basis
                 </h1>
+                <div class="govuk-warning-text">
+                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                    <strong class="govuk-warning-text__text">
+                        <span class="govuk-warning-text__assistive">Warning</span>
+                        Do not use your browsers back/forward buttons as this can lead to loss of data.
+                    </strong>
+                </div>
                 <p class="govuk-body">You can now add or edit closure metadata to individual files or folders.</p>
                 <p class="govuk-body">
                     Click on a particular file or folder to see what metadata is already captured and add or edit properties there.
                     For a bulk edit, first select files and/or folders and then choose an action from the menu.
                 </p>
-                <h2 class="app-task-list__section">Folder uploaded: @parentFolder</h2>
+                <h2 class="app-task-list__section">Folder uploaded: @folderUploaded</h2>
                 <div class="govuk-button-group">
-@*                    <button class="govuk-button govuk-button--secondary" data-module="govuk-button" type="button" name="selectAll" value="select-all" onclick="check_all()">
+@*                  <button class="govuk-button govuk-button--secondary" data-module="govuk-button" type="button" name="selectAll" value="select-all" onclick="check_all()">
                         Select all
                     </button>*@
 
@@ -26,26 +33,17 @@
                         Add closure properties
                     </a>
                 </div>
-@*                <div class="govuk-grid-row">
-                    <div class="govuk-grid-column-two-thirds">
-                        <input class="govuk-input" id="event-name" name="event-name" type="text" placeholder="Enter a file or folder name">
-                    </div>
-                    <div class="govuk-grid-column-one-third"></div>
-                    <a href="file-level#page-2" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-                        Search
-                    </a>
-                </div>*@
+
                 @form(action = routes.AdditionalMetadataController.submit(consignmentId, currentPage, limit, selectedFolderId)) {
                     @CSRF.formField
                 <input type="hidden" id="previouslySelected" name="previouslySelected" value="@{nodesFormData.value.get.previouslySelected}"/>
                 <section id="page-@currentPage">
-                    <p class="govuk-pagination__results">Showing <b>1</b> to <b>@nodesFormData.value.get.nodesToDisplay.length</b> of <b>@totalFiles</b> results</p>
                     <table class="govuk-table">
                         <tbody class="govuk-table__body">
                         @nodesFormData.value.get.nodesToDisplay.map { node =>
                             <tr class="govuk-table__row">
                                 <td class="govuk-table__cell">
-                                    <div class=@{if(!node.isFolder)"govuk-checkboxes__item" else ""}>
+                                    <div class="govuk-checkboxes__item">
                                         <input type='hidden' id="@node.nodeIdStr" name='allNodes[]' value="@node.nodeIdStr">
                                         <input class="govuk-checkboxes__input" id="@node.nodeIdStr" name="selected[]" type="checkbox" value="@node.nodeIdStr" @{if(node.isSelected) "checked"}>
                                         <label class="govuk-label govuk-checkboxes__label" for="@node.nodeIdStr">
@@ -104,6 +102,7 @@
                     }
                 </nav>
                     @*These hidden fields need to be at the bottom because POST requests will call the first Input*@
+                    @*Also needed because the form needs to be fully completed*@
                     <input type="hidden" id="pageSelected" name="pageSelected" value="1"/>
                     <input type="hidden" id="folderSelected" name="folderSelected" value="@{nodesFormData.value.get.folderSelected}"/>
                 }
@@ -111,36 +110,3 @@
         </div>
     }
 }
-
-@*                <div class="govuk-form-group ">
-                @form(action = routes.AdditionalMetadataController.submit(consignmentId, currentPage, limit, selectedFolderId)) {
-                    @CSRF.formField
-*@@*                    @for(temp <- nodesFormData.value.get.nodesToDisplay){
-                        @checkbox(
-                            nodesFormData("selected"),
-                            Symbol("_label") -> temp.displayName,
-                            Symbol("_value") -> temp.nodeIdStr
-                        )
-                        @inputSingleCheckbox(
-                            nodesFormData(temp.nodeIdStr),
-                            Symbol("_label") -> temp.displayName,
-                            Symbol("_value") -> temp.nodeIdStr,
-                            Symbol("_checkedOption") -> ""
-                        )
-                    }*@@*
-                    <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
-                    @inputCheckboxGroup(
-                        nodesFormData("selected"),
-                        options = nodesFormData.value.get.nodesToDisplay.map(d => d.nodeIdStr -> d.displayName),
-                        Symbol("_label") -> "Items",
-//                        Symbol("checked") -> "checked"
-                        )
-                    </fieldset>
-                    <div>
-                        <input type="hidden" id="previouslySelected" name="previouslySelected" value="@{nodesFormData.value.get.previouslySelected}"/>
-                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                            Select
-                        </button>
-                    </div>
-                }
-                </div>*@
