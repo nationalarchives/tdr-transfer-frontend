@@ -46,9 +46,14 @@
   padding-right: 30px;
 }
 
-.govuk-pagination__item > button {
-  background: none!important;
+.folderNode {
+  background: none !important;
   border: none;
-  padding: 0!important;
+  color: #069;
   cursor: pointer;
+  font-family: "Arial", "Helvetica", sans-serif;
+  font-size: 1.1875rem;
+  font-weight: 400;
+  line-height: 1.31579;
+  padding: 0 !important;
 }

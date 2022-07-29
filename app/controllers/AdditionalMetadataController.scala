@@ -2,6 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms.{boolean, list, mapping, nonEmptyText, number, seq, text}
@@ -14,8 +15,8 @@ import scala.concurrent.Future
 
 class AdditionalMetadataController @Inject()(val consignmentService: ConsignmentService,
                                              val keycloakConfiguration: KeycloakConfiguration,
-                                             val controllerComponents: SecurityComponents)
-                                            (implicit val ec: ExecutionContext) extends TokenSecurity {
+                                             val controllerComponents: SecurityComponents
+                                            ) extends TokenSecurity {
 
   val navigationForm: Form[NodesFormData] = Form(
     mapping(
