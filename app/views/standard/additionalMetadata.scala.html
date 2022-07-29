@@ -49,11 +49,11 @@
                                         <label class="govuk-label govuk-checkboxes__label" for="@node.nodeIdStr">
                                         @if(node.isFolder) {
                                             📁
-                                            <button class="folderNode" name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="@node.nodeIdStr">
+                                            <button class="folder-node" name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="@node.nodeIdStr">
                                             @node.displayName
                                             </button>
                                         } else {
-                                            📊 <span class="fileNode">@node.displayName</span>
+                                            📊 @node.displayName
                                         }
                                         </label>
                                     </div>
