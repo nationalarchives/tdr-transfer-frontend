@@ -183,7 +183,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   }
 
   "getConsignmentFolderInfo" should {
-    "return information about a consignment when given a consignment ID" in {
+    "return information about a consignment when given a consignment id" in {
       val response = GraphQlResponse[getConsignmentFolderDetails
       .Data](Some(getConsignmentFolderDetails
         .Data(Some(getConsignmentFolderDetails
@@ -225,7 +225,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   }
 
   "getConsignmentFileMetadata" should {
-    "return consignment with file metadata when consignment ID and selected file ids are passed" in {
+    "return consignment with file metadata when consignment id and selected file ids are passed" in {
       val fileId = UUID.randomUUID()
       val exemptionCode = Some("Open")
       val graphQlGetConsignmentFilesMetadata = gcfm.GetConsignment(
@@ -244,7 +244,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       getConsignmentDetails.files.head.metadata.foiExemptionCode should be(exemptionCode)
     }
 
-    "return consignment with file metadata when only consignment ID is passed" in {
+    "return consignment with file metadata when only consignment id is passed" in {
       val fileId = UUID.randomUUID()
       val exemptionCode = Some("Open")
       val graphQlGetConsignmentFilesMetadata = gcfm.GetConsignment(
@@ -337,7 +337,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   }
 
   "getConsignmentExport" should {
-    "return export information about a consignment when given a consignment ID" in {
+    "return export information about a consignment when given a consignment id" in {
       val fileId = UUID.randomUUID()
       val filename = "filename"
       val filetype = Some("File")

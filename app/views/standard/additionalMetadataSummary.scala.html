@@ -2,15 +2,22 @@
 @import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.Metadata
 
 @(fileName: String, consignmentRef: String, metadata: Metadata, name: String)(implicit messages: Messages, request: RequestHeader)
-@main(title = "Edit metadata for a single file", name = name) {
+@main(title = "Review metadata added", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         <h1 class="govuk-heading-xl">
-          Add or edit closure metadata for a single file
+          Review closure metadata changes
         </h1>
-        <p class="govuk-body">You can now add new metadata fields or edit existing ones.</p>
-
+        <p class="govuk-body">You can edit, save or abandon any changes to closure metadata here.</p>
+        <div class="govuk-button-group">
+          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+            Edit properties
+          </a>
+          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--warning">
+            Abandon changes
+          </a>
+        </div>
         <dl class="govuk-summary-list">
           <div class="govuk-summary-list__row">
             <dt class="govuk-summary-list__key">
@@ -55,6 +62,9 @@
             </dd>
           </div>
         </dl>
+        <a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          Save and return to all files
+        </a>
       </div>
       @transferReference(consignmentRef, isJudgmentUser = false)
 
