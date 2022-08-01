@@ -74,6 +74,14 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
            |            $consignmentReference
            |        </div>""".stripMargin
       )
+      closureMetadataSummaryPage must include(
+        s"""        <div class="govuk-details__text">
+           |            $consignmentReference
+           |        </div>""".stripMargin
+      )
+      closureMetadataSummaryPage.contains("Edit properties") mustBe true
+      closureMetadataSummaryPage.contains("Abandon changes") mustBe true
+      closureMetadataSummaryPage.contains("Save and return to all files") mustBe true
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
