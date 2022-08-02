@@ -36,9 +36,10 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
   "AdditionalMetadataController" should {
     "render the additional metadata start page" in {
       val parentFolder = "parentFolder"
+      val parentFolderId = UUID.randomUUID()
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder))
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = Option(parentFolderId))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -103,10 +104,40 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
-    "will return an error if the parent folder is missing" in {
+    "will return an error if the parent folder name and id are missing" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, None)
+      setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = None)
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val response = controller.start(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata")).failed.futureValue
+
+      response.getMessage mustBe "Parent folder not found"
+    }
+
+    "will return an error if the parent folder name is missing" in {
+      val consignmentId = UUID.randomUUID()
+      val parentFolderId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = Option(parentFolderId))
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val response = controller.start(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata")).failed.futureValue
+
+      response.getMessage mustBe "Parent folder not found"
+    }
+
+    "will return an error if the parent folder id is missing" in {
+      val consignmentId = UUID.randomUUID()
+      val parentFolder = "parentFolder"
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
