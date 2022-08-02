@@ -13,7 +13,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
-import util.{CheckPageForStaticElements, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
