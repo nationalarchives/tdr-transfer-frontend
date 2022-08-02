@@ -37,16 +37,6 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       }
     }
 
-  def sortMetadataIntoCorrectPageOrder(fieldValuesAndType: Set[(FieldValues, String)]): ListSet[(FieldValues, String)] = {
-    val addClosureMetadataPageOrder: ListSet[String] =
-      ListSet("FOI decision asserted", "Closure start date", "Closure period", "FOI exemption code", "Is the title closed?")
-    addClosureMetadataPageOrder.map(label =>
-      fieldValuesAndType.find {
-        case (fieldValue, _) => fieldValue.fieldLabel.toLowerCase() == label.toLowerCase()
-      }.get
-    )
-  }
-
   private def generateFieldOptions(property: CustomMetadata, dataType: DataType): (Seq[(String, String)], Option[Seq[(String, String)]]) =
     dataType match {
       case Boolean =>
