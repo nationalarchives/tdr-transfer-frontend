@@ -94,6 +94,19 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       .willReturn(okJson(dataString)))
   }
 
+  def setConsignmentFilesMetadataResponse(wiremockServer: WireMockServer,
+                                          consignmentReference: String = "TEST-TDR-2021-GB"): StubMapping = {
+    val dataString =
+      s"""{"data":{"getConsignment":{"consignmentReference":"$consignmentReference","files":[
+         |{"fileId":"${UUID.randomUUID()}","metadata":{"foiExemptionCode":"Open"}},
+         |{"fileId":"${UUID.randomUUID()}","metadata":{"foiExemptionCode":"Open"}}
+         |]}}}""".stripMargin
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentFilesMetadata($consignmentId:UUID!,$fileFiltersInput:FileFilters)"))
+      .willReturn(okJson(dataString)))
+  }
+
   def setConsignmentStatusResponse(config: Configuration,
                                    wiremockServer: WireMockServer,
                                    seriesId: Option[UUID] = None,

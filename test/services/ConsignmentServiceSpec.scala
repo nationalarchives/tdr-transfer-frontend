@@ -6,12 +6,13 @@ import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.{getConsignment => gc}
+import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
+import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.GetConsignment
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.UpdateConsignmentSeriesId.{updateConsignmentSeriesId => ucs}
-import graphql.codegen.types.{AddConsignmentInput, UpdateConsignmentSeriesIdInput}
-import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
+import graphql.codegen.types.{AddConsignmentInput, FileFilters}
 import org.keycloak.representations.AccessToken
 import org.mockito.Mockito
 import org.mockito.Mockito._
@@ -41,11 +42,13 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val getConsignmentTypeClient = mock[GraphQLClient[gct.Data, gct.Variables]]
   private val updateConsignmentSeriesIdClient = mock[GraphQLClient[ucs.Data, ucs.Variables]]
   private val getConsignmentForExportClient = mock[GraphQLClient[gcfe.Data, gcfe.Variables]]
+  private val getConsignmentFilesMetadataClient = mock[GraphQLClient[gcfm.Data, gcfm.Variables]]
   when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(getConsignmentClient)
   when(graphQlConfig.getClient[addConsignment.Data, addConsignment.Variables]()).thenReturn(addConsignmentClient)
   when(graphQlConfig.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()).thenReturn(getConsignmentFolderInfoClient)
   when(graphQlConfig.getClient[gct.Data, gct.Variables]()).thenReturn(getConsignmentTypeClient)
   when(graphQlConfig.getClient[gcfe.Data, gcfe.Variables]()).thenReturn(getConsignmentForExportClient)
+  when(graphQlConfig.getClient[gcfm.Data, gcfm.Variables]()).thenReturn(getConsignmentFilesMetadataClient)
 
   private val consignmentService = new ConsignmentService(graphQlConfig)
 
@@ -180,7 +183,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   }
 
   "getConsignmentFolderInfo" should {
-    "return information about a consignment when given a consignment ID" in {
+    "return information about a consignment when given a consignment id" in {
       val response = GraphQlResponse[getConsignmentFolderDetails
       .Data](Some(getConsignmentFolderDetails
         .Data(Some(getConsignmentFolderDetails
@@ -219,6 +222,67 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     val getConsignmentDetails = consignmentService.getConsignmentFolderInfo(consignmentId, bearerAccessToken).futureValue
 
     getConsignmentDetails should be(GetConsignment(0, None))
+  }
+
+  "getConsignmentFileMetadata" should {
+    "return consignment with file metadata when consignment id and selected file ids are passed" in {
+      val fileId = UUID.randomUUID()
+      val exemptionCode = Some("Open")
+      val graphQlGetConsignmentFilesMetadata = gcfm.GetConsignment(
+        List(gcfm.GetConsignment.Files(fileId, gcfm.GetConsignment.Files.Metadata(exemptionCode))), "TEST-TDR-2021-GB")
+
+      val response = GraphQlResponse[gcfm.Data](Some(gcfm.Data(Some(graphQlGetConsignmentFilesMetadata))), Nil)
+
+      val selectedFileIds = Some(List(fileId))
+      when(getConsignmentFilesMetadataClient.getResult(bearerAccessToken, gcfm.document,
+        Some(gcfm.Variables(consignmentId, Some(FileFilters(None, selectedFileIds, None))))))
+        .thenReturn(Future.successful(response))
+
+      val getConsignmentDetails = consignmentService.getConsignmentFileMetadata(consignmentId, bearerAccessToken, selectedFileIds).futureValue
+
+      getConsignmentDetails.files.size should be(1)
+      getConsignmentDetails.files.head.metadata.foiExemptionCode should be(exemptionCode)
+    }
+
+    "return consignment with file metadata when only consignment id is passed" in {
+      val fileId = UUID.randomUUID()
+      val exemptionCode = Some("Open")
+      val graphQlGetConsignmentFilesMetadata = gcfm.GetConsignment(
+        List(gcfm.GetConsignment.Files(fileId, gcfm.GetConsignment.Files.Metadata(exemptionCode))), "TEST-TDR-2021-GB")
+
+      val response = GraphQlResponse[gcfm.Data](Some(gcfm.Data(Some(graphQlGetConsignmentFilesMetadata))), Nil)
+
+      when(getConsignmentFilesMetadataClient.getResult(bearerAccessToken, gcfm.document,
+        Some(gcfm.Variables(consignmentId, None))))
+        .thenReturn(Future.successful(response))
+
+      val getConsignmentDetails = consignmentService.getConsignmentFileMetadata(consignmentId, bearerAccessToken).futureValue
+
+      getConsignmentDetails.files.size should be(1)
+      getConsignmentDetails.files.head.metadata.foiExemptionCode should be(exemptionCode)
+    }
+
+    "raise an exception if given consignment id does not exist" in {
+      val response = GraphQlResponse(Some(gcfm.Data(None)), Nil)
+
+      when(getConsignmentFilesMetadataClient.getResult(bearerAccessToken, gcfm.document,
+        Some(gcfm.Variables(consignmentId, None))))
+        .thenReturn(Future.successful(response))
+
+      val results = consignmentService.getConsignmentFileMetadata(consignmentId, bearerAccessToken)
+
+      results.failed.futureValue shouldBe a[IllegalStateException]
+      results.failed.futureValue.getMessage shouldBe s"No consignment found for consignment $consignmentId"
+    }
+
+    "return an error when the API has an error" in {
+      when(getConsignmentFilesMetadataClient.getResult(bearerAccessToken, gcfm.document,
+        Some(gcfm.Variables(consignmentId, None))))
+        .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+      val results = consignmentService.getConsignmentFileMetadata(consignmentId, bearerAccessToken)
+      results.failed.futureValue shouldBe a[HttpError]
+    }
   }
 
   "getConsignmentType" should {
@@ -273,7 +337,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   }
 
   "getConsignmentExport" should {
-    "return export information about a consignment when given a consignment ID" in {
+    "return export information about a consignment when given a consignment id" in {
       val fileId = UUID.randomUUID()
       val filename = "filename"
       val filetype = Some("File")
@@ -299,7 +363,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken)
       val actualResults = getConsignmentExport.futureValue
 
-      actualResults should be (graphQlExportData)
+      actualResults should be(graphQlExportData)
     }
 
     "return an error if the API fails" in {
