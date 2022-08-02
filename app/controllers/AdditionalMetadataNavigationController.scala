@@ -4,7 +4,7 @@ import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
 import org.pac4j.play.scala.SecurityComponents
-import play.api.cache.redis.CacheApi
+import play.api.cache.redis.{CacheApi, RedisSet, SynchronousResult}
 import play.api.data.Form
 import play.api.data.Forms.{boolean, list, mapping, nonEmptyText, number, optional, seq, text}
 import play.api.mvc.{Action, AnyContent, Request, Result}
@@ -13,7 +13,6 @@ import viewsapi.Caching.preventCaching
 
 import java.util.UUID
 import javax.inject.Inject
-import scala.collection.mutable
 import scala.concurrent.Future
 
 class AdditionalMetadataNavigationController @Inject()(val consignmentService: ConsignmentService,
@@ -39,8 +38,6 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       "returnToRoot" -> optional(text)
     )(NodesFormData.apply)(NodesFormData.unapply))
 
-  var selectedFiles: mutable.Map[UUID, Boolean] = scala.collection.mutable.Map[UUID, Boolean]()
-
   def getPaginatedFiles(consignmentId: UUID, page: Int, limit: Option[Int], selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId)
   { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentPaginatedFile(consignmentId, page - 1, limit, selectedFolderId, request.token.bearerAccessToken)
@@ -48,7 +45,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         val totalPages = paginatedFiles.paginatedFiles.totalPages.get
         val parentFolder = paginatedFiles.parentFolder.get
         val edges = paginatedFiles.paginatedFiles.edges.get.flatten
-        val nodesToDisplay: List[NodesToDisplay] = generateNodesToDisplay(edges, selectedFolderId)
+        val nodesToDisplay: List[NodesToDisplay] = generateNodesToDisplay(consignmentId, edges, selectedFolderId)
         Ok(views.html.standard.additionalMetadataNavigation(
           consignmentId,
           request.token.name,
@@ -71,11 +68,12 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       }
 
       val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
+        val selectedFiles: RedisSet[UUID, SynchronousResult] = cache.set[UUID](consignmentId.toString)
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
-        formData.selected.foreach(ids => selectedFiles.put(UUID.fromString(ids), true))
+        formData.selected.foreach(ids => selectedFiles.add(UUID.fromString(ids)))
         //Handle deselected Items
-        val deselectedFiles = handleDeselection(formData)
+        val deselectedFiles = handleDeselection(selectedFiles, formData)
         //Handle subfolder child deselection
         if (deselectedFiles.nonEmpty && selectedFiles.contains(selectedFolderId)) selectedFiles.remove(selectedFolderId)
         //Pass the parent id instead of folderId, if the 'return to root' button is clicked
@@ -95,7 +93,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       )
   }
 
-  private def handleDeselection(formData: NodesFormData): List[String] = {
+  private def handleDeselection(selectedFiles: RedisSet[UUID, SynchronousResult], formData: NodesFormData): List[String] = {
     val allNodes: List[String] = formData.allNodes
     val selected: List[String] = formData.selected
     val deselectedFiles: List[String] = allNodes.filter(ids => !selected.contains(ids))
@@ -103,9 +101,10 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
     deselectedFiles
   }
 
-  private def generateNodesToDisplay(edges: List[PaginatedFiles.Edges], selectedFolderId: UUID): List[NodesToDisplay] = {
+  private def generateNodesToDisplay(consignmentId: UUID, edges: List[PaginatedFiles.Edges], selectedFolderId: UUID): List[NodesToDisplay] = {
     edges.map(edge => {
-      val isSelected = selectedFiles.getOrElse(edge.node.fileId, false) || selectedFiles.contains(selectedFolderId)
+      val selectedFiles = cache.set[UUID](consignmentId.toString)
+      val isSelected = selectedFiles.contains(edge.node.fileId) || selectedFiles.contains(selectedFolderId)
       val isFolder = edge.node.fileType.get == "Folder"
       NodesToDisplay(
         edge.node.fileId.toString,
