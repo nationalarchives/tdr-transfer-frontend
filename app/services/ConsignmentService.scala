@@ -16,6 +16,11 @@ import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types.{AddConsignmentInput, FileFilters, UpdateConsignmentSeriesIdInput}
 import graphql.codegen.{AddConsignment, GetConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
+import graphql.codegen.types.{AddConsignmentInput, FileFilters, PaginationInput, UpdateConsignmentSeriesIdInput}
+import graphql.codegen.{AddConsignment, GetConsignment, GetFileCheckProgress}
+import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFiles => gcpf}
+
+import javax.inject.{Inject, Singleton}
 import services.ApiErrorHandling._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
@@ -37,6 +42,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentReferenceClient = graphqlConfiguration.getClient[getConsignmentReference.Data, getConsignmentReference.Variables]()
   private val getConsignmentFilesClient = graphqlConfiguration.getClient[getConsignmentFiles.Data, getConsignmentFiles.Variables]()
   private val getConsignmentExportClient = graphqlConfiguration.getClient[getConsignmentForExport.Data, getConsignmentForExport.Variables]()
+  private val getConsignmentPaginatedFilesClient = graphqlConfiguration.getClient[gcpf.Data, gcpf.Variables]()
   private val updateConsignmentSeriesIdClient = graphqlConfiguration.getClient[updateConsignmentSeriesId.Data, updateConsignmentSeriesId.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
 
@@ -144,6 +150,16 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
     val variables: getConsignmentForExport.Variables = new getConsignmentForExport.Variables(consignmentId)
 
     sendApiRequest(getConsignmentExportClient, getConsignmentForExport.document, token, variables)
+      .map(data => data.getConsignment.get)
+  }
+
+  def getConsignmentPaginatedFile(consignmentId: UUID, page: Int, limit: Option[Int],
+                                  selectedFolderId: UUID, token: BearerAccessToken): Future[gcpf.GetConsignment] = {
+    val fileFiltersInput = Some(FileFilters(None, None, parentId = Some(selectedFolderId)))
+    val paginatedInput = Some(PaginationInput(limit, Some(page), None, fileFiltersInput))
+    val variables: gcpf.Variables = new gcpf.Variables(consignmentId, paginatedInput)
+
+    sendApiRequest(getConsignmentPaginatedFilesClient, gcpf.document, token, variables)
       .map(data => data.getConsignment.get)
   }
 }

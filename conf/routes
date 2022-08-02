@@ -31,6 +31,8 @@ POST        /consignment/:consignmentId/confirm-transfer                        
 GET         /consignment/:consignmentId/transfer-complete                             controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/download-report                               controllers.TransferCompleteController.downloadReport(consignmentId: java.util.UUID, ref: String)
 GET         /consignment/:consignmentId/additional-metadata                           controllers.AdditionalMetadataController.start(consignmentId: java.util.UUID)
+GET         /consignment/:consignmentId/additional-metadata/:folderId/:page controllers.AdditionalMetadataNavigationController.getPaginatedFiles(consignmentId: java.util.UUID, page: Int, limit: Option[Int], folderId: java.util.UUID)
+POST        /consignment/:consignmentId/additional-metadata/:folderId/     controllers.AdditionalMetadataNavigationController.submit(consignmentId: java.util.UUID, limit: Option[Int], folderId: java.util.UUID)
 GET         /consignment/:consignmentId/additional-metadata/closure/selected-summary  controllers.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId: java.util.UUID)
 GET         /signed-out                                                               controllers.SignOutController.signedOut()
 
