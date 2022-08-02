@@ -1,7 +1,7 @@
 @import views.html.partials.{transferReference, progressIndicator}
 @import java.util.UUID
 
-@(parentFolder: String, consignmentRef: String, consignmentId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
+@(parentFolder: String, parentFolderId: UUID, consignmentRef: String, consignmentId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
 @main(title = "Add, edit or delete metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     @progressIndicator(Messages("additionalMetadataStart.progress"))

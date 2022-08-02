@@ -1,0 +1,73 @@
+@import views.html.partials.{transferReference}
+@import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.Metadata
+
+@(fileName: String, consignmentRef: String, metadata: Metadata, name: String)(implicit messages: Messages, request: RequestHeader)
+@main(title = "Review metadata added", name = name) {
+  @defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-xl">
+          Review closure metadata changes
+        </h1>
+        <p class="govuk-body">You can edit, save or abandon any changes to closure metadata here.</p>
+        <div class="govuk-button-group">
+          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+            Edit properties
+          </a>
+          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--warning">
+            Abandon changes
+          </a>
+        </div>
+        <dl class="govuk-summary-list">
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">
+              Name
+            </dt>
+            <dd class="govuk-summary-list__value">
+              @fileName
+            </dd>
+          </div>
+
+            <!-- closure stuff here -->
+          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+            <dt class="govuk-summary-list__key">
+              FOI decision asserted
+            </dt>
+            <dd class="govuk-summary-list__value">
+
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+            <dt class="govuk-summary-list__key">
+              Closure start date
+            </dt>
+            <dd class="govuk-summary-list__value">
+
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+            <dt class="govuk-summary-list__key">
+              Closure period
+            </dt>
+            <dd class="govuk-summary-list__value">
+
+            </dd>
+          </div>
+          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+            <dt class="govuk-summary-list__key">
+              FOI example code
+            </dt>
+            <dd class="govuk-summary-list__value">
+              @metadata.foiExemptionCode
+            </dd>
+          </div>
+        </dl>
+        <a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          Save and return to all files
+        </a>
+      </div>
+      @transferReference(consignmentRef, isJudgmentUser = false)
+
+    </div>
+  }
+}
