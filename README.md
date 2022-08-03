@@ -71,6 +71,16 @@ If you are using the AWS integration environment, uploads to S3 go through uploa
 
 [Instructions for firefox](https://support.mozilla.org/en-US/kb/third-party-cookies-firefox-tracking-protection#w_enable-third-party-cookies-for-specific-sites)
 
+### Firefox state partitioning
+You may get this error when running locally in Firefox
+
+`Partitioned cookie or storage access was provided to "https://auth..." because it is loaded in the third party context and dynamic state partitioning is enabled.`  
+
+Because the domains are different, Firefox blocks the cookie request. The request is the way Keycloak JS works so we can't stop it. You can disable the setting for these sites though.
+
+Go to `about:config` in the Firefox URL bar. Select the `privacy.restrict3rdpartystorage.skip_list` option and change the setting to `http://localhost:9000,https://auth.tdr-integration.nationalarchives.gov.uk`
+
+This should allow the Keycloak cookies on localhost.
 
 ### Full stack local development
 
