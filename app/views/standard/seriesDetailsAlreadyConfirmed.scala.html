@@ -21,11 +21,14 @@ messages: Messages)
         </div>
 
             @inputDropdown(
-                seriesDetailsForm("series"),
+                seriesDetailsForm("series").id,
                 allSeriesData,
-                Symbol("_name") -> "Series Details",
-                Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer.",
-                Symbol("_disabledOption") -> disabledStatus,
+                Seq(("", "Please choose...")),
+                Map(
+                    Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer.",
+                    Symbol("_disabledOption") -> disabledStatus
+                ),
+                seriesDetailsForm("series").errors
             )
 
         <div class="govuk-button-group">

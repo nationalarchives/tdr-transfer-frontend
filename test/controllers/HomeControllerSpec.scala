@@ -2,7 +2,7 @@ package controllers
 
 import play.api.test.Helpers._
 import play.api.test._
-import util.{CheckPageForStaticElements, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 class HomeControllerSpec extends FrontEndTestHelper {
 
