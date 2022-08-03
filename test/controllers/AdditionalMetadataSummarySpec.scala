@@ -50,9 +50,38 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      closureMetadataSummaryPage.contains("FOI decision asserted") mustBe true
-      closureMetadataSummaryPage.contains("Closure start date") mustBe true
-      closureMetadataSummaryPage.contains("Closure period") mustBe true
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(closureMetadataSummaryPage, userType = "standard")
+      closureMetadataSummaryPage.contains(
+        """        <h1 class="govuk-heading-xl">
+          |          Review closure metadata changes
+          |        </h1>""".stripMargin
+      ) mustBe true
+      closureMetadataSummaryPage.contains(
+        """        <p class="govuk-body">You can edit, save or abandon any changes to closure metadata here.</p>""".stripMargin
+      ) mustBe true
+      closureMetadataSummaryPage.contains(
+        """          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+          |            Edit properties
+          |          </a>""".stripMargin
+      ) mustBe true
+      closureMetadataSummaryPage.contains(
+        """          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--warning">
+          |            Abandon changes
+          |          </a>""".stripMargin
+      ) mustBe true
+      List("FOI decision asserted", "Closure start date", "Closure period").foreach{
+        field =>
+          closureMetadataSummaryPage.contains(
+            s"""          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+                                                 |            <dt class="govuk-summary-list__key">
+                                                 |              $field
+                                                 |            </dt>
+                                                 |            <dd class="govuk-summary-list__value">
+                                                 |
+                                                 |            </dd>
+                                                 |          </div>""".stripMargin
+          ) mustBe true
+      }
       closureMetadataSummaryPage must include(
         """            <dt class="govuk-summary-list__key">
           |              Name
@@ -79,9 +108,12 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
            |            $consignmentReference
            |        </div>""".stripMargin
       )
-      closureMetadataSummaryPage.contains("Edit properties") mustBe true
-      closureMetadataSummaryPage.contains("Abandon changes") mustBe true
-      closureMetadataSummaryPage.contains("Save and return to all files") mustBe true
+
+      closureMetadataSummaryPage must include(
+      """        <a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        |          Save and return to all files
+        |        </a>""".stripMargin
+      )
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
