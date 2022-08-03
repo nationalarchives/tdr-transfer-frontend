@@ -13,7 +13,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import services.ConsignmentService
-import util.{CheckPageForStaticElements, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap

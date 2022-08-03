@@ -1,0 +1,107 @@
+@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@import helper.{inputRadioGroup => _, _}
+@import java.util.UUID
+
+@import scala.language.postfixOps
+@import views.html.partials.{inputDate, inputText, errorSummary, inputDropdown, progressIndicator}
+
+@import views.html.partials.transferReference
+@import views.html.partials.inputRadioGroup
+
+@import controllers.util.CustomMetadataUtils.FieldValues
+@(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: Set[(FieldValues, String)], name: String, fileName: String="[selected file/folder name to go here]")(implicit request: RequestHeader, messages: Messages)
+@main(s"Add closure fields to '$fileName'", name = name) {
+    @defining(play.core.PlayVersion.current) { version =>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                @progressIndicator(Messages("addClosureMetadata.progress"))
+                <h1 class="govuk-heading-l">Add closure metadata to '@fileName'</h1>
+                <p class="govuk-body">Enter metadata for closure fields here.</p>
+                @errorSummary(
+                    fieldsToApplyToFile.collect{
+                        case (fieldToApplyToFile, dataType) if fieldToApplyToFile.fieldError.nonEmpty =>
+                            (fieldToApplyToFile.fieldId, fieldToApplyToFile.fieldError)
+                    }.toMap
+                )
+                @form(
+                    routes.ConfirmTransferController.confirmTransfer(consignmentId),
+                    (Symbol("novalidate"), "")
+                ) {
+                    @CSRF.formField
+                    @for((fieldToApplyToFile, dataType) <- fieldsToApplyToFile) {
+                        @{dataType match {
+                            case "Boolean" => inputRadioGroup(
+                                fieldToApplyToFile.fieldId,
+                                fieldToApplyToFile.fieldOptions,
+                                fieldToApplyToFile.selectedFieldOption.getOrElse(Seq(("",""))),
+                                Map(
+                                    Symbol("_label") -> fieldToApplyToFile.fieldLabel,
+                                    Symbol("_requiredOption") -> fieldToApplyToFile.fieldRequired,
+                                    Symbol("_largeOption") -> true,
+                                    Symbol("_newlineOption") -> true,
+                                    Symbol("_disabledOption") -> ""
+                                ),
+                                fieldToApplyToFile.fieldError
+                            )
+                            case "DateTime" => inputDate(
+                                fieldToApplyToFile.fieldId,
+                                fieldToApplyToFile.fieldLabel,
+                                fieldToApplyToFile.fieldHint,
+                                fieldToApplyToFile.fieldOptions,
+                                fieldToApplyToFile.selectedFieldOption,
+                                fieldToApplyToFile.fieldError
+                            )
+                            case "Decimal" | "Integer" => inputText(
+                                fieldToApplyToFile.fieldId,
+                                fieldToApplyToFile.fieldLabel,
+                                fieldToApplyToFile.fieldHint,
+                                fieldToApplyToFile.fieldOptions,
+                                "number",
+                                fieldToApplyToFile.fieldError,
+                                "numeric"
+                            )
+                            case "Text" =>
+                                if(fieldToApplyToFile.multiValueSelect) {
+                                    //could theoretically be a checkbox or radio (since radios are not always boolean)
+                                    inputDropdown(
+                                        fieldToApplyToFile.fieldId,
+                                        fieldToApplyToFile.fieldOptions,
+                                        fieldToApplyToFile.selectedFieldOption.getOrElse(Seq(("",""))),
+                                        Map(
+                                            Symbol("_label") -> fieldToApplyToFile.fieldLabel,
+                                            Symbol("_largeLabelAndHint") -> fieldToApplyToFile.fieldHint,
+                                            Symbol("_disabledOption") -> "",
+                                            Symbol("_dynamicForm") -> true
+                                        ),
+                                        fieldToApplyToFile.fieldError
+                                    )
+                                } else {
+                                    inputText(
+                                        fieldToApplyToFile.fieldId,
+                                        fieldToApplyToFile.fieldLabel,
+                                        fieldToApplyToFile.fieldHint,
+                                        fieldToApplyToFile.fieldOptions,
+                                        "text",
+                                        fieldToApplyToFile.fieldError
+                                    )
+                                }
+                        }
+                        }
+                    }
+                    <div class="govuk-button-group">
+                            <!-- Continue -->
+                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                            Continue
+                        </button>
+                            <!-- Redirects to Homepage for now but will probably just take you back to previous page -->
+                        <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+                        </div>
+                    </div>
+                }
+            @transferReference(consignmentRef, isJudgmentUser = false)
+            </div>
+
+        </div>
+    }
+}
+

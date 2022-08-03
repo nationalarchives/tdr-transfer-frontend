@@ -1,4 +1,4 @@
-package util
+package testUtils
 
 import org.scalatest.Assertion
 import org.scalatest.matchers.must.Matchers._
@@ -24,7 +24,7 @@ class FormTester(options: Map[String, (String, String)], smallCheckbox: String="
 
     options.foreach {
       case (optionName, (label, errorMessage) ) =>
-        val htmlErrorSummary = s"""                        <a href="#error-$optionName">$errorMessage</a>"""
+        val htmlErrorSummary = s"""                    <a href="#error-$optionName">$errorMessage</a>"""
         val htmlErrorMessage =
           s"""    <p class="govuk-error-message" id="error-$optionName">
              |        <span class="govuk-visually-hidden">Error:</span>
@@ -58,16 +58,18 @@ class FormTester(options: Map[String, (String, String)], smallCheckbox: String="
     )
 
   private def addValuesToAttributes(name: String,
-                                        label: String,
-                                        checkedStatus: String="",
-                                        disabledStatus: String=""): String = {
+                                    label: String,
+                                    checkedStatus: String="",
+                                    disabledStatus: String="",
+                                    fieldType: String="checkbox"): String = {
+
     s"""
        |        <div class='govuk-checkboxes__item$smallCheckbox'>
        |            <input
        |                $checkedStatus
        |                class="govuk-checkboxes__input"
        |                id="$name"
-       |                name="$name"
+       |                name="inputcheckbox-$name"
        |                type="checkbox"
        |                value="true"
        |                $disabledStatus />
