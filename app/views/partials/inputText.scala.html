@@ -4,9 +4,11 @@ inputTextHint: String,
 fieldOptions: Seq[(String, String)],
 inputType: String,
 fieldError: Seq[String],
+attributes: Map[Symbol, Any]=Map(),
 inputTextDataType: String="text")(implicit messages: Messages)
 @suffixText = @{fieldOptions.head._1}
 @defaultText = @{fieldOptions.head._2}
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 
 @import views.html.partials.errorMessage
 
@@ -24,11 +26,11 @@ inputTextDataType: String="text")(implicit messages: Messages)
         <div class="govuk-input__wrapper">
             <input
                 class="govuk-input govuk-input--width-5 @{if(fieldError.nonEmpty)"govuk-input--error" else ""}"
-                id=@suffixText
-                name=input@inputTextDataType-@fieldId-@suffixText.toLowerCase()
-                type=@inputType
-                placeholder=@defaultText
-                inputmode=@inputTextDataType
+                id="@suffixText"
+                name="@{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${suffixText.toLowerCase()}" else fieldId}"
+                type="@inputType"
+                placeholder="@defaultText"
+                inputmode="@inputTextDataType"
             >
             <div class="govuk-input__suffix" aria-hidden="true">@suffixText</div>
         </div>
