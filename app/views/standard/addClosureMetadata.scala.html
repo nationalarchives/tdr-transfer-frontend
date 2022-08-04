@@ -39,7 +39,8 @@
                                     Symbol("_requiredOption") -> fieldToApplyToFile.fieldRequired,
                                     Symbol("_largeOption") -> true,
                                     Symbol("_newlineOption") -> true,
-                                    Symbol("_disabledOption") -> ""
+                                    Symbol("_disabledOption") -> "",
+                                    Symbol("_dynamicForm") -> true
                                 ),
                                 fieldToApplyToFile.fieldError
                             )
@@ -49,7 +50,8 @@
                                 fieldToApplyToFile.fieldHint,
                                 fieldToApplyToFile.fieldOptions,
                                 fieldToApplyToFile.selectedFieldOption,
-                                fieldToApplyToFile.fieldError
+                                fieldToApplyToFile.fieldError,
+                                Map(Symbol("_dynamicForm") -> true)
                             )
                             case "Decimal" | "Integer" => inputText(
                                 fieldToApplyToFile.fieldId,
@@ -58,6 +60,7 @@
                                 fieldToApplyToFile.fieldOptions,
                                 "number",
                                 fieldToApplyToFile.fieldError,
+                                Map(Symbol("_dynamicForm") -> true),
                                 "numeric"
                             )
                             case "Text" =>
@@ -82,7 +85,8 @@
                                         fieldToApplyToFile.fieldHint,
                                         fieldToApplyToFile.fieldOptions,
                                         "text",
-                                        fieldToApplyToFile.fieldError
+                                        fieldToApplyToFile.fieldError,
+                                        Map(Symbol("_dynamicForm") -> true)
                                     )
                                 }
                         }
