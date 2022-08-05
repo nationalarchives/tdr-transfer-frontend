@@ -26,7 +26,7 @@ fieldError: List[String]
                         id="@fieldId-@value"
                         name="inputradio-@fieldId"
                         type="radio"
-                        value="@value"
+                        value="@label"
                         @isDisabled
                         @{if(label == selectedRadioOption.head._1) "checked" else ""}
                         @attributes.requiredInput()
