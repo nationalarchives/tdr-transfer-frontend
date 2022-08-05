@@ -418,11 +418,16 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     }
 
     "return an error if there is an error from the API" in {
-      when(getConsignmentPaginatedFilesClient.getResult(bearerAccessToken, gcfm.document,
-        Some(gcpf.Variables(consignmentId, None))))
+      val folderId = UUID.randomUUID()
+      val limit = Some(1)
+      val page = 1
+      when(getConsignmentPaginatedFilesClient.getResult(bearerAccessToken, gcpf.document,
+        Some(gcpf.Variables(consignmentId,
+          Some(PaginationInput(limit, currentPage = Some(page), currentCursor = None, Some(FileFilters(None, None, Some(folderId)))))))))
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-      val results = consignmentService.getConsignmentFileMetadata(consignmentId, bearerAccessToken)
+      val results = consignmentService.getConsignmentPaginatedFile(
+        consignmentId, page = page, limit = limit, selectedFolderId = folderId, bearerAccessToken)
       results.failed.futureValue shouldBe a[HttpError]
     }
   }
