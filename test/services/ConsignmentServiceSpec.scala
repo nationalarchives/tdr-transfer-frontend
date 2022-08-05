@@ -10,14 +10,12 @@ import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.GetConsignment
-import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
-import graphql.codegen.UpdateConsignmentSeriesId.{updateConsignmentSeriesId => ucs}
-import graphql.codegen.types.{AddConsignmentInput, FileFilters}
-import graphql.codegen.types.{AddConsignmentInput, FileFilters, PaginationInput, UpdateConsignmentSeriesIdInput}
-import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
 import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
 import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles.{Edges, PageInfo}
 import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFiles => gcpf}
+import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
+import graphql.codegen.UpdateConsignmentSeriesId.{updateConsignmentSeriesId => ucs}
+import graphql.codegen.types.{AddConsignmentInput, FileFilters, PaginationInput}
 import org.keycloak.representations.AccessToken
 import org.mockito.Mockito
 import org.mockito.Mockito._
@@ -393,7 +391,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   }
 
   "getConsignmentPaginatedFile" should {
-    "return paginated file information" in {
+    "return paginated file information for a consignment" in {
       val fileId = UUID.randomUUID()
       val folderId = UUID.randomUUID()
       val parentFolderName = Some("ParentFolder")
@@ -417,6 +415,15 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val actualResults = getConsignmentPaginated.futureValue
 
       actualResults should be(graphQlPaginatedData)
+    }
+
+    "return an error if there is an error from the API" in {
+      when(getConsignmentPaginatedFilesClient.getResult(bearerAccessToken, gcfm.document,
+        Some(gcpf.Variables(consignmentId, None))))
+        .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+      val results = consignmentService.getConsignmentFileMetadata(consignmentId, bearerAccessToken)
+      results.failed.futureValue shouldBe a[HttpError]
     }
   }
 }

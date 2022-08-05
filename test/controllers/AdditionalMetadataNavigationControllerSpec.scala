@@ -11,6 +11,7 @@ import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFile
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
+import org.mockito.Mockito
 import org.mockito.Mockito.when
 import play.api.Play.materializer
 import play.api.cache.redis.{CacheApi, RedisSet, SynchronousResult}
@@ -20,7 +21,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, POST, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
-import util.FrontEndTestHelper
+import testUtils.FrontEndTestHelper
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -75,7 +76,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val folderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder))
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -107,7 +108,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val folderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder))
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -138,7 +139,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val folderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder))
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -169,7 +170,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val folderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder))
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -200,7 +201,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val folderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder))
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -281,6 +282,36 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       status(response) mustBe SEE_OTHER
 
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$page"))
+    }
+
+    "Should correctly store selected files to the cache" in {
+      val selectedFolderId = UUID.randomUUID()
+      val fileId = UUID.randomUUID()
+      val page = "1"
+      setConsignmentTypeResponse(wiremockServer, "standard")
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val cacheApi = mock[CacheApi]
+      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents, cacheApi)
+      val response = controller.submit(consignmentId, limit = None, selectedFolderId = selectedFolderId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
+          .withFormUrlEncodedBody(
+            Seq(
+              ("allNodes[]", fileId.toString),
+              ("selected[]", fileId.toString),
+              ("pageSelected", page),
+              ("folderSelected", selectedFolderId.toString)): _*)
+          .withCSRFToken)
+
+      status(response) mustBe SEE_OTHER
+
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$page"))
+      Mockito.verify(redisSetMock).add(fileId)
     }
 
     "will return forbidden if the file selection pages is accessed by a judgment user" in {
