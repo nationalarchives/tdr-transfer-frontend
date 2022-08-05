@@ -47,7 +47,7 @@
                       <label class="govuk-label govuk-checkboxes__label" for="@node.fileId">
                       @if(node.isFolder) {
                         📁
-                        <button class="folder-node" name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="@node.fileId">
+                        <button name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="@node.fileId">
                         @node.displayName
                         </button>
                       } else {

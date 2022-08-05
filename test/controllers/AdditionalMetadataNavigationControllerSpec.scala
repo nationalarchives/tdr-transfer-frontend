@@ -345,11 +345,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     fileSelectionPageAsString.contains(s"Folder uploaded: $parentFolder") mustBe true
     fileSelectionPageAsString.contains(s"Add closure properties") mustBe true
     fileSelectionPageAsString.contains(
-      s"""<button class="folder-node" name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="$folderId">""") mustBe true
+      s"""<button name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="$folderId">""") mustBe true
     fileSelectionPageAsString.contains(
       s"""<label class="govuk-label govuk-checkboxes__label" for="$fileId">""") mustBe true
     fileSelectionPageAsString.contains(s"""<input type="hidden" id="folderSelected" name="folderSelected" value="$selectedFolderId"/>""") mustBe true
-
     fileSelectionPageAsString.contains(s"Back to closure metadata menu") mustBe true
   }
 
