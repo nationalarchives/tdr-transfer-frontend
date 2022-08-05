@@ -5,9 +5,11 @@ fieldOptions: Seq[(String, String)],
 inputType: String,
 enteredOptions: Option[Seq[(String, String)]],
 fieldError: Seq[String],
+attributes: Map[Symbol, Any]=Map(),
 inputTextDataType: String="text")(implicit messages: Messages)
 @suffixText = @{fieldOptions.head._1}
 @defaultText = @{fieldOptions.head._2}
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @enteredText = @{
     enteredOptions match {
         case Some(Seq((suffixText: String, enteredText: String))) => enteredText
@@ -31,12 +33,12 @@ inputTextDataType: String="text")(implicit messages: Messages)
         <div class="govuk-input__wrapper">
             <input
                 class="govuk-input govuk-input--width-5 @{if(fieldError.nonEmpty)"govuk-input--error" else ""}"
-                id=@suffixText
-                name=input@inputTextDataType-@fieldId-@suffixText.toLowerCase()
-                type=@inputType
+                id="@suffixText"
+                name="@{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${suffixText.toLowerCase()}" else fieldId}"
+                type="@inputType"
                 value="@enteredText"
-                placeholder=@defaultText
-                inputmode=@inputTextDataType
+                placeholder="@defaultText"
+                inputmode="@inputTextDataType"
             >
             <div class="govuk-input__suffix" aria-hidden="true">@suffixText</div>
         </div>

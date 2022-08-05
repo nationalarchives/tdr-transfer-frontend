@@ -3,7 +3,8 @@ dateInputHeading: String,
 dateInputHint: String,
 dateOptions: Seq[(String, String)],
 enteredDateOptions: Option[Seq[(String, String)]],
-fieldError: List[String])(implicit messages: Messages)
+fieldError: List[String],
+attributes: Map[Symbol, Any]=Map())(implicit messages: Messages)
 
 @import views.html.partials.errorMessage
 
@@ -17,6 +18,7 @@ fieldError: List[String])(implicit messages: Messages)
         )
     }
 }
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 
 <div class="govuk-form-group @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
     <fieldset class="govuk-fieldset" role="group" aria-describedby="date-input-hint">
@@ -46,7 +48,7 @@ fieldError: List[String])(implicit messages: Messages)
                                       ) "govuk-input--error" else ""
                                       }"
                                id="date-input-@{dateOption.toLowerCase()}"
-                               name="inputdate-@fieldId-@dateOption.toLowerCase()"
+                               name="@{if(isDynamicForm) s"inputdate-$fieldId-${dateOption.toLowerCase()}" else fieldId}"
                                value="@value"
                                type="number"
                                inputmode="numeric"

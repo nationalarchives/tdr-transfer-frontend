@@ -1,4 +1,4 @@
-@(fieldId: String,
+@(fieldName: String,
 radioOptions: Seq[(String, String)],
 selectedRadioOption: Seq[(String, String)],
 attributes: Map[Symbol, Any],
@@ -11,6 +11,8 @@ fieldError: List[String]
 @isDisabled = {@attributes.get(Symbol("_disabledOption"))}
 @radioOptionsSize = @{if(attributes.get(Symbol("_largeOption")).contains(true)) "" else "govuk-radios--small"}
 @optionSize = @{if(attributes.get(Symbol("_newlineOption")).contains(true)) "" else "govuk-radios--inline"}
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
+@fieldId = @{if(isDynamicForm) s"inputradio-$fieldName" else fieldName}
 
 <div class="govuk-form-group @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
     <fieldset class="govuk-fieldset">
@@ -24,7 +26,7 @@ fieldError: List[String]
                 <input
                         class="govuk-radios__input"
                         id="@fieldId-@value"
-                        name="inputradio-@fieldId"
+                        name="@fieldId"
                         type="radio"
                         value="@label"
                         @isDisabled

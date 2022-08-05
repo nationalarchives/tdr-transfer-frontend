@@ -50,7 +50,8 @@
                                 fieldToApplyToFile.fieldHint,
                                 fieldToApplyToFile.fieldOptions,
                                 fieldToApplyToFile.selectedFieldOption,
-                                fieldToApplyToFile.fieldError
+                                fieldToApplyToFile.fieldError,
+                                Map(Symbol("_dynamicForm") -> true)
                             )
                             case "Decimal" | "Integer" => inputText(
                                 fieldToApplyToFile.fieldId,
@@ -60,6 +61,7 @@
                                 "number",
                                 fieldToApplyToFile.selectedFieldOption,
                                 fieldToApplyToFile.fieldError,
+                                Map(Symbol("_dynamicForm") -> true),
                                 "numeric"
                             )
                             case "Text" =>
@@ -85,7 +87,8 @@
                                         fieldToApplyToFile.fieldOptions,
                                         "text",
                                         fieldToApplyToFile.selectedFieldOption,
-                                        fieldToApplyToFile.fieldError
+                                        fieldToApplyToFile.fieldError,
+                                        Map(Symbol("_dynamicForm") -> true)
                                     )
                                 }
                         }
