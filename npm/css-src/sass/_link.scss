@@ -3,11 +3,11 @@
 // Any changes should also be added to the tdr-auth-server and tdr-service-unavailable repo versions.
 
 .govuk-link__tna-button-link {
-  @extend .govuk-link;
+  @extend %govuk-link;
   background: none;
   border: none;
-  padding: 0;
   color: #1d70b8;
   cursor: pointer;
   font: inherit;
+  padding: 0;
 }
