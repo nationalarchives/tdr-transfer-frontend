@@ -11,15 +11,15 @@ import scala.collection.immutable.ListSet
 class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   private val allCustomMetadataPropertiesByName: Map[String, List[CustomMetadata]] = allCustomMetadataProperties.groupBy(_.name)
 
-  def getCustomMetadataProperties(propertiesToGet: Set[String]): Set[CustomMetadata] =
+  def getCustomMetadataProperties(propertiesToGet: ListSet[String]): ListSet[CustomMetadata] =
     propertiesToGet.flatMap(property => allCustomMetadataPropertiesByName(property))
 
-  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: Set[String]): Map[String, List[CustomMetadata.Values]] = {
-    val propertiesToGetValuesFrom: Set[CustomMetadata] = getCustomMetadataProperties(namesOfPropertiesToGetValuesFrom)
+  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: ListSet[String]): Map[String, List[CustomMetadata.Values]] = {
+    val propertiesToGetValuesFrom: ListSet[CustomMetadata] = getCustomMetadataProperties(namesOfPropertiesToGetValuesFrom)
     propertiesToGetValuesFrom.map(property => property.name -> property.values).toMap
   }
 
-  def convertPropertiesToFields(dependencyProperties: Set[CustomMetadata]): Set[(FieldValues, String)] =
+  def convertPropertiesToFields(dependencyProperties: ListSet[CustomMetadata]): ListSet[(FieldValues, String)] =
     dependencyProperties.map {
       dependencyProperty => {
         val (options, selectedOption) = generateFieldOptions(dependencyProperty, dependencyProperty.dataType)
