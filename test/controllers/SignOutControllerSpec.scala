@@ -1,7 +1,7 @@
 package controllers
 
 import play.api.test.FakeRequest
-import util.{CheckPageForStaticElements, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import play.api.test.Helpers._
 
 

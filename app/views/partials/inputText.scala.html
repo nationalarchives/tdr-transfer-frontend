@@ -1,0 +1,38 @@
+@(fieldId: String,
+inputTextLabel: String,
+inputTextHint: String,
+fieldOptions: Seq[(String, String)],
+inputType: String,
+fieldError: Seq[String],
+attributes: Map[Symbol, Any]=Map(),
+inputTextDataType: String="text")(implicit messages: Messages)
+@suffixText = @{fieldOptions.head._1}
+@defaultText = @{fieldOptions.head._2}
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
+
+@import views.html.partials.errorMessage
+
+<div class="govuk-form-group @{if(fieldError.nonEmpty)"govuk-form-group--error" else ""}">
+    <h2 class="govuk-label-wrapper">
+        <label class="govuk-label govuk-label--m" for=@suffixText>
+            @inputTextLabel
+        </label>
+    </h2>
+    <div id="date-input-with-suffix-hint" class="govuk-hint">
+        @inputTextHint
+    </div>
+    @errorMessage(fieldId, fieldError)
+    @if(suffixText != "") {
+        <div class="govuk-input__wrapper">
+            <input
+                class="govuk-input govuk-input--width-5 @{if(fieldError.nonEmpty)"govuk-input--error" else ""}"
+                id="@suffixText"
+                name="@{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${suffixText.toLowerCase()}" else fieldId}"
+                type="@inputType"
+                placeholder="@defaultText"
+                inputmode="@inputTextDataType"
+            >
+            <div class="govuk-input__suffix" aria-hidden="true">@suffixText</div>
+        </div>
+    }
+</div>
