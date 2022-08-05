@@ -15,8 +15,8 @@ import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import services.{ConsignmentService, UploadService}
-import util.{CheckPageForStaticElements, FrontEndTestHelper}
 import play.api.libs.json._
 
 import java.util.UUID

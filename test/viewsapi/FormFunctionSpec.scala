@@ -6,7 +6,7 @@ import play.api.data.{Field, Form}
 import play.api.i18n.{DefaultMessagesApi, MessagesImpl}
 import play.i18n.Lang
 import play.twirl.api.Html
-import util.FrontEndTestHelper
+import testUtils.FrontEndTestHelper
 import views.html.helper.FieldElements
 
 class FormFunctionSpec extends FrontEndTestHelper {

@@ -1,38 +1,43 @@
-@(field: Field,
+@(fieldName: String,
 radioOptions: Seq[(String, String)],
-args: (Symbol, Any)*
+selectedRadioOption: Seq[(String, String)],
+attributes: Map[Symbol, Any],
+fieldError: List[String]
 )(implicit messages: Messages)
 
-@import views.html.helper._
 @import viewsapi.FormFunctions._
 @import views.html.partials.errorMessage
 
-@elements = @{new FieldElements(field.id, field, null, args.toMap, messages) }
-@isDisabled = {@elements.args.get(Symbol("_disabledOption"))}
-@isSelected = {@elements.args.get(Symbol("_checkedOption"))}
+@isDisabled = {@attributes.get(Symbol("_disabledOption"))}
+@radioOptionsSize = @{if(attributes.get(Symbol("_largeOption")).contains(true)) "" else "govuk-radios--small"}
+@optionSize = @{if(attributes.get(Symbol("_newlineOption")).contains(true)) "" else "govuk-radios--inline"}
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
+@fieldId = @{if(isDynamicForm) s"inputradio-$fieldName" else fieldName}
 
-<div class="govuk-form-group @elements.setErrorClass()">
-    <label class="govuk-label">
-        @elements.args.get(Symbol("_name"))
-    </label>
-    @errorMessage(elements)
-    <div class="govuk-radios govuk-radios--small govuk-radios--inline" id="@elements.id">
-        @radioOptions.map {case (label, value) =>
-        <div class="govuk-radios__item">
-            <input
-                    class="govuk-radios__input"
-                    id="@elements.id@value"
-                    name="@elements.id"
-                    type="radio"
-                    value="@value"
-                    @isDisabled
-                    @isSelected
-                    @elements.args.requiredInput()
-            />
-            <label class="govuk-label govuk-radios__label" for="@elements.id@value">
-                @label
-            </label>
+<div class="govuk-form-group @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
+    <fieldset class="govuk-fieldset">
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+            @attributes.get(Symbol("_label"))
+        </legend>
+        @errorMessage(fieldId, fieldError)
+        <div class="govuk-radios" @radioOptionsSize @optionSize id="@fieldId">
+            @radioOptions.map {case (label, value) =>
+            <div class="govuk-radios__item">
+                <input
+                        class="govuk-radios__input"
+                        id="@fieldId-@value"
+                        name="@fieldId"
+                        type="radio"
+                        value="@value"
+                        @isDisabled
+                        @{if(label == selectedRadioOption.head._1) "checked" else ""}
+                        @attributes.requiredInput()
+                />
+                <label class="govuk-label govuk-radios__label" for="@fieldId@value">
+                    @label
+                </label>
+            </div>
+            }
         </div>
-        }
-    </div>
+    </fieldset>
 </div>

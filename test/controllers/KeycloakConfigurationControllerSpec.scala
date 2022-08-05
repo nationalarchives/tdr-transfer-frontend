@@ -5,7 +5,7 @@ import org.scalatest.matchers.should.Matchers._
 import play.api.Configuration
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
-import util.FrontEndTestHelper
+import testUtils.FrontEndTestHelper
 import play.api.test.Helpers._
 
 

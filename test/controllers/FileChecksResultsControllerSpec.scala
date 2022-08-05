@@ -19,7 +19,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.{ConsignmentService, ConsignmentStatusService}
-import util.{CheckPageForStaticElements, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap

@@ -26,7 +26,7 @@ import play.api.test.WsTestClient.InternalWSClient
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{FormTester, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
+import testUtils.{FormTester, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap

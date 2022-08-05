@@ -1,4 +1,4 @@
-package util
+package testUtils
 
 import play.api.i18n.{Lang, Langs}
 
