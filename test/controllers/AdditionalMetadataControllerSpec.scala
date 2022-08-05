@@ -60,10 +60,10 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
         s"""        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records.""" +
            """ Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>""".stripMargin) mustBe true
       startPageAsString.contains(
-        s"""            <p class="nhsuk-card__description">If you'd like to add or edit descriptive metadata""" +
+        s"""        <p class="govuk-body">If you'd like to add or edit descriptive metadata""" +
            """ to your records, you can do so here.</p>""") mustBe true
       startPageAsString.contains(
-        s"""            <p class="nhsuk-card__description">If you'd like to add or edit""" +
+        s"""        <p class="govuk-body">If you'd like to add or edit""" +
            """ closure metadata to your records, you can do so here.</p>""".stripMargin) mustBe true
       startPageAsString.contains(
         s"""        <a href="/consignment/$consignmentId/confirm-transfer" """ +
@@ -71,8 +71,8 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
                                     |          Continue
                                     |        </a>""".stripMargin) mustBe true
       // Will change these links when we have the metadata pages to link them to.
-      startPageAsString.contains(s"""<a class="nhsuk-card__link" href="#">Descriptive metadata</a>""") mustBe true
-      startPageAsString.contains(s"""<a class="nhsuk-card__link" href="#">Closure metadata</a>""") mustBe true
+      startPageAsString.contains(s"""          <a class="govuk-link" href="#">Descriptive metadata</a>""") mustBe true
+      startPageAsString.contains(s"""          <a class="govuk-link" href="#">Closure metadata</a>""") mustBe true
     }
 
     "will return forbidden if the pages are accessed by a judgment user" in {
