@@ -22,6 +22,7 @@ import play.api.test.Helpers.{GET, POST, contentAsString, contentType, defaultAw
 import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 import testUtils.FrontEndTestHelper
+import util.FrontEndTestHelper
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
