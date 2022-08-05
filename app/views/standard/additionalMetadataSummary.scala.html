@@ -1,9 +1,10 @@
-@import views.html.partials.{transferReference}
+@import views.html.partials.{transferReference, progressIndicator}
 @import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.Metadata
 
 @(fileName: String, consignmentRef: String, metadata: Metadata, name: String)(implicit messages: Messages, request: RequestHeader)
 @main(title = "Review metadata added", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
+    @progressIndicator(Messages("additionalMetadataSummary.progress"))
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         <h1 class="govuk-heading-xl">
