@@ -58,7 +58,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       startPageAsString.contains(s"Closure metadata") mustBe true
       startPageAsString.contains(s"Continue") mustBe true
       // Will change these links when we have the metadata pages to link them to.
-      startPageAsString.contains(s"""<a class="nhsuk-card__link" href="#">""") mustBe true
+      startPageAsString.contains(s"""<a class="govuk-link" href="#">""") mustBe true
     }
 
     "will return forbidden if the pages are accessed by a judgment user" in {
