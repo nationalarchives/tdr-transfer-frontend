@@ -1,4 +1,4 @@
-@(fieldId: String,
+@(fieldName: String,
 attributes: Map[Symbol, Any],
 fieldError: Seq[String]
 )(implicit messages: Messages)
@@ -11,7 +11,8 @@ fieldError: Seq[String]
 @disabledStatus = {@attributes.get(Symbol("_disabledOption"))}
 @checkedStatus = {@attributes.get(Symbol("_checkedOption"))}
 @isSmallCheckbox = {@attributes.get(Symbol("_smallCheckbox"))}
-
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
+@fieldId = @{if(isDynamicForm) s"inputcheckbox-$fieldName" else fieldName}
     <div class="govuk-checkboxes @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
         @errorMessage(fieldId, fieldError)
         <div class='govuk-checkboxes__item@if(isSmallCheckbox.toString() == "true"){ govuk-checkboxes--small}'>
@@ -19,7 +20,7 @@ fieldError: Seq[String]
                 @checkedStatus
                 class="govuk-checkboxes__input"
                 id="@fieldId"
-                name="inputcheckbox-@fieldId"
+                name="@fieldId"
                 type="checkbox"
                 value="@value"
                 @disabledStatus />
