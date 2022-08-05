@@ -20,9 +20,8 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, POST, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.ConsignmentService
-import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 import testUtils.FrontEndTestHelper
-import util.FrontEndTestHelper
+import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
