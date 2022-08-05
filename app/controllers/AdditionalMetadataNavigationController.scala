@@ -18,7 +18,7 @@ import scala.concurrent.Future
 class AdditionalMetadataNavigationController @Inject()(val consignmentService: ConsignmentService,
                                                        val keycloakConfiguration: KeycloakConfiguration,
                                                        val controllerComponents: SecurityComponents,
-                                                       cache: CacheApi,
+                                                       val cacheApi: CacheApi
                                                       ) extends TokenSecurity {
 
   val navigationForm: Form[NodesFormData] = Form(
@@ -68,7 +68,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       }
 
       val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
-        val selectedFiles: RedisSet[UUID, SynchronousResult] = cache.set[UUID](consignmentId.toString)
+        val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
         formData.selected.foreach(ids => selectedFiles.add(UUID.fromString(ids)))
@@ -103,7 +103,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   private def generateNodesToDisplay(consignmentId: UUID, edges: List[PaginatedFiles.Edges], selectedFolderId: UUID): List[NodesToDisplay] = {
     edges.map(edge => {
-      val selectedFiles = cache.set[UUID](consignmentId.toString)
+      val selectedFiles = cacheApi.set[UUID](consignmentId.toString)
       val isSelected = selectedFiles.contains(edge.node.fileId) || selectedFiles.contains(selectedFolderId)
       val isFolder = edge.node.fileType.get == "Folder"
       NodesToDisplay(
