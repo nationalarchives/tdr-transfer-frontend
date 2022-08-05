@@ -14,16 +14,25 @@ messages: Messages)
         @progressIndicator(Messages("seriesDetails.progress"))
 
         <h1 class="govuk-heading-l">Choose a series</h1>
-        @errorSummary(seriesDetailsForm("series"))
+        @errorSummary(
+            Map(seriesDetailsForm("series").id -> seriesDetailsForm("series").errors.headOption)
+               .collect { case (id, Some(formError)) => (id -> formError.messages)}
+        )
 
         @form(routes.SeriesDetailsController.seriesSubmit(consignmentId), (Symbol("novalidate"), "")) {
             @CSRF.formField
             @inputDropdown(
-                seriesDetailsForm("series"),
+                seriesDetailsForm("series").id,
                 allSeriesData,
-                Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
-                Symbol("_name") -> "Series Details",
-                Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
+                Seq(("", "Please choose...")),
+                Map(
+                    Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
+                    Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
+                ),
+                seriesDetailsForm("series").errors.headOption match {
+                    case Some(formError) => formError.messages
+                    case None => Nil
+                }
             )
 
         <div class="govuk-button-group">

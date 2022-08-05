@@ -10,7 +10,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, redirectLocation, status => playStatus, _}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import util.{FormTester, CheckPageForStaticElements, FrontEndTestHelper, TransferAgreementTestHelper}
+import testUtils.{FormTester, CheckPageForStaticElements, FrontEndTestHelper, TransferAgreementTestHelper}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
