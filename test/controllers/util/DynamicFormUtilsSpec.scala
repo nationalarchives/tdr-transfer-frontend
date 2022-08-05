@@ -496,10 +496,10 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     if (passInFieldsForAllMetadata) {
       new DynamicFormUtils(mockRequest, allMetadataAsFields)
     } else {
-      val metadataUsedForFormAsFields = allMetadataAsFields.filter {
+      val metadataUsedForFormAsFields: ListSet[(FieldValues, String)] = allMetadataAsFields.filter {
         case (inputName, _) =>
-          val rawFormWithoutCsrfToken = rawFormToMakeRequestWith - "csrfToken"
-          val metadataNames = rawFormWithoutCsrfToken.keys.map { inputName => inputName.split("-")(1) }.toList
+          val rawFormWithoutCsrfToken: Map[String, Seq[String]] = rawFormToMakeRequestWith - "csrfToken"
+          val metadataNames: List[String] = rawFormWithoutCsrfToken.keys.map { inputName => inputName.split("-")(1) }.toList
           metadataNames.contains(inputName.fieldId)
       }
       new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
