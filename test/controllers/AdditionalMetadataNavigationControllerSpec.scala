@@ -224,6 +224,65 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
            |                </button>""".stripMargin) mustBe true
     }
 
+    "Must redirect to the correct page when submitting a form" in {
+      val selectedFolderId = UUID.randomUUID()
+      val fileId = UUID.randomUUID()
+      val page = "1"
+      setConsignmentTypeResponse(wiremockServer, "standard")
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val cacheApi = mock[CacheApi]
+      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents, cacheApi)
+      val response = controller.submit(consignmentId, limit = None, selectedFolderId = selectedFolderId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
+          .withFormUrlEncodedBody(
+            Seq(
+              ("allNodes[]", fileId.toString),
+              ("selected[]", fileId.toString),
+              ("pageSelected", page),
+              ("folderSelected", selectedFolderId.toString)): _*)
+          .withCSRFToken)
+
+      status(response) mustBe SEE_OTHER
+
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$page"))
+    }
+
+    "Must redirect to the correct page when submitting a form with 'returnToRoot' defined" in {
+      val selectedFolderId = UUID.randomUUID()
+      val fileId = UUID.randomUUID()
+      val page = "1"
+      setConsignmentTypeResponse(wiremockServer, "standard")
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val cacheApi = mock[CacheApi]
+      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents, cacheApi)
+      val response = controller.submit(consignmentId, limit = None, selectedFolderId = selectedFolderId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
+          .withFormUrlEncodedBody(
+            Seq(
+              ("returnToRoot", selectedFolderId.toString),
+              ("allNodes[]", fileId.toString),
+              ("selected[]", fileId.toString),
+              ("pageSelected", page),
+              ("folderSelected", "folderSelected")): _*)
+          .withCSRFToken)
+
+      status(response) mustBe SEE_OTHER
+
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$page"))
+    }
+
     "will return forbidden if the file selection pages is accessed by a judgment user" in {
       val selectedFolderId = UUID.randomUUID()
       val page = 1
