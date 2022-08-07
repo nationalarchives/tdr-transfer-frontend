@@ -1,0 +1,99 @@
+@import helper._
+@import java.util.UUID
+
+@(consignmentId: UUID, name: String, folderUploaded: String, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, parentFolder: Option[UUID], nodesFormData: Form[NodesFormData])(implicit messages: Messages, request: RequestHeader)
+@main("Additional Metadata", name = name) {
+    @defining(play.core.PlayVersion.current) { version =>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <h1 class="govuk-heading-l">
+                    Add or edit closure metadata on file basis
+                </h1>
+                <div class="govuk-warning-text">
+                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                    <strong class="govuk-warning-text__text">
+                        <span class="govuk-warning-text__assistive">Warning</span>
+                        Do not use your browsers back/forward buttons as this can lead to loss of data.
+                    </strong>
+                </div>
+                <p class="govuk-body">You can now add or edit closure metadata to individual files or folders.</p>
+                <p class="govuk-body">
+                    Click on a particular file or folder to see what metadata is already captured and add or edit properties there.
+                    For a bulk edit, first select files and/or folders and then choose an action from the menu.
+                </p>
+                <h2 class="app-task-list__section">Folder uploaded: @folderUploaded</h2>
+
+                @form(action = routes.AdditionalMetadataNavigationController.submit(consignmentId, limit, selectedFolderId)) {
+                    @CSRF.formField
+                    <div class="govuk-button-group">
+                        @if(parentFolder.isDefined) {
+                            <button class="govuk-button" name="returnToRoot" data-prevent-double-click="true" type="submit" role="button" value="@parentFolder">
+                                Return to root folder
+                            </button>
+                        }
+                        <a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+                            Add closure properties
+                        </a>
+                    </div>
+                    <section id="page-@currentPage">
+                        <table class="govuk-table">
+                            <tbody class="govuk-table__body">
+                            @nodesFormData.value.get.nodesToDisplay.map { node =>
+                                <tr class="govuk-table__row">
+                                    <td class="govuk-table__cell">
+                                        <div class="govuk-checkboxes__item">
+                                            <input type='hidden' id="@node.fileId" name='allNodes[]' value="@node.fileId">
+                                            <input class="govuk-checkboxes__input" id="@node.fileId" name="selected[]" type="checkbox" value="@node.fileId" @{if(node.isSelected) "checked"} autocomplete="off">
+                                            <label class="govuk-label govuk-checkboxes__label" for="@node.fileId">
+                                            @if(node.isFolder) {
+                                                📁
+                                                <button name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="@node.fileId">
+                                                @node.displayName
+                                                </button>
+                                            } else {
+                                                📊 @node.displayName
+                                            }
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </section>
+                    <nav class="govuk-pagination" role="navigation" aria-label="results">
+                        @if(currentPage != 1) {
+                            <div class="govuk-pagination__prev">
+                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="@{currentPage - 1}">
+                                    Previous
+                                </button>
+                            </div>
+                        }
+                        <ul class="govuk-pagination__list">
+                        @for(page <- 1 to totalPages){
+                            <li class="govuk-pagination__item @if(currentPage == page){govuk-pagination__item--current}">
+                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-link govuk-pagination__link" type="submit" data-module="govuk-button" role="button" value="@{page}">
+                                @page
+                                </button>
+                            </li>
+                        }
+                        </ul>
+                        @if(currentPage != totalPages) {
+                            <div class="govuk-pagination__next">
+                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="@{currentPage + 1}">
+                                    Next
+                                </button>
+                            </div>
+                        }
+                    </nav>
+                    <a href="#" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                        Back to closure metadata menu
+                    </a>
+                    @*These hidden fields are defaults for when the buttons are not clicked*@
+                    <input type="hidden" id="pageSelected" name="pageSelected" value="1"/>
+                    <input type="hidden" id="folderSelected" name="folderSelected" value="@{nodesFormData.value.get.folderSelected}"/>
+                }
+            </div>
+        </div>
+    }
+}
