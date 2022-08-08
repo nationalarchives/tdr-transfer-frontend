@@ -51,6 +51,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
             editable = false,
             multiValue = false,
             Some("TestValue"),
+            1,
             List(
               cm.CustomMetadata.Values(
                 "TestValue",
@@ -68,6 +69,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
             editable = false,
             multiValue = false,
             Some("TestDependencyValue"),
+            1,
             List()
           )
         )
@@ -90,6 +92,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
           editable = false,
           multiValue = false,
           Some("TestValue"),
+          1,
           List(
             cm.CustomMetadata.Values(
               "TestValue",
@@ -107,6 +110,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
           editable = false,
           multiValue = false,
           Some("TestDependencyValue"),
+          1,
           List()
         )
       )
