@@ -21,6 +21,30 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
                                                        val cacheApi: CacheApi
                                                       ) extends TokenSecurity {
 
+  implicit class CacheHelper(cache: RedisSet[UUID, SynchronousResult]) {
+
+    def updateCache(formData: NodesFormData, selectedFolderId: UUID): Unit = {
+      val allNodes: List[String] = formData.allNodes
+      val selected: List[String] = formData.selected
+      val deselectedFiles: List[String] = allNodes.filter(id => !selected.contains(id))
+
+      cache.addSelectedIds(selected)
+      cache.removedDeselectedIds(deselectedFiles)
+
+      //Deselect the parent folder if a child file has been deselected
+      if (deselectedFiles.nonEmpty && cache.contains(selectedFolderId)) cache.remove(selectedFolderId)
+    }
+
+    def addSelectedIds(elems: List[String]): Unit = {
+      cache.add(elems.map(UUID.fromString(_)): _*)
+    }
+
+    def removedDeselectedIds(elems: List[String]): Unit = {
+      cache.remove(elems.map(UUID.fromString(_)).filter(cache.contains(_)): _*)
+    }
+  }
+
+
   val navigationForm: Form[NodesFormData] = Form(
     mapping(
       "nodes" -> seq(
@@ -73,12 +97,8 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
-        formData.selected.foreach(ids => selectedFiles.add(UUID.fromString(ids)))
-        //Handle deselected Items
-        val deselectedFiles = handleDeselection(selectedFiles, formData)
-        //Deselect the parent folder if the a child file has been deselected
-        if (deselectedFiles.nonEmpty && selectedFiles.contains(selectedFolderId)) selectedFiles.remove(selectedFolderId)
-        //Pass the parent id instead of folderId, if the 'return to root' button is clicked
+        selectedFiles.updateCache(formData, selectedFolderId)
+
         if (formData.returnToRoot.isDefined) {
           Future(Redirect(routes.AdditionalMetadataNavigationController
             .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(formData.returnToRoot.get))))
@@ -95,15 +115,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       )
   }
 
-  private def handleDeselection(selectedFiles: RedisSet[UUID, SynchronousResult], formData: NodesFormData): List[String] = {
-    val allNodes: List[String] = formData.allNodes
-    val selected: List[String] = formData.selected
-    val deselectedFiles: List[String] = allNodes.filter(ids => !selected.contains(ids))
-    deselectedFiles.foreach(ids => if (selectedFiles.contains(UUID.fromString(ids))) selectedFiles.remove(UUID.fromString(ids)))
-    deselectedFiles
-  }
-
-  private def generateNodesToDisplay(consignmentId: UUID, edges: List[PaginatedFiles.Edges], selectedFolderId: UUID): List[NodesToDisplay] = {
+    private def generateNodesToDisplay(consignmentId: UUID, edges: List[PaginatedFiles.Edges], selectedFolderId: UUID): List[NodesToDisplay] = {
     edges.map(edge => {
       val edgeNode = edge.node
       val selectedFiles = cacheApi.set[UUID](consignmentId.toString)
