@@ -136,7 +136,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     // no longer needed, the real names have to be returned
     cm.Data(
       List(
-        cm.CustomMetadata("ClosureType", None, Some("Closure Type"), Defined, Some("MandatoryClosure"), Text, true, false, Some("open_on_transfer"),
+        cm.CustomMetadata("ClosureType", None, Some("Closure Type"), Defined, Some("MandatoryClosure"), Text, true, false, Some("open_on_transfer"),1,
           List(
             Values("closed_for",
               List(
@@ -151,31 +151,31 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
                 Dependencies("TitlePublic"),
                 Dependencies("DescriptionPublic"))))),
         cm.CustomMetadata(
-          "ClosurePeriod", None, Some("Closure Period"), Supplied, Some("MandatoryClosure"), Integer, true, false, Some("0"), List(Values("0", List()))),
+          "ClosurePeriod", None, Some("Closure Period"), Supplied, Some("MandatoryClosure"), Integer, true, false, Some("0"), 1, List(Values("0", List()))),
         cm.CustomMetadata(
-          "DescriptionPublic", None, Some("Description Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, Some("True"),
+          "DescriptionPublic", None, Some("Description Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, Some("True"), 1,
           List(
             Values("True", List()),
             Values("False",
               List(
                 Dependencies("DescriptionAlternate"))))),
         cm.CustomMetadata(
-          "TitlePublic", None, Some("Title Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, Some("True"),
+          "TitlePublic", None, Some("Title Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, Some("True"),1,
           List(
             Values("False",
               List(
                 Dependencies("TitleAlternate"))),
             Values("True", List()))),
         cm.CustomMetadata(
-          "ClosureStartDate", None, Some("Closure Start Date"), Supplied, Some("OptionalClosure"), DateTime, true, false, None, List()),
+          "ClosureStartDate", None, Some("Closure Start Date"), Supplied, Some("OptionalClosure"),  DateTime, true, false, None,1 ,List()),
         cm.CustomMetadata(
-          "DescriptionAlternate", None, Some("Description Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, None, List()),
+          "DescriptionAlternate", None, Some("Description Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, None,1 ,List()),
         cm.CustomMetadata(
-          "TitleAlternate", None, Some("Title Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, None, List()),
+          "TitleAlternate", None, Some("Title Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, None, 1, List()),
         cm.CustomMetadata(
-          "FoiExemptionAsserted", None, Some("Foi Exemption Asserted"), Supplied, Some("MandatoryClosure"), DateTime, true, false, None, List()),
+          "FoiExemptionAsserted", None, Some("Foi Exemption Asserted"), Supplied, Some("MandatoryClosure"), DateTime, true, false, None, 1, List()),
         cm.CustomMetadata(
-          "FoiExemptionCode", None, Some("Foi Exemption Code"), Defined, Some("MandatoryClosure"), Text, true, true, Some("mock code1"),
+          "FoiExemptionCode", None, Some("Foi Exemption Code"), Defined, Some("MandatoryClosure"), Text, true, true, Some("mock code1"), 1,
           List(
             Values("mock code1", List()), Values("mock code2", List())))))
   }
