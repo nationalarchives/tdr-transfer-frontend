@@ -13,6 +13,7 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 import org.mockito.Mockito
 import org.mockito.Mockito.when
+import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.Play.materializer
 import play.api.cache.redis.{CacheApi, RedisSet, SynchronousResult}
 import play.api.http.Status.{FORBIDDEN, OK, SEE_OTHER}
@@ -158,9 +159,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
       fileSelectionPageAsString.contains(
         s"""
-           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="${currentPage - 1}">
-           |                  Previous
-           |                </button>""".stripMargin) mustBe true
+           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="${currentPage - 1}">
+           |                                    Previous
+           |                                </button>""".stripMargin) mustBe true
     }
 
     "must not display the 'next' button if you are on the last page" in {
@@ -194,7 +195,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
            |                </button>""".stripMargin) mustBe false
     }
 
-    "must display the 'next' button if there are still pages" in {
+    "must display the 'next' button if you are not on the last page" in {
       val parentFolder = "parentFolder"
       val currentPage = 1
       val selectedFolderId = UUID.randomUUID()
@@ -220,12 +221,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
       fileSelectionPageAsString.contains(
         s"""
-           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="${currentPage + 1}">
-           |                  Next
-           |                </button>""".stripMargin) mustBe true
+           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="2">
+           |                                    Next
+           |                                </button>""".stripMargin) mustBe true
     }
 
-    "Must redirect to the correct page when submitting a form" in {
+    "must redirect to the correct page when submitting a form" in {
       val selectedFolderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       val page = "1"
@@ -284,7 +285,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$page"))
     }
 
-    "Should correctly store selected files to the cache" in {
+    "Should correctly store selected file in the cache" in {
       val selectedFolderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       val page = "1"
@@ -314,7 +315,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       Mockito.verify(redisSetMock).add(fileId)
     }
 
-    "will return forbidden if the file selection pages is accessed by a judgment user" in {
+    "will return forbidden if the file selection page is accessed by a judgment user" in {
       val selectedFolderId = UUID.randomUUID()
       val page = 1
       setConsignmentTypeResponse(wiremockServer, "judgment")
@@ -329,15 +330,16 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "will return forbidden if the user does not own the consignment on the file selection page" in {
+    "will return an error message if the user does not own the consignment" in {
+      val currentPage = 1
       val selectedFolderId = UUID.randomUUID()
-      val page = 1
-      setConsignmentTypeResponse(wiremockServer, "judgment")
+      val errorMessage = s"User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '$consignmentId'"
+      setConsignmentTypeResponse(wiremockServer, "standard")
       val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
-      val errors = Error(s"User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '$consignmentId'", Nil, Nil, None) :: Nil
+      val errors = Error(errorMessage, Nil, Nil, None) :: Nil
       val dataString: String = client.GraphqlData(None, errors).asJson.noSpaces
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignment($consignmentId:UUID!)"))
+        .withRequestBody(containing("getConsignmentPaginatedFiles"))
         .willReturn(okJson(dataString)))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -345,10 +347,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val cacheApi = mock[CacheApi]
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, page, limit = None, selectedFolderId = selectedFolderId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$page").withCSRFToken)
+      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$currentPage").withCSRFToken).failed.futureValue
 
-      status(response) mustBe FORBIDDEN
+      response.getMessage.contains(errorMessage) mustBe true
     }
 
     "redirect to the auth server with an unauthenticated user" in {
