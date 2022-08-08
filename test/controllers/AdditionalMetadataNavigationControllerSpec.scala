@@ -285,7 +285,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$page"))
     }
 
-    "Should correctly store selected files to the cache" in {
+    "Should correctly store selected file in the cache" in {
       val selectedFolderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       val page = "1"

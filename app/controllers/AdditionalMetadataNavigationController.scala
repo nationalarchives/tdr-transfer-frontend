@@ -71,7 +71,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
           .getOrElse(throw new IllegalStateException(s"No 'total pages' returned for folderId $selectedFolderId"))
         val parentFolder = paginatedFiles.parentFolder.
           getOrElse(throw new IllegalStateException(s"No 'parent folder' returned for consignment $consignmentId"))
-        val edges = paginatedFiles.paginatedFiles.edges.get.flatten
+        val edges: List[PaginatedFiles.Edges] = paginatedFiles.paginatedFiles.edges.getOrElse(List()).flatten
         val nodesToDisplay: List[NodesToDisplay] = generateNodesToDisplay(consignmentId, edges, selectedFolderId)
         Ok(views.html.standard.additionalMetadataNavigation(
           consignmentId,
