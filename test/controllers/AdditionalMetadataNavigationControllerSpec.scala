@@ -95,11 +95,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
       fileSelectionPageAsString.contains(
-        s"""class="govuk-link govuk-pagination__link" type="submit" data-module="govuk-button" role="button" value="1">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="1">""") mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-link govuk-pagination__link" type="submit" data-module="govuk-button" role="button" value="2">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="2">""") mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-link govuk-pagination__link" type="submit" data-module="govuk-button" role="button" value="3">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="3">""") mustBe true
     }
 
     "must not display the 'previous' button if you are on the first page" in {
@@ -159,7 +159,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
       fileSelectionPageAsString.contains(
         s"""
-           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="${currentPage - 1}">
+           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="${currentPage - 1}">
            |                                    Previous
            |                                </button>""".stripMargin) mustBe true
     }
@@ -221,7 +221,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
       fileSelectionPageAsString.contains(
         s"""
-           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="2">
+           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="2">
            |                                    Next
            |                                </button>""".stripMargin) mustBe true
     }
@@ -369,6 +369,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  // scalastyle:off line.size.limit
   private def checkCommonFileNavigationElements(fileSelectionPageAsString: String,
                                                 parentFolder: String,
                                                 folderId: UUID,
@@ -378,12 +379,13 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     fileSelectionPageAsString.contains(s"Folder uploaded: $parentFolder") mustBe true
     fileSelectionPageAsString.contains(s"Add closure properties") mustBe true
     fileSelectionPageAsString.contains(
-      s"""<button name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="$folderId">""") mustBe true
+      s"""<button class="govuk-button__tna-button-link" name="folderSelected" data-prevent-double-click="true" type="submit" role="link" value="$folderId">""") mustBe true
     fileSelectionPageAsString.contains(
       s"""<label class="govuk-label govuk-checkboxes__label" for="$fileId">""") mustBe true
     fileSelectionPageAsString.contains(s"""<input type="hidden" id="folderSelected" name="folderSelected" value="$selectedFolderId"/>""") mustBe true
     fileSelectionPageAsString.contains(s"Back to closure metadata menu") mustBe true
   }
+  // scalastyle:on line.size.limit
 
   private def setConsignmentPaginatedFilesResponse(wiremockServer: WireMockServer,
                                                    parentFolder: String,
