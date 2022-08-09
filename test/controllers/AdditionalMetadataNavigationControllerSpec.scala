@@ -367,6 +367,36 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       status(response) mustBe SEE_OTHER
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
+
+    "will display the correct file totals with a limit set" in {
+      val parentFolder = "parentFolder"
+      val currentPage = 2
+      val selectedFolderId = UUID.randomUUID()
+      val folderId = UUID.randomUUID()
+      val fileId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
+      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3), totalFiles = Some(10))
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val cacheApi = mock[CacheApi]
+      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents, cacheApi)
+      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = Option(3), selectedFolderId = selectedFolderId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$currentPage").withCSRFToken)
+      val fileSelectionPageAsString = contentAsString(response)
+
+      status(response) mustBe OK
+      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+
+      fileSelectionPageAsString.contains(
+        "Showing <span class=\"govuk-body govuk-!-font-weight-bold\">4</span> to <span class=\"govuk-body govuk-!-font-weight-bold\">6</span> of <span class=\"govuk-body govuk-!-font-weight-bold\">10</span> results"
+      ) mustBe true
+    }
   }
 
   private def checkCommonFileNavigationElements(fileSelectionPageAsString: String,
