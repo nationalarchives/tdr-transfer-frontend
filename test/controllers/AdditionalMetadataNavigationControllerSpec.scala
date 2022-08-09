@@ -389,7 +389,8 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
                                                    parentFolder: String,
                                                    folderId: UUID,
                                                    fileId: UUID,
-                                                   totalPages: Option[Int] = Some(1)
+                                                   totalPages: Option[Int] = Some(1),
+                                                   totalFiles: Option[Int] = Some(1)
                                                   ): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcpf.Data, gcpf.Variables]()
     val paginatedFiles: gcpf.GetConsignment.PaginatedFiles =
@@ -397,7 +398,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         Some(List(
           Some(Edges(Edges.Node(fileId = folderId, fileName = Some(parentFolder), fileType = Some("Folder"), parentId = None))),
           Some(Edges(Edges.Node(fileId = fileId, fileName = Some("FileName"), fileType = Some("File"), parentId = Some(folderId)))))),
-        totalPages = totalPages)
+        totalPages = totalPages, totalItems = totalFiles)
     val graphQlPaginatedData = gcpf.GetConsignment(parentFolder = Some(parentFolder), parentFolderId = Some(folderId),
       paginatedFiles = paginatedFiles)
     val response = gcpf.Data(Some(graphQlPaginatedData))
