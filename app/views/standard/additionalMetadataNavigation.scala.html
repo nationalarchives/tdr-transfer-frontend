@@ -48,7 +48,7 @@
                                             <label class="govuk-label govuk-checkboxes__label" for="@node.fileId">
                                             @if(node.isFolder) {
                                                 📁
-                                                <button name="folderSelected" data-prevent-double-click="true" type="submit" role="button" value="@node.fileId">
+                                                <button class="govuk-button__tna-button-link" name="folderSelected" data-prevent-double-click="true" type="submit" role="link" value="@node.fileId">
                                                 @node.displayName
                                                 </button>
                                             } else {
@@ -65,7 +65,7 @@
                     <nav class="govuk-pagination" role="navigation" aria-label="results">
                         @if(currentPage != 1) {
                             <div class="govuk-pagination__prev">
-                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="@{currentPage - 1}">
+                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="@{currentPage - 1}">
                                     Previous
                                 </button>
                             </div>
@@ -73,7 +73,7 @@
                         <ul class="govuk-pagination__list">
                         @for(page <- 1 to totalPages){
                             <li class="govuk-pagination__item @if(currentPage == page){govuk-pagination__item--current}">
-                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-link govuk-pagination__link" type="submit" data-module="govuk-button" role="button" value="@{page}">
+                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="@{page}">
                                 @page
                                 </button>
                             </li>
@@ -81,7 +81,7 @@
                         </ul>
                         @if(currentPage != totalPages) {
                             <div class="govuk-pagination__next">
-                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="@{currentPage + 1}">
+                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="@{currentPage + 1}">
                                     Next
                                 </button>
                             </div>
