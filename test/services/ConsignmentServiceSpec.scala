@@ -402,7 +402,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
           Some(List(
             Some(Edges(Edges.Node(fileId = folderId, fileName = parentFolderName, fileType = Some("Folder"), parentId = None))),
             Some(Edges(Edges.Node(fileId = fileId, fileName = Some("FileName"), fileType = Some("File"), parentId = Some(folderId)))))),
-          totalPages = Some(1))
+          totalPages = Some(1), totalItems = Some(1))
 
       val graphQlPaginatedData = gcpf.GetConsignment(parentFolder = parentFolderName, parentFolderId = Some(folderId), paginatedFiles = paginatedFiles)
       val response = GraphQlResponse(Some(gcpf.Data(Some(graphQlPaginatedData))), Nil)
