@@ -9,8 +9,11 @@ import {
   IFileWithPath,
   TProgressFunction
 } from "@nationalarchives/file-information"
-import { isError } from "../errorhandling";
-import { AddFileStatusInput, FileStatus } from "@nationalarchives/tdr-generated-graphql";
+import { isError } from "../errorhandling"
+import {
+  AddFileStatusInput,
+  FileStatus
+} from "@nationalarchives/tdr-generated-graphql"
 
 export interface ITdrFileWithPath {
   fileId: string
@@ -71,7 +74,10 @@ export class S3Upload {
             totalFiles
           }
         )
-        if (uploadResult.$metadata !== undefined && uploadResult.$metadata.httpStatusCode != 200) {
+        if (
+          uploadResult.$metadata !== undefined &&
+          uploadResult.$metadata.httpStatusCode != 200
+        ) {
           await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
         }
         sendData.push(uploadResult)
@@ -152,14 +158,13 @@ export class S3Upload {
     const percentageProcessed = Math.round((chunks / totalChunks) * 100)
     const processedFiles = Math.floor((chunks / totalChunks) * totalFiles)
 
-    updateProgressFunction({processedFiles, percentageProcessed, totalFiles})
+    updateProgressFunction({ processedFiles, percentageProcessed, totalFiles })
   }
 
   private async addFileStatus(
     fileId: string,
     status: string
   ): Promise<FileStatus | Error> {
-
     const csrfInput: HTMLInputElement = document.querySelector(
       "input[name='csrfToken']"
     )!
