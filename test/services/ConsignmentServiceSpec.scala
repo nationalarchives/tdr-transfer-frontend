@@ -10,9 +10,12 @@ import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.GetConsignment
+import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
+import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles.{Edges, PageInfo}
+import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFiles => gcpf}
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.UpdateConsignmentSeriesId.{updateConsignmentSeriesId => ucs}
-import graphql.codegen.types.{AddConsignmentInput, FileFilters}
+import graphql.codegen.types.{AddConsignmentInput, FileFilters, PaginationInput}
 import org.keycloak.representations.AccessToken
 import org.mockito.Mockito
 import org.mockito.Mockito._
@@ -43,12 +46,14 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val updateConsignmentSeriesIdClient = mock[GraphQLClient[ucs.Data, ucs.Variables]]
   private val getConsignmentForExportClient = mock[GraphQLClient[gcfe.Data, gcfe.Variables]]
   private val getConsignmentFilesMetadataClient = mock[GraphQLClient[gcfm.Data, gcfm.Variables]]
+  private val getConsignmentPaginatedFilesClient = mock[GraphQLClient[gcpf.Data, gcpf.Variables]]
   when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(getConsignmentClient)
   when(graphQlConfig.getClient[addConsignment.Data, addConsignment.Variables]()).thenReturn(addConsignmentClient)
   when(graphQlConfig.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()).thenReturn(getConsignmentFolderInfoClient)
   when(graphQlConfig.getClient[gct.Data, gct.Variables]()).thenReturn(getConsignmentTypeClient)
   when(graphQlConfig.getClient[gcfe.Data, gcfe.Variables]()).thenReturn(getConsignmentForExportClient)
   when(graphQlConfig.getClient[gcfm.Data, gcfm.Variables]()).thenReturn(getConsignmentFilesMetadataClient)
+  when(graphQlConfig.getClient[gcpf.Data, gcpf.Variables]()).thenReturn(getConsignmentPaginatedFilesClient)
 
   private val consignmentService = new ConsignmentService(graphQlConfig)
 
@@ -382,6 +387,48 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken).failed.futureValue
 
       getConsignmentExport.getMessage should be("error")
+    }
+  }
+
+  "getConsignmentPaginatedFile" should {
+    "return paginated file information for a consignment given a folderId" in {
+      val fileId = UUID.randomUUID()
+      val folderId = UUID.randomUUID()
+      val parentFolderName = Some("ParentFolder")
+      val limit = Some(1)
+      val page = 1
+      val paginatedFiles: gcpf.GetConsignment.PaginatedFiles =
+        PaginatedFiles(PageInfo(startCursor = None, endCursor = None, hasNextPage = true, hasPreviousPage = false),
+          Some(List(
+            Some(Edges(Edges.Node(fileId = folderId, fileName = parentFolderName, fileType = Some("Folder"), parentId = None))),
+            Some(Edges(Edges.Node(fileId = fileId, fileName = Some("FileName"), fileType = Some("File"), parentId = Some(folderId)))))),
+          totalPages = Some(1), totalItems = Some(1))
+
+      val graphQlPaginatedData = gcpf.GetConsignment(parentFolder = parentFolderName, parentFolderId = Some(folderId), paginatedFiles = paginatedFiles)
+      val response = GraphQlResponse(Some(gcpf.Data(Some(graphQlPaginatedData))), Nil)
+
+      when(getConsignmentPaginatedFilesClient.getResult(bearerAccessToken, gcpf.document, Some(gcpf.Variables(consignmentId,
+        Some(PaginationInput(limit, currentPage = Some(page), currentCursor = None, Some(FileFilters(None, None, Some(folderId))))))))
+      ).thenReturn(Future.successful(response))
+
+      val getConsignmentPaginated = consignmentService.getConsignmentPaginatedFile(consignmentId, page, limit, selectedFolderId = folderId, bearerAccessToken)
+      val actualResults = getConsignmentPaginated.futureValue
+
+      actualResults should be(graphQlPaginatedData)
+    }
+
+    "return an error if there is an error from the API" in {
+      val folderId = UUID.randomUUID()
+      val limit = Some(1)
+      val page = 1
+      when(getConsignmentPaginatedFilesClient.getResult(bearerAccessToken, gcpf.document,
+        Some(gcpf.Variables(consignmentId,
+          Some(PaginationInput(limit, currentPage = Some(page), currentCursor = None, Some(FileFilters(None, None, Some(folderId)))))))))
+        .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+      val results = consignmentService.getConsignmentPaginatedFile(
+        consignmentId, page = page, limit = limit, selectedFolderId = folderId, bearerAccessToken)
+      results.failed.futureValue shouldBe a[HttpError]
     }
   }
 }
