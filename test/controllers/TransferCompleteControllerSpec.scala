@@ -23,6 +23,7 @@ import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
+import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -120,15 +121,18 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     "downloadReport should have the correct headers and rows" in {
       val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, "standard")
       val consignmentId = UUID.randomUUID()
-      mockGetConsignmentForExport()
+      val lastModified = LocalDateTime.now()
+      val exportDateTime = ZonedDateTime.now()
+      mockGetConsignmentForExport(Some(lastModified), Some(exportDateTime))
       setConsignmentTypeResponse(wiremockServer, "standard")
       val downloadReport = controller.downloadReport(consignmentId, "TEST-TDR-2021-GB")
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
 
       contentAsString(downloadReport) must include(
-        "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,TransferInitiatedDatetime"
+        "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,ExportDatetime"
       )
-      contentAsString(downloadReport) must include("Filepath/SomeFile,SomeFile,File,1,Crown Copyright,Public Record,TNA,English,Open")
+      contentAsString(downloadReport) must include(
+        s"Filepath/SomeFile,SomeFile,File,1,Crown Copyright,Public Record,TNA,English,Open,$lastModified,$exportDateTime")
     }
 
     "throw an authorisation exception when the user does not have permission to download the report" in {
@@ -198,12 +202,13 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def mockGetConsignmentForExport() = {
+  private def mockGetConsignmentForExport(clientSideLastModifiedDate: Option[LocalDateTime], exportDateTime: Option[ZonedDateTime]) = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfe.Data, gcfe.Variables]()
-    val consignmentResponse = gcfe.Data(Option(GetConsignment(UUID.randomUUID(), None, None, None, "TDR-2022", None, None, None,
+    val consignmentResponse = gcfe.Data(Option(GetConsignment(UUID.randomUUID(), None, None, exportDateTime, "TDR-2022", None, None, None,
       List(
         Files(UUID.randomUUID(), Some("File"), Some("SomeFile"),
-          Metadata(Some(1L), None, Some("Filepath/SomeFile"), Some("Open"), Some("TNA"), Some("English"), Some("Public Record"), Some("Crown Copyright"), None),
+          Metadata(Some(1L), clientSideLastModifiedDate, Some("Filepath/SomeFile"), Some("Open"), Some("TNA"),
+            Some("English"), Some("Public Record"), Some("Crown Copyright"), None),
           None, None))))
     )
     val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
