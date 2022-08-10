@@ -9,6 +9,8 @@ import {
   IFileWithPath,
   TProgressFunction
 } from "@nationalarchives/file-information"
+import { isError } from "../errorhandling";
+import { AddFileStatusInput, FileStatus } from "@nationalarchives/tdr-generated-graphql";
 
 export interface ITdrFileWithPath {
   fileId: string
@@ -69,6 +71,9 @@ export class S3Upload {
             totalFiles
           }
         )
+        if (uploadResult.$metadata !== undefined && uploadResult.$metadata.httpStatusCode != 200) {
+          await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
+        }
         sendData.push(uploadResult)
         processedChunks += tdrFileWithPath.fileWithPath.file.size
           ? tdrFileWithPath.fileWithPath.file.size
@@ -147,6 +152,41 @@ export class S3Upload {
     const percentageProcessed = Math.round((chunks / totalChunks) * 100)
     const processedFiles = Math.floor((chunks / totalChunks) * totalFiles)
 
-    updateProgressFunction({ processedFiles, percentageProcessed, totalFiles })
+    updateProgressFunction({processedFiles, percentageProcessed, totalFiles})
+  }
+
+  private async addFileStatus(
+    fileId: string,
+    status: string
+  ): Promise<FileStatus | Error> {
+
+    const csrfInput: HTMLInputElement = document.querySelector(
+      "input[name='csrfToken']"
+    )!
+    const input: AddFileStatusInput = {
+      fileId,
+      statusType: "Upload",
+      statusValue: status
+    }
+    const result: Response | Error = await fetch("/add-file-status", {
+      credentials: "include",
+      method: "POST",
+      body: JSON.stringify(input),
+      headers: {
+        "Content-Type": "application/json",
+        "Csrf-Token": csrfInput.value,
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    }).catch((err) => {
+      return Error(err)
+    })
+
+    if (isError(result)) {
+      return result
+    } else if (result.status != 200) {
+      return Error(`Add file status failed: ${result.statusText}`)
+    } else {
+      return (await result.json()) as FileStatus
+    }
   }
 }
