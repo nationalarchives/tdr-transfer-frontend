@@ -113,7 +113,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
-    val cache: AsyncCacheApi = MockAsyncCacheApi()
 
     new AddClosureMetadataController(
       securityComponents,
@@ -121,7 +120,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       getValidStandardUserKeycloakConfiguration,
       consignmentService,
       customMetadataService,
-      cache
+      mock[AsyncCacheApi]
     )
   }
 
@@ -184,18 +183,4 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           List(
             Values("mock code1", List()), Values("mock code2", List())))))
   }
-}
-
-case class MockAsyncCacheApi()(implicit val ec: ExecutionContext) extends AsyncCacheApi {
-  override def set(key: String, value: Any, expiration: Duration): Future[Done] = {
-    Future(Done)
-  }
-
-  override def remove(key: String): Future[Done] = ???
-
-  override def getOrElseUpdate[A](key: String, expiration: Duration)(orElse: => Future[A])(implicit evidence$1: ClassTag[A]): Future[A] = ???
-
-  override def get[T](key: String)(implicit evidence$2: ClassTag[T]): Future[Option[T]] = ???
-
-  override def removeAll(): Future[Done] = ???
 }
