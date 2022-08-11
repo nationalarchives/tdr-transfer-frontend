@@ -28,7 +28,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
     implicit request: Request[AnyContent] =>
       for {
         consignmentRef <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        orderedFieldsForForm <- { // currently not ordered, but will be soon; please delete this comment when it is
+        orderedFieldsForForm <- {
           cache.set(s"$consignmentId", consignmentRef, 1.hour)
           getDefaultFieldsForForm(consignmentId, request)
         }
