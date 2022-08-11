@@ -9,8 +9,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
 
-import scala.collection.immutable.ListSet
-
 class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
   private val dataType = List(Text, DateTime)
   val allProperties: List[CustomMetadata] = (1 to 10).toList.map(
@@ -26,6 +24,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         editable = true,
         multiValue = if(numberOfValues > 1) {true} else {false},
         defaultValue = Some(s"TestValue $number"),
+        ordinal = number,
         values = (1 to numberOfValues).toList.map(
           valueNumber =>
             CustomMetadata.Values(
@@ -46,7 +45,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
 
 
   "getCustomMetadataProperties" should "return the list of properties requested" in {
-    val namesOfPropertiesToGet = allProperties.map(_.name).to(ListSet)
+    val namesOfPropertiesToGet = allProperties.map(_.name).toSet
     val listOfPropertiesRetrieved: Set[CustomMetadata] = customMetadataUtils.getCustomMetadataProperties(namesOfPropertiesToGet)
 
     val propertiesRetrievedEqualPropertiesRequested = listOfPropertiesRetrieved.forall(
@@ -57,7 +56,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   }
 
   "getCustomMetadataProperties" should "throw an 'NoSuchElementException' if any properties requested are not present" in {
-    val namesOfPropertiesToGet = ListSet("TestProperty11", "TestProperty3")
+    val namesOfPropertiesToGet = Set("TestProperty11", "TestProperty3")
 
     val thrownException: NoSuchElementException =
       the[NoSuchElementException] thrownBy customMetadataUtils.getCustomMetadataProperties(namesOfPropertiesToGet)
@@ -74,7 +73,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     )
 
     val actualPropertiesAndTheirValues: Map[String, List[CustomMetadata.Values]] =
-      customMetadataUtils.getValuesOfProperties(namesOfPropertiesAndTheirExpectedValues.keys.to(ListSet))
+      customMetadataUtils.getValuesOfProperties(namesOfPropertiesAndTheirExpectedValues.keys.toSet)
 
     namesOfPropertiesAndTheirExpectedValues.foreach {
       case (propertyName, expectedValues) =>
@@ -83,7 +82,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   }
 
   "getValuesOfProperties" should "throw an 'NoSuchElementException' if any properties (from which to obtain values from) are not present" in {
-    val namesOfPropertiesToGet = ListSet("TestProperty2", "TestProperty12", "TestProperty4")
+    val namesOfPropertiesToGet = Set("TestProperty2", "TestProperty12", "TestProperty4")
 
     val thrownException: NoSuchElementException =
       the[NoSuchElementException] thrownBy customMetadataUtils.getCustomMetadataProperties(namesOfPropertiesToGet)
@@ -92,8 +91,8 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   }
 
   "convertPropertiesToFields" should "convert properties to fields for the form, if given correctly formatted properties" in {
-    val propertiesToConvertToFields: ListSet[CustomMetadata] = allProperties.to(ListSet)
-    val fieldValuesByDataType: Set[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
+    val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
+    val fieldValuesByDataType: List[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
     val allFieldValues: Map[String, Iterable[FieldValues]] = fieldValuesByDataType.map(_._1).groupBy(_.fieldId)
 
     propertiesToConvertToFields.foreach{
@@ -105,5 +104,14 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         field.fieldLabel should equal(property.fullName.get)
         field.fieldRequired should equal(if(property.propertyGroup.getOrElse("") == "MandatoryMetadata") true else false)
     }
+  }
+
+  "convertPropertiesToFields" should "order the fields in the correct order" in {
+    val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
+    val fieldValuesByDataType: List[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
+    fieldValuesByDataType.size should equal(10)
+    (1 to 10).toList.foreach(number => {
+      fieldValuesByDataType(number - 1)._1.fieldId should equal(s"testproperty$number")
+    })
   }
 }
