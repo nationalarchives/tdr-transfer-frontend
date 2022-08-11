@@ -6,8 +6,6 @@ import graphql.codegen.types.DataType
 import graphql.codegen.types.DataType._
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 
-import scala.collection.immutable.ListSet
-
 class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   private val allCustomMetadataPropertiesByName: Map[String, List[CustomMetadata]] = allCustomMetadataProperties.groupBy(_.name)
 
@@ -19,9 +17,9 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     propertiesToGetValuesFrom.map(property => property.name -> property.values).toMap
   }
 
-  def convertPropertiesToFields(dependencyProperties: Set[CustomMetadata]): Set[(FieldValues, String)] =
-    dependencyProperties.map {
-      dependencyProperty => {
+  def convertPropertiesToFields(dependencyProperties: Set[CustomMetadata]): List[(FieldValues, String)] = {
+    dependencyProperties.toList.sortBy(_.ordinal).map {
+      dependencyProperty: CustomMetadata => {
         val (options, selectedOption) = generateFieldOptions(dependencyProperty, dependencyProperty.dataType)
         FieldValues(
           dependencyProperty.name.toLowerCase(),
@@ -36,6 +34,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
         dependencyProperty.dataType.toString
       }
     }
+  }
 
   private def generateFieldOptions(property: CustomMetadata, dataType: DataType): (Seq[(String, String)], Option[Seq[(String, String)]]) =
     dataType match {
