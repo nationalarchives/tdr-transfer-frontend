@@ -17,16 +17,16 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     number => {
       val numberOfValues = number % 5
       CustomMetadata(
-        s"TestProperty$number",
-        Some(s"It's the Test Property $number"),
-        Some(s"Test Property $number"),
-        if(numberOfValues > 2) Defined else Supplied,
-        Some(s"Test Property Group $number"),
-        if(numberOfValues == 1) {Integer} else if(numberOfValues == 2) {Boolean} else dataType(number % dataType.length),
+        name = s"TestProperty$number",
+        description = Some(s"It's the Test Property $number"),
+        fullName = Some(s"Test Property $number"),
+        propertyType = if(numberOfValues > 2) Defined else Supplied,
+        propertyGroup = Some(s"Test Property Group $number"),
+        dataType = if(numberOfValues == 1) {Integer} else if(numberOfValues == 2) {Boolean} else dataType(number % dataType.length),
         editable = true,
         multiValue = if(numberOfValues > 1) {true} else {false},
-        Some(s"TestValue $number"),
-        (1 to numberOfValues).toList.map(
+        defaultValue = Some(s"TestValue $number"),
+        values = (1 to numberOfValues).toList.map(
           valueNumber =>
             CustomMetadata.Values(
               s"TestValue $valueNumber",

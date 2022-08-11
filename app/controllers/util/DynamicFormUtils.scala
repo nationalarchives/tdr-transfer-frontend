@@ -107,6 +107,8 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: Set[(Fi
       case "inputdate" | "inputnumeric" =>
         val unitType = inputInfo(2)
         validateNumericInputEntered(valueSelected, inputName, unitType)
+      // this will probably require more validation in the future (length-checking, character checking, escaping quotes, trailing whitespace etc)
+      case "inputtext" => inputName -> (Some(valueSelected), Nil)
       case unsupportedValue => throw new IllegalArgumentException(s"$unsupportedValue is not a supported type.")
     }
   }

@@ -14,18 +14,19 @@ import scala.collection.immutable.{ListMap, ListSet}
 
 class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
   "formAnswersWithValidInputNames" should "returns all values passed into the request except the CSRF token" in {
-    val rawFormWithoutCsrfToken = ListMap(
+    val rawFormWithCsrfToken = ListMap(
       "inputdate-testproperty3-day" -> List("3"),
       "inputdate-testproperty3-month" -> List("4"),
       "inputdate-testproperty3-year" -> List("2020"),
       "inputnumeric-testproperty6-years" -> List("4"),
       "inputdropdown-testproperty8" -> List("TestValue 3"),
       "inputradio-testproperty7" -> List("Yes"),
+      "inputtext-testproperty10" -> List("Some Text"),
       "csrfToken" -> List("12345")
     )
-    val dynamicFormUtils = instantiateDynamicFormsUtils(rawFormWithoutCsrfToken)
+    val dynamicFormUtils = instantiateDynamicFormsUtils(rawFormWithCsrfToken)
 
-    rawFormWithoutCsrfToken.foreach {
+    rawFormWithCsrfToken.foreach {
       case (inputName, value) =>
         if (inputName != "csrfToken") {
           dynamicFormUtils.formAnswersWithValidInputNames(inputName) should equal(value)
@@ -446,7 +447,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     "Boolean" -> List("inputradio"),
     "DateTime" -> List("inputdate"),
     "Integer" -> List("inputnumeric"),
-    "Text" -> List("inputdropdown")
+    "Text" -> List("inputdropdown", "inputtext")
   )
 
   private def verifyThatNoFieldsHaveErrors(rawFormWithoutCsrfToken: ListMap[String, List[String]],
@@ -475,7 +476,8 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         "inputnumeric-testproperty6-years" -> mockFormValues.numericTextBoxValue,
         "inputdropdown-testproperty8" -> mockFormValues.dropdownValue,
         "inputradio-testproperty7" -> mockFormValues.radioValue,
-        "csrfToken" -> mockFormValues.csrfToken
+        "inputtext-testproperty10" -> mockFormValues.textValue,
+          "csrfToken" -> mockFormValues.csrfToken
       )
 
     val dynamicFormUtils: DynamicFormUtils = instantiateDynamicFormsUtils(rawFormToMakeRequestWith, passInFieldsForAllMetadata = false)
@@ -516,4 +518,5 @@ case class MockFormValues(day: List[String] = List("3"),
                           day2: List[String] = List("7"),
                           month2: List[String] = List("9"),
                           year2: List[String] = List("2022"),
+                          textValue: List[String] = List("Some Text"),
                           csrfToken: List[String] = List("12345"))
