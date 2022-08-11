@@ -3,7 +3,7 @@ package controllers.util
 import controllers.util.CustomMetadataUtils.FieldValues
 import play.api.mvc.{AnyContent, Request}
 
-class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: Set[(FieldValues, String)]) {
+class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[(FieldValues, String)]) {
   private val formAnswers: Map[String, Seq[String]] = request.body.asFormUrlEncoded match {
     case Some(answers: Map[String, Seq[String]]) => answers
     case _ => throw new Exception("Error: There were no values submitted.") // This should never happen
@@ -26,7 +26,7 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: Set[(Fi
   def formAnswersContainAnError(validatedFormAnswers: Map[String, (Option[Any], List[String])]): Boolean =
     validatedFormAnswers.exists { case (_, (_, errors)) => errors.nonEmpty }
 
-  def convertSubmittedValuesToDefaultFieldValues(validatedSubmittedValues: Map[String, (Option[Any], List[String])]): Set[(FieldValues, String)] = {
+  def convertSubmittedValuesToDefaultFieldValues(validatedSubmittedValues: Map[String, (Option[Any], List[String])]): List[(FieldValues, String)] = {
     val fullyValidatedFieldsGroupedByMetadataName: Map[String, Map[String, (Option[Any], List[String])]] =
       validatedSubmittedValues.groupBy {
         case (inputName, (_, _)) =>

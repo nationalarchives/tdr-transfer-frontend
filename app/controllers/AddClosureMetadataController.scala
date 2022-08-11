@@ -13,7 +13,6 @@ import play.api.cache._
 
 import java.util.UUID
 import javax.inject.Inject
-import scala.collection.immutable.ListSet
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,7 +38,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
   def addClosureMetadataSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
-        defaultFieldValues <- cache.getOrElseUpdate[ListSet[(FieldValues, String)]]("fieldValues") {
+        defaultFieldValues <- cache.getOrElseUpdate[List[(FieldValues, String)]]("fieldValues") {
             getDefaultFieldsForForm(consignmentId, request)
         }
         dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues)
@@ -49,7 +48,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
 
         result <- {
           if(formAnswersContainAnError) {
-            val updatedFormFields: Set[(FieldValues, String)] = dynamicFormUtils.convertSubmittedValuesToDefaultFieldValues(validatedFormAnswers)
+            val updatedFormFields: List[(FieldValues, String)] = dynamicFormUtils.convertSubmittedValuesToDefaultFieldValues(validatedFormAnswers)
             for {
               consignmentRef <- cache.getOrElseUpdate[String](s"$consignmentId") {
                 consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
@@ -63,11 +62,11 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
       } yield result
   }
 
-  private def getDefaultFieldsForForm(consignmentId: UUID, request: Request[AnyContent]): Future[ListSet[(FieldValues, String)]] = {
+  private def getDefaultFieldsForForm(consignmentId: UUID, request: Request[AnyContent]): Future[List[(FieldValues, String)]] = {
     for {
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       customMetadataUtils = new CustomMetadataUtils(customMetadata)
-      propertyName = ListSet("ClosureType")
+      propertyName = Set("ClosureType")
       value = "closed_for"
 
       dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, propertyName, value: String)
@@ -81,12 +80,12 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
   }
 
   private def getDependenciesFromValue(customMetadataUtils: CustomMetadataUtils,
-                                       propertyName: ListSet[String],
-                                       valueToGetDependenciesFrom: String): ListSet[CustomMetadata] = {
+                                       propertyName: Set[String],
+                                       valueToGetDependenciesFrom: String): Set[CustomMetadata] = {
     val valuesByProperties: Map[String, List[CustomMetadata.Values]] = customMetadataUtils.getValuesOfProperties(propertyName)
     val allValuesForProperty: Seq[CustomMetadata.Values] = valuesByProperties(propertyName.head)
     val value: Seq[CustomMetadata.Values] = allValuesForProperty.filter(_.value == valueToGetDependenciesFrom)
     val dependencyNames: Seq[String] = value.flatMap(_.dependencies.map(_.name))
-    customMetadataUtils.getCustomMetadataProperties(dependencyNames.to(ListSet))
+    customMetadataUtils.getCustomMetadataProperties(dependencyNames.toSet)
   }
 }

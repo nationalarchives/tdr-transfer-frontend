@@ -391,7 +391,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
     val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
 
-    val formAnswersConvertedToFieldValues: Set[(FieldValues, String)] =
+    val formAnswersConvertedToFieldValues: List[(FieldValues, String)] =
       dynamicFormUtils.convertSubmittedValuesToDefaultFieldValues(validatedForm)
 
     formAnswersConvertedToFieldValues.foreach {
@@ -493,12 +493,12 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new CustomMetadataUtilsSpec().allProperties
     val customMetadataUtils: CustomMetadataUtils = new CustomMetadataUtils(mockProperties)
 
-    val allMetadataAsFields: ListSet[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(mockProperties.to(ListSet))
+    val allMetadataAsFields: List[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(mockProperties.toSet)
 
     if (passInFieldsForAllMetadata) {
       new DynamicFormUtils(mockRequest, allMetadataAsFields)
     } else {
-      val metadataUsedForFormAsFields: ListSet[(FieldValues, String)] = allMetadataAsFields.filter {
+      val metadataUsedForFormAsFields: List[(FieldValues, String)] = allMetadataAsFields.filter {
         case (inputName, _) =>
           val rawFormWithoutCsrfToken: Map[String, Seq[String]] = rawFormToMakeRequestWith - "csrfToken"
           val metadataNames: List[String] = rawFormWithoutCsrfToken.keys.map { inputName => inputName.split("-")(1) }.toList
