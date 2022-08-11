@@ -33,8 +33,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
           cache.set(s"$consignmentId", consignmentRef, 1.hour)
           getDefaultFieldsForForm(consignmentId, request)
         }
-      }
-        yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, orderedFieldsForForm, request.token.name))
+      } yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, orderedFieldsForForm, request.token.name))
   }
 
   def addClosureMetadataSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
@@ -71,10 +70,10 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
       propertyName = ListSet("ClosureType")
       value = "closed_for"
 
-      dependencyProperties: ListSet[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, propertyName, value: String)
+      dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, propertyName, value: String)
         .filterNot(_.name == "DescriptionPublic")
 
-      fieldsForForm: ListSet[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(dependencyProperties)
+      fieldsForForm: List[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(dependencyProperties)
     } yield {
       cache.set("fieldValues", fieldsForForm, 1.hour)
       fieldsForForm

@@ -6,22 +6,20 @@ import graphql.codegen.types.DataType
 import graphql.codegen.types.DataType._
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 
-import scala.collection.immutable.ListSet
-
 class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   private val allCustomMetadataPropertiesByName: Map[String, List[CustomMetadata]] = allCustomMetadataProperties.groupBy(_.name)
 
-  def getCustomMetadataProperties(propertiesToGet: ListSet[String]): ListSet[CustomMetadata] =
+  def getCustomMetadataProperties(propertiesToGet: Set[String]): Set[CustomMetadata] =
     propertiesToGet.flatMap(property => allCustomMetadataPropertiesByName(property))
 
-  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: ListSet[String]): Map[String, List[CustomMetadata.Values]] = {
-    val propertiesToGetValuesFrom: ListSet[CustomMetadata] = getCustomMetadataProperties(namesOfPropertiesToGetValuesFrom)
+  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: Set[String]): Map[String, List[CustomMetadata.Values]] = {
+    val propertiesToGetValuesFrom: Set[CustomMetadata] = getCustomMetadataProperties(namesOfPropertiesToGetValuesFrom)
     propertiesToGetValuesFrom.map(property => property.name -> property.values).toMap
   }
 
-  def convertPropertiesToFields(dependencyProperties: ListSet[CustomMetadata]): ListSet[(FieldValues, String)] =
-    dependencyProperties.map {
-      dependencyProperty => {
+  def convertPropertiesToFields(dependencyProperties: Set[CustomMetadata]): List[(FieldValues, String)] = {
+    dependencyProperties.toList.sortBy(_.ordinal).map {
+      dependencyProperty: CustomMetadata => {
         val (options, selectedOption) = generateFieldOptions(dependencyProperty, dependencyProperty.dataType)
         FieldValues(
           dependencyProperty.name.toLowerCase(),
@@ -36,6 +34,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
         dependencyProperty.dataType.toString
       }
     }
+  }
 
   private def generateFieldOptions(property: CustomMetadata, dataType: DataType): (Seq[(String, String)], Option[Seq[(String, String)]]) =
     dataType match {
