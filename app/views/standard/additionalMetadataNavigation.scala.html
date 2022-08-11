@@ -1,7 +1,8 @@
 @import helper._
 @import java.util.UUID
 @import controllers.AdditionalMetadataNavigationController.{NodesFormData, ResultsCount}
-@(consignmentId: UUID, name: String, folderUploaded: String, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, parentFolder: Option[UUID], nodesFormData: Form[NodesFormData], resultsCount: ResultsCount)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, name: String, metadataType: String, folderUploaded: String, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, parentFolder: Option[UUID],
+        nodesFormData: Form[NodesFormData], resultsCount: ResultsCount)(implicit messages: Messages, request: RequestHeader)
 @main("Additional Metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
@@ -23,7 +24,7 @@
                 </p>
                 <h2 class="app-task-list__section">Folder uploaded: @folderUploaded</h2>
 
-                @form(action = routes.AdditionalMetadataNavigationController.submit(consignmentId, limit, selectedFolderId)) {
+                @form(action = routes.AdditionalMetadataNavigationController.submit(consignmentId, limit, selectedFolderId, metadataType)) {
                     @CSRF.formField
                     <div class="govuk-button-group">
                         @if(parentFolder.isDefined) {
