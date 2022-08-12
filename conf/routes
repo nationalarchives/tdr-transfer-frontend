@@ -37,11 +37,11 @@ GET         /consignment/:consignmentId/additional-metadata/:metadataType/:folde
 POST        /consignment/:consignmentId/additional-metadata/:folderId/                      controllers.AdditionalMetadataNavigationController.submit(consignmentId: java.util.UUID, limit: Option[Int], folderId: java.util.UUID, metadataType: String)
 GET         /signed-out                                                                     controllers.SignOutController.signedOut()
 
-GET         /keycloak.json                                                                  controllers.KeycloakConfigurationController.keycloak()
-GET         /silent-sso-login                                                               controllers.KeycloakController.silentSsoLogin()
+GET         /keycloak.json                                                            controllers.KeycloakConfigurationController.keycloak()
+GET         /silent-sso-login                                                         controllers.KeycloakController.silentSsoLogin()
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                                                                   controllers.Assets.versioned(path="/public", file: Asset)
+GET         /assets/*file                                                             controllers.Assets.versioned(path="/public", file: Asset)
 
 # Routes necessary for play-pac4j
 GET         /callback                                                                       @org.pac4j.play.CallbackController.callback(request: play.mvc.Http.Request)
