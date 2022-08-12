@@ -24,6 +24,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         editable = true,
         multiValue = if(numberOfValues > 1) {true} else {false},
         Some(s"TestValue $number"),
+        number,
         (1 to numberOfValues).toList.map(
           valueNumber =>
             CustomMetadata.Values(
@@ -91,7 +92,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
 
   "convertPropertiesToFields" should "convert properties to fields for the form, if given correctly formatted properties" in {
     val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
-    val fieldValuesByDataType: Set[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
+    val fieldValuesByDataType: List[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
     val allFieldValues: Map[String, Iterable[FieldValues]] = fieldValuesByDataType.map(_._1).groupBy(_.fieldId)
 
     propertiesToConvertToFields.foreach{
@@ -103,5 +104,14 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         field.fieldLabel should equal(property.fullName.get)
         field.fieldRequired should equal(if(property.propertyGroup.getOrElse("") == "MandatoryMetadata") true else false)
     }
+  }
+
+  "convertPropertiesToFields" should "order the fields in the correct order" in {
+    val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
+    val fieldValuesByDataType: List[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
+    fieldValuesByDataType.size should equal(10)
+    (1 to 10).toList.foreach(number => {
+      fieldValuesByDataType(number - 1)._1.fieldId should equal(s"testproperty$number")
+    })
   }
 }

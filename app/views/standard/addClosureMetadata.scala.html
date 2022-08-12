@@ -9,7 +9,7 @@
 @import views.html.partials.inputRadioGroup
 
 @import controllers.util.CustomMetadataUtils.FieldValues
-@(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: Set[(FieldValues, String)], name: String, fileName: String="[selected file/folder name to go here]")(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: List[(FieldValues, String)], name: String, fileName: String="[selected file/folder name to go here]")(implicit request: RequestHeader, messages: Messages)
 @main(s"Add closure fields to '$fileName'", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
