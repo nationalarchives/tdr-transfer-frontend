@@ -35,8 +35,9 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
         dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, propertyName, value: String)
           .filterNot(_.name == "DescriptionPublic")
 
-        fieldsForForm: Set[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(dependencyProperties)
-      } yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, fieldsForForm, request.token.name)).uncache()
+        fieldsForForm: List[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(dependencyProperties)
+      } yield
+        Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, fieldsForForm, request.token.name)).uncache()
   }
 
   private def getDependenciesFromValue(customMetadataUtils: CustomMetadataUtils,
