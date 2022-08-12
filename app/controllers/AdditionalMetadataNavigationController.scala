@@ -65,7 +65,8 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
   def getPaginatedFiles(consignmentId: UUID,
                         pageNumber: Int,
                         limit: Option[Int],
-                        selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+                        selectedFolderId: UUID,
+                        metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentPaginatedFile(consignmentId, pageNumber - 1, limit, selectedFolderId, request.token.bearerAccessToken)
       .map { paginatedFiles =>
         val totalPages = paginatedFiles.paginatedFiles.totalPages
@@ -81,6 +82,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         Ok(views.html.standard.additionalMetadataNavigation(
           consignmentId,
           request.token.name,
+          metadataType,
           parentFolder,
           totalPages,
           limit,
@@ -93,7 +95,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       }
   }
 
-  def submit(consignmentId: UUID, limit: Option[Int], selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def submit(consignmentId: UUID, limit: Option[Int], selectedFolderId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       val errorFunction: Form[NodesFormData] => Future[Result] = { formWithErrors: Form[NodesFormData] =>
         Future(Ok)
@@ -107,10 +109,10 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
         if (formData.returnToRoot.isDefined) {
           Future(Redirect(routes.AdditionalMetadataNavigationController
-            .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(formData.returnToRoot.get))))
+            .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(formData.returnToRoot.get), metadataType)))
         } else {
           Future(Redirect(routes.AdditionalMetadataNavigationController
-            .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(folderSelected))))
+            .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(folderSelected), metadataType)))
         }
       }
 
