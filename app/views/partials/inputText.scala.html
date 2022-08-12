@@ -3,12 +3,19 @@ inputTextLabel: String,
 inputTextHint: String,
 fieldOptions: Seq[(String, String)],
 inputType: String,
+enteredOptions: Option[Seq[(String, String)]],
 fieldError: Seq[String],
 attributes: Map[Symbol, Any]=Map(),
 inputTextDataType: String="text")(implicit messages: Messages)
 @suffixText = @{fieldOptions.head._1}
 @defaultText = @{fieldOptions.head._2}
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
+@enteredText = @{
+    enteredOptions match {
+        case Some(Seq((suffixText: String, enteredText: String))) => enteredText
+        case _ => ""
+    }
+}
 
 @import views.html.partials.errorMessage
 
@@ -29,6 +36,7 @@ inputTextDataType: String="text")(implicit messages: Messages)
                 id="@suffixText"
                 name="@{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${suffixText.toLowerCase()}" else fieldId}"
                 type="@inputType"
+                value="@enteredText"
                 placeholder="@defaultText"
                 inputmode="@inputTextDataType"
             >
