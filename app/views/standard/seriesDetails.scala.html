@@ -15,7 +15,7 @@ messages: Messages)
 
         <h1 class="govuk-heading-l">Choose a series</h1>
         @errorSummary(
-            Map(seriesDetailsForm("series").id -> seriesDetailsForm("series").errors.headOption)
+            List(seriesDetailsForm("series").id -> seriesDetailsForm("series").errors.headOption)
                .collect { case (id, Some(formError)) => (id -> formError.messages)}
         )
 
