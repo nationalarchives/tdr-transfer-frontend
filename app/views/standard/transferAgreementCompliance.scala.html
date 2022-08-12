@@ -15,7 +15,7 @@
         @transferAgreementHeader(" continued")
         <p class="govuk-body">You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor.</p>
         @errorSummary(
-            Map(
+            List(
                 transferAgreementFormData("droAppraisalSelection").id -> transferAgreementFormData("droAppraisalSelection").errors.headOption,
                 transferAgreementFormData("droSensitivity").id -> transferAgreementFormData("droSensitivity").errors.headOption,
                 transferAgreementFormData("openRecords").id -> transferAgreementFormData("openRecords").errors.headOption
