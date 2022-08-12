@@ -30,11 +30,35 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       val selected: List[String] = formData.selected
       val deselectedFiles: List[String] = allNodes.filter(id => !selected.contains(id))
 
-      cache.addSelectedIds(selected)
-      cache.removedDeselectedIds(deselectedFiles)
+      val selectedIds = selected.map(UUID.fromString(_)).toSet
+      val deselectedIds = deselectedFiles.filter(_ != formData.folderSelected).map(UUID.fromString(_)).toSet
 
-      //Deselect the parent folder if a child file has been deselected
-      if (deselectedFiles.nonEmpty && cache.contains(selectedFolderId)) cache.remove(selectedFolderId)
+      for {
+        allSelectedDescendants <- consignmentService.getAllDescendants(consignmentId, selectedIds, token)
+        allDeselectedDescendants <- consignmentService.getAllDescendants(consignmentId, deselectedIds, token)
+        allFolderDescendants <- consignmentService.getAllDescendants(consignmentId, Set(UUID.fromString(formData.folderSelected)), token)
+      } yield {
+        val folderId = UUID.fromString(formData.folderSelected)
+        val allFolderIds = allFolderDescendants.map(_.fileId.toString)
+        val allSelected = allSelectedDescendants.map(_.fileId.toString)
+        val allDeselected = allDeselectedDescendants.map(_.fileId.toString)
+
+        cache.addSelectedIds(allSelected)
+        cache.removedDeselectedIds(allDeselected)
+
+        //This only works at a single nested folder level, need ancestors aswell
+        if (cache.contains(folderId) && deselectedFiles.contains(formData.folderSelected)) {
+          cache.removedDeselectedIds(allFolderIds)
+        //Everything in the folder has been selected
+        } else if (selected.size == allNodes.size) {
+
+          //if (cache contains all ancestors) then add all???
+          cache.addSelectedIds(allFolderIds)
+        //Item deselected from folder
+        } else {
+          cache.remove(folderId)
+        }
+      }
     }
 
     def addSelectedIds(elems: List[String]): Unit = {
@@ -124,7 +148,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
     edges.map(edge => {
       val edgeNode = edge.node
       val selectedFiles = cacheApi.set[UUID](consignmentId.toString)
-      val isSelected = selectedFiles.contains(edge.node.fileId) || selectedFiles.contains(selectedFolderId)
+      val isSelected = selectedFiles.contains(edge.node.fileId)
       val isFolder = edge.node.fileType.get == "Folder"
       NodesToDisplay(
         edgeNode.fileId.toString,
