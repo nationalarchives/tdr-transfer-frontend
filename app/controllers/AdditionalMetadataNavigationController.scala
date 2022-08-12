@@ -1,6 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
 import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
 import org.pac4j.play.scala.SecurityComponents
@@ -23,7 +24,8 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   implicit class CacheHelper(cache: RedisSet[UUID, SynchronousResult]) {
 
-    def updateCache(formData: NodesFormData, selectedFolderId: UUID): Unit = {
+    def updateCache(formData: NodesFormData, selectedFolderId: UUID, consignmentId: UUID, token: BearerAccessToken): Unit = {
+
       val allNodes: List[String] = formData.allNodes
       val selected: List[String] = formData.selected
       val deselectedFiles: List[String] = allNodes.filter(id => !selected.contains(id))
@@ -51,7 +53,8 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
           "fileId" -> nonEmptyText,
           "displayName" -> nonEmptyText,
           "isSelected" -> boolean,
-          "isFolder" -> boolean
+          "isFolder" -> boolean,
+          "isPartiallySelected" -> boolean
         )(NodesToDisplay.apply)(NodesToDisplay.unapply)
       ),
       "selected" -> list(text),
@@ -95,10 +98,11 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       }
 
       val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
+
         val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
-        selectedFiles.updateCache(formData, selectedFolderId)
+        selectedFiles.updateCache(formData, selectedFolderId, consignmentId, request.token.bearerAccessToken)
 
         if (formData.returnToRoot.isDefined) {
           Future(Redirect(routes.AdditionalMetadataNavigationController
@@ -139,4 +143,8 @@ case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay],
                          folderSelected: String,
                          returnToRoot: Option[String])
 
-case class NodesToDisplay(fileId: String, displayName: String, isSelected: Boolean = false, isFolder: Boolean = false)
+case class NodesToDisplay(fileId: String,
+                          displayName: String,
+                          isSelected: Boolean = false,
+                          isFolder: Boolean = false,
+                          isPartiallySelected: Boolean = false)
