@@ -14,6 +14,7 @@ import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
 import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFiles => gcpf}
+import graphql.codegen.GetHierarchy.{fileHierarchy => gh}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types.{AddConsignmentInput, FileFilters, PaginationInput, UpdateConsignmentSeriesIdInput}
 import graphql.codegen.{AddConsignment, GetConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
@@ -39,6 +40,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentFilesClient = graphqlConfiguration.getClient[getConsignmentFiles.Data, getConsignmentFiles.Variables]()
   private val getConsignmentExportClient = graphqlConfiguration.getClient[getConsignmentForExport.Data, getConsignmentForExport.Variables]()
   private val getConsignmentPaginatedFilesClient = graphqlConfiguration.getClient[gcpf.Data, gcpf.Variables]()
+  private val getHierarchy = graphqlConfiguration.getClient[gh.Data, gh.Variables]()
   private val updateConsignmentSeriesIdClient = graphqlConfiguration.getClient[updateConsignmentSeriesId.Data, updateConsignmentSeriesId.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
 
@@ -157,5 +159,12 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
     sendApiRequest(getConsignmentPaginatedFilesClient, gcpf.document, token, variables)
       .map(data => data.getConsignment.get)
+  }
+
+  def getHierarchy(fileId: UUID, token: BearerAccessToken): Future[List[gh.FileHierarchy]] = {
+    val variables: gh.Variables = new gh.Variables(fileId)
+
+    sendApiRequest(getHierarchy, gh.document, token, variables)
+      .map(data => data.fileHierarchy)
   }
 }

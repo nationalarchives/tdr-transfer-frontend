@@ -5,7 +5,7 @@ import configuration.KeycloakConfiguration
 import controllers.AdditionalMetadataNavigationController.{NodesFormData, NodesToDisplay, ResultsCount}
 import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
 import org.pac4j.play.scala.SecurityComponents
-import play.api.cache.redis.{CacheApi, RedisSet, SynchronousResult}
+import play.api.cache.redis.{CacheApi, RedisMap, RedisSet, SynchronousResult}
 import play.api.data.Form
 import play.api.data.Forms.{boolean, list, mapping, nonEmptyText, number, optional, seq, text}
 import play.api.mvc.{Action, AnyContent, Request, Result}
@@ -62,6 +62,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       "returnToRoot" -> optional(text)
     )(NodesFormData.apply)(NodesFormData.unapply))
 
+  //noinspection ScalaStyle
   def getPaginatedFiles(consignmentId: UUID,
                         pageNumber: Int,
                         limit: Option[Int],
@@ -79,6 +80,15 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         val nodesToDisplay: List[NodesToDisplay] = generateNodesToDisplay(consignmentId, edges, selectedFolderId)
         val pageSize = limit.getOrElse(totalFiles)
         val resultsCount = ResultsCount(((pageNumber - 1) * pageSize) + 1, (pageNumber * pageSize).min(totalFiles), totalFiles)
+
+        val breadcrumb = cacheApi.map[List[(String, String)]]("breadCrumb")
+        //If the cache already has the selectedFolderId then do not call the database
+        if(!breadcrumb.contains(selectedFolderId.toString)) {
+          consignmentService.getHierarchy(selectedFolderId, request.token.bearerAccessToken).map(routes => {
+            breadcrumb.add(selectedFolderId.toString, routes.map(x => (x.fileName, x.fileId.toString)))
+          })
+        }
+
         Ok(views.html.standard.additionalMetadataNavigation(
           consignmentId,
           request.token.name,
@@ -90,7 +100,9 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
           selectedFolderId,
           paginatedFiles.parentFolderId,
           navigationForm.fill(NodesFormData(nodesToDisplay, selected = List(), allNodes = List(), pageNumber, selectedFolderId.toString,
-            paginatedFiles.parentFolder)), resultsCount)
+            paginatedFiles.parentFolder)),
+          resultsCount,
+          breadcrumb.get(selectedFolderId.toString).getOrElse(List()).reverse)
         ).uncache()
       }
   }

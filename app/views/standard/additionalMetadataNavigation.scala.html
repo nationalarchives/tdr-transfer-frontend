@@ -2,7 +2,7 @@
 @import java.util.UUID
 @import controllers.AdditionalMetadataNavigationController.{NodesFormData, ResultsCount}
 @(consignmentId: UUID, name: String, metadataType: String, folderUploaded: String, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, parentFolder: Option[UUID],
-        nodesFormData: Form[NodesFormData], resultsCount: ResultsCount)(implicit messages: Messages, request: RequestHeader)
+        nodesFormData: Form[NodesFormData], resultsCount: ResultsCount, breadcrumbs: List[(String, String)])(implicit messages: Messages, request: RequestHeader)
 @main("Additional Metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
@@ -36,6 +36,15 @@
                             Add closure properties
                         </a>
                     </div>
+
+                    <ul class="breadcrumb">
+                        @breadcrumbs.map { crumbs =>
+                            <li><button class="govuk-button__tna-button-link" name="folderSelected" data-prevent-double-click="true" type="submit" role="link" value="@crumbs._2">
+                            @crumbs._1
+                            </button></li>
+                        }
+                    </ul>
+
                     <section id="page-@currentPage">
                         Showing <span class="govuk-body govuk-!-font-weight-bold">@resultsCount.startCount</span> to <span class="govuk-body govuk-!-font-weight-bold">@resultsCount.endCount</span> of <span class="govuk-body govuk-!-font-weight-bold">@resultsCount.total</span> results
                         <table class="govuk-table">
