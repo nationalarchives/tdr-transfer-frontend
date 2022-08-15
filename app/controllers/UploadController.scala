@@ -2,13 +2,13 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.types.{AddFileAndMetadataInput, ConsignmentStatusInput, StartUploadInput}
+import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, ConsignmentStatusInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, ConsignmentStatusService, UploadService}
+import services.{ConsignmentService, ConsignmentStatusService, FileStatusService, UploadService}
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -21,7 +21,8 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
                                  val keycloakConfiguration: KeycloakConfiguration,
                                  val frontEndInfoConfiguration: FrontEndInfoConfiguration,
                                  val consignmentService: ConsignmentService,
-                                 val uploadService: UploadService)
+                                 val uploadService: UploadService,
+                                 val fileStatusService: FileStatusService)
                                 (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   def updateConsignmentStatus(): Action[AnyContent] = secureAction.async { implicit request =>
@@ -47,6 +48,15 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
       decode[AddFileAndMetadataInput](body.toString()).toOption
     }) match {
       case Some(metadataInput) => uploadService.saveClientMetadata(metadataInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
+      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+    }
+  }
+
+  def addFileStatus(): Action[AnyContent] = secureAction.async { implicit request =>
+    request.body.asJson.flatMap(body => {
+      decode[AddFileStatusInput](body.toString()).toOption
+    }) match {
+      case Some(addFileStatusInput) => fileStatusService.addFileStatus(addFileStatusInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
       case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
     }
   }
