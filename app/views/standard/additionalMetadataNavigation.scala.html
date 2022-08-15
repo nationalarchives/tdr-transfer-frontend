@@ -50,6 +50,9 @@
                                                 <button class="govuk-button__tna-button-link" name="folderSelected" data-prevent-double-click="true" type="submit" role="link" value="@node.fileId">
                                                 @node.displayName
                                                 </button>
+                                                @if(node.isPartiallySelected) {
+                                                    <span>(Records selected)</span>
+                                                }
                                             } else {
                                                 📊 @node.displayName
                                             }
