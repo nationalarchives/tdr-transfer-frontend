@@ -66,7 +66,52 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       addClosureMetadataPageAsString must include(
         """                <p class="govuk-body">Enter metadata for closure fields here.</p>"""
       )
-      // Checks for more page elements to be added later
+      addClosureMetadataPageAsString must include(
+        """            <h2 class="govuk-label govuk-label--m">
+          |                FOI decision asserted
+          |            </h2>""".stripMargin
+      )
+      addClosureMetadataPageAsString must include(
+        """        <div id="date-input-hint" class="govuk-hint">
+          |            Date of the Advisory Council Approval
+          |        </div>""".stripMargin
+      )
+      addClosureMetadataPageAsString must include(
+        """            <h2 class="govuk-label govuk-label--m">
+          |                Closure start date
+          |            </h2>""".stripMargin
+      )
+      addClosureMetadataPageAsString must include(
+        """        <div id="date-input-hint" class="govuk-hint">
+          |            Date of the record from when the closure starts. It is usually the last date modified.
+          |        </div>""".stripMargin
+      )
+      addClosureMetadataPageAsString must include(
+        """        <label class="govuk-label govuk-label--m" for=years>
+          |            Closure period
+          |        </label>""".stripMargin
+      )
+      addClosureMetadataPageAsString must include(
+        """    <div id="date-input-with-suffix-hint" class="govuk-hint">
+          |        Number of years the record is closed from the closure start date
+          |    </div>""".stripMargin
+      )
+      addClosureMetadataPageAsString must include(
+        """        <label class="govuk-label govuk-label--m" for="inputdropdown-foiexemptioncode">
+          |            FOI exemption code
+          |............
+          |        </label>""".replace("............", "            ").stripMargin
+      )
+      addClosureMetadataPageAsString must include(
+        """    <div id="inputdropdown-foiexemptioncode-hint" class="govuk-hint">
+          |        Select the exemption code that applies
+          |    </div>""".stripMargin
+      )
+      addClosureMetadataPageAsString must include(
+        """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+          |            Is the title closed?
+          |        </legend>""".stripMargin
+      )
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
