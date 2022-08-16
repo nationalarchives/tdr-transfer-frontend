@@ -378,6 +378,29 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     }
   }
 
+  "formAnswersContainAnError" should "return false if none of the answers contain an error" in {
+    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+      MockFormValues()
+    )
+
+    val validatedForm: Map[String, (Option[Any], List[String])] = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
+    val formAnswersContainAnError: Boolean = dynamicFormUtils.formAnswersContainAnError(validatedForm)
+
+    formAnswersContainAnError should be(false)
+  }
+
+  "formAnswersContainAnError" should "return true if any answer contains an error" in {
+    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+      MockFormValues(dropdownValue = List(""))
+    )
+
+    val validatedForm: Map[String, (Option[Any], List[String])] = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
+    val formAnswersContainAnError: Boolean = dynamicFormUtils.formAnswersContainAnError(validatedForm)
+
+    formAnswersContainAnError should be(true)
+  }
+
+
   "convertSubmittedValuesToDefaultFieldValues" should "convert form answers and their errors to FieldValues" in {
     val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
       MockFormValues(month = List("b4"),
