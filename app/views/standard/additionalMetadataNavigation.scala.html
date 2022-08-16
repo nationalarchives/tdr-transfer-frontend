@@ -2,7 +2,7 @@
 @import java.util.UUID
 @import controllers.AdditionalMetadataNavigationController.{NodesFormData, ResultsCount}
 @(consignmentId: UUID, name: String, metadataType: String, folderUploaded: String, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, parentFolder: Option[UUID],
-        nodesFormData: Form[NodesFormData], resultsCount: ResultsCount, breadcrumbs: List[(String, String)])(implicit messages: Messages, request: RequestHeader)
+        nodesFormData: Form[NodesFormData], resultsCount: ResultsCount, breadcrumbs: List[(String, UUID)])(implicit messages: Messages, request: RequestHeader)
 @main("Additional Metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">

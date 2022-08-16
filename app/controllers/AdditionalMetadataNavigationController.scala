@@ -81,11 +81,11 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         val pageSize = limit.getOrElse(totalFiles)
         val resultsCount = ResultsCount(((pageNumber - 1) * pageSize) + 1, (pageNumber * pageSize).min(totalFiles), totalFiles)
 
-        val breadcrumb = cacheApi.map[List[(String, String)]]("breadCrumb")
+        val breadcrumb = cacheApi.map[List[(String, UUID)]]("breadCrumb")
         //If the cache already has the selectedFolderId then do not call the database
         if(!breadcrumb.contains(selectedFolderId.toString)) {
           consignmentService.getHierarchy(selectedFolderId, request.token.bearerAccessToken).map(routes => {
-            breadcrumb.add(selectedFolderId.toString, routes.map(x => (x.fileName, x.fileId.toString)))
+            breadcrumb.add(selectedFolderId.toString, routes.map(x => (x.fileName, x.fileId)))
           })
         }
 
