@@ -33,7 +33,7 @@ fieldError: List[String]
                         @{if(label == selectedRadioOption.head._1) "checked" else ""}
                         @attributes.requiredInput()
                 />
-                <label class="govuk-label govuk-radios__label" for="@fieldId@value">
+                <label class="govuk-label govuk-radios__label" for="@fieldId-@value">
                     @label
                 </label>
             </div>
