@@ -47,7 +47,7 @@ attributes: Map[Symbol, Any]=Map())(implicit messages: Messages)
                                               .contains(dateOption.toLowerCase())
                                       ) "govuk-input--error" else ""
                                       }"
-                               id="date-input-@{dateOption.toLowerCase()}"
+                               id="@{if(isDynamicForm) s"inputdate-$fieldId-${dateOption.toLowerCase()}" else fieldId}"
                                name="@{if(isDynamicForm) s"inputdate-$fieldId-${dateOption.toLowerCase()}" else fieldId}"
                                value="@value"
                                type="number"
