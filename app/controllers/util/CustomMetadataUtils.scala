@@ -29,7 +29,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
           fieldLabel=convertDbNameToFieldLabel(dependencyProperty.fullName.getOrElse("")),
           fieldHint=getFieldHints(dependencyProperty.name, dependencyProperty.description.getOrElse("")
           ), // <- Use this until descriptions are added, then use dependencyProperty.description.getOrElse("")
-          fieldRequired=if(dependencyProperty.propertyGroup.getOrElse("") == "MandatoryMetadata") true else false
+          fieldRequired=dependencyProperty.propertyGroup.getOrElse("").startsWith("Mandatory")
         ) ->
         dependencyProperty.dataType.toString
       }
