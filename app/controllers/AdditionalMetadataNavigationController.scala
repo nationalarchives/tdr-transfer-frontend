@@ -25,45 +25,52 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   implicit class CacheHelper(cache: RedisSet[UUID, SynchronousResult]) {
 
-    //noinspection ScalaStyle
-    // @scalastyle: off
     def updateCache(formData: NodesFormData, selectedFolderId: UUID, consignmentId: UUID, token: BearerAccessToken): Unit = {
       val currentFolder: String = formData.folderSelected
+      val currentFolderId = UUID.fromString(currentFolder)
       val allNodes: List[String] = formData.allNodes
-      val selected: List[String] = formData.selected
-      val deselectedFiles: List[String] = allNodes.filter(id => !selected.contains(id))
+      val selectedNodes: List[String] = formData.selected
+      val deselectedNodes: List[String] = allNodes.filter(id => !selectedNodes.contains(id))
 
-      val deselectedIds = deselectedFiles.filter(_ != currentFolder).map(UUID.fromString(_)).toSet
-      val selectedIds = selected.map(UUID.fromString(_)).toSet
-      val partiallySelected = cacheApi.set[UUID](s"${consignmentId}_partiallySelected")
-      val consignmentStructure = cacheApi.map[List[String]](s"${consignmentId}_structure")
+      //Handle folder deselection separately, as has three potential states: deselected, partially deselected, selected
+      val deselectedIdsExceptFolder = deselectedNodes.filter(_ != currentFolder).map(UUID.fromString(_)).toSet
+      val selectedIds = selectedNodes.map(UUID.fromString(_)).toSet
+      val folderDescendantsCache = cacheApi.map[List[String]](s"${consignmentId}_folders")
+
+      if (!folderDescendantsCache.contains(currentFolder)) {
+        consignmentService.getAllDescendants(consignmentId, Set(currentFolderId), token).map {
+          data =>
+            val allFolderIds = data.map(_.fileId.toString)
+            folderDescendantsCache.add(currentFolder, allFolderIds)
+        }
+      }
 
       for {
         allSelectedDescendants <- consignmentService.getAllDescendants(consignmentId, selectedIds, token)
-        allDeselectedDescendants <- consignmentService.getAllDescendants(consignmentId, deselectedIds, token)
-        allFolderDescendants <- consignmentService.getAllDescendants(consignmentId, Set(UUID.fromString(currentFolder)), token)
+        allDeselectedDescendantsExceptFolder <- consignmentService.getAllDescendants(consignmentId, deselectedIdsExceptFolder, token)
       } yield {
-        val folderId = UUID.fromString(currentFolder)
-        val allFolder = allFolderDescendants.map(_.fileId.toString)
+
+        val allFolder = folderDescendantsCache.get(currentFolder).getOrElse(List())
         val allSelected = allSelectedDescendants.map(_.fileId.toString)
-        val allDeselected = allDeselectedDescendants.map(_.fileId.toString)
+        val allDeselectedExceptFolder = allDeselectedDescendantsExceptFolder.map(_.fileId.toString)
 
         cache.addSelectedIds(allSelected)
-        cache.removedDeselectedIds(allDeselected)
+        cache.removedDeselectedIds(allDeselectedExceptFolder)
 
         val allFolderChildren = allFolder.filter(_ != currentFolder)
-        val allFolderUUIDs = allFolderChildren.map(UUID.fromString(_))
+        val allFolderChildrenUUIDs = allFolderChildren.map(UUID.fromString(_))
 
-        if (cache.contains(folderId) && deselectedFiles.contains(currentFolder)) {
+        //Folder has been actively deselected
+        if (deselectedNodes.contains(currentFolder) && cache.containsAll(allFolder.map(UUID.fromString(_)))) {
           cache.removedDeselectedIds(allFolder)
-          partiallySelected.remove(folderId)
         }
 
-        if (allFolderUUIDs.forall(cache.contains(_))) {
-          cache.add(folderId)
-          partiallySelected.remove(folderId)
-        } else if (allFolderUUIDs.exists(cache.contains(_)) && !allFolderUUIDs.forall(cache.contains(_))) {
-          partiallySelected.add(folderId)
+        //All folder descendents have been selected, set folder to selected
+        if (cache.containsAll(allFolderChildrenUUIDs)) {
+          cache.add(currentFolderId)
+          //Some not all folder descendants have been selected, set folder to partially selected
+        } else if (cache.containsSome(allFolderChildrenUUIDs)) {
+          cache.remove(currentFolderId)
         }
       }
     }
@@ -74,6 +81,14 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
     def removedDeselectedIds(deselectedFiles: List[String]): Unit = {
       deselectedFiles.foreach(id => if (cache.contains(UUID.fromString(id))) cache.remove(UUID.fromString(id)))
+    }
+
+    def containsAll(ids: List[UUID]): Boolean = {
+      ids.forall(cache.contains(_))
+    }
+
+    def containsSome(ids: List[UUID]): Boolean = {
+      ids.exists(cache.contains(_)) && !containsAll(ids)
     }
   }
 
@@ -101,15 +116,6 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
                         selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentPaginatedFile(consignmentId, pageNumber - 1, limit, selectedFolderId, request.token.bearerAccessToken)
       .map { paginatedFiles =>
-
-        val consignmentStructure: RedisMap[List[String], SynchronousResult] = cacheApi.map[List[String]](s"${consignmentId}_structure")
-
-        for {
-          rootId <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken).map(_.parentFolderId)
-          allRootDescendants <- consignmentService.getAllDescendants(consignmentId, Set(rootId.get), request.token.bearerAccessToken)
-          parentToChildren = allRootDescendants.groupBy(_.parentId.getOrElse("root").toString)
-          _ = parentToChildren.map(p => consignmentStructure.add(p._1, p._2.map(_.fileId.toString)))
-        } yield {}
 
         val totalPages = paginatedFiles.paginatedFiles.totalPages
           .getOrElse(throw new IllegalStateException(s"No 'total pages' returned for folderId $selectedFolderId"))
@@ -140,8 +146,6 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
       val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
         val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
-        cacheApi.set[UUID](s"${consignmentId}_partiallySelected")
-
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
         selectedFiles.updateCache(formData, selectedFolderId, consignmentId, request.token.bearerAccessToken)
@@ -166,10 +170,10 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
     edges.map(edge => {
       val edgeNode = edge.node
       val selectedFiles = cacheApi.set[UUID](consignmentId.toString)
-      val partiallySelected = cacheApi.set[UUID](s"${consignmentId}_partiallySelected")
-      val isSelected = selectedFiles.contains(edge.node.fileId)
+
       val isFolder = edge.node.fileType.get == "Folder"
-      val isPartiallySelected = partiallySelected.contains(edge.node.fileId)
+      val isPartiallySelected = isFolder && folderPartiallySelected(consignmentId, edge.node.fileId)
+      val isSelected = !isPartiallySelected && selectedFiles.contains(edge.node.fileId)
       NodesToDisplay(
         edgeNode.fileId.toString,
         edgeNode.fileName.get,
@@ -178,6 +182,16 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         isPartiallySelected
       )
     })
+  }
+
+  private def folderPartiallySelected(consignmentId: UUID, folderId: UUID): Boolean = {
+    val selectedFiles = cacheApi.set[UUID](consignmentId.toString)
+    val allFolderDescendants = cacheApi.map[List[String]](s"${consignmentId}_folders")
+
+    val folderIds = allFolderDescendants.getFields(folderId.toString)
+      .flatMap(_.getOrElse(List())).map(UUID.fromString(_)).toList
+
+    selectedFiles.containsSome(folderIds)
   }
 }
 
