@@ -3,12 +3,11 @@ package controllers
 import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
-import graphql.codegen.GetAllDescendants
 import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
 import org.pac4j.play.scala.SecurityComponents
-import play.api.cache.redis.{CacheApi, RedisMap, RedisSet, SynchronousResult}
+import play.api.cache.redis.{CacheApi, RedisSet, SynchronousResult}
 import play.api.data.Form
-import play.api.data.Forms.{boolean, list, mapping, nonEmptyText, number, optional, seq, text}
+import play.api.data.Forms._
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ConsignmentService
 import viewsapi.Caching.preventCaching
@@ -23,72 +22,76 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
                                                        val cacheApi: CacheApi
                                                       ) extends TokenSecurity {
 
+  implicit class ListHelper(list: List[String]) {
+    def toUuids: List[UUID] = {
+      list.map(UUID.fromString)
+    }
+  }
+
   implicit class CacheHelper(cache: RedisSet[UUID, SynchronousResult]) {
 
     def updateCache(formData: NodesFormData, selectedFolderId: UUID, consignmentId: UUID, token: BearerAccessToken): Unit = {
       val currentFolder: String = formData.folderSelected
       val currentFolderId = UUID.fromString(currentFolder)
-      val allNodes: List[String] = formData.allNodes
-      val selectedNodes: List[String] = formData.selected
-      val deselectedNodes: List[String] = allNodes.filter(id => !selectedNodes.contains(id))
+      val allNodeIds: List[UUID] = formData.allNodes.toUuids
+      val selectedNodeIds: List[UUID] = formData.selected.toUuids
+      val deselectedNodeIds: List[UUID] = allNodeIds.filter(id => !selectedNodeIds.contains(id))
 
       //Handle folder deselection separately, as has three potential states: deselected, partially deselected, selected
-      val deselectedIdsExceptFolder = deselectedNodes.filter(_ != currentFolder).map(UUID.fromString(_)).toSet
-      val selectedIds = selectedNodes.map(UUID.fromString(_)).toSet
-      val folderDescendantsCache = cacheApi.map[List[String]](s"${consignmentId}_folders")
+      val deselectedIdsExceptFolder: Set[UUID] = deselectedNodeIds.filter(_ != currentFolderId).toSet
+      val folderDescendantsCache = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
 
       if (!folderDescendantsCache.contains(currentFolder)) {
         consignmentService.getAllDescendants(consignmentId, Set(currentFolderId), token).map {
           data =>
-            val allFolderIds = data.map(_.fileId.toString)
+            val allFolderIds = data.map(_.fileId)
             folderDescendantsCache.add(currentFolder, allFolderIds)
         }
       }
 
       for {
-        allSelectedDescendants <- consignmentService.getAllDescendants(consignmentId, selectedIds, token)
+        allSelectedDescendants <- consignmentService.getAllDescendants(consignmentId, selectedNodeIds.toSet, token)
         allDeselectedDescendantsExceptFolder <- consignmentService.getAllDescendants(consignmentId, deselectedIdsExceptFolder, token)
       } yield {
 
-        val allFolder = folderDescendantsCache.get(currentFolder).getOrElse(List())
-        val allSelected = allSelectedDescendants.map(_.fileId.toString)
-        val allDeselectedExceptFolder = allDeselectedDescendantsExceptFolder.map(_.fileId.toString)
+        val allFolderIds: List[UUID] = folderDescendantsCache.get(currentFolder).getOrElse(List())
+        val allSelectedIds: List[UUID] = allSelectedDescendants.map(_.fileId)
+        val allDeselectedExceptFolderIds: List[UUID] = allDeselectedDescendantsExceptFolder.map(_.fileId)
 
-        cache.addSelectedIds(allSelected)
-        cache.removedDeselectedIds(allDeselectedExceptFolder)
+        cache.addSelectedIds(allSelectedIds)
+        cache.removedDeselectedIds(allDeselectedExceptFolderIds)
 
-        val allFolderChildren = allFolder.filter(_ != currentFolder)
-        val allFolderChildrenUUIDs = allFolderChildren.map(UUID.fromString(_))
+        val allFolderChildrenIds = allFolderIds.filter(_ != currentFolderId)
 
         //Folder has been actively deselected
-        if (deselectedNodes.contains(currentFolder) && cache.containsAll(allFolder.map(UUID.fromString(_)))) {
-          cache.removedDeselectedIds(allFolder)
+        if (deselectedNodeIds.contains(currentFolderId) && cache.containsAll(allFolderIds)) {
+          cache.removedDeselectedIds(allFolderIds)
         }
 
         //All folder descendents have been selected, set folder to selected
-        if (cache.containsAll(allFolderChildrenUUIDs)) {
+        if (cache.containsAll(allFolderChildrenIds)) {
           cache.add(currentFolderId)
           //Some not all folder descendants have been selected, set folder to partially selected
-        } else if (cache.containsSome(allFolderChildrenUUIDs)) {
+        } else if (cache.containsSome(allFolderChildrenIds)) {
           cache.remove(currentFolderId)
         }
       }
     }
 
-    def addSelectedIds(elems: List[String]): Unit = {
-      elems.foreach(id => cache.add(UUID.fromString(id)))
+    def addSelectedIds(elems: List[UUID]): Unit = {
+      elems.foreach(cache.add(_))
     }
 
-    def removedDeselectedIds(deselectedFiles: List[String]): Unit = {
-      deselectedFiles.foreach(id => if (cache.contains(UUID.fromString(id))) cache.remove(UUID.fromString(id)))
+    def removedDeselectedIds(deselectedElems: List[UUID]): Unit = {
+      deselectedElems.foreach(id => if (cache.contains(id)) cache.remove(id))
     }
 
-    def containsAll(ids: List[UUID]): Boolean = {
-      ids.forall(cache.contains(_))
+    def containsAll(elems: List[UUID]): Boolean = {
+      elems.forall(cache.contains)
     }
 
-    def containsSome(ids: List[UUID]): Boolean = {
-      ids.exists(cache.contains(_)) && !containsAll(ids)
+    def containsSome(elems: List[UUID]): Boolean = {
+      elems.exists(cache.contains) && !containsAll(elems)
     }
   }
 
@@ -169,13 +172,14 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
   private def generateNodesToDisplay(consignmentId: UUID, edges: List[PaginatedFiles.Edges], selectedFolderId: UUID): List[NodesToDisplay] = {
     edges.map(edge => {
       val edgeNode = edge.node
+      val edgeNodeId = edgeNode.fileId
       val selectedFiles = cacheApi.set[UUID](consignmentId.toString)
 
-      val isFolder = edge.node.fileType.get == "Folder"
-      val isPartiallySelected = isFolder && folderPartiallySelected(consignmentId, edge.node.fileId)
-      val isSelected = !isPartiallySelected && selectedFiles.contains(edge.node.fileId)
+      val isFolder = edgeNode.fileType.get == "Folder"
+      val isPartiallySelected = isFolder && folderPartiallySelected(consignmentId, edgeNodeId)
+      val isSelected = !isPartiallySelected && selectedFiles.contains(edgeNodeId)
       NodesToDisplay(
-        edgeNode.fileId.toString,
+        edgeNodeId.toString,
         edgeNode.fileName.get,
         isSelected,
         isFolder,
@@ -186,10 +190,10 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   private def folderPartiallySelected(consignmentId: UUID, folderId: UUID): Boolean = {
     val selectedFiles = cacheApi.set[UUID](consignmentId.toString)
-    val allFolderDescendants = cacheApi.map[List[String]](s"${consignmentId}_folders")
+    val allFolderDescendants = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
 
     val folderIds = allFolderDescendants.getFields(folderId.toString)
-      .flatMap(_.getOrElse(List())).map(UUID.fromString(_)).toList
+      .flatMap(_.getOrElse(List())).toList
 
     selectedFiles.containsSome(folderIds)
   }
