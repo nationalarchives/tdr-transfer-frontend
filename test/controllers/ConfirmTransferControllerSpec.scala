@@ -26,7 +26,7 @@ import play.api.test.WsTestClient.InternalWSClient
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import testUtils.{FormTester, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, EnglishLang, FormTester, FrontEndTestHelper, MockInputOption}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -52,14 +52,18 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   val langs: Langs = new EnglishLang
 
-  val options = Map(
-    "openRecords" -> (
-      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-      "All records must be confirmed as open before proceeding"
+  val options = List(
+    MockInputOption(
+    "openRecords",
+     "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
+      "All records must be confirmed as open before proceeding",
+      fieldType="inputCheckbox"
     ),
-    "transferLegalCustody" -> (
+    MockInputOption(
+    "transferLegalCustody",
       "I confirm that I am transferring legal custody of these records to The National Archives.",
-      "Transferral of legal custody of all records must be confirmed before proceeding"
+      "Transferral of legal custody of all records must be confirmed before proceeding",
+      fieldType="inputCheckbox"
     )
   )
 
