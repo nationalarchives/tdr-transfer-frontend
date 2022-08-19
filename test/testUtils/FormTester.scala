@@ -60,11 +60,11 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
   private def addValuesToAttributes(option: MockInputOption, selected: Boolean=false, disabledStatus: String=""): String = {
     option.fieldType match {
       case "inputCheckbox" => addValuesToCheckBoxAttributes(option.name, option.label, selected || option.selected, disabledStatus)
-      case "inputDate" => addValuesToDateAttributes(option.id, option.name, option.value, option.placeholder)
+      case "inputDate" => addValuesToDateAttributes(option.id, option.name, option.value, option.placeholder, option.errorMessage)
       case "inputDropdown" => addValuesToDropdownAttributes(option.id, option.name, selected || option.selected, option.value)
-      case "inputNumeric" => addValuesToTextBoxAttributes(option.id, option.name, option.value, option.placeholder, option.fieldType)
+      case "inputNumeric" => addValuesToTextBoxAttributes(option.id, option.name, option.value, option.placeholder, option.fieldType, option.errorMessage)
       case "inputRadio" => addValuesToRadioAttributes(option.id, option.name, option.label, selected || option.selected, option.value: String)
-      case "inputText" => addValuesToTextBoxAttributes(option.id, option.name, option.value, option.placeholder, option.fieldType)
+      case "inputText" => addValuesToTextBoxAttributes(option.id, option.name, option.value, option.placeholder, option.fieldType, option.errorMessage)
     }
   }
 
@@ -84,11 +84,11 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
        |                $label""".stripMargin
   }
 
-  private def addValuesToDateAttributes(id: String, name: String, value: String, placeholder: String): String = {
+  private def addValuesToDateAttributes(id: String, name: String, value: String, placeholder: String, errorMessage: String): String = {
     s"""                        <input class="govuk-input
        |                                      govuk-date-input__input
        |                                      govuk-input--width-${if(placeholder.length > 2) 3 else 2}
-       |                                      "
+       |                                      ${if(errorMessage.nonEmpty) "govuk-input--error" else ""}"
        |                               id="$id"
        |                               name="$name"
        |                               value="$value"
@@ -106,14 +106,14 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
     s"""                <option ${selectedStatus}value="$value">$value</option>""".stripMargin
   }
 
-  private def addValuesToTextBoxAttributes(id: String, name: String, value: String,
-                                           placeholder: String, fieldType: String): String = {
+  private def addValuesToTextBoxAttributes(id: String, name: String, value: String, placeholder: String, fieldType: String,
+                                           errorMessage: String): String = {
     val (inputType, inputMode) = fieldType match {
       case "InputNumeric" => ("number", "numeric")
       case "InputText" => ("text", "text")
     }
     s"""            <input
-      |                class="govuk-input govuk-input--width-5 "
+      |                class="govuk-input govuk-input--width-5 ${if(errorMessage.nonEmpty) "govuk-input--error" else ""}"
       |                id="$id"
       |                name="$name"
       |                type=$inputType
