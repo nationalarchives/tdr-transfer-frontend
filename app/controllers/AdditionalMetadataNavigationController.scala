@@ -28,15 +28,17 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       list.map(UUID.fromString)
     }
   }
-
+  // scalastyle:off method.length
   implicit class CacheHelper(cache: RedisSet[UUID, SynchronousResult]) {
 
     def updateCache(formData: NodesFormData, selectedFolderId: UUID, consignmentId: UUID, token: BearerAccessToken): Unit = {
+
+      val partSelectedCache = cacheApi.set[UUID](s"${consignmentId}_partSelected")
       val currentFolder: String = formData.folderSelected
       val currentFolderId = UUID.fromString(currentFolder)
       val allNodeIds: List[UUID] = formData.allNodes.toUuids
       val selectedNodeIds: List[UUID] = formData.selected.toUuids
-      val deselectedNodeIds: List[UUID] = allNodeIds.filter(id => !selectedNodeIds.contains(id))
+      val deselectedNodeIds: List[UUID] = allNodeIds.filter(id => !selectedNodeIds.contains(id)).filter(id => !partSelectedCache.contains(id))
 
       //Handle folder deselection separately, as has three potential states: deselected, partially deselected, selected
       val deselectedIdsExceptFolder: Set[UUID] = deselectedNodeIds.filter(_ != currentFolderId).toSet
@@ -59,6 +61,8 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         val allSelectedIds: List[UUID] = allSelectedDescendants.map(_.fileId)
         val allDeselectedExceptFolderIds: List[UUID] = allDeselectedDescendantsExceptFolder.map(_.fileId)
 
+        partSelectedCache.remove(currentFolderId)
+
         cache.addSelectedIds(allSelectedIds)
         cache.removedDeselectedIds(allDeselectedExceptFolderIds)
 
@@ -75,6 +79,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
           //Some not all folder descendants have been selected, set folder to partially selected
         } else if (cache.containsSome(allFolderChildrenIds)) {
           cache.remove(currentFolderId)
+          partSelectedCache.add(currentFolderId)
         }
       }
     }
@@ -196,14 +201,24 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   private def folderPartiallySelected(consignmentId: UUID, folderId: UUID): Boolean = {
     val selectedFiles = cacheApi.set[UUID](consignmentId.toString)
+    val partSelectedFiles = cacheApi.set[UUID](s"${consignmentId}_partSelected")
     val allFolderDescendants = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
+
+    val des = allFolderDescendants.getFields(folderId.toString)
+
+    val y = ""
 
     val folderIds = allFolderDescendants.getFields(folderId.toString)
       .flatMap(_.getOrElse(List())).toList
 
+    val number: Int = folderIds.toSet.intersect(partSelectedFiles.toSet).size
+
+    print(s"\nNumber of items: $number\n")
+
     selectedFiles.containsSome(folderIds)
   }
 }
+
 object AdditionalMetadataNavigationController {
   case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay],
                            selected: List[String],
@@ -212,7 +227,11 @@ object AdditionalMetadataNavigationController {
                            folderSelected: String,
                            returnToRoot: Option[String])
 
-  case class NodesToDisplay(fileId: String, displayName: String, isSelected: Boolean = false, isFolder: Boolean = false, isPartiallySelected = false)
+  case class NodesToDisplay(fileId: String,
+                            displayName: String,
+                            isSelected: Boolean = false,
+                            isFolder: Boolean = false,
+                            isPartiallySelected: Boolean = false)
 
   case class ResultsCount(startCount: Int, endCount: Int, total: Int)
 }
