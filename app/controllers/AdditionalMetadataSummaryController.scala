@@ -16,6 +16,7 @@ class AdditionalMetadataSummaryController @Inject ()(val consignmentService: Con
                                               ) extends TokenSecurity {
 
   def getSelectedSummaryPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+
 //  TODO:  Get fileName and selectedFileIds from previous page
     val fileName = "Flour.txt"
     val selectedFileIds = None

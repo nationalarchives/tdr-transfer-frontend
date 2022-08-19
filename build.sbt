@@ -29,6 +29,7 @@ libraryDependencies ++= Seq(
   "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude("commons-io", "commons-io") exclude("com.fasterxml.jackson.core", "jackson-databind"),
   "io.circe" %% "circe-core" % "0.14.2",
   "io.circe" %% "circe-generic" % "0.14.2",
+  caffeine % Test,
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,

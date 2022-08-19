@@ -21,7 +21,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
                                              val keycloakConfiguration: KeycloakConfiguration,
                                              val consignmentService: ConsignmentService,
                                              val customMetadataService: CustomMetadataService,
-                                             val cache: AsyncCacheApi)
+                                             cache: AsyncCacheApi)
                                             (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
   def addClosureMetadata(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {

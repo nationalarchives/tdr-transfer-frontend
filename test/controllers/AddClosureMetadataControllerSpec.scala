@@ -1,6 +1,7 @@
 package controllers
 
 import akka.Done
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
@@ -17,9 +18,11 @@ import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Play.materializer
 import play.api.cache.AsyncCacheApi
+import play.api.cache.caffeine.CaffeineCacheApi
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
+import play.cache.caffeine.NamedCaffeineCache
 import services.{ConsignmentService, CustomMetadataService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
@@ -114,13 +117,16 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
 
+    val a = Caffeine.newBuilder().buildAsync[Any, Any]()
+    val b = new NamedCaffeineCache[Any, Any]("bob", a)
+    val c = new CaffeineCacheApi(b)
     new AddClosureMetadataController(
       securityComponents,
       new GraphQLConfiguration(app.configuration),
       getValidStandardUserKeycloakConfiguration,
       consignmentService,
       customMetadataService,
-      mock[AsyncCacheApi]
+      c
     )
   }
 
