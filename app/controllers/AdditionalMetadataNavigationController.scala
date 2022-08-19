@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
+import controllers.AdditionalMetadataNavigationController.{NodesFormData, NodesToDisplay, ResultsCount}
 import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache.redis.{CacheApi, RedisSet, SynchronousResult}
@@ -116,19 +117,24 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
   def getPaginatedFiles(consignmentId: UUID,
                         pageNumber: Int,
                         limit: Option[Int],
-                        selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+                        selectedFolderId: UUID,
+                        metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService.getConsignmentPaginatedFile(consignmentId, pageNumber - 1, limit, selectedFolderId, request.token.bearerAccessToken)
       .map { paginatedFiles =>
-
         val totalPages = paginatedFiles.paginatedFiles.totalPages
           .getOrElse(throw new IllegalStateException(s"No 'total pages' returned for folderId $selectedFolderId"))
+        val totalFiles = paginatedFiles.paginatedFiles.totalItems
+          .getOrElse(throw new IllegalStateException(s"No 'total items' returned for folderId $selectedFolderId"))
         val parentFolder = paginatedFiles.parentFolder.
           getOrElse(throw new IllegalStateException(s"No 'parent folder' returned for consignment $consignmentId"))
         val edges: List[PaginatedFiles.Edges] = paginatedFiles.paginatedFiles.edges.getOrElse(List()).flatten
         val nodesToDisplay: List[NodesToDisplay] = generateNodesToDisplay(consignmentId, edges, selectedFolderId)
+        val pageSize = limit.getOrElse(totalFiles)
+        val resultsCount = ResultsCount(((pageNumber - 1) * pageSize) + 1, (pageNumber * pageSize).min(totalFiles), totalFiles)
         Ok(views.html.standard.additionalMetadataNavigation(
           consignmentId,
           request.token.name,
+          metadataType,
           parentFolder,
           totalPages,
           limit,
@@ -136,12 +142,12 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
           selectedFolderId,
           paginatedFiles.parentFolderId,
           navigationForm.fill(NodesFormData(nodesToDisplay, selected = List(), allNodes = List(), pageNumber, selectedFolderId.toString,
-            paginatedFiles.parentFolder)))
+            paginatedFiles.parentFolder)), resultsCount)
         ).uncache()
       }
   }
 
-  def submit(consignmentId: UUID, limit: Option[Int], selectedFolderId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def submit(consignmentId: UUID, limit: Option[Int], selectedFolderId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       val errorFunction: Form[NodesFormData] => Future[Result] = { formWithErrors: Form[NodesFormData] =>
         Future(Ok)
@@ -155,10 +161,10 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
         if (formData.returnToRoot.isDefined) {
           Future(Redirect(routes.AdditionalMetadataNavigationController
-            .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(formData.returnToRoot.get))))
+            .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(formData.returnToRoot.get), metadataType)))
         } else {
           Future(Redirect(routes.AdditionalMetadataNavigationController
-            .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(folderSelected))))
+            .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(folderSelected), metadataType)))
         }
       }
 
@@ -198,16 +204,15 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
     selectedFiles.containsSome(folderIds)
   }
 }
+object AdditionalMetadataNavigationController {
+  case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay],
+                           selected: List[String],
+                           allNodes: List[String],
+                           pageSelected: Int,
+                           folderSelected: String,
+                           returnToRoot: Option[String])
 
-case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay],
-                         selected: List[String],
-                         allNodes: List[String],
-                         pageSelected: Int,
-                         folderSelected: String,
-                         returnToRoot: Option[String])
+  case class NodesToDisplay(fileId: String, displayName: String, isSelected: Boolean = false, isFolder: Boolean = false, isPartiallySelected = false)
 
-case class NodesToDisplay(fileId: String,
-                          displayName: String,
-                          isSelected: Boolean = false,
-                          isFolder: Boolean = false,
-                          isPartiallySelected: Boolean = false)
+  case class ResultsCount(startCount: Int, endCount: Int, total: Int)
+}
