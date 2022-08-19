@@ -3,11 +3,13 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, serverError, urlEqualTo}
 import configuration.GraphQLConfiguration
+import graphql.codegen.AddFileStatus
+import graphql.codegen.AddFileStatus.addFileStatus
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
 import graphql.codegen.StartUpload.startUpload
 import graphql.codegen.UpdateConsignmentStatus.updateConsignmentStatus
-import graphql.codegen.types.{AddFileAndMetadataInput, ClientSideMetadataInput, ConsignmentStatusInput, StartUploadInput}
+import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, ClientSideMetadataInput, ConsignmentStatusInput, StartUploadInput}
 import io.circe.syntax._
 import io.circe.parser.decode
 import io.circe.generic.auto._
@@ -16,7 +18,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
-import services.{ConsignmentService, UploadService}
+import services.{ConsignmentService, FileStatusService, UploadService}
 import play.api.libs.json._
 
 import java.util.UUID
@@ -47,10 +49,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "redirect to the transfer agreement page if the transfer agreement for that consignment has not been signed" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val uploadService = new UploadService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
 
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -64,11 +67,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     "redirect to the transfer agreement page if the transfer agreement for that consignment has not been agreed to" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val uploadService = new UploadService(graphQLConfiguration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
 
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -82,11 +86,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     "redirect to the transfer agreement page if the transfer agreement for that consignment has been partially agreed to" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val uploadService = new UploadService(graphQLConfiguration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
 
       setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("InProgress"))
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -100,11 +105,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     "show the standard upload page if the transfer agreement for that consignment has been agreed to in full" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val uploadService = new UploadService(graphQLConfiguration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
 
       setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"))
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -166,11 +172,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     "render the 'upload in progress' page if a standard upload is in progress" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val uploadService = new UploadService(graphQLConfiguration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val uploadStatus = "InProgress"
 
       setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some(uploadStatus))
@@ -189,11 +196,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     "render 'upload is complete' page if a standard upload has completed" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val uploadService = new UploadService(graphQLConfiguration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val uploadStatus = "Completed"
 
       setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some(uploadStatus))
@@ -217,11 +225,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     "show the judgment upload page for judgments" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val uploadService = new UploadService(graphQLConfiguration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
 
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
@@ -272,11 +281,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     "render the 'upload in progress' page if a judgment file upload is in progress" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val uploadService = new UploadService(graphQLConfiguration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val uploadStatus = "InProgress"
       setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some(uploadStatus))
       setConsignmentTypeResponse(wiremockServer, "judgment")
@@ -294,11 +304,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
     "render the judgment 'upload is complete' page if the upload has completed" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val uploadService = new UploadService(graphQLConfiguration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidJudgmentUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val uploadStatus = "Completed"
       setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some(uploadStatus))
       setConsignmentTypeResponse(wiremockServer, "judgment")
@@ -324,11 +335,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
     s"The $url upload page" should {
       s"return 403 if the url doesn't match the consignment type" in {
         val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-        val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+        val uploadService = new UploadService(graphQLConfiguration)
         val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+        val fileStatusService = new FileStatusService(graphQLConfiguration)
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller = new UploadController(getAuthorisedSecurityComponents,
-          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService, uploadService)
+          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
 
         setConsignmentStatusResponse(app.configuration, wiremockServer)
 
@@ -349,11 +361,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
     s"The $url upload in progress page" should {
       s"return 403 if the url doesn't match the consignment type" in {
         val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-        val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+        val uploadService = new UploadService(graphQLConfiguration)
         val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+        val fileStatusService = new FileStatusService(graphQLConfiguration)
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller = new UploadController(getAuthorisedSecurityComponents,
-          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService, uploadService)
+          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
 
         setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some("InProgress"))
 
@@ -374,11 +387,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
     s"The $url upload has completed page" should {
       s"return 403 if the url doesn't match the consignment type" in {
         val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-        val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+        val uploadService = new UploadService(graphQLConfiguration)
         val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+        val fileStatusService = new FileStatusService(graphQLConfiguration)
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller = new UploadController(getAuthorisedSecurityComponents,
-          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService, uploadService)
+          graphQLConfiguration, user, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
 
         setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some("Completed"))
 
@@ -402,6 +416,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val client = graphQLConfiguration.getClient[addFilesAndMetadata.Data, addFilesAndMetadata.Variables]()
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val uploadService = new UploadService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val fileId = UUID.randomUUID()
@@ -415,7 +430,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val saveMetadataResponse = controller.saveClientMetadata()
         .apply(FakeRequest(POST, s"/save-metadata")
           .withJsonBody(Json.parse(addFileAndMetadataInput.asJson.noSpaces))
@@ -433,9 +448,10 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "throw an error for invalid input data" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val uploadService = new UploadService(graphQLConfiguration)
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val saveMetadataResponse = controller.saveClientMetadata()
         .apply(FakeRequest(POST, s"/save-metadata")
           .withJsonBody(Json.parse("""{"bad": "data"}"""))
@@ -448,9 +464,10 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "throw an error if the API returns an error" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val uploadService = new UploadService(graphQLConfiguration)
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val clientSideMetadataInput = ClientSideMetadataInput("originalPath", "checksum", 1, 1, 1) :: Nil
       val addFileAndMetadataInput: AddFileAndMetadataInput = AddFileAndMetadataInput(UUID.randomUUID(), clientSideMetadataInput, Some(Nil))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
@@ -467,11 +484,85 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  "UploadController addFileStatus" should {
+    "call the addFileStatus endpoint" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val client = graphQLConfiguration.getClient[addFileStatus.Data, addFileStatus.Variables]()
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val uploadService = new UploadService(graphQLConfiguration)
+      val fileId = UUID.randomUUID()
+      val addFileStatusInput = AddFileStatusInput(fileId, "Upload", "Success")
+      val data = client.GraphqlData(Option(addFileStatus.Data(addFileStatus.AddFileStatus(fileId, "Upload", "Success"))), Nil)
+      val dataString = data.asJson.noSpaces
+
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("addFileStatus"))
+        .willReturn(okJson(dataString)))
+
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
+      val result = controller.addFileStatus()
+        .apply(FakeRequest(POST, s"/add-file-status")
+          .withJsonBody(Json.parse(addFileStatusInput.asJson.noSpaces))
+          .withCSRFToken
+        )
+      val response: String = contentAsString(result)
+      val addFileStatusResponse = decode[addFileStatus.AddFileStatus](response).toOption
+      addFileStatusResponse.isDefined must be(true)
+      addFileStatusResponse.get.fileId must be(addFileStatusInput.fileId)
+      addFileStatusResponse.get.statusType must be(addFileStatusInput.statusType)
+      addFileStatusResponse.get.statusValue must be(addFileStatusInput.statusValue)
+
+      wiremockServer.getAllServeEvents.asScala.nonEmpty must be(true)
+    }
+
+    "throw an error for invalid input data" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val uploadService = new UploadService(graphQLConfiguration)
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
+      val result = controller.addFileStatus()
+        .apply(FakeRequest(POST, s"/add-file-status")
+          .withJsonBody(Json.parse("""{"bad": "data"}"""))
+          .withCSRFToken
+        )
+      val exception: Throwable = result.failed.futureValue
+      exception.getMessage must be("Incorrect data provided AnyContentAsJson({\"bad\":\"data\"})")
+    }
+
+    "throw an error if the API returns an error" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val uploadService = new UploadService(graphQLConfiguration)
+      val fileId = UUID.randomUUID()
+      val addFileStatusInput = AddFileStatusInput(fileId, "Upload", "Success")
+
+      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("addFileStatus"))
+        .willReturn(serverError()))
+
+      val controller = new UploadController(getAuthorisedSecurityComponents,
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
+      val result = controller.addFileStatus()
+        .apply(FakeRequest(POST, s"/add-file-status")
+          .withJsonBody(Json.parse(addFileStatusInput.asJson.noSpaces))
+          .withCSRFToken
+        )
+      val exception: Throwable = result.failed.futureValue
+      exception.getMessage must startWith("Unexpected response from GraphQL API")
+    }
+  }
+
   "UploadController startUpload" should {
     "call the startUpload endpoint" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val client = graphQLConfiguration.getClient[startUpload.Data, startUpload.Variables]()
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val uploadService = new UploadService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val startUploadInput = StartUploadInput(consignmentId, "parent")
@@ -483,7 +574,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val saveMetadataResponse = controller.startUpload()
         .apply(FakeRequest(POST, s"/start-upload")
           .withJsonBody(Json.parse(startUploadInput.asJson.noSpaces))
@@ -498,9 +589,10 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "throw an error for invalid input data" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val uploadService = new UploadService(graphQLConfiguration)
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val saveMetadataResponse = controller.startUpload()
         .apply(FakeRequest(POST, s"/start-upload")
           .withJsonBody(Json.parse("""{"bad": "data"}"""))
@@ -513,10 +605,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "throw an error if the API returns an error" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val uploadService = new UploadService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val startUploadInput = StartUploadInput(consignmentId, "parent")
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .withRequestBody(containing("startUpload"))
@@ -537,6 +630,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val client = graphQLConfiguration.getClient[updateConsignmentStatus.Data, updateConsignmentStatus.Variables]()
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
       val uploadService = new UploadService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val updateConsignmentStatusInput = ConsignmentStatusInput(consignmentId, "type", "value")
@@ -548,7 +642,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val saveMetadataResponse = controller.updateConsignmentStatus()
         .apply(FakeRequest(POST, s"/update-consignment-status")
           .withJsonBody(Json.parse(updateConsignmentStatusInput.asJson.noSpaces))
@@ -563,9 +657,10 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "throw an error for invalid input data" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val uploadService = new UploadService(graphQLConfiguration)
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val saveMetadataResponse = controller.updateConsignmentStatus()
         .apply(FakeRequest(POST, s"/update-consignment-status")
           .withJsonBody(Json.parse("""{"bad": "data"}"""))
@@ -578,10 +673,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
     "throw an error if the API returns an error" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val uploadService = new UploadService(new GraphQLConfiguration(app.configuration))
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val uploadService = new UploadService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
-        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService)
+        graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
       val updateConsignmentStatusInput = ConsignmentStatusInput(consignmentId, "type", "value")
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .withRequestBody(containing("updateConsignmentStatus"))

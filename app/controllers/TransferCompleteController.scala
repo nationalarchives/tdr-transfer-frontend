@@ -33,10 +33,10 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
 
   def downloadReport(consignmentId: UUID, consignmentRef: String): Action[AnyContent] = standardTypeAction(consignmentId)
   { implicit request: Request[AnyContent] =>
-    val headers = "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,TransferInitiatedDatetime"
+    val headers = "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,ExportDatetime"
     consignmentService.getConsignmentExport(consignmentId, request.token.bearerAccessToken)
       .map { result =>
-        val transferInitiated = result.transferInitiatedDatetime
+        val exportDateTime = result.exportDatetime
         val rows = result.files.foldLeft(List[String]()) {
           case (record, file) => record :+ ReportCsv(
             file.metadata.clientSideOriginalFilePath,
@@ -49,7 +49,7 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
             file.metadata.language,
             file.metadata.foiExemptionCode,
             file.metadata.clientSideLastModifiedDate,
-            transferInitiated
+            exportDateTime
           ).toCSV
         }
         Ok(headers + "\n" + rows.mkString("\n"))
@@ -78,5 +78,5 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
                        language: Option[String],
                        exemptionCode: Option[String],
                        lastModified: Option[LocalDateTime],
-                       transferInitiated: Option[ZonedDateTime])
+                       exportDatetime: Option[ZonedDateTime])
 }

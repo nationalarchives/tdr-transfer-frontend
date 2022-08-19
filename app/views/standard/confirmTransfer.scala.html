@@ -14,7 +14,7 @@
             <h1 class="govuk-heading-l">Confirm transfer</h1>
             <p class="govuk-body">Here is a summary of the records you have uploaded.</p>
             @errorSummary(
-              Map(
+              List(
                   finalTransferConfirmationForm("openRecords").id -> finalTransferConfirmationForm("openRecords").errors.headOption,
                   finalTransferConfirmationForm("transferLegalCustody").id -> finalTransferConfirmationForm("transferLegalCustody").errors.headOption
               ).collect { case (id, Some(formError)) => id -> formError.messages}

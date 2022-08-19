@@ -1,6 +1,6 @@
 import { ITdrFileWithPath, S3Upload } from "../src/s3upload"
 import { isError } from "../src/errorhandling"
-import { enableFetchMocks } from "jest-fetch-mock"
+import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 import {
   IFileWithPath,
   IProgressInformation
@@ -107,12 +107,19 @@ const createTdrFile = ({
   } as ITdrFileWithPathAndBits
 }
 
-test("a single file upload returns the correct key", async () => {
+beforeEach(() => {
+  document.body.innerHTML='<input name="csrfToken" value="abcde">'
+  fetchMock.resetMocks()
+  jest.resetModules()
+})
+
+
+test("a single file upload returns the correct key and should not call addFileStatus if the upload is success", async () => {
   const tdrFileWithPath = createTdrFile({
     fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
   })
   const mockUpload = mockLibStorageUpload(s3Mock)
-  mockUpload.resolves({})
+  mockUpload.resolves({$metadata: {httpStatusCode: 200}})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
 
   await s3Upload.uploadToS3(
@@ -122,6 +129,33 @@ test("a single file upload returns the correct key", async () => {
     jest.fn(),
     ""
   )
+  expect(fetchMock).toBeCalledTimes(0)
+
+  const input = mockUpload.call(0).args[0].input as { Key: string }
+  expect(input.Key).toEqual(
+    `${userId}/16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e/1df92708-d66b-4b55-8c1e-bb945a5c4fb5`
+  )
+})
+
+test("a single file upload returns the correct key and should call addFileStatus if it fails", async () => {
+  const tdrFileWithPath = createTdrFile({
+    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
+  })
+  fetchMock.mockResponse(JSON.stringify(
+    { fileId: tdrFileWithPath.fileId, statusType: "Upload", statusValue: "Failed" }
+  ))
+  const mockUpload = mockLibStorageUpload(s3Mock)
+  mockUpload.resolves({$metadata: {httpStatusCode: 500}})
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
+  await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    [tdrFileWithPath],
+    jest.fn(),
+    ""
+  )
+  expect(fetchMock).toHaveBeenCalledWith("/add-file-status", {"body": "{\"fileId\":\"1df92708-d66b-4b55-8c1e-bb945a5c4fb5\",\"statusType\":\"Upload\",\"statusValue\":\"Failed\"}", "credentials": "include", "headers": {"Content-Type": "application/json", "Csrf-Token": "abcde", "X-Requested-With": "XMLHttpRequest"}, "method": "POST"})
 
   const input = mockUpload.call(0).args[0].input as { Key: string }
   expect(input.Key).toEqual(
@@ -133,7 +167,29 @@ test("a single file upload calls the callback correctly", async () => {
   const tdrFileWithPath = createTdrFile({})
   const callback = jest.fn()
   const mockUpload = mockLibStorageUpload(s3Mock)
-  mockUpload.resolves({})
+  mockUpload.resolves({$metadata: {httpStatusCode: 200}})
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
+  await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    [tdrFileWithPath],
+    callback,
+    ""
+  )
+  expect(fetchMock).toHaveBeenCalledTimes(0)
+
+  checkCallbackCalls(callback, 1, [100])
+})
+
+test("a single file upload calls the callback correctly and should call addFileStatus if it fails", async () => {
+  fetchMock.mockResponse(JSON.stringify(
+    { fileId: "0", statusType: "Upload", statusValue: "Failed" }
+  ))
+  const tdrFileWithPath = createTdrFile({})
+  const callback = jest.fn()
+  const mockUpload = mockLibStorageUpload(s3Mock)
+  mockUpload.resolves({$metadata: {httpStatusCode: 500}})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
 
   await s3Upload.uploadToS3(
@@ -144,10 +200,15 @@ test("a single file upload calls the callback correctly", async () => {
     ""
   )
 
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+
   checkCallbackCalls(callback, 1, [100])
 })
 
-test("multiple file uploads return the correct params", async () => {
+test("multiple file uploads return the correct params and should call addFileStatus if it fails", async () => {
+  fetchMock.mockResponse(JSON.stringify(
+    { fileId: "0", statusType: "Upload", statusValue: "Failed" }
+  ))
   const callback = jest.fn()
   const tdrFilesWithPathAndBits: ITdrFileWithPathAndBits[] = [
     { fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5" },
@@ -157,7 +218,7 @@ test("multiple file uploads return the correct params", async () => {
   ].map((tdrFileParams) => createTdrFile(tdrFileParams))
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.reset()
-  mockUpload.resolves({})
+  mockUpload.resolves({$metadata: {httpStatusCode: 500}})
   const s3Upload = new S3Upload(
     s3Mock as unknown as S3Client,
     "https://tdr-fake-url.com/fake"
@@ -171,6 +232,7 @@ test("multiple file uploads return the correct params", async () => {
     ""
   )
 
+  expect(fetchMock).toHaveBeenCalledTimes(4)
   const getPutObjectParamsUploaded: (index: number) => ServiceInputTypes = (
     index
   ) => {
@@ -198,14 +260,16 @@ test("multiple file uploads return the correct params", async () => {
   })
 })
 
-test("multiple file uploads call the callback correctly", async () => {
+test("multiple file uploads call the callback correctly and should not call addFileStatus if the upload is success", async () => {
   const tdrFilesWithPath: ITdrFileWithPath[] = [{}, {}, {}, {}].map(
     (tdrFileParams) => createTdrFile(tdrFileParams)
   )
   const callback = jest.fn()
   const mockUpload = mockLibStorageUpload(s3Mock)
-  mockUpload.resolves({})
+  mockUpload.resolves({$metadata: {httpStatusCode: 200}})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
+  expect(fetchMock).not.toBeCalled()
 
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
@@ -218,7 +282,7 @@ test("multiple file uploads call the callback correctly", async () => {
   checkCallbackCalls(callback, 4, [25, 50, 75, 100])
 })
 
-test("when there is an error with the upload, an error is returned", async () => {
+test("when there is an error with the upload, an error is returned and should not call addFileStatus", async () => {
   const tdrFileWithPath = createTdrFile({})
   const mockUpload = mockLibStorageUpload(s3Mock)
   mockUpload.rejects("error")
@@ -232,6 +296,7 @@ test("when there is an error with the upload, an error is returned", async () =>
     ""
   )
 
+  expect(fetchMock).not.toBeCalled()
   await expect(result).rejects.toEqual(Error("error"))
 })
 
@@ -239,7 +304,7 @@ test("a single file upload calls the callback correctly with a different chunk s
   const tdrFileWithPath = createTdrFile({ fileSize: 10 * 1024 * 1024 })
   const callback = jest.fn()
   const mockUpload = mockLibStorageUpload(s3Mock)
-  mockUpload.resolves({})
+  mockUpload.resolves({$metadata: {httpStatusCode: 200}})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
 
   await s3Upload.uploadToS3(
@@ -253,13 +318,16 @@ test("a single file upload calls the callback correctly with a different chunk s
   checkCallbackCalls(callback, 1, [50, 100])
 })
 
-test("multiple file uploads of more than 0 bytes returns the correct, same number of bytes provided as uploaded", async () => {
+test("multiple file uploads of more than 0 bytes returns the correct, same number of bytes provided as uploaded and should not call addFileStatus if the upload is success", async () => {
+  fetchMock.mockResponse(JSON.stringify(
+    { fileId: "0", statusType: "Upload", statusValue: "Failed" }
+  ))
   const callback = jest.fn()
   const tdrFilesWithPath: ITdrFileWithPath[] = [{}, {}, {}, {}].map(
     (tdrFileParams) => createTdrFile(tdrFileParams)
   )
   const mockUpload = mockLibStorageUpload(s3Mock)
-  mockUpload.resolves({})
+  mockUpload.resolves({$metadata: {httpStatusCode: 200}})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
   const byteSizeofAllFiles = tdrFilesWithPath.reduce(
     (fileIdTotal, tdrFileWithPath) =>
@@ -274,6 +342,7 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
     callback,
     ""
   )
+  expect(fetchMock).not.toBeCalled()
 
   expect(isError(result)).toBe(false)
   if (!isError(result)) {
@@ -291,7 +360,7 @@ test("multiple 0-byte file uploads returns a totalChunks value that equals the s
     { fileId: "6b6694d0-814c-4978-8dee-56ec920a0102", bits: "" }
   ].map((tdrFileParams) => createTdrFile(tdrFileParams))
   const mockUpload = mockLibStorageUpload(s3Mock)
-  mockUpload.resolves({})
+  mockUpload.resolves({$metadata: {httpStatusCode: 200}})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
 
   const result = await s3Upload.uploadToS3(
@@ -328,7 +397,7 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
   ).length
 
   const mockUpload = mockLibStorageUpload(s3Mock)
-  mockUpload.resolves({})
+  mockUpload.resolves({$metadata: {httpStatusCode: 200}})
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
 
   const result = await s3Upload.uploadToS3(
