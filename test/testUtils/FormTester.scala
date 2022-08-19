@@ -109,17 +109,17 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
   private def addValuesToTextBoxAttributes(id: String, name: String, value: String, placeholder: String, fieldType: String,
                                            errorMessage: String): String = {
     val (inputType, inputMode) = fieldType match {
-      case "InputNumeric" => ("number", "numeric")
-      case "InputText" => ("text", "text")
+      case "inputNumeric" => ("number", "numeric")
+      case "inputText" => ("text", "text")
     }
     s"""            <input
       |                class="govuk-input govuk-input--width-5 ${if(errorMessage.nonEmpty) "govuk-input--error" else ""}"
       |                id="$id"
       |                name="$name"
-      |                type=$inputType
+      |                type="$inputType"
       |                value="$value"
       |                placeholder="$placeholder"
-      |                inputmode=$inputMode
+      |                inputmode="$inputMode"
       |            >""".stripMargin
   }
 
