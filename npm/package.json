@@ -47,7 +47,7 @@
     "@nationalarchives/tdr-generated-graphql": "1.0.263",
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
-    "govuk-frontend": "^4.3.0",
+    "govuk-frontend": "^4.3.1",
     "graphql": "^16.6.0",
     "keycloak-js": "19.0.1",
     "minify": "^9.1.0",
