@@ -43,7 +43,7 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[(F
           case (inputName, (enteredValue, _)) =>
             val inputInfo: Array[String] = inputName.split("-")
             val enteredValueAsString: String = enteredValue.getOrElse("").toString
-            val label: String = if (inputInfo.length == 3) inputInfo(2) else enteredValueAsString.capitalize
+            val label: String = if (inputInfo.length == 3) inputInfo(2) else enteredValueAsString
             (label, enteredValueAsString)
         }.toSeq
 
