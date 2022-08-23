@@ -1,0 +1,46 @@
+@* dropdownOptions as Tuple until data model clearer *@
+
+@import controllers.util.InputNameAndValue
+@(fieldId: String,
+fieldName: String,
+fieldDescription: String,
+options: Seq[InputNameAndValue],
+selectedOption: Option[InputNameAndValue],
+attributes: Map[Symbol, Any],
+fieldErrors: List[String] = Nil
+)(implicit messages: Messages)
+
+@import viewsapi.FormFunctions._
+@import views.html.partials.errorMessage
+
+@disabledStatus = {@attributes.get(Symbol("_disabledOption"))}
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
+@formFieldId = @{if(isDynamicForm) s"inputdropdown-$fieldId" else fieldId}
+
+<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+    <h2 class="govuk-label-wrapper">
+        <label class="govuk-label govuk-label--m" for="@formFieldId">
+        @fieldName
+        </label>
+    </h2>
+    <div id="@formFieldId-hint" class="govuk-hint">
+    @fieldDescription
+    </div>
+
+    @errorMessage(fieldId, fieldErrors)
+    <select class="govuk-select" id="@formFieldId" name="@formFieldId" @attributes.requiredInput() @disabledStatus>
+        @if(disabledStatus.toString() != "disabled") {
+            @if(selectedOption.isEmpty) {
+                <option value="" selected>
+                </option>
+            }
+            @for(dropdownOption <- options) {
+                <option @if(selectedOption.exists(_.name == dropdownOption.name)){selected="selected" }value="@dropdownOption.value">@dropdownOption.name</option>
+            }
+        } else {
+            @for(dropdownOption <- options) {
+                <option @if(disabledStatus.toString() == "disabled"){selected="selected" }value="@dropdownOption.value">@dropdownOption.name</option>
+            }
+        }
+    </select>
+</div>

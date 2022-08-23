@@ -1,6 +1,5 @@
 package controllers.util
 
-import controllers.util.CustomMetadataUtils.FieldValues
 import graphql.codegen.GetCustomMetadata
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -10,9 +9,10 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.POST
 
-import scala.collection.immutable.{ListMap, ListSet}
+import scala.collection.immutable.ListMap
 
 class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
+
   "formAnswersWithValidInputNames" should "returns all values passed into the request except the CSRF token" in {
     val rawFormWithCsrfToken = ListMap(
       "inputdate-testproperty3-day" -> List("3"),
@@ -69,7 +69,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     thrownException.getMessage should equal(s"$fieldTypeWithIncorrectPrefix is not a supported field type.")
   }
 
-  "validateFormAnswers" should "throw an exception if the metadata name in the input name is not valid" in {
+  "validateAndConvertSubmittedValuesToFormFields" should "throw an exception if the metadata name in the input name is not valid" in {
     val unsupportedMetadataName = "wrongmetadataname"
 
     val rawFormWithoutCsrfToken =
@@ -78,409 +78,119 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val dynamicFormUtils: DynamicFormUtils = instantiateDynamicFormsUtils(rawFormWithoutCsrfToken)
 
     val thrownException: IllegalArgumentException =
-      the[IllegalArgumentException] thrownBy dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
+      the[IllegalArgumentException] thrownBy dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
 
-    thrownException.getMessage should equal(s"Metadata name $unsupportedMetadataName, extracted from field input name, does not exist.")
+    thrownException.getMessage should equal(s"Metadata name TestProperty1 does not exist in submitted form values")
   }
 
-  "validateFormAnswers" should "throw an exception if an unsupported fieldType (with a prefix of 'input') has been passed in" in {
-    val unsupportedFieldType = "inputwrong"
-
-    val rawFormWithoutCsrfToken =
-      ListMap(s"$unsupportedFieldType-testproperty3-day" -> List("3"), "csrfToken" -> List("12345"))
-
-    val dynamicFormUtils: DynamicFormUtils = instantiateDynamicFormsUtils(rawFormWithoutCsrfToken)
-
-    val thrownException: IllegalArgumentException =
-      the[IllegalArgumentException] thrownBy dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-
-    thrownException.getMessage should equal(s"$unsupportedFieldType is not a supported type.")
-  }
-
-  "validateFormAnswers" should "return a 'no-value selected'-selection-related error for selection fields if they are missing" in {
-    val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues(dropdownValue = List(""), radioValue = List(""))
+  "validateAndConvertSubmittedValuesToFormFields" should "return a 'no-value selected'-selection-related error for selection fields if they are missing" in {
+    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+      MockFormValues(dropdownValue = List(""))
     )
 
-    val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-    rawFormWithoutCsrfToken.foreach {
-      case (inputName, value) =>
-        if (value == List("")) {
-          val metadataName = inputName.split("-")(1)
-          validatedForm(inputName)._1 should equal(None)
-          validatedForm(inputName)._2 should equal(List(s"There was no value selected for the $metadataName."))
-        } else {
-          validatedForm(inputName)._2 should equal(List())
-        }
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    validatedForm.foreach {
+      case dropdownField: DropdownField =>
+        dropdownField.fieldErrors should equal(List(s"There was no value selected for the ${dropdownField.fieldName}."))
+      case _ =>
     }
   }
 
-  "validateFormAnswers" should "throws an exception if value selected is not one of the official options" in {
+  "validateAndConvertSubmittedValuesToFormFields" should "throws an exception if value selected is not one of the official options" in {
     // This test is to try and catch bad actors
-    val invalidSelection = "incorrectValueSelection"
-    List(s"inputdropdown-testproperty8" -> List(invalidSelection), s"inputradio-testproperty2" -> List(invalidSelection)).foreach {
-      inputNameAndValue =>
-        val rawFormWithoutCsrfToken =
-          ListMap(inputNameAndValue)
+    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+      MockFormValues(dropdownValue = List("hello"))
+    )
 
-        val dynamicFormUtils: DynamicFormUtils = instantiateDynamicFormsUtils(rawFormWithoutCsrfToken)
-
-        val thrownException: IllegalArgumentException =
-          the[IllegalArgumentException] thrownBy dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-
-        thrownException.getMessage should equal(s"Option '$invalidSelection' was not an option provided to the user")
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    validatedForm.foreach {
+      case dropdownField: DropdownField =>
+        dropdownField.fieldErrors should equal(List(s"Option 'hello' was not an option provided to the user."))
+      case _ =>
     }
   }
 
-  "validateFormAnswers" should "return the selection-related values and no errors for selection fields if they are present" in {
-    val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues()
+  "validateAndConvertSubmittedValuesToFormFields" should "return the selection-related values and no errors for selection fields if they are present" in {
+    val mockFormValues = MockFormValues()
+    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+      mockFormValues
     )
 
-    val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-    verifyThatNoFieldsHaveErrors(rawFormWithoutCsrfToken, validatedForm)
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    validatedForm.exists(_.fieldErrors.nonEmpty) should be(false)
+    verifyUpdatedFormFields(mockFormValues, validatedForm)
   }
 
-  "validateFormAnswers" should "return a 'no-number'-related error for the numeric fields that are missing values" in {
-    val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+  "validateAndConvertSubmittedValuesToFormFields" should "return a 'no-number'-related error for the numeric fields that are missing values" in {
+    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
       MockFormValues(day = List(""), numericTextBoxValue = List(""))
     )
 
-    val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-    rawFormWithoutCsrfToken.foreach {
-      case (inputName, value) =>
-        if (value == List("")) {
-          val unitType = inputName.split("-")(2)
-          validatedForm(inputName)._1 should equal(None)
-          validatedForm(inputName)._2 should equal(List(s"There was no number entered for the ${unitType.capitalize}."))
-        } else {
-          validatedForm(inputName)._2 should equal(List())
-        }
-    }
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    val dateField = validatedForm.find(_.isInstanceOf[DateField]).get
+    dateField.fieldErrors should equal(List(s"There was no number entered for the Day."))
   }
 
-  "validateFormAnswers" should "return a 'whole number'-related error for the numeric fields that are missing values" in {
-    //Shouldn't be possible on client-side due to "type:numeric" attribute added to HTML, but in case that is removed
-    val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues(month = List("b4"),
-        year = List("2r"),
-        numericTextBoxValue = List(" 40"),
-        day2 = List("000"),
-        month2 = List("e"),
-        year2 = List("-")
+    "validateAndConvertSubmittedValuesToFormFields" should "return a 'whole number'-related error for the numeric fields that are missing values" in {
+      //Shouldn't be possible on client-side due to "type:numeric" attribute added to HTML, but in case that is removed
+      val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+        MockFormValues(month = List("b4"),
+          year = List("2r"),
+          numericTextBoxValue = List(" 40"),
+          day2 = List("000"),
+          month2 = List("e"),
+          year2 = List("-")
+        )
       )
-    )
 
-    val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-    rawFormWithoutCsrfToken.foreach {
-      case (inputName, value) =>
-        val inputInfo = inputName.split("-")
-        if (inputInfo.length == 3 && !inputName.endsWith("-day")) {
-          val unitType = inputInfo(2)
-          validatedForm(inputName)._1 should equal(Some(value.head))
-          validatedForm(inputName)._2 should equal(List(s"${unitType.capitalize} entered must be a whole number."))
-        } else {
-          validatedForm(inputName)._2 should equal(List())
-        }
+      val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+
+      val dateField = validatedForm.filter(_.isInstanceOf[DateField]).toList
+      dateField.head.fieldErrors should equal(List(s"Month entered must be a whole number."))
+      dateField(1).fieldErrors should equal(List(s"000 is an invalid Day number."))
+
+      val textField = validatedForm.find(_.isInstanceOf[TextField]).get
+      textField.fieldErrors should equal(List(s"years entered must be a whole number."))
     }
-  }
 
-  "validateFormAnswers" should "return a 'negative number'-related error for the numeric fields that have negative numbers" in {
-    val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues(day = List("-20"), numericTextBoxValue = List("-01"))
-    )
+  private def verifyUpdatedFormFields(mockFormValues: MockFormValues, validatedForm: List[FormField]): Unit = {
 
-    val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-    rawFormWithoutCsrfToken.foreach {
-      case (inputName, value) =>
-        if (value.head.startsWith("-")) {
-          val unitType = inputName.split("-")(2)
-          validatedForm(inputName)._1 should equal(Some(value.head.toInt))
-          validatedForm(inputName)._2 should equal(List(s"${unitType.capitalize} must not be a negative number."))
-        } else {
-          validatedForm(inputName)._2 should equal(List())
-        }
-    }
-  }
+    val date = validatedForm.find(_.fieldId == "TestProperty3").map(_.asInstanceOf[DateField]).get
+    date.day.value should equal(mockFormValues.day.head)
+    date.month.value should equal(mockFormValues.month.head)
+    date.year.value should equal(mockFormValues.year.head)
 
-  "validateFormAnswers" should "return the 'year' value and no errors for the year field if it is 4 digits long" in {
-    val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues()
-    )
+    val date2 = validatedForm.find(_.fieldId == "TestProperty5").map(_.asInstanceOf[DateField]).get
+    date2.day.value should equal(mockFormValues.day2.head)
+    date2.month.value should equal(mockFormValues.month2.head)
+    date2.year.value should equal(mockFormValues.year2.head)
 
-    val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-    verifyThatNoFieldsHaveErrors(rawFormWithoutCsrfToken, validatedForm)
-  }
+    val text = validatedForm.find(_.fieldId == "TestProperty1").map(_.asInstanceOf[TextField]).get
+    text.nameAndValue.value should equal(mockFormValues.numericTextBoxValue.head)
 
-  "validateFormAnswers" should "return a '4 digits'-related error for the numeric 'year' field if the year is more or less than 4 digits" in {
-    List(("1", "19"), ("200", "20050")).foreach {
-      case (year1, year2) =>
-        val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-          MockFormValues(year = List(year1), year2 = List(year2))
-        )
+    val dropdownField = validatedForm.find(_.fieldId == "TestProperty4").map(_.asInstanceOf[DropdownField]).get
+    dropdownField.selectedOption.map(_.value).get should equal(mockFormValues.dropdownValue.head)
 
-        val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-        rawFormWithoutCsrfToken.foreach {
-          case (inputName, value) =>
-            val inputInfo = inputName.split("-")
-            if (inputInfo.last == "year") {
-              validatedForm(inputName)._1 should equal(Some(value.head.toInt))
-              validatedForm(inputName)._2 should equal(List(s"The year should be 4 digits in length."))
-            }
-            else {
-              validatedForm(inputName)._2 should equal(List())
-            }
-        }
-    }
-  }
-
-  "validateFormAnswers" should "return the day/month values and no errors if they are within the defined range" in {
-    List(("12", "6", "31", "12"), ("6", "4", "18", "8")).foreach {
-      case (day1, month1, day2, month2) =>
-        val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-          MockFormValues(day = List(day1), month = List(month1), day2 = List(day2), month2 = List(month2))
-        )
-
-        val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-        verifyThatNoFieldsHaveErrors(rawFormWithoutCsrfToken, validatedForm)
-    }
-  }
-
-  "validateFormAnswers" should "return an 'invalid'-number error for the day/month if the day number more than 32, " +
-    "month is more than 12 or they are both less than 1" in {
-    List(("0", "0", "32", "13"), ("50", "18", "1000", "72")).foreach {
-      case (day1, month1, day2, month2) =>
-        val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-          MockFormValues(day = List(day1), month = List(month1), day2 = List(day2), month2 = List(month2))
-        )
-
-        val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-        rawFormWithoutCsrfToken.foreach {
-          case (inputName, value) =>
-            val inputInfo = inputName.split("-")
-            if (Set("day", "month").contains(inputInfo.last)) {
-              validatedForm(inputName)._1 should equal(Some(value.head.toInt))
-              validatedForm(inputName)._2 should equal(List(s"${value.head} is an invalid ${inputInfo.last} number"))
-            }
-            else {
-              validatedForm(inputName)._2 should equal(List())
-            }
-        }
-    }
-  }
-
-  "validateFormAnswers" should "return the day value and no errors if the month truly has 31 days" in {
-    List(("01", "03"), ("05", "07"), ("08", "10"), ("12", "1")).foreach {
-      case (month1, month2) =>
-        val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-          MockFormValues(day = List("31"), month = List(month1), year = List("2011"), day2 = List("31"), month2 = List(month2), year2 = List("2007"))
-        )
-
-        val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-        verifyThatNoFieldsHaveErrors(rawFormWithoutCsrfToken, validatedForm)
-    }
-  }
-
-  "validateFormAnswers" should "return a 'month does not have 31 days' error if the month does not have 31 days" in {
-    List(("04", "06"), ("09", "11"), ("02", "2")).foreach {
-      case (month1, month2) =>
-        val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-          MockFormValues(day = List("31"), month = List(month1), year = List("2011"), day2 = List("31"), month2 = List(month2), year2 = List("2007"))
-        )
-
-        val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-        rawFormWithoutCsrfToken.foreach {
-          case (inputName, value) =>
-            val inputInfo = inputName.split("-")
-            if (inputInfo.last == "day") {
-              val month: Option[Any] = validatedForm(inputName.replace("-day", "-month"))._1
-              validatedForm(inputName)._1 should equal(Some(value.head.toInt))
-              validatedForm(inputName)._2 should equal(
-                List(s"${dynamicFormUtils.monthsWithLessThan31Days(month.get.asInstanceOf[Int])} does not have 31 days.")
-              )
-            }
-            else {
-              validatedForm(inputName)._2 should equal(List())
-            }
-        }
-    }
-  }
-
-  "validateFormAnswers" should "return the day value and no errors if the month has 30 days" in {
-    List(("04", "06"), ("09", "11"), ("01", "03"), ("05", "07"), ("08", "10"), ("12", "1")).foreach {
-      case (month1, month2) =>
-        val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-          MockFormValues(day = List("30"), month = List(month1), year = List("2011"), day2 = List("30"), month2 = List(month2), year2 = List("2007"))
-        )
-
-        val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-        verifyThatNoFieldsHaveErrors(rawFormWithoutCsrfToken, validatedForm)
-    }
-  }
-
-  "validateFormAnswers" should "return a 'month does not have 30 days' error if the month does not have 30 days" in {
-    val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues(day = List("30"), month = List("02"), year = List("2011"), day2 = List("30"), month2 = List("02"), year2 = List("2020"))
-    )
-
-    val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-    rawFormWithoutCsrfToken.foreach {
-      case (inputName, value) =>
-        val inputInfo = inputName.split("-")
-        if (inputInfo.last == "day") {
-          val month: Option[Any] = validatedForm(inputName.replace("-day", "-month"))._1
-          validatedForm(inputName)._1 should equal(Some(value.head.toInt))
-          validatedForm(inputName)._2 should equal(
-            List(s"${dynamicFormUtils.monthsWithLessThan31Days(month.get.asInstanceOf[Int])} does not have 30 days.")
-          )
-        }
-        else {
-          validatedForm(inputName)._2 should equal(List())
-        }
-    }
-  }
-
-  "validateFormAnswers" should "return the day value and no errors if February does have 29 days that year (leap year)" in {
-    List(("2024", "2028"), ("2032", "2036"), ("2040", "2044"), ("2048", "2052")).foreach {
-      case (year1, year2) =>
-        val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-          MockFormValues(day = List("29"), month = List("02"), year = List(year1), day2 = List("29"), month2 = List("02"), year2 = List(year2))
-        )
-
-        val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-        verifyThatNoFieldsHaveErrors(rawFormWithoutCsrfToken, validatedForm)
-    }
-  }
-
-  "validateFormAnswers" should "return a 'month does not have 29 days' error if February does not have 29 days that year" in {
-    List(("1700", "1800"), ("1900", "2100"), ("2023", "2027"), ("2031", "2035"), ("2039", "2043"), ("2047", "2051")).foreach {
-      case (year1, year2) =>
-        val (rawFormWithoutCsrfToken, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-          MockFormValues(day = List("29"), month = List("02"), year = List(year1), day2 = List("29"), month2 = List("02"), year2 = List(year2))
-        )
-
-        val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-        rawFormWithoutCsrfToken.foreach {
-          case (inputName, value) =>
-            val inputInfo = inputName.split("-")
-
-            if (inputInfo.last == "day") {
-              val year: Option[Any] = validatedForm(inputName.replace("-day", "-year"))._1
-              validatedForm(inputName)._1 should equal(Some(value.head.toInt))
-              validatedForm(inputName)._2 should equal(
-                List(s"February ${year.get} does not have 29 days in it.")
-              )
-            }
-            else {
-              validatedForm(inputName)._2 should equal(List())
-            }
-        }
-    }
-  }
-
-  "convertSubmittedValuesToDefaultFieldValues" should "convert form answers and their errors to FieldValues" in {
-    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues(month = List("b4"),
-        year = List("2r"),
-        numericTextBoxValue = List(" 40"),
-        day2 = List("000"),
-        month2 = List("02"),
-        year2 = List("2000")
-      )
-    )
-
-    val validatedForm = dynamicFormUtils.validateFormAnswers(dynamicFormUtils.formAnswersWithValidInputNames)
-
-    val formAnswersConvertedToFieldValues: List[(FieldValues, String)] =
-      dynamicFormUtils.convertSubmittedValuesToDefaultFieldValues(validatedForm)
-
-    formAnswersConvertedToFieldValues.foreach {
-      case (fieldValues, dataType) =>
-        val fieldsThatHaveFieldIdInInputName: Map[String, (Option[Any], List[String])] = validatedForm.filter {
-          case (inputName, (_, _)) => inputName.contains(fieldValues.fieldId)
-        }
-        val inputTypeBelongingToDataType: List[String] = dataTypeToInputType(dataType)
-        val (enteredValues, inputErrors) = fieldsThatHaveFieldIdInInputName.toList.map {
-          case (_, (value, errors)) => (value.getOrElse("").toString, errors)
-        }.unzip
-
-        // Go through fields/sub-fields, find the one with the error in it
-        val errorThatSubmissionGenerated: List[String] = inputErrors.find { inputError => inputError.nonEmpty } match {
-          case Some(error) => error
-          case None => Nil
-        }
-
-        fieldsThatHaveFieldIdInInputName should not be empty
-        fieldValues.selectedFieldOption.getOrElse(Seq()).foreach {
-          case (_, valueThatUserSubmitted) => enteredValues.contains(valueThatUserSubmitted) should be(true)
-        }
-        fieldsThatHaveFieldIdInInputName.keys.foreach {
-          inputName =>
-            val dataTypeMatchesInputType = inputTypeBelongingToDataType.find(inputName.startsWith) match {
-              case Some(_) => true
-              case None => false
-            }
-            dataTypeMatchesInputType should be(true)
-        }
-        fieldValues.fieldError should equal(errorThatSubmissionGenerated)
-    }
-  }
-
-  "monthsWithLessThan31Days" should "only contain months with 31 days" in {
-    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues(dropdownValue = List(""), radioValue = List(""))
-    )
-
-    val monthsWithLessThan31Days = Map(
-      2 -> "February",
-      4 -> "April",
-      6 -> "June",
-      9 -> "September",
-      11 -> "November"
-    )
-
-    dynamicFormUtils.monthsWithLessThan31Days should equal(monthsWithLessThan31Days)
-
-  }
-
-  private val dataTypeToInputType = Map(
-    "Boolean" -> List("inputradio"),
-    "DateTime" -> List("inputdate"),
-    "Integer" -> List("inputnumeric"),
-    "Text" -> List("inputdropdown", "inputtext")
-  )
-
-  private def verifyThatNoFieldsHaveErrors(rawFormWithoutCsrfToken: ListMap[String, List[String]],
-                                           validatedForm: Map[String, (Option[Any], List[String])]): Unit = {
-    rawFormWithoutCsrfToken.foreach {
-      case (inputName, value) =>
-        try {
-          validatedForm(inputName)._1 should equal(Some(value.head.toInt))
-        } catch {
-          case _: Exception => validatedForm(inputName)._1 should equal(Some(value.head))
-        }
-
-        validatedForm(inputName)._2 should equal(List())
-    }
+    val radioButtonGroupField = validatedForm.find(_.fieldId == "TestProperty2").map(_.asInstanceOf[RadioButtonGroupField]).get
+    radioButtonGroupField.selectedOption should equal(mockFormValues.radioValue.head)
   }
 
   private def generateFormAndSendRequest(mockFormValues: MockFormValues): (ListMap[String, List[String]], DynamicFormUtils) = {
     val rawFormToMakeRequestWith =
       ListMap(
-        "inputdate-testproperty3-day" -> mockFormValues.day,
-        "inputdate-testproperty3-month" -> mockFormValues.month,
-        "inputdate-testproperty3-year" -> mockFormValues.year,
-        "inputdate-testproperty9-day" -> mockFormValues.day,
-        "inputdate-testproperty9-month" -> mockFormValues.month,
-        "inputdate-testproperty9-year" -> mockFormValues.year,
-        "inputnumeric-testproperty6-years" -> mockFormValues.numericTextBoxValue,
-        "inputdropdown-testproperty8" -> mockFormValues.dropdownValue,
-        "inputradio-testproperty7" -> mockFormValues.radioValue,
-        "inputtext-testproperty10" -> mockFormValues.textValue,
-          "csrfToken" -> mockFormValues.csrfToken
+        "inputdate-TestProperty3-day" -> mockFormValues.day,
+        "inputdate-TestProperty3-month" -> mockFormValues.month,
+        "inputdate-TestProperty3-year" -> mockFormValues.year,
+        "inputdate-TestProperty5-day" -> mockFormValues.day2,
+        "inputdate-TestProperty5-month" -> mockFormValues.month2,
+        "inputdate-TestProperty5-year" -> mockFormValues.year2,
+        "inputnumeric-TestProperty1-years" -> mockFormValues.numericTextBoxValue,
+        "inputdropdown-TestProperty4" -> mockFormValues.dropdownValue,
+        "inputradio-TestProperty2" -> mockFormValues.radioValue,
+        "csrfToken" -> mockFormValues.csrfToken
       )
 
-    val dynamicFormUtils: DynamicFormUtils = instantiateDynamicFormsUtils(rawFormToMakeRequestWith, passInFieldsForAllMetadata = false)
+    val dynamicFormUtils: DynamicFormUtils = instantiateDynamicFormsUtils(rawFormToMakeRequestWith)
 
     (rawFormToMakeRequestWith.-("csrfToken"), dynamicFormUtils)
   }
@@ -490,19 +200,19 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
       FakeRequest.apply(POST, s"/consignment/12345/add-closure-metadata")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new CustomMetadataUtilsSpec().allProperties
+    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new CustomMetadataUtilsSpec().allProperties.take(5)
     val customMetadataUtils: CustomMetadataUtils = new CustomMetadataUtils(mockProperties)
 
-    val allMetadataAsFields: List[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(mockProperties.toSet)
+    val allMetadataAsFields: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(mockProperties.toSet)
 
     if (passInFieldsForAllMetadata) {
       new DynamicFormUtils(mockRequest, allMetadataAsFields)
     } else {
-      val metadataUsedForFormAsFields: List[(FieldValues, String)] = allMetadataAsFields.filter {
-        case (inputName, _) =>
+      val metadataUsedForFormAsFields: List[FormField] = allMetadataAsFields.filter {
+        formField =>
           val rawFormWithoutCsrfToken: Map[String, Seq[String]] = rawFormToMakeRequestWith - "csrfToken"
           val metadataNames: List[String] = rawFormWithoutCsrfToken.keys.map { inputName => inputName.split("-")(1) }.toList
-          metadataNames.contains(inputName.fieldId)
+          metadataNames.contains(formField.fieldId)
       }
       new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
     }
