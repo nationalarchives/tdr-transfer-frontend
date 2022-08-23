@@ -42,12 +42,6 @@
   position: relative;
 }
 
-@media (min-width: 40.0625em) {
-  .tdr-card__content {
-    padding: 32px;
-  }
-}
-
 .tdr-card__link {
   text-decoration: none;
 }
@@ -58,6 +52,8 @@
 
 .tdr-card__description {
   color: initial;
+  font-size: 1.1875rem;
+  line-height: 1.5;
   margin-bottom: 3px;
 }
 
@@ -67,18 +63,15 @@
   text-decoration: underline;
 }
 
+.tdr-card__heading:hover {
+  text-decoration: none;
+}
+
 .tdr-heading-m {
   display: block;
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.4;
   margin-bottom: 16px;
   margin-top: 0;
-}
-
-@media (min-width: 40.0625em) {
-  .tdr-heading-m {
-    font-size: 24px;
-    line-height: 1.33333;
-  }
 }
