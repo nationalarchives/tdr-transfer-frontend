@@ -14,7 +14,7 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
     optionsToSelectToGenerateFormErrors
   }
 
-  def checkHtmlForOptionAndItsAttributes(htmlAsString: String, optionsSelected: Map[String, String]=Map(), formStatus: String="NotSubmitted"): Unit = {
+  def checkHtmlForOptionAndItsAttributes(htmlAsString: String, optionsSelected: Map[String, String], formStatus: String="NotSubmitted"): Unit = {
 
     assert(checkIfCorrectOptionsWerePassedIntoForm(optionsSelected),
       s"\nThe option(s) selected ${optionsSelected.keys.mkString(", ")}, do not match the options passed into this class")
