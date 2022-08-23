@@ -16,13 +16,17 @@ abstract class FormField {
 
 case class InputNameAndValue(name: String, value: String, placeHolder: String = "")
 
-case class RadioButtonGroupField(fieldId: String, fieldName: String, fieldDescription: String, options: Seq[InputNameAndValue], selectedOption: String, isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
+case class RadioButtonGroupField(fieldId: String, fieldName: String, fieldDescription: String, options: Seq[InputNameAndValue],
+                                 selectedOption: String, isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
 
-case class TextField(fieldId: String, fieldName: String, fieldDescription: String, nameAndValue: InputNameAndValue, inputMode: String, isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
+case class TextField(fieldId: String, fieldName: String, fieldDescription: String, nameAndValue: InputNameAndValue, inputMode: String,
+                     isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
 
-case class DropdownField(fieldId: String, fieldName: String, fieldDescription: String, options: Seq[InputNameAndValue], selectedOption: Option[InputNameAndValue], isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
+case class DropdownField(fieldId: String, fieldName: String, fieldDescription: String, options: Seq[InputNameAndValue],
+                         selectedOption: Option[InputNameAndValue], isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
 
-case class DateField(fieldId: String, fieldName: String, fieldDescription: String, day: InputNameAndValue, month: InputNameAndValue, year: InputNameAndValue, isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
+case class DateField(fieldId: String, fieldName: String, fieldDescription: String, day: InputNameAndValue, month: InputNameAndValue, year: InputNameAndValue,
+                     isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
 
 object FormField {
 
@@ -33,8 +37,8 @@ object FormField {
   val negativeNumberError = "%s must not be a negative number."
   val invalidYearError = "The year should be 4 digits in length."
   val invalidDateError = "%s is an invalid %s number."
-  val invalidDayError = "%s does not have %s days."
-  val invalidDayForLeapYearError = "%s %s does not have %s days in it."
+  val invalidDayError = "%s does not have %d days."
+  val invalidDayForLeapYearError = "%s %d does not have %d days in it."
 }
 
 object RadioButtonGroupField {
@@ -98,19 +102,7 @@ object DateField {
     error = if (error.isEmpty) validateValue(year, "Year", invalidYearValidation) else error
 
     if (error.isEmpty) {
-      val dayNumber = day.toInt
-      val monthNumber = month.toInt
-      val yearNumber = year.toInt
-
-      val monthHasLessThan31Days = monthsWithLessThan31Days.contains(monthNumber)
-
-      if (dayNumber > 30 && monthHasLessThan31Days || dayNumber == 30 && monthNumber == 2) {
-        Some(invalidDayError.format(monthsWithLessThan31Days(monthNumber), day))
-      } else if (dayNumber == 29 && monthNumber == 2 && !isALeapYear(yearNumber)) {
-        Some(invalidDayForLeapYearError.format(monthsWithLessThan31Days(monthNumber), year, day))
-      } else {
-        None
-      }
+      checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt)
     } else {
       error
     }
@@ -133,8 +125,24 @@ object DateField {
       case "" => Some(emptyValueError.format(unitType))
       case d if allCatch.opt(d.toInt).isEmpty => Some(numberError.format(unitType))
       case d if d.toInt < 0 => Some(negativeNumberError.format(unitType))
-      case d if isInvalidDate(d.toInt) => if (unitType.equals("Year"))
-        Some(invalidYearError) else Some(invalidDateError.format(d, unitType))
+      case d if isInvalidDate(d.toInt) => if (unitType.equals("Year")) {
+        Some(invalidYearError)
+      } else {
+        Some(invalidDateError.format(d, unitType))
+      }
       case _ => None
     }
+
+  private def checkDayForTheMonthAndYear(dayNumber: Int, monthNumber: Int, yearNumber: Int): Option[String] = {
+
+    val monthHasLessThan31Days = monthsWithLessThan31Days.contains(monthNumber)
+
+    if (dayNumber > 30 && monthHasLessThan31Days || dayNumber == 30 && monthNumber == 2) {
+      Some(invalidDayError.format(monthsWithLessThan31Days(monthNumber), dayNumber))
+    } else if (dayNumber == 29 && monthNumber == 2 && !isALeapYear(yearNumber)) {
+      Some(invalidDayForLeapYearError.format(monthsWithLessThan31Days(monthNumber), yearNumber, dayNumber))
+    } else {
+      None
+    }
+  }
 }

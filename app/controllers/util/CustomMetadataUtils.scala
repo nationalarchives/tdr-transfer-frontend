@@ -21,7 +21,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     foiExemptionAsserted -> "Date of the Advisory Council Approval",
     closureStartDate -> "Date of the record from when the closure starts. It is usually the last date modified.",
     closurePeriod -> "Number of years the record is closed from the closure start date",
-    foiExemptionCode -> "Select the exemption code that applies",
+    foiExemptionCode -> "Select the exemption code that applies"
   )
 
   def getCustomMetadataProperties(propertiesToGet: Set[String]): Set[CustomMetadata] =
