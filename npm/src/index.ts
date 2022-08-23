@@ -40,9 +40,6 @@ export const renderModules = async () => {
   )
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
-  const tdrCard: HTMLDivElement | null = document.querySelector(
-    ".tdr-card--clickable"
-  )
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
@@ -106,16 +103,5 @@ export const renderModules = async () => {
   } else if (timeoutDialog) {
     const sessionTimeoutModule = await import("./auth/session-timeout")
     await sessionTimeoutModule.initialiseSessionTimeout()
-  }
-  if (tdrCard) {
-    document.querySelectorAll(".tdr-card--clickable").forEach((card) => {
-      // Check if card has a link within it
-      if (card.querySelector("a") !== null) {
-        // Clicks the link within the heading to navigate to desired page
-        card.addEventListener("click", () => {
-          card.querySelector("a")!.click()
-        })
-      }
-    })
   }
 }
