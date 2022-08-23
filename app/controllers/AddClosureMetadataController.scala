@@ -39,7 +39,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
     implicit request: Request[AnyContent] =>
       for {
         defaultFieldValues <- cache.getOrElseUpdate[List[(FieldValues, String)]]("fieldValues") {
-            getDefaultFieldsForForm(consignmentId, request)
+          getDefaultFieldsForForm(consignmentId, request)
         }
         dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues)
         formAnswers: Map[String, Seq[String]] = dynamicFormUtils.formAnswersWithValidInputNames
