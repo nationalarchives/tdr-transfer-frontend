@@ -1,6 +1,5 @@
 package testUtils
 
-import org.scalatest.Assertion
 import org.scalatest.matchers.must.Matchers._
 
 class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-checkboxes--small") {
@@ -15,35 +14,35 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
     optionsToSelectToGenerateFormErrors
   }
 
-  def checkHtmlForOptionAndItsAttributes(htmlAsString: String,
-                                         optionsSelected: Map[String, String]=Map(),
-                                         formStatus: String="NotSubmitted"): Unit = {
+  def checkHtmlForOptionAndItsAttributes(htmlAsString: String, optionsSelected: Map[String, String]=Map(), formStatus: String="NotSubmitted"): Unit = {
 
     assert(checkIfCorrectOptionsWerePassedIntoForm(optionsSelected),
       s"\nThe option(s) selected ${optionsSelected.keys.mkString(", ")}, do not match the options passed into this class")
-
     options.foreach {
       option =>
-        val htmlErrorSummary = s"""                    <a href="#error-${option.name}">${option.errorMessage}</a>"""
-        val htmlErrorMessage =
-          s"""    <p class="govuk-error-message" id="error-${option.name}">
-             |        <span class="govuk-visually-hidden">Error:</span>
-             |        ${option.errorMessage}
-             |    </p>""".stripMargin
+        val (htmlErrorSummary, htmlErrorMessage) = generateErrorMessages(option)
+        val valueSelected = optionsSelected.getOrElse(option.name, "")
         formStatus match {
           case "NotSubmitted" =>
-            val expectedHtmlForOption = addValuesToAttributes(option)
+            val expectedHtmlForOption = addValuesToAttributes(option, selected=valueSelected == option.value, submitAttempted=false)
             checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, formNotSubmitted=true)
           case "PartiallySubmitted" =>
-            if(optionsSelected.contains(option.name)) {
+            val optionPresentAndHasAValue = valueSelected != ""
+            if(optionPresentAndHasAValue && valueSelected == option.value) {
               val expectedHtmlForOption = addValuesToAttributes(option, selected=true)
-              checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage)
-            } else {
+              checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected=option.value.nonEmpty)
+            } else if(optionPresentAndHasAValue && valueSelected != option.value) { // option is part of a group; another option from group was selected
               val expectedHtmlForOption = addValuesToAttributes(option)
-              checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected=false)
+              val elementSelectedWasNotPlaceholder: Boolean = optionsSelected(option.name) != ""
+              checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected = elementSelectedWasNotPlaceholder)
+            } else {
+              val hasErrorDependency: Boolean = hasAnErrorDependency(optionsSelected, option.errorMessageDependency)
+              val expectedHtmlForOption = addValuesToAttributes(option, selected=option.placeholder.nonEmpty, hasDependency=hasErrorDependency)
+              checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected=false,
+              errorIsDependent = hasErrorDependency)
             }
           case "Submitted" =>
-            val expectedHtmlForOption = addValuesToAttributes(option, selected=true, "disabled")
+            val expectedHtmlForOption = addValuesToAttributes(option, selected=true, disabledStatus="disabled")
             checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage)
           case _ => throw new IllegalStateException(
             s"Unexpected formStatus: $formStatus. statuses can only be 'NotSubmitted', 'PartiallySubmitted' and 'Submitted'"
@@ -52,19 +51,38 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
     }
   }
 
+  private def generateErrorMessages(option: MockInputOption): (String, String) = {
+    val errorId = if (option.name.startsWith("input")) option.name.split("-")(1) else option.name
+    val htmlErrorSummary = s"""                    <a href="#error-$errorId">${option.errorMessage}</a>"""
+    val htmlErrorMessage =
+      s"""    <p class="govuk-error-message" id="error-$errorId">
+         |        <span class="govuk-visually-hidden">Error:</span>
+         |        ${option.errorMessage}
+         |    </p>""".stripMargin
+    (htmlErrorSummary, htmlErrorMessage)
+  }
+
+  private def hasAnErrorDependency(optionsSelected: Map[String, String], errorMessageDependency: String): Boolean =
+    optionsSelected.get(errorMessageDependency) match {
+      case Some(dependencyValue) => dependencyValue == ""
+      case None => false // not dependent
+    }
+
   private def checkIfCorrectOptionsWerePassedIntoForm(optionsSelected: Map[String, String]): Boolean =
     optionsSelected.keys.toList.forall(
       optionSelected => options.map(_.name).contains(optionSelected)
     )
 
-  private def addValuesToAttributes(option: MockInputOption, selected: Boolean=false, disabledStatus: String=""): String = {
+  private def addValuesToAttributes(option: MockInputOption, submitAttempted: Boolean=true, selected: Boolean=false,
+                                    hasDependency: Boolean=false, disabledStatus: String=""): String = {
+
     option.fieldType match {
-      case "inputCheckbox" => addValuesToCheckBoxAttributes(option.name, option.label, selected || option.selected, disabledStatus)
-      case "inputDate" => addValuesToDateAttributes(option.id, option.name, option.value, option.placeholder, option.errorMessage)
-      case "inputDropdown" => addValuesToDropdownAttributes(option.id, option.name, selected || option.selected, option.value)
-      case "inputNumeric" => addValuesToTextBoxAttributes(option.id, option.name, option.value, option.placeholder, option.fieldType, option.errorMessage)
-      case "inputRadio" => addValuesToRadioAttributes(option.id, option.name, option.label, selected || option.selected, option.value: String)
-      case "inputText" => addValuesToTextBoxAttributes(option.id, option.name, option.value, option.placeholder, option.fieldType, option.errorMessage)
+      case "inputCheckbox" => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
+      case "inputDate" => addValuesToDateAttributes(option.id, option.name, option.value, option.placeholder, hasDependency, submitAttempted)
+      case "inputDropdown" => addValuesToDropdownAttributes(selected, option.value, option.label, option.placeholder)
+      case "inputNumeric" => addValuesToTextBoxAttributes(option.id, option.name, option.value, option.placeholder, option.fieldType)
+      case "inputRadio" => addValuesToRadioAttributes(option.id, option.name, selected, option.value: String)
+      case "inputText" => addValuesToTextBoxAttributes(option.id, option.name, option.value, option.placeholder, option.fieldType)
     }
   }
 
@@ -84,11 +102,16 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
        |                $label""".stripMargin
   }
 
-  private def addValuesToDateAttributes(id: String, name: String, value: String, placeholder: String, errorMessage: String): String = {
+  private def addValuesToDateAttributes(id: String, name: String, value: String, placeholder: String, hasDependency: Boolean,
+                                        submitAttempted: Boolean): String = {
+
+    val doesNotHaveDependencyAndValueIsEmpty = !hasDependency && value.isEmpty
+    val inputBoxShouldBeRed = submitAttempted && doesNotHaveDependencyAndValueIsEmpty
+
     s"""                        <input class="govuk-input
        |                                      govuk-date-input__input
        |                                      govuk-input--width-${if(placeholder.length > 2) 3 else 2}
-       |                                      ${if(errorMessage.nonEmpty) "govuk-input--error" else ""}"
+       |                                      ${if(inputBoxShouldBeRed) "govuk-input--error" else ""}"
        |                               id="$id"
        |                               name="$name"
        |                               value="$value"
@@ -99,21 +122,25 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
        |                        >""".stripMargin
   }
 
-  private def addValuesToDropdownAttributes(id: String, name: String, selected: Boolean, value: String): String = {
-//    s"""    <select class="govuk-select" id="$id" name="$name"  >""".stripMargin
-    val selectedStatus = if(selected) """selected="selected" """ else ""
-
-    s"""                <option ${selectedStatus}value="$value">$value</option>""".stripMargin
+  private def addValuesToDropdownAttributes(selected: Boolean, value: String, label: String, placeholder: String): String = {
+    if(placeholder.nonEmpty) {
+      val selectedStatus = if(selected) "selected" else ""
+      s"""    <option value="" $selectedStatus>
+         |                    $placeholder""".stripMargin
+    }
+    else {
+      val selectedStatus = if(selected) """selected="selected" """ else ""
+      s"""                <option ${selectedStatus}value="$value">$label</option>""".stripMargin
+    }
   }
 
-  private def addValuesToTextBoxAttributes(id: String, name: String, value: String, placeholder: String, fieldType: String,
-                                           errorMessage: String): String = {
+  private def addValuesToTextBoxAttributes(id: String, name: String, value: String, placeholder: String, fieldType: String): String = {
     val (inputType, inputMode) = fieldType match {
       case "inputNumeric" => ("number", "numeric")
       case "inputText" => ("text", "text")
     }
     s"""            <input
-      |                class="govuk-input govuk-input--width-5 ${if(errorMessage.nonEmpty) "govuk-input--error" else ""}"
+      |                class="govuk-input govuk-input--width-5 ${if(value.isEmpty) "govuk-input--error" else ""}"
       |                id="$id"
       |                name="$name"
       |                type="$inputType"
@@ -123,7 +150,7 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
       |            >""".stripMargin
   }
 
-  private def addValuesToRadioAttributes(id: String, name: String, label: String, selected: Boolean, value: String): String = {
+  private def addValuesToRadioAttributes(id: String, name: String, selected: Boolean, value: String): String = {
     val selectedStatus = if(selected) "checked" else ""
     s"""            <div class="govuk-radios__item">
       |                <input
@@ -143,11 +170,12 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
                                    htmlErrorSummary: String,
                                    htmlErrorMessage: String,
                                    elementSelected: Boolean=true,
-                                   formNotSubmitted: Boolean=false): Assertion = {
+                                   errorIsDependent:Boolean=false, // does error message displaying depend on another field?
+                                   formNotSubmitted: Boolean=false): Any = {
 
     htmlAsString must include(expectedHtmlForOption)
 
-    if(elementSelected || formNotSubmitted) {
+    if(elementSelected || errorIsDependent || formNotSubmitted) {
       htmlAsString must not include htmlErrorSummary
       htmlAsString must not include htmlErrorMessage
     } else {
@@ -169,4 +197,4 @@ case class MockInputOption(name: String,
                            placeholder: String="",
                            fieldType: String="",
                            errorMessage: String="",
-                           selected: Boolean=false)
+                           errorMessageDependency: String="") // some fields (like month) can only display their error if another field (like day) has none

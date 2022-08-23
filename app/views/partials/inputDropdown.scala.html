@@ -26,8 +26,7 @@ fieldError: Seq[Any]
     <div id="@fieldId-hint" class="govuk-hint">
         @largeLabelAndHint
     </div>
-
-    } else {
+} else {
     <label class="govuk-label" for="@fieldId">
         @attributes.get(Symbol("_label"))
         @attributes.requiredLabelSuffix()
