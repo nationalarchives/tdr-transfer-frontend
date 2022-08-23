@@ -167,7 +167,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, Map())
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -213,7 +213,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, formStatus="PartiallySubmitted")
+      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, Map(), formStatus="PartiallySubmitted")
     }
 
     "display correct error when only the 'open records' option is selected and the final transfer confirmation form is submitted" in {
