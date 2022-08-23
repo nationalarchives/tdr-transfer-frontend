@@ -52,17 +52,19 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   val langs: Langs = new EnglishLang
 
-  val options = List(
+  val options: List[MockInputOption] = List(
     MockInputOption(
     "openRecords",
      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-      "All records must be confirmed as open before proceeding",
+      value="true",
+      errorMessage = "All records must be confirmed as open before proceeding",
       fieldType="inputCheckbox"
     ),
     MockInputOption(
     "transferLegalCustody",
       "I confirm that I am transferring legal custody of these records to The National Archives.",
-      "Transferral of legal custody of all records must be confirmed before proceeding",
+      value="true",
+      errorMessage = "Transferral of legal custody of all records must be confirmed before proceeding",
       fieldType="inputCheckbox"
     )
   )
