@@ -131,7 +131,8 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
       fileSelectionPageAsString.contains(
         s"""
-           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="${currentPage + 1}">
+           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit """.stripMargin +
+        s"""data-module="govuk-button" role="button" value="${currentPage + 1}">
            |                  Previous
            |                </button>""".stripMargin) mustBe false
     }
@@ -163,7 +164,8 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
       fileSelectionPageAsString.contains(
         s"""
-           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="${currentPage - 1}">
+           |                                <button name="pageSelected" data-prevent-double-click="true" """.stripMargin +
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="${currentPage - 1}">
            |                                    Previous
            |                                </button>""".stripMargin) mustBe true
     }
@@ -194,10 +196,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
       fileSelectionPageAsString.contains(
-        s"""
-           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="$currentPage">
+        """
+           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" """.stripMargin +
+        s"""data-module="govuk-button" role="button" value="$currentPage">
            |                  Next
-           |                </button>""".stripMargin) mustBe false
+           |                </button>""".stripMargin
+      ) mustBe false
     }
 
     "must display the 'next' button if you are not on the last page" in {
@@ -227,9 +231,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
       fileSelectionPageAsString.contains(
         s"""
-           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="2">
+           |                                <button name="pageSelected" data-prevent-double-click="true" """.stripMargin +
+        """class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="2">
            |                                    Next
-           |                                </button>""".stripMargin) mustBe true
+           |                                </button>""".stripMargin
+      ) mustBe true
     }
 
     "must redirect to the correct page when submitting a form" in {
@@ -408,7 +414,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
 
       fileSelectionPageAsString.contains(
-        "Showing <span class=\"govuk-body govuk-!-font-weight-bold\">4</span> to <span class=\"govuk-body govuk-!-font-weight-bold\">6</span> of <span class=\"govuk-body govuk-!-font-weight-bold\">10</span> results"
+        """Showing <span class="govuk-body govuk-!-font-weight-bold">4</span> """ +
+          """to <span class="govuk-body govuk-!-font-weight-bold">6</span> """ +
+          """of <span class="govuk-body govuk-!-font-weight-bold">10</span> results"""
       ) mustBe true
     }
   }
