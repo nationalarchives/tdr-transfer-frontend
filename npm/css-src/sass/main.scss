@@ -9,6 +9,15 @@
 @import 'user-guide';
 @import 'button';
 @import 'pagination';
+@import 'card';
+
+a {
+  color: $govuk-link-colour;
+}
+
+.logged-in-user {
+  color: #fff;
+}
 
 .file-check-progress {
   margin-bottom: 30px;
