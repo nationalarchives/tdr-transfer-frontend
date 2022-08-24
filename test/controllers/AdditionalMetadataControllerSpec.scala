@@ -71,8 +71,12 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
                                                                                                      |          Continue
                                                                                                      |        </a>""".stripMargin) mustBe true
       // Will change these links when we have the metadata pages to link them to.
-      startPageAsString.contains(s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/descriptive/$parentFolderId/1">""") mustBe true
-      startPageAsString.contains(s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/closure/$parentFolderId/1">""") mustBe true
+      startPageAsString.contains(
+        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/descriptive/$parentFolderId/1">"""
+      ) mustBe true
+      startPageAsString.contains(
+        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/closure/$parentFolderId/1">"""
+      ) mustBe true
     }
 
     "will return forbidden if the pages are accessed by a judgment user" in {

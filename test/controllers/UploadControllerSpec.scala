@@ -707,9 +707,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
          |            </a>""".stripMargin
     )
     pageAsString must include(
-      """|                    <p class="upload-progress-error-timeout__message" hidden>Your upload has timed out. Click 'Return to start' to begin a new transfer.</p>
-         |                    <p class="upload-progress-error-authentication__message" hidden>You have been signed out. Click 'Return to start' to begin a new transfer.</p>
-         |                    <p class="upload-progress-error-general__message" hidden>Click 'Return to start' to begin a new transfer.</p>""".stripMargin
+      """                    <p class="upload-progress-error-timeout__message" hidden>""" +
+      """Your upload has timed out. Click 'Return to start' to begin a new transfer.</p>
+         |                    <p class="upload-progress-error-authentication__message" hidden>""".stripMargin +
+     """You have been signed out. Click 'Return to start' to begin a new transfer.</p>
+         |                    <p class="upload-progress-error-general__message" hidden>""".stripMargin +
+     """Click 'Return to start' to begin a new transfer.</p>""".stripMargin
     )
     pageAsString must include("""<div class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">""")
   }
