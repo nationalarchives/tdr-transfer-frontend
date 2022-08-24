@@ -79,7 +79,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       ) mustBe true
     }
 
-    "will return forbidden if the pages are accessed by a judgment user" in {
+    "return forbidden if the pages are accessed by a judgment user" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -91,7 +91,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "will return forbidden if the user does not own the consignment" in {
+    "return forbidden if the user does not own the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
@@ -110,7 +110,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "will redirect to the login page if the page is accessed by a logged out user" in {
+    "redirect to the login page if the page is accessed by a logged out user" in {
       val consignmentId = UUID.randomUUID()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -122,7 +122,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
-    "will return an error if the parent folder name and id are missing" in {
+    "return an error if the parent folder name and id are missing" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = None)
@@ -136,7 +136,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       response.getMessage mustBe "Parent folder not found"
     }
 
-    "will return an error if the parent folder name is missing" in {
+    "return an error if the parent folder name is missing" in {
       val consignmentId = UUID.randomUUID()
       val parentFolderId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -151,7 +151,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       response.getMessage mustBe "Parent folder not found"
     }
 
-    "will return an error if the parent folder id is missing" in {
+    "return an error if the parent folder id is missing" in {
       val consignmentId = UUID.randomUUID()
       val parentFolder = "parentFolder"
       setConsignmentTypeResponse(wiremockServer, "standard")
