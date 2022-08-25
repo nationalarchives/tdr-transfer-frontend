@@ -129,12 +129,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      // scalastyle:off line.size.limit
       fileSelectionPageAsString.contains(
         s"""
-           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit """.stripMargin +
-        s"""data-module="govuk-button" role="button" value="${currentPage + 1}">
+           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit data-module="govuk-button" role="button" value="${currentPage + 1}">
            |                  Previous
-           |                </button>""".stripMargin) mustBe false
+           |                </button>""".stripMargin
+      ) mustBe false
+      // scalastyle:on line.size.limit
     }
 
     "display the 'previous' button if you are on a page other than the first page" in {
@@ -162,12 +164,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      // scalastyle:off line.size.limit
       fileSelectionPageAsString.contains(
         s"""
-           |                                <button name="pageSelected" data-prevent-double-click="true" """.stripMargin +
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="${currentPage - 1}">
+           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="${currentPage - 1}">
            |                                    Previous
-           |                                </button>""".stripMargin) mustBe true
+           |                                </button>""".stripMargin
+      ) mustBe true
+      // scalastyle:on line.size.limit
     }
 
     "not display the 'next' button if you are on the last page" in {
@@ -195,13 +199,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      // scalastyle:off line.size.limit
       fileSelectionPageAsString.contains(
         """
-           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" """.stripMargin +
-        s"""data-module="govuk-button" role="button" value="$currentPage">
+           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="$currentPage">
            |                  Next
            |                </button>""".stripMargin
       ) mustBe false
+      // scalastyle:on line.size.limit
     }
 
     "display the 'next' button if you are not on the last page" in {
@@ -229,13 +234,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      // scalastyle:off line.size.limit
       fileSelectionPageAsString.contains(
         s"""
-           |                                <button name="pageSelected" data-prevent-double-click="true" """.stripMargin +
-        """class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="2">
+           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="2">
            |                                    Next
            |                                </button>""".stripMargin
       ) mustBe true
+      // scalastyle:on line.size.limit
     }
 
     "redirect to the correct page when submitting a form" in {
@@ -413,11 +419,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
 
+      // scalastyle:off line.size.limit
       fileSelectionPageAsString.contains(
-        """Showing <span class="govuk-body govuk-!-font-weight-bold">4</span> """ +
-          """to <span class="govuk-body govuk-!-font-weight-bold">6</span> """ +
-          """of <span class="govuk-body govuk-!-font-weight-bold">10</span> results"""
+        """Showing <span class="govuk-body govuk-!-font-weight-bold">4</span> to <span class="govuk-body govuk-!-font-weight-bold">6</span> of <span class="govuk-body govuk-!-font-weight-bold">10</span> results"""
       ) mustBe true
+      // scalastyle:on line.size.limit
     }
   }
 

@@ -56,15 +56,13 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       startPageAsString.contains(s"""        <h1 class="govuk-heading-l">Add, edit or delete metadata</h1>""") mustBe true
 
       startPageAsString.contains(s"""        <h2 class="govuk-heading-s">Folder uploaded: $parentFolder""") mustBe true
+      // scalastyle:off line.size.limit
       startPageAsString.contains(
-        s"""        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records.""" +
-          """ Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>""".stripMargin) mustBe true
+        s"""        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records. Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>""".stripMargin) mustBe true
       startPageAsString.contains(
-        s"""        <p class="tdr-card__description">If you'd like to add or edit descriptive metadata""" +
-          """ to your records, you can do so here.</p>""") mustBe true
+        s"""        <p class="tdr-card__description">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>""") mustBe true
       startPageAsString.contains(
-        s"""        <p class="tdr-card__description">If you'd like to add or edit""" +
-          """ closure metadata to your records, you can do so here.</p>""".stripMargin) mustBe true
+        s"""        <p class="tdr-card__description">If you'd like to add or edit closure metadata to your records, you can do so here.</p>""".stripMargin) mustBe true
       startPageAsString.contains(
         s"""        <a href="/consignment/$consignmentId/confirm-transfer" """ +
           """role="button" draggable="false" class="govuk-button" data-module="govuk-button">""" + """
@@ -77,6 +75,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       startPageAsString.contains(
         s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/closure/$parentFolderId/1">"""
       ) mustBe true
+      // scalastyle:on line.size.limit
     }
 
     "return forbidden if the pages are accessed by a judgment user" in {
