@@ -58,6 +58,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           s"""<form action="/judgment/$consignmentId/file-checks-results" method="GET" id="file-checks-form">""".stripMargin
         )
       } else {
+        // scalastyle:off line.size.limit
         ("consignment",
           getValidStandardUserKeycloakConfiguration,
           "<title>Checking your records</title>",
@@ -70,12 +71,12 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
             |                <li>Validating data integrity</li>
             |            </ul>""".stripMargin,
           s"""            <form action="/consignment/$consignmentId/file-checks-results">
-            |                <button type="submit" role="button" draggable="false" id="file-checks-continue" """.stripMargin +
-         """class="govuk-button govuk-button--disabled" disabled>
+            |                <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button govuk-button--disabled" disabled>
             |                Continue
             |                </button>
             |            </form>""".stripMargin
         )
+        // scalastyle:on line.size.limit
       }
 
       s"render the $userType fileChecks page if the checks are incomplete" in {
@@ -119,8 +120,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         } else {
           fileChecksPageAsString must include(
           """            <p class="govuk-body govuk-!-margin-bottom-7">For more information on these checks, please see our
-            |                <a href="/faq#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">""".stripMargin +
-          """FAQ (opens in new tab)</a> for this service.
+            |                <a href="/faq#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> for this service.
             |            </p>""".stripMargin
           )
           fileChecksPageAsString must include(
