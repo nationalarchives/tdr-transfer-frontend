@@ -92,7 +92,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
         val fileChecksController = new FileChecksController(
           getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration),
+          graphQLConfiguration,
           keycloakConfiguration,
           consignmentService,
           frontEndInfoConfiguration
@@ -142,7 +142,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val controller = new FileChecksController(getUnauthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
+          graphQLConfiguration, getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
         val fileChecksPage = controller.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
 
         playStatus(fileChecksPage) mustBe FOUND
@@ -159,7 +159,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
         val controller = new FileChecksController(
           getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration),
+          graphQLConfiguration,
           keycloakConfiguration,
           consignmentService,
           frontEndInfoConfiguration
@@ -196,7 +196,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
         val controller = new FileChecksController(
           getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration),
+          graphQLConfiguration,
           keycloakConfiguration,
           consignmentService,
           frontEndInfoConfiguration
@@ -228,7 +228,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new FileChecksController(
         getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration),
+        graphQLConfiguration,
         getValidStandardUserKeycloakConfiguration,
         consignmentService,
         frontEndInfoConfiguration
@@ -251,7 +251,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new FileChecksController(
         getAuthorisedSecurityComponents,
-        new GraphQLConfiguration(app.configuration),
+        graphQLConfiguration,
         getValidStandardUserKeycloakConfiguration,
         consignmentService,
         frontEndInfoConfiguration
@@ -286,7 +286,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
         val controller = new FileChecksController(
           getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration),
+          graphQLConfiguration,
           user,
           consignmentService,
           frontEndInfoConfiguration
