@@ -188,8 +188,7 @@ Full details of stylelint are available here: https://stylelint.io/
 
 ### Running unit tests
 
-We have two types of unit tests: Spec tests for our Scala code, which are located within the `test > controllers` and
-`test > services` directories and Jest tests (for our Typescript code) which are located in the `npm > test` directory
+We have two types of unit tests: Spec tests for our Scala code, which are located within the `test` directory and Jest tests (for our Typescript code) which are located in the `npm > test` directory
 
 #### Running Spec tests
 IntelliJ
@@ -199,7 +198,7 @@ go into the Spec file and at the top of the test, click the green play button on
 
 Via CLI
 
-In order to run the tests via CL, you just navigate to the `tdr-transfer-frontend` directory and:
+In order to run the tests via CLI, you just navigate to the `tdr-transfer-frontend` directory and:
 
 * to run all tests - run `sbt test`
 * to run all tests of one Spec file - run `sbt "testOnly *{class name}"`
