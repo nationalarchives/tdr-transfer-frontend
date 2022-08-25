@@ -186,6 +186,53 @@ To run the Sass linter (stylelint) before commits, run the following command: fr
 
 Full details of stylelint are available here: https://stylelint.io/
 
+### Running unit tests
+
+We have two types of unit tests: Spec tests for our Scala code, which are located within the `test` directory and Jest tests (for our Typescript code) which are located in the `npm > test` directory
+
+#### Running Spec tests
+IntelliJ
+
+In order to run Spec tests via IntelliJ, you could either: right-click on a Spec file and select "Run {Test name}" or
+go into the Spec file and at the top of the test, click the green play button on the left. You can also run individual tests.
+
+Via CLI
+
+In order to run the tests via CLI, you just navigate to the `tdr-transfer-frontend` directory and:
+
+* to run all tests - run `sbt test`
+* to run all tests of one Spec file - run `sbt "testOnly *{class name}"`
+  * e.g `sbt "testOnly *SeriesDetailsControllerSpec"`
+* to run a specific test of a Spec file - run `sbt "testOnly *{class name} -- -t \"should {test name}\"`
+  * e.g. `sbt "testOnly *SeriesDetailsControllerSpec -- -t \"should display errors when an invalid\""`
+* to run a test or multiple tests of a Spec file that contain a word/words in their name - run `sbt "testOnly *SeriesDetailsControllerSpec -- -z \"{word/words in test name}\""`
+  * e.g `sbt "testOnly *SeriesDetailsControllerSpec -- -z \"display errors\""`
+
+[See here](https://www.scalatest.org/user_guide/using_the_runner) for more information about arguments you can use
+
+#### Running Jest tests
+
+IntelliJ
+
+In order to run Jest tests via IntelliJ, you could either: right-click on a test.ts file and select "Run {Test name}" to run all or
+go into the test file and click one of the green play buttons (for the test you want to run) on the left to run one.
+
+Via CLI
+
+In order to run the tests via CLI, you just navigate to the `tdr-transfer-frontend/npm` directory and:
+
+* to run all tests - run `npm test`
+* to run all tests of one test file - run `npm test -- {file name and extension}"`
+  * e.g `npm test-- clientfileextractmetadata.test.ts"`
+* to run a specific test of a Spec file - run `npm test -- {file name and extension} -t "{test name}"`
+  * e.g. `npm test -- clientfileextractmetadata.test.ts -t "extract function returns list of client"`
+* to run a test or multiple tests of a test file that contain a word/words in their name - run `npm test -- {file name and extension} -t "{words in test names}"`
+  * e.g. `npm test -- clientfileextractmetadata.test.ts -t "extract"`
+* to run tests in multiple test files that contain a word/words in their name - run `npm test -- -t "{word/words in test names}"`
+  * e.g. `npm test -- -t "throw"`
+
+Bonus: Jest test Coverage - In order to see if how much of your code is covered by the Jest tests, run `npm test -- --coverage --verbose`
+
 ## Generated GraphQL classes
 
 There is a separate repository which contains the generated case classes needed to query the Consignment API.
