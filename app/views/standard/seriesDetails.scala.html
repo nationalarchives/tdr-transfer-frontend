@@ -1,12 +1,14 @@
 @import helper._
 @import viewsapi.FormFunctions._
-@import views.html.partials.{errorMessage, errorSummary, inputDropdown, progressIndicator, transferReference}
+@import views.html.partials.{errorSummary, progressIndicator, transferReference}
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentRef: String, allSeriesData: Seq[(String, String)], seriesDetailsForm: Form[SelectedSeriesData], name: String)(implicit request: RequestHeader,
+@import controllers.util.DropdownField
+@import views.html.partials.inputDropdown2
+@(consignmentId: UUID, consignmentRef: String, dropdownField: DropdownField, name: String)(implicit request: RequestHeader,
 messages: Messages)
 
-@main("Series Information", hasError = seriesDetailsForm("series").hasErrors, name = name) {
+@main("Series Information", hasError = dropdownField.fieldErrors.nonEmpty, name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 
 <div class="govuk-grid-row">
@@ -15,24 +17,25 @@ messages: Messages)
 
         <h1 class="govuk-heading-l">Choose a series</h1>
         @errorSummary(
-            List(seriesDetailsForm("series").id -> seriesDetailsForm("series").errors.headOption)
-               .collect { case (id, Some(formError)) => (id -> formError.messages)}
+            if (dropdownField.fieldErrors.nonEmpty) {
+                List(dropdownField.fieldId -> dropdownField.fieldErrors)
+            } else {
+                Nil
+            }
         )
 
         @form(routes.SeriesDetailsController.seriesSubmit(consignmentId), (Symbol("novalidate"), "")) {
             @CSRF.formField
-            @inputDropdown(
-                seriesDetailsForm("series").id,
-                allSeriesData,
-                Seq(("", "Please choose...")),
+            @inputDropdown2(
+                dropdownField.fieldId,
+                dropdownField.fieldName,
+                dropdownField.fieldDescription,
+                dropdownField.options,
+                dropdownField.selectedOption,
                 Map(
-                    Symbol("_error") -> seriesDetailsForm.errors("error").headOption,
-                    Symbol("_label") -> "Please choose an existing series reference for the records you would like to transfer."
+                    Symbol("_dynamicForm") -> false,
                 ),
-                seriesDetailsForm("series").errors.headOption match {
-                    case Some(formError) => formError.messages
-                    case None => Nil
-                }
+                dropdownField.fieldErrors,
             )
 
         <div class="govuk-button-group">

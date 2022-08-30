@@ -2,6 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+import controllers.util.{DropdownField, InputNameAndValue}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
@@ -64,20 +65,28 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       result <- seriesStatus match {
         case Some("Completed") =>
-          val seriesFormData: List[(String, String)] = List(
-            consignmentStatus.flatMap(_.series.map{
-              series => (series.seriesid.toString, series.code)
-            }).get
-          )
+          val seriesOption: InputNameAndValue = consignmentStatus.flatMap(_.series)
+              .map(series => InputNameAndValue(series.code, series.seriesid.toString)).get
+
           Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, reference,
-            seriesFormData, selectedSeriesForm, request.token.name)).uncache())
+            createDropDownField(List(seriesOption), selectedSeriesForm), request.token.name)).uncache())
         case _ =>
           seriesService.getSeriesForUser(request.token).map { series =>
-            val seriesFormData: List[(String, String)] = series.map(s => (s.seriesid.toString, s.code))
-            status(views.html.standard.seriesDetails(consignmentId, reference, seriesFormData, form, request.token.name)).uncache()
+            val options = series.map(series => InputNameAndValue(series.code, series.seriesid.toString))
+            status(views.html.standard.seriesDetails(consignmentId, reference, createDropDownField(options, form), request.token.name)).uncache()
           }
       }
     } yield result
+  }
+
+  def createDropDownField(options: List[InputNameAndValue], form: Form[SelectedSeriesData]): DropdownField = {
+
+    val description = "Please choose an existing series reference for the records you would like to transfer."
+    val errors = form("series").errors.headOption match {
+      case Some(formError) => formError.messages
+      case None => Nil
+    }
+    DropdownField(form("series").id, "", description,  options, None, isRequired = true, errors.toList)
   }
 }
 
