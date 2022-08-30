@@ -75,7 +75,7 @@ export class S3Upload {
           }
         )
         if (
-          uploadResult.$metadata !== undefined &&
+          uploadResult?.$metadata !== undefined &&
           uploadResult.$metadata.httpStatusCode != 200
         ) {
           await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
