@@ -72,7 +72,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
       "TestProperty1" -> List("TestValue 1"),
       "TestProperty2" -> List("TestValue 1", "TestValue 2"),
       "TestProperty3" -> List("TestValue 1", "TestValue 2", "TestValue 3"),
-      "TestProperty8" -> List("TestValue 1", "TestValue 2", "TestValue 3"),
+      "TestProperty8" -> List("TestValue 1", "TestValue 2", "TestValue 3")
     )
 
     val actualPropertiesAndTheirValues: Map[String, List[CustomMetadata.Values]] =
