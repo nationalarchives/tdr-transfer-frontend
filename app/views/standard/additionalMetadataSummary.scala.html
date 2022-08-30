@@ -1,6 +1,6 @@
 @import views.html.partials.{transferReference, progressIndicator}
 
-@(fileName: String, consignmentRef: String, metadata: Map[String, String], name: String)(implicit messages: Messages, request: RequestHeader)
+@(fileName: String, consignmentRef: String, metadata: Metadata, name: String)(implicit messages: Messages, request: RequestHeader)
 @main(title = "Review metadata added", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     @progressIndicator(Messages("additionalMetadataSummary.progress"))
@@ -34,7 +34,7 @@
               FOI decision asserted
             </dt>
             <dd class="govuk-summary-list__value">
-              @metadata("foiExemptionAsserted")
+              @metadata.foiExemptionAsserted
             </dd>
           </div>
           <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
@@ -42,7 +42,7 @@
               Closure start date
             </dt>
             <dd class="govuk-summary-list__value">
-              @metadata("closureStartDate")
+              @metadata.closureStartDate
             </dd>
           </div>
           <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
@@ -50,7 +50,7 @@
               Closure period
             </dt>
             <dd class="govuk-summary-list__value">
-              @metadata("closurePeriod") years
+              @metadata.closurePeriod years
             </dd>
           </div>
           <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
@@ -58,7 +58,7 @@
               FOI example code
             </dt>
             <dd class="govuk-summary-list__value">
-              @metadata("foiExemptionCode")
+              @metadata.foiExemptionCode
             </dd>
           </div>
         </dl>
