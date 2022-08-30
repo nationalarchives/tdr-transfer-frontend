@@ -4,7 +4,7 @@
 
 @import java.util.UUID
 @import controllers.util.DropdownField
-@import views.html.partials.inputDropdown2
+@import views.html.partials.inputDropdown
 @(consignmentId: UUID, consignmentRef: String, dropdownField: DropdownField, name: String)(implicit request: RequestHeader,
 messages: Messages)
 
@@ -26,7 +26,7 @@ messages: Messages)
 
         @form(routes.SeriesDetailsController.seriesSubmit(consignmentId), (Symbol("novalidate"), "")) {
             @CSRF.formField
-            @inputDropdown2(
+            @inputDropdown(
                 dropdownField.fieldId,
                 dropdownField.fieldName,
                 dropdownField.fieldDescription,

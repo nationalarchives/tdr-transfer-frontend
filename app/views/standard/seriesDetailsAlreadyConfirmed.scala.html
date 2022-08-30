@@ -2,7 +2,7 @@
 
 @import java.util.UUID
 @import controllers.util.DropdownField
-@import views.html.partials.inputDropdown2
+@import views.html.partials.inputDropdown
 @(consignmentId: UUID, consignmentRef: String, dropdownField: DropdownField, name: String)(implicit request: RequestHeader,
 messages: Messages)
 @disabledStatus = {disabled}
@@ -21,7 +21,7 @@ messages: Messages)
                 <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
             </div>
         </div>
-            @inputDropdown2(
+            @inputDropdown(
                 dropdownField.fieldId,
                 dropdownField.fieldName,
                 dropdownField.fieldDescription,
