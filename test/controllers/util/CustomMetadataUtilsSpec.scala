@@ -23,7 +23,9 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
           Integer
         } else if (numberOfValues == 2) {
           Boolean
-        } else dataType(number % dataType.length),
+        } else {
+          dataType(number % dataType.length)
+        },
         editable = true,
         multiValue = numberOfValues > 1,
         defaultValue = Some(s"TestValue $number"),
