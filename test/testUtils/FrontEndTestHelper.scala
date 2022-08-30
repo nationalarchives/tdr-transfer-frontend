@@ -87,7 +87,12 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val folderOrNull = parentFolder.map(folder => s""" "$folder" """).getOrElse("null")
     val folderIdOrNull = parentFolderId.map(id => s""" "$id" """).getOrElse("null")
     val dataString =
-      s"""{"data": {"getConsignment": {"consignmentReference": "$consignmentReference", "parentFolder": $folderOrNull, "parentFolderId": $folderIdOrNull, "userid" : "${UUID.randomUUID()}", "seriesid": "${UUID.randomUUID()}"}}} """
+      s"""{"data": {"getConsignment": {
+         |"consignmentReference": "$consignmentReference",
+         | "parentFolder": $folderOrNull,
+         | "parentFolderId": $folderIdOrNull,
+         | "userid" : "${UUID.randomUUID()}",
+         | "seriesid": "${UUID.randomUUID()}"}}} """.stripMargin
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .withRequestBody(containing("getConsignment($consignmentId:UUID!)"))
@@ -222,7 +227,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     //Create the profile and add to the map
     val profile: OidcProfile = new OidcProfile()
     //This is the example token from jwt.io
-    val jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+    val jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibm" +
+      "FtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
     profile.setAccessToken(new BearerAccessToken(jwtToken))
     profile.addAttribute(OidcProfileDefinition.EXPIRATION, Date.from(LocalDateTime.now().plusDays(10).toInstant(ZoneOffset.UTC)))
 
@@ -232,7 +238,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val playCacheSessionStore: SessionStore = mock[PlayCacheSessionStore]
 
     //Mock the get method to return the expected map.
-    doAnswer(_ => java.util.Optional.of(profileMap)).when(playCacheSessionStore).get(any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES))
+    doAnswer(_ => java.util.Optional.of(profileMap)).when(playCacheSessionStore).get(
+        any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES)
+      )
 
     val testConfig = new Config()
 
@@ -258,8 +266,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       override def components: ControllerComponents = stubControllerComponents()
       override def config: Config = testConfig
       override def sessionStore: SessionStore = playCacheSessionStore
-      //noinspection ScalaStyle
+      //scalastyle:off null
       override def parser: BodyParsers.Default = null
+      //scalastyle:on null
     }
   }
 
@@ -306,8 +315,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       override def components: ControllerComponents = stubControllerComponents()
       override def config: Config = testConfig
       override def sessionStore: SessionStore = mock[SessionStore]
-      //noinspection ScalaStyle
+      //scalastyle:off null
       override def parser: BodyParsers.Default = null
+      //scalastyle:on null
     }
   }
 }
