@@ -50,10 +50,11 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       beforeUploadingPageAsString must include(
         """<p class="govuk-body govuk-!-margin-bottom-1">neutral citation, name(s) of judge(s), name(s) of parties, court and judgment date.</p>"""
       )
+      // scalastyle:off line.size.limit
       beforeUploadingPageAsString must include(
-        """<h2 class="govuk-heading-s">Select <a href="mailto:judgments@nationalarchives.gov.uk?subject=Ref: TEST-TDR-2021-GB">""" +
-          """judgments@nationalarchives.gov.uk</a>"""
+        """<h2 class="govuk-heading-s">Select <a href="mailto:judgments@nationalarchives.gov.uk?subject=Ref: TEST-TDR-2021-GB">judgments@nationalarchives.gov.uk</a>"""
       )
+      // scalastyle:on line.size.limit
       beforeUploadingPageAsString must include(
         """    <ul class="govuk-list govuk-list--bullet">
           |        <li>Attach and send supplementary material for this judgment.</li>
@@ -61,9 +62,9 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
           |        <li>Flag when your judgment is subject to an anonymisation order.</li>
           |    </ul>""".stripMargin
       )
-      beforeUploadingPageAsString must include(s"""<a href="/judgment/$consignmentId/upload"""" +
-        """ role="button" draggable="false" class="govuk-button" data-module="govuk-button">"""
-      )
+      // scalastyle:off line.size.limit
+      beforeUploadingPageAsString must include(s"""<a href="/judgment/$consignmentId/upload" role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
+      // scalastyle:on line.size.limit
     }
   }
 
