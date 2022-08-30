@@ -118,11 +118,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         if(userType == "judgment") {
           fileChecksPageAsString must include("""<input id="consignmentId" type="hidden" value="b5bbe4d6-01a7-4305-99ef-9fce4a67917a">""")
         } else {
+          // scalastyle:off line.size.limit
           fileChecksPageAsString must include(
           """            <p class="govuk-body govuk-!-margin-bottom-7">For more information on these checks, please see our
             |                <a href="/faq#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> for this service.
             |            </p>""".stripMargin
           )
+          // scalastyle:on line.size.limit
           fileChecksPageAsString must include(
           """                <div class="govuk-notification-banner__header">
             |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
