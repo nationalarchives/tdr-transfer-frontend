@@ -29,20 +29,16 @@ addSuffixText: Boolean)(implicit messages: Messages)
     @errorMessage(fieldId, fieldErrors)
     <div class="govuk-input__wrapper">
         <input
-        class="govuk-input govuk-input--width-5 @{
-            if(fieldErrors.nonEmpty) "govuk-input--error" else ""
-        }"
+        class="govuk-input govuk-input--width-5 @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
         id="@input.name"
-        name="@{
-            if(isDynamicForm) s"input$inputTextDataType-$fieldId-${input.name}" else fieldId
-        }"
+        name="@{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${input.name}" else fieldId}"
         type="@inputType"
         value="@input.value"
         placeholder="@input.placeHolder"
         inputmode="@inputTextDataType"
         >
         @if(addSuffixText) {
-            <div class="govuk-input__suffix" aria-hidden="true">@input.name</div>
+            <div class="govuk-input__suffix">@input.name</div>
         }
     </div>
 </div>

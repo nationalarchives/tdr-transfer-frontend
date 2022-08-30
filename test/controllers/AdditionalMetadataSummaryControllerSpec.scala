@@ -112,7 +112,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
-    "will return forbidden if the pages are accessed by a judgment user" in {
+    "return forbidden if the pages are accessed by a judgment user" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -124,7 +124,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "will return forbidden if the user does not own the consignment" in {
+    "return forbidden if the user does not own the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
@@ -143,7 +143,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "will redirect to the login page if the page is accessed by a logged out user" in {
+    "redirect to the login page if the page is accessed by a logged out user" in {
       val consignmentId = UUID.randomUUID()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -155,7 +155,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
-    "will return an error if no files exist for the consignment" in {
+    "return an error if no files exist for the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
 
@@ -173,7 +173,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       response.getMessage mustBe s"Can't find selected files for the consignment $consignmentId"
     }
 
-    "will return an error if the consignment doesn't exist" in {
+    "return an error if the consignment doesn't exist" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
 

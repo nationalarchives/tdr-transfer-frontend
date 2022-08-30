@@ -181,7 +181,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesSubmitAsString, userType = "standard")
     }
 
-    "will send the correct body if it is present on the user" in {
+    "send the correct body if it is present on the user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Some(
         gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "code", Option.empty)))))
@@ -200,7 +200,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(equalToJson(expectedJson)))
     }
 
-    "will return forbidden if the pages are accessed by a judgment user" in {
+    "return forbidden if the pages are accessed by a judgment user" in {
       mockGetSeries()
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), seriesStatus = None)
       setConsignmentTypeResponse(wiremockServer, "judgment")

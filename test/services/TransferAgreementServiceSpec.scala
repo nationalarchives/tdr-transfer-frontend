@@ -51,7 +51,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     droAppraisalSelection = true,
     droSensitivity = true,
     openRecords = true)
-  
+
   private val transferAgreementPrivateBetaInput = AddTransferAgreementPrivateBetaInput(consignmentId,
     allPublicRecords = taPrivateBetaFormData.publicRecord,
     allCrownCopyright = taPrivateBetaFormData.crownCopyright,

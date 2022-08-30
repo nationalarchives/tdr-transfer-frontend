@@ -80,13 +80,14 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |              </p>""".stripMargin
         )
       } else {
+        // scalastyle:off line.size.limit
         ("consignment",
           getValidStandardUserKeycloakConfiguration,
           "<title>Results of your checks</title>",
           """<h1 class="govuk-heading-l">Results of your checks</h1>""",
           """                    <p class="govuk-body">Your folder 'parentFolder' containing 1 item has been successfully checked and uploaded.</p>
             |                    <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""".stripMargin,
-          s"""            <a href="/consignment/$consignmentId/confirm-transfer" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+         s"""            <a href="/consignment/$consignmentId/confirm-transfer" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
             |                Continue
             |            </a>""".stripMargin,
           """              <p class="govuk-body">
@@ -101,6 +102,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |    <li>Corrupted files</li>
             |</ul>""".stripMargin
         )
+        // scalastyle:on line.size.limit
       }
 
       s"render the $userType fileChecksResults page with the confirmation box" in {
