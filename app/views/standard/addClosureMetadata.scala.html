@@ -9,7 +9,7 @@
 @import views.html.partials.inputRadioGroup
 
 @import controllers.util._
-@import views.html.partials.inputDropdown2
+@import views.html.partials.inputDropdown
 
 @(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: List[FormField], name: String, fileName: String = "[selected file/folder name to go here]")(implicit request: RequestHeader, messages: Messages)
 @main(s"Add closure fields to '$fileName'", name = name) {
@@ -70,7 +70,7 @@
                                 )
                                 case DropdownField(fieldId, fieldName, fieldDescription, options, selectedOption, _, fieldErrors) =>
                                     //could theoretically be a checkbox or radio (since radios are not always boolean)
-                                    inputDropdown2(
+                                    inputDropdown(
                                         fieldId,
                                         fieldName,
                                         fieldDescription,
