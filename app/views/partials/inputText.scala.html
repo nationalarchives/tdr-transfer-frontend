@@ -1,46 +1,44 @@
-@(fieldId: String,
-inputTextLabel: String,
-inputTextHint: String,
-fieldOptions: Seq[(String, String)],
-inputType: String,
-enteredOptions: Option[Seq[(String, String)]],
-fieldError: Seq[String],
-attributes: Map[Symbol, Any]=Map(),
-inputTextDataType: String="text")(implicit messages: Messages)
-@suffixText = @{fieldOptions.head._1}
-@defaultText = @{fieldOptions.head._2}
-@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
-@enteredText = @{
-    enteredOptions match {
-        case Some(Seq((suffixText: String, enteredText: String))) => enteredText
-        case _ => ""
-    }
-}
-
+@import controllers.util.InputNameAndValue
 @import views.html.partials.errorMessage
 
-<div class="govuk-form-group @{if(fieldError.nonEmpty)"govuk-form-group--error" else ""}">
+@(fieldId: String,
+fieldName: String,
+fieldDescription: String,
+input: InputNameAndValue,
+inputType: String,
+fieldErrors: Seq[String],
+attributes: Map[Symbol, Any] = Map(),
+inputTextDataType: String = "text",
+addSuffixText: Boolean)(implicit messages: Messages)
+
+
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
+@inputName = @{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${input.name}" else fieldId}
+
+<div class="govuk-form-group @{
+    if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""
+}">
     <h2 class="govuk-label-wrapper">
-        <label class="govuk-label govuk-label--m" for=@suffixText>
-            @inputTextLabel
+        <label class="govuk-label govuk-label--m" for=@input.name>
+        @fieldName
         </label>
     </h2>
     <div id="date-input-with-suffix-hint" class="govuk-hint">
-        @inputTextHint
+    @fieldDescription
     </div>
-    @errorMessage(fieldId, fieldError)
-    @if(suffixText != "") {
-        <div class="govuk-input__wrapper">
-            <input
-                class="govuk-input govuk-input--width-5 @{if(fieldError.nonEmpty)"govuk-input--error" else ""}"
-                id="@suffixText"
-                name="@{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${suffixText.toLowerCase()}" else fieldId}"
-                type="@inputType"
-                value="@enteredText"
-                placeholder="@defaultText"
-                inputmode="@inputTextDataType"
-            >
-            <div class="govuk-input__suffix">@suffixText</div>
-        </div>
-    }
+    @errorMessage(fieldId, fieldErrors)
+    <div class="govuk-input__wrapper">
+        <input
+        class="govuk-input govuk-input--width-5 @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
+        id="@input.name"
+        name="@{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${input.name}" else fieldId}"
+        type="@inputType"
+        value="@input.value"
+        placeholder="@input.placeHolder"
+        inputmode="@inputTextDataType"
+        >
+        @if(addSuffixText) {
+            <div class="govuk-input__suffix">@input.name</div>
+        }
+    </div>
 </div>
