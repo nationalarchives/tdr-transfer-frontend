@@ -18,7 +18,7 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
-class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
+class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
 
   override def beforeEach(): Unit = {
@@ -69,15 +69,15 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
           |            Abandon changes
           |          </a>""".stripMargin
       ) mustBe true
-      List("FOI decision asserted", "Closure start date", "Closure period").foreach{
+      List(("FOI decision asserted", "12/01/1995"), ("Closure start date", "01/12/1990"), ("Closure period", "4 years")).foreach{
         field =>
           closureMetadataSummaryPage.contains(
             s"""          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
                                                  |            <dt class="govuk-summary-list__key">
-                                                 |              $field
+                                                 |              ${field._1}
                                                  |            </dt>
                                                  |            <dd class="govuk-summary-list__value">
-                                                 |
+                                                 |              ${field._2}
                                                  |            </dd>
                                                  |          </div>""".stripMargin
           ) mustBe true
@@ -95,7 +95,7 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
           |              FOI example code
           |            </dt>
           |            <dd class="govuk-summary-list__value">
-          |              Open
+          |              open
           |            </dd>""".stripMargin
       )
       closureMetadataSummaryPage must include(
@@ -103,12 +103,6 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
            |            $consignmentReference
            |        </div>""".stripMargin
       )
-      closureMetadataSummaryPage must include(
-        s"""        <div class="govuk-details__text">
-           |            $consignmentReference
-           |        </div>""".stripMargin
-      )
-
       closureMetadataSummaryPage must include(
       """        <a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
         |          Save and return to all files
