@@ -1,6 +1,5 @@
 package controllers
 
-import akka.Done
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
@@ -25,9 +24,7 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.util.UUID
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.ClassTag
+import scala.concurrent.ExecutionContext
 
 class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -49,7 +46,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
       mockGraphqlResponse()
 
       val addClosureMetadataPage = addClosureMetadataController.addClosureMetadata(consignmentId)
@@ -61,12 +58,58 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addClosureMetadataPageAsString, userType = "standard")
       addClosureMetadataPageAsString must include(
-        """               <h1 class="govuk-heading-l">Add closure metadata to '[selected file/folder name to go here]'</h1>"""
+        """<h1 class="govuk-heading-l">Add closure metadata to '[selected file/folder name to go here]'</h1>"""
       )
       addClosureMetadataPageAsString must include(
-        """                <p class="govuk-body">Enter metadata for closure fields here.</p>"""
+        """<p class="govuk-body">Enter metadata for closure fields here.</p>"""
       )
-      // Checks for more page elements to be added later
+      addClosureMetadataPageAsString must include(
+        """<div class="govuk-input__wrapper">
+          |        <input
+          |        class="govuk-input govuk-input--width-5 "
+          |        id="years"
+          |        name="inputnumeric-ClosurePeriod-years"
+          |        type="number"
+          |        value="4"
+          |        placeholder="0"
+          |        inputmode="numeric"
+          |        >""".stripMargin
+      )
+      List("No", "Yes").foreach { fieldValue =>
+        addClosureMetadataPageAsString must include(
+          s"""<input
+                        class="govuk-radios__input"
+                        id="inputradio-TitlePublic-${fieldValue}"
+                        name="inputradio-TitlePublic"
+                        type="radio"
+                        value="${fieldValue.toLowerCase()}"
+                """)
+      }
+      List("ClosureStartDate", "FoiExemptionAsserted").foreach(fieldId =>
+        List(("12", "day", "dd"), ("1", "month", "mm"), ("1995", "year", "yyyy")).foreach { fieldValue =>
+          addClosureMetadataPageAsString must include(
+            s"""<input class="govuk-input
+               |                                      govuk-date-input__input
+               |                                      govuk-input--width-${if (fieldValue._3.length == 2) 2 else 3}
+               |                        "
+               |                    id="date-input-${fieldValue._2}"
+               |                    name="inputdate-${fieldId}-${fieldValue._2}"
+               |                    value="${fieldValue._1}"
+               |                    type="number"
+               |                    inputmode="numeric"
+               |                    placeholder="${fieldValue._3}"
+               |                    maxlength="${fieldValue._3.length}"
+               |                    >""".stripMargin)
+        })
+      addClosureMetadataPageAsString must include(
+        """<select class="govuk-select" id="inputdropdown-FoiExemptionCode" name="inputdropdown-FoiExemptionCode"  >"""
+      )
+      addClosureMetadataPageAsString must include("""<option selected="selected" value="open">open</option>""")
+      addClosureMetadataPageAsString must include("""<option value="mock code2">mock code2</option>""")
+      addClosureMetadataPageAsString must include(
+        """<button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+          |                            Continue
+          |                        </button>""".stripMargin)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -140,7 +183,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     // no longer needed, the real names have to be returned
     cm.Data(
       List(
-        cm.CustomMetadata("ClosureType", None, Some("Closure Type"), Defined, Some("MandatoryClosure"), Text, true, false, Some("open_on_transfer"),1,
+        cm.CustomMetadata("ClosureType", None, Some("Closure Type"), Defined, Some("MandatoryClosure"), Text, true, false, Some("open_on_transfer"), 1,
           List(
             Values("closed_for",
               List(
@@ -164,16 +207,16 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
               List(
                 Dependencies("DescriptionAlternate"))))),
         cm.CustomMetadata(
-          "TitlePublic", None, Some("Title Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, Some("True"),4,
+          "TitlePublic", None, Some("Title Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, Some("True"), 4,
           List(
             Values("False",
               List(
                 Dependencies("TitleAlternate"))),
             Values("True", List()))),
         cm.CustomMetadata(
-          "ClosureStartDate", None, Some("Closure Start Date"), Supplied, Some("OptionalClosure"),  DateTime, true, false, None,5 ,List()),
+          "ClosureStartDate", None, Some("Closure Start Date"), Supplied, Some("OptionalClosure"), DateTime, true, false, None, 5, List()),
         cm.CustomMetadata(
-          "DescriptionAlternate", None, Some("Description Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, None,6 ,List()),
+          "DescriptionAlternate", None, Some("Description Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, None, 6, List()),
         cm.CustomMetadata(
           "TitleAlternate", None, Some("Title Alternate"), Supplied, Some("OptionalClosure"), Text, true, false, None, 7, List()),
         cm.CustomMetadata(
@@ -181,6 +224,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         cm.CustomMetadata(
           "FoiExemptionCode", None, Some("Foi Exemption Code"), Defined, Some("MandatoryClosure"), Text, true, true, Some("mock code1"), 9,
           List(
-            Values("mock code1", List()), Values("mock code2", List())))))
+            Values("open", List()), Values("mock code2", List())))))
   }
 }

@@ -104,7 +104,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="3">""") mustBe true
     }
 
-    "must not display the 'previous' button if you are on the first page" in {
+    "not display the 'previous' button if you are on the first page" in {
       val parentFolder = "parentFolder"
       val currentPage = 1
       val selectedFolderId = UUID.randomUUID()
@@ -129,14 +129,17 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      // scalastyle:off line.size.limit
       fileSelectionPageAsString.contains(
         s"""
-           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="${currentPage + 1}">
+           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit data-module="govuk-button" role="button" value="${currentPage + 1}">
            |                  Previous
-           |                </button>""".stripMargin) mustBe false
+           |                </button>""".stripMargin
+      ) mustBe false
+      // scalastyle:on line.size.limit
     }
 
-    "must display the 'previous' button if you are on a page other than the first page" in {
+    "display the 'previous' button if you are on a page other than the first page" in {
       val parentFolder = "parentFolder"
       val currentPage = 2
       val selectedFolderId = UUID.randomUUID()
@@ -161,14 +164,17 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      // scalastyle:off line.size.limit
       fileSelectionPageAsString.contains(
         s"""
            |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="${currentPage - 1}">
            |                                    Previous
-           |                                </button>""".stripMargin) mustBe true
+           |                                </button>""".stripMargin
+      ) mustBe true
+      // scalastyle:on line.size.limit
     }
 
-    "must not display the 'next' button if you are on the last page" in {
+    "not display the 'next' button if you are on the last page" in {
       val parentFolder = "parentFolder"
       val currentPage = 3
       val selectedFolderId = UUID.randomUUID()
@@ -193,14 +199,17 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      // scalastyle:off line.size.limit
       fileSelectionPageAsString.contains(
-        s"""
+        """
            |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="$currentPage">
            |                  Next
-           |                </button>""".stripMargin) mustBe false
+           |                </button>""".stripMargin
+      ) mustBe false
+      // scalastyle:on line.size.limit
     }
 
-    "must display the 'next' button if you are not on the last page" in {
+    "display the 'next' button if you are not on the last page" in {
       val parentFolder = "parentFolder"
       val currentPage = 1
       val selectedFolderId = UUID.randomUUID()
@@ -225,14 +234,17 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      // scalastyle:off line.size.limit
       fileSelectionPageAsString.contains(
         s"""
            |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="2">
            |                                    Next
-           |                                </button>""".stripMargin) mustBe true
+           |                                </button>""".stripMargin
+      ) mustBe true
+      // scalastyle:on line.size.limit
     }
 
-    "must redirect to the correct page when submitting a form" in {
+    "redirect to the correct page when submitting a form" in {
       val selectedFolderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       val page = "1"
@@ -262,7 +274,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$page"))
     }
 
-    "Must redirect to the correct page when submitting a form with 'returnToRoot' defined" in {
+    "redirect to the correct page when submitting a form with 'returnToRoot' defined" in {
       val selectedFolderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       val page = "1"
@@ -324,7 +336,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       Mockito.verify(redisSetMock).add(fileId)
     }
 
-    "will return forbidden if the file selection page is accessed by a judgment user" in {
+    "return forbidden if the file selection page is accessed by a judgment user" in {
       val selectedFolderId = UUID.randomUUID()
       val page = 1
       val metadataType = "closure"
@@ -340,7 +352,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "will return an error message if the user does not own the consignment" in {
+    "return an error message if the user does not own the consignment" in {
       val currentPage = 1
       val selectedFolderId = UUID.randomUUID()
       val metadataType = "closure"
@@ -381,7 +393,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
-    "will display the correct file totals with a limit set" in {
+    "display the correct file totals with a limit set" in {
       val parentFolder = "parentFolder"
       val currentPage = 2
       val selectedFolderId = UUID.randomUUID()
@@ -407,9 +419,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
 
+      // scalastyle:off line.size.limit
       fileSelectionPageAsString.contains(
-        "Showing <span class=\"govuk-body govuk-!-font-weight-bold\">4</span> to <span class=\"govuk-body govuk-!-font-weight-bold\">6</span> of <span class=\"govuk-body govuk-!-font-weight-bold\">10</span> results"
+        """Showing <span class="govuk-body govuk-!-font-weight-bold">4</span> to <span class="govuk-body govuk-!-font-weight-bold">6</span> of <span class="govuk-body govuk-!-font-weight-bold">10</span> results"""
       ) mustBe true
+      // scalastyle:on line.size.limit
     }
   }
 
