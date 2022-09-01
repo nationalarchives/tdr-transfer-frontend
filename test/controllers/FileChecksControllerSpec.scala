@@ -58,6 +58,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           s"""<form action="/judgment/$consignmentId/file-checks-results" method="GET" id="file-checks-form">""".stripMargin
         )
       } else {
+        // scalastyle:off line.size.limit
         ("consignment",
           getValidStandardUserKeycloakConfiguration,
           "<title>Checking your records</title>",
@@ -75,6 +76,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
             |                </button>
             |            </form>""".stripMargin
         )
+        // scalastyle:on line.size.limit
       }
 
       s"render the $userType fileChecks page if the checks are incomplete" in {
@@ -91,7 +93,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
         val fileChecksController = new FileChecksController(
           getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration),
+          graphQLConfiguration,
           keycloakConfiguration,
           consignmentService,
           frontEndInfoConfiguration
@@ -116,11 +118,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         if(userType == "judgment") {
           fileChecksPageAsString must include("""<input id="consignmentId" type="hidden" value="b5bbe4d6-01a7-4305-99ef-9fce4a67917a">""")
         } else {
+          // scalastyle:off line.size.limit
           fileChecksPageAsString must include(
           """            <p class="govuk-body govuk-!-margin-bottom-7">For more information on these checks, please see our
             |                <a href="/faq#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> for this service.
             |            </p>""".stripMargin
           )
+          // scalastyle:on line.size.limit
           fileChecksPageAsString must include(
           """                <div class="govuk-notification-banner__header">
             |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
@@ -140,7 +144,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val controller = new FileChecksController(getUnauthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration), getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
+          graphQLConfiguration, getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
         val fileChecksPage = controller.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
 
         playStatus(fileChecksPage) mustBe FOUND
@@ -157,7 +161,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
         val controller = new FileChecksController(
           getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration),
+          graphQLConfiguration,
           keycloakConfiguration,
           consignmentService,
           frontEndInfoConfiguration
@@ -194,7 +198,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
         val controller = new FileChecksController(
           getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration),
+          graphQLConfiguration,
           keycloakConfiguration,
           consignmentService,
           frontEndInfoConfiguration
@@ -224,8 +228,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     "call the fileCheckProgress endpoint" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new FileChecksController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),getValidStandardUserKeycloakConfiguration,
-        consignmentService,frontEndInfoConfiguration)
+      val controller = new FileChecksController(
+        getAuthorisedSecurityComponents,
+        graphQLConfiguration,
+        getValidStandardUserKeycloakConfiguration,
+        consignmentService,
+        frontEndInfoConfiguration
+      )
 
       mockGraphqlResponse(progressData(1, 1, 1, allChecksSucceeded = true), "standard")
 
@@ -242,8 +251,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     "throw an error if the API returns an error" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new FileChecksController(getAuthorisedSecurityComponents, new GraphQLConfiguration(app.configuration),getValidStandardUserKeycloakConfiguration,
-        consignmentService,frontEndInfoConfiguration)
+      val controller = new FileChecksController(
+        getAuthorisedSecurityComponents,
+        graphQLConfiguration,
+        getValidStandardUserKeycloakConfiguration,
+        consignmentService,
+        frontEndInfoConfiguration
+      )
 
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getFileCheckProgress"))
@@ -274,7 +288,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
         val controller = new FileChecksController(
           getAuthorisedSecurityComponents,
-          new GraphQLConfiguration(app.configuration),
+          graphQLConfiguration,
           user,
           consignmentService,
           frontEndInfoConfiguration

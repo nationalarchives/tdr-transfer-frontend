@@ -56,26 +56,29 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       startPageAsString.contains(s"""        <h1 class="govuk-heading-l">Add, edit or delete metadata</h1>""") mustBe true
 
       startPageAsString.contains(s"""        <h2 class="govuk-heading-s">Folder uploaded: $parentFolder""") mustBe true
+      // scalastyle:off line.size.limit
       startPageAsString.contains(
-        s"""        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records.""" +
-          """ Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>""".stripMargin) mustBe true
+        s"""        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records. Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>""".stripMargin) mustBe true
       startPageAsString.contains(
-        s"""        <p class="tdr-card__description">If you'd like to add or edit descriptive metadata""" +
-          """ to your records, you can do so here.</p>""") mustBe true
+        s"""        <p class="tdr-card__description">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>""") mustBe true
       startPageAsString.contains(
-        s"""        <p class="tdr-card__description">If you'd like to add or edit""" +
-          """ closure metadata to your records, you can do so here.</p>""".stripMargin) mustBe true
+        s"""        <p class="tdr-card__description">If you'd like to add or edit closure metadata to your records, you can do so here.</p>""".stripMargin) mustBe true
       startPageAsString.contains(
         s"""        <a href="/consignment/$consignmentId/confirm-transfer" """ +
           """role="button" draggable="false" class="govuk-button" data-module="govuk-button">""" + """
                                                                                                      |          Continue
                                                                                                      |        </a>""".stripMargin) mustBe true
       // Will change these links when we have the metadata pages to link them to.
-      startPageAsString.contains(s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/descriptive/$parentFolderId/1">""") mustBe true
-      startPageAsString.contains(s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/closure/$parentFolderId/1">""") mustBe true
+      startPageAsString.contains(
+        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/descriptive/$parentFolderId/1">"""
+      ) mustBe true
+      startPageAsString.contains(
+        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/closure/$parentFolderId/1">"""
+      ) mustBe true
+      // scalastyle:on line.size.limit
     }
 
-    "will return forbidden if the pages are accessed by a judgment user" in {
+    "return forbidden if the pages are accessed by a judgment user" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -87,7 +90,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "will return forbidden if the user does not own the consignment" in {
+    "return forbidden if the user does not own the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
@@ -106,7 +109,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "will redirect to the login page if the page is accessed by a logged out user" in {
+    "redirect to the login page if the page is accessed by a logged out user" in {
       val consignmentId = UUID.randomUUID()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -118,7 +121,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
-    "will return an error if the parent folder name and id are missing" in {
+    "return an error if the parent folder name and id are missing" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = None)
@@ -132,7 +135,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       response.getMessage mustBe "Parent folder not found"
     }
 
-    "will return an error if the parent folder name is missing" in {
+    "return an error if the parent folder name is missing" in {
       val consignmentId = UUID.randomUUID()
       val parentFolderId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -147,7 +150,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       response.getMessage mustBe "Parent folder not found"
     }
 
-    "will return an error if the parent folder id is missing" in {
+    "return an error if the parent folder id is missing" in {
       val consignmentId = UUID.randomUUID()
       val parentFolder = "parentFolder"
       setConsignmentTypeResponse(wiremockServer, "standard")

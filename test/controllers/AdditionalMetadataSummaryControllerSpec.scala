@@ -18,7 +18,7 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
-class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
+class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
 
   override def beforeEach(): Unit = {
@@ -69,15 +69,15 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
           |            Abandon changes
           |          </a>""".stripMargin
       ) mustBe true
-      List("FOI decision asserted", "Closure start date", "Closure period").foreach{
+      List(("FOI decision asserted", "12/01/1995"), ("Closure start date", "01/12/1990"), ("Closure period", "4 years")).foreach{
         field =>
           closureMetadataSummaryPage.contains(
             s"""          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
                                                  |            <dt class="govuk-summary-list__key">
-                                                 |              $field
+                                                 |              ${field._1}
                                                  |            </dt>
                                                  |            <dd class="govuk-summary-list__value">
-                                                 |
+                                                 |              ${field._2}
                                                  |            </dd>
                                                  |          </div>""".stripMargin
           ) mustBe true
@@ -95,7 +95,7 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
           |              FOI example code
           |            </dt>
           |            <dd class="govuk-summary-list__value">
-          |              Open
+          |              open
           |            </dd>""".stripMargin
       )
       closureMetadataSummaryPage must include(
@@ -103,12 +103,6 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
            |            $consignmentReference
            |        </div>""".stripMargin
       )
-      closureMetadataSummaryPage must include(
-        s"""        <div class="govuk-details__text">
-           |            $consignmentReference
-           |        </div>""".stripMargin
-      )
-
       closureMetadataSummaryPage must include(
       """        <a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
         |          Save and return to all files
@@ -118,7 +112,7 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
-    "will return forbidden if the pages are accessed by a judgment user" in {
+    "return forbidden if the pages are accessed by a judgment user" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -130,7 +124,7 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "will return forbidden if the user does not own the consignment" in {
+    "return forbidden if the user does not own the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
@@ -149,7 +143,7 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "will redirect to the login page if the page is accessed by a logged out user" in {
+    "redirect to the login page if the page is accessed by a logged out user" in {
       val consignmentId = UUID.randomUUID()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -161,7 +155,7 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
-    "will return an error if no files exist for the consignment" in {
+    "return an error if no files exist for the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
 
@@ -179,7 +173,7 @@ class AdditionalMetadataSummarySpec extends FrontEndTestHelper {
       response.getMessage mustBe s"Can't find selected files for the consignment $consignmentId"
     }
 
-    "will return an error if the consignment doesn't exist" in {
+    "return an error if the consignment doesn't exist" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
 
