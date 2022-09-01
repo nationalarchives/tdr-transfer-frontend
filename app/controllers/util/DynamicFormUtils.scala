@@ -14,9 +14,6 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
     case (inputName, _) => throw new IllegalArgumentException(s"${inputName.split("-").head} is not a supported field type.")
   }
 
-  def formAnswersContainAnError(validatedFormAnswers: Map[String, (Option[Any], List[String])]): Boolean =
-    validatedFormAnswers.exists { case (_, (_, errors)) => errors.nonEmpty }
-
   def validateAndConvertSubmittedValuesToFormFields(submittedValues: Map[String, Seq[String]]): List[FormField] = {
 
     defaultFieldValues.map(formField => {
