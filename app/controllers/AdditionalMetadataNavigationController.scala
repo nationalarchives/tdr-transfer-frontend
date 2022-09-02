@@ -15,7 +15,8 @@ import viewsapi.Caching.preventCaching
 
 import java.util.UUID
 import javax.inject.Inject
-import scala.concurrent.Future
+import scala.concurrent.duration.{Duration, DurationInt}
+import scala.concurrent.{Await, Future}
 
 class AdditionalMetadataNavigationController @Inject()(val consignmentService: ConsignmentService,
                                                        val keycloakConfiguration: KeycloakConfiguration,
@@ -31,8 +32,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
   // scalastyle:off method.length
   implicit class CacheHelper(cache: RedisSet[UUID, SynchronousResult]) {
 
-    def updateCache(formData: NodesFormData, selectedFolderId: UUID, consignmentId: UUID, token: BearerAccessToken): Unit = {
-
+    def updateCache(formData: NodesFormData, selectedFolderId: UUID, consignmentId: UUID, token: BearerAccessToken): Future[Unit] = {
       val partSelectedCache = cacheApi.set[UUID](s"${consignmentId}_partSelected")
       val currentFolder: String = formData.folderSelected
       val currentFolderId = UUID.fromString(currentFolder)
@@ -162,15 +162,15 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
-        selectedFiles.updateCache(formData, selectedFolderId, consignmentId, request.token.bearerAccessToken)
-
-        if (formData.returnToRoot.isDefined) {
-          Future(Redirect(routes.AdditionalMetadataNavigationController
-            .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(formData.returnToRoot.get), metadataType)))
-        } else {
-          Future(Redirect(routes.AdditionalMetadataNavigationController
-            .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(folderSelected), metadataType)))
-        }
+        selectedFiles.updateCache(formData, selectedFolderId, consignmentId, request.token.bearerAccessToken).map(_ => {
+          if (formData.returnToRoot.isDefined) {
+            Redirect(routes.AdditionalMetadataNavigationController
+              .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(formData.returnToRoot.get), metadataType))
+          } else {
+            Redirect(routes.AdditionalMetadataNavigationController
+              .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(folderSelected), metadataType))
+          }
+        })
       }
 
       val formValidationResult: Form[NodesFormData] = navigationForm.bindFromRequest()
@@ -201,19 +201,10 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   private def folderPartiallySelected(consignmentId: UUID, folderId: UUID): Boolean = {
     val selectedFiles = cacheApi.set[UUID](consignmentId.toString)
-    val partSelectedFiles = cacheApi.set[UUID](s"${consignmentId}_partSelected")
     val allFolderDescendants = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
-
-    val des = allFolderDescendants.getFields(folderId.toString)
-
-    val y = ""
 
     val folderIds = allFolderDescendants.getFields(folderId.toString)
       .flatMap(_.getOrElse(List())).toList
-
-    val number: Int = folderIds.toSet.intersect(partSelectedFiles.toSet).size
-
-    print(s"\nNumber of items: $number\n")
 
     selectedFiles.containsSome(folderIds)
   }
