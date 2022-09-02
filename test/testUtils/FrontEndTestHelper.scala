@@ -139,6 +139,17 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       .willReturn(okJson(dataString)))
   }
 
+  def setAllDescendantIdsResponse(wiremockServer: WireMockServer,
+                                  parentId: UUID
+                                    ): StubMapping = {
+    val dataString = s"""{ "data": {"allDescendants": [{"fileId": "${parentId.toString}"}]}}"""
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getAllDescendantIds"))
+      .willReturn(okJson(dataString))
+    )
+  }
+
   val userTypes: TableFor1[String] = Table(
     "User type",
     "judgment",
