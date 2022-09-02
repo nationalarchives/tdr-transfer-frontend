@@ -441,7 +441,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     fileSelectionPageAsString.contains(
       s"""<label class="govuk-label govuk-checkboxes__label" for="$fileId">""") mustBe true
     fileSelectionPageAsString.contains(s"""<input type="hidden" id="folderSelected" name="folderSelected" value="$selectedFolderId"/>""") mustBe true
-    fileSelectionPageAsString.contains(s"Back to closure metadata menu") mustBe true
+    fileSelectionPageAsString.contains(s"Back to overview") mustBe true
   }
   // scalastyle:on line.size.limit
 
