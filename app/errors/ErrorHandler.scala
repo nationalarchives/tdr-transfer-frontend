@@ -2,8 +2,8 @@ package errors
 
 import com.nimbusds.jwt.SignedJWT
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import org.pac4j.core.exception.TechnicalException
 import org.pac4j.core.profile.CommonProfile
-import org.pac4j.play.PlayWebContext
 import org.pac4j.play.scala.Pac4jScalaTemplateHelper
 import play.api.Logging
 import play.api.http.HttpErrorHandler
@@ -11,6 +11,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Results._
 import play.api.mvc.{RequestHeader, Result}
 
+import java.util.concurrent.CompletionException
 import javax.inject.Inject
 import scala.concurrent.Future
 
@@ -62,6 +63,8 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
     val response = exception match {
       case _: AuthorisationException =>
         Forbidden(views.html.forbiddenError(name, loggedIn, isJudgmentUser)(request2Messages(request), request))
+      case e: CompletionException if Option(e.getCause).exists(e => e.isInstanceOf[TechnicalException] && e.getMessage == "State cannot be determined") =>
+        Redirect("/homepage")
       case _ =>
         InternalServerError(views.html.internalServerError(name, loggedIn, isJudgmentUser)(request2Messages(request), request))
     }
