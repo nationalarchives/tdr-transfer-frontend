@@ -17,14 +17,11 @@ object ApiErrorHandling {
                                        variables: Variables
                                      )(implicit executionContext: ExecutionContext): Future[Data] = {
 
-    graphQlClient.getResult(token, document, Some(variables)).map(result => {
-
-      val e = result.errors
-
+    graphQlClient.getResult(token, document, Some(variables)).map(result =>
       result.errors match {
         case Nil => result.data.get
         case List(authError: NotAuthorisedError) => throw new AuthorisationException(authError.message)
-        case errors => throw new GraphQlException(errors) }
+        case errors => throw new GraphQlException(errors)
       }
     )
   }

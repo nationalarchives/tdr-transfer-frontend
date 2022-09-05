@@ -29,7 +29,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       list.map(UUID.fromString)
     }
   }
-  // scalastyle:off method.length
+
   implicit class CacheHelper(cache: RedisSet[UUID, SynchronousResult]) {
 
     def updateCache(formData: NodesFormData, selectedFolderId: UUID, consignmentId: UUID, token: BearerAccessToken): Future[Unit] = {
