@@ -135,7 +135,11 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         val edges: List[PaginatedFiles.Edges] = paginatedFiles.paginatedFiles.edges.getOrElse(List()).flatten
         val nodesToDisplay: List[NodesToDisplay] = generateNodesToDisplay(consignmentId, edges, selectedFolderId)
         val pageSize = limit.getOrElse(totalFiles)
-        val resultsCount = ResultsCount(((pageNumber - 1) * pageSize) + 1, (pageNumber * pageSize).min(totalFiles), totalFiles)
+        val resultsCount = if(nodesToDisplay.isEmpty) {
+          ResultsCount(0, 0, 0)
+        } else {
+          ResultsCount(((pageNumber - 1) * pageSize) + 1, (pageNumber * pageSize).min(totalFiles), totalFiles)
+        }
         Ok(views.html.standard.additionalMetadataNavigation(
           consignmentId,
           request.token.name,

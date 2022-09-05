@@ -2,6 +2,7 @@ package errors
 
 import org.pac4j.core.config.Config
 import org.pac4j.core.context.session.SessionStore
+import org.pac4j.core.exception.TechnicalException
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.play.scala.Pac4jScalaTemplateHelper
 import org.scalatest.concurrent.ScalaFutures._
@@ -11,6 +12,8 @@ import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.http.Status
 import play.api.i18n.DefaultMessagesApi
 import play.api.test.FakeRequest
+
+import java.util.concurrent.CompletionException
 
 class ErrorHandlerSpec extends AnyFlatSpec with Matchers {
 
@@ -66,5 +69,14 @@ class ErrorHandlerSpec extends AnyFlatSpec with Matchers {
     val response = errorHandler.onServerError(request, exception).futureValue
 
     response.header.status should equal(Status.INTERNAL_SERVER_ERROR)
+  }
+
+  "server error handler" should "redirect if the exception is for missing state" in {
+    val request = FakeRequest()
+    val stateException = new CompletionException("Error", new TechnicalException("State cannot be determined"))
+    val response = errorHandler.onServerError(request, stateException).futureValue
+
+    response.header.status should equal(Status.SEE_OTHER)
+    response.header.headers("Location") should equal("/homepage")
   }
 }
