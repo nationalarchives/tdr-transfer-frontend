@@ -28,6 +28,7 @@ import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
+// scalastyle:off file.size.limit off
 class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val selectedSet = mock[RedisSet[UUID, SynchronousResult]]
