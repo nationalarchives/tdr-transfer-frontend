@@ -168,7 +168,6 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
     sendApiRequest(getAllDescendantsClient, gadids.document, token, variables)
       .map(
         data => {
-          val d = data.allDescendants
           data.allDescendants
         }
       )

@@ -15,8 +15,7 @@ import viewsapi.Caching.preventCaching
 
 import java.util.UUID
 import javax.inject.Inject
-import scala.concurrent.duration.{Duration, DurationInt}
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 class AdditionalMetadataNavigationController @Inject()(val consignmentService: ConsignmentService,
                                                        val keycloakConfiguration: KeycloakConfiguration,
@@ -32,6 +31,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   implicit class CacheHelper(cache: RedisSet[UUID, SynchronousResult]) {
 
+    // @scalastyle off
     def updateCache(formData: NodesFormData, selectedFolderId: UUID, consignmentId: UUID, token: BearerAccessToken): Future[Unit] = {
       val partSelectedCache = cacheApi.set[UUID](s"${consignmentId}_partSelected")
       val currentFolder: String = formData.folderSelected
