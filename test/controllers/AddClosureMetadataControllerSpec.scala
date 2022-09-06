@@ -145,7 +145,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val addClosureMetadataController = instantiateAddClosureMetadataController()
       val formTester = new FormTester(expectedDefaultOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
       mockGraphqlResponse()
 
       val addClosureMetadataPage = addClosureMetadataController.addClosureMetadata(consignmentId)
@@ -218,7 +218,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       val formTester = new FormTester(expectedOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
       mockGraphqlResponse()
       val formSubmission = Seq(
         ("inputdate-foiexemptionasserted-day", "5"),
@@ -265,7 +265,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       val formTester = new FormTester(expectedOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
       mockGraphqlResponse()
       val formSubmission = Seq(
         ("inputdate-foiexemptionasserted-day", ""),

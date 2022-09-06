@@ -9,6 +9,15 @@
 @import 'user-guide';
 @import 'button';
 @import 'pagination';
+@import 'card';
+
+a {
+  color: $govuk-link-colour;
+}
+
+.logged-in-user {
+  color: #fff;
+}
 
 .file-check-progress {
   margin-bottom: 30px;
@@ -36,6 +45,10 @@
 .govuk-checkboxes__item:last-child,
 .govuk-checkboxes__item:last-of-type {
   margin-bottom: 10px;
+}
+
+.govuk-checkboxes__label {
+  cursor: default;
 }
 
 .transfer-complete p {

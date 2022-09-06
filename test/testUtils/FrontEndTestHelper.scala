@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
@@ -79,6 +80,25 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       .willReturn(okJson(dataString)))
   }
 
+  def setConsignmentFilesMetadataResponse(wiremockServer: WireMockServer, consignmentRef: String = "TEST-TDR-2021-GB"): StubMapping = {
+
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
+    val closureStartDate = LocalDateTime.of(1990, 12, 1, 10, 0)
+    val foiExampleAsserted = LocalDateTime.of(1995, 1, 12, 10, 0)
+    val consignmentFilesmetada = gcfm.Data(Option(gcfm.GetConsignment(
+      List(
+        gcfm.GetConsignment.Files(UUID.randomUUID(),
+          gcfm.GetConsignment.Files.Metadata(Some("open"), Some(4), Some(closureStartDate), Some(foiExampleAsserted),
+            Some(false)))), consignmentRef))
+    )
+    val data: client.GraphqlData = client.GraphqlData(Some(consignmentFilesmetada))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignmentFilesMetadata"))
+      .willReturn(okJson(dataString)))
+  }
+
   def setConsignmentDetailsResponse(
                                      wiremockServer: WireMockServer,
                                      parentFolder: Option[String],
@@ -87,23 +107,15 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val folderOrNull = parentFolder.map(folder => s""" "$folder" """).getOrElse("null")
     val folderIdOrNull = parentFolderId.map(id => s""" "$id" """).getOrElse("null")
     val dataString =
-      s"""{"data": {"getConsignment": {"consignmentReference": "$consignmentReference", "parentFolder": $folderOrNull, "parentFolderId": $folderIdOrNull, "userid" : "${UUID.randomUUID()}", "seriesid": "${UUID.randomUUID()}"}}} """
+      s"""{"data": {"getConsignment": {
+         |"consignmentReference": "$consignmentReference",
+         | "parentFolder": $folderOrNull,
+         | "parentFolderId": $folderIdOrNull,
+         | "userid" : "${UUID.randomUUID()}",
+         | "seriesid": "${UUID.randomUUID()}"}}} """.stripMargin
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .withRequestBody(containing("getConsignment($consignmentId:UUID!)"))
-      .willReturn(okJson(dataString)))
-  }
-
-  def setConsignmentFilesMetadataResponse(wiremockServer: WireMockServer,
-                                          consignmentReference: String = "TEST-TDR-2021-GB"): StubMapping = {
-    val dataString =
-      s"""{"data":{"getConsignment":{"consignmentReference":"$consignmentReference","files":[
-         |{"fileId":"${UUID.randomUUID()}","metadata":{"foiExemptionCode":"Open"}},
-         |{"fileId":"${UUID.randomUUID()}","metadata":{"foiExemptionCode":"Open"}}
-         |]}}}""".stripMargin
-
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentFilesMetadata($consignmentId:UUID!,$fileFiltersInput:FileFilters)"))
       .willReturn(okJson(dataString)))
   }
 
@@ -222,7 +234,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     //Create the profile and add to the map
     val profile: OidcProfile = new OidcProfile()
     //This is the example token from jwt.io
-    val jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+    val jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibm" +
+      "FtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
     profile.setAccessToken(new BearerAccessToken(jwtToken))
     profile.addAttribute(OidcProfileDefinition.EXPIRATION, Date.from(LocalDateTime.now().plusDays(10).toInstant(ZoneOffset.UTC)))
 
@@ -232,7 +245,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val playCacheSessionStore: SessionStore = mock[PlayCacheSessionStore]
 
     //Mock the get method to return the expected map.
-    doAnswer(_ => java.util.Optional.of(profileMap)).when(playCacheSessionStore).get(any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES))
+    doAnswer(_ => java.util.Optional.of(profileMap)).when(playCacheSessionStore).get(
+        any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES)
+      )
 
     val testConfig = new Config()
 
@@ -258,8 +273,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       override def components: ControllerComponents = stubControllerComponents()
       override def config: Config = testConfig
       override def sessionStore: SessionStore = playCacheSessionStore
-      //noinspection ScalaStyle
+      //scalastyle:off null
       override def parser: BodyParsers.Default = null
+      //scalastyle:on null
     }
   }
 
@@ -306,8 +322,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       override def components: ControllerComponents = stubControllerComponents()
       override def config: Config = testConfig
       override def sessionStore: SessionStore = mock[SessionStore]
-      //noinspection ScalaStyle
+      //scalastyle:off null
       override def parser: BodyParsers.Default = null
+      //scalastyle:on null
     }
   }
 }

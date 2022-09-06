@@ -234,7 +234,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val fileId = UUID.randomUUID()
       val exemptionCode = Some("Open")
       val graphQlGetConsignmentFilesMetadata = gcfm.GetConsignment(
-        List(gcfm.GetConsignment.Files(fileId, gcfm.GetConsignment.Files.Metadata(exemptionCode))), "TEST-TDR-2021-GB")
+        List(gcfm.GetConsignment.Files(fileId, gcfm.GetConsignment.Files.Metadata(exemptionCode, None, None, None, None))), "TEST-TDR-2021-GB")
 
       val response = GraphQlResponse[gcfm.Data](Some(gcfm.Data(Some(graphQlGetConsignmentFilesMetadata))), Nil)
 
@@ -253,7 +253,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val fileId = UUID.randomUUID()
       val exemptionCode = Some("Open")
       val graphQlGetConsignmentFilesMetadata = gcfm.GetConsignment(
-        List(gcfm.GetConsignment.Files(fileId, gcfm.GetConsignment.Files.Metadata(exemptionCode))), "TEST-TDR-2021-GB")
+        List(gcfm.GetConsignment.Files(fileId, gcfm.GetConsignment.Files.Metadata(exemptionCode, None, None, None, None))), "TEST-TDR-2021-GB")
 
       val response = GraphQlResponse[gcfm.Data](Some(gcfm.Data(Some(graphQlGetConsignmentFilesMetadata))), Nil)
 
@@ -299,13 +299,16 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
         .thenReturn(Future.successful(response))
     }
 
-    def mockErrorResponse: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
+    def mockErrorResponse: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] =
+      when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
       .thenReturn(Future.successful(GraphQlResponse(None, List(NotAuthorisedError("error", Nil, Nil)))))
 
-    def mockMissingConsignmentType: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
+    def mockMissingConsignmentType: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] =
+      when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
       .thenReturn(Future.successful(GraphQlResponse(Some(gct.Data(Some(gct.GetConsignment(None)))), List())))
 
-    def mockAPIFailedResponse: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] = when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
+    def mockAPIFailedResponse: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] =
+      when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
       .thenReturn(Future.failed(new Exception("API failure")))
 
     "return the correct consignment type for a judgment type" in {

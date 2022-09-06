@@ -80,7 +80,7 @@
                             </li>
                         }
                         </ul>
-                        @if(currentPage != totalPages) {
+                        @if(currentPage != totalPages && totalPages != 0) {
                             <div class="govuk-pagination__next">
                                 <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="@{currentPage + 1}">
                                     Next
@@ -88,8 +88,8 @@
                             </div>
                         }
                     </nav>
-                    <a href="#" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                        Back to closure metadata menu
+                    <a href="/consignment/@consignmentId/additional-metadata" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                        Back to overview
                     </a>
                     @*These hidden fields are defaults for when the buttons are not clicked*@
                     <input type="hidden" id="pageSelected" name="pageSelected" value="1"/>
