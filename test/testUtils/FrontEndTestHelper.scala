@@ -1,11 +1,14 @@
 package testUtils
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, stubFor, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.GetAllDescendants
+import graphql.codegen.GetAllDescendants.getAllDescendantIds
+import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
@@ -140,13 +143,31 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   }
 
   def setAllDescendantIdsResponse(wiremockServer: WireMockServer,
-                                  parentId: UUID
-                                    ): StubMapping = {
-    val dataString = s"""{ "data": {"allDescendants": [{"fileId": "${parentId.toString}"}]}}"""
+                                  selectedDescendants: List[UUID] = List(),
+                                  deselectedDescendants: List[UUID] = List()): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[getAllDescendantIds.Data, getAllDescendantIds.Variables]()
+
+    val selectedResponse = new getAllDescendantIds.Data(selectedDescendants.map(id => AllDescendants(id)))
+    val selectedData: client.GraphqlData = client.GraphqlData(Some(selectedResponse))
+    val selectedDataString: String = selectedData.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    val deselectedResponse = new getAllDescendantIds.Data(deselectedDescendants.map(id => AllDescendants(id)))
+    val deselectedData: client.GraphqlData = client.GraphqlData(Some(deselectedResponse))
+    val deselectedDataString: String = deselectedData.asJson.printWith(Printer(dropNullValues = false, ""))
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .inScenario("allDescendants")
       .withRequestBody(containing("getAllDescendantIds"))
-      .willReturn(okJson(dataString))
+      .willReturn(okJson(selectedDataString))
+      .willSetStateTo("selectedDescendants")
+    )
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .inScenario("allDescendants")
+      .whenScenarioStateIs("selectedDescendants")
+      .withRequestBody(containing("getAllDescendantIds"))
+      .willReturn(okJson(deselectedDataString))
+      .willSetStateTo("deselectedDescendants")
     )
   }
 
