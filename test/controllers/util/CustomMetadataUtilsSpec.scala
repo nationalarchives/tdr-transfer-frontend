@@ -1,6 +1,5 @@
 package controllers.util
 
-import controllers.util.CustomMetadataUtils.FieldValues
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
@@ -18,11 +17,17 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         name = s"TestProperty$number",
         description = Some(s"It's the Test Property $number"),
         fullName = Some(s"Test Property $number"),
-        propertyType = if(numberOfValues > 2) Defined else Supplied,
+        propertyType = if (numberOfValues > 2) Defined else Supplied,
         propertyGroup = Some(s"Test Property Group $number"),
-        dataType = if(numberOfValues == 1) {Integer} else if(numberOfValues == 2) {Boolean} else dataType(number % dataType.length),
+        dataType = if (numberOfValues == 1) {
+          Integer
+        } else if (numberOfValues == 2) {
+          Boolean
+        } else {
+          dataType(number % dataType.length)
+        },
         editable = true,
-        multiValue = if(numberOfValues > 1) {true} else {false},
+        multiValue = numberOfValues > 1,
         defaultValue = Some(s"TestValue $number"),
         ordinal = number,
         values = (1 to numberOfValues).toList.map(
@@ -69,7 +74,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
       "TestProperty1" -> List("TestValue 1"),
       "TestProperty2" -> List("TestValue 1", "TestValue 2"),
       "TestProperty3" -> List("TestValue 1", "TestValue 2", "TestValue 3"),
-      "TestProperty8" -> List("TestValue 1", "TestValue 2", "TestValue 3"),
+      "TestProperty8" -> List("TestValue 1", "TestValue 2", "TestValue 3")
     )
 
     val actualPropertiesAndTheirValues: Map[String, List[CustomMetadata.Values]] =
@@ -92,26 +97,58 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
 
   "convertPropertiesToFields" should "convert properties to fields for the form, if given correctly formatted properties" in {
     val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
-    val fieldValuesByDataType: List[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
-    val allFieldValues: Map[String, Iterable[FieldValues]] = fieldValuesByDataType.map(_._1).groupBy(_.fieldId)
+    val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
 
-    propertiesToConvertToFields.foreach{
+    propertiesToConvertToFields.foreach {
       property =>
-        val field = allFieldValues(property.name.toLowerCase()).head
-        field.fieldId should equal(property.name.toLowerCase())
-        if(property.dataType == DateTime) field.fieldOptions.length should equal(3) else field.fieldOptions.length should equal(property.values.length)
-        field.fieldHint should equal(property.description.getOrElse(""))
-        field.fieldLabel should equal(property.fullName.get)
-        field.fieldRequired should equal(if(property.propertyGroup.getOrElse("") == "MandatoryMetadata") true else false)
+        val field = fieldValuesByDataType.find(_.fieldId == property.name).get
+        property.dataType match {
+          case Integer => field.isInstanceOf[TextField] should be(true)
+            field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", "0", "0"))
+          case DateTime => field.isInstanceOf[DateField] should be(true)
+            verifyDate(field.asInstanceOf[DateField])
+          case Boolean => field.isInstanceOf[RadioButtonGroupField] should be(true)
+            verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
+          case Text => field.isInstanceOf[DropdownField] should be(true)
+            verifyText(field.asInstanceOf[DropdownField], property)
+        }
+        field.fieldDescription should equal(property.description.getOrElse(""))
+        field.fieldName should equal(property.fullName.get)
+        field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
     }
   }
 
   "convertPropertiesToFields" should "order the fields in the correct order" in {
     val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
-    val fieldValuesByDataType: List[(FieldValues, String)] = customMetadataUtils.convertPropertiesToFields(propertiesToConvertToFields)
+    val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
     fieldValuesByDataType.size should equal(10)
-    (1 to 10).toList.foreach(number => {
-      fieldValuesByDataType(number - 1)._1.fieldId should equal(s"testproperty$number")
-    })
+    (1 to 10).toList.foreach(number =>
+      fieldValuesByDataType(number - 1).fieldId should equal(s"TestProperty$number")
+    )
+  }
+
+  def verifyDate(field: DateField): Unit = {
+    field.day should equal(InputNameAndValue("Day", "", "DD"))
+    field.month should equal(InputNameAndValue("Month", "", "MM"))
+    field.year should equal(InputNameAndValue("Year", "", "YYYY"))
+  }
+
+  def verifyBoolean(field: RadioButtonGroupField, defaultValue: Option[String]): Unit = {
+    field.options should equal(Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")))
+    field.selectedOption should equal(defaultValue.map(v => if (v == "True") "yes" else "no").getOrElse("no"))
+  }
+
+  def verifyText(field: DropdownField, property: CustomMetadata): Unit = {
+    property.propertyType match {
+      case Defined =>
+        field.options should equal(property.values.map(v => InputNameAndValue(v.value, v.value)))
+        field.selectedOption should equal(property.defaultValue.map(value => InputNameAndValue(value, value)))
+      case Supplied =>
+        field.options should equal(Seq())
+        field.selectedOption should equal(property.defaultValue.map(value => InputNameAndValue(value, value)))
+      case _ =>
+        field.options should equal(Seq(InputNameAndValue(property.name, property.fullName.getOrElse(""))))
+        field.selectedOption should equal(None)
+    }
   }
 }

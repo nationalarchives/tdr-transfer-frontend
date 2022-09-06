@@ -1,52 +1,51 @@
 @* dropdownOptions as Tuple until data model clearer *@
-
-@(fieldName: String,
-dropdownOptions: Seq[(String, String)],
-selectedDropdownOption: Seq[(String, String)],
+@import controllers.util.InputNameAndValue
+@(fieldId: String,
+fieldName: String,
+fieldDescription: String,
+options: Seq[InputNameAndValue],
+selectedOption: Option[InputNameAndValue],
 attributes: Map[Symbol, Any],
-fieldError: Seq[Any]
+fieldErrors: List[String] = Nil
 )(implicit messages: Messages)
 
 @import viewsapi.FormFunctions._
 @import views.html.partials.errorMessage
 
-@defaultDropdownOption = @{selectedDropdownOption.head}
 @disabledStatus = {@attributes.get(Symbol("_disabledOption"))}
-@largeLabelAndHint = @{attributes.getOrElse(Symbol("_largeLabelAndHint"), "")}
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
-@fieldId = @{if(isDynamicForm) s"inputdropdown-$fieldName" else fieldName}
-<div class="govuk-form-group @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
-@if(largeLabelAndHint != "") {
-    <h2 class="govuk-label-wrapper">
-        <label class="govuk-label govuk-label--m" for="@fieldId">
-            @attributes.get(Symbol("_label"))
-            @attributes.requiredLabelSuffix()
+@formFieldId = @{if(isDynamicForm) s"inputdropdown-$fieldId" else fieldId}
+
+<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+    @if(fieldName != "") {
+        <h2 class="govuk-label-wrapper">
+            <label class="govuk-label govuk-label--m" for="@formFieldId">
+            @fieldName
+            </label>
+        </h2>
+        <div id="@formFieldId-hint" class="govuk-hint">
+        @fieldDescription
+        </div>
+    } else {
+        <label class="govuk-label" for="@formFieldId">
+        @fieldDescription
         </label>
-    </h2>
-    <div id="@fieldId-hint" class="govuk-hint">
-        @largeLabelAndHint
-    </div>
-} else {
-    <label class="govuk-label" for="@fieldId">
-        @attributes.get(Symbol("_label"))
-        @attributes.requiredLabelSuffix()
-    </label>
-}
-    @errorMessage(fieldId, fieldError)
-    <select class="govuk-select" id="@fieldId" name="@fieldId" @attributes.requiredInput() @disabledStatus>
+    }
+
+    @errorMessage(fieldId, fieldErrors)
+    <select class="govuk-select" id="@formFieldId" name="@formFieldId" @attributes.requiredInput() @disabledStatus>
         @if(disabledStatus.toString() != "disabled") {
-            @if(defaultDropdownOption._1 == "") {
+            @if(selectedOption.isEmpty) {
                 <option value="" selected>
-                    @defaultDropdownOption._2
+                    Please choose...
                 </option>
             }
-
-            @for(dropdownOption <- dropdownOptions) {
-                <option @if(dropdownOption._1 == defaultDropdownOption._1 && defaultDropdownOption._1 != ""){selected="selected" }value="@dropdownOption._1">@dropdownOption._2</option>
+            @for(dropdownOption <- options) {
+                <option @if(selectedOption.exists(_.name == dropdownOption.name)){selected="selected" }value="@dropdownOption.value">@dropdownOption.name</option>
             }
         } else {
-            @for(dropdownOption <- dropdownOptions) {
-                <option @if(disabledStatus.toString() == "disabled"){selected="selected" }value="@dropdownOption._1">@dropdownOption._2</option>
+            @for(dropdownOption <- options) {
+                <option @if(disabledStatus.toString() == "disabled"){selected="selected" }value="@dropdownOption.value">@dropdownOption.name</option>
             }
         }
     </select>
