@@ -31,7 +31,6 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   implicit class CacheHelper(cache: RedisSet[UUID, SynchronousResult]) {
 
-    // @scalastyle off
     def updateCache(formData: NodesFormData, selectedFolderId: UUID, consignmentId: UUID, token: BearerAccessToken): Future[Unit] = {
       val partSelectedCache = cacheApi.set[UUID](s"${consignmentId}_partSelected")
       val currentFolder: String = formData.folderSelected
@@ -44,19 +43,19 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       val deselectedIdsExceptFolder: Set[UUID] = deselectedNodeIds.filter(_ != currentFolderId).toSet
       val folderDescendantsCache = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
 
-      if (!folderDescendantsCache.contains(currentFolder)) {
-        consignmentService.getAllDescendants(consignmentId, Set(currentFolderId), token).map {
-          data =>
-            val allFolderIds = data.map(_.fileId)
-            folderDescendantsCache.add(currentFolder, allFolderIds)
-        }
-      }
-
       for {
+        _ <- if (!folderDescendantsCache.contains(currentFolder)) {
+          consignmentService.getAllDescendants(consignmentId, Set(currentFolderId), token).map {
+            data =>
+              val allFolderIds = data.map(_.fileId)
+              folderDescendantsCache.add(currentFolder, allFolderIds)
+          }
+        } else {
+          Future.successful(())
+        }
         allSelectedDescendants <- consignmentService.getAllDescendants(consignmentId, selectedNodeIds.toSet, token)
         allDeselectedDescendantsExceptFolder <- consignmentService.getAllDescendants(consignmentId, deselectedIdsExceptFolder, token)
       } yield {
-
         val allFolderIds: List[UUID] = folderDescendantsCache.get(currentFolder).getOrElse(List())
         val allSelectedIds: List[UUID] = allSelectedDescendants.map(_.fileId)
         val allDeselectedExceptFolderIds: List[UUID] = allDeselectedDescendantsExceptFolder.map(_.fileId)
