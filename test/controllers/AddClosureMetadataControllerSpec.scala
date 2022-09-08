@@ -391,6 +391,9 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   //scalastyle:off method.length
   private def checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString: String) = {
     addClosureMetadataPageAsString must include(
+      """      <title>Add closure metadata to &#x27;[selected file/folder name to go here]&#x27;</title>"""
+    )
+    addClosureMetadataPageAsString must include(
       """            <h1 class="govuk-heading-l">Add closure metadata to '[selected file/folder name to go here]'</h1>"""
     )
     addClosureMetadataPageAsString must include("""            <p class="govuk-body">Enter metadata for closure fields here.</p>""")
