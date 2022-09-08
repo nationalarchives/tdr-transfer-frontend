@@ -250,7 +250,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "rerender form with user's data if form is partially submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val newValues = Map(
+      val newInputTextValues = Map(
         "inputdate-FoiExemptionAsserted-day" -> "5",
         "inputdate-FoiExemptionAsserted-month" -> "11",
         "inputdate-FoiExemptionAsserted-year" -> "2021",
@@ -261,8 +261,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       )
       val expectedOptions = expectedDefaultOptions.map{
         mockOption =>
-          newValues.get(mockOption.name) match {
-            case Some(newValue) => mockOption.copy(value = newValue)
+          newInputTextValues.get(mockOption.name) match {
+            case Some(newInputTextValue) => mockOption.copy(value = newInputTextValue)
             case None => mockOption
           }
       }
@@ -300,7 +300,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "display the most immediate date error if more than one date input (per date field) has an mistake in it" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val newValues = Map(
+      val newInputTextValues = Map(
         "inputdate-FoiExemptionAsserted-day" -> "",
         "inputdate-FoiExemptionAsserted-month" -> "",
         "inputdate-FoiExemptionAsserted-year" -> "",
@@ -310,8 +310,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       )
       val expectedOptions = expectedDefaultOptions.map{
         mockOption =>
-          newValues.get(mockOption.name) match {
-            case Some(newValue) => mockOption.copy(value = newValue)
+          newInputTextValues.get(mockOption.name) match {
+            case Some(newInputTextValue) => mockOption.copy(value = newInputTextValue)
             case None => mockOption.copy(errorMessage = "")
           }
       }
