@@ -20,15 +20,15 @@ fieldErrors: List[String] = Nil
     @if(fieldName != "") {
         <h2 class="govuk-label-wrapper">
             <label class="govuk-label govuk-label--m" for="@formFieldId">
-            @fieldName
+                @fieldName
             </label>
         </h2>
         <div id="@formFieldId-hint" class="govuk-hint">
-        @fieldDescription
+            @fieldDescription
         </div>
     } else {
         <label class="govuk-label" for="@formFieldId">
-        @fieldDescription
+            @fieldDescription
         </label>
     }
 
