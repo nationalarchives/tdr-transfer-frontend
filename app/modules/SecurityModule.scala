@@ -3,6 +3,7 @@ package modules
 import com.google.inject.{AbstractModule, Provides}
 import com.nimbusds.jose.JWSAlgorithm
 import configuration.CustomSavedRequestHandler
+import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
 import org.pac4j.core.context.session.SessionStore
@@ -64,7 +65,8 @@ class SecurityModule extends AbstractModule {
     val clients = new Clients(oidcClient)
     val config = new Config(clients)
     config.setHttpActionAdapter(new FrontendHttpActionAdaptor())
-
+    val authoriser = new RequireAnyRoleAuthorizer("tdr-google-user")
+    config.setAuthorizer(authoriser)
     val customRequestHandler = new CustomSavedRequestHandler
     val callbackLogic = DefaultCallbackLogic.INSTANCE
     callbackLogic.setSavedRequestHandler(customRequestHandler)

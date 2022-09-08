@@ -2,6 +2,7 @@ package auth
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
+import org.keycloak.representations.AccessToken
 import org.pac4j.core.profile.{ProfileManager, UserProfile}
 import org.pac4j.play.PlayWebContext
 import play.api.i18n.I18nSupport

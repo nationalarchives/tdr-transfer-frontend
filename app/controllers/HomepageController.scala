@@ -34,10 +34,8 @@ class HomepageController @Inject()(val controllerComponents: SecurityComponents,
     implicit request: Request[AnyContent] => {
       if (request.token.isJudgmentUser) {
         Redirect(routes.HomepageController.judgmentHomepage())
-      } else if(request.token.isStandardUser) {
-        Ok(views.html.standard.homepage(request.token.name))
       } else {
-        Ok(views.html.registrationComplete(request.token.name))
+        Ok(views.html.standard.homepage(request.token.name))
       }
     }
   }
