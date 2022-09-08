@@ -73,38 +73,39 @@
                         }
                         <ul class="govuk-pagination__list">
                             <li class="govuk-pagination__item @if(currentPage == 1){govuk-pagination__item--current}">
-                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="1">
+                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">
                                 1
                                 </button>
                             </li>
-                            @if(currentPage- 2 != 1) {<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>}
+                        @if(currentPage > 3) {<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>}
                         @for(page <- 2 until totalPages){
                             @{
-                                if(currentPage - 1 == page && currentPage != 1) {
-                                        <li class="govuk-pagination__item">
-                                        <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value={s"$page"}>
-                                        {page}
-                                        </button>
-                                        </li>
-                                } else if(currentPage + 1 == page && currentPage != totalPages) {
-                                        <li class="govuk-pagination__item">
-                                        <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value={s"$page"}>
-                                        {page}
-                                        </button>
-                                        </li>
-                                } else if(currentPage == page) {
+                                //Renders the current page and the pages immediately before and after
+                                if(currentPage == page) {
                                         <li class="govuk-pagination__item govuk-pagination__item--current">
-                                        <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value={s"$page"}>
+                                        <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label={s"Page $page"} value={s"$page"}>
+                                        {page}
+                                        </button>
+                                        </li>
+                                } else if(currentPage + 1 == page) {
+                                        <li class="govuk-pagination__item">
+                                        <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label={s"Page $page"} value={s"$page"}>
+                                        {page}
+                                        </button>
+                                        </li>
+                                } else if(currentPage - 1 == page) {
+                                        <li class="govuk-pagination__item">
+                                        <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label={s"Page $page"} value={s"$page"}>
                                         {page}
                                         </button>
                                         </li>
                                 }
                             }
                         }
-                            @if(currentPage +2 != totalPages) {<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>}
+                            @if(totalPages - currentPage > 2) {<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>}
                             @if(totalPages != 1) {
                                 <li class="govuk-pagination__item @if(currentPage == totalPages) {govuk-pagination__item--current}">
-                                    <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="@totalPages">
+                                    <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page @totalPages" value="@totalPages">
                                     @totalPages
                                     </button>
                                 </li>
