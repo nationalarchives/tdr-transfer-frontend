@@ -110,7 +110,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       label="mock code2",
       value="mock code2",
       fieldType="inputDropdown",
-      errorMessage="There was no value selected for the FOI Exemption Code.",
+      errorMessage="There was no value selected for the FOI Exemption Code."
     ),
     MockInputOption(
       name="inputradio-TitlePublic",
