@@ -36,95 +36,95 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   val expectedDefaultOptions: List[MockInputOption] = List(
     MockInputOption(
-      name="inputdate-closurestartdate-day",
+      name="inputdate-ClosureStartDate-day",
       label="Day",
-      id="inputdate-closurestartdate-day",
+      id="date-input-ClosureStartDate-day",
       placeholder="dd",
       fieldType="inputDate",
       errorMessage=s"There was no number entered for the Day."
     ),
     MockInputOption(
-      name="inputdate-closurestartdate-month",
+      name="inputdate-ClosureStartDate-month",
       label="Month",
-      id="inputdate-closurestartdate-month",
+      id="date-input-ClosureStartDate-month",
       placeholder="mm",
       fieldType="inputDate",
       errorMessage=s"There was no number entered for the Month.",
-      errorMessageDependency="inputdate-closurestartdate-day"
+      errorMessageDependency="inputdate-ClosureStartDate-day"
     ),
     MockInputOption(
-      name="inputdate-closurestartdate-year",
+      name="inputdate-ClosureStartDate-year",
       label="Year",
-      id="inputdate-closurestartdate-year",
+      id="date-input-ClosureStartDate-year",
       placeholder="yyyy",
       fieldType="inputDate",
       errorMessage=s"There was no number entered for the Year.",
-      errorMessageDependency="inputdate-closurestartdate-month"
+      errorMessageDependency="inputdate-ClosureStartDate-month"
     ),
     MockInputOption(
-      name="inputdate-foiexemptionasserted-day",
+      name="inputdate-FoiExemptionAsserted-day",
       label="Day",
-      id="inputdate-foiexemptionasserted-day",
+      id="date-input-FoiExemptionAsserted-day",
       placeholder="dd",
       fieldType="inputDate",
       errorMessage=s"There was no number entered for the Day."
     ),
     MockInputOption(
-      name="inputdate-foiexemptionasserted-month",
+      name="inputdate-FoiExemptionAsserted-month",
       label="Month",
-      id="inputdate-foiexemptionasserted-month",
+      id="date-input-FoiExemptionAsserted-month",
       placeholder="mm",
       fieldType="inputDate",
       errorMessage=s"There was no number entered for the Month.",
-      errorMessageDependency="inputdate-foiexemptionasserted-day"
+      errorMessageDependency="inputdate-FoiExemptionAsserted-day"
     ),
     MockInputOption(
-      name="inputdate-foiexemptionasserted-year",
+      name="inputdate-FoiExemptionAsserted-year",
       label="Year",
-      id="inputdate-foiexemptionasserted-year",
+      id="date-input-FoiExemptionAsserted-year",
       placeholder="yyyy",
       fieldType="inputDate",
       errorMessage=s"There was no number entered for the Year.",
-      errorMessageDependency="inputdate-foiexemptionasserted-month"
+      errorMessageDependency="inputdate-FoiExemptionAsserted-month"
     ),
     MockInputOption(
-      name="inputnumeric-closureperiod-years",
+      name="inputnumeric-ClosurePeriod-years",
       label="years",
       id="years",
       value="0",
       placeholder="0",
       fieldType="inputNumeric",
-      errorMessage=s"There was no number entered for the Years."
+      errorMessage=s"There was no number entered for the years."
     ),
     MockInputOption(
-      name="inputdropdown-foiexemptioncode",
-      id="inputdropdown-foiexemptioncode",
+      name="inputdropdown-FoiExemptionCode",
+      id="inputdropdown-FoiExemptionCode",
       label="mock code1",
       value="mock code1",
       fieldType="inputDropdown",
       errorMessage="There was no value selected for the FOI Exemption Code."
     ),
     MockInputOption(
-      name="inputdropdown-foiexemptioncode",
-      id="inputdropdown-foiexemptioncode",
+      name="inputdropdown-FoiExemptionCode",
+      id="inputdropdown-FoiExemptionCode",
       label="mock code2",
       value="mock code2",
       fieldType="inputDropdown",
       errorMessage="There was no value selected for the FOI Exemption Code.",
     ),
     MockInputOption(
-      name="inputradio-titlepublic",
+      name="inputradio-TitlePublic",
       label="Yes",
-      id="inputradio-titlepublic-yes",
-      value="Yes",
+      id="inputradio-TitlePublic-Yes",
+      value="yes",
       fieldType="inputRadio",
       errorMessage=s"There was no value selected for Is Title Closed."
     ),
     MockInputOption(
-      name="inputradio-titlepublic",
+      name="inputradio-TitlePublic",
       label="No",
-      id="inputradio-titlepublic-no",
-      value="No",
+      id="inputradio-TitlePublic-No",
+      value="no",
       errorMessage=s"There was no value selected for Is Title Closed.",
       fieldType="inputRadio"
     )
@@ -140,27 +140,27 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   "AddClosureMetadataController GET" should {
-    "render the add closure metadata page for an authenticated standard user" in {
+    "render the add closure metadata page, with the default form, if file has no closure metadata, for an authenticated standard user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
       val formTester = new FormTester(expectedDefaultOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata=false)
       mockGraphqlResponse()
 
       val addClosureMetadataPage = addClosureMetadataController.addClosureMetadata(consignmentId)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata").withCSRFToken)
       val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
-      val formSubmission = Seq(
-        ("inputdate-foiexemptionasserted-day", ""),
-        ("inputdate-foiexemptionasserted-month", ""),
-        ("inputdate-foiexemptionasserted-year", ""),
-        ("inputdate-closurestartdate-day", ""),
-        ("inputdate-closurestartdate-month", ""),
-        ("inputdate-closurestartdate-year", ""),
-        ("inputnumeric-closureperiod-years", "0"),
-        ("inputdropdown-foiexemptioncode", "mock code1"),
-        ("inputradio-titlepublic", "Yes")
+      val expectedDefaultForm = Seq(
+        ("inputdate-FoiExemptionAsserted-day", ""),
+        ("inputdate-FoiExemptionAsserted-month", ""),
+        ("inputdate-FoiExemptionAsserted-year", ""),
+        ("inputdate-ClosureStartDate-day", ""),
+        ("inputdate-ClosureStartDate-month", ""),
+        ("inputdate-ClosureStartDate-year", ""),
+        ("inputnumeric-ClosurePeriod-years", "0"),
+        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputradio-TitlePublic", "yes")
       )
 
       playStatus(addClosureMetadataPage) mustBe OK
@@ -168,7 +168,58 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addClosureMetadataPageAsString, userType = "standard")
       checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString)
-      formTester.checkHtmlForOptionAndItsAttributes(addClosureMetadataPageAsString, formSubmission.toMap)
+      formTester.checkHtmlForOptionAndItsAttributes(addClosureMetadataPageAsString, expectedDefaultForm.toMap)
+    }
+
+    "render the add closure metadata page, with the form updated with the file's closure metadata, for an authenticated standard user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addClosureMetadataController = instantiateAddClosureMetadataController()
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer)
+      mockGraphqlResponse()
+
+      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadata(consignmentId)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata").withCSRFToken)
+      val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
+
+      val newInputTextValues = Map(
+        "inputdate-FoiExemptionAsserted-day" -> "12",
+        "inputdate-FoiExemptionAsserted-month" -> "1",
+        "inputdate-FoiExemptionAsserted-year" -> "1995",
+        "inputdate-ClosureStartDate-day" -> "1",
+        "inputdate-ClosureStartDate-month" -> "12",
+        "inputdate-ClosureStartDate-year" -> "1990",
+        "inputnumeric-ClosurePeriod-years" -> "4"
+      )
+      val expectedOptions = expectedDefaultOptions.map {
+        mockOption =>
+          newInputTextValues.get(mockOption.name) match {
+            case Some(newValue) => mockOption.copy(value = newValue)
+            case None => mockOption
+          }
+      }
+
+      val formTester = new FormTester(expectedOptions)
+
+      val expectedDefaultForm = Seq(
+        ("inputdate-FoiExemptionAsserted-day", "12"),
+        ("inputdate-FoiExemptionAsserted-month", "1"),
+        ("inputdate-FoiExemptionAsserted-year", "1995"),
+        ("inputdate-ClosureStartDate-day", "12"),
+        ("inputdate-ClosureStartDate-month", "1"),
+        ("inputdate-ClosureStartDate-year", "1990"),
+        ("inputnumeric-ClosurePeriod-years", "4"),
+        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputradio-TitlePublic", "no")
+      )
+
+      playStatus(addClosureMetadataPage) mustBe OK
+      contentType(addClosureMetadataPage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addClosureMetadataPageAsString, userType = "standard")
+      checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(addClosureMetadataPageAsString, expectedDefaultForm.toMap)
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -200,13 +251,13 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
       val newValues = Map(
-        "inputdate-foiexemptionasserted-day" -> "5",
-        "inputdate-foiexemptionasserted-month" -> "11",
-        "inputdate-foiexemptionasserted-year" -> "2021",
-        "inputdate-closurestartdate-day" -> "",
-        "inputdate-closurestartdate-month" -> "",
-        "inputdate-closurestartdate-year" -> "",
-        "inputnumeric-closureperiod-years" ->  ""
+        "inputdate-FoiExemptionAsserted-day" -> "5",
+        "inputdate-FoiExemptionAsserted-month" -> "11",
+        "inputdate-FoiExemptionAsserted-year" -> "2021",
+        "inputdate-ClosureStartDate-day" -> "",
+        "inputdate-ClosureStartDate-month" -> "",
+        "inputdate-ClosureStartDate-year" -> "",
+        "inputnumeric-ClosurePeriod-years" ->  ""
       )
       val expectedOptions = expectedDefaultOptions.map{
         mockOption =>
@@ -218,18 +269,20 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       val formTester = new FormTester(expectedOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer)
       mockGraphqlResponse()
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
+
       val formSubmission = Seq(
-        ("inputdate-foiexemptionasserted-day", "5"),
-        ("inputdate-foiexemptionasserted-month", "11"),
-        ("inputdate-foiexemptionasserted-year", "2021"),
-        ("inputdate-closurestartdate-day", ""),
-        ("inputdate-closurestartdate-month", ""),
-        ("inputdate-closurestartdate-year", ""),
-        ("inputnumeric-closureperiod-years", ""),
-        ("inputdropdown-foiexemptioncode", "mock code1"),
-        ("inputradio-titlepublic", "Yes")
+        ("inputdate-FoiExemptionAsserted-day", "5"),
+        ("inputdate-FoiExemptionAsserted-month", "11"),
+        ("inputdate-FoiExemptionAsserted-year", "2021"),
+        ("inputdate-ClosureStartDate-day", ""),
+        ("inputdate-ClosureStartDate-month", ""),
+        ("inputdate-ClosureStartDate-year", ""),
+        ("inputnumeric-ClosurePeriod-years", ""),
+        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputradio-TitlePublic", "yes")
       )
 
       val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId)
@@ -248,12 +301,12 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
       val newValues = Map(
-        "inputdate-foiexemptionasserted-day" -> "",
-        "inputdate-foiexemptionasserted-month" -> "",
-        "inputdate-foiexemptionasserted-year" -> "",
-        "inputdate-closurestartdate-day" -> "5",
-        "inputdate-closurestartdate-month" -> "",
-        "inputdate-closurestartdate-year" -> ""
+        "inputdate-FoiExemptionAsserted-day" -> "",
+        "inputdate-FoiExemptionAsserted-month" -> "",
+        "inputdate-FoiExemptionAsserted-year" -> "",
+        "inputdate-ClosureStartDate-day" -> "5",
+        "inputdate-ClosureStartDate-month" -> "",
+        "inputdate-ClosureStartDate-year" -> ""
       )
       val expectedOptions = expectedDefaultOptions.map{
         mockOption =>
@@ -265,18 +318,20 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       val formTester = new FormTester(expectedOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer)
       mockGraphqlResponse()
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
+
       val formSubmission = Seq(
-        ("inputdate-foiexemptionasserted-day", ""),
-        ("inputdate-foiexemptionasserted-month", ""),
-        ("inputdate-foiexemptionasserted-year", ""),
-        ("inputdate-closurestartdate-day", "5"),
-        ("inputdate-closurestartdate-month", ""),
-        ("inputdate-closurestartdate-year", ""),
-        ("inputnumeric-closureperiod-years", "0"),
-        ("inputdropdown-foiexemptioncode", "mock code1"),
-        ("inputradio-titlepublic", "Yes")
+        ("inputdate-FoiExemptionAsserted-day", ""),
+        ("inputdate-FoiExemptionAsserted-month", ""),
+        ("inputdate-FoiExemptionAsserted-year", ""),
+        ("inputdate-ClosureStartDate-day", "5"),
+        ("inputdate-ClosureStartDate-month", ""),
+        ("inputdate-ClosureStartDate-year", ""),
+        ("inputnumeric-ClosurePeriod-years", "0"),
+        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputradio-TitlePublic", "yes")
       )
 
       val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId)
@@ -336,16 +391,16 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   //scalastyle:off method.length
   private def checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString: String) = {
     addClosureMetadataPageAsString must include(
-      """               <h1 class="govuk-heading-l">Add closure metadata to '[selected file/folder name to go here]'</h1>"""
+      """            <h1 class="govuk-heading-l">Add closure metadata to '[selected file/folder name to go here]'</h1>"""
     )
-    addClosureMetadataPageAsString must include("""                <p class="govuk-body">Enter metadata for closure fields here.</p>""")
+    addClosureMetadataPageAsString must include("""            <p class="govuk-body">Enter metadata for closure fields here.</p>""")
     addClosureMetadataPageAsString must include(
       """            <h2 class="govuk-label govuk-label--m">
         |                FOI decision asserted
         |            </h2>""".stripMargin
     )
     addClosureMetadataPageAsString must include(
-      """        <div id="date-input-hint" class="govuk-hint">
+      """        <div id="date-input-FoiExemptionAsserted-hint" class="govuk-hint">
         |            Date of the Advisory Council Approval
         |        </div>""".stripMargin
     )
@@ -355,7 +410,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         |            </h2>""".stripMargin
     )
     addClosureMetadataPageAsString must include(
-      """        <div id="date-input-hint" class="govuk-hint">
+      """        <div id="date-input-ClosureStartDate-hint" class="govuk-hint">
         |            Date of the record from when the closure starts. It is usually the last date modified.
         |        </div>""".stripMargin
     )
@@ -370,19 +425,19 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         |    </div>""".stripMargin
     )
     addClosureMetadataPageAsString must include(
-      """        <label class="govuk-label govuk-label--m" for="inputdropdown-foiexemptioncode">
-        |            FOI exemption code
-        |............
-        |        </label>""".replace("............", "            ").stripMargin
+      """            <label class="govuk-label govuk-label--m" for="inputdropdown-FoiExemptionCode">
+        |                FOI exemption code
+        |            </label>""".replace("................", "                ").stripMargin
     )
     addClosureMetadataPageAsString must include(
-      """    <div id="inputdropdown-foiexemptioncode-hint" class="govuk-hint">
-        |        Select the exemption code that applies
-        |    </div>
+      """        <div id="inputdropdown-FoiExemptionCode-hint" class="govuk-hint">
+        |            Select the exemption code that applies
+        |        </div>
+        |....
         |
         |....
         |
-        |    <select class="govuk-select" id="inputdropdown-foiexemptioncode" name="inputdropdown-foiexemptioncode"  >"""
+        |    <select class="govuk-select" id="inputdropdown-FoiExemptionCode" name="inputdropdown-FoiExemptionCode"  >"""
         .replace("....", "    ").stripMargin
     )
     addClosureMetadataPageAsString must include(

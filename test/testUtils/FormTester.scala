@@ -108,18 +108,18 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
     val doesNotHaveDependencyAndValueIsEmpty = !hasDependency && value.isEmpty
     val inputBoxShouldBeRed = submitAttempted && doesNotHaveDependencyAndValueIsEmpty
 
-    s"""                        <input class="govuk-input
-       |                                      govuk-date-input__input
-       |                                      govuk-input--width-${if(placeholder.length > 2) 3 else 2}
-       |                                      ${if(inputBoxShouldBeRed) "govuk-input--error" else ""}"
-       |                               id="$id"
-       |                               name="$name"
-       |                               value="$value"
-       |                               type="number"
-       |                               inputmode="numeric"
-       |                               placeholder="$placeholder"
-       |                               maxlength="${placeholder.length}"
-       |                        >""".stripMargin
+    s"""                    <input class="govuk-input
+       |                                  govuk-date-input__input
+       |                                  govuk-input--width-${if(placeholder.length > 2) 3 else 2}
+       |                                  ${if(inputBoxShouldBeRed) "govuk-input--error" else ""}"
+       |                           id="$id"
+       |                           name="$name"
+       |                           value="$value"
+       |                           type="number"
+       |                           inputmode="numeric"
+       |                           placeholder="$placeholder"
+       |                           maxlength="${placeholder.length}"
+       |                    >""".stripMargin
   }
 
   private def addValuesToDropdownAttributes(selected: Boolean, value: String, label: String, placeholder: String): String = {
@@ -139,15 +139,15 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
       case "inputNumeric" => ("number", "numeric")
       case "inputText" => ("text", "text")
     }
-    s"""            <input
-      |                class="govuk-input govuk-input--width-5 ${if(value.isEmpty) "govuk-input--error" else ""}"
-      |                id="$id"
-      |                name="$name"
-      |                type="$inputType"
-      |                value="$value"
-      |                placeholder="$placeholder"
-      |                inputmode="$inputMode"
-      |            >""".stripMargin
+    s"""        <input
+       |            class="govuk-input govuk-input--width-5 ${if(value.isEmpty) "govuk-input--error" else ""}"
+       |            id="$id"
+       |            name="$name"
+       |            type="$inputType"
+       |            value="$value"
+       |            placeholder="$placeholder"
+       |            inputmode="$inputMode"
+       |        >""".stripMargin
   }
 
   private def addValuesToRadioAttributes(id: String, name: String, selected: Boolean, value: String): String = {
