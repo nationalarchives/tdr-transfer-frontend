@@ -2,9 +2,9 @@ package testUtils
 
 import org.scalatest.matchers.must.Matchers._
 
-class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-checkboxes--small") {
+class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String=" govuk-checkboxes--small") {
   def generateWaysToIncorrectlySubmitAForm(): Seq[Seq[(String, String)]] = {
-    val possibleOptions: Seq[String] = options.map(_.name)
+    val possibleOptions: Seq[String] = defaultOptions.map(_.name)
     val optionsToSelectToGenerateFormErrors =
       for {
         numberRangeOfOptionsToSelect <- (1 until possibleOptions.length).toList
@@ -18,39 +18,41 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
 
     assert(checkIfCorrectOptionsWerePassedIntoForm(optionsSelected),
       s"\nThe option(s) selected ${optionsSelected.keys.mkString(", ")}, do not match the options passed into this class")
-    options.foreach {
-      option =>
-        val (htmlErrorSummary, htmlErrorMessage) = generateErrorMessages(option)
-        val selectedValue = optionsSelected.getOrElse(option.name, "OptionNotSubmitted")
-        val optionStatus: OptionStatus = generateOptionStatus(option, selectedValue)
+    defaultOptions.foreach {
+      defaultOption =>
+        val (htmlErrorSummary, htmlErrorMessage) = generateErrorMessages(defaultOption)
+        val selectedValue = optionsSelected.getOrElse(defaultOption.name, "OptionNotSubmitted")
+        val optionStatus: OptionStatus = generateOptionStatus(defaultOption, selectedValue)
 
         formStatus match {
           case "NotSubmitted" =>
-            val value = if(optionStatus.valueHasBeenEnteredOrSelected) selectedValue else option.value
-            val valueIsSelectedOrIsPlaceholder = optionStatus.valueHasBeenEnteredOrSelected || option.placeholder.nonEmpty
-            val expectedHtmlForOption = addValuesToAttributes(option, value, selected=valueIsSelectedOrIsPlaceholder, submitAttempted=false)
+            val value = if(optionStatus.valueHasBeenEnteredOrSelected) selectedValue else defaultOption.value
+            val valueIsSelectedOrIsPlaceholder = optionStatus.valueHasBeenEnteredOrSelected || defaultOption.placeholder.nonEmpty
+            val expectedHtmlForOption = addValuesToAttributes(defaultOption, value, selected=valueIsSelectedOrIsPlaceholder, submitAttempted=false)
             checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, formNotSubmitted=true)
           case "PartiallySubmitted" =>
-            val hasErrorDependency: Boolean = hasAnErrorDependency(optionsSelected, option.errorMessageDependency)
+            val hasErrorDependency: Boolean = hasAnErrorDependency(optionsSelected, defaultOption.errorMessageDependency)
             if(optionStatus.valueHasBeenEnteredOrSelected) {
-              val expectedHtmlForOption = addValuesToAttributes(option, selectedValue, selected=true, hasDependency=hasErrorDependency)
-              checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected=true)
+              val expectedHtmlForOption = addValuesToAttributes(defaultOption, selectedValue, selected=true, hasDependency=hasErrorDependency)
+              checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage)
             } else if(optionStatus.aDifferentValueFromSameGroupHasBeenSelected) {
               // option is part of a group with the same option.name (like radio) but a different option from group was selected
-              val expectedHtmlForOption = addValuesToAttributes(option, option.value, hasDependency=hasErrorDependency)
-              val elementSelectedWasNotPlaceholder: Boolean = optionsSelected(option.name) != ""
+              val expectedHtmlForOption = addValuesToAttributes(defaultOption, defaultOption.value, hasDependency=hasErrorDependency)
+              val elementSelectedWasNotPlaceholder: Boolean = optionsSelected(defaultOption.name) != ""
               checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected = elementSelectedWasNotPlaceholder)
             } else {// either no option was submitted or no value entered (is an empty string)
-              val optionDoesNotBelongToAGroup = option.name != option.id
-              val userHasRemovedDefaultValue = selectedValue == "" && option.value != selectedValue && optionDoesNotBelongToAGroup
-              val value = if(userHasRemovedDefaultValue) selectedValue else option.value
-              val expectedHtmlForOption = addValuesToAttributes(option, value, selected=option.placeholder.nonEmpty, hasDependency=hasErrorDependency)
+              val optionDoesNotBelongToAGroup = defaultOption.name != defaultOption.id
+              val userHasRemovedDefaultValue = selectedValue == "" && defaultOption.value != selectedValue && optionDoesNotBelongToAGroup
+              val value = if(userHasRemovedDefaultValue) selectedValue else defaultOption.value
+              val expectedHtmlForOption = addValuesToAttributes(
+                defaultOption, value, selected=defaultOption.placeholder.nonEmpty, hasDependency=hasErrorDependency
+              )
               checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected=false,
               errorIsDependent = hasErrorDependency)
             }
           case "Submitted" =>
-            val value = if(optionStatus.valueHasBeenEnteredOrSelected) selectedValue else option.value
-            val expectedHtmlForOption = addValuesToAttributes(option, value, selected=true, disabledStatus="disabled")
+            val value = if(optionStatus.valueHasBeenEnteredOrSelected) selectedValue else defaultOption.value
+            val expectedHtmlForOption = addValuesToAttributes(defaultOption, value, selected=true, disabledStatus="disabled")
             checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage)
           case _ => throw new IllegalStateException(
             s"Unexpected formStatus: $formStatus. statuses can only be 'NotSubmitted', 'PartiallySubmitted' and 'Submitted'"
@@ -89,7 +91,7 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
 
   private def checkIfCorrectOptionsWerePassedIntoForm(optionsSelected: Map[String, String]): Boolean =
     optionsSelected.keys.toList.forall(
-      optionSelected => options.map(_.name).contains(optionSelected)
+      optionSelected => defaultOptions.map(_.name).contains(optionSelected)
     )
 
   private def addValuesToAttributes(option: MockInputOption, valueEnteredOrSelected: String, submitAttempted: Boolean=true, selected: Boolean=false,
