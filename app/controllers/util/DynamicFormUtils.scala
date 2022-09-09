@@ -15,9 +15,11 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
   }
 
   def validateAndConvertSubmittedValuesToFormFields(submittedValues: Map[String, Seq[String]]): List[FormField] = {
+    val submittedValuesTrimmed: Map[String, Seq[String]] = trimValues(submittedValues)
+
     defaultFieldValues.map {
       formField => {
-        val fieldValue: List[(String, Seq[String])] = getSubmittedFieldValue(formField.fieldId, submittedValues)
+        val fieldValue: List[(String, Seq[String])] = getSubmittedFieldValue(formField.fieldId, submittedValuesTrimmed)
         formField match {
           case dateField: DateField =>
             val day = fieldValue.find(_._1.endsWith("day")).map(_._2.head).getOrElse("")
@@ -52,4 +54,7 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
       fieldValue
     }
   }
+
+  private def trimValues(submittedValues: Map[String, Seq[String]]): Map[String, Seq[String]] =
+    submittedValues.map { case (key, values) => key -> values.map(_.trim) }
 }
