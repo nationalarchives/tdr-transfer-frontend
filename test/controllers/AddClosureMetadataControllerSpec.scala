@@ -250,24 +250,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "rerender form with user's data if form is partially submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val newInputTextValues = Map(
-        "inputdate-FoiExemptionAsserted-day" -> "5",
-        "inputdate-FoiExemptionAsserted-month" -> "11",
-        "inputdate-FoiExemptionAsserted-year" -> "2021",
-        "inputdate-ClosureStartDate-day" -> "",
-        "inputdate-ClosureStartDate-month" -> "",
-        "inputdate-ClosureStartDate-year" -> "",
-        "inputnumeric-ClosurePeriod-years" ->  ""
-      )
-      val expectedOptions = expectedDefaultOptions.map{
-        mockOption =>
-          newInputTextValues.get(mockOption.name) match {
-            case Some(newInputTextValue) => mockOption.copy(value = newInputTextValue)
-            case None => mockOption
-          }
-      }
-
-      val formTester = new FormTester(expectedOptions)
+      val formTester = new FormTester(expectedDefaultOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
       setConsignmentReferenceResponse(wiremockServer)
@@ -300,23 +283,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "display the most immediate date error if more than one date input (per date field) has an mistake in it" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val newInputTextValues = Map(
-        "inputdate-FoiExemptionAsserted-day" -> "",
-        "inputdate-FoiExemptionAsserted-month" -> "",
-        "inputdate-FoiExemptionAsserted-year" -> "",
-        "inputdate-ClosureStartDate-day" -> "5",
-        "inputdate-ClosureStartDate-month" -> "",
-        "inputdate-ClosureStartDate-year" -> ""
-      )
-      val expectedOptions = expectedDefaultOptions.map{
-        mockOption =>
-          newInputTextValues.get(mockOption.name) match {
-            case Some(newInputTextValue) => mockOption.copy(value = newInputTextValue)
-            case None => mockOption.copy(errorMessage = "")
-          }
-      }
-
-      val formTester = new FormTester(expectedOptions)
+      val formTester = new FormTester(expectedDefaultOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
       setConsignmentReferenceResponse(wiremockServer)

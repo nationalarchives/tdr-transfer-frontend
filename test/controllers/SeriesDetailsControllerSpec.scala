@@ -76,6 +76,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer,"standard")
       setConsignmentReferenceResponse(wiremockServer)
       val formTester = new FormTester(expectedDefaultOptions)
+      val expectedDefaultForm = Map("series" -> "")
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
@@ -88,7 +89,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(seriesDetailsPageAsString, optionsSelected=Map())
+      formTester.checkHtmlForOptionAndItsAttributes(seriesDetailsPageAsString, optionsSelected=expectedDefaultForm)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
@@ -241,7 +242,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
           errorMessage = "error.required"
         )
       )
-      val formTester = new FormTester(expectedOptions)
+      val formTester = new FormTester(expectedOptions) // placeholder is not an option on "already chosen" page
 
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
@@ -251,7 +252,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       checkForExpectedSeriesPageContent(seriesDetailsPageAsString, seriesAlreadyChosen = true)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(seriesDetailsPageAsString, Map(), formStatus = "Submitted")
+      formTester.checkHtmlForOptionAndItsAttributes(seriesDetailsPageAsString, Map("series" -> seriesId.toString), formStatus = "Submitted")
     }
   }
 

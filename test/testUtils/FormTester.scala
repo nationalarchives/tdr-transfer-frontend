@@ -13,7 +13,7 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
 
     optionsToSelectToGenerateFormErrors
   }
-
+  //scalastyle:off cyclomatic.complexity
   def checkHtmlForOptionAndItsAttributes(htmlAsString: String, optionsSelected: Map[String, String], formStatus: String="NotSubmitted"): Unit = {
 
     assert(checkIfCorrectOptionsWerePassedIntoForm(optionsSelected),
@@ -21,34 +21,53 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
     options.foreach {
       option =>
         val (htmlErrorSummary, htmlErrorMessage) = generateErrorMessages(option)
-        val valueSelected = optionsSelected.getOrElse(option.name, "")
+        val selectedValue = optionsSelected.getOrElse(option.name, "OptionNotSubmitted")
+        val optionStatus: OptionStatus = generateOptionStatus(option, selectedValue)
+
         formStatus match {
           case "NotSubmitted" =>
-            val expectedHtmlForOption = addValuesToAttributes(option, selected=valueSelected == option.value, submitAttempted=false)
+            val value = if(optionStatus.valueHasBeenEnteredOrSelected) selectedValue else option.value
+            val valueIsSelectedOrIsPlaceholder = optionStatus.valueHasBeenEnteredOrSelected || option.placeholder.nonEmpty
+            val expectedHtmlForOption = addValuesToAttributes(option, value, selected=valueIsSelectedOrIsPlaceholder, submitAttempted=false)
             checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, formNotSubmitted=true)
           case "PartiallySubmitted" =>
-            val optionPresentAndHasAValue = valueSelected != ""
-            if(optionPresentAndHasAValue && valueSelected == option.value) {
-              val expectedHtmlForOption = addValuesToAttributes(option, selected=true)
-              checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected=option.value.nonEmpty)
-            } else if(optionPresentAndHasAValue && valueSelected != option.value) { // option is part of a group; another option from group was selected
-              val expectedHtmlForOption = addValuesToAttributes(option)
+            val hasErrorDependency: Boolean = hasAnErrorDependency(optionsSelected, option.errorMessageDependency)
+            if(optionStatus.valueHasBeenEnteredOrSelected) {
+              val expectedHtmlForOption = addValuesToAttributes(option, selectedValue, selected=true, hasDependency=hasErrorDependency)
+              checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected=true)
+            } else if(optionStatus.aDifferentValueFromSameGroupHasBeenSelected) {
+              // option is part of a group with the same option.name (like radio) but a different option from group was selected
+              val expectedHtmlForOption = addValuesToAttributes(option, option.value, hasDependency=hasErrorDependency)
               val elementSelectedWasNotPlaceholder: Boolean = optionsSelected(option.name) != ""
               checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected = elementSelectedWasNotPlaceholder)
-            } else {
-              val hasErrorDependency: Boolean = hasAnErrorDependency(optionsSelected, option.errorMessageDependency)
-              val expectedHtmlForOption = addValuesToAttributes(option, selected=option.placeholder.nonEmpty, hasDependency=hasErrorDependency)
+            } else {// either no option was submitted or no value entered (is an empty string)
+              val optionDoesNotBelongToAGroup = option.name != option.id
+              val userHasRemovedDefaultValue = selectedValue == "" && option.value != selectedValue && optionDoesNotBelongToAGroup
+              val value = if(userHasRemovedDefaultValue) selectedValue else option.value
+              val expectedHtmlForOption = addValuesToAttributes(option, value, selected=option.placeholder.nonEmpty, hasDependency=hasErrorDependency)
               checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected=false,
               errorIsDependent = hasErrorDependency)
             }
           case "Submitted" =>
-            val expectedHtmlForOption = addValuesToAttributes(option, selected=true, disabledStatus="disabled")
+            val value = if(optionStatus.valueHasBeenEnteredOrSelected) selectedValue else option.value
+            val expectedHtmlForOption = addValuesToAttributes(option, value, selected=true, disabledStatus="disabled")
             checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage)
           case _ => throw new IllegalStateException(
             s"Unexpected formStatus: $formStatus. statuses can only be 'NotSubmitted', 'PartiallySubmitted' and 'Submitted'"
           )
         }
     }
+  }
+  //scalastyle:on cyclomatic.complexity
+  private def generateOptionStatus(option: MockInputOption, selectedValue: String): OptionStatus = {
+    val optionWasSubmittedAndValueWasEnteredOrSelected = selectedValue != "OptionNotSubmitted" && selectedValue.nonEmpty
+    val valueHasBeenEntered: Boolean = optionWasSubmittedAndValueWasEnteredOrSelected && option.value == ""
+    val valueHasBeenSelected: Boolean = optionWasSubmittedAndValueWasEnteredOrSelected && selectedValue == option.value
+    val valueHasBeenEnteredOrSelected = valueHasBeenEntered || valueHasBeenSelected
+    val aDifferentValueFromSameGroupHasBeenSelected: Boolean =
+      optionWasSubmittedAndValueWasEnteredOrSelected && selectedValue != option.value
+    // options can have the same option.name, which means they are in a group (e.g radio options), but not value
+    OptionStatus(valueHasBeenEnteredOrSelected, aDifferentValueFromSameGroupHasBeenSelected)
   }
 
   private def generateErrorMessages(option: MockInputOption): (String, String) = {
@@ -73,16 +92,16 @@ class FormTester(options: List[MockInputOption], smallCheckbox: String=" govuk-c
       optionSelected => options.map(_.name).contains(optionSelected)
     )
 
-  private def addValuesToAttributes(option: MockInputOption, submitAttempted: Boolean=true, selected: Boolean=false,
+  private def addValuesToAttributes(option: MockInputOption, valueEnteredOrSelected: String, submitAttempted: Boolean=true, selected: Boolean=false,
                                     hasDependency: Boolean=false, disabledStatus: String=""): String = {
 
     option.fieldType match {
       case "inputCheckbox" => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
-      case "inputDate" => addValuesToDateAttributes(option.id, option.name, option.value, option.placeholder, hasDependency, submitAttempted)
-      case "inputDropdown" => addValuesToDropdownAttributes(selected, option.value, option.label, option.placeholder)
-      case "inputNumeric" => addValuesToTextBoxAttributes(option.id, option.name, option.value, option.placeholder, option.fieldType)
-      case "inputRadio" => addValuesToRadioAttributes(option.id, option.name, selected, option.value: String)
-      case "inputText" => addValuesToTextBoxAttributes(option.id, option.name, option.value, option.placeholder, option.fieldType)
+      case "inputDate" => addValuesToDateAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, hasDependency, submitAttempted)
+      case "inputDropdown" => addValuesToDropdownAttributes(selected, valueEnteredOrSelected, option.label, option.placeholder)
+      case "inputNumeric" => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType)
+      case "inputRadio" => addValuesToRadioAttributes(option.id, option.name, selected, valueEnteredOrSelected: String)
+      case "inputText" => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType)
     }
   }
 
@@ -198,3 +217,5 @@ case class MockInputOption(name: String,
                            fieldType: String="",
                            errorMessage: String="",
                            errorMessageDependency: String="") // some fields (like month) can only display their error if another field (like day) has none
+
+case class OptionStatus(valueHasBeenEnteredOrSelected: Boolean, aDifferentValueFromSameGroupHasBeenSelected: Boolean)
