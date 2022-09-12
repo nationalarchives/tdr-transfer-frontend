@@ -462,7 +462,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       // scalastyle:on line.size.limit
     }
 
-    "render the additional metadata file selection page, pagination buttons up to the total pages for large pages" in {
+    "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages" in {
       val parentFolder = "parentFolder"
       val currentPage = 5
       val selectedFolderId = UUID.randomUUID()
@@ -511,7 +511,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 9" value="9">""") mustBe true
     }
 
-    "render the additional metadata file selection page, pagination buttons up to the total pages for large pages when on the first page" in {
+    "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages when on the first page" in {
       val parentFolder = "parentFolder"
       val currentPage = 1
       val selectedFolderId = UUID.randomUUID()
@@ -550,7 +550,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">""") mustBe true
     }
 
-    "render the additional metadata file selection page, pagination buttons up to the total pages for large pages when on the last page" in {
+    "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages when on the last page" in {
       val parentFolder = "parentFolder"
       val currentPage = 5
       val selectedFolderId = UUID.randomUUID()
