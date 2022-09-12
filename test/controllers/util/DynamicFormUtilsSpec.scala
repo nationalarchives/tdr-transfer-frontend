@@ -111,10 +111,10 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         InputNameAndValue("Year", "", "YYYY"),
         isRequired = true
       ),
-      TextField("fieldidcontainsdaymonthoryear", "", "", InputNameAndValue("years", "0", "0"), "numeric", true),
-      DropdownField("fieldidendswithday", "", "", Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, true),
-      RadioButtonGroupField("fieldidendswithmonth", "", "", Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", true),
-      TextField("fieldidendswithyear", "", "", InputNameAndValue("text", "", ""), "text", true),
+      TextField("fieldidcontainsdaymonthoryear", "", "", InputNameAndValue("years", "0", "0"), "numeric", isRequired = true),
+      DropdownField("fieldidendswithday", "", "", Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, isRequired = true),
+      RadioButtonGroupField("fieldidendswithmonth", "", "", Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", isRequired = true),
+      TextField("fieldidendswithyear", "", "", InputNameAndValue("text", ""), "text", isRequired = true)
     )
 
   val dynamicFormUtils = new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
@@ -185,7 +185,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
       val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
 
-      val dateField = validatedForm.filter(_.isInstanceOf[DateField]).toList
+      val dateField = validatedForm.filter(_.isInstanceOf[DateField])
       dateField.head.fieldErrors should equal(List(s"Month entered must be a whole number."))
       dateField(1).fieldErrors should equal(List(s"000 is an invalid Day number."))
 
