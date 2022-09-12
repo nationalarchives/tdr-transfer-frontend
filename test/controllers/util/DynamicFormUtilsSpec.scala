@@ -83,6 +83,46 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     thrownException.getMessage should equal(s"Metadata name TestProperty1 does not exist in submitted form values")
   }
 
+  "validateAndConvertSubmittedValuesToFormFields" should "not throw an exception if the metadata name (in the input name) " +
+    "contains/ends with a 'unitType'" in {
+
+    val rawFormWithCsrfToken = ListMap(
+      "inputdate-fieldidcontainsdaymonthyearoryears-day" -> List("29"),
+      "inputdate-fieldidcontainsdaymonthyearoryears-month" -> List("4"),
+      "inputdate-fieldidcontainsdaymonthyearoryears-year" -> List("2020"),
+      "inputnumeric-fieldidcontainsdaymonthoryear-years" -> List("4"),
+      "inputdropdown-fieldidendswithday" -> List("TestValue 3"),
+      "inputradio-fieldidendswithmonth" -> List("Yes"),
+      "inputtext-fieldidendswithyear" -> List("Some Text"),
+      "csrfToken" -> List("12345")
+    )
+
+    val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
+      FakeRequest.apply(POST, s"/consignment/12345/add-closure-metadata")
+        .withBody(AnyContentAsFormUrlEncoded(rawFormWithCsrfToken))
+
+    val metadataUsedForFormAsFields = List(
+      DateField(
+        "fieldidcontainsdaymonthyearoryears",
+        "fieldId contains day month and year",
+        "We were previously using '.contains('day')' which meant that this type of form (above) would have showed the user the wrong error",
+        InputNameAndValue("Day", "", "DD"),
+        InputNameAndValue("Month", "", "MM"),
+        InputNameAndValue("Year", "", "YYYY"),
+        isRequired = true
+      ),
+      TextField("fieldidcontainsdaymonthoryear", "", "", InputNameAndValue("years", "0", "0"), "numeric", true),
+      DropdownField("fieldidendswithday", "", "", Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, true),
+      RadioButtonGroupField("fieldidendswithmonth", "", "", Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", true),
+      TextField("fieldidendswithyear", "", "", InputNameAndValue("text", "", ""), "text", true),
+    )
+
+  val dynamicFormUtils = new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
+  val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+
+  validatedForm.foreach(_.fieldErrors shouldBe Nil)
+  }
+
   "validateAndConvertSubmittedValuesToFormFields" should "return a 'no-value selected'-selection-related error for selection fields if they are missing" in {
     val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
       MockFormValues(dropdownValue = List(""))

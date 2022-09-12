@@ -22,9 +22,9 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
         val fieldValue: List[(String, Seq[String])] = getSubmittedFieldValue(formField.fieldId, submittedValuesTrimmed)
         formField match {
           case dateField: DateField =>
-            val day = fieldValue.find(_._1.endsWith("day")).map(_._2.head).getOrElse("")
-            val month = fieldValue.find(_._1.endsWith("month")).map(_._2.head).getOrElse("")
-            val year = fieldValue.find(_._1.endsWith("year")).map(_._2.head).getOrElse("")
+            val day = fieldValue.find(_._1.endsWith("-day")).map(_._2.head).getOrElse("")
+            val month = fieldValue.find(_._1.endsWith("-month")).map(_._2.head).getOrElse("")
+            val year = fieldValue.find(_._1.endsWith("-year")).map(_._2.head).getOrElse("")
             DateField.update(dateField, day, month, year)
               .copy(fieldErrors = DateField.validate(day, month, year).map(List(_)).getOrElse(Nil))
 
