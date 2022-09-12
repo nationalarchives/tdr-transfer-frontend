@@ -1,0 +1,35 @@
+@import java.util.UUID
+@import views.html.partials.inputSingleCheckbox
+@import com.google.api.services.drive.model.File
+@import views.html.helper.form
+@import views.html.helper.CSRF
+@(consignmentId: UUID, consignmentRef: String, name: String, files: List[File])(implicit request: RequestHeader, messages: Messages)
+
+@main("Upload your records", name = name) {
+  <h1>Choose the drive folder to upload</h1>
+  @form(
+    routes.UploadController.driveSubmit(consignmentId),
+    (Symbol("novalidate"), "")
+  ) {
+    @CSRF.formField
+    @for(file <- files) {
+      @inputSingleCheckbox(
+        file.getName,
+        Map(
+          Symbol("_label") -> file.getName,
+          Symbol("_value") -> "true",
+          Symbol("_smallCheckbox") -> true,
+          Symbol("_checkedOption") -> false,
+          Symbol("_requiredOption") -> true
+        ),
+        Nil
+      )
+    }
+    <div class="govuk-button-group">
+      <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+        Continue
+      </button>
+    </div>
+  }
+
+}

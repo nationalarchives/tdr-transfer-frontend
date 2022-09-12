@@ -7,8 +7,9 @@ import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeploymen
 import scala.concurrent.ExecutionContext
 
 class KeycloakConfiguration @Inject ()(configuration: Configuration)(implicit val executionContext: ExecutionContext) {
+  def keycloakDeployment(): TdrKeycloakDeployment = TdrKeycloakDeployment(s"${configuration.get[String]("auth.url")}", "tdr", 3600)
   def token(value: String): Option[Token] = {
-    implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(s"${configuration.get[String]("auth.url")}", "tdr", 3600)
+    implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = keycloakDeployment()
     KeycloakUtils().token(value).toOption
   }
 }

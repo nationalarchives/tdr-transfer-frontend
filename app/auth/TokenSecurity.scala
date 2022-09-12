@@ -11,6 +11,7 @@ import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.util.{Optional, UUID}
+import scala.compat.java8.OptionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait TokenSecurity extends OidcSecurity with I18nSupport {
@@ -26,10 +27,16 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     profileManager.getProfile
   }
 
+  case class RequestToProfile(profile: Option[UserProfile])
+
+  implicit def requestToProfile(request: Request[AnyContent]): RequestToProfile =
+    RequestToProfile(getProfile(request).asScala)
+
   implicit def requestToRequestWithToken(request: Request[AnyContent]): RequestWithToken = {
     val profile = getProfile(request)
     val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
     val accessToken: Option[Token] = keycloakConfiguration.token(token.getValue)
+
     RequestWithToken(request, accessToken)
   }
 
@@ -44,7 +51,7 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   }
 
   def standardUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    createResult(action, request, request.token.isStandardUser)
+    createResult(action, request, request.token.isStandardUser || request.token.isGoogleUser)
   }
 
   def standardTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
