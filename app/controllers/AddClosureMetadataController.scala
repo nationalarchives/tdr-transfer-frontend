@@ -98,7 +98,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
         orderedFieldsForForm.map(field =>
           (field.fieldId match {
             case `foiExemptionAsserted` => fileMetadata.foiExemptionAsserted.map(p => DateField.update(field.asInstanceOf[DateField], p))
-            case `closureStartDate` => fileMetadata.foiExemptionAsserted.map(p => DateField.update(field.asInstanceOf[DateField], p))
+            case `closureStartDate` => fileMetadata.closureStartDate.map(p => DateField.update(field.asInstanceOf[DateField], p))
             case `closurePeriod` => fileMetadata.closurePeriod.map(p => TextField.update(field.asInstanceOf[TextField], p.toString))
             case `foiExemptionCode` => fileMetadata.foiExemptionCode.map(DropdownField.update(field.asInstanceOf[DropdownField], _))
             case `titlePublic` => fileMetadata.titlePublic.map(RadioButtonGroupField.update(field.asInstanceOf[RadioButtonGroupField], _))

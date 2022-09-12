@@ -23,33 +23,51 @@ import scala.concurrent.ExecutionContext
 class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontEndTestHelper{
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  lazy val privateBetaOptions = Map(
-    "publicRecord" -> (
+  lazy val privateBetaOptions: List[MockInputOption] = List(
+    MockInputOption(
+      "publicRecord",
       "I confirm that the records are Public Records.",
-      "All records must be confirmed as public before proceeding"
+      value="true",
+      errorMessage="All records must be confirmed as public before proceeding",
+      fieldType="inputCheckbox"
     ),
-    "crownCopyright" -> (
+    MockInputOption(
+      "crownCopyright",
       "I confirm that the records are all Crown Copyright.",
-      "All records must be confirmed Crown Copyright before proceeding"
+      value="true",
+      errorMessage="All records must be confirmed Crown Copyright before proceeding",
+      fieldType="inputCheckbox"
     ),
-    "english" -> (
+    MockInputOption(
+      "english",
       "I confirm that the records are all in English.",
-      "All records must be confirmed as English language before proceeding"
+      value="true",
+      errorMessage="All records must be confirmed as English language before proceeding",
+      fieldType="inputCheckbox"
     )
   )
 
-  lazy val complianceOptions = Map(
-    "droAppraisalSelection" -> (
+  lazy val complianceOptions: List[MockInputOption] = List(
+    MockInputOption(
+      "droAppraisalSelection",
       "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
-      "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records"
+      value="true",
+      errorMessage="Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records",
+      fieldType="inputCheckbox"
     ),
-    "droSensitivity" -> (
+    MockInputOption(
+      "droSensitivity",
       "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
-      "Departmental Records Officer (DRO) must have signed off sensitivity review"
+      value="true",
+      errorMessage="Departmental Records Officer (DRO) must have signed off sensitivity review",
+      fieldType="inputCheckbox"
     ),
-    "openRecords" -> (
+    MockInputOption(
+      "openRecords",
       "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-      "All records must be open"
+      value="true",
+      errorMessage="All records must be open",
+      fieldType="inputCheckbox"
     )
   )
 

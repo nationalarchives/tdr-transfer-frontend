@@ -45,7 +45,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
 //    Use this until descriptions are added, then use property.description.getOrElse("")
     val fieldLabel = dbAndFieldLabel.getOrElse(property.name, property.fullName.getOrElse(""))
     val fieldDescription = dbAndFieldDescription.getOrElse(property.name, property.description.getOrElse(""))
-    val isRequired = property.propertyGroup.contains("MandatoryMetadata")
+    val isRequired = property.propertyGroup.getOrElse("").startsWith("Mandatory")
     dataType match {
       case Boolean =>
         val selectedOption = property.defaultValue.map(v => if (v == "True") "yes" else "no").getOrElse("no")
