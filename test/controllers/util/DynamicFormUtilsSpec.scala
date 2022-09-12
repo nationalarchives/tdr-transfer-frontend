@@ -83,6 +83,46 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     thrownException.getMessage should equal(s"Metadata name TestProperty1 does not exist in submitted form values")
   }
 
+  "validateAndConvertSubmittedValuesToFormFields" should "not throw an exception if the metadata name (in the input name) " +
+    "contains/ends with a 'unitType'" in {
+
+    val rawFormWithCsrfToken = ListMap(
+      "inputdate-fieldidcontainsdaymonthyearoryears-day" -> List("29"),
+      "inputdate-fieldidcontainsdaymonthyearoryears-month" -> List("4"),
+      "inputdate-fieldidcontainsdaymonthyearoryears-year" -> List("2020"),
+      "inputnumeric-fieldidcontainsdaymonthoryear-years" -> List("4"),
+      "inputdropdown-fieldidendswithday" -> List("TestValue 3"),
+      "inputradio-fieldidendswithmonth" -> List("Yes"),
+      "inputtext-fieldidendswithyear" -> List("Some Text"),
+      "csrfToken" -> List("12345")
+    )
+
+    val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
+      FakeRequest.apply(POST, s"/consignment/12345/add-closure-metadata")
+        .withBody(AnyContentAsFormUrlEncoded(rawFormWithCsrfToken))
+
+    val metadataUsedForFormAsFields = List(
+      DateField(
+        "fieldidcontainsdaymonthyearoryears",
+        "fieldId contains day month and year",
+        "We were previously using '.contains('day')' which meant that this type of form (above) would have showed the user the wrong error",
+        InputNameAndValue("Day", "", "DD"),
+        InputNameAndValue("Month", "", "MM"),
+        InputNameAndValue("Year", "", "YYYY"),
+        isRequired = true
+      ),
+      TextField("fieldidcontainsdaymonthoryear", "", "", InputNameAndValue("years", "0", "0"), "numeric", isRequired = true),
+      DropdownField("fieldidendswithday", "", "", Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, isRequired = true),
+      RadioButtonGroupField("fieldidendswithmonth", "", "", Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", isRequired = true),
+      TextField("fieldidendswithyear", "", "", InputNameAndValue("text", ""), "text", isRequired = true)
+    )
+
+  val dynamicFormUtils = new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
+  val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+
+  validatedForm.foreach(_.fieldErrors shouldBe Nil)
+  }
+
   "validateAndConvertSubmittedValuesToFormFields" should "return a 'no-value selected'-selection-related error for selection fields if they are missing" in {
     val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
       MockFormValues(dropdownValue = List(""))
@@ -136,7 +176,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
       val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
         MockFormValues(month = List("b4"),
           year = List("2r"),
-          numericTextBoxValue = List(" 40"),
+          numericTextBoxValue = List("1.5"),
           day2 = List("000"),
           month2 = List("e"),
           year2 = List("-")
@@ -145,7 +185,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
       val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
 
-      val dateField = validatedForm.filter(_.isInstanceOf[DateField]).toList
+      val dateField = validatedForm.filter(_.isInstanceOf[DateField])
       dateField.head.fieldErrors should equal(List(s"Month entered must be a whole number."))
       dateField(1).fieldErrors should equal(List(s"000 is an invalid Day number."))
 
@@ -153,20 +193,38 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
       textField.fieldErrors should equal(List(s"years entered must be a whole number."))
     }
 
+  "validateAndConvertSubmittedValuesToFormFields" should "return all values, with any value submitted with whitespace " +
+    "at the beginning/end of it, trimmed and no errors" in {
+    val mockFormValues = MockFormValues(
+      day = List(" 3"),
+      month = List("4 "),
+      year = List(" 2021 "),
+      numericTextBoxValue = List("       5"),
+      day2 = List("   7   ")
+    )
+    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+      mockFormValues
+    )
+
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    validatedForm.exists(_.fieldErrors.nonEmpty) should be(false)
+    verifyUpdatedFormFields(mockFormValues, validatedForm)
+  }
+
   private def verifyUpdatedFormFields(mockFormValues: MockFormValues, validatedForm: List[FormField]): Unit = {
 
     val date = validatedForm.find(_.fieldId == "TestProperty3").map(_.asInstanceOf[DateField]).get
-    date.day.value should equal(mockFormValues.day.head)
-    date.month.value should equal(mockFormValues.month.head)
-    date.year.value should equal(mockFormValues.year.head)
+    date.day.value should equal(mockFormValues.day.head.trim)
+    date.month.value should equal(mockFormValues.month.head.trim)
+    date.year.value should equal(mockFormValues.year.head.trim)
 
     val date2 = validatedForm.find(_.fieldId == "TestProperty5").map(_.asInstanceOf[DateField]).get
-    date2.day.value should equal(mockFormValues.day2.head)
-    date2.month.value should equal(mockFormValues.month2.head)
-    date2.year.value should equal(mockFormValues.year2.head)
+    date2.day.value should equal(mockFormValues.day2.head.trim)
+    date2.month.value should equal(mockFormValues.month2.head.trim)
+    date2.year.value should equal(mockFormValues.year2.head.trim)
 
     val text = validatedForm.find(_.fieldId == "TestProperty1").map(_.asInstanceOf[TextField]).get
-    text.nameAndValue.value should equal(mockFormValues.numericTextBoxValue.head)
+    text.nameAndValue.value should equal(mockFormValues.numericTextBoxValue.head.trim)
 
     val dropdownField = validatedForm.find(_.fieldId == "TestProperty4").map(_.asInstanceOf[DropdownField]).get
     dropdownField.selectedOption.map(_.value).get should equal(mockFormValues.dropdownValue.head)
