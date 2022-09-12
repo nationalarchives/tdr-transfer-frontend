@@ -26,7 +26,7 @@ import play.api.test.WsTestClient.InternalWSClient
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import testUtils.{FormTester, CheckPageForStaticElements, EnglishLang, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, EnglishLang, FormTester, FrontEndTestHelper, MockInputOption}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -52,14 +52,20 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   val langs: Langs = new EnglishLang
 
-  val options = Map(
-    "openRecords" -> (
-      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-      "All records must be confirmed as open before proceeding"
+  val options: List[MockInputOption] = List(
+    MockInputOption(
+    "openRecords",
+     "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
+      value="true",
+      errorMessage = "All records must be confirmed as open before proceeding",
+      fieldType="inputCheckbox"
     ),
-    "transferLegalCustody" -> (
+    MockInputOption(
+    "transferLegalCustody",
       "I confirm that I am transferring legal custody of these records to The National Archives.",
-      "Transferral of legal custody of all records must be confirmed before proceeding"
+      value="true",
+      errorMessage = "Transferral of legal custody of all records must be confirmed before proceeding",
+      fieldType="inputCheckbox"
     )
   )
 
@@ -161,7 +167,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, Map())
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
@@ -207,7 +213,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, formStatus="PartiallySubmitted")
+      formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, Map(), formStatus="PartiallySubmitted")
     }
 
     "display correct error when only the 'open records' option is selected and the final transfer confirmation form is submitted" in {

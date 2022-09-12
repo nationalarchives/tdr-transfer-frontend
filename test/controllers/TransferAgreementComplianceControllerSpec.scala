@@ -90,7 +90,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=taHelper.userType)
-      formOptions.checkHtmlForOptionAndItsAttributes(transferAgreementPageAsString)
+      formOptions.checkHtmlForOptionAndItsAttributes(transferAgreementPageAsString, Map())
       taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
       checkForExpectedTACompliancePageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
     }
@@ -263,7 +263,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=taHelper.userType)
-      formOptions.checkHtmlForOptionAndItsAttributes(transferAgreementPageAsString, formStatus = "Submitted")
+      formOptions.checkHtmlForOptionAndItsAttributes(transferAgreementPageAsString, Map(), formStatus = "Submitted")
       taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString)
       checkForExpectedTACompliancePageContent(transferAgreementPageAsString)
     }
@@ -286,7 +286,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       headers(taAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType=taHelper.userType)
-      formOptions.checkHtmlForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formStatus = "Submitted")
+      formOptions.checkHtmlForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, Map(), formStatus = "Submitted")
       taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
       checkForExpectedTACompliancePageContent(taAlreadyConfirmedPageAsString)
     }
@@ -320,7 +320,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
           headers(taAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
           checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType=taHelper.userType)
-          formOptions.checkHtmlForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, formStatus = "Submitted")
+          formOptions.checkHtmlForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, Map(), formStatus = "Submitted")
           taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
           checkForExpectedTACompliancePageContent(taAlreadyConfirmedPageAsString)
        }

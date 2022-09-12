@@ -20,22 +20,22 @@ addSuffixText: Boolean)(implicit messages: Messages)
 }">
     <h2 class="govuk-label-wrapper">
         <label class="govuk-label govuk-label--m" for=@input.name>
-        @fieldName
+            @fieldName
         </label>
     </h2>
     <div id="date-input-with-suffix-hint" class="govuk-hint">
-    @fieldDescription
+        @fieldDescription
     </div>
     @errorMessage(fieldId, fieldErrors)
     <div class="govuk-input__wrapper">
         <input
-        class="govuk-input govuk-input--width-5 @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
-        id="@input.name"
-        name="@{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${input.name}" else fieldId}"
-        type="@inputType"
-        value="@input.value"
-        placeholder="@input.placeHolder"
-        inputmode="@inputTextDataType"
+            class="govuk-input govuk-input--width-5 @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
+            id="@input.name"
+            name="@{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${input.name}" else fieldId}"
+            type="@inputType"
+            value="@input.value"
+            placeholder="@input.placeHolder"
+            inputmode="@inputTextDataType"
         >
         @if(addSuffixText) {
             <div class="govuk-input__suffix">@input.name</div>
