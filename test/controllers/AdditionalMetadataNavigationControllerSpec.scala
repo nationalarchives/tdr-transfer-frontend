@@ -873,12 +873,20 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(9))
+      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
+
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -922,12 +930,20 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(5))
+      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
+
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -961,12 +977,20 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(5))
+      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
+
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
