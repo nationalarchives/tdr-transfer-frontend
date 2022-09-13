@@ -97,11 +97,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="1">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="2">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="3">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
     }
 
     "not display the 'previous' button if you are on the first page" in {
@@ -460,6 +460,133 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           |                </button>""".stripMargin
       ) mustBe false
       // scalastyle:on line.size.limit
+    }
+
+    "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages" in {
+      val parentFolder = "parentFolder"
+      val currentPage = 5
+      val selectedFolderId = UUID.randomUUID()
+      val folderId = UUID.randomUUID()
+      val fileId = UUID.randomUUID()
+      val metadataType = "closure"
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
+      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(9))
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val cacheApi = mock[CacheApi]
+      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents, cacheApi)
+      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
+      val fileSelectionPageAsString = contentAsString(response)
+
+      status(response) mustBe OK
+      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe false
+      fileSelectionPageAsString.contains(
+        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 6" value="6">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 7" value="7">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 8" value="8">""") mustBe false
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 9" value="9">""") mustBe true
+    }
+
+    "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages when on the first page" in {
+      val parentFolder = "parentFolder"
+      val currentPage = 1
+      val selectedFolderId = UUID.randomUUID()
+      val folderId = UUID.randomUUID()
+      val fileId = UUID.randomUUID()
+      val metadataType = "closure"
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
+      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(5))
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val cacheApi = mock[CacheApi]
+      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents, cacheApi)
+      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
+      val fileSelectionPageAsString = contentAsString(response)
+
+      status(response) mustBe OK
+      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">""") mustBe false
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">""") mustBe true
+    }
+
+    "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages when on the last page" in {
+      val parentFolder = "parentFolder"
+      val currentPage = 5
+      val selectedFolderId = UUID.randomUUID()
+      val folderId = UUID.randomUUID()
+      val fileId = UUID.randomUUID()
+      val metadataType = "closure"
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
+      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(5))
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val cacheApi = mock[CacheApi]
+      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents, cacheApi)
+      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
+      val fileSelectionPageAsString = contentAsString(response)
+
+      status(response) mustBe OK
+      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe false
+      fileSelectionPageAsString.contains(
+        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">""") mustBe true
+      fileSelectionPageAsString.contains(
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">""") mustBe true
     }
   }
 
