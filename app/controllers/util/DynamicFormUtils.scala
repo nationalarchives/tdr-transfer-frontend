@@ -15,32 +15,35 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
   }
 
   def validateAndConvertSubmittedValuesToFormFields(submittedValues: Map[String, Seq[String]]): List[FormField] = {
+    val submittedValuesTrimmed: Map[String, Seq[String]] = trimValues(submittedValues)
 
-    defaultFieldValues.map(formField => {
-      val fieldValue = getSubmittedFieldValue(formField.fieldId, submittedValues)
-      formField match {
-        case dateField: DateField =>
-          val day = fieldValue.find(_._1.contains("day")).map(_._2.head).getOrElse("")
-          val month = fieldValue.find(_._1.contains("month")).map(_._2.head).getOrElse("")
-          val year = fieldValue.find(_._1.contains("year")).map(_._2.head).getOrElse("")
-          DateField.update(dateField, day, month, year)
-            .copy(fieldErrors = DateField.validate(day, month, year).map(List(_)).getOrElse(Nil))
+    defaultFieldValues.map {
+      formField => {
+        val fieldValue: List[(String, Seq[String])] = getSubmittedFieldValue(formField.fieldId, submittedValuesTrimmed)
+        formField match {
+          case dateField: DateField =>
+            val day = fieldValue.find(_._1.endsWith("-day")).map(_._2.head).getOrElse("")
+            val month = fieldValue.find(_._1.endsWith("-month")).map(_._2.head).getOrElse("")
+            val year = fieldValue.find(_._1.endsWith("-year")).map(_._2.head).getOrElse("")
+            DateField.update(dateField, day, month, year)
+              .copy(fieldErrors = DateField.validate(day, month, year).map(List(_)).getOrElse(Nil))
 
-        case radioButtonGroupField: RadioButtonGroupField =>
-          val selectedOption = fieldValue.head._2.headOption.getOrElse("")
-          radioButtonGroupField.copy(selectedOption = selectedOption)
+          case radioButtonGroupField: RadioButtonGroupField =>
+            val selectedOption = fieldValue.head._2.headOption.getOrElse("")
+            radioButtonGroupField.copy(selectedOption = selectedOption)
 
-        case textField: TextField =>
-          val text = fieldValue.head._2.head
-          TextField.update(textField, text)
-            .copy(fieldErrors = TextField.validate(text, textField).map(List(_)).getOrElse(Nil))
+          case textField: TextField =>
+            val text = fieldValue.head._2.head
+            TextField.update(textField, text)
+              .copy(fieldErrors = TextField.validate(text, textField).map(List(_)).getOrElse(Nil))
 
-        case dropdownField: DropdownField =>
-          val text = fieldValue.head._2.headOption.getOrElse("")
-          DropdownField.update(dropdownField, text)
-            .copy(fieldErrors = DropdownField.validate(text, dropdownField).map(List(_)).getOrElse(Nil))
+          case dropdownField: DropdownField =>
+            val text = fieldValue.head._2.headOption.getOrElse("")
+            DropdownField.update(dropdownField, text)
+              .copy(fieldErrors = DropdownField.validate(text, dropdownField).map(List(_)).getOrElse(Nil))
+        }
       }
-    })
+    }
   }
 
   private def getSubmittedFieldValue(fieldId: String, submittedValues: Map[String, Seq[String]]): List[(String, Seq[String])] = {
@@ -51,4 +54,7 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
       fieldValue
     }
   }
+
+  private def trimValues(submittedValues: Map[String, Seq[String]]): Map[String, Seq[String]] =
+    submittedValues.map { case (key, values) => key -> values.map(_.trim) }
 }

@@ -82,18 +82,26 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       .willReturn(okJson(dataString)))
   }
 
-  def setConsignmentFilesMetadataResponse(wiremockServer: WireMockServer, consignmentRef: String = "TEST-TDR-2021-GB"): StubMapping = {
+  def setConsignmentFilesMetadataResponse(wiremockServer: WireMockServer, consignmentRef: String = "TEST-TDR-2021-GB",
+                                          fileHasMetadata: Boolean = true): StubMapping = {
 
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
     val closureStartDate = LocalDateTime.of(1990, 12, 1, 10, 0)
     val foiExampleAsserted = LocalDateTime.of(1995, 1, 12, 10, 0)
-    val consignmentFilesmetada = gcfm.Data(Option(gcfm.GetConsignment(
+    val fileMetadata = if(fileHasMetadata) {
+      gcfm.GetConsignment.Files.Metadata(Some("mock code1"), Some(4), Some(closureStartDate), Some(foiExampleAsserted), Some(false))
+    } else {
+      gcfm.GetConsignment.Files.Metadata(None, None, None, None, None)
+    }
+    val consignmentFilesMetadata = gcfm.Data(Option(gcfm.GetConsignment(
       List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(),
-          gcfm.GetConsignment.Files.Metadata(Some("open"), Some(4), Some(closureStartDate), Some(foiExampleAsserted),
-            Some(false)))), consignmentRef))
+        gcfm.GetConsignment.Files(
+          UUID.randomUUID(),
+          fileMetadata
+        )
+      ), consignmentRef))
     )
-    val data: client.GraphqlData = client.GraphqlData(Some(consignmentFilesmetada))
+    val data: client.GraphqlData = client.GraphqlData(Some(consignmentFilesMetadata))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
