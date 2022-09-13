@@ -111,6 +111,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             formPostData: _*)
           .withCSRFToken).futureValue
 
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
       Mockito.verify(partSelectedSet).add(folderId)
       Mockito.verify(selectedSet).add(file1Id)
@@ -141,6 +142,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$folderId/1"))
 
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
       Mockito.verify(partSelectedSet, never()).add(any[UUID])
       Mockito.verify(selectedSet).remove(file1Id)
@@ -180,6 +182,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$folderId/1"))
 
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
       Mockito.verify(partSelectedSet).add(folderId)
       Mockito.verify(selectedSet, times(1)).add(file3Id)
@@ -207,6 +210,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             formPostData: _*)
           .withCSRFToken).futureValue
 
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
       Mockito.verify(partSelectedSet, never()).add(folderId)
       Mockito.verify(selectedSet, times(1)).add(file1Id)
@@ -233,6 +237,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             formPostData: _*)
           .withCSRFToken).futureValue
 
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
       Mockito.verify(partSelectedSet, never()).add(any[UUID])
       Mockito.verify(selectedSet, times(1)).add(file1Id)
@@ -261,6 +266,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             formPostData: _*)
           .withCSRFToken).futureValue
 
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
       Mockito.verify(partSelectedSet).add(folderId)
       Mockito.verify(selectedSet).add(file1Id)
@@ -289,6 +295,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             formPostData: _*)
           .withCSRFToken).futureValue
 
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
       Mockito.verify(partSelectedSet).add(folderId)
       Mockito.verify(selectedSet).remove(file3Id)
@@ -318,6 +325,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             formPostData: _*)
           .withCSRFToken).futureValue
 
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
       Mockito.verify(partSelectedSet, never()).add(folderId)
       Mockito.verify(selectedSet, times(1)).remove(file1Id)
@@ -325,7 +333,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       Mockito.verify(selectedSet, times(1)).remove(file3Id)
     }
 
-    "should not add an empty folder to 'selected cache' if selected" in {
+    "not add an empty folder to 'selected cache' or 'part selected cache' if selected" in {
       val metadataType = "closure"
       val selectedNodes = List()
       val allDisplayedNodes = List(folderId)
@@ -342,6 +350,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             formPostData: _*)
           .withCSRFToken).futureValue
 
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
       Mockito.verify(partSelectedSet, never()).add(folderId)
       Mockito.verify(selectedSet, never()).add(any[UUID])
@@ -366,6 +375,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
       val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
 
+      when(redisSetMock.toSet).thenReturn(Set())
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
@@ -402,6 +412,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
 
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
 
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
@@ -442,6 +453,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
 
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
 
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
@@ -484,6 +496,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
 
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
 
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
@@ -526,6 +539,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
 
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
 
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
@@ -568,6 +582,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
 
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
 
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
@@ -786,6 +801,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
 
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
 
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)

@@ -49,7 +49,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
   }
 
   implicit class CacheSetHelper(cache: RedisSet[UUID, SynchronousResult]) {
-    def updateCache(formData: NodesFormData, selectedFolderId: UUID, consignmentId: UUID, token: BearerAccessToken): Future[Unit] = {
+    def updateCache(formData: NodesFormData, consignmentId: UUID, token: BearerAccessToken): Future[Unit] = {
       val partSelectedCache = cacheApi.set[UUID](s"${consignmentId}_partSelected")
       val folderDescendantsCache = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
       val currentFolder: String = formData.folderSelected
@@ -59,7 +59,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       val deselectedNodeIds: List[UUID] = allDisplayedNodesIds
         .filter(id => !selectedNodeIds.contains(id)).filter(id => !partSelectedCache.contains(id))
 
-      //Handle folder deselection separately, as has three potential states: deselected, partially deselected, selected
+      //Handle folder deselection separately, as has three potential states: deselected, partially deselected, descendantFilesSelected
       val deselectedIdsExceptFolder: Set[UUID] = deselectedNodeIds.filter(_ != currentFolderId).toSet
 
       for {
@@ -107,10 +107,10 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
           "displayName" -> nonEmptyText,
           "isSelected" -> boolean,
           "isFolder" -> boolean,
-          "isPartiallySelected" -> boolean
+          "descendantFilesSelected" -> number
         )(NodesToDisplay.apply)(NodesToDisplay.unapply)
       ),
-      "selected" -> list(text),
+      "descendantFilesSelected" -> list(text),
       "allNodes" -> list(text),
       "pageSelected" -> number,
       "folderSelected" -> text,
@@ -122,7 +122,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
     for {
       paginatedFiles <- consignmentService.getConsignmentPaginatedFile(consignmentId, pageNumber - 1, limit, selectedFolderId, request.token.bearerAccessToken)
       edges = paginatedFiles.paginatedFiles.edges.getOrElse(List()).flatten
-      nodesToDisplay <- generateNodesToDisplay(consignmentId, edges, selectedFolderId, request.token.bearerAccessToken)
+      nodesToDisplay <- generateNodesToDisplay(consignmentId, edges, request.token.bearerAccessToken)
     } yield {
       val totalPages = paginatedFiles.paginatedFiles.totalPages
         .getOrElse(throw new IllegalStateException(s"No 'total pages' returned for folderId $selectedFolderId"))
@@ -162,7 +162,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
-        selectedFiles.updateCache(formData, selectedFolderId, consignmentId, request.token.bearerAccessToken).map(_ => {
+        selectedFiles.updateCache(formData, consignmentId, request.token.bearerAccessToken).map(_ => {
           if (formData.returnToRoot.isDefined) {
             Redirect(routes.AdditionalMetadataNavigationController
               .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(formData.returnToRoot.get), metadataType))
@@ -182,14 +182,14 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   private def generateNodesToDisplay(consignmentId: UUID,
                                      edges: List[PaginatedFiles.Edges],
-                                     selectedFolderId: UUID,
                                      token: BearerAccessToken): Future[List[NodesToDisplay]] = {
     val nodes = edges.map(edge => {
       val edgeNode = edge.node
       val edgeNodeId = edgeNode.fileId
       val isFolder = edgeNode.fileType.get == "Folder"
+
       for {
-        isPartiallySelected <- if (isFolder) { partiallySelected(consignmentId, edgeNodeId, token) } else { Future(false) }
+        descendantFilesSelected <- if (isFolder) { getDescendantFilesSelected(consignmentId, edgeNodeId, token) } else { Future(0) }
         isSelected <- selected(consignmentId, edgeNodeId, isFolder, token)
       } yield {
         NodesToDisplay(
@@ -197,7 +197,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
           edgeNode.fileName.get,
           isSelected,
           isFolder,
-          isPartiallySelected
+          descendantFilesSelected
         )}
     })
     Future.sequence(nodes)
@@ -214,18 +214,18 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
     } yield selectedFiles.containsAll(ids)
   }
 
-  private def partiallySelected(consignmentId: UUID,
+  private def getDescendantFilesSelected(consignmentId: UUID,
                                 folderId: UUID,
-                                token: BearerAccessToken): Future[Boolean] = {
+                                token: BearerAccessToken): Future[Int] = {
     val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
     val partSelectedCache: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_partSelected")
     val folderDescendantsCache = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
 
     for {
       ids <- folderDescendantsCache.getDescendantFileIds(consignmentId, folderId, token)
-      partSelected = selectedFiles.containsSome(ids)
-      _ = if (partSelected) partSelectedCache.add(folderId)
-    } yield partSelected
+      _ = if (selectedFiles.containsSome(ids)) partSelectedCache.add(folderId)
+      descendantFilesSelected = selectedFiles.toSet.intersect(ids.toSet).size
+    } yield descendantFilesSelected
   }
 }
 
@@ -242,7 +242,7 @@ object AdditionalMetadataNavigationController {
                             displayName: String,
                             isSelected: Boolean = false,
                             isFolder: Boolean = false,
-                            isPartiallySelected: Boolean = false)
+                            descendantFilesSelected: Int = 0)
 
   case class ResultsCount(startCount: Int, endCount: Int, total: Int)
 }

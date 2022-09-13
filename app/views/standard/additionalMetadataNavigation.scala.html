@@ -45,15 +45,15 @@
                                     <td class="govuk-table__cell">
                                         <div class="govuk-checkboxes__item">
                                             <input type='hidden' id="@node.fileId" name='allNodes[]' value="@node.fileId">
-                                            <input class="govuk-checkboxes__input" id="@node.fileId" name="selected[]" type="checkbox" value="@node.fileId" @{if(node.isSelected) "checked"} autocomplete="off">
+                                            <input class="govuk-checkboxes__input" id="@node.fileId" name="descendantFilesSelected[]" type="checkbox" value="@node.fileId" @{if(node.isSelected) "checked"} autocomplete="off">
                                             <label class="govuk-label govuk-checkboxes__label" for="@node.fileId">
                                             @if(node.isFolder) {
                                                 📁
                                                 <button class="govuk-button__tna-button-link" name="folderSelected" data-prevent-double-click="true" type="submit" role="link" value="@node.fileId">
                                                 @node.displayName
                                                 </button>
-                                                @if(node.isPartiallySelected) {
-                                                    <span>(Records selected)</span>
+                                                @if(!node.isSelected && node.descendantFilesSelected > 0) {
+                                                    <span>(@node.descendantFilesSelected file(s) selected)</span>
                                                 }
                                             } else {
                                                 📊 @node.displayName
