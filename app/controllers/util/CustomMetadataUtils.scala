@@ -33,20 +33,16 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   }
 
   def convertPropertiesToFormFields(dependencyProperties: Set[CustomMetadata]): List[FormField] = {
-    dependencyProperties.toList.sortBy(_.ordinal).map {
-      dependencyProperty: CustomMetadata => {
-        generateFieldOptions(dependencyProperty, dependencyProperty.dataType)
-      }
-    }
+    dependencyProperties.toList.sortBy(_.ordinal).map(generateFieldOptions)
   }
 
-  private def generateFieldOptions(property: CustomMetadata, dataType: DataType): FormField = {
+  private def generateFieldOptions(property: CustomMetadata): FormField = {
 
 //    Use this until descriptions are added, then use property.description.getOrElse("")
     val fieldLabel = dbAndFieldLabel.getOrElse(property.name, property.fullName.getOrElse(""))
     val fieldDescription = dbAndFieldDescription.getOrElse(property.name, property.description.getOrElse(""))
-    val isRequired = property.propertyGroup.getOrElse("").startsWith("Mandatory")
-    dataType match {
+    val isRequired = property.propertyGroup.exists(_.startsWith("Mandatory"))
+    property.dataType match {
       case Boolean =>
         val selectedOption = property.defaultValue.map(v => if (v == "True") "yes" else "no").getOrElse("no")
         RadioButtonGroupField(property.name, fieldLabel, fieldDescription,
@@ -60,7 +56,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
         )
       case Integer =>
         TextField(property.name, fieldLabel, fieldDescription,
-          InputNameAndValue("years", "0", "0"),
+          InputNameAndValue("years", property.defaultValue.getOrElse("")),
           "numeric", isRequired
         )
       case Text =>
@@ -82,7 +78,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
             )
         }
       // We don't have any examples of Decimal yet, so this is in the case Decimal or something else gets used
-      case _ => throw new IllegalArgumentException(s"$dataType is not a supported dataType")
+      case _ => throw new IllegalArgumentException(s"${property.dataType} is not a supported dataType")
     }
   }
 }

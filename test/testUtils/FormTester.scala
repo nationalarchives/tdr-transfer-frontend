@@ -101,9 +101,9 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String=" 
       case "inputCheckbox" => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
       case "inputDate" => addValuesToDateAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, hasDependency, submitAttempted)
       case "inputDropdown" => addValuesToDropdownAttributes(selected, valueEnteredOrSelected, option.label, option.placeholder)
-      case "inputNumeric" => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType)
+      case "inputNumeric" => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
       case "inputRadio" => addValuesToRadioAttributes(option.id, option.name, selected, valueEnteredOrSelected: String)
-      case "inputText" => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType)
+      case "inputText" => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
     }
   }
 
@@ -155,13 +155,13 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String=" 
     }
   }
 
-  private def addValuesToTextBoxAttributes(id: String, name: String, value: String, placeholder: String, fieldType: String): String = {
+  private def addValuesToTextBoxAttributes(id: String, name: String, value: String, placeholder: String, fieldType: String, submitAttempted: Boolean): String = {
     val (inputType, inputMode) = fieldType match {
       case "inputNumeric" => ("number", "numeric")
       case "inputText" => ("text", "text")
     }
     s"""        <input
-       |            class="govuk-input govuk-input--width-5 ${if(value.isEmpty) "govuk-input--error" else ""}"
+       |            class="govuk-input govuk-input--width-5 ${if(submitAttempted && value.isEmpty) "govuk-input--error" else ""}"
        |            id="$id"
        |            name="$name"
        |            type="$inputType"
