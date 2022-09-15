@@ -91,8 +91,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       name="inputnumeric-ClosurePeriod-years",
       label="years",
       id="years",
-      value="0",
-      placeholder="0",
       fieldType="inputNumeric",
       errorMessage=s"There was no number entered for the years."
     ),
@@ -158,7 +156,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-day", ""),
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
-        ("inputnumeric-ClosurePeriod-years", "0"),
+        ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
         ("inputradio-TitlePublic", "yes")
       )
@@ -296,7 +294,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-day", "5"),
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
-        ("inputnumeric-ClosurePeriod-years", "0"),
+        ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
         ("inputradio-TitlePublic", "yes")
       )
@@ -437,7 +435,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
                 Dependencies("TitlePublic"),
                 Dependencies("DescriptionPublic"))))),
         cm.CustomMetadata(
-          "ClosurePeriod", None, Some("Closure Period"), Supplied, Some("MandatoryClosure"), Integer, true, false, Some("0"), 2, List(Values("0", List()))),
+          "ClosurePeriod", None, Some("Closure Period"), Supplied, Some("MandatoryClosure"), Integer, true, false, None, 2, List(Values("0", List()))),
         cm.CustomMetadata(
           "DescriptionPublic", None, Some("Description Public"), Supplied, Some("MandatoryClosure"), Boolean, true, false, Some("True"), 3,
           List(

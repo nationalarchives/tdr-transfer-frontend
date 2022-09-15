@@ -104,7 +104,32 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         val field = fieldValuesByDataType.find(_.fieldId == property.name).get
         property.dataType match {
           case Integer => field.isInstanceOf[TextField] should be(true)
-            field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", "0", "0"))
+            field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", property.defaultValue.getOrElse("")))
+          case DateTime => field.isInstanceOf[DateField] should be(true)
+            verifyDate(field.asInstanceOf[DateField])
+          case Boolean => field.isInstanceOf[RadioButtonGroupField] should be(true)
+            verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
+          case Text => field.isInstanceOf[DropdownField] should be(true)
+            verifyText(field.asInstanceOf[DropdownField], property)
+        }
+        field.fieldDescription should equal(property.description.getOrElse(""))
+        field.fieldName should equal(property.fullName.get)
+        field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
+    }
+  }
+
+  "convertPropertiesToFields" should "convert properties to fields for the form when the given properties don't have default values" in {
+    val allPropertiesWithoutDefaultValue = allProperties.map(p => p.copy(defaultValue = None))
+    val propertiesToConvertToFields: Set[CustomMetadata] = allPropertiesWithoutDefaultValue.toSet
+    val customMetadataUtils = CustomMetadataUtils(allPropertiesWithoutDefaultValue)
+    val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
+
+    propertiesToConvertToFields.foreach {
+      property =>
+        val field = fieldValuesByDataType.find(_.fieldId == property.name).get
+        property.dataType match {
+          case Integer => field.isInstanceOf[TextField] should be(true)
+            field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", ""))
           case DateTime => field.isInstanceOf[DateField] should be(true)
             verifyDate(field.asInstanceOf[DateField])
           case Boolean => field.isInstanceOf[RadioButtonGroupField] should be(true)
