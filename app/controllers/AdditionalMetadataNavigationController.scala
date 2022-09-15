@@ -32,7 +32,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   implicit class DescendantsHelper(descendants: List[AllDescendants]) {
     def toDescendantFileIds: List[UUID] = {
-      descendants.filter(_.fileType.get == "File").map(_.fileId)
+      descendants.filter(_.fileType.contains("File")).map(_.fileId)
     }
   }
 
@@ -155,7 +155,8 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
   def submit(consignmentId: UUID, limit: Option[Int], selectedFolderId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       val errorFunction: Form[NodesFormData] => Future[Result] = { formWithErrors: Form[NodesFormData] =>
-        Future(Ok)
+        Future(Redirect(routes.AdditionalMetadataNavigationController
+          .getPaginatedFiles(consignmentId, 1, limit, selectedFolderId, metadataType)))
       }
 
       val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
@@ -163,13 +164,9 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
         selectedFiles.updateCache(formData, consignmentId, request.token.bearerAccessToken).map(_ => {
-          if (formData.returnToRoot.isDefined) {
-            Redirect(routes.AdditionalMetadataNavigationController
-              .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(formData.returnToRoot.get), metadataType))
-          } else {
-            Redirect(routes.AdditionalMetadataNavigationController
-              .getPaginatedFiles(consignmentId, pageSelected, limit, UUID.fromString(folderSelected), metadataType))
-          }
+          val folderId = UUID.fromString(formData.returnToRoot.getOrElse(folderSelected))
+          Redirect(routes.AdditionalMetadataNavigationController
+            .getPaginatedFiles(consignmentId, pageSelected, limit, folderId, metadataType))
         })
       }
 
@@ -186,7 +183,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
     val nodes = edges.map(edge => {
       val edgeNode = edge.node
       val edgeNodeId = edgeNode.fileId
-      val isFolder = edgeNode.fileType.get == "Folder"
+      val isFolder = edgeNode.fileType.contains("Folder")
 
       for {
         descendantFilesSelected <- if (isFolder) { getDescendantFilesSelected(consignmentId, edgeNodeId, token) } else { Future(0) }
@@ -194,7 +191,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       } yield {
         NodesToDisplay(
           edgeNodeId.toString,
-          edgeNode.fileName.get,
+          edgeNode.fileName.getOrElse(""),
           isSelected,
           isFolder,
           descendantFilesSelected
