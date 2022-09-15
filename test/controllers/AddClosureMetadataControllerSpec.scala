@@ -421,7 +421,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     cm.Data(
       List(
         cm.CustomMetadata("ClosureType", None, Some("Closure Type"), Defined, Some("MandatoryClosure"),
-          Text, editable = true, multiValue = false, Some("open_on_transfer"), 1,
+          Text, editable = true, multiValue = false, Some("Open"), 1,
           List(
             Values("Closed",
               List(
@@ -431,7 +431,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
                 Dependencies("FoiExemptionCode"),
                 Dependencies("TitlePublic"),
                 Dependencies("DescriptionPublic"))),
-            Values("open_on_transfer",
+            Values("Open",
               List(
                 Dependencies("TitlePublic"),
                 Dependencies("DescriptionPublic"))))),
