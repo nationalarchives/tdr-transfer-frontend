@@ -93,7 +93,7 @@
                                 @if(totalPages - currentPage > 3) {
                                         <li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>
                                 }
-                            @if(totalPages != 1 && currentPage != 1) {
+                            @if(totalPages != 1 && totalPages != 0) {
                                 <li class="govuk-pagination__item @if(currentPage == totalPages) {govuk-pagination__item--current}">
                                     <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page @totalPages" value="@totalPages">
                                     @totalPages
