@@ -12,7 +12,7 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito
+import org.mockito.{Mock, Mockito}
 import org.mockito.Mockito.{never, reset, times, when}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.Play.materializer
@@ -31,9 +31,9 @@ import scala.concurrent.ExecutionContext
 // scalastyle:off file.size.limit off
 class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
-  val selectedSet = mock[RedisSet[UUID, SynchronousResult]]
-  val partSelectedSet = mock[RedisSet[UUID, SynchronousResult]]
-  val folderMap = mock[RedisMap[List[UUID], SynchronousResult]]
+  val selectedSet: RedisSet[UUID, SynchronousResult] = mock[RedisSet[UUID, SynchronousResult]]
+  val partSelectedSet: RedisSet[UUID, SynchronousResult] = mock[RedisSet[UUID, SynchronousResult]]
+  val folderMap: RedisMap[List[UUID], SynchronousResult] = mock[RedisMap[List[UUID], SynchronousResult]]
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -371,15 +371,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
 
-      when(redisSetMock.toSet).thenReturn(Set())
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
+      val cacheApi = mock[CacheApi]
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -408,15 +402,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-      when(redisSetMock.toSet).thenReturn(Set())
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -449,15 +435,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-      when(redisSetMock.toSet).thenReturn(Set())
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -492,15 +470,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-      when(redisSetMock.toSet).thenReturn(Set())
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -535,15 +505,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-      when(redisSetMock.toSet).thenReturn(Set())
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -578,15 +540,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-      when(redisSetMock.toSet).thenReturn(Set())
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -982,15 +936,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-      when(redisSetMock.toSet).thenReturn(Set())
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -1084,6 +1030,17 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
     new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
       getAuthorisedSecurityComponents, cacheApi)
+  }
+
+  private def cacheApiMocking(cacheApi: CacheApi, folderId: UUID) = {
+    val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+    val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+    when(redisSetMock.toSet).thenReturn(Set())
+    when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+    when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+    when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+    when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
   }
 
   private def folderCacheResponseMocking(
