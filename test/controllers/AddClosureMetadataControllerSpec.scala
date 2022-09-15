@@ -24,6 +24,7 @@ import services.{ConsignmentService, CustomMetadataService}
 import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper, MockInputOption}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
+import java.time.LocalDateTime
 import java.util.UUID
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
@@ -309,6 +310,56 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addClosureMetadataPageAsString, userType = "standard")
       checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addClosureMetadataPageAsString, formSubmission.toMap, formStatus = "PartiallySubmitted")
+    }
+
+    "display an error when future date is not allowed for a date field" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addClosureMetadataController = instantiateAddClosureMetadataController()
+      val formTester = new FormTester(expectedDefaultOptions)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      mockGraphqlResponse()
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
+
+      val year = LocalDateTime.now().plusYears(1).getYear.toString
+      val formSubmission = Seq(
+        ("inputdate-FoiExemptionAsserted-day", "5"),
+        ("inputdate-FoiExemptionAsserted-month", "11"),
+        ("inputdate-FoiExemptionAsserted-year", year),
+        ("inputdate-ClosureStartDate-day", "1"),
+        ("inputdate-ClosureStartDate-month", "1"),
+        ("inputdate-ClosureStartDate-year", "2022"),
+        ("inputnumeric-ClosurePeriod-years", "0"),
+        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputradio-TitlePublic", "yes")
+      )
+
+      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId)
+        .apply(FakeRequest(POST, s"/standard/$consignmentId/add-closure-metadata")
+          .withFormUrlEncodedBody(formSubmission: _*)
+          .withCSRFToken
+        )
+      val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addClosureMetadataPageAsString, userType = "standard")
+      checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(addClosureMetadataPageAsString, formSubmission.toMap, formStatus = "PartiallySubmitted")
+
+      addClosureMetadataPageAsString must include(
+        """
+          |                <li>
+          |                    <a href="#error-FoiExemptionAsserted">FOI decision asserted date cannot be a future date.</a>
+          |                </li>
+          |""".stripMargin
+      )
+      addClosureMetadataPageAsString must include(
+        """
+          |    <p class="govuk-error-message" id="error-FoiExemptionAsserted">
+          |        <span class="govuk-visually-hidden">Error:</span>
+          |        FOI decision asserted date cannot be a future date.
+          |    </p>
+          |""".stripMargin
+      )
     }
 
     // need to add check for complete form submission
