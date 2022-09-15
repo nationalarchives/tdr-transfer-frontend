@@ -26,7 +26,7 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
             val month = fieldValue.find(_._1.endsWith("-month")).map(_._2.head).getOrElse("")
             val year = fieldValue.find(_._1.endsWith("-year")).map(_._2.head).getOrElse("")
             DateField.update(dateField, day, month, year)
-              .copy(fieldErrors = DateField.validate(day, month, year).map(List(_)).getOrElse(Nil))
+              .copy(fieldErrors = DateField.validate(day, month, year, dateField).map(List(_)).getOrElse(Nil))
 
           case radioButtonGroupField: RadioButtonGroupField =>
             val selectedOption = fieldValue.head._2.headOption.getOrElse("")
