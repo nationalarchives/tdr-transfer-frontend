@@ -426,7 +426,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       // scalastyle:on line.size.limit
     }
 
-    "display the correct file totals when there a no files" in {
+    "render the additional metadata file selection page for an empty folder" in {
       val parentFolder = "parentFolder"
       val currentPage = 1
       val selectedFolderId = UUID.randomUUID()
@@ -444,12 +444,22 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = Option(3), selectedFolderId = selectedFolderId, metadataType)
+      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = Option(0), selectedFolderId = selectedFolderId, metadataType)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
       status(response) mustBe OK
       // scalastyle:off line.size.limit
+      fileSelectionPageAsString.contains(
+        """<button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">
+          |                                1
+          |                                </button>""".stripMargin
+      ) mustBe true
+      fileSelectionPageAsString.contains(
+        """<button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 0" value="0">
+          |                                    0
+          |                                    </button>""".stripMargin
+      ) mustBe false
       fileSelectionPageAsString.contains(
         """Showing <span class="govuk-body govuk-!-font-weight-bold">0</span> to <span class="govuk-body govuk-!-font-weight-bold">0</span> of <span class="govuk-body govuk-!-font-weight-bold">0</span> results"""
       ) mustBe true
