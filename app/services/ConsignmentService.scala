@@ -15,8 +15,9 @@ import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
 import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFiles => gcpf}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
-import graphql.codegen.types.{AddConsignmentInput, FileFilters, PaginationInput, UpdateConsignmentSeriesIdInput}
+import graphql.codegen.types.{AddConsignmentInput, AllDescendantsInput, FileFilters, PaginationInput, UpdateConsignmentSeriesIdInput}
 import graphql.codegen.{AddConsignment, GetConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
+import graphql.codegen.GetAllDescendants.{getAllDescendantIds => gadids}
 import services.ApiErrorHandling._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
@@ -28,6 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguration)
                                   (implicit val ec: ExecutionContext) {
 
+  private val getAllDescendantsClient = graphqlConfiguration.getClient[gadids.Data, gadids.Variables]()
   private val getFileCheckProgressClient = graphqlConfiguration.getClient[gfcp.Data, gfcp.Variables]()
   private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
   private val getConsignmentFilesMetadataClient = graphqlConfiguration.getClient[gcfm.Data, gcfm.Variables]()
@@ -157,5 +159,17 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
     sendApiRequest(getConsignmentPaginatedFilesClient, gcpf.document, token, variables)
       .map(data => data.getConsignment.get)
+  }
+
+  def getAllDescendants(consignmentId: UUID, parentIds: Set[UUID], token: BearerAccessToken): Future[List[gadids.AllDescendants]] = {
+    val input = AllDescendantsInput(consignmentId, parentIds.toList)
+    val variables: gadids.Variables = new gadids.Variables(input)
+
+    sendApiRequest(getAllDescendantsClient, gadids.document, token, variables)
+      .map(
+        data => {
+          data.allDescendants
+        }
+      )
   }
 }
