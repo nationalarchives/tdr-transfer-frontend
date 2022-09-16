@@ -117,10 +117,8 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
         year = InputNameAndValue("Year", "2015", "YYYY"))
     }
 
-    "validate should not return any error when the given date is valid and future date is allowed" in {
+    "validate should not return any error when the given date is valid" in {
 
-      val (day, month, year) = getDate(LocalDateTime.now().plusDays(1))
-      DateField.validate(day, month, year, dateField) shouldBe None
       DateField.validate("12", "2", "1990", dateField) shouldBe None
       DateField.validate("30", "4", "1990", dateField) shouldBe None
       DateField.validate("29", "2", "2000", dateField) shouldBe None
@@ -269,7 +267,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       }
     }
 
-    "validate should return an error when future date is not allowed but the given date is present or past" in {
+    "validate should not return an error when future date is not allowed but the given date is present or past" in {
 
       val date = List(
         getDate(LocalDateTime.now()),
@@ -281,6 +279,24 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       date.foreach {
         case (day, month, year) =>
           DateField.validate(day, month, year, dateField.copy(isFutureDateAllowed = false)) shouldBe None
+      }
+    }
+
+    "validate should not return an error when future date is allowed and the given date is present, past or future" in {
+
+      val date = List(
+        getDate(LocalDateTime.now()),
+        getDate(LocalDateTime.now().plusMinutes(1)),
+        getDate(LocalDateTime.now().minusDays(1)),
+        getDate(LocalDateTime.now().minusMonths(1)),
+        getDate(LocalDateTime.now().minusYears(1)),
+        getDate(LocalDateTime.now().plusDays(1)),
+        getDate(LocalDateTime.now().plusMonths(1)),
+        getDate(LocalDateTime.now().plusYears(1))
+      )
+      date.foreach {
+        case (day, month, year) =>
+          DateField.validate(day, month, year, dateField.copy(isFutureDateAllowed = true)) shouldBe None
       }
     }
 
