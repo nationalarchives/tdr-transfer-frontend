@@ -11,11 +11,12 @@ import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFile
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
-import org.mockito.Mockito
-import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers.any
+import org.mockito.{Mock, Mockito}
+import org.mockito.Mockito.{never, reset, times, when}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.Play.materializer
-import play.api.cache.redis.{CacheApi, RedisSet, SynchronousResult}
+import play.api.cache.redis.{CacheApi, RedisMap, RedisSet, SynchronousResult}
 import play.api.http.Status.{FORBIDDEN, OK, SEE_OTHER}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
@@ -27,11 +28,18 @@ import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
+// scalastyle:off file.size.limit off
 class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
+  val selectedSet: RedisSet[UUID, SynchronousResult] = mock[RedisSet[UUID, SynchronousResult]]
+  val partSelectedSet: RedisSet[UUID, SynchronousResult] = mock[RedisSet[UUID, SynchronousResult]]
+  val folderMap: RedisMap[List[UUID], SynchronousResult] = mock[RedisMap[List[UUID], SynchronousResult]]
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
+    reset(selectedSet)
+    reset(partSelectedSet)
+    reset(folderMap)
   }
 
   override def afterEach(): Unit = {
@@ -41,6 +49,313 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
   val consignmentId: UUID = UUID.randomUUID()
+
+  "CacheSetHelper" should {
+
+    val folderId = UUID.randomUUID()
+    val file1Id = UUID.randomUUID()
+    val file2Id = UUID.randomUUID()
+    val file3Id = UUID.randomUUID()
+    val file4Id = UUID.randomUUID()
+    val allFolderFileDescendants = List(file1Id, file2Id, file3Id)
+
+    val cacheApi = mock[CacheApi]
+
+    when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(selectedSet)
+    when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(partSelectedSet)
+    when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(folderMap)
+
+    "add folder to 'folder descendant cache' where folder descendants are not already cached" in {
+      val metadataType = "closure"
+      val selectedNodes = List(file1Id)
+      val allDisplayedNodes = allFolderFileDescendants
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(file1Id), List(file2Id, file3Id), allFolderFileDescendants)
+      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants, false)
+
+      when(selectedSet.contains(file1Id)).thenReturn(true)
+
+      val controller = setUpController(cacheApi)
+      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
+
+      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+          .withFormUrlEncodedBody(
+            formPostData: _*)
+          .withCSRFToken).futureValue
+
+      Mockito.verify(folderMap).add(folderId.toString, allFolderFileDescendants)
+      Mockito.verify(partSelectedSet).remove(folderId)
+      Mockito.verify(partSelectedSet).add(folderId)
+      Mockito.verify(selectedSet).add(file1Id)
+    }
+
+    "add a single file to the 'selected cache' when single file selected" in {
+      val metadataType = "closure"
+      val selectedNodes = List(file1Id)
+      val allDisplayedNodes = allFolderFileDescendants
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(file1Id), List(file2Id, file3Id))
+      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
+
+      when(selectedSet.contains(file1Id)).thenReturn(true)
+
+      val controller = setUpController(cacheApi)
+      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
+
+      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+          .withFormUrlEncodedBody(
+            formPostData: _*)
+          .withCSRFToken).futureValue
+
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
+      Mockito.verify(partSelectedSet).remove(folderId)
+      Mockito.verify(partSelectedSet).add(folderId)
+      Mockito.verify(selectedSet).add(file1Id)
+    }
+
+    "remove single previously selected file from the 'selected cache' when file deselected" in {
+      val metadataType = "closure"
+      val selectedNodes = List()
+      val allDisplayedNodes = allFolderFileDescendants
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(), allFolderFileDescendants)
+      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
+
+      //initially id will be present, but then removed for subsequent "contains" calls
+      when(selectedSet.contains(file1Id))
+        .thenReturn(true)
+        .thenReturn(false)
+
+      val controller = setUpController(cacheApi)
+      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
+      val response = controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+          .withFormUrlEncodedBody(
+            formPostData: _*)
+          .withCSRFToken)
+
+      status(response) mustBe SEE_OTHER
+
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$folderId/1"))
+
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
+      Mockito.verify(partSelectedSet).remove(folderId)
+      Mockito.verify(partSelectedSet, never()).add(any[UUID])
+      Mockito.verify(selectedSet).remove(file1Id)
+    }
+
+    "add and remove multiple files from 'selected cache' depending on selection and de-selection options" in {
+      val metadataType = "closure"
+      val selectedNodes = List(file3Id, file4Id)
+      val allDisplayedNodes = allFolderFileDescendants :+ file4Id
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(file3Id, file4Id), allFolderFileDescendants :+ file4Id)
+      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants :+ file4Id)
+
+      //initially id will not be present, but then added for subsequent "contains" calls
+      selectedNodes.map(id => {
+        when(selectedSet.contains(id))
+          .thenReturn(false)
+          .thenReturn(true)
+      })
+
+      //initially id will be present, but then removed for subsequent "contains" calls
+      List(file1Id, file2Id).map(id => {
+        when(selectedSet.contains(id))
+          .thenReturn(true)
+          .thenReturn(false)
+      })
+
+      val controller = setUpController(cacheApi)
+      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
+      val response = controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+          .withFormUrlEncodedBody(
+            formPostData: _*)
+          .withCSRFToken)
+
+      status(response) mustBe SEE_OTHER
+
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$folderId/1"))
+
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
+      Mockito.verify(partSelectedSet).remove(folderId)
+      Mockito.verify(partSelectedSet).add(folderId)
+      Mockito.verify(selectedSet, times(1)).add(file3Id)
+      Mockito.verify(selectedSet, times(1)).add(file4Id)
+      Mockito.verify(selectedSet, times(1)).remove(file1Id)
+      Mockito.verify(selectedSet, times(1)).remove(file2Id)
+    }
+
+    "add all folder descendants to 'selected cache' if folder selected" in {
+      val metadataType = "closure"
+      val selectedNodes = List(folderId)
+      val allDisplayedNodes = List(folderId)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, allFolderFileDescendants, List())
+      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
+
+      allFolderFileDescendants.map(id => when(selectedSet.contains(id)).thenReturn(true))
+
+      val controller = setUpController(cacheApi)
+      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
+
+      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+          .withFormUrlEncodedBody(
+            formPostData: _*)
+          .withCSRFToken).futureValue
+
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
+      Mockito.verify(partSelectedSet).remove(folderId)
+      Mockito.verify(partSelectedSet, never()).add(folderId)
+      Mockito.verify(selectedSet, times(1)).add(file1Id)
+      Mockito.verify(selectedSet, times(1)).add(file2Id)
+      Mockito.verify(selectedSet, times(1)).add(file3Id)
+    }
+
+    "remove folder from 'part selected cache' if all folder descendants are selected" in {
+      val metadataType = "closure"
+      val selectedNodes = List(file1Id)
+      val allDisplayedNodes = allFolderFileDescendants
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(file1Id, file2Id, file3Id), List())
+      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
+
+      allFolderFileDescendants.map(id => when(selectedSet.contains(id)).thenReturn(true))
+
+      val controller = setUpController(cacheApi)
+      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
+
+      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+          .withFormUrlEncodedBody(
+            formPostData: _*)
+          .withCSRFToken).futureValue
+
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
+      Mockito.verify(partSelectedSet).remove(folderId)
+      Mockito.verify(partSelectedSet, never()).add(any[UUID])
+      Mockito.verify(selectedSet, times(1)).add(file1Id)
+      Mockito.verify(selectedSet, times(1)).add(file2Id)
+      Mockito.verify(selectedSet, times(1)).add(file3Id)
+    }
+
+    "add folder to 'part selected cache' if some, but not all descendants are selected" in {
+      val metadataType = "closure"
+      val selectedNodes = List(file1Id)
+      val allDisplayedNodes = List(file1Id, file2Id, file3Id)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, allFolderFileDescendants, List())
+      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
+
+      when(selectedSet.contains(file1Id)).thenReturn(true)
+      when(selectedSet.contains(file2Id)).thenReturn(false)
+      when(selectedSet.contains(file3Id)).thenReturn(false)
+
+      val controller = setUpController(cacheApi)
+      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
+
+      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+          .withFormUrlEncodedBody(
+            formPostData: _*)
+          .withCSRFToken).futureValue
+
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
+      Mockito.verify(partSelectedSet).remove(folderId)
+      Mockito.verify(partSelectedSet).add(folderId)
+      Mockito.verify(selectedSet).add(file1Id)
+    }
+
+    "add folder to 'part selected cache' if some, but not all descendants, are de-selected" in {
+      val metadataType = "closure"
+      val selectedNodes = List(file1Id, file2Id)
+      val allDisplayedNodes = List(file1Id, file2Id, file3Id)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(file1Id, file2Id), List(file3Id))
+      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
+
+      when(selectedSet.contains(file3Id))
+        .thenReturn(true)
+        .thenReturn(false)
+      when(selectedSet.contains(file1Id)).thenReturn(true)
+      when(selectedSet.contains(file2Id)).thenReturn(true)
+
+      val controller = setUpController(cacheApi)
+      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
+
+      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+          .withFormUrlEncodedBody(
+            formPostData: _*)
+          .withCSRFToken).futureValue
+
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
+      Mockito.verify(partSelectedSet).remove(folderId)
+      Mockito.verify(partSelectedSet).add(folderId)
+      Mockito.verify(selectedSet).remove(file3Id)
+      Mockito.verify(selectedSet, times(1)).add(file1Id)
+      Mockito.verify(selectedSet, times(1)).add(file2Id)
+    }
+
+    "remove all folder descendants from 'selected cache' and remove folder from 'part selected cache' when folder is de-selected" in {
+      val metadataType = "closure"
+      val selectedNodes = List()
+      val allDisplayedNodes = List(folderId)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(), List())
+      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
+
+      allFolderFileDescendants.map(id => when(selectedSet.contains(id))
+        .thenReturn(true)
+        .thenReturn(true)
+        .thenReturn(false))
+
+      val controller = setUpController(cacheApi)
+      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
+
+      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+          .withFormUrlEncodedBody(
+            formPostData: _*)
+          .withCSRFToken).futureValue
+
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
+      Mockito.verify(partSelectedSet).remove(folderId)
+      Mockito.verify(partSelectedSet, never()).add(folderId)
+      Mockito.verify(selectedSet, times(1)).remove(file1Id)
+      Mockito.verify(selectedSet, times(1)).remove(file2Id)
+      Mockito.verify(selectedSet, times(1)).remove(file3Id)
+    }
+
+    "not add an empty folder to 'selected cache' or 'part selected cache' if selected" in {
+      val metadataType = "closure"
+      val selectedNodes = List()
+      val allDisplayedNodes = List(folderId)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(), List())
+      folderCacheResponseMocking(folderMap, folderId, List())
+
+      val controller = setUpController(cacheApi)
+      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
+
+      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+          .withFormUrlEncodedBody(
+            formPostData: _*)
+          .withCSRFToken).futureValue
+
+      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
+      Mockito.verify(partSelectedSet).remove(folderId)
+      Mockito.verify(partSelectedSet, never()).add(folderId)
+      Mockito.verify(selectedSet, never()).add(any[UUID])
+    }
+  }
 
   "AdditionalMetadataNavigationController" should {
     "render the additional metadata file selection page" in {
@@ -52,12 +367,13 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val metadataType = "closure"
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder, folderId, fileId)
+      setAllDescendantIdsResponse(wiremockServer, List(), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -81,12 +397,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
+      setAllDescendantIdsResponse(wiremockServer, List(), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -114,12 +430,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
+      setAllDescendantIdsResponse(wiremockServer, List(), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -149,12 +465,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
+      setAllDescendantIdsResponse(wiremockServer, List(), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -184,12 +500,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
+      setAllDescendantIdsResponse(wiremockServer, List(), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -219,12 +535,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
+      setAllDescendantIdsResponse(wiremockServer, List(), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -250,12 +566,19 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val page = "1"
       val metadataType = "closure"
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(fileId))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+      when(redisMapMock.get(selectedFolderId.toString)).thenReturn(Some(List()))
+
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -276,16 +599,24 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
     "redirect to the correct page when submitting a form with 'returnToRoot' defined" in {
       val selectedFolderId = UUID.randomUUID()
+      val folderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       val page = "1"
       val metadataType = "closure"
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(fileId))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -297,7 +628,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
               ("allNodes[]", fileId.toString),
               ("selected[]", fileId.toString),
               ("pageSelected", page),
-              ("folderSelected", "folderSelected")): _*)
+              ("folderSelected", folderId.toString)): _*)
           .withCSRFToken)
 
       status(response) mustBe SEE_OTHER
@@ -305,18 +636,28 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$page"))
     }
 
-    "Should correctly store selected file in the cache" in {
+    "should correctly store selected file in the cache" in {
       val selectedFolderId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
       val page = "1"
       val metadataType = "closure"
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisSetPartSelectedMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+      when(redisMapMock.getFields(selectedFolderId.toString)).thenReturn(List())
+      when(redisMapMock.get(selectedFolderId.toString)).thenReturn(Some(List()))
+      when(redisMapMock.contains(selectedFolderId.toString)).thenReturn(true)
+
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetPartSelectedMock)
+      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -333,7 +674,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       status(response) mustBe SEE_OTHER
 
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$page"))
-      Mockito.verify(redisSetMock).add(fileId)
+
+      Mockito.verify(redisSetPartSelectedMock).remove(selectedFolderId)
+      Mockito.verify(redisSetMock, times(1)).add(fileId)
     }
 
     "return forbidden if the file selection page is accessed by a judgment user" in {
@@ -403,12 +746,20 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3), totalFiles = Some(10))
+      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
+
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -440,7 +791,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -472,12 +827,20 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(9))
+      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
+
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -521,12 +884,20 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(5))
+      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+      when(redisSetMock.toSet).thenReturn(Set())
+
       when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -560,12 +931,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
       setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(5))
+      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      cacheApiMocking(cacheApi, folderId)
 
       val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents, cacheApi)
@@ -651,5 +1022,44 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .withRequestBody(containing("getConsignmentPaginatedFiles"))
       .willReturn(okJson(dataString)))
+  }
+
+  private def setUpController(cacheApi: CacheApi): AdditionalMetadataNavigationController = {
+    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+    val consignmentService = new ConsignmentService(graphQLConfiguration)
+
+    new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
+      getAuthorisedSecurityComponents, cacheApi)
+  }
+
+  private def cacheApiMocking(cacheApi: CacheApi, folderId: UUID) = {
+    val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
+    val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
+
+    when(redisSetMock.toSet).thenReturn(Set())
+    when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
+    when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+    when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
+    when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
+  }
+
+  private def folderCacheResponseMocking(
+                                          folderMap: RedisMap[List[UUID], SynchronousResult],
+                                          folderId: UUID,
+                                          descendants: List[UUID],
+                                          contains: Boolean = true) = {
+    when(folderMap.getFields(folderId.toString)).thenReturn(Seq(Some(descendants)))
+    when(folderMap.get(folderId.toString)).thenReturn(Some(descendants))
+    when(folderMap.contains(folderId.toString)).thenReturn(contains)
+  }
+
+  private def setUpFormPostData(selectedNodes: List[UUID] = List(), allNodes: List[UUID], selectedFolderId: UUID): Seq[(String, String)] = {
+    val selected: Seq[(String, String)] = selectedNodes.map(n => ("selected[]", n.toString))
+    val all: Seq[(String, String)] = allNodes.map(n => ("allNodes[]", n.toString))
+    val other: Seq[(String, String)] = Seq(
+      ("pageSelected", "1"),
+      ("folderSelected", selectedFolderId.toString))
+
+    all ++ selected ++ other
   }
 }
