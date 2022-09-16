@@ -1,4 +1,4 @@
-import { initAll } from "govuk-frontend"
+import {initAll} from "govuk-frontend"
 
 window.onload = async function () {
   initAll()
@@ -38,8 +38,37 @@ export const renderModules = async () => {
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
+  const fileNavigationContainer: HTMLUListElement | null = document.querySelector(".nested-file-list")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
+  if (fileNavigationContainer) {
+    document.querySelectorAll(".nested-file-list").forEach((value, key, parent) => {
+      if (value.getAttribute("id") != "parent-list") {
+        value.classList.add("hide")
+      }
+    })
+    document.querySelectorAll(".file-expander").forEach((expander, key, parent) => {
+      if (expander) {
+        expander.addEventListener("click", (ev) => {
+          if (ev.target instanceof Element) {
+            const newId = ev.target.id.replace("expander-", "folder-group-")
+            const folderGroup: HTMLUListElement | null = document.querySelector(`#${newId}`)
+            if(folderGroup) {
+              if(folderGroup.classList.contains("hide")) {
+                folderGroup.classList.remove("hide")
+                ev.target.innerHTML = " - "
+              } else {
+                folderGroup.classList.add("hide")
+                ev.target.innerHTML = " + "
+              }
+
+            }
+          }
+        })
+      }
+    })
+
+  }
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
@@ -53,10 +82,10 @@ export const renderModules = async () => {
           new metadataUploadModule.ClientFileMetadataUpload()
         const consignmentStatusModule = await import(
           "./updateconsignmentstatus"
-        )
+          )
         const nextPageModule = await import(
           "./nextpageredirect/next-page-redirect"
-        )
+          )
         const uploadModule = await import("./upload")
         const updateConsignmentStatus =
           new consignmentStatusModule.UpdateConsignmentStatus()
@@ -85,7 +114,7 @@ export const renderModules = async () => {
         const fileChecksModule = await import("./filechecks")
         const nextPageModule = await import(
           "./nextpageredirect/next-page-redirect"
-        )
+          )
         const resultOrError =
           new fileChecksModule.FileChecks().updateFileCheckProgress(
             isJudgmentUser,

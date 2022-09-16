@@ -356,7 +356,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val legalStatus = Some("Public Record")
       val rightsCopyright = Some("Crown Copyright")
       val graphQlExportData = gcfe.GetConsignment(consignmentId, None, None, None, "TEST-TDR-2021-GB", None, None, None,
-        List(gcfe.GetConsignment.Files(fileId, filetype, fileName = Some(filename),
+        List(gcfe.GetConsignment.Files(fileId, filetype, fileName = Some(filename), Some("originalPath"),
           metadata = gcfe.GetConsignment.Files.Metadata(None, None, clientSideOriginalFilePath = Some(s"$filepath/$filename"),
             exemptionCode, heldBy, language, legalStatus, rightsCopyright, None),
           ffidMetadata = None, antivirusMetadata = None))
