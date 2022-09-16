@@ -206,7 +206,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfe.Data, gcfe.Variables]()
     val consignmentResponse = gcfe.Data(Option(GetConsignment(UUID.randomUUID(), None, None, exportDateTime, "TDR-2022", None, None, None,
       List(
-        Files(UUID.randomUUID(), Some("File"), Some("SomeFile"),
+        Files(UUID.randomUUID(), Some("File"), Some("SomeFile"), None,
           Metadata(Some(1L), clientSideLastModifiedDate, Some("Filepath/SomeFile"), Some("Open"), Some("TNA"),
             Some("English"), Some("Public Record"), Some("Crown Copyright"), None),
           None, None))))
