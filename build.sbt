@@ -27,8 +27,8 @@ libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
   "org.pac4j" % "pac4j-http" % pac4jVersion exclude("com.fasterxml.jackson.core", "jackson-databind"),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude("commons-io", "commons-io") exclude("com.fasterxml.jackson.core", "jackson-databind"),
-  "io.circe" %% "circe-core" % "0.14.2",
-  "io.circe" %% "circe-generic" % "0.14.2",
+  "io.circe" %% "circe-core" % "0.14.3",
+  "io.circe" %% "circe-generic" % "0.14.3",
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
@@ -37,7 +37,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.259",
   "ch.qos.logback" % "logback-classic" % "1.4.1",
   ws,
-  "com.github.tomakehurst" % "wiremock-jre8" % "2.33.2" % Test,
+  "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
   "org.mockito" % "mockito-core" % "4.8.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
