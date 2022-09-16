@@ -1,5 +1,6 @@
 package controllers.util
 
+import cats.implicits.catsSyntaxOptionId
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
@@ -111,6 +112,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
             verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
           case Text => field.isInstanceOf[DropdownField] should be(true)
             verifyText(field.asInstanceOf[DropdownField], property)
+          case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
         }
         field.fieldDescription should equal(property.description.getOrElse(""))
         field.fieldName should equal(property.fullName.get)
@@ -136,11 +138,24 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
             verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
           case Text => field.isInstanceOf[DropdownField] should be(true)
             verifyText(field.asInstanceOf[DropdownField], property)
+          case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
         }
         field.fieldDescription should equal(property.description.getOrElse(""))
         field.fieldName should equal(property.fullName.get)
         field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
     }
+  }
+
+  "convertPropertiesToFields" should "convert date property to field and it shouldn't allow future date when property name is foiExemptionAsserted" in {
+    val propertiesToConvertToFields: CustomMetadata = allProperties.find(_.dataType == graphql.codegen.types.DataType.DateTime)
+      .head.copy(name = "FoiExemptionAsserted", fullName = "FOI decision asserted".some, description = "Date of the Advisory Council Approval".some)
+    val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(Set(propertiesToConvertToFields))
+
+    val field = fieldValuesByDataType.head.asInstanceOf[DateField]
+    verifyDate(field, isFutureDateAllowed = false)
+    field.fieldDescription should equal(propertiesToConvertToFields.description.getOrElse(""))
+    field.fieldName should equal(propertiesToConvertToFields.fullName.get)
+    field.isRequired should equal(propertiesToConvertToFields.propertyGroup.contains("MandatoryMetadata"))
   }
 
   "convertPropertiesToFields" should "order the fields in the correct order" in {
@@ -152,10 +167,11 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     )
   }
 
-  def verifyDate(field: DateField): Unit = {
+  def verifyDate(field: DateField, isFutureDateAllowed: Boolean = true): Unit = {
     field.day should equal(InputNameAndValue("Day", "", "DD"))
     field.month should equal(InputNameAndValue("Month", "", "MM"))
     field.year should equal(InputNameAndValue("Year", "", "YYYY"))
+    field.isFutureDateAllowed should equal(isFutureDateAllowed)
   }
 
   def verifyBoolean(field: RadioButtonGroupField, defaultValue: Option[String]): Unit = {
