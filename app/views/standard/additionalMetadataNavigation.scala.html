@@ -1,18 +1,21 @@
 @import java.util.UUID
 @import graphql.codegen.GetFilesForNavigation.getFilesForNavigation.GetConsignment.Files
 @import controllers.util.NaturalSorting._
+@import views.html.helper.form
+@import views.html.helper.CSRF
 @(consignmentId: UUID, name: String, metadataType: String, files: Map[UUID, List[Files]], parentId: UUID)(implicit messages: Messages, request: RequestHeader)
 
 @display(file: Files) = {
-    @if(!files.contains(file.fileId)) {
-      @defining(file.fileType.contains("Folder")) { isFolder =>
+    @defining(file.fileType.contains("Folder")) { isFolder =>
+      @if(!files.contains(file.fileId)) {
+
         <li class="@if(isFolder) {folder-item}">
           <div class="nested-file-container">
             <span class="file-expander" id="expander-@file.fileId">
               @if(isFolder) { + } else { &nbsp;&nbsp;  }
             </span>
             <div class="govuk-checkboxes__item">
-              <input class="govuk-checkboxes__input" id="@file.fileId" type="checkbox" value="@file.fileId" autocomplete="off">
+              <input class="govuk-checkboxes__input @if(isFolder){folder-checkbox}" name="fileIds[]" id="@file.fileId" type="checkbox" value="@file.fileId" autocomplete="off">
               <label class="govuk-label govuk-checkboxes__label" for="@file.fileId">
               @if(isFolder) {
                 📁 @file.fileName.getOrElse("")
@@ -23,14 +26,13 @@
             </div>
           </div>
         </li>
-      }
     } else {
         <li class="@if(file.fileType.contains("Folder")) {folder-item}">
           <div class="nested-file-container">
             <span class="file-expander" id="expander-@file.fileId">+</span>
             <div class="govuk-checkboxes__item">
-              <input class="govuk-checkboxes__input" id="@file.fileId" type="checkbox" value="@file.fileId" autocomplete="off">
-              <label class="govuk-label govuk-checkboxes__label" for="@file.fileId">
+              <input class="govuk-checkboxes__input @if(isFolder){folder-checkbox}" name="fileIds[]" id="@file.fileId" type="checkbox" value="@file.fileId" autocomplete="off">
+              <label class="govuk-label govuk-checkboxes__label @if(isFolder){folder-checkbox}" for="@file.fileId">
                 📁 @file.fileName.getOrElse("")
               </label>
             </div>
@@ -40,6 +42,7 @@
             @Html(files(file.fileId).map(display).mkString("\n"))
         </ul>
     }
+  }
 }
 
 @main("Additional Metadata", name = name) {
@@ -49,15 +52,22 @@
                 <h1 class="govuk-heading-l">
                     Add or edit closure metadata on file basis
                 </h1>
+              @form(action = routes.AdditionalMetadataNavigationController.submit(consignmentId, metadataType)) {
+                @CSRF.formField
                 <ul class="nested-file-list" id="parent-list">
-                    @for(node <- files) {
-                      @if(node._1 == parentId) {
-                        @for(file <- node._2.sortBy(n => natural(n.fileName.getOrElse("")))) {
-                          @display(file)
-                        }
-                      }
+                @for(node <- files) {
+                  @if(node._1 == parentId) {
+                    @for(file <- node._2.sortBy(n => natural(n.fileName.getOrElse("")))) {
+                      @display(file)
                     }
+                  }
+                }
                 </ul>
+                <button type="submit" role="button" draggable="false" class="govuk-button">
+                  Continue
+                </button>
+              }
+
             </div>
         </div>
     }

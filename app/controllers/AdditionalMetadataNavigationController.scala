@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import cats.implicits.toTraverseOps
 import controllers.util.NaturalSorting._
+import controllers.AddClosureMetadataController
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
 import controllers.AdditionalMetadataNavigationController._
@@ -33,23 +34,10 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   val navigationForm: Form[NodesFormData] = Form(
     mapping(
-      "nodes" -> seq(
-        mapping(
-          "fileId" -> nonEmptyText,
-          "displayName" -> nonEmptyText,
-          "isSelected" -> boolean,
-          "isFolder" -> boolean,
-          "descendantFilesSelected" -> number
-        )(NodesToDisplay.apply)(NodesToDisplay.unapply)
-      ),
-      "descendantFilesSelected" -> list(text),
-      "allNodes" -> list(text),
-      "pageSelected" -> number,
-      "folderSelected" -> text,
-      "returnToRoot" -> optional(text)
+      "fileIds" -> list(text),
     )(NodesFormData.apply)(NodesFormData.unapply))
 
-  def getAllFiles(consignmentId: java.util.UUID, page: Int, limit: Option[Int], folderId: java.util.UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def getAllFiles(consignmentId: java.util.UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService.getAllFiles(consignmentId, request.token.bearerAccessToken).map(consignment => {
       val files: List[Files] = consignment.getConsignment.toList.flatMap(_.files)
       val filesMap = files.groupBy(_.parentId).filter(_._1.nonEmpty).map {case (k, v)  => k.get -> v}
@@ -59,19 +47,14 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
     })
   }
 
-  def submit(consignmentId: UUID, limit: Option[Int], selectedFolderId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def submit(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       val errorFunction: Form[NodesFormData] => Future[Result] = { formWithErrors: Form[NodesFormData] =>
-        Future(Redirect(routes.AdditionalMetadataNavigationController
-          .getAllFiles(consignmentId, 1, limit, selectedFolderId, metadataType)))
+        Future(Ok)
       }
 
       val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
-        val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
-        val pageSelected: Int = formData.pageSelected
-        val folderSelected: String = formData.folderSelected
-        Future(Redirect(routes.AdditionalMetadataNavigationController
-          .getAllFiles(consignmentId, pageSelected, limit, UUID.randomUUID(), metadataType)))
+        Future(Redirect(routes.AddClosureMetadataController.addClosureMetadata(consignmentId, formData.fileIds)))
       }
 
       val formValidationResult: Form[NodesFormData] = navigationForm.bindFromRequest()
@@ -86,12 +69,9 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
 object AdditionalMetadataNavigationController {
 
-  case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay],
-                           selected: List[String],
-                           allNodes: List[String],
-                           pageSelected: Int,
-                           folderSelected: String,
-                           returnToRoot: Option[String])
+
+
+  case class NodesFormData(fileIds: List[String])
 
   case class NodesToDisplay(fileId: String,
                             displayName: String,

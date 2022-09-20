@@ -146,7 +146,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata=false)
       mockGraphqlResponse()
 
-      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadata(consignmentId)
+      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadata(consignmentId, Nil)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata").withCSRFToken)
       val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
       val expectedDefaultForm = Seq(
@@ -177,7 +177,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentFilesMetadataResponse(wiremockServer)
       mockGraphqlResponse()
 
-      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadata(consignmentId)
+      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadata(consignmentId, Nil)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata").withCSRFToken)
       val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
 
@@ -223,7 +223,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "return a redirect to the auth server with an unauthenticated user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = instantiateAddClosureMetadataController(getUnauthorisedSecurityComponents)
-      val addClosureMetadataPage = controller.addClosureMetadata(consignmentId)
+      val addClosureMetadataPage = controller.addClosureMetadata(consignmentId, Nil)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata").withCSRFToken)
       redirectLocation(addClosureMetadataPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(addClosureMetadataPage) mustBe FOUND
@@ -238,7 +238,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         .willReturn(okJson(dataString)))
 
       val controller = instantiateAddClosureMetadataController()
-      val addClosureMetadataPage = controller.addClosureMetadata(consignmentId)
+      val addClosureMetadataPage = controller.addClosureMetadata(consignmentId, Nil)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata").withCSRFToken)
 
       val failure = addClosureMetadataPage.failed.futureValue
@@ -321,7 +321,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       val addClosureMetadata = {
         setConsignmentTypeResponse(wiremockServer, consignmentType = "judgment")
-        addClosureMetadataController.addClosureMetadata(consignmentId)
+        addClosureMetadataController.addClosureMetadata(consignmentId, Nil)
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/add-closure-metadata").withCSRFToken)
       }
       playStatus(addClosureMetadata) mustBe FORBIDDEN
@@ -356,10 +356,10 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   //scalastyle:off method.length
   private def checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString: String) = {
     addClosureMetadataPageAsString must include(
-      """      <title>Add closure metadata to &#x27;[selected file/folder name to go here]&#x27;</title>"""
+      """      <title>Add closure metadata</title>"""
     )
     addClosureMetadataPageAsString must include(
-      """            <h1 class="govuk-heading-l">Add closure metadata to '[selected file/folder name to go here]'</h1>"""
+      """            <h1 class="govuk-heading-l">Add closure metadata to:</h1>"""
     )
     addClosureMetadataPageAsString must include("""            <p class="govuk-body">Enter metadata for closure fields here.</p>""")
     addClosureMetadataPageAsString must include(
@@ -422,7 +422,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       List(
         cm.CustomMetadata("ClosureType", None, Some("Closure Type"), Defined, Some("MandatoryClosure"), Text, true, false, Some("open_on_transfer"), 1,
           List(
-            Values("closed_for",
+            Values("Closed",
               List(
                 Dependencies("FoiExemptionAsserted"),
                 Dependencies("ClosurePeriod"),

@@ -59,6 +59,10 @@ a {
   list-style-type: none;
 }
 
+input:indeterminate {
+  opacity: 1;
+}
+
 .nested-file-container {
   display: flex;
   flex-direction: row;

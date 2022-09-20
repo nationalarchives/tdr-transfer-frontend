@@ -25,10 +25,10 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
                                              val cache: AsyncCacheApi)
                                             (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  def addClosureMetadata(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def addClosureMetadata(consignmentId: UUID, folderIds: List[String]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       //  TODO:  Get selectedFileIds from previous page
-    val selectedFileIds = None
+    val selectedFileIds = Option(folderIds.map(UUID.fromString))
       for {
         consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, selectedFileIds)
         defaultFieldForm <- getDefaultFieldsForForm(consignmentId, request)
@@ -36,7 +36,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
           cache.set(s"$consignmentId", consignment.consignmentReference, 1.hour)
           updateFormFields(defaultFieldForm, consignment.files.headOption.map(_.metadata))
         }
-      } yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignment.consignmentReference, updatedFieldsForForm, request.token.name))
+      } yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignment.consignmentReference, updatedFieldsForForm, request.token.name, consignment.files.filter(_.fileType.contains("File")).map(_.fileName.getOrElse(""))))
   }
 
   def addClosureMetadataSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
@@ -55,7 +55,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
               consignmentRef <- cache.getOrElseUpdate[String](s"$consignmentId") {
                 consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
               }
-            } yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, updatedFormFields, request.token.name))
+            } yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, updatedFormFields, request.token.name, Nil))
           } else {
             // A call to the API to save data to database should go here.
             Future(Ok(views.html.standard.homepage(request.token.name))) // this view should be replaced with closure metadata overview page
@@ -69,7 +69,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       customMetadataUtils = new CustomMetadataUtils(customMetadata)
       propertyName = Set("ClosureType")
-      value = "closed_for"
+      value = "Closed"
 
       dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, propertyName, value)
         .filterNot(_.name == "DescriptionPublic")
