@@ -69,7 +69,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       customMetadataUtils = new CustomMetadataUtils(customMetadata)
       propertyName = Set("ClosureType")
-      value = "closed_for"
+      value = "Closed"
 
       dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, propertyName, value)
         .filterNot(_.name == "DescriptionPublic")
