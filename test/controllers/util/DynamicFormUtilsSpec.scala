@@ -9,6 +9,7 @@ import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.POST
 
+import java.time.LocalDateTime
 import scala.collection.immutable.ListMap
 
 class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
@@ -117,10 +118,10 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
       TextField("fieldidendswithyear", "", "", InputNameAndValue("text", ""), "text", isRequired = true)
     )
 
-  val dynamicFormUtils = new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
-  val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    val dynamicFormUtils = new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
 
-  validatedForm.foreach(_.fieldErrors shouldBe Nil)
+    validatedForm.foreach(_.fieldErrors shouldBe Nil)
   }
 
   "validateAndConvertSubmittedValuesToFormFields" should "return a 'no-value selected'-selection-related error for selection fields if they are missing" in {
@@ -171,27 +172,53 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     dateField.fieldErrors should equal(List(s"There was no number entered for the Day."))
   }
 
-    "validateAndConvertSubmittedValuesToFormFields" should "return a 'whole number'-related error for the numeric fields that are missing values" in {
-      //Shouldn't be possible on client-side due to "type:numeric" attribute added to HTML, but in case that is removed
-      val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-        MockFormValues(month = List("b4"),
-          year = List("2r"),
-          numericTextBoxValue = List("1.5"),
-          day2 = List("000"),
-          month2 = List("e"),
-          year2 = List("-")
-        )
+  "validateAndConvertSubmittedValuesToFormFields" should "return an error when future date is not allowed" in {
+    val dateTime = LocalDateTime.now().plusDays(1)
+    val rawFormToMakeRequestWith =
+      ListMap(
+        "inputdate-TestProperty3-day" -> List(dateTime.getDayOfMonth.toString),
+        "inputdate-TestProperty3-month" -> List(dateTime.getMonthValue.toString),
+        "inputdate-TestProperty3-year" -> List(dateTime.getYear.toString)
       )
 
-      val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
+      FakeRequest.apply(POST, s"/consignment/12345/add-closure-metadata")
+        .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-      val dateField = validatedForm.filter(_.isInstanceOf[DateField])
-      dateField.head.fieldErrors should equal(List(s"Month entered must be a whole number."))
-      dateField(1).fieldErrors should equal(List(s"000 is an invalid Day number."))
-
-      val textField = validatedForm.find(_.isInstanceOf[TextField]).get
-      textField.fieldErrors should equal(List(s"years entered must be a whole number."))
+    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new CustomMetadataUtilsSpec().allProperties.find(_.name == "TestProperty3").toList
+    val allMetadataAsFields: List[FormField] = new CustomMetadataUtils(mockProperties).convertPropertiesToFormFields(mockProperties.toSet)
+    val metaDataField = allMetadataAsFields.head match {
+      case e: DateField => e.copy(isFutureDateAllowed = false)
     }
+
+    val dynamicFormUtils = new DynamicFormUtils(mockRequest, List(metaDataField))
+
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    val dateField = validatedForm.find(_.isInstanceOf[DateField]).get
+    dateField.fieldErrors should equal(List(s"Test Property 3 date cannot be a future date."))
+  }
+
+  "validateAndConvertSubmittedValuesToFormFields" should "return a 'whole number'-related error for the numeric fields that are missing values" in {
+    //Shouldn't be possible on client-side due to "type:numeric" attribute added to HTML, but in case that is removed
+    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+      MockFormValues(month = List("b4"),
+        year = List("2r"),
+        numericTextBoxValue = List("1.5"),
+        day2 = List("000"),
+        month2 = List("e"),
+        year2 = List("-")
+      )
+    )
+
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+
+    val dateField = validatedForm.filter(_.isInstanceOf[DateField])
+    dateField.head.fieldErrors should equal(List(s"Month entered must be a whole number."))
+    dateField(1).fieldErrors should equal(List(s"000 is an invalid Day number."))
+
+    val textField = validatedForm.find(_.isInstanceOf[TextField]).get
+    textField.fieldErrors should equal(List(s"years entered must be a whole number."))
+  }
 
   "validateAndConvertSubmittedValuesToFormFields" should "return all values, with any value submitted with whitespace " +
     "at the beginning/end of it, trimmed and no errors" in {
