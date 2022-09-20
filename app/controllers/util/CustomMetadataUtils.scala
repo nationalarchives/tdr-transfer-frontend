@@ -2,7 +2,6 @@ package controllers.util
 
 import controllers.util.MetadataProperty._
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
-import graphql.codegen.types.DataType
 import graphql.codegen.types.DataType._
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 
@@ -43,7 +42,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       case DateTime =>
         DateField(property.name, fieldLabel, fieldDescription,
           InputNameAndValue("Day", "", "DD"), InputNameAndValue("Month", "", "MM"), InputNameAndValue("Year", "", "YYYY"),
-          isRequired
+          isRequired, isFutureDateAllowed = property.name != foiExemptionAsserted
         )
       case Integer =>
         TextField(property.name, fieldLabel, fieldDescription,
