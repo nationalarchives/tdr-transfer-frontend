@@ -29,7 +29,7 @@
     } else {
         <li class="@if(file.fileType.contains("Folder")) {folder-item}">
           <div class="nested-file-container">
-            <span class="file-expander" id="expander-@file.fileId">+</span>
+            <button class="file-expander" tabindex="0" id="expander-@file.fileId">+</button>
             <div class="govuk-checkboxes__item">
               <input class="govuk-checkboxes__input @if(isFolder){folder-checkbox}" name="fileIds[]" id="@file.fileId" type="checkbox" value="@file.fileId" autocomplete="off">
               <label class="govuk-label govuk-checkboxes__label @if(isFolder){folder-checkbox}" for="@file.fileId">

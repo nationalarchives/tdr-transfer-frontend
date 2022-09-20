@@ -121,6 +121,7 @@ export const renderModules = async () => {
     document.querySelectorAll(".file-expander").forEach((expander, key, parent) => {
       if (expander) {
         expander.addEventListener("click", (ev) => {
+          ev.preventDefault()
           if (ev.target instanceof Element) {
             const newId = ev.target.id.replace("expander-", "folder-group-")
             const folderGroup: HTMLUListElement | null = document.querySelector(`#${newId}`)
