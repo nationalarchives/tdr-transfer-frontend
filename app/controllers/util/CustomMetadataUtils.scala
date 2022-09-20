@@ -32,7 +32,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   }
 
   def convertPropertiesToFormFields(dependencyProperties: Set[CustomMetadata]): List[FormField] = {
-    dependencyProperties.toList.sortBy(_.ordinal).map(generateFieldOptions)
+    dependencyProperties.toList.sortBy(_.uiOrdinal).map(generateFieldOptions)
   }
 
   private def generateFieldOptions(property: CustomMetadata): FormField = {

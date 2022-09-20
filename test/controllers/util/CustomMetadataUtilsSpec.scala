@@ -30,7 +30,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         editable = true,
         multiValue = numberOfValues > 1,
         defaultValue = Some(s"TestValue $number"),
-        ordinal = number,
+        uiOrdinal = number,
         values = (1 to numberOfValues).toList.map(
           valueNumber =>
             CustomMetadata.Values(
