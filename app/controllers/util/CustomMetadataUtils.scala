@@ -2,7 +2,6 @@ package controllers.util
 
 import controllers.util.MetadataProperty._
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
-import graphql.codegen.types.DataType
 import graphql.codegen.types.DataType._
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 
@@ -15,13 +14,6 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     closurePeriod -> "Closure period",
     foiExemptionCode -> "FOI exemption code",
     titlePublic -> "Is the title closed?"
-  )
-
-  val dbAndFieldDescription: Map[String, String] = Map(
-    foiExemptionAsserted -> "Date of the Advisory Council Approval",
-    closureStartDate -> "Date of the record from when the closure starts. It is usually the last date modified.",
-    closurePeriod -> "Number of years the record is closed from the closure start date",
-    foiExemptionCode -> "Select the exemption code that applies"
   )
 
   def getCustomMetadataProperties(propertiesToGet: Set[String]): Set[CustomMetadata] =
@@ -37,10 +29,8 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   }
 
   private def generateFieldOptions(property: CustomMetadata): FormField = {
-
-//    Use this until descriptions are added, then use property.description.getOrElse("")
     val fieldLabel = dbAndFieldLabel.getOrElse(property.name, property.fullName.getOrElse(""))
-    val fieldDescription = dbAndFieldDescription.getOrElse(property.name, property.description.getOrElse(""))
+    val fieldDescription = property.description.getOrElse("")
     val isRequired = property.propertyGroup.exists(_.startsWith("Mandatory"))
     property.dataType match {
       case Boolean =>
@@ -52,7 +42,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       case DateTime =>
         DateField(property.name, fieldLabel, fieldDescription,
           InputNameAndValue("Day", "", "DD"), InputNameAndValue("Month", "", "MM"), InputNameAndValue("Year", "", "YYYY"),
-          isRequired
+          isRequired, isFutureDateAllowed = property.name != foiExemptionAsserted
         )
       case Integer =>
         TextField(property.name, fieldLabel, fieldDescription,
