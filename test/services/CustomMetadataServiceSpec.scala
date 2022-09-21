@@ -55,7 +55,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
             List(
               cm.CustomMetadata.Values(
                 "TestValue",
-                List(cm.CustomMetadata.Values.Dependencies("TestDependency"))
+                List(cm.CustomMetadata.Values.Dependencies("TestDependency")), 1
               )
             )
           ),
@@ -96,7 +96,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
           List(
             cm.CustomMetadata.Values(
               "TestValue",
-              List(cm.CustomMetadata.Values.Dependencies("TestDependency"))
+              List(cm.CustomMetadata.Values.Dependencies("TestDependency")), 1
             )
           )
         ),
