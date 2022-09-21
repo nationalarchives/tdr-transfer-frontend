@@ -53,7 +53,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
         property.propertyType match {
           case Defined =>
             DropdownField(property.name, fieldLabel, fieldDescription,
-              property.values.map(v => InputNameAndValue(v.value, v.value)),
+              property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
               property.defaultValue.map(value => InputNameAndValue(value, value)), isRequired
             )
           case Supplied =>
