@@ -40,9 +40,18 @@ object FormField {
   val invalidDayError = "%s does not have %d days."
   val invalidDayForLeapYearError = "%s %d does not have %d days in it."
   val futureDateError = "%s date cannot be a future date."
+  val radioOptionNotSelectedError = "There was no value selected for %s."
+  val invalidRadioOptionSelectedError = "Option '%s' was not an option provided to the user."
 }
 
 object RadioButtonGroupField {
+
+  def validate(option: String, radioButtonGroupField: RadioButtonGroupField): Option[String] =
+    option match {
+      case "" => Some(radioOptionNotSelectedError.format(radioButtonGroupField.fieldName))
+      case value if !radioButtonGroupField.options.exists(_.value == value) => Some(invalidRadioOptionSelectedError.format(value))
+      case _ => None
+    }
 
   def update(radioButtonGroupField: RadioButtonGroupField, value: Boolean): RadioButtonGroupField =
     radioButtonGroupField.copy(selectedOption = if (value) "yes" else "no")

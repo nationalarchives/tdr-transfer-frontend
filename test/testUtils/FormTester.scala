@@ -18,6 +18,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String=" 
 
     assert(checkIfCorrectOptionsWerePassedIntoForm(optionsSelected),
       s"\nThe option(s) selected ${optionsSelected.keys.mkString(", ")}, do not match the options passed into this class")
+    val optionNames: Seq[String] = defaultOptions.map(_.name)
     defaultOptions.foreach {
       defaultOption =>
         val (htmlErrorSummary, htmlErrorMessage) = generateErrorMessages(defaultOption)
@@ -40,8 +41,8 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String=" 
               val expectedHtmlForOption = addValuesToAttributes(defaultOption, defaultOption.value, hasDependency=hasErrorDependency)
               val elementSelectedWasNotPlaceholder: Boolean = optionsSelected(defaultOption.name) != ""
               checkPageForElements(htmlAsString, expectedHtmlForOption, htmlErrorSummary, htmlErrorMessage, elementSelected = elementSelectedWasNotPlaceholder)
-            } else {// either no option was submitted or no value entered (is an empty string)
-              val optionDoesNotBelongToAGroup = defaultOption.name != defaultOption.id
+            } else { // either no option was submitted or no value entered (is an empty string)
+              val optionDoesNotBelongToAGroup = optionNames.count(name => name == defaultOption.name) == 1
               val userHasRemovedDefaultValue = selectedValue == "" && defaultOption.value != selectedValue && optionDoesNotBelongToAGroup
               val value = if(userHasRemovedDefaultValue) selectedValue else defaultOption.value
               val expectedHtmlForOption = addValuesToAttributes(
