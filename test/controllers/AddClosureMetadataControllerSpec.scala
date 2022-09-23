@@ -24,7 +24,6 @@ import services.{ConsignmentService, CustomMetadataService}
 import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper, MockInputOption}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
-import java.time.LocalDateTime
 import java.util.UUID
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
@@ -117,14 +116,14 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       id="inputradio-TitlePublic-Yes",
       value="yes",
       fieldType="inputRadio",
-      errorMessage=s"There was no value selected for Is Title Closed."
+      errorMessage=s"There was no value selected for Is the title closed?."
     ),
     MockInputOption(
       name="inputradio-TitlePublic",
       label="No",
       id="inputradio-TitlePublic-No",
       value="no",
-      errorMessage=s"There was no value selected for Is Title Closed.",
+      errorMessage=s"There was no value selected for Is the title closed?.",
       fieldType="inputRadio"
     )
   )
@@ -264,7 +263,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", ""),
-        ("inputradio-TitlePublic", "yes")
+        ("inputradio-TitlePublic", "")
       )
 
       val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId)
