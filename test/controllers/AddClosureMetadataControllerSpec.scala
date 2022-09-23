@@ -101,7 +101,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       label="mock code1",
       value="mock code1",
       fieldType="inputDropdown",
-      errorMessage="There was no value selected for the FOI Exemption Code."
+      errorMessage="There was no value selected for the FOI exemption code."
     ),
     MockInputOption(
       name="inputdropdown-FoiExemptionCode",
@@ -109,7 +109,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       label="mock code2",
       value="mock code2",
       fieldType="inputDropdown",
-      errorMessage="There was no value selected for the FOI Exemption Code."
+      errorMessage="There was no value selected for the FOI exemption code."
     ),
     MockInputOption(
       name="inputradio-TitlePublic",
@@ -244,6 +244,39 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       val failure = addClosureMetadataPage.failed.futureValue
       failure mustBe an[GraphQlException]
+    }
+
+    "rerender form with errors for each field if empty form is submitted" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addClosureMetadataController = instantiateAddClosureMetadataController()
+      val formTester = new FormTester(expectedDefaultOptions)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      mockGraphqlResponse()
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
+
+      val formSubmission = Seq(
+        ("inputdate-FoiExemptionAsserted-day", ""),
+        ("inputdate-FoiExemptionAsserted-month", ""),
+        ("inputdate-FoiExemptionAsserted-year", ""),
+        ("inputdate-ClosureStartDate-day", ""),
+        ("inputdate-ClosureStartDate-month", ""),
+        ("inputdate-ClosureStartDate-year", ""),
+        ("inputnumeric-ClosurePeriod-years", ""),
+        ("inputdropdown-FoiExemptionCode", ""),
+        ("inputradio-TitlePublic", "yes")
+      )
+
+      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId)
+        .apply(FakeRequest(POST, s"/standard/$consignmentId/add-closure-metadata")
+          .withFormUrlEncodedBody(formSubmission: _*)
+          .withCSRFToken
+        )
+      val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addClosureMetadataPageAsString, userType = "standard")
+      checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(addClosureMetadataPageAsString, formSubmission.toMap, formStatus = "PartiallySubmitted")
     }
 
     "rerender form with user's data if form is partially submitted" in {
@@ -401,13 +434,10 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     addClosureMetadataPageAsString must include(
       """        <div id="inputdropdown-FoiExemptionCode-hint" class="govuk-hint">
         |            Select the exemption code that applies
-        |        </div>
-        |....
-        |
-        |....
-        |
-        |    <select class="govuk-select" id="inputdropdown-FoiExemptionCode" name="inputdropdown-FoiExemptionCode"  >"""
-        .replace("....", "    ").stripMargin
+        |        </div>""".stripMargin
+    )
+    addClosureMetadataPageAsString must include(
+      """<select class="govuk-select" id="inputdropdown-FoiExemptionCode" name="inputdropdown-FoiExemptionCode"  >""".stripMargin
     )
     addClosureMetadataPageAsString must include(
       """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
