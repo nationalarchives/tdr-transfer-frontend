@@ -461,28 +461,28 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
                 Dependencies("ClosureStartDate"),
                 Dependencies("FoiExemptionCode"),
                 Dependencies("TitlePublic"),
-                Dependencies("DescriptionPublic"))),
+                Dependencies("DescriptionPublic")), 1),
             Values("Open",
               List(
                 Dependencies("TitlePublic"),
-                Dependencies("DescriptionPublic"))))),
+                Dependencies("DescriptionPublic")), 1))),
         cm.CustomMetadata(
           "ClosurePeriod", Some("Number of years the record is closed from the closure start date"), Some("Closure Period"),
-          Supplied, Some("MandatoryClosure"), Integer, editable = true, multiValue = false, None, 2, List(Values("0", List()))),
+          Supplied, Some("MandatoryClosure"), Integer, editable = true, multiValue = false, None, 2, List(Values("0", List(), 1))),
         cm.CustomMetadata(
           "DescriptionPublic", None, Some("Description Public"), Supplied, Some("MandatoryClosure"), Boolean, editable = true, multiValue = false, Some("True"), 3,
           List(
-            Values("True", List()),
+            Values("True", List(), 1),
             Values("False",
               List(
-                Dependencies("DescriptionAlternate"))))),
+                Dependencies("DescriptionAlternate")), 1))),
         cm.CustomMetadata(
           "TitlePublic", None, Some("Title Public"), Supplied, Some("MandatoryClosure"), Boolean, editable = true, multiValue = false, Some("True"), 4,
           List(
             Values("False",
               List(
-                Dependencies("TitleAlternate"))),
-            Values("True", List()))),
+                Dependencies("TitleAlternate")), 1),
+            Values("True", List(), 1))),
         cm.CustomMetadata(
           "ClosureStartDate", Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."),
           Some("Closure Start Date"), Supplied, Some("OptionalClosure"), DateTime, editable = true, multiValue = false, None, 5, List()),
@@ -497,7 +497,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           "FoiExemptionCode", Some("Select the exemption code that applies"), Some("Foi Exemption Code"), Defined, Some("MandatoryClosure"),
           Text, editable = true, multiValue = true, Some("mock code1"), 9,
           List(
-            Values("mock code1", List()), Values("mock code2", List())))))
+            Values("mock code1", List(), 1), Values("mock code2", List(), 2)))))
   }
   //scalastyle:on method.length
 }
