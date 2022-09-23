@@ -57,8 +57,10 @@ object DropdownField {
       case _ => None
     }
 
-  def update(dropdownField: DropdownField, value: String): DropdownField =
-    dropdownField.copy(selectedOption = Some(InputNameAndValue(value, value)))
+  def update(dropdownField: DropdownField, value: String): DropdownField = {
+    val optionSelected: Option[InputNameAndValue] = if(value.isEmpty) None else Some(InputNameAndValue(value, value))
+    dropdownField.copy(selectedOption = optionSelected)
+  }
 }
 
 object TextField {
