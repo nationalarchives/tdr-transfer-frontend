@@ -40,7 +40,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
                   val propertyNumber = depNumber * 2 % 11
                   CustomMetadata.Values.Dependencies(s"TestProperty$propertyNumber")
                 }
-              )
+              ), valueNumber
             )
         )
       )
@@ -182,7 +182,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   def verifyText(field: DropdownField, property: CustomMetadata): Unit = {
     property.propertyType match {
       case Defined =>
-        field.options should equal(property.values.map(v => InputNameAndValue(v.value, v.value)))
+        field.options should equal(property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
         field.selectedOption should equal(property.defaultValue.map(value => InputNameAndValue(value, value)))
       case Supplied =>
         field.options should equal(Seq())
