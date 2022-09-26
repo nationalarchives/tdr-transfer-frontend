@@ -1,8 +1,8 @@
 export const addFileSelectionSuccessMessage = (fileName: string) => {
-  const fileNameElement: HTMLElement | null =
-    document.querySelector("#file-name")
-  if (fileNameElement) {
-    fileNameElement.textContent = fileName
+  const fileNameElements: NodeListOf<Element> =
+    document.querySelectorAll(".file-name")
+  if (fileNameElements) {
+    fileNameElements.forEach(e => e.textContent = fileName)
   }
 }
 
@@ -10,16 +10,14 @@ export const addFolderSelectionSuccessMessage = (
   folderName: string,
   folderSize: number
 ) => {
-  const folderNameElement: HTMLElement | null =
-    document.querySelector("#folder-name")
-  const folderSizeElement: HTMLElement | null =
-    document.querySelector("#folder-size")
+  const folderNameElements: NodeListOf<Element> =
+    document.querySelectorAll(".folder-name")
+  const folderSizeElements: NodeListOf<Element> =
+    document.querySelectorAll(".folder-size")
 
-  if (folderNameElement && folderSizeElement) {
-    folderNameElement.textContent = folderName
-    folderSizeElement.textContent = `${folderSize} ${
-      folderSize === 1 ? "file" : "files"
-    }`
+  if (folderNameElements && folderSizeElements) {
+    folderNameElements.forEach(e => e.textContent = folderName)
+    folderSizeElements.forEach(e => e.textContent = `${folderSize} ${folderSize === 1 ? "file" : "files"}`)
   }
 }
 
@@ -30,6 +28,7 @@ export const displaySelectionSuccessMessage = (
   }
 ) => {
   const selectionArea = document.querySelector("#selection-area")
+  const successMessageContainer: HTMLElement | null = document.querySelector("#item-selection-success-container")
 
   const successMessageRow: HTMLElement | null = document.querySelector(
     "#success-message-row"
@@ -42,6 +41,7 @@ export const displaySelectionSuccessMessage = (
     }
   )
 
+  successMessageContainer?.removeAttribute("hidden")
   successMessageRow?.removeAttribute("hidden")
   successMessage?.removeAttribute("hidden")
   successMessage?.focus()

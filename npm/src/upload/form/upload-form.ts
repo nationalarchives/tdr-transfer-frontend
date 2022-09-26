@@ -174,11 +174,15 @@ export class UploadForm {
 
   removeSelectedItem = (ev: Event): void => {
     ev.preventDefault()
-    const successMessageRow: HTMLElement | null = document.querySelector(
-      "#success-message-row"
+    const folderSelectionMessage: HTMLElement | null = document.querySelector(
+      "#item-selection-success-container"
     )
+
     this.selectedFiles = []
-    successMessageRow?.setAttribute("hidden", "true")
+    folderSelectionMessage?.setAttribute("hidden", "true")
+    this.warningMessages.removedSelectionMessage?.removeAttribute("hidden")
+    this.successMessage?.focus()
+
     this.formElement.reset()
   }
 
@@ -251,6 +255,9 @@ export class UploadForm {
     ),
     submissionWithoutSelectionMessage: document.querySelector(
       "#nothing-selected-submission-message"
+    ),
+    removedSelectionMessage: document.querySelector(
+      "#removed-selection-container"
     )
   }
 
