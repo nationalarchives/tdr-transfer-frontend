@@ -93,7 +93,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
       "inputdate-fieldidcontainsdaymonthyearoryears-year" -> List("2020"),
       "inputnumeric-fieldidcontainsdaymonthoryear-years" -> List("4"),
       "inputdropdown-fieldidendswithday" -> List("TestValue 3"),
-      "inputradio-fieldidendswithmonth" -> List("Yes"),
+      "inputradio-fieldidendswithmonth" -> List("yes"),
       "inputtext-fieldidendswithyear" -> List("Some Text"),
       "csrfToken" -> List("12345")
     )
@@ -309,7 +309,7 @@ case class MockFormValues(day: List[String] = List("3"),
                           year: List[String] = List("2021"),
                           numericTextBoxValue: List[String] = List("5"),
                           dropdownValue: List[String] = List("TestValue 3"),
-                          radioValue: List[String] = List("Yes"),
+                          radioValue: List[String] = List("yes"),
                           day2: List[String] = List("7"),
                           month2: List[String] = List("9"),
                           year2: List[String] = List("2022"),

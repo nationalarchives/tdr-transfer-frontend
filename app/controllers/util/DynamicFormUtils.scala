@@ -31,6 +31,7 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
           case radioButtonGroupField: RadioButtonGroupField =>
             val selectedOption = fieldValue.head._2.headOption.getOrElse("")
             radioButtonGroupField.copy(selectedOption = selectedOption)
+              .copy(fieldErrors = RadioButtonGroupField.validate(selectedOption, radioButtonGroupField).map(List(_)).getOrElse(Nil))
 
           case textField: TextField =>
             val text = fieldValue.head._2.head
