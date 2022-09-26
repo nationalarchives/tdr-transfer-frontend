@@ -5,7 +5,8 @@ export const verifyVisibilityOfWarningMessages = (
   warningMessageThatShouldBeDisplayed?: {
     warningMessageElements: { [elementName: string]: HTMLElement | null }
     expectedWarningMessageText: string
-  }
+  },
+  warningMessageIsAnError=true
 ): void => {
   const warningMessageThatShouldBeDisplayedElement =
     warningMessageThatShouldBeDisplayed
@@ -24,8 +25,10 @@ export const verifyVisibilityOfWarningMessages = (
         .messageElementText!.textContent
     ).toContain(warningMessageThatShouldBeDisplayed?.expectedWarningMessageText)
 
-    const selectionArea = document.querySelector("#selection-area")
-    expect(selectionArea!).toHaveClass("govuk-form-group--error")
+    if(warningMessageIsAnError) {
+      const selectionArea = document.querySelector("#selection-area")
+      expect(selectionArea!).toHaveClass("govuk-form-group--error")
+    }
   }
 
   const warningMessageElements: any = Object.values(
@@ -34,10 +37,11 @@ export const verifyVisibilityOfWarningMessages = (
     (warningMessageElementsAndText) =>
       warningMessageElementsAndText.messageElement
   )
+
   warningMessageElements.forEach(
     (warningMessageElement: HTMLElement | null) => {
       if (warningMessageElement! !== warningMessageThatShouldBeDisplayedElement)
-        expect(warningMessageElement!).toHaveAttribute("hidden", "true")
+        expect(warningMessageElement!).toHaveAttribute("hidden")
     }
   )
 }

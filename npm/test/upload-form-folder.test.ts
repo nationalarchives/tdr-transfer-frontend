@@ -56,7 +56,7 @@ test("input button updates the page with correct folder information if there are
   const mockDom = new MockUploadFormDom()
   mockDom.getFileUploader().initialiseFormListeners()
   mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
-  mockDom.selectFolderViaButton()
+  mockDom.selectItemViaButton()
 
   verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, true)
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
@@ -380,16 +380,22 @@ test("removeSelectedItem function should remove the selected folder", () => {
   expect(mockDom.form.selectedFiles).toHaveLength(0)
 })
 
-test("removeSelectedItem function should hide the success message row", () => {
+test("removeSelectedItem function should hide the success message row and display the folder removal message when 'Remove' button is clicked", () => {
   const mockDom = new MockUploadFormDom()
   mockDom.getFileUploader().initialiseFormListeners()
 
+  mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
+  mockDom.selectItemViaButton()
+
+  console.log(mockDom.successMessageRow, "\n\n\n mockDom.successMessageRow")
   expect(mockDom.successMessageRow).not.toHaveAttribute("hidden", "true")
 
-  displaySelectionSuccessMessage(
-    mockDom.form.successMessage,
-    mockDom.form.warningMessages
-  )
   mockDom.removeButton!.click()
-  expect(mockDom.successMessageRow).toHaveAttribute("hidden", "true")
+
+  expect(mockDom.successMessageContainer).toHaveAttribute("hidden", "true")
+
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
+    warningMessageElements: mockDom.warningMessages.removedSelectionMessage!,
+    expectedWarningMessageText: `The folder \"Parent_Folder\" (containing 1 file) has been removed. Select a folder.`
+  }, false)
 })

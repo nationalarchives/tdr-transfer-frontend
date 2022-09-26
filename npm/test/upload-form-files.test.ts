@@ -83,7 +83,7 @@ test("input button updates the page with the file that has been selected, if tha
   mockDom.uploadForm!.files = {
     files: [dummyFile]
   }
-  mockDom.selectFolderViaButton()
+  mockDom.selectItemViaButton()
 
   verifyVisibilityOfSuccessMessage(mockDom.itemRetrievalSuccessMessage!, true)
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
@@ -338,7 +338,7 @@ test("removeSelectedItem function should remove the selected files", () => {
   expect(mockDom.form.selectedFiles).toHaveLength(0)
 })
 
-test("removeSelectedItem function should hide the success message row", () => {
+test("removeSelectedItem function should hide the success message row and display the file removal message when 'Remove' button is clicked", () => {
   const mockDom = new MockUploadFormDom(
     true,
     1,
@@ -348,10 +348,17 @@ test("removeSelectedItem function should hide the success message row", () => {
 
   expect(mockDom.successMessageRow).not.toHaveAttribute("hidden", "true")
 
-  displaySelectionSuccessMessage(
-    mockDom.form.successMessage,
-    mockDom.form.warningMessages
-  )
+  const dummyFile = getDummyFile("Mock File.docx", "docx")
+  mockDom.uploadForm!.files = {
+    files: [dummyFile]
+  }
+  mockDom.selectItemViaButton()
   mockDom.removeButton!.click()
-  expect(mockDom.successMessageRow).toHaveAttribute("hidden", "true")
+
+  expect(mockDom.successMessageContainer).toHaveAttribute("hidden", "true")
+
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
+    warningMessageElements: mockDom.warningMessages.removedSelectionMessage!,
+    expectedWarningMessageText: `The file \"Mock File.docx\" has been removed. Select a file.`
+  }, false)
 })
