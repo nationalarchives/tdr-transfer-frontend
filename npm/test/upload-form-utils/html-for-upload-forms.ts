@@ -5,7 +5,7 @@ export const htmlForFolderUploadForm = `
               <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
                   <div class="govuk-form-group">
                       <div class="drag-and-drop">
-                          <div id="success-message-row" class="govuk-summary-list govuk-file-upload">
+                          <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload">
                               <div class="govuk-summary-list__row">
                                   <dd class="govuk-summary-list__value drag-and-drop__success" hidden="true"
                                       tabindex="-1" role="alert" aria-describedby="success-message-text">
@@ -78,7 +78,7 @@ export const htmlForFileUploadForm = `
           <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
               <div class="govuk-form-group">
                   <div class="drag-and-drop">
-                      <div id="success-message-row" class="govuk-summary-list govuk-file-upload">
+                      <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload">
                           <div class="govuk-summary-list__row">
                               <dd class="govuk-summary-list__value drag-and-drop__success" hidden="true"
                                   tabindex="-1" role="alert" aria-describedby="success-message-text">
