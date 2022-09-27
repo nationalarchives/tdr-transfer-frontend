@@ -30,8 +30,8 @@ export const displaySelectionSuccessMessage = (
   const selectionArea = document.querySelector("#selection-area")
   const successMessageContainer: HTMLElement | null = document.querySelector("#item-selection-success-container")
 
-  const successMessageRow: HTMLElement | null = document.querySelector(
-    "#success-message-row"
+  const successAndRemovalMessageContainer: HTMLElement | null = document.querySelector(
+    "#success-and-removal-message-container"
   )
   selectionArea?.classList.remove("govuk-form-group--error")
 
@@ -42,7 +42,7 @@ export const displaySelectionSuccessMessage = (
   )
 
   successMessageContainer?.removeAttribute("hidden")
-  successMessageRow?.removeAttribute("hidden")
+  successAndRemovalMessageContainer?.removeAttribute("hidden")
   successMessage?.removeAttribute("hidden")
   successMessage?.focus()
 }

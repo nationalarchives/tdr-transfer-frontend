@@ -216,10 +216,6 @@ export class MockUploadFormDom {
   itemRetriever: HTMLInputElement | null =
     document.querySelector("#file-selection")
 
-  itemRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__success"
-  )
-
   fileNameElement: HTMLElement | null = document.querySelector(".file-name")
 
   folderNameElement: HTMLElement | null = document.querySelector(".folder-name")
@@ -276,8 +272,8 @@ export class MockUploadFormDom {
 
   uploadingRecordsSection = document.querySelector("#upload-progress")
 
-  successMessageRow: HTMLElement | null = document.querySelector(
-    "#success-message-row"
+  successAndRemovalMessageContainer: HTMLElement | null = document.querySelector(
+    "#success-and-removal-message-container"
   )
 
   successMessageContainer: HTMLElement | null = document.querySelector(
