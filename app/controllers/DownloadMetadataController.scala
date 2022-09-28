@@ -52,7 +52,8 @@ class DownloadMetadataController @Inject()(val controllerComponents: SecurityCom
         DownloadableMetadata("File Name", fileName) :: ((metadataMap, customMetadataMap).tupled flatMap {
         case (name, (fileMetadata, customMetadata)) =>
           DownloadableMetadata(customMetadata.fullName.getOrElse(name), fileMetadata.value, customMetadata.exportOrdinal.getOrElse(Int.MaxValue)) :: Nil
-        case _ => Nil
+        case _ =>
+          Nil
       }).toList.sortBy(_.sortOrdinal)
     })
   }
