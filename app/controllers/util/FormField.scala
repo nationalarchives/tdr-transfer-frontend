@@ -26,7 +26,7 @@ case class DropdownField(fieldId: String, fieldName: String, fieldDescription: S
                          selectedOption: Option[InputNameAndValue], isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
 
 case class DateField(fieldId: String, fieldName: String, fieldDescription: String, day: InputNameAndValue, month: InputNameAndValue, year: InputNameAndValue,
-                     isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
+                     isRequired: Boolean, fieldErrors: List[String] = Nil, isFutureDateAllowed: Boolean = true) extends FormField
 
 object FormField {
 
@@ -39,9 +39,19 @@ object FormField {
   val invalidDateError = "%s is an invalid %s number."
   val invalidDayError = "%s does not have %d days."
   val invalidDayForLeapYearError = "%s %d does not have %d days in it."
+  val futureDateError = "%s date cannot be a future date."
+  val radioOptionNotSelectedError = "There was no value selected for %s."
+  val invalidRadioOptionSelectedError = "Option '%s' was not an option provided to the user."
 }
 
 object RadioButtonGroupField {
+
+  def validate(option: String, radioButtonGroupField: RadioButtonGroupField): Option[String] =
+    option match {
+      case "" => Some(radioOptionNotSelectedError.format(radioButtonGroupField.fieldName))
+      case value if !radioButtonGroupField.options.exists(_.value == value) => Some(invalidRadioOptionSelectedError.format(value))
+      case _ => None
+    }
 
   def update(radioButtonGroupField: RadioButtonGroupField, value: Boolean): RadioButtonGroupField =
     radioButtonGroupField.copy(selectedOption = if (value) "yes" else "no")
@@ -56,8 +66,10 @@ object DropdownField {
       case _ => None
     }
 
-  def update(dropdownField: DropdownField, value: String): DropdownField =
-    dropdownField.copy(selectedOption = Some(InputNameAndValue(value, value)))
+  def update(dropdownField: DropdownField, value: String): DropdownField = {
+    val optionSelected: Option[InputNameAndValue] = if(value.isEmpty) None else Some(InputNameAndValue(value, value))
+    dropdownField.copy(selectedOption = optionSelected)
+  }
 }
 
 object TextField {
@@ -95,17 +107,13 @@ object DateField {
     11 -> "November"
   )
 
-  def validate(day: String, month: String, year: String): Option[String] = {
+  def validate(day: String, month: String, year: String, dateField: DateField): Option[String] = {
 
     var error = validateValue(day, "Day", invalidDayValidation)
     error = if (error.isEmpty) validateValue(month, "Month", invalidMonthValidation) else error
     error = if (error.isEmpty) validateValue(year, "Year", invalidYearValidation) else error
-
-    if (error.isEmpty) {
-      checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt)
-    } else {
-      error
-    }
+    error = if (error.isEmpty) checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt) else error
+    if (error.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField) else error
   }
 
   def update(dateField: DateField, localDateTime: LocalDateTime): DateField =
@@ -145,4 +153,11 @@ object DateField {
       None
     }
   }
+
+  private def checkIfFutureDateIsAllowed(day: Int, month: Int, year: Int, dateField: DateField): Option[String] =
+    if (!dateField.isFutureDateAllowed && LocalDateTime.now().isBefore(LocalDateTime.of(year, month, day, 0, 0))) {
+      Some(futureDateError.format(dateField.fieldName))
+    } else {
+      None
+    }
 }

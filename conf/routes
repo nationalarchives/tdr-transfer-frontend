@@ -38,6 +38,7 @@ GET         /consignment/:consignmentId/additional-metadata                     
 GET         /consignment/:consignmentId/additional-metadata/closure/selected-summary        controllers.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/additional-metadata/:metadataType/:folderId/:page   controllers.AdditionalMetadataNavigationController.getPaginatedFiles(consignmentId: java.util.UUID, page: Int, limit: Option[Int], folderId: java.util.UUID, metadataType: String)
 POST        /consignment/:consignmentId/additional-metadata/:folderId/                      controllers.AdditionalMetadataNavigationController.submit(consignmentId: java.util.UUID, limit: Option[Int], folderId: java.util.UUID, metadataType: String)
+GET         /view-history                                                                   controllers.ViewHistoryController.viewConsignments()
 GET         /signed-out                                                                     controllers.SignOutController.signedOut()
 
 GET         /keycloak.json                                                            controllers.KeycloakConfigurationController.keycloak()

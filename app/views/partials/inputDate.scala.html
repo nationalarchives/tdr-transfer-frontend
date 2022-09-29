@@ -14,71 +14,71 @@ attributes: Map[Symbol, Any]=Map())(implicit messages: Messages)
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 
 <div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
-    <fieldset class="govuk-fieldset" role="group" aria-describedby="date-input-hint">
+    <fieldset class="govuk-fieldset" role="group" aria-describedby="date-input-@fieldId-hint">
         <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
             <h2 class="govuk-label govuk-label--m">
                 @fieldName
             </h2>
         </legend>
-        <div id="date-input-hint" class="govuk-hint">
+        <div id="date-input-@fieldId-hint" class="govuk-hint">
             @fieldDescription
         </div>
             @errorMessage(fieldId, fieldErrors)
         <div class="govuk-date-input" id="">
             <div class="govuk-date-input__item">
                 <div class="govuk-form-group">
-                    <label class="govuk-label govuk-date-input__label" for="date-input-@{day.name.toLowerCase()}">
+                    <label class="govuk-label govuk-date-input__label" for="date-input-@fieldId-@{day.name.toLowerCase()}">
                     @day.name
                     </label>
                     <input class="govuk-input
-                                      govuk-date-input__input
-                                      govuk-input--width-2
-                        @{if (fieldErrors.headOption.exists(_.toLowerCase.contains(day.name.toLowerCase()))) "govuk-input--error" else ""}"
-                    id="date-input-@{day.name.toLowerCase()}"
-                    name="@{if(isDynamicForm) s"inputdate-$fieldId-${day.name.toLowerCase()}" else fieldId}"
-                    value="@day.value"
-                    type="number"
-                    inputmode="numeric"
-                    placeholder="@day.placeHolder.toLowerCase()"
-                    maxlength="@day.placeHolder.length"
+                                  govuk-date-input__input
+                                  govuk-input--width-2
+                                  @{if (fieldErrors.headOption.exists(_.toLowerCase.contains(day.name.toLowerCase()))) "govuk-input--error" else ""}"
+                           id="date-input-@fieldId-@{day.name.toLowerCase()}"
+                           name="@{if(isDynamicForm) s"inputdate-$fieldId-${day.name.toLowerCase()}" else fieldId}"
+                           value="@day.value"
+                           type="number"
+                           inputmode="numeric"
+                           placeholder="@day.placeHolder.toLowerCase()"
+                           maxlength="@day.placeHolder.length"
                     >
                 </div>
             </div>
             <div class="govuk-date-input__item">
                 <div class="govuk-form-group">
-                    <label class="govuk-label govuk-date-input__label" for="date-input-@{month.name.toLowerCase()}">
+                    <label class="govuk-label govuk-date-input__label" for="date-input-@fieldId-@{month.name.toLowerCase()}">
                     @month.name
                     </label>
                     <input class="govuk-input
-                                      govuk-date-input__input
-                                      govuk-input--width-2
-                        @{if (fieldErrors.headOption.exists(_.toLowerCase.contains(month.name.toLowerCase()))) "govuk-input--error" else ""}"
-                    id="date-input-@{month.name.toLowerCase()}"
-                    name="@{if(isDynamicForm) s"inputdate-$fieldId-${month.name.toLowerCase()}" else fieldId}"
-                    value="@month.value"
-                    type="number"
-                    inputmode="numeric"
-                    placeholder="@month.placeHolder.toLowerCase()"
-                    maxlength="@month.placeHolder.length"
+                                  govuk-date-input__input
+                                  govuk-input--width-2
+                                  @{if (fieldErrors.headOption.exists(_.toLowerCase.contains(month.name.toLowerCase()))) "govuk-input--error" else ""}"
+                           id="date-input-@fieldId-@{month.name.toLowerCase()}"
+                           name="@{if(isDynamicForm) s"inputdate-$fieldId-${month.name.toLowerCase()}" else fieldId}"
+                           value="@month.value"
+                           type="number"
+                           inputmode="numeric"
+                           placeholder="@month.placeHolder.toLowerCase()"
+                           maxlength="@month.placeHolder.length"
                     >
                 </div>
             </div>
             <div class="govuk-date-input__item">
                 <div class="govuk-form-group">
-                    <label class="govuk-label govuk-date-input__label" for="date-input-@{year.name.toLowerCase()}">
+                    <label class="govuk-label govuk-date-input__label" for="date-input-@fieldId-@{year.name.toLowerCase()}">
                     @year.name
                     </label>
                     <input class="govuk-input
-                                      govuk-date-input__input
-                                      govuk-input--width-3
-                        @{if (fieldErrors.headOption.exists(_.toLowerCase.contains(year.name.toLowerCase()))) "govuk-input--error" else ""}"
-                    id="date-input-@{year.name.toLowerCase()}"
-                    name="@{if(isDynamicForm) s"inputdate-$fieldId-${year.name.toLowerCase()}" else fieldId}"
-                    value="@year.value"
-                    type="number"
-                    inputmode="numeric"
-                    placeholder="@year.placeHolder.toLowerCase()"
-                    maxlength="@year.placeHolder.length"
+                                  govuk-date-input__input
+                                  govuk-input--width-3
+                                  @{if (fieldErrors.headOption.exists(_.toLowerCase.contains(year.name.toLowerCase()))) "govuk-input--error" else ""}"
+                           id="date-input-@fieldId-@{year.name.toLowerCase()}"
+                           name="@{if(isDynamicForm) s"inputdate-$fieldId-${year.name.toLowerCase()}" else fieldId}"
+                           value="@year.value"
+                           type="number"
+                           inputmode="numeric"
+                           placeholder="@year.placeHolder.toLowerCase()"
+                           maxlength="@year.placeHolder.length"
                     >
                 </div>
             </div>

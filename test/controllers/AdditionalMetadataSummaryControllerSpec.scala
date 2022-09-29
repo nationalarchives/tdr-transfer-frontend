@@ -95,7 +95,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           |              FOI example code
           |            </dt>
           |            <dd class="govuk-summary-list__value">
-          |              open
+          |              mock code1
           |            </dd>""".stripMargin
       )
       closureMetadataSummaryPage must include(

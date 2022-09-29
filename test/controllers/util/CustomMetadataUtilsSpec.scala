@@ -1,5 +1,6 @@
 package controllers.util
 
+import cats.implicits.catsSyntaxOptionId
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
@@ -29,7 +30,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         editable = true,
         multiValue = numberOfValues > 1,
         defaultValue = Some(s"TestValue $number"),
-        ordinal = number,
+        uiOrdinal = number,
         values = (1 to numberOfValues).toList.map(
           valueNumber =>
             CustomMetadata.Values(
@@ -39,7 +40,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
                   val propertyNumber = depNumber * 2 % 11
                   CustomMetadata.Values.Dependencies(s"TestProperty$propertyNumber")
                 }
-              )
+              ), valueNumber
             )
         )
       )
@@ -104,18 +105,57 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         val field = fieldValuesByDataType.find(_.fieldId == property.name).get
         property.dataType match {
           case Integer => field.isInstanceOf[TextField] should be(true)
-            field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", "0", "0"))
+            field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", property.defaultValue.getOrElse("")))
           case DateTime => field.isInstanceOf[DateField] should be(true)
             verifyDate(field.asInstanceOf[DateField])
           case Boolean => field.isInstanceOf[RadioButtonGroupField] should be(true)
             verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
           case Text => field.isInstanceOf[DropdownField] should be(true)
             verifyText(field.asInstanceOf[DropdownField], property)
+          case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
         }
         field.fieldDescription should equal(property.description.getOrElse(""))
         field.fieldName should equal(property.fullName.get)
         field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
     }
+  }
+
+  "convertPropertiesToFields" should "convert properties to fields for the form when the given properties don't have default values" in {
+    val allPropertiesWithoutDefaultValue = allProperties.map(p => p.copy(defaultValue = None))
+    val propertiesToConvertToFields: Set[CustomMetadata] = allPropertiesWithoutDefaultValue.toSet
+    val customMetadataUtils = CustomMetadataUtils(allPropertiesWithoutDefaultValue)
+    val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
+
+    propertiesToConvertToFields.foreach {
+      property =>
+        val field = fieldValuesByDataType.find(_.fieldId == property.name).get
+        property.dataType match {
+          case Integer => field.isInstanceOf[TextField] should be(true)
+            field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", ""))
+          case DateTime => field.isInstanceOf[DateField] should be(true)
+            verifyDate(field.asInstanceOf[DateField])
+          case Boolean => field.isInstanceOf[RadioButtonGroupField] should be(true)
+            verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
+          case Text => field.isInstanceOf[DropdownField] should be(true)
+            verifyText(field.asInstanceOf[DropdownField], property)
+          case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
+        }
+        field.fieldDescription should equal(property.description.getOrElse(""))
+        field.fieldName should equal(property.fullName.get)
+        field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
+    }
+  }
+
+  "convertPropertiesToFields" should "convert date property to field and it shouldn't allow future date when property name is foiExemptionAsserted" in {
+    val propertiesToConvertToFields: CustomMetadata = allProperties.find(_.dataType == graphql.codegen.types.DataType.DateTime)
+      .head.copy(name = "FoiExemptionAsserted", fullName = "FOI decision asserted".some, description = "Date of the Advisory Council Approval".some)
+    val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(Set(propertiesToConvertToFields))
+
+    val field = fieldValuesByDataType.head.asInstanceOf[DateField]
+    verifyDate(field, isFutureDateAllowed = false)
+    field.fieldDescription should equal(propertiesToConvertToFields.description.getOrElse(""))
+    field.fieldName should equal(propertiesToConvertToFields.fullName.get)
+    field.isRequired should equal(propertiesToConvertToFields.propertyGroup.contains("MandatoryMetadata"))
   }
 
   "convertPropertiesToFields" should "order the fields in the correct order" in {
@@ -127,10 +167,11 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     )
   }
 
-  def verifyDate(field: DateField): Unit = {
+  def verifyDate(field: DateField, isFutureDateAllowed: Boolean = true): Unit = {
     field.day should equal(InputNameAndValue("Day", "", "DD"))
     field.month should equal(InputNameAndValue("Month", "", "MM"))
     field.year should equal(InputNameAndValue("Year", "", "YYYY"))
+    field.isFutureDateAllowed should equal(isFutureDateAllowed)
   }
 
   def verifyBoolean(field: RadioButtonGroupField, defaultValue: Option[String]): Unit = {
@@ -141,7 +182,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   def verifyText(field: DropdownField, property: CustomMetadata): Unit = {
     property.propertyType match {
       case Defined =>
-        field.options should equal(property.values.map(v => InputNameAndValue(v.value, v.value)))
+        field.options should equal(property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
         field.selectedOption should equal(property.defaultValue.map(value => InputNameAndValue(value, value)))
       case Supplied =>
         field.options should equal(Seq())

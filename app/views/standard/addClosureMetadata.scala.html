@@ -12,7 +12,7 @@
 @import views.html.partials.inputDropdown
 
 @(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: List[FormField], name: String, fileName: String = "[selected file/folder name to go here]")(implicit request: RequestHeader, messages: Messages)
-@main(s"Add closure fields to '$fileName'", name = name) {
+@main(s"Add closure metadata to '$fileName'", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
@@ -47,7 +47,7 @@
                                     ),
                                     fieldErrors
                                 )
-                                case DateField(fieldId, fieldName, fieldDescription, day, month, year, _, fieldErrors) => inputDate(
+                                case DateField(fieldId, fieldName, fieldDescription, day, month, year, _, fieldErrors, _) => inputDate(
                                     fieldId,
                                     fieldName,
                                     fieldDescription,
