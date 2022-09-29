@@ -64,6 +64,26 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       csvList.last("File Name") must equal("FileName2")
     }
 
+    "download the csv for rows with different numbers of metadata" in {
+      val customProperties = List(customMetadata("TestProperty1", "Test Property 1"), customMetadata("TestProperty2", "Test Property 2"))
+      val metadataFileOne = List(FileMetadata("TestProperty1", "TestValue1File1"), FileMetadata("ClientSideOriginalFilepath", "FileName1"))
+      val metadataFileTwo = List(FileMetadata("TestProperty1", "TestValue1File2"), FileMetadata("TestProperty2", "TestValue2File2"), FileMetadata("ClientSideOriginalFilepath", "FileName2"))
+      val files = List(
+        gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata),
+        gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileTwo, getConsignmentMetadata)
+      )
+
+      val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
+
+      csvList.size must equal(2)
+      csvList.head("Test Property 1") must equal("TestValue1File1")
+      csvList.head("Test Property 2") must equal("")
+      csvList.head("File Name") must equal("FileName1")
+      csvList.last("Test Property 1") must equal("TestValue1File2")
+      csvList.last("Test Property 2") must equal("TestValue2File2")
+      csvList.last("File Name") must equal("FileName2")
+    }
+
     "ignore fields set with allowExport set to false" in {
       val customProperties = List(customMetadata("TestProperty1", "Test Property 1", allowExport = false), customMetadata("TestProperty2", "Test Property 2"))
       val metadataFileOne = List(FileMetadata("TestProperty1", "TestValue1File1"), FileMetadata("TestProperty2", "TestValue2File1"), FileMetadata("ClientSideOriginalFilepath", "FileName1"))
@@ -132,7 +152,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(responseAsString, userType = "standard")
       responseAsString.contains("""img alt="Download metadata csv"""") must be(true)
-      responseAsString.contains(s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">""") must be(true)
+      responseAsString.contains(s"""<a class="download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">""") must be(true)
       responseAsString.contains(s"""<a class="govuk-button" href="/consignment/$consignmentId/confirm-transfer"""") must be(true)
     }
 

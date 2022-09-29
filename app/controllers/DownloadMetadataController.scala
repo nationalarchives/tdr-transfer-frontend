@@ -7,6 +7,7 @@ import configuration.KeycloakConfiguration
 import controllers.DownloadMetadataController.DownloadableMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
+import graphql.codegen.types.FileFilters
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
@@ -28,33 +29,47 @@ class DownloadMetadataController @Inject()(val controllerComponents: SecurityCom
       })
   }
 
+  implicit class MapUtils(metadata: Map[String, Files.FileMetadata]) {
+    def value(key: String): String = {
+      metadata.get(key).map(_.value).getOrElse("")
+    }
+  }
+
   def downloadMetadataCsv(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
+      val fileFilters = FileFilters(Option("File"), None, None)
       for {
-        metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
+        metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
         customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       } yield {
-        val sortedMetadata = getSortedMetadata(metadata.files, customMetadata)
-        val header = sortedMetadata.head.map(_.name)
-        val rows: List[List[String]] = sortedMetadata.map(_.map(_.value))
+        val filePathKey = "ClientSideOriginalFilepath"
+        val filteredMetadata = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
+        val header: List[String] = "File Name" :: filteredMetadata.map(f => f.fullName.getOrElse(f.name))
+        val rows: List[List[String]] = metadata.files.map(file => {
+          val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
+          groupedMetadata.value(filePathKey) :: filteredMetadata.map(fm => groupedMetadata.value(fm.name))
+        })
         val csvString = writeCsv(header :: rows)
         Ok(csvString)
           .as("text/csv")
-          .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}.csv")
+          .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-metadata.csv")
       }
   }
 
+
+
   private def getSortedMetadata(files: List[Files], customMetadata: List[CustomMetadata]): List[List[DownloadableMetadata]] = {
     files.map(file => {
-      val metadataMap = file.fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
+      val filePathKey = "ClientSideOriginalFilepath"
       val customMetadataMap = customMetadata.filter(_.allowExport).groupBy(_.name).view.mapValues(_.head).toMap
-      val fileName = metadataMap.get("ClientSideOriginalFilepath").map(_.value).getOrElse("")
-        DownloadableMetadata("File Name", fileName) :: ((metadataMap, customMetadataMap).tupled flatMap {
-        case (name, (fileMetadata, customMetadata)) =>
-          DownloadableMetadata(customMetadata.fullName.getOrElse(name), fileMetadata.value, customMetadata.exportOrdinal.getOrElse(Int.MaxValue)) :: Nil
-        case _ =>
-          Nil
-      }).toList.sortBy(_.sortOrdinal)
+      val fileName = file.fileMetadata.find(_.name == filePathKey).map(_.value).getOrElse("")
+      DownloadableMetadata("File Name", fileName) :: file.fileMetadata.flatMap(fm =>
+        customMetadataMap.get(fm.name)
+          .map(cm =>
+            DownloadableMetadata(cm.name, fm.value, cm.exportOrdinal.getOrElse(Int.MaxValue))
+          )
+          .toList
+      )
     })
   }
 

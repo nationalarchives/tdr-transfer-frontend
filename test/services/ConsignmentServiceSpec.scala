@@ -239,11 +239,12 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val response = GraphQlResponse[gcfm.Data](Some(gcfm.Data(Some(graphQlGetConsignmentFilesMetadata))), Nil)
 
       val selectedFileIds = Some(List(fileId))
+      val fileFilters = Option(FileFilters(None, selectedFileIds, None))
       when(getConsignmentFilesMetadataClient.getResult(bearerAccessToken, gcfm.document,
-        Some(gcfm.Variables(consignmentId, Some(FileFilters(None, selectedFileIds, None))))))
+        Some(gcfm.Variables(consignmentId, fileFilters))))
         .thenReturn(Future.successful(response))
 
-      val getConsignmentDetails = consignmentService.getConsignmentFileMetadata(consignmentId, bearerAccessToken, selectedFileIds).futureValue
+      val getConsignmentDetails = consignmentService.getConsignmentFileMetadata(consignmentId, bearerAccessToken, fileFilters).futureValue
 
       getConsignmentDetails.files.size should be(1)
       getConsignmentDetails.files.head.metadata.foiExemptionCode should be(exemptionCode)

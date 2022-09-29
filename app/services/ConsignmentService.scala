@@ -65,9 +65,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       })
   }
 
-  def getConsignmentFileMetadata(consignmentId: UUID, token: BearerAccessToken, selectedFileIds: Option[List[UUID]] = None): Future[gcfm.GetConsignment] = {
-
-    val fileFilters = if (selectedFileIds.isEmpty) None else Some(FileFilters(None, selectedFileIds, None))
+  def getConsignmentFileMetadata(consignmentId: UUID, token: BearerAccessToken, fileFilters: Option[FileFilters] = None): Future[gcfm.GetConsignment] = {
     val variables: gcfm.Variables =
       new GetConsignmentFilesMetadata.getConsignmentFilesMetadata.Variables(consignmentId, fileFilters)
 

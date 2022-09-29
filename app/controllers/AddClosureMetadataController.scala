@@ -28,9 +28,9 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
   def addClosureMetadata(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       //  TODO:  Get selectedFileIds from previous page
-    val selectedFileIds = None
+    val fileFilters = None
       for {
-        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, selectedFileIds)
+        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, fileFilters)
         defaultFieldForm <- getDefaultFieldsForForm(consignmentId, request)
         updatedFieldsForForm <- {
           cache.set(s"$consignmentId", consignment.consignmentReference, 1.hour)

@@ -20,9 +20,9 @@ class AdditionalMetadataSummaryController @Inject ()(val consignmentService: Con
   def getSelectedSummaryPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     //  TODO:  Get fileName and selectedFileIds from previous page
     val fileName = "Flour.txt"
-    val selectedFileIds = None
+    val fileFilters = None
     for {
-      consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, selectedFileIds)
+      consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, fileFilters)
       response <- consignment.files match {
         case first :: _ =>
           Future(Ok(views.html.standard.additionalMetadataSummary(fileName, consignment.consignmentReference,
