@@ -1,12 +1,9 @@
 package controllers
 
 import auth.TokenSecurity
-import cats.implicits.catsSyntaxTuple2Semigroupal
 import com.github.tototoshi.csv.CSVWriter
 import configuration.KeycloakConfiguration
-import controllers.DownloadMetadataController.DownloadableMetadata
-import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.types.FileFilters
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.pac4j.play.scala.SecurityComponents
@@ -15,7 +12,6 @@ import services.{ConsignmentService, CustomMetadataService}
 
 import java.util.UUID
 import javax.inject.Inject
-import scala.concurrent.Future
 
 class DownloadMetadataController @Inject()(val controllerComponents: SecurityComponents,
                                            val consignmentService: ConsignmentService,
@@ -29,7 +25,7 @@ class DownloadMetadataController @Inject()(val controllerComponents: SecurityCom
       })
   }
 
-  implicit class MapUtils(metadata: Map[String, Files.FileMetadata]) {
+  implicit class MapUtils(metadata: Map[String, FileMetadata]) {
     def value(key: String): String = {
       metadata.get(key).map(_.value).getOrElse("")
     }
@@ -56,31 +52,10 @@ class DownloadMetadataController @Inject()(val controllerComponents: SecurityCom
       }
   }
 
-
-
-  private def getSortedMetadata(files: List[Files], customMetadata: List[CustomMetadata]): List[List[DownloadableMetadata]] = {
-    files.map(file => {
-      val filePathKey = "ClientSideOriginalFilepath"
-      val customMetadataMap = customMetadata.filter(_.allowExport).groupBy(_.name).view.mapValues(_.head).toMap
-      val fileName = file.fileMetadata.find(_.name == filePathKey).map(_.value).getOrElse("")
-      DownloadableMetadata("File Name", fileName) :: file.fileMetadata.flatMap(fm =>
-        customMetadataMap.get(fm.name)
-          .map(cm =>
-            DownloadableMetadata(cm.name, fm.value, cm.exportOrdinal.getOrElse(Int.MaxValue))
-          )
-          .toList
-      )
-    })
-  }
-
   private def writeCsv(rows: List[List[String]]): String = {
     val bas = new ByteArrayOutputStream()
     val writer = CSVWriter.open(bas)
     writer.writeAll(rows)
     bas.toByteArray.map(_.toChar).mkString
   }
-}
-
-object DownloadMetadataController {
-  case class DownloadableMetadata(name: String, value: String, sortOrdinal: Int = 0)
 }
