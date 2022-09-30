@@ -1,4 +1,4 @@
-export const verifyVisibilityOfSuccessMessage = (
+export const verifyVisibilityOfSuccessAndRemovalMessage = (
   messageElement: HTMLElement,
   shouldBeVisible: boolean
 ): void => {

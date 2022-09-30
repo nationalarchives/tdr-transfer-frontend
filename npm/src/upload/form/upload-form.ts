@@ -146,7 +146,7 @@ export class UploadForm {
         return resultOrError
       }
     }
-    displaySelectionSuccessMessage(this.successMessage, this.warningMessages)
+    displaySelectionSuccessMessage(this.successAndRemovalMessageContainer, this.warningMessages)
     this.removeDragover()
   }
 
@@ -169,16 +169,20 @@ export class UploadForm {
       const parentFolder = this.getParentFolderName(this.selectedFiles)
       addFolderSelectionSuccessMessage(parentFolder, this.selectedFiles.length)
     }
-    displaySelectionSuccessMessage(this.successMessage, this.warningMessages)
+    displaySelectionSuccessMessage(this.successAndRemovalMessageContainer, this.warningMessages)
   }
 
   removeSelectedItem = (ev: Event): void => {
     ev.preventDefault()
-    const successMessageRow: HTMLElement | null = document.querySelector(
-      "#success-message-row"
+    const folderSelectionMessage: HTMLElement | null = document.querySelector(
+      "#item-selection-success-container"
     )
+
     this.selectedFiles = []
-    successMessageRow?.setAttribute("hidden", "true")
+    folderSelectionMessage?.setAttribute("hidden", "true")
+    this.warningMessages.removedSelectionMessage?.removeAttribute("hidden")
+    this.successAndRemovalMessageContainer?.focus()
+
     this.formElement.reset()
   }
 
@@ -222,7 +226,7 @@ export class UploadForm {
       return rejectUserItemSelection(
         this.warningMessages?.submissionWithoutSelectionMessage,
         this.warningMessages,
-        this.successMessage,
+        this.successAndRemovalMessageContainer,
         "A submission was made without an item being selected"
       )
     }
@@ -251,11 +255,14 @@ export class UploadForm {
     ),
     submissionWithoutSelectionMessage: document.querySelector(
       "#nothing-selected-submission-message"
+    ),
+    removedSelectionMessage: document.querySelector(
+      "#removed-selection-container"
     )
   }
 
-  readonly successMessage: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__success"
+  readonly successAndRemovalMessageContainer: HTMLElement | null = document.querySelector(
+    "#success-and-removal-message-container"
   )
 
   private getParentFolderName(folder: IEntryWithPath[]) {
@@ -283,7 +290,7 @@ export class UploadForm {
       return rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
         this.warningMessages,
-        this.successMessage,
+        this.successAndRemovalMessageContainer,
         "The folder is empty"
       )
     }
@@ -321,7 +328,7 @@ export class UploadForm {
       return rejectUserItemSelection(
         this.warningMessages?.multipleItemSelectedMessage,
         this.warningMessages,
-        this.successMessage,
+        this.successAndRemovalMessageContainer,
         exceptionMessage
       )
     }
@@ -338,14 +345,14 @@ export class UploadForm {
         return rejectUserItemSelection(
           this.warningMessages?.multipleFolderSelectedMessage,
           this.warningMessages,
-          this.successMessage,
+          this.successAndRemovalMessageContainer,
           exceptionMessage
         )
       } else {
         return rejectUserItemSelection(
           this.warningMessages?.multipleItemSelectedMessage,
           this.warningMessages,
-          this.successMessage,
+          this.successAndRemovalMessageContainer,
           exceptionMessage
         )
       }
@@ -368,7 +375,7 @@ export class UploadForm {
         return rejectUserItemSelection(
           this.warningMessages?.incorrectItemSelectedMessage,
           this.warningMessages,
-          this.successMessage,
+          this.successAndRemovalMessageContainer,
           "Only files are allowed to be selected"
         )
       }
@@ -386,7 +393,7 @@ export class UploadForm {
       return rejectUserItemSelection(
         this.warningMessages?.incorrectItemSelectedMessage,
         this.warningMessages,
-        this.successMessage,
+        this.successAndRemovalMessageContainer,
         "Only folders are allowed to be selected"
       )
     }
@@ -408,7 +415,7 @@ export class UploadForm {
         return rejectUserItemSelection(
           this.warningMessages?.incorrectFileExtensionMessage,
           this.warningMessages,
-          this.successMessage,
+          this.successAndRemovalMessageContainer,
           "Only MS Word docs are allowed to be selected"
         )
       }
