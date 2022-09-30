@@ -137,8 +137,15 @@ class UploadControllerSpec extends FrontEndTestHelper {
           " Remove any thumbnail images (thumb dbs) and executable files (.exe) from the records before uploading."
       )
       uploadPageAsString must include(
-        """<p id="success-message-text" class="success-message">The folder "<span id="folder-name"></span>"""" +
-          """ (containing <span id="folder-size"></span>) has been selected </p>"""
+        """<p id="success-message-text" class="success-message">The folder "<span class="folder-name"></span>"""" +
+          """ (containing <span class="folder-size"></span>) has been selected </p>"""
+      )
+      uploadPageAsString must include(
+        """<a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>"""
+      )
+      uploadPageAsString must include(
+        """<p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>"""" +
+        """ (containing <span class="folder-size"></span>) has been removed. Select a folder.</p>"""
       )
       uploadPageAsString must include(
         """|                                <div class="drag-and-drop__dropzone">
@@ -253,7 +260,13 @@ class UploadControllerSpec extends FrontEndTestHelper {
         """<form id="file-upload-form" data-consignment-id="c2efd3e6-6664-4582-8c28-dcf891f60e68">"""
       )
       uploadPageAsString must include(
-        """<p id="success-message-text" class="success-message">The file "<span id="file-name"></span>" has been selected </p>"""
+        """<p id="success-message-text" class="success-message">The file "<span class="file-name"></span>" has been selected </p>"""
+      )
+      uploadPageAsString must include(
+        """<a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>"""
+      )
+      uploadPageAsString must include(
+        """<p id="removed-selection-message-text" class="govuk-error-message">The file "<span class="file-name"></span>" has been removed. Select a file.</p>"""
       )
       uploadPageAsString must include(
         """|                                <div class="drag-and-drop__dropzone">
