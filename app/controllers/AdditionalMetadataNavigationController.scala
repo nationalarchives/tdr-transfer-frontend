@@ -114,7 +114,8 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       "allNodes" -> list(text),
       "pageSelected" -> number,
       "folderSelected" -> text,
-      "returnToRoot" -> optional(text)
+      "returnToRoot" -> optional(text),
+      "addClosureProperties" -> optional(text)
     )(NodesFormData.apply)(NodesFormData.unapply))
 
   def getPaginatedFiles(consignmentId: UUID, pageNumber: Int, limit: Option[Int], selectedFolderId: UUID,
@@ -147,14 +148,14 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         selectedFolderId,
         paginatedFiles.parentFolderId,
         navigationForm.fill(NodesFormData(nodesToDisplay, selected = List(), allNodes = List(), pageNumber, selectedFolderId.toString,
-          paginatedFiles.parentFolder)), resultsCount)
+          paginatedFiles.parentFolder, None)), resultsCount)
       ).uncache()
     }
   }
 
   def submit(consignmentId: UUID, limit: Option[Int], selectedFolderId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
-      val errorFunction: Form[NodesFormData] => Future[Result] = { formWithErrors: Form[NodesFormData] =>
+      val errorFunction: Form[NodesFormData] => Future[Result] = { _: Form[NodesFormData] =>
         Future(Redirect(routes.AdditionalMetadataNavigationController
           .getPaginatedFiles(consignmentId, 1, limit, selectedFolderId, metadataType)))
       }
@@ -165,8 +166,13 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         val folderSelected: String = formData.folderSelected
         selectedFiles.updateCache(formData, consignmentId, request.token.bearerAccessToken).map(_ => {
           val folderId = UUID.fromString(formData.returnToRoot.getOrElse(folderSelected))
-          Redirect(routes.AdditionalMetadataNavigationController
-            .getPaginatedFiles(consignmentId, pageSelected, limit, folderId, metadataType))
+          if(formData.addClosureProperties.isDefined) {
+            Redirect(routes.AddClosureMetadataController.addClosureMetadata(consignmentId, selectedFiles.toSet.toList))
+          } else {
+            Redirect(routes.AdditionalMetadataNavigationController
+              .getPaginatedFiles(consignmentId, pageSelected, limit, folderId, metadataType))
+          }
+
         })
       }
 
@@ -233,7 +239,8 @@ object AdditionalMetadataNavigationController {
                            allNodes: List[String],
                            pageSelected: Int,
                            folderSelected: String,
-                           returnToRoot: Option[String])
+                           returnToRoot: Option[String],
+                           addClosureProperties: Option[String])
 
   case class NodesToDisplay(fileId: String,
                             displayName: String,

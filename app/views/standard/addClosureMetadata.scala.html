@@ -11,13 +11,18 @@
 @import controllers.util._
 @import views.html.partials.inputDropdown
 
-@(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: List[FormField], name: String, fileName: String = "[selected file/folder name to go here]")(implicit request: RequestHeader, messages: Messages)
-@main(s"Add closure metadata to '$fileName'", name = name) {
+@import controllers.AddClosureMetadataController.File
+@(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File])(implicit request: RequestHeader, messages: Messages)
+@main(s"Add closure metadata to files", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
                 @progressIndicator(Messages("addClosureMetadata.progress"))
-            <h1 class="govuk-heading-l">Add closure metadata to '@fileName'</h1>
+            <h1 class="govuk-heading-l">Add closure metadata to</h1>
+            @for(file <- files) {
+                <h2>@file.name</h2>
+                <input type="hidden" value="@file.fileId" name="fileIds[]">
+            }
             <p class="govuk-body">Enter metadata for closure fields here.</p>
                 @errorSummary(
                     fieldsToApplyToFile.collect {
@@ -25,7 +30,7 @@
                     }
                 )
                 @form(
-                    routes.AddClosureMetadataController.addClosureMetadataSubmit(consignmentId),
+                    routes.AddClosureMetadataController.addClosureMetadataSubmit(consignmentId, files.map(_.fileId)),
                     (Symbol("novalidate"), "")
                 ) {
                     @CSRF.formField
