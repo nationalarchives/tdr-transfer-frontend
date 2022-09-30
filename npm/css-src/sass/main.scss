@@ -62,24 +62,24 @@ a {
 }
 
 .thumbnail-icon {
-  display: block;
-  width: auto;
-  max-width: 99px;
-  height: 100px;
-  border: rgba(11, 12, 12, 0.1);
-  outline: 5px solid rgba(11, 12, 12, 0.1);
   background: #fff;
+  border: rgba(11, 12, 12, 0.1);
   box-shadow: 0 2px 2px rgb(11 12 12 / 40%);
+  display: block;
   fill: #b1b4b6;
+  height: 100px;
+  max-width: 99px;
+  outline: 5px solid rgba(11, 12, 12, 0.1);
   stroke: #b1b4b6;
+  width: auto;
 }
 
 .attachment .attachment-thumb {
-  position: relative;
   float: left;
-  margin-top: 5px;
   margin-left: -124px;
+  margin-top: 5px;
   padding-bottom: 15px;
+  position: relative;
 }
 
 .download-metadata {
@@ -87,6 +87,6 @@ a {
 }
 
 .attachment {
-  position: relative;
   padding: 15px 0 0 129px;
+  position: relative;
 }
