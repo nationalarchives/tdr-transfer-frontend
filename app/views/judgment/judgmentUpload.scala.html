@@ -40,13 +40,16 @@
         <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <div class="drag-and-drop">
-                    <div id="success-message-row" class="govuk-summary-list govuk-file-upload">
+                    <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden>
                         <div class="govuk-summary-list__row">
-                            <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden
+                            <dd class="govuk-summary-list__value drag-and-drop__success"
                                 tabindex="-1" role="alert" aria-describedby="success-message-text">
-                                <div class="success-message-flexbox-container">
-                                    <p id="success-message-text" class="success-message">The file "<span id="file-name"></span>" has been selected </p>
+                                <div class="success-message-flexbox-container" id="item-selection-success-container">
+                                    <p id="success-message-text" class="success-message">The file "<span class="file-name"></span>" has been selected </p>
                                     <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
+                                </div>
+                                <div class="success-message-flexbox-container" id="removed-selection-container" hidden>
+                                    <p id="removed-selection-message-text" class="govuk-error-message">The file "<span class="file-name"></span>" has been removed. Select a file.</p>
                                 </div>
                             </dd>
                         </div>
