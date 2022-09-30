@@ -2,20 +2,26 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import controllers.AddClosureMetadataController.File
 import controllers.util.MetadataProperty._
 import controllers.util._
-import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.Metadata
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.{FileMetadata, Metadata}
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
+import graphql.codegen.types.{FileFilters, UpdateFileMetadataInput}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, CustomMetadataService}
 
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, LocalDateTime, LocalTime}
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 class AddClosureMetadataController @Inject()(val controllerComponents: SecurityComponents,
                                              val graphqlConfiguration: GraphQLConfiguration,
@@ -25,21 +31,23 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
                                              val cache: AsyncCacheApi)
                                             (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
 
-  def addClosureMetadata(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def addClosureMetadata(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       //  TODO:  Get selectedFileIds from previous page
-    val selectedFileIds = None
       for {
-        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, selectedFileIds)
+        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None)))
         defaultFieldForm <- getDefaultFieldsForForm(consignmentId, request)
         updatedFieldsForForm <- {
           cache.set(s"$consignmentId", consignment.consignmentReference, 1.hour)
-          updateFormFields(defaultFieldForm, consignment.files.headOption.map(_.metadata))
+          updateFormFields(defaultFieldForm, consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil))
         }
-      } yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignment.consignmentReference, updatedFieldsForForm, request.token.name))
+      } yield {
+        val files = getFilesFromConsignment(consignment.files.filter(file => fileIds.contains(file.fileId)))
+        Ok(views.html.standard.addClosureMetadata(consignmentId, consignment.consignmentReference, updatedFieldsForForm, request.token.name, files))
+      }
   }
 
-  def addClosureMetadataSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def addClosureMetadataSubmit(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
         defaultFieldValues <- cache.getOrElseUpdate[List[FormField]]("fieldValues") {
@@ -52,13 +60,26 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
           val updatedFormFields: List[FormField] = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(formAnswers)
           if (updatedFormFields.exists(_.fieldErrors.nonEmpty)) {
             for {
+              consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
               consignmentRef <- cache.getOrElseUpdate[String](s"$consignmentId") {
                 consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
               }
-            } yield Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, updatedFormFields, request.token.name))
+            } yield {
+              val files = getFilesFromConsignment(consignment.files.filter(file => fileIds.contains(file.fileId)))
+              Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, updatedFormFields, request.token.name, files))
+            }
           } else {
-            // A call to the API to save data to database should go here.
-            Future(Ok(views.html.standard.homepage(request.token.name))) // this view should be replaced with closure metadata overview page
+            val metadataInput: List[UpdateFileMetadataInput] = updatedFormFields map {
+              case TextField(fieldId, _, _, nameAndValue, _, _, _) => UpdateFileMetadataInput(fieldId, nameAndValue.value)
+              case DateField(fieldId, _, _, day, month, year, _, _, _) =>
+                val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
+                UpdateFileMetadataInput(fieldId, dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace("T", " "))
+              case RadioButtonGroupField(fieldId, _, _, _, selectedOption, _, _) => UpdateFileMetadataInput(fieldId, selectedOption)
+              case DropdownField(fieldId, _, _, _, selectedOption, _, _) => UpdateFileMetadataInput(fieldId, selectedOption.map(_.value).getOrElse(""))
+            }
+            customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, metadataInput).map(_ => {
+              Redirect(routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds)) // Will send to the summary page when it's built
+            })
           }
         }
       } yield result
@@ -91,20 +112,39 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
     customMetadataUtils.getCustomMetadataProperties(dependencyNames.toSet)
   }
 
-  private def updateFormFields(orderedFieldsForForm: List[FormField], fileMetadata: Option[Metadata]): Future[List[FormField]] = {
-
-    Future(
-      fileMetadata.map(fileMetadata =>
-        orderedFieldsForForm.map(field =>
-          (field.fieldId match {
-            case `foiExemptionAsserted` => fileMetadata.foiExemptionAsserted.map(p => DateField.update(field.asInstanceOf[DateField], p))
-            case `closureStartDate` => fileMetadata.closureStartDate.map(p => DateField.update(field.asInstanceOf[DateField], p))
-            case `closurePeriod` => fileMetadata.closurePeriod.map(p => TextField.update(field.asInstanceOf[TextField], p.toString))
-            case `foiExemptionCode` => fileMetadata.foiExemptionCode.map(DropdownField.update(field.asInstanceOf[DropdownField], _))
-            case `titlePublic` => fileMetadata.titlePublic.map(RadioButtonGroupField.update(field.asInstanceOf[RadioButtonGroupField], _))
-            case _ => None
-          }).getOrElse(field))
-      ).getOrElse(orderedFieldsForForm)
-    )
+  private def getFilesFromConsignment(files: List[getConsignmentFilesMetadata.GetConsignment.Files]): List[File] = {
+    files.map(file => {
+      val filePath = file.fileMetadata.find(_.name == "ClientSideOriginalFilepath").map(_.value).getOrElse("")
+      File(file.fileId, filePath)
+    })
   }
+
+  private def stringToBoolean(value: String): Boolean = {
+    Try(value.toBoolean) match {
+      case Failure(_) => value == "yes"
+      case Success(value) => value
+    }
+  }
+
+  private def updateFormFields(orderedFieldsForForm: List[FormField], fileMetadata: List[FileMetadata]): Future[List[FormField]] = {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    val metadataMap = fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
+    Future.successful {
+      orderedFieldsForForm.map {
+        case dateField: DateField => metadataMap.get(dateField.fieldId)
+          .map(metadata => DateField.update(dateField, LocalDateTime.parse(metadata.value, formatter))).getOrElse(dateField)
+        case dropdownField: DropdownField => metadataMap.get(dropdownField.fieldId)
+          .map(metadata => DropdownField.update(dropdownField, metadata.value)).getOrElse(dropdownField)
+        case radioButtonGroupField: RadioButtonGroupField => metadataMap.get(radioButtonGroupField.fieldId)
+          .map(metadata => RadioButtonGroupField.update(radioButtonGroupField, stringToBoolean(metadata.value))).getOrElse(radioButtonGroupField)
+        case textField: TextField =>
+          metadataMap.get(textField.fieldId)
+            .map(metadata => TextField.update(textField, metadata.value)).getOrElse(textField)
+      }
+    }
+  }
+}
+
+object AddClosureMetadataController {
+  case class File(fileId: UUID, name: String)
 }

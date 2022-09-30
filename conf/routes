@@ -26,8 +26,8 @@ POST        /update-consignment-status                                          
 POST        /consignment/:consignmentId/file-check-progress                                 controllers.FileChecksController.fileCheckProgress(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/file-checks                                         controllers.FileChecksController.fileChecksPage(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/file-checks-results                                 controllers.FileChecksResultsController.fileCheckResultsPage(consignmentId: java.util.UUID)
-GET         /consignment/:consignmentId/add-closure-metadata                                controllers.AddClosureMetadataController.addClosureMetadata(consignmentId: java.util.UUID)
-POST        /consignment/:consignmentId/add-closure-metadata                                controllers.AddClosureMetadataController.addClosureMetadataSubmit(consignmentId: java.util.UUID)
+GET         /consignment/:consignmentId/add-closure-metadata                                controllers.AddClosureMetadataController.addClosureMetadata(consignmentId: java.util.UUID, fileIds: List[java.util.UUID])
+POST        /consignment/:consignmentId/add-closure-metadata                                controllers.AddClosureMetadataController.addClosureMetadataSubmit(consignmentId: java.util.UUID, files: List[java.util.UUID])
 GET         /consignment/:consignmentId/confirm-transfer                                    controllers.ConfirmTransferController.confirmTransfer(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/confirm-transfer                                    controllers.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/transfer-complete                                   controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
@@ -36,6 +36,7 @@ GET         /consignment/:consignmentId/additional-metadata                     
 GET         /consignment/:consignmentId/additional-metadata/closure/selected-summary        controllers.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/additional-metadata/:metadataType/:folderId/:page   controllers.AdditionalMetadataNavigationController.getPaginatedFiles(consignmentId: java.util.UUID, page: Int, limit: Option[Int], folderId: java.util.UUID, metadataType: String)
 POST        /consignment/:consignmentId/additional-metadata/:folderId/                      controllers.AdditionalMetadataNavigationController.submit(consignmentId: java.util.UUID, limit: Option[Int], folderId: java.util.UUID, metadataType: String)
+
 GET         /view-history                                                                   controllers.ViewHistoryController.viewConsignments()
 GET         /signed-out                                                                     controllers.SignOutController.signedOut()
 

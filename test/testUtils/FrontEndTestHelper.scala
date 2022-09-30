@@ -6,8 +6,11 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.AddBulkFileMetadata.addBulkFileMetadata.UpdateBulkFileMetadata
+import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.GetAllDescendants.getAllDescendantIds
 import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
@@ -45,11 +48,13 @@ import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
 import play.api.{Application, Configuration}
+import uk.gov.nationalarchives.tdr.GraphQlResponse
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.FrontEndInfo
 
 import java.io.File
 import java.net.URI
+import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.{Date, UUID}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -82,24 +87,39 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       .willReturn(okJson(dataString)))
   }
 
+  def setBulkUpdateMetadataResponse(wiremockServer: WireMockServer) = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[abfm.Data, abfm.Variables]()
+    val dataString = client.GraphqlData(Option(abfm.Data(UpdateBulkFileMetadata(Nil, Nil)))).asJson.printWith(Printer.noSpaces)
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("updateBulkFileMetadata"))
+      .willReturn(okJson(dataString)))
+  }
+
   def setConsignmentFilesMetadataResponse(wiremockServer: WireMockServer, consignmentRef: String = "TEST-TDR-2021-GB",
-                                          fileHasMetadata: Boolean = true): StubMapping = {
+                                          fileHasMetadata: Boolean = true, fileIds: List[UUID] = Nil): StubMapping = {
 
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
     val closureStartDate = LocalDateTime.of(1990, 12, 1, 10, 0)
     val foiExampleAsserted = LocalDateTime.of(1995, 1, 12, 10, 0)
-    val fileMetadata = if(fileHasMetadata) {
-      gcfm.GetConsignment.Files.Metadata(Some("mock code1"), Some(4), Some(closureStartDate), Some(foiExampleAsserted), Some(false))
+    val fileMetadata: List[Files.FileMetadata] = if(fileHasMetadata) {
+      List(
+        gcfm.GetConsignment.Files.FileMetadata("FoiExemptionCode", "mock code1"),
+        gcfm.GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
+        gcfm.GetConsignment.Files.FileMetadata("ClosureStartDate", closureStartDate.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
+        gcfm.GetConsignment.Files.FileMetadata("FoiExemptionAsserted", foiExampleAsserted.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
+        gcfm.GetConsignment.Files.FileMetadata("TitleClosed", "no"),
+        gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path")
+      )
     } else {
-      gcfm.GetConsignment.Files.Metadata(None, None, None, None, None)
+      Nil
     }
     val consignmentFilesMetadata = gcfm.Data(Option(gcfm.GetConsignment(
-      List(
+      fileIds.map(fileId =>
         gcfm.GetConsignment.Files(
-          UUID.randomUUID(),
-          fileMetadata
-        )
-      ), consignmentRef))
+        fileId,
+        fileMetadata,
+        gcfm.GetConsignment.Files.Metadata(None, None, None, None, None)
+      )), consignmentRef))
     )
     val data: client.GraphqlData = client.GraphqlData(Some(consignmentFilesMetadata))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
