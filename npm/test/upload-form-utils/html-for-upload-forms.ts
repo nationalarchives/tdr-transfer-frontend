@@ -5,9 +5,9 @@ export const htmlForFolderUploadForm = `
               <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
                   <div class="govuk-form-group">
                       <div class="drag-and-drop">
-                          <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload">
+                          <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden>
                               <div class="govuk-summary-list__row">
-                                  <dd class="govuk-summary-list__value drag-and-drop__success" hidden="true"
+                                  <dd class="govuk-summary-list__value drag-and-drop__success"
                                       tabindex="-1" role="alert" aria-describedby="success-message-text">
                                       <div class="success-message-flexbox-container" id="item-selection-success-container">
                                           <p id="success-message-text" class="success-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been selected </p>
@@ -78,9 +78,9 @@ export const htmlForFileUploadForm = `
           <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
               <div class="govuk-form-group">
                   <div class="drag-and-drop">
-                      <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload">
+                      <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden>
                           <div class="govuk-summary-list__row">
-                              <dd class="govuk-summary-list__value drag-and-drop__success" hidden="true"
+                              <dd class="govuk-summary-list__value drag-and-drop__success"
                                   tabindex="-1" role="alert" aria-describedby="success-message-text">
                                   <div class="success-message-flexbox-container" id="item-selection-success-container">
                                       <p id="success-message-text" class="success-message">The file "<span class="file-name"></span>" has been selected </p>
