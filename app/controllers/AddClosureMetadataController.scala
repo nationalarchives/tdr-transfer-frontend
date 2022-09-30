@@ -78,7 +78,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
               case DropdownField(fieldId, _, _, _, selectedOption, _, _) => UpdateFileMetadataInput(fieldId, selectedOption.map(_.value).getOrElse(""))
             }
             customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, metadataInput).map(_ => {
-              Redirect(routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds)) // Will send to the summary page when it's built
+              Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId)) // Will send to the summary page when it's built
             })
           }
         }

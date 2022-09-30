@@ -101,25 +101,25 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
     val closureStartDate = LocalDateTime.of(1990, 12, 1, 10, 0)
     val foiExampleAsserted = LocalDateTime.of(1995, 1, 12, 10, 0)
-    val fileMetadata: List[Files.FileMetadata] = if(fileHasMetadata) {
-      List(
+    val (fileMetadata, metadata) = if (fileHasMetadata) {
+      (List(
         gcfm.GetConsignment.Files.FileMetadata("FoiExemptionCode", "mock code1"),
         gcfm.GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
         gcfm.GetConsignment.Files.FileMetadata("ClosureStartDate", closureStartDate.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
         gcfm.GetConsignment.Files.FileMetadata("FoiExemptionAsserted", foiExampleAsserted.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
         gcfm.GetConsignment.Files.FileMetadata("TitleClosed", "no"),
         gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path")
-      )
+      ), gcfm.GetConsignment.Files.Metadata(Some("mock code1"), Some(4), Some(closureStartDate), Some(foiExampleAsserted), Some(false)))
     } else {
-      Nil
+      (Nil, gcfm.GetConsignment.Files.Metadata(None, None, None, None, None))
     }
     val consignmentFilesMetadata = gcfm.Data(Option(gcfm.GetConsignment(
       fileIds.map(fileId =>
         gcfm.GetConsignment.Files(
-        fileId,
-        fileMetadata,
-        gcfm.GetConsignment.Files.Metadata(None, None, None, None, None)
-      )), consignmentRef))
+          fileId,
+          fileMetadata,
+          metadata
+        )), consignmentRef))
     )
     val data: client.GraphqlData = client.GraphqlData(Some(consignmentFilesMetadata))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
@@ -318,8 +318,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     //Mock the get method to return the expected map.
     doAnswer(_ => java.util.Optional.of(profileMap)).when(playCacheSessionStore).get(
-        any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES)
-      )
+      any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES)
+    )
 
     val testConfig = new Config()
 
@@ -343,8 +343,11 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     new SecurityComponents {
       override def components: ControllerComponents = stubControllerComponents()
+
       override def config: Config = testConfig
+
       override def sessionStore: SessionStore = playCacheSessionStore
+
       //scalastyle:off null
       override def parser: BodyParsers.Default = null
       //scalastyle:on null
@@ -354,7 +357,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   def getUnauthorisedSecurityComponents: SecurityComponents = {
     val testConfig = new Config()
     val logic = DefaultSecurityLogic.INSTANCE
-    logic setAuthorizationChecker((_, _, _, _, _, _) => false)
+    logic setAuthorizationChecker ((_, _, _, _, _, _) => false)
     testConfig.setSecurityLogic(logic)
 
     //There is a null check for the action adaptor.
@@ -392,8 +395,11 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     new SecurityComponents {
       override def components: ControllerComponents = stubControllerComponents()
+
       override def config: Config = testConfig
+
       override def sessionStore: SessionStore = mock[SessionStore]
+
       //scalastyle:off null
       override def parser: BodyParsers.Default = null
       //scalastyle:on null
