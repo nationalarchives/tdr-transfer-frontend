@@ -10,7 +10,6 @@ import graphql.codegen.AddBulkFileMetadata.addBulkFileMetadata.UpdateBulkFileMet
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.GetAllDescendants.getAllDescendantIds
 import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
-import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
@@ -48,7 +47,6 @@ import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
 import play.api.{Application, Configuration}
-import uk.gov.nationalarchives.tdr.GraphQlResponse
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.FrontEndInfo
 
@@ -87,7 +85,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       .willReturn(okJson(dataString)))
   }
 
-  def setBulkUpdateMetadataResponse(wiremockServer: WireMockServer) = {
+  def setBulkUpdateMetadataResponse(wiremockServer: WireMockServer): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[abfm.Data, abfm.Variables]()
     val dataString = client.GraphqlData(Option(abfm.Data(UpdateBulkFileMetadata(Nil, Nil)))).asJson.printWith(Printer.noSpaces)
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
@@ -318,8 +316,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     //Mock the get method to return the expected map.
     doAnswer(_ => java.util.Optional.of(profileMap)).when(playCacheSessionStore).get(
-      any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES)
-    )
+        any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES)
+      )
 
     val testConfig = new Config()
 
@@ -340,18 +338,19 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     testConfig.setClients(clients)
 
     //Create a new controller with the session store and config. The parser and components don't affect the tests.
+    securityComponents(testConfig, playCacheSessionStore)
+  }
 
-    new SecurityComponents {
-      override def components: ControllerComponents = stubControllerComponents()
+  private def securityComponents(testConfig: Config, playCacheSessionStore: SessionStore): SecurityComponents = new SecurityComponents {
+    override def components: ControllerComponents = stubControllerComponents()
 
-      override def config: Config = testConfig
+    override def config: Config = testConfig
 
-      override def sessionStore: SessionStore = playCacheSessionStore
+    override def sessionStore: SessionStore = playCacheSessionStore
 
-      //scalastyle:off null
-      override def parser: BodyParsers.Default = null
-      //scalastyle:on null
-    }
+    //scalastyle:off null
+    override def parser: BodyParsers.Default = null
+    //scalastyle:on null
   }
 
   def getUnauthorisedSecurityComponents: SecurityComponents = {
