@@ -61,7 +61,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
     val cacheApi = mock[CacheApi]
 
-    when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(selectedSet)
+    when(cacheApi.set[UUID](s"${consignmentId}_selectedFiles")).thenReturn(selectedSet)
     when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(partSelectedSet)
     when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(folderMap)
 
@@ -576,7 +576,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       when(redisMapMock.get(selectedFolderId.toString)).thenReturn(Some(List()))
 
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId}_selectedFiles")).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
@@ -614,7 +614,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
 
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId}_selectedFiles")).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
@@ -655,7 +655,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(redisMapMock.get(selectedFolderId.toString)).thenReturn(Some(List()))
       when(redisMapMock.contains(selectedFolderId.toString)).thenReturn(true)
 
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId}_selectedFiles")).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetPartSelectedMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
@@ -757,7 +757,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
       when(redisSetMock.toSet).thenReturn(Set())
 
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId}_selectedFiles")).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
@@ -793,7 +793,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
       val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
 
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId}_selectedFiles")).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
@@ -848,7 +848,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
       when(redisSetMock.toSet).thenReturn(Set())
 
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId}_selectedFiles")).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
@@ -905,7 +905,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
       when(redisSetMock.toSet).thenReturn(Set())
 
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+      when(cacheApi.set[UUID](s"${consignmentId}_selectedFiles")).thenReturn(redisSetMock)
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
@@ -1048,7 +1048,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
     when(redisSetMock.toSet).thenReturn(Set())
     when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-    when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
+    when(cacheApi.set[UUID](s"${consignmentId}_selectedFiles")).thenReturn(redisSetMock)
     when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
     when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
   }

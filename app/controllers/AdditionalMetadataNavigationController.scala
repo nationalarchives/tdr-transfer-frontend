@@ -161,7 +161,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       }
 
       val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
-        val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
+        val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_selectedFiles")
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
         selectedFiles.updateCache(formData, consignmentId, request.token.bearerAccessToken).map(_ => {
@@ -208,7 +208,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   private def selected(consignmentId: UUID, nodeId: UUID, isFolder: Boolean, token: BearerAccessToken): Future[Boolean] = {
     val folderDescendantsCache = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
-    val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
+    val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_selectedFiles")
 
     for {
       ids <- if (isFolder) {
@@ -220,7 +220,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
   private def getDescendantFilesSelected(consignmentId: UUID,
                                 folderId: UUID,
                                 token: BearerAccessToken): Future[Int] = {
-    val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
+    val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_selectedFiles")
     val partSelectedCache: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_partSelected")
     val folderDescendantsCache = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
 

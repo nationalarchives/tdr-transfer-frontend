@@ -32,17 +32,21 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
 
   def addClosureMetadata(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
-      //  TODO:  Get selectedFileIds from previous page
       for {
+        //This is another API call to get the parent ID but this won't be needed once the JS solution is in so we can live with it.
+        details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
         consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None)))
         defaultFieldForm <- getDefaultFieldsForForm(consignmentId, request)
         updatedFieldsForForm <- {
-          cache.set(s"$consignmentId", consignment.consignmentReference, 1.hour)
+          cache.set(s"$consignmentId-reference", consignment.consignmentReference, 1.hour)
+          //Set the values to those of the first file's metadata until we decide what to do with multiple files.
           updateFormFields(defaultFieldForm, consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil))
         }
       } yield {
         val files = getFilesFromConsignment(consignment.files.filter(file => fileIds.contains(file.fileId)))
-        Ok(views.html.standard.addClosureMetadata(consignmentId, consignment.consignmentReference, updatedFieldsForForm, request.token.name, files))
+        //Call to details.parentFolderId.get should be temporary. User shouldn't see this page if the parent ID is empty.
+        Ok(views.html.standard.addClosureMetadata(consignmentId, consignment.consignmentReference, updatedFieldsForForm, request.token.name, files, details.parentFolderId.get))
+
       }
   }
 
@@ -59,13 +63,15 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
           val updatedFormFields: List[FormField] = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(formAnswers)
           if (updatedFormFields.exists(_.fieldErrors.nonEmpty)) {
             for {
+              //This is another API call to get the parent ID but this won't be needed once the JS solution is in so we can live with it.
+              details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
               consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken)
-              consignmentRef <- cache.getOrElseUpdate[String](s"$consignmentId") {
+              consignmentRef <- cache.getOrElseUpdate[String](s"$consignmentId-reference") {
                 consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
               }
             } yield {
               val files = getFilesFromConsignment(consignment.files.filter(file => fileIds.contains(file.fileId)))
-              Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, updatedFormFields, request.token.name, files))
+              Ok(views.html.standard.addClosureMetadata(consignmentId, consignmentRef, updatedFormFields, request.token.name, files, details.parentFolderId.get))
             }
           } else {
             val metadataInput: List[UpdateFileMetadataInput] = updatedFormFields map {
@@ -77,7 +83,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
               case DropdownField(fieldId, _, _, _, selectedOption, _, _) => UpdateFileMetadataInput(fieldId, selectedOption.map(_.value).getOrElse(""))
             }
             customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, metadataInput).map(_ => {
-              Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds)) // Will send to the summary page when it's built
+              Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds))
             })
           }
         }

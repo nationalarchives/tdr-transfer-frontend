@@ -39,6 +39,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements
   val fileIds: List[UUID] = List(UUID.fromString("ae4b7cad-ee83-46bd-b952-80bc8263c6c2"))
+  val parentFolderId = Option(UUID.randomUUID())
   val expectedDefaultOptions: List[MockInputOption] = List(
     MockInputOption(
       name="inputdate-ClosureStartDate-day",
@@ -148,6 +149,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val addClosureMetadataController = instantiateAddClosureMetadataController()
       val formTester = new FormTester(expectedDefaultOptions)
 
+      setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata=false)
       mockGraphqlResponse()
@@ -179,6 +181,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
 
+      setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
       mockGraphqlResponse()
@@ -242,6 +245,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val client = new GraphQLConfiguration(app.configuration).getClient[cm.Data, cm.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Error", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .willReturn(okJson(dataString)))
 
@@ -259,6 +263,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val formTester = new FormTester(expectedDefaultOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
+      setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
 
@@ -290,6 +295,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
       val formTester = new FormTester(expectedDefaultOptions)
+      setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
       setConsignmentReferenceResponse(wiremockServer)
@@ -323,6 +329,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
       val formTester = new FormTester(expectedDefaultOptions)
+
+      setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
       setConsignmentReferenceResponse(wiremockServer)
