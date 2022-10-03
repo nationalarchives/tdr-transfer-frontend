@@ -12,7 +12,7 @@
 @import views.html.partials.inputDropdown
 
 @import controllers.AddClosureMetadataController.File
-@(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File])(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File], parentFolderId: UUID)(implicit request: RequestHeader, messages: Messages)
 @main(s"Add closure metadata to files", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
@@ -75,7 +75,6 @@
                   addSuffixText = true
                 )
                 case DropdownField(fieldId, fieldName, fieldDescription, options, selectedOption, _, fieldErrors) =>
-                  //could theoretically be a checkbox or radio (since radios are not always boolean)
                   inputDropdown(
                     fieldId,
                     fieldName,
@@ -96,8 +95,7 @@
             <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
               Continue
             </button>
-              <!-- Redirects to Homepage for now but will probably just take you back to previous page -->
-            <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+            <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getPaginatedFiles(consignmentId, 1, None, parentFolderId, "closure")">Cancel</a>
           </div>
         </div>
       }
