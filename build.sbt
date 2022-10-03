@@ -19,7 +19,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.4" % Test
 
 val playPac4jVersion = "11.1.0-PLAY2.8"
-val pac4jVersion = "5.5.0"
+val pac4jVersion = "5.6.0"
 val akkaVersion = "2.6.3"
 val sttpVersion = "2.3.0"
 
@@ -35,6 +35,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.58",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.84",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.266",
+  "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.4.1",
   ws,
   "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
