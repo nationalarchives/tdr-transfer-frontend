@@ -64,7 +64,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       startPageAsString.contains(
         s"""        <p class="tdr-card__description">If you'd like to add or edit closure metadata to your records, you can do so here.</p>""".stripMargin) mustBe true
       startPageAsString.contains(
-        s"""        <a href="/consignment/$consignmentId/confirm-transfer" """ +
+        s"""        <a href="/consignment/$consignmentId/additional-metadata/download-metadata/" """ +
           """role="button" draggable="false" class="govuk-button" data-module="govuk-button">""" + """
                                                                                                      |          Continue
                                                                                                      |        </a>""".stripMargin) mustBe true
