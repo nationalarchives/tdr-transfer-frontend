@@ -5,6 +5,7 @@ fieldName: String,
 fieldDescription: String,
 options: Seq[InputNameAndValue],
 selectedOption: Option[InputNameAndValue],
+multiValue: Boolean=false,
 attributes: Map[Symbol, Any],
 fieldErrors: List[String] = Nil
 )(implicit messages: Messages)

@@ -107,15 +107,16 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         "fieldidcontainsdaymonthyearoryears",
         "fieldId contains day month and year",
         "We were previously using '.contains('day')' which meant that this type of form (above) would have showed the user the wrong error",
+        multiValue = false,
         InputNameAndValue("Day", "", "DD"),
         InputNameAndValue("Month", "", "MM"),
         InputNameAndValue("Year", "", "YYYY"),
         isRequired = true
       ),
-      TextField("fieldidcontainsdaymonthoryear", "", "", InputNameAndValue("years", "0", "0"), "numeric", isRequired = true),
-      DropdownField("fieldidendswithday", "", "", Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, isRequired = true),
-      RadioButtonGroupField("fieldidendswithmonth", "", "", Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", isRequired = true),
-      TextField("fieldidendswithyear", "", "", InputNameAndValue("text", ""), "text", isRequired = true)
+      TextField("fieldidcontainsdaymonthoryear", "", "", multiValue = false,  InputNameAndValue("years", "0", "0"), "numeric", isRequired = true),
+      DropdownField("fieldidendswithday", "", "", multiValue = true, Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, isRequired = true),
+      RadioButtonGroupField("fieldidendswithmonth", "", "", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", isRequired = true),
+      TextField("fieldidendswithyear", "", "", multiValue = false, InputNameAndValue("text", ""), "text", isRequired = true)
     )
 
     val dynamicFormUtils = new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)

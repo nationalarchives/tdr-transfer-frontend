@@ -35,34 +35,34 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     property.dataType match {
       case Boolean =>
         val selectedOption = property.defaultValue.map(v => if (v == "True") "yes" else "no").getOrElse("no")
-        RadioButtonGroupField(property.name, fieldLabel, fieldDescription,
+        RadioButtonGroupField(property.name, fieldLabel, fieldDescription, property.multiValue,
           Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")),
           selectedOption, isRequired
         )
       case DateTime =>
-        DateField(property.name, fieldLabel, fieldDescription,
+        DateField(property.name, fieldLabel, fieldDescription, property.multiValue,
           InputNameAndValue("Day", "", "DD"), InputNameAndValue("Month", "", "MM"), InputNameAndValue("Year", "", "YYYY"),
           isRequired, isFutureDateAllowed = property.name != foiExemptionAsserted
         )
       case Integer =>
-        TextField(property.name, fieldLabel, fieldDescription,
+        TextField(property.name, fieldLabel, fieldDescription, property.multiValue,
           InputNameAndValue("years", property.defaultValue.getOrElse("")),
           "numeric", isRequired
         )
       case Text =>
         property.propertyType match {
           case Defined =>
-            DropdownField(property.name, fieldLabel, fieldDescription,
+            DropdownField(property.name, fieldLabel, fieldDescription, property.multiValue,
               property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
               property.defaultValue.map(value => InputNameAndValue(value, value)), isRequired
             )
           case Supplied =>
-            DropdownField(property.name, fieldLabel, fieldDescription,
+            DropdownField(property.name, fieldLabel, fieldDescription, property.multiValue,
               Seq(),
               property.defaultValue.map(value => InputNameAndValue(value, value)), isRequired
             )
           case _ =>
-            DropdownField(property.name, fieldLabel, fieldDescription,
+            DropdownField(property.name, fieldLabel, fieldDescription, property.multiValue,
               Seq(InputNameAndValue(property.name, property.fullName.getOrElse(""))),
               None, isRequired
             )
