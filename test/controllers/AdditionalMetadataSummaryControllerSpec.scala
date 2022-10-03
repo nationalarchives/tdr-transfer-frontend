@@ -33,6 +33,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   implicit val ec: ExecutionContext = ExecutionContext.global
 
+  val fileIds: List[UUID] = List(UUID.randomUUID())
+
   "AdditionalMetadataSummaryController" should {
     "render the additional metadata summary page" in {
       val consignmentId = UUID.randomUUID()
@@ -43,7 +45,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.getSelectedSummaryPage(consignmentId)
+      val response = controller.getSelectedSummaryPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
       val closureMetadataSummaryPage = contentAsString(response)
 
@@ -59,8 +61,9 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       closureMetadataSummaryPage.contains(
         """        <p class="govuk-body">You can edit, save or abandon any changes to closure metadata here.</p>""".stripMargin
       ) mustBe true
+      val href = s"/consignment/$consignmentId/add-closure-metadata?fileIds=${fileIds.mkString("&")}"
       closureMetadataSummaryPage.contains(
-        """          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+        s"""          <a href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
           |            Edit properties
           |          </a>""".stripMargin
       ) mustBe true
@@ -86,9 +89,10 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         """            <dt class="govuk-summary-list__key">
           |              Name
           |            </dt>
-          |            <dd class="govuk-summary-list__value">
-          |              Flour.txt
-          |            </dd>""".stripMargin
+          |............
+          |              <dd class="govuk-summary-list__value">
+          |                original/file/path
+          |              </dd>""".stripMargin.replaceAll("\\.", " ")
       )
       closureMetadataSummaryPage must include(
         """            <dt class="govuk-summary-list__key">
@@ -118,7 +122,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.getSelectedSummaryPage(consignmentId)
+      val response = controller.getSelectedSummaryPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
 
       status(response) mustBe FORBIDDEN
@@ -137,7 +141,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.getSelectedSummaryPage(consignmentId)
+      val response = controller.getSelectedSummaryPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
 
       status(response) mustBe FORBIDDEN
@@ -148,7 +152,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
-      val response = controller.getSelectedSummaryPage(consignmentId)
+      val response = controller.getSelectedSummaryPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
 
       status(response) mustBe FOUND
@@ -167,7 +171,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.getSelectedSummaryPage(consignmentId)
+      val response = controller.getSelectedSummaryPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary")).failed.futureValue
 
       response.getMessage mustBe s"Can't find selected files for the consignment $consignmentId"
@@ -185,7 +189,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.getSelectedSummaryPage(consignmentId)
+      val response = controller.getSelectedSummaryPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary")).failed.futureValue
 
       response.getMessage mustBe s"No consignment found for consignment $consignmentId"

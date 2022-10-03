@@ -1,6 +1,7 @@
 @import views.html.partials.{transferReference, progressIndicator}
+@import java.util.UUID
 
-@(fileName: String, consignmentRef: String, metadata: Metadata, name: String)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, fileIds: List[UUID], fileNames: List[String], consignmentRef: String, metadata: Metadata, name: String)(implicit messages: Messages, request: RequestHeader)
 @main(title = "Review metadata added", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     @progressIndicator(Messages("additionalMetadataSummary.progress"))
@@ -11,7 +12,7 @@
         </h1>
         <p class="govuk-body">You can edit, save or abandon any changes to closure metadata here.</p>
         <div class="govuk-button-group">
-          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+          <a href="@routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
             Edit properties
           </a>
           <a href="#" role="button" draggable="false" class="govuk-button govuk-button--warning">
@@ -23,9 +24,11 @@
             <dt class="govuk-summary-list__key">
               Name
             </dt>
-            <dd class="govuk-summary-list__value">
-              @fileName
-            </dd>
+            @for(fileName <- fileNames) {
+              <dd class="govuk-summary-list__value">
+                @fileName
+              </dd>
+            }
           </div>
 
             <!-- closure stuff here -->
