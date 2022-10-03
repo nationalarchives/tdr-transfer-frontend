@@ -3,10 +3,9 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddClosureMetadataController.File
-import controllers.util.MetadataProperty._
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
-import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.{FileMetadata, Metadata}
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.{FileFilters, UpdateFileMetadataInput}
 import org.pac4j.play.scala.SecurityComponents
@@ -78,7 +77,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
               case DropdownField(fieldId, _, _, _, selectedOption, _, _) => UpdateFileMetadataInput(fieldId, selectedOption.map(_.value).getOrElse(""))
             }
             customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, metadataInput).map(_ => {
-              Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId)) // Will send to the summary page when it's built
+              Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds)) // Will send to the summary page when it's built
             })
           }
         }

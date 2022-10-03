@@ -410,7 +410,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00"
       input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "no"
       input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
-
     }
   }
 
