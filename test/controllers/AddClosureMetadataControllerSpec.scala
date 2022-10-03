@@ -446,10 +446,10 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       """      <title>Add closure metadata to files</title>"""
     )
     addClosureMetadataPageAsString must include(
-      """            <h1 class="govuk-heading-l">Add closure metadata to</h1>"""
+      """      <h1 class="govuk-heading-l">Add closure metadata to</h1>"""
     )
 
-    addClosureMetadataPageAsString must include("""            <p class="govuk-body">Enter metadata for closure fields here.</p>""")
+    addClosureMetadataPageAsString must include("""      <p class="govuk-body">Enter metadata for closure fields here.</p>""")
     addClosureMetadataPageAsString must include(
       """            <h2 class="govuk-label govuk-label--m">
         |                FOI decision asserted
