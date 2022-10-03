@@ -464,39 +464,39 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
             Values("Open",
               List(
                 Dependencies("TitlePublic"),
-                Dependencies("DescriptionPublic")), 1))),
+                Dependencies("DescriptionPublic")), 1)), None, allowExport = false),
         cm.CustomMetadata(
           "ClosurePeriod", Some("Number of years the record is closed from the closure start date"), Some("Closure Period"),
-          Supplied, Some("MandatoryClosure"), Integer, editable = true, multiValue = false, None, 2, List(Values("0", List(), 1))),
+          Supplied, Some("MandatoryClosure"), Integer, editable = true, multiValue = false, None, 2, List(Values("0", List(), 1)), None, allowExport = false),
         cm.CustomMetadata(
           "DescriptionPublic", None, Some("Description Public"), Supplied, Some("MandatoryClosure"), Boolean, editable = true, multiValue = false, Some("True"), 3,
           List(
             Values("True", List(), 1),
             Values("False",
               List(
-                Dependencies("DescriptionAlternate")), 1))),
+                Dependencies("DescriptionAlternate")), 1)), None, allowExport = false),
         cm.CustomMetadata(
           "TitlePublic", None, Some("Title Public"), Supplied, Some("MandatoryClosure"), Boolean, editable = true, multiValue = false, Some("True"), 4,
           List(
             Values("False",
               List(
                 Dependencies("TitleAlternate")), 1),
-            Values("True", List(), 1))),
+            Values("True", List(), 1)), None, allowExport = false),
         cm.CustomMetadata(
           "ClosureStartDate", Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."),
-          Some("Closure Start Date"), Supplied, Some("OptionalClosure"), DateTime, editable = true, multiValue = false, None, 5, List()),
+          Some("Closure Start Date"), Supplied, Some("OptionalClosure"), DateTime, editable = true, multiValue = false, None, 5, List(), None, allowExport = false),
         cm.CustomMetadata(
-          "DescriptionAlternate", None, Some("Description Alternate"), Supplied, Some("OptionalClosure"), Text, editable = true, multiValue = false, None, 6, List()),
+          "DescriptionAlternate", None, Some("Description Alternate"), Supplied, Some("OptionalClosure"), Text, editable = true, multiValue = false, None, 6, List(), None, allowExport = false),
         cm.CustomMetadata(
-          "TitleAlternate", None, Some("Title Alternate"), Supplied, Some("OptionalClosure"), Text, editable = true, multiValue = false, None, 7, List()),
+          "TitleAlternate", None, Some("Title Alternate"), Supplied, Some("OptionalClosure"), Text, editable = true, multiValue = false, None, 7, List(), None, allowExport = false),
         cm.CustomMetadata(
           "FoiExemptionAsserted", Some("Date of the Advisory Council approval (or SIRO approval if appropriate)"), Some("Foi Exemption Asserted"),
-          Supplied, Some("MandatoryClosure"), DateTime, editable = true, multiValue = false, None, 8, List()),
+          Supplied, Some("MandatoryClosure"), DateTime, editable = true, multiValue = false, None, 8, List(), None, allowExport = false),
         cm.CustomMetadata(
           "FoiExemptionCode", Some("Select the exemption code that applies"), Some("Foi Exemption Code"), Defined, Some("MandatoryClosure"),
           Text, editable = true, multiValue = true, Some("mock code1"), 9,
           List(
-            Values("mock code1", List(), 1), Values("mock code2", List(), 2)))))
+            Values("mock code1", List(), 1), Values("mock code2", List(), 2)), None, allowExport = false)))
   }
   //scalastyle:on method.length
 }

@@ -42,7 +42,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
                 }
               ), valueNumber
             )
-        )
+        ), None, allowExport = false
       )
     }
   )
