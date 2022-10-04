@@ -114,7 +114,8 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       "allNodes" -> list(text),
       "pageSelected" -> number,
       "folderSelected" -> text,
-      "returnToRoot" -> optional(text)
+      "returnToRoot" -> optional(text),
+      "addClosureProperties" -> optional(text)
     )(NodesFormData.apply)(NodesFormData.unapply))
 
   def getPaginatedFiles(consignmentId: UUID, pageNumber: Int, limit: Option[Int], selectedFolderId: UUID,
@@ -147,26 +148,31 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         selectedFolderId,
         paginatedFiles.parentFolderId,
         navigationForm.fill(NodesFormData(nodesToDisplay, selected = List(), allNodes = List(), pageNumber, selectedFolderId.toString,
-          paginatedFiles.parentFolder)), resultsCount)
+          paginatedFiles.parentFolder, None)), resultsCount)
       ).uncache()
     }
   }
 
   def submit(consignmentId: UUID, limit: Option[Int], selectedFolderId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
-      val errorFunction: Form[NodesFormData] => Future[Result] = { formWithErrors: Form[NodesFormData] =>
+      val errorFunction: Form[NodesFormData] => Future[Result] = { _: Form[NodesFormData] =>
         Future(Redirect(routes.AdditionalMetadataNavigationController
           .getPaginatedFiles(consignmentId, 1, limit, selectedFolderId, metadataType)))
       }
 
       val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
-        val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
+        val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_selectedFiles")
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
         selectedFiles.updateCache(formData, consignmentId, request.token.bearerAccessToken).map(_ => {
           val folderId = UUID.fromString(formData.returnToRoot.getOrElse(folderSelected))
-          Redirect(routes.AdditionalMetadataNavigationController
-            .getPaginatedFiles(consignmentId, pageSelected, limit, folderId, metadataType))
+          if(formData.addClosureProperties.isDefined) {
+            Redirect(routes.AddClosureMetadataController.addClosureMetadata(consignmentId, selectedFiles.toSet.toList))
+          } else {
+            Redirect(routes.AdditionalMetadataNavigationController
+              .getPaginatedFiles(consignmentId, pageSelected, limit, folderId, metadataType))
+          }
+
         })
       }
 
@@ -202,7 +208,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
   private def selected(consignmentId: UUID, nodeId: UUID, isFolder: Boolean, token: BearerAccessToken): Future[Boolean] = {
     val folderDescendantsCache = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
-    val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
+    val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_selectedFiles")
 
     for {
       ids <- if (isFolder) {
@@ -214,7 +220,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
   private def getDescendantFilesSelected(consignmentId: UUID,
                                 folderId: UUID,
                                 token: BearerAccessToken): Future[Int] = {
-    val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](consignmentId.toString)
+    val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_selectedFiles")
     val partSelectedCache: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_partSelected")
     val folderDescendantsCache = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
 
@@ -233,7 +239,8 @@ object AdditionalMetadataNavigationController {
                            allNodes: List[String],
                            pageSelected: Int,
                            folderSelected: String,
-                           returnToRoot: Option[String])
+                           returnToRoot: Option[String],
+                           addClosureProperties: Option[String])
 
   case class NodesToDisplay(fileId: String,
                             displayName: String,

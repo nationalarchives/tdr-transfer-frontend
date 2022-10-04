@@ -238,7 +238,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
       val response = GraphQlResponse[gcfm.Data](Some(gcfm.Data(Some(graphQlGetConsignmentFilesMetadata))), Nil)
 
-      val selectedFileIds = Some(List(fileId))
+      val selectedFileIds = Option(List(fileId))
       val fileFilters = Option(FileFilters(None, selectedFileIds, None))
       when(getConsignmentFilesMetadataClient.getResult(bearerAccessToken, gcfm.document,
         Some(gcfm.Variables(consignmentId, fileFilters))))
