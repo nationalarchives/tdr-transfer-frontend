@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
+import graphql.codegen.types.FileFilters
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
@@ -17,15 +18,15 @@ class AdditionalMetadataSummaryController @Inject ()(val consignmentService: Con
                                                      val controllerComponents: SecurityComponents
                                               ) extends TokenSecurity {
 
-  def getSelectedSummaryPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def getSelectedSummaryPage(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     //  TODO:  Get fileName and selectedFileIds from previous page
-    val fileName = "Flour.txt"
-    val fileFilters = None
+    val filters = Option(FileFilters(None, Option(fileIds), None))
     for {
-      consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, fileFilters)
+      consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, filters)
       response <- consignment.files match {
         case first :: _ =>
-          Future(Ok(views.html.standard.additionalMetadataSummary(fileName, consignment.consignmentReference,
+          val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == "ClientSideOriginalFilepath").map(_.value)
+          Future(Ok(views.html.standard.additionalMetadataSummary(consignmentId, fileIds, filePaths, consignment.consignmentReference,
             getMetadataForView(first.metadata), request.token.name)))
         case Nil => Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
       }
