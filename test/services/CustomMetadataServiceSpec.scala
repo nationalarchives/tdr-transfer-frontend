@@ -5,10 +5,12 @@ import configuration.GraphQLBackend.backend
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
+import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.types.DataType.Text
 import graphql.codegen.types.PropertyType.Defined
+import graphql.codegen.types.{UpdateBulkFileMetadataInput, UpdateFileMetadataInput}
 import org.mockito.Mockito
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.flatspec.AnyFlatSpec
@@ -27,14 +29,18 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
 
   private val graphQLConfig = mock[GraphQLConfiguration]
   private val customMetadataClient = mock[GraphQLClient[cm.Data, cm.Variables]]
+  private val addBulkMetadataClient = mock[GraphQLClient[abfm.Data, abfm.Variables]]
   private val token = new BearerAccessToken("some-token")
   private val consignmentId = UUID.fromString("e1ca3948-ee41-4e80-85e6-2123040c135d")
+  private val fileIds: List[UUID] = List(UUID.randomUUID())
   when(graphQLConfig.getClient[cm.Data, cm.Variables]()).thenReturn(customMetadataClient)
+  when(graphQLConfig.getClient[abfm.Data, abfm.Variables]()).thenReturn(addBulkMetadataClient)
 
   private val customMetadataService = new CustomMetadataService(graphQLConfig)
 
   override def afterEach(): Unit = {
     Mockito.reset(customMetadataClient)
+    Mockito.reset(addBulkMetadataClient)
   }
 
   "customMetadata" should "return the all closure metadata" in {
@@ -137,5 +143,34 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
       .futureValue.asInstanceOf[AuthorisationException]
 
     results shouldBe a[AuthorisationException]
+  }
+
+  "saveMetadata" should "save the metadata" in {
+    val updateFileMetadataInput = List(UpdateFileMetadataInput("test1", "test2"))
+    val updateBulkFileMetadataInput = UpdateBulkFileMetadataInput(consignmentId, fileIds, updateFileMetadataInput)
+    val variables = Some(abfm.Variables(updateBulkFileMetadataInput))
+    when(addBulkMetadataClient.getResult(token, abfm.document, variables))
+      .thenReturn(Future(GraphQlResponse(Option(abfm.Data(abfm.UpdateBulkFileMetadata(Nil, Nil))), Nil)))
+
+    customMetadataService.saveMetadata(consignmentId, fileIds, token, updateFileMetadataInput).futureValue
+
+    verify(addBulkMetadataClient, times(1)).getResult(token, abfm.document, variables)
+  }
+
+  "saveMetadata" should "return an error if the API call fails" in {
+    val variables = abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, fileIds, Nil))
+    when(addBulkMetadataClient.getResult(token, abfm.document,  Option(variables)))
+      .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+    customMetadataService.saveMetadata(consignmentId, fileIds, token, Nil).failed.futureValue shouldBe a[HttpError]
+  }
+
+  "saveMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
+    val variables = abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, fileIds, Nil))
+    val response = GraphQlResponse[abfm.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
+    when(addBulkMetadataClient.getResult(token, abfm.document, Option(variables)))
+      .thenReturn(Future.successful(response))
+
+    customMetadataService.saveMetadata(consignmentId, fileIds, token, Nil).failed.futureValue shouldBe a[AuthorisationException]
   }
 }
