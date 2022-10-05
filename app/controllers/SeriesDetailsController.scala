@@ -86,7 +86,7 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
       case Some(formError) => formError.messages
       case None => Nil
     }
-    DropdownField(form("series").id, "", description,  options, None, isRequired = true, errors.toList)
+    DropdownField(form("series").id, "", description, multiValue = false, options, None, isRequired = true, errors.toList)
   }
 }
 

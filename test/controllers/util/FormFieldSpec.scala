@@ -19,7 +19,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
   )
 
   "RadioButtonGroupField" should {
-    val radioButtonGroupField = RadioButtonGroupField("id", "name", "desc",
+    val radioButtonGroupField = RadioButtonGroupField("id", "name", "desc", multiValue = false,
       Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "no", isRequired = true)
 
     "update should set selectedOption as 'yes' for the field" in {
@@ -36,7 +36,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
   }
 
   "TextField" should {
-    val textField = TextField("id", "name", "desc", InputNameAndValue("years", "0", "0"), "numeric", isRequired = true)
+    val textField = TextField("id", "name", "desc",  multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true)
 
     "update should set value for the field" in {
 
@@ -71,7 +71,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
   }
 
   "DropdownField" should {
-    val dropdownField = DropdownField("id", "name", "desc",
+    val dropdownField = DropdownField("id", "name", "desc", multiValue = true,
       Seq(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")), None, isRequired = true)
 
     "update should set value for the field" in {
@@ -96,7 +96,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
   }
 
   "DateField" should {
-    val dateField = DateField("id", "name", "desc", InputNameAndValue("Day", "1", "DD"),
+    val dateField = DateField("id", "name", "desc",  multiValue = false, InputNameAndValue("Day", "1", "DD"),
       InputNameAndValue("Month", "12", "MM"), InputNameAndValue("Year", "1990", "YYYY"), isRequired = true)
 
     "update should set day, month and year for the field" in {

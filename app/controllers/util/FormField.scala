@@ -10,23 +10,24 @@ abstract class FormField {
   val fieldId: String
   val fieldName: String
   val fieldDescription: String
+  val multiValue: Boolean
   val isRequired: Boolean
   val fieldErrors: List[String]
 }
 
 case class InputNameAndValue(name: String, value: String, placeHolder: String = "")
 
-case class RadioButtonGroupField(fieldId: String, fieldName: String, fieldDescription: String, options: Seq[InputNameAndValue],
+case class RadioButtonGroupField(fieldId: String, fieldName: String, fieldDescription: String, multiValue: Boolean, options: Seq[InputNameAndValue],
                                  selectedOption: String, isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
 
-case class TextField(fieldId: String, fieldName: String, fieldDescription: String, nameAndValue: InputNameAndValue, inputMode: String,
-                     isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
+case class TextField(fieldId: String, fieldName: String, fieldDescription: String, multiValue: Boolean, nameAndValue: InputNameAndValue,
+                     inputMode: String, isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
 
-case class DropdownField(fieldId: String, fieldName: String, fieldDescription: String, options: Seq[InputNameAndValue],
+case class DropdownField(fieldId: String, fieldName: String, fieldDescription: String, multiValue: Boolean, options: Seq[InputNameAndValue],
                          selectedOption: Option[InputNameAndValue], isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
 
-case class DateField(fieldId: String, fieldName: String, fieldDescription: String, day: InputNameAndValue, month: InputNameAndValue, year: InputNameAndValue,
-                     isRequired: Boolean, fieldErrors: List[String] = Nil, isFutureDateAllowed: Boolean = true) extends FormField
+case class DateField(fieldId: String, fieldName: String, fieldDescription: String, multiValue: Boolean, day: InputNameAndValue,
+                     month: InputNameAndValue, year: InputNameAndValue, isRequired: Boolean, fieldErrors: List[String] = Nil, isFutureDateAllowed: Boolean = true) extends FormField
 
 object FormField {
 
