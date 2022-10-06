@@ -21,6 +21,11 @@ beforeEach(() => {
   document.body.innerHTML = htmlForFileUploadForm
 })
 
+const verifyAllMessagesAreHidden = (mockDom: MockUploadFormDom) => {
+  verifyVisibilityOfWarningMessages(mockDom.warningMessages)
+  verifyVisibilityOfSuccessAndRemovalMessage(mockDom.successAndRemovalMessageContainer!, false, false)
+}
+
 const judgmentUploadPageSpecificWarningMessages: () => {
   [warningMessage: string]: { [warningMessage: string]: HTMLElement | null }
 } = () => {
@@ -41,6 +46,7 @@ test(`clicking the submit button, without selecting a file, displays a warning m
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
 
   const submitEvent = mockDom.createSubmitEvent()
   await expect(mockDom.form.handleFormSubmission(submitEvent)).resolves.toEqual(
@@ -58,6 +64,7 @@ test("clicking the submit button, without selecting a file, displays a warning m
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
 
   const submitEvent = mockDom.createSubmitEvent()
   await expect(mockDom.form.handleFormSubmission(submitEvent)).resolves.toEqual(
@@ -77,6 +84,7 @@ test("input button updates the page with the file that has been selected, if tha
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   mockDom.getFileUploader().initialiseFormListeners()
 
   const dummyFile = getDummyFile("Mock File.docx", "docx")
@@ -98,6 +106,7 @@ test("input button updates the page with an error if the file that has been sele
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   mockDom.getFileUploader().initialiseFormListeners()
 
   const dummyFile = getDummyFile("Mock File.doc", "doc")
@@ -122,6 +131,7 @@ test("dropzone updates the page with name of file if a .docx file has been dropp
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   const fileName = "Mock File.docx"
   const fileType = "docx"
   const dragEventClass = mockDom.addFilesToDragEvent(
@@ -142,6 +152,7 @@ test("dropzone updates the page with an error if a non-docx file has been droppe
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   const fileName = "Mock File.doc"
   const fileType = "doc"
   const dragEventClass = mockDom.addFilesToDragEvent(
@@ -167,6 +178,7 @@ test("dropzone updates the page with an error if more than 1 file has been dropp
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   const dragEventClass = mockDom.addFilesToDragEvent(
     [
       getDummyFile("Mock File.docx", "docx"),
@@ -192,6 +204,7 @@ test("dropzone updates the page with an error if a file and a folder has been dr
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFile("Mock File.docx", "docx"), getDummyFolder()],
     mockDom.directoryEntry
@@ -214,6 +227,7 @@ test("dropzone updates the page with a error if 1 folder has been dropped", asyn
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFolder()],
     mockDom.fileEntry
@@ -236,6 +250,7 @@ test("dropzone updates the page with an error if 1 folder with a name ending wit
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFolder("Mock Folder.docx")],
     mockDom.fileEntry
@@ -258,6 +273,7 @@ test("dropzone clears selected file if an invalid object is dropped after a vali
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   const validDragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFile("Mock File.docx", "docx")],
     mockDom.fileEntry
@@ -286,6 +302,7 @@ test("clicking the submit button, after selecting the file, disables the buttons
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFile("Mock File.docx", "docx")],
     mockDom.fileEntry
@@ -309,6 +326,7 @@ test("clicking the submit button, after selecting a file, hides 'upload file' se
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   const dragEventClass = mockDom.addFilesToDragEvent(
     [getDummyFile("Mock File.docx", "docx")],
     mockDom.fileEntry
@@ -331,6 +349,7 @@ test("removeSelectedItem function should remove the selected files", () => {
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
 
   mockDom.form.selectedFiles.push(dummyIFileWithPath)
   mockDom.form.removeSelectedItem(new Event("click"))
@@ -344,15 +363,17 @@ test("removeSelectedItem function should hide the success message row and displa
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   mockDom.getFileUploader().initialiseFormListeners()
-
-  expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute("hidden", "true")
 
   const dummyFile = getDummyFile("Mock File.docx", "docx")
   mockDom.uploadForm!.files = {
     files: [dummyFile]
   }
   mockDom.selectItemViaButton()
+
+  expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute("hidden", "true")
+
   mockDom.removeButton!.click()
 
   expect(mockDom.successMessageContainer).toHaveAttribute("hidden", "true")
@@ -370,16 +391,18 @@ test("removeSelectedItem function should hide the file removal message and displ
     1,
     judgmentUploadPageSpecificWarningMessages()
   )
+  verifyAllMessagesAreHidden(mockDom)
   mockDom.getFileUploader().initialiseFormListeners()
-
-  expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute("hidden", "true")
 
   const dummyFile = getDummyFile("Mock File.docx", "docx")
   mockDom.uploadForm!.files = {
     files: [dummyFile]
   }
   mockDom.selectItemViaButton()
+  expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute("hidden", "true")
   mockDom.removeButton!.click()
+
+  expect(mockDom.successMessageContainer).toHaveAttribute("hidden", "true")
 
   mockDom.uploadForm!.files = {
     files: [dummyFile]
