@@ -1,4 +1,5 @@
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
+
 enableFetchMocks()
 import "@testing-library/jest-dom"
 
@@ -17,17 +18,21 @@ import {
 import { verifyVisibilityOfSuccessAndRemovalMessage } from "./upload-form-utils/verify-visibility-of-success-and-message"
 import { displaySelectionSuccessMessage } from "../src/upload/form/update-and-display-success-message"
 
-jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
+jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
 
 beforeEach(() => {
   fetchMock.resetMocks()
-  fetchMock.mockResponse(JSON.stringify({updateConsignmentStatus: 1}))
+  fetchMock.mockResponse(JSON.stringify({ updateConsignmentStatus: 1 }))
   document.body.innerHTML = htmlForFolderUploadForm
 })
 
 const verifyAllMessagesAreHidden = (mockDom: MockUploadFormDom) => {
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
-  verifyVisibilityOfSuccessAndRemovalMessage(mockDom.successAndRemovalMessageContainer!, false, false)
+  verifyVisibilityOfSuccessAndRemovalMessage(
+    mockDom.successAndRemovalMessageContainer!,
+    false,
+    false
+  )
 }
 
 test("clicking the submit button, without selecting a folder, doesn't reveal the progress bar and disable the buttons on the page", async () => {
@@ -55,7 +60,10 @@ test("clicking the submit button, without selecting a folder, displays a warning
     warningMessageElements: mockDom.warningMessages.submissionWithoutSelection!,
     expectedWarningMessageText: "Select a folder to upload."
   })
-  verifyVisibilityOfSuccessAndRemovalMessage(mockDom.successAndRemovalMessageContainer!, false)
+  verifyVisibilityOfSuccessAndRemovalMessage(
+    mockDom.successAndRemovalMessageContainer!,
+    false
+  )
 })
 
 test("input button updates the page with correct folder information if there are 1 or more files in folder", () => {
@@ -66,7 +74,10 @@ test("input button updates the page with correct folder information if there are
   mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
   mockDom.selectItemViaButton()
 
-  verifyVisibilityOfSuccessAndRemovalMessage(mockDom.successAndRemovalMessageContainer!, true)
+  verifyVisibilityOfSuccessAndRemovalMessage(
+    mockDom.successAndRemovalMessageContainer!,
+    true
+  )
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
@@ -84,7 +95,10 @@ test("dropzone updates the page with correct folder information if there are 1 o
   const dragEvent = new dragEventClass()
   await mockDom.form.handleDroppedItems(dragEvent)
 
-  verifyVisibilityOfSuccessAndRemovalMessage(mockDom.successAndRemovalMessageContainer!, true)
+  verifyVisibilityOfSuccessAndRemovalMessage(
+    mockDom.successAndRemovalMessageContainer!,
+    true
+  )
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
@@ -109,7 +123,10 @@ test("dropzone updates the page with an error if there are no files in folder", 
     warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
     expectedWarningMessageText: "You can only drop a single folder."
   })
-  verifyVisibilityOfSuccessAndRemovalMessage(mockDom.successAndRemovalMessageContainer!, false)
+  verifyVisibilityOfSuccessAndRemovalMessage(
+    mockDom.successAndRemovalMessageContainer!,
+    false
+  )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
@@ -149,7 +166,10 @@ test("dropzone updates the page with correct folder information if there is a ne
   const dragEvent = new dragEventClass()
   await mockDom.form.handleDroppedItems(dragEvent)
 
-  verifyVisibilityOfSuccessAndRemovalMessage(mockDom.successAndRemovalMessageContainer!, true)
+  verifyVisibilityOfSuccessAndRemovalMessage(
+    mockDom.successAndRemovalMessageContainer!,
+    true
+  )
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
@@ -256,7 +276,10 @@ test("dropzone updates the page with an error if there is an empty nested folder
     warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
     expectedWarningMessageText: "You can only drop a single folder."
   })
-  expect(mockDom.successAndRemovalMessageContainer).toHaveAttribute("hidden", "true")
+  expect(mockDom.successAndRemovalMessageContainer).toHaveAttribute(
+    "hidden",
+    "true"
+  )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
@@ -276,10 +299,15 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.multipleFolderSelectedMessage!,
-    expectedWarningMessageText: "You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders."
+    warningMessageElements:
+      mockDom.warningMessages.multipleFolderSelectedMessage!,
+    expectedWarningMessageText:
+      "You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders."
   })
-  verifyVisibilityOfSuccessAndRemovalMessage(mockDom.successAndRemovalMessageContainer!, false)
+  verifyVisibilityOfSuccessAndRemovalMessage(
+    mockDom.successAndRemovalMessageContainer!,
+    false
+  )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
@@ -299,10 +327,15 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.multipleFolderSelectedMessage!,
-    expectedWarningMessageText: "You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders."
+    warningMessageElements:
+      mockDom.warningMessages.multipleFolderSelectedMessage!,
+    expectedWarningMessageText:
+      "You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders."
   })
-  verifyVisibilityOfSuccessAndRemovalMessage(mockDom.successAndRemovalMessageContainer!, false)
+  verifyVisibilityOfSuccessAndRemovalMessage(
+    mockDom.successAndRemovalMessageContainer!,
+    false
+  )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
@@ -325,7 +358,10 @@ test("dropzone updates the page with an error if 1 file has been dropped", async
     warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
     expectedWarningMessageText: "You can only drop a single folder."
   })
-  verifyVisibilityOfSuccessAndRemovalMessage(mockDom.successAndRemovalMessageContainer!, false)
+  verifyVisibilityOfSuccessAndRemovalMessage(
+    mockDom.successAndRemovalMessageContainer!,
+    false
+  )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
   expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
@@ -416,34 +452,52 @@ test("removeSelectedItem function should hide the success message row and displa
   mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
   mockDom.selectItemViaButton()
 
-  expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute("hidden", "true")
+  expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute(
+    "hidden",
+    "true"
+  )
 
   mockDom.removeButton!.click()
 
   expect(mockDom.successMessageContainer).toHaveAttribute("hidden", "true")
 
-  verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.removedSelectionMessage!,
-    expectedWarningMessageText: `The folder \"Parent_Folder\" (containing 1 file) has been removed. Select a folder.`
-  }, false)
+  verifyVisibilityOfWarningMessages(
+    mockDom.warningMessages,
+    {
+      warningMessageElements: mockDom.warningMessages.removedSelectionMessage!,
+      expectedWarningMessageText: `The folder \"Parent_Folder\" (containing 1 file) has been removed. Select a folder.`
+    },
+    false
+  )
 })
 
-test("removeSelectedItem function should hide the folder removal message and display the success message " +
-  "when a user reselects a folder after having removed one prior", () => {
-  const mockDom = new MockUploadFormDom()
-  verifyAllMessagesAreHidden(mockDom)
-  mockDom.getFileUploader().initialiseFormListeners()
+test(
+  "removeSelectedItem function should hide the folder removal message and display the success message " +
+    "when a user reselects a folder after having removed one prior",
+  () => {
+    const mockDom = new MockUploadFormDom()
+    verifyAllMessagesAreHidden(mockDom)
+    mockDom.getFileUploader().initialiseFormListeners()
 
-  mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
-  mockDom.selectItemViaButton()
+    mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
+    mockDom.selectItemViaButton()
 
-  expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute("hidden", "true")
+    expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute(
+      "hidden",
+      "true"
+    )
 
-  mockDom.removeButton!.click()
+    mockDom.removeButton!.click()
 
-  mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
-  mockDom.selectItemViaButton()
+    mockDom.uploadForm!.files = { files: [dummyIFileWithPath] }
+    mockDom.selectItemViaButton()
 
-  expect(mockDom.successMessageContainer).not.toHaveAttribute("hidden", "true")
-  expect(mockDom.warningMessages.removedSelectionMessage.messageElement!).toHaveAttribute("hidden", "true")
-})
+    expect(mockDom.successMessageContainer).not.toHaveAttribute(
+      "hidden",
+      "true"
+    )
+    expect(
+      mockDom.warningMessages.removedSelectionMessage.messageElement!
+    ).toHaveAttribute("hidden", "true")
+  }
+)
