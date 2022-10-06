@@ -5,7 +5,7 @@ export const htmlForFolderUploadForm = `
               <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
                   <div class="govuk-form-group">
                       <div class="drag-and-drop">
-                          <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden>
+                          <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden="true">
                               <div class="govuk-summary-list__row">
                                   <dd class="govuk-summary-list__value drag-and-drop__success"
                                       tabindex="-1" role="alert" aria-describedby="success-message-text">
@@ -13,7 +13,7 @@ export const htmlForFolderUploadForm = `
                                           <p id="success-message-text" class="success-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been selected </p>
                                           <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
                                       </div>
-                                      <div class="success-message-flexbox-container" id="removed-selection-container" hidden>
+                                      <div class="success-message-flexbox-container" id="removed-selection-container" hidden="true">
                                           <p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been removed. Select a folder.</p>
                                       </div>
                                  </dd>
@@ -37,7 +37,7 @@ export const htmlForFolderUploadForm = `
                                               <span class="govuk-visually-hidden">Error:</span> You can only drop a single folder.
                                           </p>
                                       </div>
-                                      <div id="nothing-selected-submission-message" class="govuk-form-group govuk-form-group--error error-messages" tabindex="-1" role="alert" aria-describedby="submission-without-anything-selected-text">
+                                      <div id="nothing-selected-submission-message" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="submission-without-anything-selected-text">
                                           <p id="submission-without-anything-selected-text" class="govuk-error-message">
                                               <span class="govuk-visually-hidden">Error:</span> Select a folder to upload.
                                           </p>
@@ -78,7 +78,7 @@ export const htmlForFileUploadForm = `
           <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
               <div class="govuk-form-group">
                   <div class="drag-and-drop">
-                      <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden>
+                      <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden="true">
                           <div class="govuk-summary-list__row">
                               <dd class="govuk-summary-list__value drag-and-drop__success"
                                   tabindex="-1" role="alert" aria-describedby="success-message-text">
@@ -86,7 +86,7 @@ export const htmlForFileUploadForm = `
                                       <p id="success-message-text" class="success-message">The file "<span class="file-name"></span>" has been selected </p>
                                       <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
                                   </div>
-                                  <div class="success-message-flexbox-container" id="removed-selection-container" hidden>
+                                  <div class="success-message-flexbox-container" id="removed-selection-container" hidden="true">
                                       <p id="removed-selection-message-text" class="govuk-error-message">The file "<span class="file-name"></span>" has been removed. Select a file.</p>
                                   </div>
                               </dd>
