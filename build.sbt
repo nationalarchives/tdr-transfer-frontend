@@ -36,7 +36,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.87",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.269",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
-  "ch.qos.logback" % "logback-classic" % "1.4.3",
+  "ch.qos.logback" % "logback-classic" % "1.4.4",
   ws,
   "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
   "org.mockito" % "mockito-core" % "4.8.0" % Test,
