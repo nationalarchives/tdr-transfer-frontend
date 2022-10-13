@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import com.github.tototoshi.csv.CSVWriter
 import configuration.KeycloakConfiguration
+import controllers.util.CsvUtils
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.types.FileFilters
 import org.apache.commons.io.output.ByteArrayOutputStream
@@ -45,17 +46,10 @@ class DownloadMetadataController @Inject()(val controllerComponents: SecurityCom
           val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
           groupedMetadata.value(filePathKey) :: filteredMetadata.map(fm => groupedMetadata.value(fm.name))
         })
-        val csvString = writeCsv(header :: rows)
+        val csvString = CsvUtils.writeCsv(header :: rows)
         Ok(csvString)
           .as("text/csv")
           .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-metadata.csv")
       }
-  }
-
-  private def writeCsv(rows: List[List[String]]): String = {
-    val bas = new ByteArrayOutputStream()
-    val writer = CSVWriter.open(bas)
-    writer.writeAll(rows)
-    bas.toByteArray.map(_.toChar).mkString
   }
 }
