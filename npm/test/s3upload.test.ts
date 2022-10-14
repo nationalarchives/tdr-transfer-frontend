@@ -11,9 +11,10 @@ import {
   CreateMultipartUploadCommand,
   PutObjectCommand,
   S3Client,
-  ServiceInputTypes,
+  ServiceInputTypes, ServiceOutputTypes,
   UploadPartCommand
-} from "@aws-sdk/client-s3"
+} from "@aws-sdk/client-s3";
+import { getFileChecksProgress } from "../src/filechecks/get-file-check-progress";
 
 enableFetchMocks()
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
@@ -168,6 +169,27 @@ test("a single file upload returns the correct key and should call addFileStatus
   )
 })
 
+test("a single file upload returns an error if it fails", async () => {
+  const tdrFileWithPath = createTdrFile({
+    fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5"
+  })
+  fetchMock.mockResponse(JSON.stringify(
+    { fileId: tdrFileWithPath.fileId, statusType: "Upload", statusValue: "Failed" }
+  ))
+  s3Mock.on(PutObjectCommand).resolves({$metadata: {httpStatusCode: 500}});
+  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+
+  const result: { sendData: ServiceOutputTypes[]; processedChunks: number; totalChunks: number } | Error = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    [tdrFileWithPath],
+    jest.fn(),
+    ""
+  )
+
+  expect(result).toEqual(Error("User's files have failed to upload. fileIds of files: 1df92708-d66b-4b55-8c1e-bb945a5c4fb5"))
+})
+
 test("a single file upload calls the callback correctly", async () => {
   const tdrFileWithPath = createTdrFile({})
   const callback = jest.fn()
@@ -261,6 +283,41 @@ test("multiple file uploads return the correct params and should call addFileSta
       Body: tdrFileWithPath.bits
     })
   })
+})
+
+test("multiple file uploads return errors if they fail", async () => {
+  fetchMock.mockResponse(JSON.stringify(
+    { fileId: "0", statusType: "Upload", statusValue: "Failed" }
+  ))
+  const callback = jest.fn()
+  const tdrFilesWithPathAndBits: ITdrFileWithPathAndBits[] = [
+    { fileId: "1df92708-d66b-4b55-8c1e-bb945a5c4fb5" },
+    { fileId: "5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1" },
+    { fileId: "56b34fbb-2eac-401e-a89a-0dc9b2013863" },
+    { fileId: "6b6694d0-814c-4978-8dee-56ec920a0102" }
+  ].map((tdrFileParams) => createTdrFile(tdrFileParams))
+  s3Mock.reset()
+  s3Mock.on(PutObjectCommand).resolves({$metadata: {httpStatusCode: 500}});
+  const s3Upload = new S3Upload(
+    s3Mock as unknown as S3Client,
+    "https://tdr-fake-url.com/fake"
+  )
+
+  const result = await s3Upload.uploadToS3(
+    "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
+    userId,
+    tdrFilesWithPathAndBits,
+    callback,
+    ""
+  )
+
+  expect(result).toEqual(
+    Error(
+      "User's files have failed to upload. fileIds of files: " +
+      "1df92708-d66b-4b55-8c1e-bb945a5c4fb5,5a99961c-cb5b-4c76-8c9d-d7d2ca4e85b1," +
+      "56b34fbb-2eac-401e-a89a-0dc9b2013863,6b6694d0-814c-4978-8dee-56ec920a0102"
+    )
+  )
 })
 
 test("multiple file uploads call the callback correctly and should not call addFileStatus if the upload is success", async () => {

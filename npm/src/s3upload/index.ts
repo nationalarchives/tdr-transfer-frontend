@@ -61,6 +61,7 @@ export class S3Upload {
       )
       let processedChunks = 0
       const sendData: ServiceOutputTypes[] = []
+      const fileIdsOfFilesThatFailedToUpload: string[] = []
       for (const tdrFileWithPath of iTdrFilesWithPath) {
         const uploadResult = await this.uploadSingleFile(
           consignmentId,
@@ -79,13 +80,23 @@ export class S3Upload {
           uploadResult.$metadata.httpStatusCode != 200
         ) {
           await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
+          fileIdsOfFilesThatFailedToUpload.push(tdrFileWithPath.fileId)
         }
         sendData.push(uploadResult)
         processedChunks += tdrFileWithPath.fileWithPath.file.size
           ? tdrFileWithPath.fileWithPath.file.size
           : 1
       }
-      return { sendData, processedChunks, totalChunks }
+
+      return fileIdsOfFilesThatFailedToUpload.length === 0
+        ? {
+            sendData,
+            processedChunks,
+            totalChunks
+          }
+        : Error(
+            `User's files have failed to upload. fileIds of files: ${fileIdsOfFilesThatFailedToUpload.toString()}`
+          )
     } else {
       return Error("No valid user id found")
     }
