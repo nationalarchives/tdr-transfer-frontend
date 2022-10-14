@@ -2,6 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tototoshi.csv.CSVReader
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
@@ -23,6 +24,7 @@ import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
+import java.io.StringReader
 import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
@@ -125,14 +127,36 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       val exportDateTime = ZonedDateTime.now()
       mockGetConsignmentForExport(Some(lastModified), Some(exportDateTime))
       setConsignmentTypeResponse(wiremockServer, "standard")
-      val downloadReport = controller.downloadReport(consignmentId, "TEST-TDR-2021-GB")
+      val response = controller.downloadReport(consignmentId, "TEST-TDR-2021-GB")
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
+      val responseAsString = contentAsString(response)
+      val bufferedSource = new StringReader(responseAsString)
+      val csvList: List[Map[String, String]] = CSVReader.open(bufferedSource).toLazyListWithHeaders().toList
 
-      contentAsString(downloadReport) must include(
-        "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,ExportDatetime"
-      )
-      contentAsString(downloadReport) must include(
-        s"Filepath/SomeFile,SomeFile,File,1,Crown Copyright,Public Record,TNA,English,Open,$lastModified,$exportDateTime")
+      csvList.size must equal(2)
+      csvList.head("LegalStatus") must equal("Public Record")
+      csvList.head("Filesize") must equal("1")
+      csvList.head("LastModified") must equal(s"$lastModified")
+      csvList.head("Language") must equal(s"English")
+      csvList.head("FileName") must equal(s"The National Archives, Kew")
+      csvList.head("HeldBy") must equal(s"TNA")
+      csvList.head("FileType") must equal(s"File")
+      csvList.head("Filepath") must equal(s"Filepath/SomeFile")
+      csvList.head("RightsCopyright") must equal(s"Crown Copyright")
+      csvList.head("ExportDatetime") must equal(s"$exportDateTime")
+      csvList.head("FoiExemptionCode") must equal(s"Open")
+
+      csvList.last("LegalStatus") must equal("Private Record")
+      csvList.last("Filesize") must equal("2")
+      csvList.last("LastModified") must equal(s"$lastModified")
+      csvList.last("Language") must equal(s"French")
+      csvList.last("FileName") must equal(s"FileName")
+      csvList.last("HeldBy") must equal(s"The National Archives, Kew")
+      csvList.last("FileType") must equal(s"Folder")
+      csvList.last("Filepath") must equal(s"Filepath/SomeFile2")
+      csvList.last("RightsCopyright") must equal(s"Rights Copyright")
+      csvList.last("ExportDatetime") must equal(s"$exportDateTime")
+      csvList.last("FoiExemptionCode") must equal(s"Closed")
     }
 
     "throw an authorisation exception when the user does not have permission to download the report" in {
@@ -206,9 +230,13 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfe.Data, gcfe.Variables]()
     val consignmentResponse = gcfe.Data(Option(GetConsignment(UUID.randomUUID(), None, None, exportDateTime, "TDR-2022", None, None, None,
       List(
-        Files(UUID.randomUUID(), Some("File"), Some("SomeFile"), None,
+        Files(UUID.randomUUID(), Some("File"), Some("The National Archives, Kew"), None,
           Metadata(Some(1L), clientSideLastModifiedDate, Some("Filepath/SomeFile"), Some("Open"), Some("TNA"),
             Some("English"), Some("Public Record"), Some("Crown Copyright"), None),
+          None, None),
+        Files(UUID.randomUUID(), Some("Folder"), Some("FileName"), None,
+          Metadata(Some(2L), clientSideLastModifiedDate, Some("Filepath/SomeFile2"), Some("Closed"), Some("The National Archives, Kew"),
+            Some("French"), Some("Private Record"), Some("Rights Copyright"), None),
           None, None))))
     )
     val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))

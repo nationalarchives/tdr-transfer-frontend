@@ -58,7 +58,7 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
       val csvString = CsvUtils.writeCsv(headers :: rows)
       Ok(csvString)
         .as("text/csv")
-        .withHeaders("Content-Disposition" -> s"attachment; filename=${consignmentRef}.csv")
+        .withHeaders("Content-Disposition" -> s"attachment; filename=$consignmentRef.csv")
     }
   }
 }
