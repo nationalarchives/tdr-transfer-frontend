@@ -1,19 +1,16 @@
 package controllers
 
 import auth.TokenSecurity
-import com.github.tototoshi.csv.CSVWriter
 import configuration.KeycloakConfiguration
 import controllers.util.CsvUtils
-import org.apache.commons.io.output.ByteArrayOutputStream
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
 
-import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class TransferCompleteController @Inject()(val controllerComponents: SecurityComponents,
                                            val keycloakConfiguration: KeycloakConfiguration,

@@ -1,12 +1,10 @@
 package controllers
 
 import auth.TokenSecurity
-import com.github.tototoshi.csv.CSVWriter
 import configuration.KeycloakConfiguration
 import controllers.util.CsvUtils
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.types.FileFilters
-import org.apache.commons.io.output.ByteArrayOutputStream
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, CustomMetadataService}
