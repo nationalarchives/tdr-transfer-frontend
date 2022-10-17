@@ -9,7 +9,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
-scalaVersion := "2.13.9"
+scalaVersion := "2.13.10"
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
