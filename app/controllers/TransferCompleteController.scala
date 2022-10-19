@@ -2,12 +2,12 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+import controllers.util.CsvUtils
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
 
-import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
@@ -31,52 +31,31 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
       }
   }
 
-  def downloadReport(consignmentId: UUID, consignmentRef: String): Action[AnyContent] = standardTypeAction(consignmentId)
-  { implicit request: Request[AnyContent] =>
-    val headers = "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,ExportDatetime"
+  def downloadReport(consignmentId: UUID, consignmentRef: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    val headers = List("Filepath", "FileName", "FileType", "Filesize", "RightsCopyright", "LegalStatus", "HeldBy", "Language", "FoiExemptionCode", "LastModified", "ExportDatetime")
     consignmentService.getConsignmentExport(consignmentId, request.token.bearerAccessToken)
-      .map { result =>
-        val exportDateTime = result.exportDatetime
-        val rows = result.files.foldLeft(List[String]()) {
-          case (record, file) => record :+ ReportCsv(
-            file.metadata.clientSideOriginalFilePath,
-            file.fileName,
-            file.fileType,
-            file.metadata.clientSideFileSize,
-            file.metadata.rightsCopyright,
-            file.metadata.legalStatus,
-            file.metadata.heldBy,
-            file.metadata.language,
-            file.metadata.foiExemptionCode,
-            file.metadata.clientSideLastModifiedDate,
-            exportDateTime
-          ).toCSV
-        }
-        Ok(headers + "\n" + rows.mkString("\n"))
-          .as("text/csv")
-          .withHeaders(
-            s"Content-Disposition" -> s"attachment; filename=$consignmentRef.csv"
-          )
+    for {
+      consignmentExport <- consignmentService.getConsignmentExport(consignmentId, request.token.bearerAccessToken)
+      exportDateTime = consignmentExport.exportDatetime
+    } yield {
+      val rows = consignmentExport.files.foldLeft(List[List[String]]()) {
+        case (record, file) => record :+ List(
+          file.metadata.clientSideOriginalFilePath.getOrElse(""),
+          file.fileName.getOrElse(""),
+          file.fileType.getOrElse(""),
+          file.metadata.clientSideFileSize.map(_.toString).getOrElse(""),
+          file.metadata.rightsCopyright.getOrElse(""),
+          file.metadata.legalStatus.getOrElse(""),
+          file.metadata.heldBy.getOrElse(""),
+          file.metadata.language.getOrElse(""),
+          file.metadata.foiExemptionCode.getOrElse(""),
+          file.metadata.clientSideLastModifiedDate.map(_.toString).getOrElse(""),
+          exportDateTime.map(_.toString).getOrElse(""))
       }
+      val csvString = CsvUtils.writeCsv(headers :: rows)
+      Ok(csvString)
+        .as("text/csv")
+        .withHeaders("Content-Disposition" -> s"attachment; filename=$consignmentRef.csv")
+    }
   }
-
-  implicit class CSVWrapper(val prod: Product) {
-    def toCSV: String = prod.productIterator.map {
-      case Some(value) => value
-      case None => ""
-      case rest => rest
-    }.mkString(",")
-  }
-
-  case class ReportCsv(filepath: Option[String],
-                       filename: Option[String],
-                       filetype: Option[String],
-                       filesize: Option[Long],
-                       rightsCopyright: Option[String],
-                       legalStatus: Option[String],
-                       heldBy: Option[String],
-                       language: Option[String],
-                       exemptionCode: Option[String],
-                       lastModified: Option[LocalDateTime],
-                       exportDatetime: Option[ZonedDateTime])
 }
