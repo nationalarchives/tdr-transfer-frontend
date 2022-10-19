@@ -26,6 +26,12 @@ interface IFileProgressInfo {
   totalFiles: number
 }
 
+export interface IUploadResult {
+  sendData: ServiceOutputTypes[]
+  processedChunks: number
+  totalChunks: number
+}
+
 export class S3Upload {
   client: S3Client
   uploadUrl: string
@@ -41,14 +47,13 @@ export class S3Upload {
     iTdrFilesWithPath: ITdrFileWithPath[],
     callback: TProgressFunction,
     stage: string
-  ) => Promise<
-    | {
-        sendData: ServiceOutputTypes[]
-        processedChunks: number
-        totalChunks: number
-      }
-    | Error
-  > = async (consignmentId, userId, iTdrFilesWithPath, callback, stage) => {
+  ) => Promise<IUploadResult | Error> = async (
+    consignmentId,
+    userId,
+    iTdrFilesWithPath,
+    callback,
+    stage
+  ) => {
     if (userId) {
       const totalFiles = iTdrFilesWithPath.length
       const totalChunks: number = iTdrFilesWithPath.reduce(

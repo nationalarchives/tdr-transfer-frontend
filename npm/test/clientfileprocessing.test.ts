@@ -4,7 +4,7 @@ import {
   TProgressFunction,
   IProgressInformation, IFileWithPath, IFileMetadata,
 } from "@nationalarchives/file-information"
-import { S3Upload, ITdrFileWithPath } from "../src/s3upload"
+import { S3Upload, ITdrFileWithPath, IUploadResult } from "../src/s3upload";
 import { S3Client, ServiceOutputTypes } from "@aws-sdk/client-s3"
 import fetchMock, {enableFetchMocks} from "jest-fetch-mock"
 import {FileUploadInfo} from "../src/upload/form/upload-form";
@@ -33,11 +33,7 @@ class S3UploadMock extends S3Upload {
     callback: TProgressFunction,
     stage: string,
     chunkSize?: number
-  ) => Promise<{
-    sendData: ServiceOutputTypes[]
-    processedChunks: number
-    totalChunks: number
-  }> = jest.fn()
+  ) => Promise<IUploadResult> = jest.fn()
 }
 
 class ClientFileUploadSuccess {
