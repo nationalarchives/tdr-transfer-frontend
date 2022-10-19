@@ -1,4 +1,4 @@
-import { ITdrFileWithPath, S3Upload } from "../src/s3upload"
+import { ITdrFileWithPath, IUploadResult, S3Upload } from "../src/s3upload"
 import { isError } from "../src/errorhandling"
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 import {
@@ -195,13 +195,7 @@ test("a single file upload returns an error if it fails", async () => {
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 500 } })
   const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
 
-  const result:
-    | {
-        sendData: ServiceOutputTypes[]
-        processedChunks: number
-        totalChunks: number
-      }
-    | Error = await s3Upload.uploadToS3(
+  const result: | IUploadResult | Error = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
     userId,
     [tdrFileWithPath],
