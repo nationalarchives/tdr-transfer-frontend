@@ -146,7 +146,10 @@ export class UploadForm {
         return resultOrError
       }
     }
-    displaySelectionSuccessMessage(this.successAndRemovalMessageContainer, this.warningMessages)
+    displaySelectionSuccessMessage(
+      this.successAndRemovalMessageContainer,
+      this.warningMessages
+    )
     this.removeDragover()
   }
 
@@ -169,7 +172,10 @@ export class UploadForm {
       const parentFolder = this.getParentFolderName(this.selectedFiles)
       addFolderSelectionSuccessMessage(parentFolder, this.selectedFiles.length)
     }
-    displaySelectionSuccessMessage(this.successAndRemovalMessageContainer, this.warningMessages)
+    displaySelectionSuccessMessage(
+      this.successAndRemovalMessageContainer,
+      this.warningMessages
+    )
   }
 
   removeSelectedItem = (ev: Event): void => {
@@ -261,9 +267,8 @@ export class UploadForm {
     )
   }
 
-  readonly successAndRemovalMessageContainer: HTMLElement | null = document.querySelector(
-    "#success-and-removal-message-container"
-  )
+  readonly successAndRemovalMessageContainer: HTMLElement | null =
+    document.querySelector("#success-and-removal-message-container")
 
   private getParentFolderName(folder: IEntryWithPath[]) {
     const firstItem: IEntryWithPath = folder.filter((f) => isFile(f))[0]
