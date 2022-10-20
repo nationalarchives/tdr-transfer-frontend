@@ -77,10 +77,15 @@ object CustomMetadataUtils {
   def apply(allCustomMetadataProperties: List[CustomMetadata]): CustomMetadataUtils = new CustomMetadataUtils(allCustomMetadataProperties)
 }
 
+case class StaticMetadata(name: String, value: String)
+
 object MetadataProperty {
   val foiExemptionAsserted = "FoiExemptionAsserted"
   val closureStartDate = "ClosureStartDate"
   val closurePeriod = "ClosurePeriod"
   val foiExemptionCode = "FoiExemptionCode"
   val titlePublic = "TitlePublic"
+  val clientSideOriginalFilepath = "ClientSideOriginalFilepath"
+
+  val closureType: StaticMetadata = StaticMetadata("ClosureType", "Closed")
 }
