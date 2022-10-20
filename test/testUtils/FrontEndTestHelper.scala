@@ -94,13 +94,14 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   }
 
   def setConsignmentFilesMetadataResponse(wiremockServer: WireMockServer, consignmentRef: String = "TEST-TDR-2021-GB",
-                                          fileHasMetadata: Boolean = true, fileIds: List[UUID] = Nil): StubMapping = {
+                                          fileHasMetadata: Boolean = true, fileIds: List[UUID] = Nil, closureType: String = "Open"): StubMapping = {
 
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
     val closureStartDate = LocalDateTime.of(1990, 12, 1, 10, 0)
     val foiExampleAsserted = LocalDateTime.of(1995, 1, 12, 10, 0)
     val (fileMetadata, metadata) = if (fileHasMetadata) {
       (List(
+        gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType),
         gcfm.GetConsignment.Files.FileMetadata("FoiExemptionCode", "mock code1"),
         gcfm.GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
         gcfm.GetConsignment.Files.FileMetadata("ClosureStartDate", closureStartDate.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
