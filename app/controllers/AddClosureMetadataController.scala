@@ -75,12 +75,15 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
             }
           } else {
             val metadataInput: List[UpdateFileMetadataInput] = updatedFormFields map {
-              case TextField(fieldId, _, _, _, nameAndValue, _, _, _) => UpdateFileMetadataInput(fieldId, nameAndValue.value)
-              case DateField(fieldId, _, _, _, day, month, year, _, _, _) =>
+              case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _) =>
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value)
+              case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _) =>
                 val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
-                UpdateFileMetadataInput(fieldId, dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace("T", " "))
-              case RadioButtonGroupField(fieldId, _, _, _, _, selectedOption, _, _) => UpdateFileMetadataInput(fieldId, selectedOption)
-              case DropdownField(fieldId, _, _, _, _, selectedOption, _, _) => UpdateFileMetadataInput(fieldId, selectedOption.map(_.value).getOrElse(""))
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace("T", " "))
+              case RadioButtonGroupField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption)
+              case DropdownField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.map(_.value).getOrElse(""))
             }
             customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, metadataInput).map(_ => {
               Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds))
