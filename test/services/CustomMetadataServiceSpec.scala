@@ -146,7 +146,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
   }
 
   "saveMetadata" should "save the metadata" in {
-    val updateFileMetadataInput = List(UpdateFileMetadataInput("test1", "test2"))
+    val updateFileMetadataInput = List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test1", "test2"))
     val updateBulkFileMetadataInput = UpdateBulkFileMetadataInput(consignmentId, fileIds, updateFileMetadataInput)
     val variables = Some(abfm.Variables(updateBulkFileMetadataInput))
     when(addBulkMetadataClient.getResult(token, abfm.document, variables))
