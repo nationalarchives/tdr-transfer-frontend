@@ -82,7 +82,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
                 val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
                 UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace("T", " "))
               case RadioButtonGroupField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
-                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption)
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString)
               case DropdownField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
                 UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.map(_.value).getOrElse(""))
             }
