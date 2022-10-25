@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+git secrets --pre_commit_hook -- "$@"
+
+python3 .husky/git-commit-checks.py
