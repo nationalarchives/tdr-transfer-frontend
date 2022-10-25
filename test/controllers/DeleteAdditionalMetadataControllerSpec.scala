@@ -37,7 +37,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   val fileIds: List[UUID] = List(UUID.randomUUID())
 
   "confirmDeleteAdditionalMetadata" should {
-    "render the delete closure metadata page" in {
+    "render the delete closure metadata page with an authenticated user" in {
       val consignmentId = UUID.randomUUID()
       val consignmentReference = "TEST-TDR-2021-GB"
       setConsignmentTypeResponse(wiremockServer, "standard")
