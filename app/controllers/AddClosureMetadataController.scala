@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddClosureMetadataController.File
+import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType, descriptionPublic}
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
@@ -81,7 +82,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
                 val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
                 UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace("T", " "))
               case RadioButtonGroupField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
-                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption)
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString)
               case DropdownField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
                 UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.map(_.value).getOrElse(""))
             }
@@ -97,11 +98,11 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
     for {
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       customMetadataUtils = new CustomMetadataUtils(customMetadata)
-      propertyName = Set("ClosureType")
+      propertyName = Set(closureType)
       value = "Closed"
 
       dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, propertyName, value)
-        .filterNot(_.name == "DescriptionPublic")
+        .filterNot(_.name == descriptionPublic)
 
       formFields = customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
     } yield {
@@ -122,7 +123,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
 
   private def getFilesFromConsignment(files: List[getConsignmentFilesMetadata.GetConsignment.Files]): List[File] = {
     files.map(file => {
-      val filePath = file.fileMetadata.find(_.name == "ClientSideOriginalFilepath").map(_.value).getOrElse("")
+      val filePath = file.fileMetadata.find(_.name == clientSideOriginalFilepath).map(_.value).getOrElse("")
       File(file.fileId, filePath)
     })
   }
