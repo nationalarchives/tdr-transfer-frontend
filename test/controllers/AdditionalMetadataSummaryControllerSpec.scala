@@ -67,8 +67,9 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           |            Edit properties
           |          </a>""".stripMargin
       ) mustBe true
+      val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata?fileIds=${fileIds.mkString("&")}"
       closureMetadataSummaryPage.contains(
-        """          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--warning">
+        s"""          <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--warning">
           |            Abandon changes
           |          </a>""".stripMargin
       ) mustBe true

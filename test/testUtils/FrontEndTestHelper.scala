@@ -8,12 +8,14 @@ import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddBulkFileMetadata.addBulkFileMetadata.UpdateBulkFileMetadata
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
+import graphql.codegen.DeleteFileMetadata.deleteFileMetadata.DeleteFileMetadata
 import graphql.codegen.GetAllDescendants.getAllDescendantIds
 import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
+import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -106,9 +108,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         gcfm.GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
         gcfm.GetConsignment.Files.FileMetadata("ClosureStartDate", closureStartDate.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
         gcfm.GetConsignment.Files.FileMetadata("FoiExemptionAsserted", foiExampleAsserted.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
-        gcfm.GetConsignment.Files.FileMetadata("TitleClosed", "no"),
+        gcfm.GetConsignment.Files.FileMetadata("TitleClosed", "false"),
         gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path")
-      ), gcfm.GetConsignment.Files.Metadata(Some("mock code1"), Some(4), Some(closureStartDate), Some(foiExampleAsserted), Some(false)))
+      ), gcfm.GetConsignment.Files.Metadata(Some("mock code1"), Some(4), Some(closureStartDate), Some(foiExampleAsserted), None))
     } else {
       (Nil, gcfm.GetConsignment.Files.Metadata(None, None, None, None, None))
     }
@@ -165,6 +167,20 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     wiremockServer.stubFor(post(urlEqualTo("/graphql"))
       .withRequestBody(containing("getConsignmentStatus"))
+      .willReturn(okJson(dataString)))
+  }
+
+  def setDeleteFileMetadataResponse(config: Configuration,
+                                    wiremockServer: WireMockServer,
+                                    fileIds: List[UUID] = List(),
+                                    filePropertyNames: List[String] = List()): StubMapping = {
+    val client = new GraphQLConfiguration(config).getClient[dfm.Data, dfm.Variables]()
+    val deleteFileMetadataResponse = dfm.Data(DeleteFileMetadata(fileIds, filePropertyNames))
+    val data: client.GraphqlData = client.GraphqlData(Some(deleteFileMetadataResponse))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("deleteFileMetadata"))
       .willReturn(okJson(dataString)))
   }
 
@@ -317,8 +333,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     //Mock the get method to return the expected map.
     doAnswer(_ => java.util.Optional.of(profileMap)).when(playCacheSessionStore).get(
-        any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES)
-      )
+      any[PlayWebContext](), org.mockito.ArgumentMatchers.eq[String](Pac4jConstants.USER_PROFILES)
+    )
 
     val testConfig = new Config()
 
