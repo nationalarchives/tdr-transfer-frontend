@@ -61,7 +61,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
-    "render the closure status page and closure status checkbox should be checked" in {
+    "render the closure status page with the closure status checkbox checked when the closure status is already set to 'closed'" in {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Closed")
 
@@ -186,7 +186,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
-    "should save the metadata and redirect to the next page" in {
+    "should save the metadata and redirect to the next page when the closure status checkbox is checked" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
       setBulkUpdateMetadataResponse(wiremockServer)
