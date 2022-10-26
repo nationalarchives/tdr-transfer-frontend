@@ -10,13 +10,13 @@
         <h1 class="govuk-heading-xl">
           Review closure metadata changes
         </h1>
-        <p class="govuk-body">You can edit, save or abandon any changes to closure metadata here.</p>
+        <p class="govuk-body">You can edit, remove or save closure metadata here.</p>
         <div class="govuk-button-group">
-          <a href="@routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-            Edit properties
+          <a href="@routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds)" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
+            Edit metadata
           </a>
           <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--warning">
-            Abandon changes
+            Delete metadata
           </a>
         </div>
         <dl class="govuk-summary-list">
