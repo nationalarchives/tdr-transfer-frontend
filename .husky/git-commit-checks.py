@@ -171,9 +171,10 @@ def main():
 
     if list_of_staged_files:
         staged_files_grouped_by_extension = group_files_by_extension(list_of_staged_files)
-
-        run_style_checkers(staged_files_grouped_by_extension)
-        run_tests(staged_files_grouped_by_extension)
+        runStyleChecksResponse = input("Run style checks on your staged files? Enter y or press any key to skip: ").lower()
+        runTestsResponse = input("Run tests on your staged files? Enter y or press any key to skip: ").lower()
+        run_style_checkers(staged_files_grouped_by_extension) if runStyleChecksResponse == "y" else "don't run"
+        run_tests(staged_files_grouped_by_extension) if runTestsResponse == "y" else "don't run"
 
 if __name__ == "__main__":
     main()
