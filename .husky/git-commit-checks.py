@@ -163,7 +163,6 @@ def run_tests(staged_files_grouped_by_extension):
         run_scala_tests(list_of_scala_tests_to_run)
 
     if list_typescript_tests_to_run :
-        print(list_typescript_tests_to_run)
         run_npm_tests(run_all_typescript_tests, list_typescript_tests_to_run)
 
 def main():
