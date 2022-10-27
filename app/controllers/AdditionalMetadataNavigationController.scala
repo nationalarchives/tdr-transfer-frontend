@@ -167,7 +167,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         selectedFiles.updateCache(formData, consignmentId, request.token.bearerAccessToken).map(_ => {
           val folderId = UUID.fromString(formData.returnToRoot.getOrElse(folderSelected))
           if(formData.addClosureProperties.isDefined) {
-            Redirect(routes.AddClosureMetadataController.addClosureMetadata(consignmentId, selectedFiles.toSet.toList))
+            Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, selectedFiles.toSet.toList))
           } else {
             Redirect(routes.AdditionalMetadataNavigationController
               .getPaginatedFiles(consignmentId, pageSelected, limit, folderId, metadataType))
