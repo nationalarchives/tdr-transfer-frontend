@@ -100,7 +100,6 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
       customMetadataUtils = new CustomMetadataUtils(customMetadata)
 
       dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, Set(closureType.name), closureType.value)
-        .filterNot(_.name == descriptionPublic)
 
       formFields = customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
     } yield {
