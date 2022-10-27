@@ -32,9 +32,10 @@ checkingRecords.progress=4
 downloadMetadata.progress=6
 fileChecksResults.progress=4
 additionalMetadataStart.progress=5
-additionalMetadataSummary.progress=6
+additionalMetadataClosureStatus.progress=6
+additionalMetadataSummary.progress=7
 confirmTransfer.progress=6
 addClosureMetadata.progress=[StepNumberToBeImplemented]
 
-progress.totalSteps=7
+progress.totalSteps=8
 judgmentProgress.totalSteps=3

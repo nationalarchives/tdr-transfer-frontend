@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddClosureMetadataController.File
+import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType, descriptionPublic}
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
@@ -75,12 +76,15 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
             }
           } else {
             val metadataInput: List[UpdateFileMetadataInput] = updatedFormFields map {
-              case TextField(fieldId, _, _, _, nameAndValue, _, _, _) => UpdateFileMetadataInput(fieldId, nameAndValue.value)
-              case DateField(fieldId, _, _, _, day, month, year, _, _, _) =>
+              case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _) =>
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value)
+              case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _) =>
                 val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
-                UpdateFileMetadataInput(fieldId, dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace("T", " "))
-              case RadioButtonGroupField(fieldId, _, _, _, _, selectedOption, _, _) => UpdateFileMetadataInput(fieldId, selectedOption)
-              case DropdownField(fieldId, _, _, _, _, selectedOption, _, _) => UpdateFileMetadataInput(fieldId, selectedOption.map(_.value).getOrElse(""))
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace("T", " "))
+              case RadioButtonGroupField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString)
+              case DropdownField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.map(_.value).getOrElse(""))
             }
             customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, metadataInput).map(_ => {
               Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds))
@@ -94,11 +98,9 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
     for {
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       customMetadataUtils = new CustomMetadataUtils(customMetadata)
-      propertyName = Set("ClosureType")
-      value = "Closed"
 
-      dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, propertyName, value)
-        .filterNot(_.name == "DescriptionPublic")
+      dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, Set(closureType.name), closureType.value)
+        .filterNot(_.name == descriptionPublic)
 
       formFields = customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
     } yield {
@@ -119,7 +121,7 @@ class AddClosureMetadataController @Inject()(val controllerComponents: SecurityC
 
   private def getFilesFromConsignment(files: List[getConsignmentFilesMetadata.GetConsignment.Files]): List[File] = {
     files.map(file => {
-      val filePath = file.fileMetadata.find(_.name == "ClientSideOriginalFilepath").map(_.value).getOrElse("")
+      val filePath = file.fileMetadata.find(_.name == clientSideOriginalFilepath).map(_.value).getOrElse("")
       File(file.fileId, filePath)
     })
   }

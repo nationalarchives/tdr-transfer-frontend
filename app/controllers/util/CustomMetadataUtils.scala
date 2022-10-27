@@ -13,7 +13,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     closureStartDate -> "Closure start date",
     closurePeriod -> "Closure period",
     foiExemptionCode -> "FOI exemption code",
-    titlePublic -> "Is the title closed?"
+    titleClosed -> "Is the title closed?"
   )
 
   def getCustomMetadataProperties(propertiesToGet: Set[String]): Set[CustomMetadata] =
@@ -77,10 +77,15 @@ object CustomMetadataUtils {
   def apply(allCustomMetadataProperties: List[CustomMetadata]): CustomMetadataUtils = new CustomMetadataUtils(allCustomMetadataProperties)
 }
 
+case class StaticMetadata(name: String, value: String)
+
 object MetadataProperty {
   val foiExemptionAsserted = "FoiExemptionAsserted"
   val closureStartDate = "ClosureStartDate"
   val closurePeriod = "ClosurePeriod"
   val foiExemptionCode = "FoiExemptionCode"
-  val titlePublic = "TitlePublic"
+  val titleClosed = "TitleClosed"
+  val clientSideOriginalFilepath = "ClientSideOriginalFilepath"
+  val descriptionPublic = "DescriptionPublic"
+  val closureType: StaticMetadata = StaticMetadata("ClosureType", "Closed")
 }

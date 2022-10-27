@@ -6,9 +6,10 @@ import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
+import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.types.DataType.Text
 import graphql.codegen.types.PropertyType.Defined
-import graphql.codegen.types.{UpdateBulkFileMetadataInput, UpdateFileMetadataInput}
+import graphql.codegen.types.{DeleteFileMetadataInput, UpdateBulkFileMetadataInput, UpdateFileMetadataInput}
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -30,11 +31,13 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
   private val graphQLConfig = mock[GraphQLConfiguration]
   private val customMetadataClient = mock[GraphQLClient[cm.Data, cm.Variables]]
   private val addBulkMetadataClient = mock[GraphQLClient[abfm.Data, abfm.Variables]]
+  private val deleteFileMetadataClient = mock[GraphQLClient[dfm.Data, dfm.Variables]]
   private val token = new BearerAccessToken("some-token")
   private val consignmentId = UUID.fromString("e1ca3948-ee41-4e80-85e6-2123040c135d")
   private val fileIds: List[UUID] = List(UUID.randomUUID())
   when(graphQLConfig.getClient[cm.Data, cm.Variables]()).thenReturn(customMetadataClient)
   when(graphQLConfig.getClient[abfm.Data, abfm.Variables]()).thenReturn(addBulkMetadataClient)
+  when(graphQLConfig.getClient[dfm.Data, dfm.Variables]()).thenReturn(deleteFileMetadataClient)
 
   private val customMetadataService = new CustomMetadataService(graphQLConfig)
 
@@ -146,7 +149,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
   }
 
   "saveMetadata" should "save the metadata" in {
-    val updateFileMetadataInput = List(UpdateFileMetadataInput("test1", "test2"))
+    val updateFileMetadataInput = List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test1", "test2"))
     val updateBulkFileMetadataInput = UpdateBulkFileMetadataInput(consignmentId, fileIds, updateFileMetadataInput)
     val variables = Some(abfm.Variables(updateBulkFileMetadataInput))
     when(addBulkMetadataClient.getResult(token, abfm.document, variables))
@@ -172,5 +175,35 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
       .thenReturn(Future.successful(response))
 
     customMetadataService.saveMetadata(consignmentId, fileIds, token, Nil).failed.futureValue shouldBe a[AuthorisationException]
+  }
+
+  "deleteMetadata" should "delete the additional metadata" in {
+    val deleteFileMetadataInput = DeleteFileMetadataInput(fileIds)
+    val variables = Some(dfm.Variables(deleteFileMetadataInput))
+    val deleteFileMetadata = dfm.DeleteFileMetadata(fileIds, List("PropertyName1"))
+    when(deleteFileMetadataClient.getResult(token, dfm.document, variables))
+      .thenReturn(Future(GraphQlResponse(Option(dfm.Data(deleteFileMetadata)), Nil)))
+
+    val response = customMetadataService.deleteMetadata(fileIds, token).futureValue
+
+    response.deleteFileMetadata should equal(deleteFileMetadata)
+    verify(deleteFileMetadataClient, times(1)).getResult(token, dfm.document, variables)
+  }
+
+  "deleteMetadata" should "return an error if the API call fails" in {
+    val variables = dfm.Variables(DeleteFileMetadataInput(fileIds))
+    when(deleteFileMetadataClient.getResult(token, dfm.document,  Option(variables)))
+      .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+    customMetadataService.deleteMetadata(fileIds, token).failed.futureValue shouldBe a[HttpError]
+  }
+
+  "deleteMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
+    val variables = dfm.Variables(DeleteFileMetadataInput(fileIds))
+    val response = GraphQlResponse[dfm.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
+    when(deleteFileMetadataClient.getResult(token, dfm.document,  Option(variables)))
+      .thenReturn(Future.successful(response))
+
+    customMetadataService.deleteMetadata(fileIds, token).failed.futureValue shouldBe a[AuthorisationException]
   }
 }
