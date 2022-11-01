@@ -10,7 +10,7 @@ import org.pac4j.core.context.session.SessionStore
 import org.pac4j.core.engine.{DefaultCallbackLogic, DefaultSecurityLogic}
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.oidc.client.OidcClient
-import org.pac4j.oidc.config.{OidcConfiguration, PrivateKeyJWTClientAuthnMethodConfig}
+import org.pac4j.oidc.config.OidcConfiguration
 import org.pac4j.play.scala.{DefaultSecurityComponents, Pac4jScalaTemplateHelper, SecurityComponents}
 import org.pac4j.play.store.PlayCacheSessionStore
 import org.pac4j.play.{CallbackController, LogoutController}
