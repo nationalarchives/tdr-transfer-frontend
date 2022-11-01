@@ -131,6 +131,22 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       value="no",
       errorMessage=s"There was no value selected for Is the title closed?.",
       fieldType="inputRadio"
+    ),
+    MockInputOption(
+      name = "inputradio-DescriptionPublic",
+      label = "Yes",
+      id = "inputradio-DescriptionPublic-Yes",
+      value = "yes",
+      fieldType = "inputRadio",
+      errorMessage = s"There was no value selected for Description Public."
+    ),
+    MockInputOption(
+      name = "inputradio-DescriptionPublic",
+      label = "No",
+      id = "inputradio-DescriptionPublic-No",
+      value = "no",
+      errorMessage = s"There was no value selected for Description Public.",
+      fieldType = "inputRadio"
     )
   )
 
@@ -166,7 +182,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputradio-TitleClosed", "yes")
+        ("inputradio-TitleClosed", "yes"),
+        ("inputradio-DescriptionPublic", "yes")
       )
 
       playStatus(addClosureMetadataPage) mustBe OK
@@ -218,7 +235,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", "1990"),
         ("inputnumeric-ClosurePeriod-years", "4"),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputradio-TitleClosed", "no")
+        ("inputradio-TitleClosed", "no"),
+        ("inputradio-DescriptionPublic", "yes")
       )
 
       playStatus(addClosureMetadataPage) mustBe OK
@@ -276,7 +294,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", ""),
-        ("inputradio-TitleClosed", "")
+        ("inputradio-TitleClosed", ""),
+        ("inputradio-DescriptionPublic", "")
       )
 
       val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId, fileIds)
@@ -310,7 +329,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputradio-TitleClosed", "yes")
+        ("inputradio-TitleClosed", "yes"),
+        ("inputradio-DescriptionPublic", "no")
       )
 
       val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId, fileIds)
@@ -345,7 +365,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputradio-TitleClosed", "yes")
+        ("inputradio-TitleClosed", "yes"),
+        ("inputradio-DescriptionPublic", "no")
       )
 
       val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId, fileIds)
@@ -390,7 +411,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputradio-TitleClosed", "no")
+        ("inputradio-TitleClosed", "no"),
+        ("inputradio-DescriptionPublic", "no")
       )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -417,6 +439,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00"
       input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00"
       input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "false"
+      input.metadataProperties.find(_.filePropertyName == "DescriptionPublic").get.value mustBe "false"
       input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
     }
   }
@@ -504,6 +527,11 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     addClosureMetadataPageAsString must include(
       """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
         |            Is the title closed?
+        |        </legend>""".stripMargin
+    )
+    addClosureMetadataPageAsString must include(
+      """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+        |            Description Public
         |        </legend>""".stripMargin
     )
   }
