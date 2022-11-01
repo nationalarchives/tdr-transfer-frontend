@@ -36,6 +36,7 @@ additionalMetadataClosureStatus.progress=6
 additionalMetadataSummary.progress=7
 confirmTransfer.progress=6
 addClosureMetadata.progress=[StepNumberToBeImplemented]
+transferComplete.progress=8
 
 progress.totalSteps=8
 judgmentProgress.totalSteps=3
