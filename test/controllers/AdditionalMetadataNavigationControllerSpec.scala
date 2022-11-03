@@ -986,7 +986,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       fileSelectionPageAsString.contains(s"Add closure properties") mustBe true
       fileSelectionPageAsString.contains(
         s"""Click on a particular file or folder to see what metadata is already captured and add or edit properties there.
-           |        For a bulk edit, first select files and/or folders and then choose an action from the menu.""".stripMargin) mustBe true
+           |            For a bulk edit, first select files and/or folders and then choose an action from the menu.""".stripMargin) mustBe true
     } else {
       fileSelectionPageAsString.contains(s"Add or edit descriptive data on file basis") mustBe true
       fileSelectionPageAsString.contains(s"You can now add or edit descriptive metadata to individual files or folders.") mustBe true
