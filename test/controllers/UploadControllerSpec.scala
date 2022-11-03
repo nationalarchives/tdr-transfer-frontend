@@ -646,7 +646,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val fileStatusService = new FileStatusService(graphQLConfiguration)
       val uploadService = new UploadService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val updateConsignmentStatusInput = ConsignmentStatusInput(consignmentId, "type", "value")
+      val updateConsignmentStatusInput = ConsignmentStatusInput(consignmentId, "type", Option("value"))
       val data = client.GraphqlData(Option(updateConsignmentStatus.Data(Option(1))), Nil)
       val dataString = data.asJson.noSpaces
 
@@ -691,7 +691,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = new UploadController(getAuthorisedSecurityComponents,
         graphQLConfiguration, getValidStandardUserKeycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, fileStatusService)
-      val updateConsignmentStatusInput = ConsignmentStatusInput(consignmentId, "type", "value")
+      val updateConsignmentStatusInput = ConsignmentStatusInput(consignmentId, "type", Option("value"))
       wiremockServer.stubFor(post(urlEqualTo("/graphql"))
         .withRequestBody(containing("updateConsignmentStatus"))
         .willReturn(serverError()))
