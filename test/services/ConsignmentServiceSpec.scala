@@ -8,6 +8,7 @@ import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.{getConsignment => gc}
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
+import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.GetConsignment
 import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
@@ -47,6 +48,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val getConsignmentForExportClient = mock[GraphQLClient[gcfe.Data, gcfe.Variables]]
   private val getConsignmentFilesMetadataClient = mock[GraphQLClient[gcfm.Data, gcfm.Variables]]
   private val getConsignmentPaginatedFilesClient = mock[GraphQLClient[gcpf.Data, gcpf.Variables]]
+  private val getConsignmentFilesClient = mock[GraphQLClient[gcf.Data, gcf.Variables]]
   when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(getConsignmentClient)
   when(graphQlConfig.getClient[addConsignment.Data, addConsignment.Variables]()).thenReturn(addConsignmentClient)
   when(graphQlConfig.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()).thenReturn(getConsignmentFolderInfoClient)
@@ -54,6 +56,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   when(graphQlConfig.getClient[gcfe.Data, gcfe.Variables]()).thenReturn(getConsignmentForExportClient)
   when(graphQlConfig.getClient[gcfm.Data, gcfm.Variables]()).thenReturn(getConsignmentFilesMetadataClient)
   when(graphQlConfig.getClient[gcpf.Data, gcpf.Variables]()).thenReturn(getConsignmentPaginatedFilesClient)
+  when(graphQlConfig.getClient[gcf.Data, gcf.Variables]()).thenReturn(getConsignmentFilesClient)
 
   private val consignmentService = new ConsignmentService(graphQlConfig)
 
@@ -425,14 +428,52 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val folderId = UUID.randomUUID()
       val limit = Some(1)
       val page = 1
-      when(getConsignmentPaginatedFilesClient.getResult(bearerAccessToken, gcpf.document,
-        Some(gcpf.Variables(consignmentId,
+      when(getConsignmentPaginatedFilesClient.getResult(bearerAccessToken, gcpf.document, Some(gcpf.Variables(consignmentId,
           Some(PaginationInput(limit, currentPage = Some(page), currentCursor = None, Some(FileFilters(None, None, Some(folderId)))))))))
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
       val results = consignmentService.getConsignmentPaginatedFile(
         consignmentId, page = page, limit = limit, selectedFolderId = folderId, bearerAccessToken)
       results.failed.futureValue shouldBe a[HttpError]
+    }
+  }
+
+  "getAllConsignmentFiles" should {
+    "return nested files correctly" in {
+      val parentId = UUID.randomUUID()
+      val descendantOneId = UUID.randomUUID()
+      val descendantTwoId = UUID.randomUUID()
+      val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("File"), None, gcf.GetConsignment.Files.Metadata(None))
+      val descendantOne = gcf.GetConsignment.Files(descendantOneId, Option("descendantOne"), Option("File"), Option(parentId), gcf.GetConsignment.Files.Metadata(None))
+      val descendantTwo = gcf.GetConsignment.Files(descendantTwoId, Option("descendantTwo"), Option("File"), Option(descendantOneId), gcf.GetConsignment.Files.Metadata(None))
+      val files = gcf.GetConsignment(List(parentFile, descendantOne, descendantTwo))
+      val response = GraphQlResponse(Some(gcf.Data(Some(files))), Nil)
+      when(getConsignmentFilesClient
+        .getResult(bearerAccessToken, gcf.document, Some(gcf.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
+      val result: ConsignmentService.File = consignmentService.getAllConsignmentFiles(consignmentId, bearerAccessToken).futureValue
+
+      result.id should equal(parentId)
+      result.children.length should equal(1)
+      val firstDescendant = result.children.head
+      firstDescendant.id should equal(descendantOneId)
+      firstDescendant.children.length should equal(1)
+      val secondDescendant = firstDescendant.children.head
+      secondDescendant.id should equal(descendantTwoId)
+      secondDescendant.children.length should equal(0)
+    }
+
+    "throw an error if the parent folder is missing" in {
+      val parentId = UUID.randomUUID()
+      val descendantOne = gcf.GetConsignment.Files(UUID.randomUUID(), Option("descendantOne"), Option("File"), Option(parentId), gcf.GetConsignment.Files.Metadata(None))
+      val files = gcf.GetConsignment(List(descendantOne))
+      val response = GraphQlResponse(Some(gcf.Data(Some(files))), Nil)
+      when(getConsignmentFilesClient
+        .getResult(bearerAccessToken, gcf.document, Some(gcf.Variables(consignmentId))))
+        .thenReturn(Future.successful(response))
+
+      val error = consignmentService.getAllConsignmentFiles(consignmentId, bearerAccessToken).failed.futureValue
+      error.getMessage should equal(s"Parent ID not found for consignment $consignmentId")
     }
   }
 }

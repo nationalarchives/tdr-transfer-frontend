@@ -11,7 +11,7 @@
         <h2 class="govuk-heading-s">Folder uploaded: @parentFolder</h2>
         <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records. Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>
 
-        <a class="tdr-card__link" href="@routes.AdditionalMetadataNavigationController.getPaginatedFiles(consignmentId, 1, limit = None, folderId = parentFolderId, "descriptive")">
+        <a class="tdr-card__link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, "descriptive")">
           <div class="tdr-card tdr-card--clickable">
             <div class="tdr-card__content">
               <h2 class="tdr-card__heading tdr-heading-m">
@@ -22,7 +22,7 @@
           </div>
         </a>
 
-        <a class="tdr-card__link" href="@routes.AdditionalMetadataNavigationController.getPaginatedFiles(consignmentId, 1, limit = None, folderId = parentFolderId, "closure")">
+        <a class="tdr-card__link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, "closure")">
           <div class="tdr-card tdr-card--clickable">
             <div class="tdr-card__content">
               <h2 class="tdr-card__heading tdr-heading-m">
