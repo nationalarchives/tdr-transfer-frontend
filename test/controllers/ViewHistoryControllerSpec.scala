@@ -29,7 +29,7 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   "ViewHistoryController" should {
-    "render the view history page with list of consignments" in {
+    "render the view history page with list of user's consignments" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       val consignments = setConsignmentsHistoryResponse(wiremockServer)
 

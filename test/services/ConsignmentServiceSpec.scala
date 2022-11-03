@@ -18,7 +18,6 @@ import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.CurrentStatus
-import graphql.codegen.UpdateConsignmentSeriesId.{updateConsignmentSeriesId => ucs}
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
 import graphql.codegen.types.{AddConsignmentInput, ConsignmentFilters, FileFilters, PaginationInput}
 import org.keycloak.representations.AccessToken
@@ -443,8 +442,8 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     }
   }
 
-  "getConsignmentsHistory" should {
-    "return list of consignments for the user" in {
+  "getConsignments" should {
+    "return a list of the user's consignments" in {
       val userId = UUID.randomUUID()
       val edges = List(
         Consignments.Edges(Node(
@@ -464,7 +463,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, consignmentFilter.some).some))
         .thenReturn(Future.successful(response))
 
-      val history = consignmentService.getConsignmentsHistory(consignmentFilter, bearerAccessToken).futureValue
+      val history = consignmentService.getConsignments(consignmentFilter, bearerAccessToken).futureValue
       history.edges.get should be(edges)
     }
 
@@ -474,7 +473,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, consignmentFilter.some).some))
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-      val results = consignmentService.getConsignmentsHistory(consignmentFilter, bearerAccessToken)
+      val results = consignmentService.getConsignments(consignmentFilter, bearerAccessToken)
       results.failed.futureValue shouldBe a[HttpError]
     }
   }
