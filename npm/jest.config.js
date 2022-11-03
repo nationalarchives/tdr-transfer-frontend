@@ -1,7 +1,8 @@
 module.exports = {
   preset: "ts-jest",
   moduleNameMapper: {
-    "govuk-frontend": "<rootDir>/src/govuk-frontend.d.ts"
+    "govuk-frontend": "<rootDir>/src/govuk-frontend.d.ts",
+    "@nationalarchives/tdr-components": "<rootDir>/node_modules/@nationalarchives/tdr-components/dist"
   },
   testEnvironment: 'jsdom',
   globals: {
