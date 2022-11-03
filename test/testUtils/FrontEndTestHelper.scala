@@ -246,7 +246,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 15, 0, 0), ZoneId.systemDefault())),
         createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 10, 0, 0), ZoneId.systemDefault())),
         currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some),
-        totalFiles = 6), "Cursor").some,
+        totalFiles = 6), "Cursor").some
     )
 
     val consignments = gc.Data(gc.Consignments(
