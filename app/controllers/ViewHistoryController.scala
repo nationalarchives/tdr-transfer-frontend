@@ -21,7 +21,7 @@ class ViewHistoryController @Inject()(val consignmentService: ConsignmentService
 
     val consignmentFilters = ConsignmentFilters(Some(request.token.userId), None)
     for {
-      consignmentHistory <- consignmentService.getConsignmentsHistory(consignmentFilters, request.token.bearerAccessToken)
+      consignmentHistory <- consignmentService.getConsignments(consignmentFilters, request.token.bearerAccessToken)
       consignments = consignmentHistory.edges match {
         case Some(edges) => edges.flatMap(createView)
         case None => Nil
