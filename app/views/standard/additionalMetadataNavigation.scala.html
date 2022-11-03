@@ -1,125 +1,85 @@
-@import helper._
 @import java.util.UUID
-@import controllers.AdditionalMetadataNavigationController.{NodesFormData, ResultsCount}
-@(consignmentId: UUID, name: String, metadataType: String, folderUploaded: String, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, parentFolder: Option[UUID],
-        nodesFormData: Form[NodesFormData], resultsCount: ResultsCount)(implicit messages: Messages, request: RequestHeader)
-@main("Additional Metadata", name = name) {
-    @defining(play.core.PlayVersion.current) { version =>
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-two-thirds">
-                <h1 class="govuk-heading-l">
-                    Add or edit closure metadata on file basis
-                </h1>
-                <div class="govuk-warning-text">
-                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                    <strong class="govuk-warning-text__text">
-                        <span class="govuk-warning-text__assistive">Warning</span>
-                        Do not use your browsers back/forward buttons as this can lead to loss of data.
-                    </strong>
-                </div>
-                <p class="govuk-body">You can now add or edit closure metadata to individual files or folders.</p>
-                <p class="govuk-body">
-                    Click on a particular file or folder to see what metadata is already captured and add or edit properties there.
-                    For a bulk edit, first select files and/or folders and then choose an action from the menu.
-                </p>
-                <h2 class="app-task-list__section">Folder uploaded: @folderUploaded</h2>
+@import services.ConsignmentService.File
+@import views.html.helper.CSRF
+@(consignmentId: UUID, name: String, files: File, metadataType: String)(implicit messages: Messages, request: RequestHeader)
 
-                @form(action = routes.AdditionalMetadataNavigationController.submit(consignmentId, limit, selectedFolderId, metadataType)) {
-                    @CSRF.formField
-                    <div class="govuk-button-group">
-                        @if(parentFolder.isDefined) {
-                            <button class="govuk-button" name="returnToRoot" data-prevent-double-click="true" type="submit" role="button" value="@parentFolder">
-                                Return to root folder
-                            </button>
-                        }
-                        <button class="govuk-button" name="addClosureProperties" data-prevent-double-click="true" type="submit" role="button" value="@parentFolder">
-                            Add closure properties
-                        </button>
-                    </div>
-                    <section id="page-@currentPage">
-                        Showing <span class="govuk-body govuk-!-font-weight-bold">@resultsCount.startCount</span> to <span class="govuk-body govuk-!-font-weight-bold">@resultsCount.endCount</span> of <span class="govuk-body govuk-!-font-weight-bold">@resultsCount.total</span> results
-                        <table class="govuk-table">
-                            <tbody class="govuk-table__body">
-                            @nodesFormData.value.get.nodesToDisplay.map { node =>
-                                <tr class="govuk-table__row">
-                                    <td class="govuk-table__cell">
-                                        <div class="govuk-checkboxes__item">
-                                            <input type='hidden' id="@node.fileId" name='allNodes[]' value="@node.fileId">
-                                            <input class="govuk-checkboxes__input" id="@node.fileId" name="descendantFilesSelected[]" type="checkbox" value="@node.fileId" @{if(node.isSelected) "checked"} autocomplete="off">
-                                            <label class="govuk-label govuk-checkboxes__label" for="@node.fileId">
-                                            @if(node.isFolder) {
-                                                📁
-                                                <button class="govuk-button__tna-button-link" name="folderSelected" data-prevent-double-click="true" type="submit" role="link" value="@node.fileId">
-                                                @node.displayName
-                                                </button>
-                                                @if(!node.isSelected && node.descendantFilesSelected > 0) {
-                                                    <span>(@node.descendantFilesSelected file(s) selected)</span>
-                                                }
-                                            } else {
-                                                📊 @node.displayName
-                                            }
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                            </tbody>
-                        </table>
-                    </section>
-                    <nav class="govuk-pagination" role="navigation" aria-label="results">
-                        @if(currentPage != 1) {
-                            <div class="govuk-pagination__prev">
-                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="@{currentPage - 1}">
-                                    Previous
-                                </button>
-                            </div>
-                        }
-                        <ul class="govuk-pagination__list">
-                            <li class="govuk-pagination__item @if(currentPage == 1){govuk-pagination__item--current}">
-                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">
-                                1
-                                </button>
-                            </li>
-                                @if(currentPage > 4) {
-                                        <li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>
-                                }
-                                @* Renders the current page and the n numbers of pages immediately before and after *@
-                                @for(page <- currentPage - 2 to currentPage + 2) {
-                                    @if(page > 1 && page < totalPages) {
-                                            <li class="govuk-pagination__item @if(currentPage == page){govuk-pagination__item--current}">
-                                            <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page @page" value="@{page}">
-                                            @page
-                                            </button>
-                                            </li>
-                                    }
-                                }
-                                @if(totalPages - currentPage > 3) {
-                                        <li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>
-                                }
-                            @if(totalPages > 1) {
-                                <li class="govuk-pagination__item @if(currentPage == totalPages) {govuk-pagination__item--current}">
-                                    <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page @totalPages" value="@totalPages">
-                                    @totalPages
-                                    </button>
-                                </li>
-                            }
-                        </ul>
-                        @if(currentPage != totalPages && totalPages != 0) {
-                            <div class="govuk-pagination__next">
-                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="@{currentPage + 1}">
-                                    Next
-                                </button>
-                            </div>
-                        }
-                    </nav>
-                    <a href="/consignment/@consignmentId/additional-metadata" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                        Back to overview
-                    </a>
-                    @*These hidden fields are defaults for when the buttons are not clicked*@
-                    <input type="hidden" id="pageSelected" name="pageSelected" value="1"/>
-                    <input type="hidden" id="folderSelected" name="folderSelected" value="@{nodesFormData.value.get.folderSelected}"/>
-                }
-            </div>
-        </div>
-    }
+@display(file: File, level: Int, size: Int, pos: Int) = {
+  @if(file.fileType.contains("File") || file.children.isEmpty) {
+    <li
+    class="govuk-tna-tree__item"
+    role="treeitem"
+    id="@file.id"
+    aria-level="@level"
+    aria-setsize="@size"
+    aria-posinset="@pos"
+    aria-selected="false"
+    >
+      <div class="govuk-checkboxes__item">
+        <input class="govuk-checkboxes__input" name="@file.id" id="checkbox-@file.id" tabindex="-1" type="checkbox" />
+        <label class="govuk-label govuk-checkboxes__label" for="checkbox-@file.id">
+          @file.name
+        </label>
+      </div>
+    </li>
+  } else {
+  <li
+  class="govuk-tna-tree__node-item"
+  role="treeitem"
+  id="@file.id"
+  aria-expanded="true"
+  aria-selected="false"
+  aria-level="@level"
+  aria-setsize="@size"
+  aria-posinset="@pos"
+  >
+    <div class="govuk-tna-tree__node-item__container">
+      <button
+      class="govuk-tna-tree__expander"
+      tabindex="-1"
+      id="expander-@file.id"
+      >
+        <span class="govuk-visually-hidden">Expand</span>
+      </button>
+      <div class="govuk-checkboxes__item">
+        <input class="govuk-checkboxes__input" name="@file.id" id="checkbox-@file.id" tabindex="-1" type="checkbox" />
+        <label class="govuk-label govuk-checkboxes__label" for="checkbox-@file.id">
+          @file.name
+        </label>
+      </div>
+    </div>
+    <ul class="govuk-tna-tree__nested-item-list" role="group" id="node-group-@file.id">
+      @for((child, idx) <- file.children.zipWithIndex) {
+        @display(child, level + 1, file.children.length, idx)
+      }
+    </ul>
+  </li>
+  }
+}
+
+@main("Additional Metadata", name = name) {
+  @defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">
+          Add or edit closure metadata on file basis
+        </h1>
+        <p class="govuk-body">You can now add or edit closure metadata to individual files or folders.</p>
+        <form method="post" action="@routes.AdditionalMetadataNavigationController.submitFiles(consignmentId, metadataType)">
+          @CSRF.formField
+          <button class="govuk-button" type="submit" role="button" draggable="false">
+            Add or Edit Metadata
+          </button>
+          <div class="govuk-tna-tree">
+            <ul tabindex="0" class="govuk-tna-tree__nested-item-list" role="tree" aria-multiselectable="true">
+            @display(files, 1, files.children.length, 0)
+            </ul>
+          </div>
+          <button class="govuk-button" type="submit" role="button" draggable="false">
+            Add or Edit Metadata
+          </button>
+        </form>
+
+      </div>
+    </div>
+  }
 }
