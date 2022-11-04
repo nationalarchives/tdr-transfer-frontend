@@ -49,7 +49,7 @@ class DeleteAdditionalMetadataController @Inject() (
           Future(
             Redirect(
               routes.AdditionalMetadataNavigationController
-                .getPaginatedFiles(consignmentId, 1, None, consignment.parentFolderId.head, "closure")
+                .getAllFiles(consignmentId, "closure")
             )
           )
       } yield response

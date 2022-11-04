@@ -30,7 +30,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements()
 
-  val getConsignmentMetadata: Files.Metadata = gcfm.GetConsignment.Files.Metadata(None, None, None, None, None)
+  val getConsignmentMetadata: Files.Metadata = gcfm.GetConsignment.Files.Metadata(None, None, None, None, None, None)
   def customMetadata(name: String, fullName: String, exportOrdinal: Int = Int.MaxValue, allowExport: Boolean = true): cm.CustomMetadata =
     cm.CustomMetadata(name, None, Option(fullName), Supplied, None, Text, editable = false, multiValue = false, None, 1, Nil, Option(exportOrdinal), allowExport)
 

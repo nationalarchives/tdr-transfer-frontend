@@ -197,7 +197,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe SEE_OTHER
 
-      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$parentFolderId/1"))
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/$metadataType/"))
     }
 
     "return an error if the fileIds are empty" in {

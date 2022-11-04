@@ -75,10 +75,10 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       ) mustBe true
       // Will change these links when we have the metadata pages to link them to.
       startPageAsString.contains(
-        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/descriptive/$parentFolderId/1">"""
+        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/files/descriptive/">"""
       ) mustBe true
       startPageAsString.contains(
-        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/closure/$parentFolderId/1">"""
+        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/files/closure/">"""
       ) mustBe true
       // scalastyle:on line.size.limit
     }
