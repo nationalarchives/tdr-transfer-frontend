@@ -14,10 +14,11 @@ import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class AdditionalMetadataSummaryController @Inject ()(val consignmentService: ConsignmentService,
-                                                     val keycloakConfiguration: KeycloakConfiguration,
-                                                     val controllerComponents: SecurityComponents
-                                              ) extends TokenSecurity {
+class AdditionalMetadataSummaryController @Inject() (
+    val consignmentService: ConsignmentService,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val controllerComponents: SecurityComponents
+) extends TokenSecurity {
 
   def getSelectedSummaryPage(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val filters = Option(FileFilters(None, Option(fileIds), None))
@@ -26,8 +27,12 @@ class AdditionalMetadataSummaryController @Inject ()(val consignmentService: Con
       response <- consignment.files match {
         case first :: _ =>
           val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
-          Future(Ok(views.html.standard.additionalMetadataSummary(consignmentId, fileIds, filePaths, consignment.consignmentReference,
-            getMetadataForView(first.metadata), request.token.name)))
+          Future(
+            Ok(
+              views.html.standard
+                .additionalMetadataSummary(consignmentId, fileIds, filePaths, consignment.consignmentReference, getMetadataForView(first.metadata), request.token.name)
+            )
+          )
         case Nil => Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
       }
     } yield response
@@ -45,7 +50,4 @@ class AdditionalMetadataSummaryController @Inject ()(val consignmentService: Con
   }
 }
 
-case class Metadata(foiExemptionAsserted: String,
-                    closureStartDate: String,
-                    foiExemptionCode: String,
-                    closurePeriod: String)
+case class Metadata(foiExemptionAsserted: String, closureStartDate: String, foiExemptionCode: String, closurePeriod: String)

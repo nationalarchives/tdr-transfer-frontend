@@ -16,24 +16,33 @@ import javax.inject.Inject
 import scala.concurrent.Future
 
 class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTemplateHelper: Pac4jScalaTemplateHelper[CommonProfile])
-  extends HttpErrorHandler with I18nSupport with Logging {
+    extends HttpErrorHandler
+    with I18nSupport
+    with Logging {
 
   def getName(request: RequestHeader): String = {
-    pac4jTemplateHelper.getCurrentProfiles(request).headOption.map(profile => {
-      val token = profile.getAttribute("access_token").asInstanceOf[BearerAccessToken]
-      val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
-      parsedToken.getClaim("name").toString
-    }).getOrElse("")
+    pac4jTemplateHelper
+      .getCurrentProfiles(request)
+      .headOption
+      .map(profile => {
+        val token = profile.getAttribute("access_token").asInstanceOf[BearerAccessToken]
+        val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
+        parsedToken.getClaim("name").toString
+      })
+      .getOrElse("")
   }
 
   def isLoggedIn(request: RequestHeader): Boolean = pac4jTemplateHelper.getCurrentProfiles(request).nonEmpty
 
   def judgmentUser(request: RequestHeader): Boolean = {
-    pac4jTemplateHelper.getCurrentProfiles(request).headOption.exists(profile => {
-      val token = profile.getAttribute("access_token").asInstanceOf[BearerAccessToken]
-      val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
-      parsedToken.getBooleanClaim("judgment_user")
-    })
+    pac4jTemplateHelper
+      .getCurrentProfiles(request)
+      .headOption
+      .exists(profile => {
+        val token = profile.getAttribute("access_token").asInstanceOf[BearerAccessToken]
+        val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
+        parsedToken.getBooleanClaim("judgment_user")
+      })
   }
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {

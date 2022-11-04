@@ -14,7 +14,7 @@ import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CustomMetadataService @Inject()(val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
+class CustomMetadataService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val customMetadataStatusClient: GraphQLClient[cm.Data, Variables] = graphqlConfiguration.getClient[cm.Data, cm.Variables]()
   private val updateBulkMetadataClient: GraphQLClient[abfm.Data, abfm.Variables] = graphqlConfiguration.getClient[abfm.Data, abfm.Variables]()
   private val deleteFileMetadataClient: GraphQLClient[dfm.Data, dfm.Variables] = graphqlConfiguration.getClient[dfm.Data, dfm.Variables]()

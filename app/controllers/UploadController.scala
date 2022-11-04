@@ -16,20 +16,23 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class UploadController @Inject()(val controllerComponents: SecurityComponents,
-                                 val graphqlConfiguration: GraphQLConfiguration,
-                                 val keycloakConfiguration: KeycloakConfiguration,
-                                 val frontEndInfoConfiguration: FrontEndInfoConfiguration,
-                                 val consignmentService: ConsignmentService,
-                                 val uploadService: UploadService,
-                                 val fileStatusService: FileStatusService)
-                                (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+class UploadController @Inject() (
+    val controllerComponents: SecurityComponents,
+    val graphqlConfiguration: GraphQLConfiguration,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val frontEndInfoConfiguration: FrontEndInfoConfiguration,
+    val consignmentService: ConsignmentService,
+    val uploadService: UploadService,
+    val fileStatusService: FileStatusService
+)(implicit val ec: ExecutionContext)
+    extends TokenSecurity
+    with I18nSupport {
 
   def updateConsignmentStatus(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {
       decode[ConsignmentStatusInput](body.toString).toOption
     }) match {
-      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+      case None        => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
       case Some(input) => uploadService.updateConsignmentStatus(input, request.token.bearerAccessToken).map(_.toString).map(Ok(_))
     }
   }
@@ -38,7 +41,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     request.body.asJson.flatMap(body => {
       decode[StartUploadInput](body.toString).toOption
     }) match {
-      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+      case None        => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
       case Some(input) => uploadService.startUpload(input, request.token.bearerAccessToken).map(Ok(_))
     }
   }
@@ -48,7 +51,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
       decode[AddFileAndMetadataInput](body.toString()).toOption
     }) match {
       case Some(metadataInput) => uploadService.saveClientMetadata(metadataInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
-      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+      case None                => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
     }
   }
 
@@ -57,7 +60,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
       decode[AddFileStatusInput](body.toString()).toOption
     }) match {
       case Some(addFileStatusInput) => fileStatusService.addFileStatus(addFileStatusInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
-      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+      case None                     => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
     }
   }
 
@@ -83,8 +86,7 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
               Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = false))
                 .uncache()
             case None =>
-              Ok(views.html.standard.upload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading,
-                frontEndInfoConfiguration.frontEndInfo, request.token.name))
+              Ok(views.html.standard.upload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name))
                 .uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
@@ -99,31 +101,30 @@ class UploadController @Inject()(val controllerComponents: SecurityComponents,
     }
   }
 
-  def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) {
-    implicit request: Request[AnyContent] =>
-      val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
+  def judgmentUploadPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
-      for {
-        consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
-        reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      } yield {
-        val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
-        val pageHeadingUpload = "Upload judgment"
-        val pageHeadingUploading = "Uploading judgment"
+    for {
+      consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
+      val pageHeadingUpload = "Upload judgment"
+      val pageHeadingUploading = "Uploading judgment"
 
-        uploadStatus match {
-          case Some("InProgress") =>
-            Ok(views.html.uploadInProgress(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
-              .uncache()
-          case Some("Completed") =>
-            Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
-              .uncache()
-          case None =>
-            Ok(views.html.judgment.judgmentUpload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading,
-              frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
-          case _ =>
-            throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
-        }
+      uploadStatus match {
+        case Some("InProgress") =>
+          Ok(views.html.uploadInProgress(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
+            .uncache()
+        case Some("Completed") =>
+          Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
+            .uncache()
+        case None =>
+          Ok(views.html.judgment.judgmentUpload(consignmentId, reference, pageHeadingUpload, pageHeadingUploading, frontEndInfoConfiguration.frontEndInfo, request.token.name))
+            .uncache()
+        case _ =>
+          throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
       }
+    }
   }
 }

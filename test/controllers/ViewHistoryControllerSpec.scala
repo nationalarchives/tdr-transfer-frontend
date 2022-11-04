@@ -28,12 +28,13 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
 
   "ViewHistoryController" should {
     "render the view history page" in {
-      //mock the api response that returns the users consignments
+      // mock the api response that returns the users consignments
       setConsignmentTypeResponse(wiremockServer, "standard")
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.viewConsignments()
+      val response = controller
+        .viewConsignments()
         .apply(FakeRequest(GET, s"/view-history"))
       val viewHistoryPageAsString = contentAsString(response)
 
@@ -58,7 +59,8 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
-      val response = controller.viewConsignments()
+      val response = controller
+        .viewConsignments()
         .apply(FakeRequest(GET, s"/view-history"))
 
       status(response) mustBe FOUND
