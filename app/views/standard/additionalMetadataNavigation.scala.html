@@ -1,6 +1,7 @@
 @import java.util.UUID
 @import services.ConsignmentService.File
 @import views.html.helper.CSRF
+@import views.html.partials.fileNavigationContent
 @(consignmentId: UUID, name: String, files: File, metadataType: String)(implicit messages: Messages, request: RequestHeader)
 
 @display(file: File, level: Int, size: Int, pos: Int) = {
@@ -60,6 +61,7 @@
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
+        @fileNavigationContent(metadataType, files.name)
         <h1 class="govuk-heading-l">
           Add or edit closure metadata on file basis
         </h1>
