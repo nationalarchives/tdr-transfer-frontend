@@ -64,6 +64,7 @@ class UploadServiceSpec extends AnyFlatSpec {
       .thenReturn(graphQlClientForUpdateConsignmentStatus)
 
     val input = ConsignmentStatusInput(UUID.randomUUID(), "type", "value".some)
+
     val graphQlResponse =
       GraphQlResponse(Some(ucs.Data(Option(1))),Nil)
     when(graphQlClientForUpdateConsignmentStatus.getResult(token, ucs.document, Some(ucs.Variables(input))))

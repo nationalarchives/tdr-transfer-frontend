@@ -47,7 +47,7 @@ class DeleteAdditionalMetadataController @Inject()(val consignmentService: Consi
           consignment <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
           response <-
             Future(Redirect(routes.AdditionalMetadataNavigationController
-              .getPaginatedFiles(consignmentId, 1, None, consignment.parentFolderId.head, "closure")))
+              .getAllFiles(consignmentId, "closure")))
         } yield response
       }
   }
