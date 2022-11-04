@@ -33,12 +33,12 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.69",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.93",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.274",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.94",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.279",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.4.4",
   ws,
-  "com.github.tomakehurst" % "wiremock-jre8" % "2.34.0" % Test,
+  "com.github.tomakehurst" % "wiremock-jre8" % "2.35.0" % Test,
   "org.mockito" % "mockito-core" % "4.8.1" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )

@@ -14,15 +14,13 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ConfirmTransferService @Inject()(val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext){
+class ConfirmTransferService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val addFinalTransferConfirmationClient: GraphQLClient[aftc.Data, aftc.Variables] =
     graphqlConfiguration.getClient[aftc.Data, aftc.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
   private val addFinalJudgmentTransferConfirmationClient: GraphQLClient[afjtc.Data, afjtc.Variables] =
-    graphqlConfiguration.getClient[afjtc.Data, afjtc.Variables]()  // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
+    graphqlConfiguration.getClient[afjtc.Data, afjtc.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
 
-  def addFinalTransferConfirmation(consignmentId: UUID,
-                                   token: BearerAccessToken,
-                                   formData: FinalTransferConfirmationData): Future[aftc.AddFinalTransferConfirmation] = {
+  def addFinalTransferConfirmation(consignmentId: UUID, token: BearerAccessToken, formData: FinalTransferConfirmationData): Future[aftc.AddFinalTransferConfirmation] = {
     val addFinalTransferConfirmationInput: AddFinalTransferConfirmationInput = AddFinalTransferConfirmationInput(
       consignmentId,
       formData.openRecords,
@@ -36,11 +34,10 @@ class ConfirmTransferService @Inject()(val graphqlConfiguration: GraphQLConfigur
 
   def addFinalJudgmentTransferConfirmation(consignmentId: UUID, token: BearerAccessToken): Future[afjtc.AddFinalJudgmentTransferConfirmation] = {
     val addFinalJudgmentTransferConfirmationInput: AddFinalJudgmentTransferConfirmationInput =
-      AddFinalJudgmentTransferConfirmationInput( consignmentId, legalCustodyTransferConfirmed = true)
+      AddFinalJudgmentTransferConfirmationInput(consignmentId, legalCustodyTransferConfirmed = true)
 
     val variables: afjtc.Variables = afjtc.Variables(addFinalJudgmentTransferConfirmationInput)
 
-    sendApiRequest(addFinalJudgmentTransferConfirmationClient, afjtc.document,
-      token, variables).map(_.addFinalJudgmentTransferConfirmation)
+    sendApiRequest(addFinalJudgmentTransferConfirmationClient, afjtc.document, token, variables).map(_.addFinalJudgmentTransferConfirmation)
   }
 }

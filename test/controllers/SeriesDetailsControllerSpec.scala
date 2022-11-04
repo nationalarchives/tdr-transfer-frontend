@@ -45,11 +45,11 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
   val expectedDefaultOptions: List[MockInputOption] = List(
     MockInputOption(
-    name = "series",
-    id = "series",
-    placeholder = "Please choose...",
-    fieldType = "inputDropdown",
-    errorMessage = "error.required"
+      name = "series",
+      id = "series",
+      placeholder = "Please choose...",
+      fieldType = "inputDropdown",
+      errorMessage = "error.required"
     ),
     MockInputOption(
       name = "series",
@@ -67,13 +67,14 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "render the correct series details page with an authenticated user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(
-        gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
+      val data: client.GraphqlData = client.GraphqlData(Some(gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString))
+      )
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
-      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
       val formTester = new FormTester(expectedDefaultOptions)
       val expectedDefaultForm = Map("series" -> "")
@@ -85,18 +86,18 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
-      seriesDetailsPageAsString must include ("<title>Series Information</title>")
+      seriesDetailsPageAsString must include("<title>Series Information</title>")
       checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(seriesDetailsPageAsString, optionsSelected=expectedDefaultForm)
+      formTester.checkHtmlForOptionAndItsAttributes(seriesDetailsPageAsString, optionsSelected = expectedDefaultForm)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
       val controller = instantiateSeriesController(getUnauthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series"))
-      redirectLocation(seriesDetailsPage).get must startWith ("/auth/realms/tdr/protocol/openid-connect/auth")
+      redirectLocation(seriesDetailsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(seriesDetailsPage) mustBe FOUND
     }
 
@@ -104,8 +105,10 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Error", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString))
+      )
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series"))
@@ -118,8 +121,10 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Body does not match", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString))
+      )
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getInvalidKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series"))
@@ -140,13 +145,15 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val consignmentResponse: ac.AddConsignment = new ac.AddConsignment(Some(consignmentId), Some(seriesId))
       val data: client.GraphqlData = client.GraphqlData(Some(ac.Data(consignmentResponse)), List())
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString))
+      )
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
-      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentTypeResponse(wiremockServer, "standard")
 
-      val controller = new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration,
-        seriesService, consignmentService, consignmentStatusService)
+      val controller =
+        new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, seriesService, consignmentService, consignmentStatusService)
       val seriesSubmit = controller.seriesSubmit(consignmentId).apply(FakeRequest().withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
       playStatus(seriesSubmit) mustBe SEE_OTHER
       redirectLocation(seriesSubmit) must be(Some(s"/consignment/$consignmentId/transfer-agreement"))
@@ -157,27 +164,33 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Error", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString))
+      )
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
-      val seriesSubmit = controller.seriesSubmit(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/series")
-          .withFormUrlEncodedBody(("series", seriesId.toString))
-          .withCSRFToken)
+      val seriesSubmit = controller
+        .seriesSubmit(consignmentId)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/series")
+            .withFormUrlEncodedBody(("series", seriesId.toString))
+            .withCSRFToken
+        )
 
       seriesSubmit.failed.futureValue shouldBe a[GraphQlException]
     }
 
     "display errors when an invalid form is submitted" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(
-        gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
+      val data: client.GraphqlData = client.GraphqlData(Some(gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString))
+      )
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
-      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
       val formTester = new FormTester(expectedDefaultOptions)
 
@@ -188,22 +201,23 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val seriesSubmitAsString = contentAsString(seriesSubmit)
 
       contentType(seriesSubmit) mustBe Some("text/html")
-      contentAsString(seriesSubmit) must include ("<title>Error: Series Information</title>")
+      contentAsString(seriesSubmit) must include("<title>Error: Series Information</title>")
       seriesSubmitAsString must include("class=\"govuk-visually-hidden\">Error:")
       checkForExpectedSeriesPageContent(seriesSubmitAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesSubmitAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(seriesSubmitAsString, Map("series" -> ""), formStatus  = "PartiallySubmitted")
+      formTester.checkHtmlForOptionAndItsAttributes(seriesSubmitAsString, Map("series" -> ""), formStatus = "PartiallySubmitted")
     }
 
     "send the correct body if it is present on the user" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(
-        gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
+      val data: client.GraphqlData = client.GraphqlData(Some(gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString))
+      )
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
-      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
@@ -229,7 +243,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, f"/consignment/$consignmentId/series").withCSRFToken)
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), seriesStatus = Some("Completed"))
-      setConsignmentTypeResponse(wiremockServer,"standard")
+      setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
       val seriesDetailsPageAsString = contentAsString(seriesDetailsPage)
       val expectedOptions: List[MockInputOption] = List(
@@ -247,8 +261,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
       headers(seriesDetailsPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
-      seriesDetailsPageAsString must include ("You have already chosen a series reference")
-      seriesDetailsPageAsString must include ("Click 'Continue' to proceed with your transfer.")
+      seriesDetailsPageAsString must include("You have already chosen a series reference")
+      seriesDetailsPageAsString must include("Click 'Continue' to proceed with your transfer.")
 
       checkForExpectedSeriesPageContent(seriesDetailsPageAsString, seriesAlreadyChosen = true)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
@@ -256,34 +270,33 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def instantiateSeriesController(securityComponents: SecurityComponents,
-                                           keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration) = {
+  private def instantiateSeriesController(securityComponents: SecurityComponents, keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val seriesService = new SeriesService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
-    new SeriesDetailsController(securityComponents, keycloakConfiguration,
-      seriesService, consignmentService, consignmentStatusService)
+    new SeriesDetailsController(securityComponents, keycloakConfiguration, seriesService, consignmentService, consignmentStatusService)
   }
 
   private def mockGetSeries(): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
-    val data: client.GraphqlData = client.GraphqlData(Some(
-      gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
+    val data: client.GraphqlData = client.GraphqlData(Some(gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .willReturn(okJson(dataString)))
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString))
+    )
   }
 
-  private def checkForExpectedSeriesPageContent(pageAsString: String, seriesAlreadyChosen: Boolean=false): Unit = {
-    pageAsString must include ("Choose a series")
-    pageAsString must include ("Please choose an existing series reference for the records you would like to transfer.")
+  private def checkForExpectedSeriesPageContent(pageAsString: String, seriesAlreadyChosen: Boolean = false): Unit = {
+    pageAsString must include("Choose a series")
+    pageAsString must include("Please choose an existing series reference for the records you would like to transfer.")
 
-    if(seriesAlreadyChosen) {
-      pageAsString must include ("""<select class="govuk-select" id="series" name="series"  disabled>""")
+    if (seriesAlreadyChosen) {
+      pageAsString must include("""<select class="govuk-select" id="series" name="series"  disabled>""")
     } else {
-      pageAsString must include ("""<select class="govuk-select" id="series" name="series"  >""")
+      pageAsString must include("""<select class="govuk-select" id="series" name="series"  >""")
     }
   }
 }

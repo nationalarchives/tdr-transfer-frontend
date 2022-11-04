@@ -35,36 +35,52 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     property.dataType match {
       case Boolean =>
         val selectedOption = property.defaultValue.map(v => if (v == "True") "yes" else "no").getOrElse("no")
-        RadioButtonGroupField(property.name, fieldLabel, fieldDescription, property.multiValue,
+        RadioButtonGroupField(
+          property.name,
+          fieldLabel,
+          fieldDescription,
+          property.multiValue,
           Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")),
-          selectedOption, isRequired
+          selectedOption,
+          isRequired
         )
       case DateTime =>
-        DateField(property.name, fieldLabel, fieldDescription, property.multiValue,
-          InputNameAndValue("Day", "", "DD"), InputNameAndValue("Month", "", "MM"), InputNameAndValue("Year", "", "YYYY"),
-          isRequired, isFutureDateAllowed = property.name != foiExemptionAsserted
+        DateField(
+          property.name,
+          fieldLabel,
+          fieldDescription,
+          property.multiValue,
+          InputNameAndValue("Day", "", "DD"),
+          InputNameAndValue("Month", "", "MM"),
+          InputNameAndValue("Year", "", "YYYY"),
+          isRequired,
+          isFutureDateAllowed = property.name != foiExemptionAsserted
         )
       case Integer =>
-        TextField(property.name, fieldLabel, fieldDescription, property.multiValue,
-          InputNameAndValue("years", property.defaultValue.getOrElse("")),
-          "numeric", isRequired
-        )
+        TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue("years", property.defaultValue.getOrElse("")), "numeric", isRequired)
       case Text =>
         property.propertyType match {
           case Defined =>
-            DropdownField(property.name, fieldLabel, fieldDescription, property.multiValue,
+            DropdownField(
+              property.name,
+              fieldLabel,
+              fieldDescription,
+              property.multiValue,
               property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
-              property.defaultValue.map(value => InputNameAndValue(value, value)), isRequired
+              property.defaultValue.map(value => InputNameAndValue(value, value)),
+              isRequired
             )
           case Supplied =>
-            DropdownField(property.name, fieldLabel, fieldDescription, property.multiValue,
-              Seq(),
-              property.defaultValue.map(value => InputNameAndValue(value, value)), isRequired
-            )
+            DropdownField(property.name, fieldLabel, fieldDescription, property.multiValue, Seq(), property.defaultValue.map(value => InputNameAndValue(value, value)), isRequired)
           case _ =>
-            DropdownField(property.name, fieldLabel, fieldDescription, property.multiValue,
+            DropdownField(
+              property.name,
+              fieldLabel,
+              fieldDescription,
+              property.multiValue,
               Seq(InputNameAndValue(property.name, property.fullName.getOrElse(""))),
-              None, isRequired
+              None,
+              isRequired
             )
         }
       // We don't have any examples of Decimal yet, so this is in the case Decimal or something else gets used

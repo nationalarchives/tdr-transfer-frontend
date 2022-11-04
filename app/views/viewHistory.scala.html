@@ -1,4 +1,4 @@
-@(name: String)(implicit messages: Messages, request: RequestHeader)
+@(consignments: List[ConsignmentHistory], name: String, email: String)(implicit messages: Messages, request: RequestHeader)
 
 @main("View History", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
@@ -18,33 +18,35 @@
                 </tr>
               </thead>
               <tbody class="govuk-table__body">
-                <tr class="govuk-table__row">
-                  <th scope="row" class="govuk-table__header">
-                    <details class="govuk-details" data-module="govuk-details">
-                      <summary class="govuk-details__summary">
-                        <span class="govuk-details__summary-text">
-                          MOCK-123-TDR
-                        </span>
-                      </summary>
-                      <div class="govuk-details__text">
-                        <p class="govuk-body">Please do not delete the original files you exported until you are notified that your records have been preserved.</p>
-                        <ul class="govuk-list govuk-list--bullet">
-                          <li>Consignment uploaded by: JohnDoe@@departmentofcookies.gov.uk</li>
-                          <li>Date started: 19/08/2022</li>
-                          <li>Date of export: 19/08/2022</li>
-                          <li>Number of files: 1200 records</li>
-                        </ul>
-                      </div>
-                    </details>
-                  </th>
-                  <td class="govuk-table__cell">
-                    <strong class="govuk-tag govuk-tag--green">
-                      Exported
-                    </strong>
-                  </td>
-                  <td class="govuk-table__cell">19/08/2022</td>
-                  <td class="govuk-table__cell"></td>
-                </tr>
+                @for(consignment <- consignments) {
+                  <tr class="govuk-table__row">
+                    <th scope="row" class="govuk-table__header">
+                      <details class="govuk-details" data-module="govuk-details">
+                        <summary class="govuk-details__summary">
+                          <span class="govuk-details__summary-text">
+                          @{consignment.reference}
+                          </span>
+                        </summary>
+                        <div class="govuk-details__text">
+                          <p class="govuk-body">Please do not delete the original files you exported until you are notified that your records have been preserved.</p>
+                          <ul class="govuk-list govuk-list--bullet">
+                            <li>Consignment uploaded by: @email</li>
+                            <li>Date started: @consignment.dateStarted</li>
+                            <li>Date of export: @consignment.dateOfExport</li>
+                            <li>Number of files: @consignment.numberOfFiles records</li>
+                          </ul>
+                        </div>
+                      </details>
+                    </th>
+                    <td class="govuk-table__cell">
+                      <strong class="govuk-tag @if(consignment.status.equals("Exported")){govuk-tag--green} else {govuk-tag--yellow}">
+                      @consignment.status
+                      </strong>
+                    </td>
+                    <td class="govuk-table__cell">@{consignment.dateOfExport}</td>
+                    <td class="govuk-table__cell"></td>
+                  </tr>
+                }
               </tbody>
             </table>
           </div>
