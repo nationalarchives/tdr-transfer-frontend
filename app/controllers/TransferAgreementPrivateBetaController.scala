@@ -15,13 +15,16 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TransferAgreementPrivateBetaController @Inject()(val controllerComponents: SecurityComponents,
-                                                       val graphqlConfiguration: GraphQLConfiguration,
-                                                       val transferAgreementService: TransferAgreementService,
-                                                       val keycloakConfiguration: KeycloakConfiguration,
-                                                       val consignmentService: ConsignmentService,
-                                                       val consignmentStatusService: ConsignmentStatusService)
-                                                      (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+class TransferAgreementPrivateBetaController @Inject() (
+    val controllerComponents: SecurityComponents,
+    val graphqlConfiguration: GraphQLConfiguration,
+    val transferAgreementService: TransferAgreementService,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService
+)(implicit val ec: ExecutionContext)
+    extends TokenSecurity
+    with I18nSupport {
   val transferAgreementForm: Form[TransferAgreementData] = Form(
     mapping(
       "publicRecord" -> boolean
@@ -39,8 +42,9 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
     ("english", "I confirm that the records are all in English.")
   )
 
-  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData] = transferAgreementForm)
-                                        (implicit request: Request[AnyContent]): Future[Result] = {
+  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData] = transferAgreementForm)(implicit
+      request: Request[AnyContent]
+  ): Future[Result] = {
     for {
       consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
       transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
@@ -52,12 +56,20 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
         case Some("Completed") =>
           transferAgreementStatus match {
             case Some("InProgress") | Some("Completed") =>
-              Ok(views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(
-                consignmentId, reference, transferAgreementForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name))
+              Ok(
+                views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(
+                  consignmentId,
+                  reference,
+                  transferAgreementForm,
+                  transferAgreementFormNameAndLabel,
+                  warningMessage,
+                  request.token.name
+                )
+              )
                 .uncache()
-            case None => httpStatus(
-              views.html.standard.transferAgreementPrivateBeta(
-                consignmentId, reference, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name)).uncache()
+            case None =>
+              httpStatus(views.html.standard.transferAgreementPrivateBeta(consignmentId, reference, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name))
+                .uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
           }
@@ -83,8 +95,10 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
         transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
         result <- transferAgreementStatus match {
           case Some("InProgress") => Future(Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
-          case None => transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, request.token.bearerAccessToken, formData)
-            .map(_ => Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
+          case None =>
+            transferAgreementService
+              .addTransferAgreementPrivateBeta(consignmentId, request.token.bearerAccessToken, formData)
+              .map(_ => Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
           case _ =>
             throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
         }
@@ -100,6 +114,4 @@ class TransferAgreementPrivateBetaController @Inject()(val controllerComponents:
   }
 }
 
-case class TransferAgreementData(publicRecord: Boolean,
-                                 crownCopyright: Boolean,
-                                 english: Boolean)
+case class TransferAgreementData(publicRecord: Boolean, crownCopyright: Boolean, english: Boolean)

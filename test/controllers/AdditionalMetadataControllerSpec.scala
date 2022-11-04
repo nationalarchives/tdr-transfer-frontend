@@ -44,7 +44,8 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.start(consignmentId)
+      val response = controller
+        .start(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
       val startPageAsString = contentAsString(response)
 
@@ -58,22 +59,26 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       startPageAsString.contains(s"""        <h2 class="govuk-heading-s">Folder uploaded: $parentFolder""") mustBe true
       // scalastyle:off line.size.limit
       startPageAsString.contains(
-        s"""        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records. Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>""".stripMargin) mustBe true
+        s"""        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records. Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>""".stripMargin
+      ) mustBe true
       startPageAsString.contains(
-        s"""        <p class="tdr-card__description">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>""") mustBe true
+        s"""        <p class="tdr-card__description">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>"""
+      ) mustBe true
       startPageAsString.contains(
-        s"""        <p class="tdr-card__description">If you'd like to add or edit closure metadata to your records, you can do so here.</p>""".stripMargin) mustBe true
+        s"""        <p class="tdr-card__description">If you'd like to add or edit closure metadata to your records, you can do so here.</p>""".stripMargin
+      ) mustBe true
       startPageAsString.contains(
         s"""        <a href="/consignment/$consignmentId/additional-metadata/download-metadata/" """ +
           """role="button" draggable="false" class="govuk-button" data-module="govuk-button">""" + """
                                                                                                      |          Continue
-                                                                                                     |        </a>""".stripMargin) mustBe true
+                                                                                                     |        </a>""".stripMargin
+      ) mustBe true
       // Will change these links when we have the metadata pages to link them to.
       startPageAsString.contains(
-        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/descriptive/$parentFolderId/1">"""
+        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/files/descriptive/">"""
       ) mustBe true
       startPageAsString.contains(
-        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/closure/$parentFolderId/1">"""
+        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/files/closure/">"""
       ) mustBe true
       // scalastyle:on line.size.limit
     }
@@ -84,7 +89,8 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.start(consignmentId)
+      val response = controller
+        .start(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
 
       status(response) mustBe FORBIDDEN
@@ -96,14 +102,17 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
       val errors = Error(s"User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '$consignmentId'", Nil, Nil, None) :: Nil
       val dataString: String = client.GraphqlData(None, errors).asJson.noSpaces
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignment($consignmentId:UUID!)"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getConsignment($consignmentId:UUID!)"))
+          .willReturn(okJson(dataString))
+      )
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.start(consignmentId)
+      val response = controller
+        .start(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
 
       status(response) mustBe FORBIDDEN
@@ -114,7 +123,8 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
-      val response = controller.start(consignmentId)
+      val response = controller
+        .start(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
 
       status(response) mustBe FOUND
@@ -129,8 +139,11 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.start(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata")).failed.futureValue
+      val response = controller
+        .start(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
+        .failed
+        .futureValue
 
       response.getMessage mustBe "Parent folder not found"
     }
@@ -144,8 +157,11 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.start(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata")).failed.futureValue
+      val response = controller
+        .start(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
+        .failed
+        .futureValue
 
       response.getMessage mustBe "Parent folder not found"
     }
@@ -159,8 +175,11 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.start(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata")).failed.futureValue
+      val response = controller
+        .start(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
+        .failed
+        .futureValue
 
       response.getMessage mustBe "Parent folder not found"
     }

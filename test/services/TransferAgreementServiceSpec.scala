@@ -43,41 +43,38 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
 
   private val token = new BearerAccessToken("some-token")
 
-  private val taPrivateBetaFormData = TransferAgreementData(publicRecord = true,
-    crownCopyright = true,
-    english = true)
+  private val taPrivateBetaFormData = TransferAgreementData(publicRecord = true, crownCopyright = true, english = true)
 
-  private val taComplianceFormData = TransferAgreementComplianceData(
-    droAppraisalSelection = true,
-    droSensitivity = true,
-    openRecords = true)
+  private val taComplianceFormData = TransferAgreementComplianceData(droAppraisalSelection = true, droSensitivity = true, openRecords = true)
 
-  private val transferAgreementPrivateBetaInput = AddTransferAgreementPrivateBetaInput(consignmentId,
+  private val transferAgreementPrivateBetaInput = AddTransferAgreementPrivateBetaInput(
+    consignmentId,
     allPublicRecords = taPrivateBetaFormData.publicRecord,
     allCrownCopyright = taPrivateBetaFormData.crownCopyright,
-    allEnglish = taPrivateBetaFormData.english)
+    allEnglish = taPrivateBetaFormData.english
+  )
 
-  private val transferAgreementComplianceInput = AddTransferAgreementComplianceInput(consignmentId,
+  private val transferAgreementComplianceInput = AddTransferAgreementComplianceInput(
+    consignmentId,
     appraisalSelectionSignedOff = taComplianceFormData.droAppraisalSelection,
     sensitivityReviewSignedOff = taComplianceFormData.droSensitivity,
-    initialOpenRecords = taComplianceFormData.openRecords)
+    initialOpenRecords = taComplianceFormData.openRecords
+  )
 
   override def afterEach(): Unit = {
     Mockito.reset(graphQlClientForTAPrivateBeta)
   }
 
   "addTransferAgreementPrivateBeta" should "return the TransferAgreement from the API" in {
-    val transferAgreementPrivateBetaResponse = AddTransferAgreementPrivateBeta(consignmentId,
-      allPublicRecords = true,
-      allCrownCopyright = true,
-      allEnglish = true)
+    val transferAgreementPrivateBetaResponse = AddTransferAgreementPrivateBeta(consignmentId, allPublicRecords = true, allCrownCopyright = true, allEnglish = true)
 
     val graphQlResponse =
       GraphQlResponse(
         Some(
           atapb.Data(transferAgreementPrivateBetaResponse)
         ),
-        Nil) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
+        Nil
+      ) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
     when(graphQlClientForTAPrivateBeta.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPrivateBetaInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
@@ -95,8 +92,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(graphQlClientForTAPrivateBeta.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPrivateBetaInput))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferAgreement = transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPrivateBetaFormData).failed
-      .futureValue.asInstanceOf[HttpError]
+    val transferAgreement = transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPrivateBetaFormData).failed.futureValue.asInstanceOf[HttpError]
 
     transferAgreement shouldBe a[HttpError]
   }
@@ -106,24 +102,23 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(graphQlClientForTAPrivateBeta.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPrivateBetaInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferAgreement = transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPrivateBetaFormData).failed
-      .futureValue.asInstanceOf[AuthorisationException]
+    val transferAgreement =
+      transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPrivateBetaFormData).failed.futureValue.asInstanceOf[AuthorisationException]
 
     transferAgreement shouldBe a[AuthorisationException]
   }
 
   "addTransferAgreementCompliance" should "return the TransferAgreement from the API" in {
-    val transferAgreementComplianceResponse = AddTransferAgreementCompliance(consignmentId,
-      appraisalSelectionSignedOff = true,
-      sensitivityReviewSignedOff = true,
-      initialOpenRecords = true)
+    val transferAgreementComplianceResponse =
+      AddTransferAgreementCompliance(consignmentId, appraisalSelectionSignedOff = true, sensitivityReviewSignedOff = true, initialOpenRecords = true)
 
     val graphQlResponse =
       GraphQlResponse(
         Some(
           atac.Data(transferAgreementComplianceResponse)
         ),
-        Nil) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
+        Nil
+      ) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
     when(graphQlClientForTACompliance.getResult(token, atac.document, Some(atac.Variables(transferAgreementComplianceInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
@@ -141,8 +136,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(graphQlClientForTACompliance.getResult(token, atac.document, Some(atac.Variables(transferAgreementComplianceInput))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferAgreementCompliance= transferAgreementService.addTransferAgreementCompliance(consignmentId, token, taComplianceFormData).failed
-      .futureValue.asInstanceOf[HttpError]
+    val transferAgreementCompliance = transferAgreementService.addTransferAgreementCompliance(consignmentId, token, taComplianceFormData).failed.futureValue.asInstanceOf[HttpError]
 
     transferAgreementCompliance shouldBe a[HttpError]
   }
@@ -152,8 +146,8 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(graphQlClientForTACompliance.getResult(token, atac.document, Some(atac.Variables(transferAgreementComplianceInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferAgreementCompliance= transferAgreementService.addTransferAgreementCompliance(consignmentId, token, taComplianceFormData).failed
-      .futureValue.asInstanceOf[AuthorisationException]
+    val transferAgreementCompliance =
+      transferAgreementService.addTransferAgreementCompliance(consignmentId, token, taComplianceFormData).failed.futureValue.asInstanceOf[AuthorisationException]
 
     transferAgreementCompliance shouldBe a[AuthorisationException]
   }

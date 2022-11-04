@@ -8,7 +8,6 @@ import play.api.test.FakeRequest
 import testUtils.FrontEndTestHelper
 import play.api.test.Helpers._
 
-
 class KeycloakConfigurationControllerSpec extends FrontEndTestHelper {
   "KeycloakConfigurationController GET" should {
     "return the correct configuration" in {
@@ -16,11 +15,7 @@ class KeycloakConfigurationControllerSpec extends FrontEndTestHelper {
       val authUrl = "fakeserver"
       doAnswer(_ => authUrl).when(configuration).get[String]("auth.url")
       val controller = new KeycloakConfigurationController(getAuthorisedSecurityComponents, configuration)
-      val expectedResult: JsValue = Json.obj(
-        "auth-server-url" -> s"$authUrl",
-        "resource" -> "tdr-fe",
-        "realm" -> "tdr",
-        "ssl-required" -> "external")
+      val expectedResult: JsValue = Json.obj("auth-server-url" -> s"$authUrl", "resource" -> "tdr-fe", "realm" -> "tdr", "ssl-required" -> "external")
       val request = controller.keycloak.apply(FakeRequest(GET, "/keycloak.json"))
       contentAsJson(request) shouldBe expectedResult
     }

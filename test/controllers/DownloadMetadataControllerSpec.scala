@@ -30,7 +30,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements()
 
-  val getConsignmentMetadata: Files.Metadata = gcfm.GetConsignment.Files.Metadata(None, None, None, None, None)
+  val getConsignmentMetadata: Files.Metadata = gcfm.GetConsignment.Files.Metadata(None, None, None, None, None, None)
   def customMetadata(name: String, fullName: String, exportOrdinal: Int = Int.MaxValue, allowExport: Boolean = true): cm.CustomMetadata =
     cm.CustomMetadata(name, None, Option(fullName), Supplied, None, Text, editable = false, multiValue = false, None, 1, Nil, Option(exportOrdinal), allowExport)
 
@@ -46,8 +46,16 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   "DownloadMetadataController downloadMetadataCsv GET" should {
     "download the csv for a multiple properties and rows" in {
       val customProperties = List(customMetadata("TestProperty1", "Test Property 1"), customMetadata("TestProperty2", "Test Property 2"))
-      val metadataFileOne = List(FileMetadata("TestProperty1", "TestValue1File1"), FileMetadata("TestProperty2", "TestValue2File1"), FileMetadata("ClientSideOriginalFilepath", "FileName1"))
-      val metadataFileTwo = List(FileMetadata("TestProperty1", "TestValue1File2"), FileMetadata("TestProperty2", "TestValue2File2"), FileMetadata("ClientSideOriginalFilepath", "FileName2"))
+      val metadataFileOne = List(
+        FileMetadata("TestProperty1", "TestValue1File1"),
+        FileMetadata("TestProperty2", "TestValue2File1"),
+        FileMetadata("ClientSideOriginalFilepath", "FileName1")
+      )
+      val metadataFileTwo = List(
+        FileMetadata("TestProperty1", "TestValue1File2"),
+        FileMetadata("TestProperty2", "TestValue2File2"),
+        FileMetadata("ClientSideOriginalFilepath", "FileName2")
+      )
       val files = List(
         gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata),
         gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileTwo, getConsignmentMetadata)
@@ -67,7 +75,11 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     "download the csv for rows with different numbers of metadata" in {
       val customProperties = List(customMetadata("TestProperty1", "Test Property 1"), customMetadata("TestProperty2", "Test Property 2"))
       val metadataFileOne = List(FileMetadata("TestProperty1", "TestValue1File1"), FileMetadata("ClientSideOriginalFilepath", "FileName1"))
-      val metadataFileTwo = List(FileMetadata("TestProperty1", "TestValue1File2"), FileMetadata("TestProperty2", "TestValue2File2"), FileMetadata("ClientSideOriginalFilepath", "FileName2"))
+      val metadataFileTwo = List(
+        FileMetadata("TestProperty1", "TestValue1File2"),
+        FileMetadata("TestProperty2", "TestValue2File2"),
+        FileMetadata("ClientSideOriginalFilepath", "FileName2")
+      )
       val files = List(
         gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata),
         gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileTwo, getConsignmentMetadata)
@@ -86,7 +98,11 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
     "ignore fields set with allowExport set to false" in {
       val customProperties = List(customMetadata("TestProperty1", "Test Property 1", allowExport = false), customMetadata("TestProperty2", "Test Property 2"))
-      val metadataFileOne = List(FileMetadata("TestProperty1", "TestValue1File1"), FileMetadata("TestProperty2", "TestValue2File1"), FileMetadata("ClientSideOriginalFilepath", "FileName1"))
+      val metadataFileOne = List(
+        FileMetadata("TestProperty1", "TestValue1File1"),
+        FileMetadata("TestProperty2", "TestValue2File1"),
+        FileMetadata("ClientSideOriginalFilepath", "FileName1")
+      )
       val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata))
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
@@ -109,7 +125,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("TestProperty2", "TestValue2File1"),
         FileMetadata("TestProperty3", "TestValue3File1"),
         FileMetadata("TestProperty4", "TestValue4File1"),
-        FileMetadata("ClientSideOriginalFilepath", "FileName1"))
+        FileMetadata("ClientSideOriginalFilepath", "FileName1")
+      )
       val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata))
 
       val csvList = getCsvFromController(customProperties, files).toLazyList()
@@ -205,17 +222,21 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     val data: client.GraphqlData = client.GraphqlData(Some(customMetadataResponse))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("customMetadata"))
-      .willReturn(okJson(dataString)))
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("customMetadata"))
+        .willReturn(okJson(dataString))
+    )
   }
 
   private def mockFileMetadataResponse(files: List[gcfm.GetConsignment.Files]) = {
     val client: GraphQLClient[gcfm.Data, gcfm.Variables] = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
 
     val dataString = client.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(files, ""))))).asJson.printWith(Printer.noSpaces)
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentFilesMetadata"))
-      .willReturn(okJson(dataString)))
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentFilesMetadata"))
+        .willReturn(okJson(dataString))
+    )
   }
 }

@@ -5,7 +5,6 @@ import controllers.util.FormField._
 import java.time.{LocalDateTime, Year}
 import scala.util.control.Exception.allCatch
 
-
 abstract class FormField {
   val fieldId: String
   val fieldName: String
@@ -17,17 +16,51 @@ abstract class FormField {
 
 case class InputNameAndValue(name: String, value: String, placeHolder: String = "")
 
-case class RadioButtonGroupField(fieldId: String, fieldName: String, fieldDescription: String, multiValue: Boolean, options: Seq[InputNameAndValue],
-                                 selectedOption: String, isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
+case class RadioButtonGroupField(
+    fieldId: String,
+    fieldName: String,
+    fieldDescription: String,
+    multiValue: Boolean,
+    options: Seq[InputNameAndValue],
+    selectedOption: String,
+    isRequired: Boolean,
+    fieldErrors: List[String] = Nil
+) extends FormField
 
-case class TextField(fieldId: String, fieldName: String, fieldDescription: String, multiValue: Boolean, nameAndValue: InputNameAndValue,
-                     inputMode: String, isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
+case class TextField(
+    fieldId: String,
+    fieldName: String,
+    fieldDescription: String,
+    multiValue: Boolean,
+    nameAndValue: InputNameAndValue,
+    inputMode: String,
+    isRequired: Boolean,
+    fieldErrors: List[String] = Nil
+) extends FormField
 
-case class DropdownField(fieldId: String, fieldName: String, fieldDescription: String, multiValue: Boolean, options: Seq[InputNameAndValue],
-                         selectedOption: Option[InputNameAndValue], isRequired: Boolean, fieldErrors: List[String] = Nil) extends FormField
+case class DropdownField(
+    fieldId: String,
+    fieldName: String,
+    fieldDescription: String,
+    multiValue: Boolean,
+    options: Seq[InputNameAndValue],
+    selectedOption: Option[InputNameAndValue],
+    isRequired: Boolean,
+    fieldErrors: List[String] = Nil
+) extends FormField
 
-case class DateField(fieldId: String, fieldName: String, fieldDescription: String, multiValue: Boolean, day: InputNameAndValue,
-                     month: InputNameAndValue, year: InputNameAndValue, isRequired: Boolean, fieldErrors: List[String] = Nil, isFutureDateAllowed: Boolean = true) extends FormField
+case class DateField(
+    fieldId: String,
+    fieldName: String,
+    fieldDescription: String,
+    multiValue: Boolean,
+    day: InputNameAndValue,
+    month: InputNameAndValue,
+    year: InputNameAndValue,
+    isRequired: Boolean,
+    fieldErrors: List[String] = Nil,
+    isFutureDateAllowed: Boolean = true
+) extends FormField
 
 object FormField {
 
@@ -49,9 +82,9 @@ object RadioButtonGroupField {
 
   def validate(option: String, radioButtonGroupField: RadioButtonGroupField): Option[String] =
     option match {
-      case "" => Some(radioOptionNotSelectedError.format(radioButtonGroupField.fieldName))
+      case ""                                                               => Some(radioOptionNotSelectedError.format(radioButtonGroupField.fieldName))
       case value if !radioButtonGroupField.options.exists(_.value == value) => Some(invalidRadioOptionSelectedError.format(value))
-      case _ => None
+      case _                                                                => None
     }
 
   def update(radioButtonGroupField: RadioButtonGroupField, value: Boolean): RadioButtonGroupField =
@@ -62,13 +95,13 @@ object DropdownField {
 
   def validate(option: String, dropdownField: DropdownField): Option[String] =
     option match {
-      case "" => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
+      case ""                                                       => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
       case value if !dropdownField.options.exists(_.value == value) => Some(invalidDropdownOptionSelectedError.format(value))
-      case _ => None
+      case _                                                        => None
     }
 
   def update(dropdownField: DropdownField, value: String): DropdownField = {
-    val optionSelected: Option[InputNameAndValue] = if(value.isEmpty) None else Some(InputNameAndValue(value, value))
+    val optionSelected: Option[InputNameAndValue] = if (value.isEmpty) None else Some(InputNameAndValue(value, value))
     dropdownField.copy(selectedOption = optionSelected)
   }
 }
@@ -79,10 +112,10 @@ object TextField {
     if (textField.inputMode.equals("numeric")) {
       val inputName = textField.nameAndValue.name
       text match {
-        case "" => Some(emptyValueError.format(inputName))
+        case ""                                 => Some(emptyValueError.format(inputName))
         case t if allCatch.opt(t.toInt).isEmpty => Some(numberError.format(inputName))
-        case t if t.toInt < 0 => Some(negativeNumberError.format(inputName))
-        case _ => None
+        case t if t.toInt < 0                   => Some(negativeNumberError.format(inputName))
+        case _                                  => None
       }
     } else {
       None
@@ -121,24 +154,23 @@ object DateField {
     dateField.copy(
       day = dateField.day.copy(value = localDateTime.getDayOfMonth.toString),
       month = dateField.month.copy(value = localDateTime.getMonthValue.toString),
-      year = dateField.year.copy(value = localDateTime.getYear.toString))
+      year = dateField.year.copy(value = localDateTime.getYear.toString)
+    )
 
   def update(dateField: DateField, day: String, month: String, year: String): DateField =
-    dateField.copy(
-      day = dateField.day.copy(value = day),
-      month = dateField.month.copy(value = month),
-      year = dateField.year.copy(value = year))
+    dateField.copy(day = dateField.day.copy(value = day), month = dateField.month.copy(value = month), year = dateField.year.copy(value = year))
 
   private def validateValue(day: String, unitType: String, isInvalidDate: Int => Boolean): Option[String] =
     day match {
-      case "" => Some(emptyValueError.format(unitType))
+      case ""                                 => Some(emptyValueError.format(unitType))
       case d if allCatch.opt(d.toInt).isEmpty => Some(numberError.format(unitType))
-      case d if d.toInt < 0 => Some(negativeNumberError.format(unitType))
-      case d if isInvalidDate(d.toInt) => if (unitType.equals("Year")) {
-        Some(invalidYearError)
-      } else {
-        Some(invalidDateError.format(d, unitType))
-      }
+      case d if d.toInt < 0                   => Some(negativeNumberError.format(unitType))
+      case d if isInvalidDate(d.toInt) =>
+        if (unitType.equals("Year")) {
+          Some(invalidYearError)
+        } else {
+          Some(invalidDateError.format(d, unitType))
+        }
       case _ => None
     }
 

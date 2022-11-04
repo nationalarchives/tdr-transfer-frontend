@@ -50,7 +50,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Open")
 
-      val response = controller.getClosureStatusPage(consignmentId, fileIds)
+      val response = controller
+        .getClosureStatusPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status").withCSRFToken)
 
       status(response) mustBe OK
@@ -65,7 +66,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Closed")
 
-      val response = controller.getClosureStatusPage(consignmentId, fileIds)
+      val response = controller
+        .getClosureStatusPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status").withCSRFToken)
 
       status(response) mustBe OK
@@ -79,7 +81,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     "return forbidden if the pages are accessed by a judgment user" in {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Closed", "judgment", getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.getClosureStatusPage(consignmentId, fileIds)
+      val response = controller
+        .getClosureStatusPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status").withCSRFToken)
 
       status(response) mustBe FORBIDDEN
@@ -91,16 +94,25 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
       val errors = Error(s"User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '$consignmentId'", Nil, Nil, None) :: Nil
       val dataString: String = client.GraphqlData(None, errors).asJson.noSpaces
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignment($consignmentId:UUID!,,$fileFiltersInput:FileFilters)"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getConsignment($consignmentId:UUID!,,$fileFiltersInput:FileFilters)"))
+          .willReturn(okJson(dataString))
+      )
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val asyncCacheApi = MockAsyncCacheApi()
-      val controller = new AdditionalMetadataClosureStatusController(consignmentService, customMetadataService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents, asyncCacheApi)
-      val response = controller.getClosureStatusPage(consignmentId, fileIds)
+      val controller = new AdditionalMetadataClosureStatusController(
+        consignmentService,
+        customMetadataService,
+        getValidJudgmentUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents,
+        asyncCacheApi
+      )
+      val response = controller
+        .getClosureStatusPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status"))
 
       status(response) mustBe FORBIDDEN
@@ -109,7 +121,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     "redirect to the login page if the page is accessed by a logged out user" in {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Closed", "standard", getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
-      val response = controller.getClosureStatusPage(consignmentId, fileIds)
+      val response = controller
+        .getClosureStatusPage(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status"))
 
       status(response) mustBe FOUND
@@ -122,17 +135,28 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = parentFolderId.some)
 
       val dataString = s"""{"data":{"getConsignment":{"consignmentReference":"TEST","files":[]}}}""".stripMargin
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentFilesMetadata($consignmentId:UUID!,$fileFiltersInput:FileFilters)"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getConsignmentFilesMetadata($consignmentId:UUID!,$fileFiltersInput:FileFilters)"))
+          .willReturn(okJson(dataString))
+      )
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val asyncCacheApi = MockAsyncCacheApi()
-      val controller = new AdditionalMetadataClosureStatusController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, asyncCacheApi)
-      val response = controller.getClosureStatusPage(consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status")).failed.futureValue
+      val controller = new AdditionalMetadataClosureStatusController(
+        consignmentService,
+        customMetadataService,
+        getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents,
+        asyncCacheApi
+      )
+      val response = controller
+        .getClosureStatusPage(consignmentId, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status"))
+        .failed
+        .futureValue
 
       response.getMessage mustBe s"Can't find selected files for the consignment $consignmentId"
     }
@@ -142,17 +166,28 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
 
       val dataString = """{"data":{"getConsignment":null},"errors":[]}"""
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignment($consignmentId:UUID!)"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getConsignment($consignmentId:UUID!)"))
+          .willReturn(okJson(dataString))
+      )
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val asyncCacheApi = MockAsyncCacheApi()
-      val controller = new AdditionalMetadataClosureStatusController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, asyncCacheApi)
-      val response = controller.getClosureStatusPage(consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status")).failed.futureValue
+      val controller = new AdditionalMetadataClosureStatusController(
+        consignmentService,
+        customMetadataService,
+        getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents,
+        asyncCacheApi
+      )
+      val response = controller
+        .getClosureStatusPage(consignmentId, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status"))
+        .failed
+        .futureValue
 
       response.getMessage mustBe s"No consignment found for consignment $consignmentId"
     }
@@ -172,11 +207,20 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val asyncCacheApi = MockAsyncCacheApi()
-      val controller = new AdditionalMetadataClosureStatusController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, asyncCacheApi)
-      val response = controller.submitClosureStatus(consignmentId, fileIds)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/additional-metadata/closure-status")
-          .withFormUrlEncodedBody(incompleteClosureStatusForm: _*)
-          .withCSRFToken)
+      val controller = new AdditionalMetadataClosureStatusController(
+        consignmentService,
+        customMetadataService,
+        getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents,
+        asyncCacheApi
+      )
+      val response = controller
+        .submitClosureStatus(consignmentId, fileIds)
+        .apply(
+          FakeRequest(POST, f"/consignment/$consignmentId/additional-metadata/closure-status")
+            .withFormUrlEncodedBody(incompleteClosureStatusForm: _*)
+            .withCSRFToken
+        )
 
       status(response) mustBe BAD_REQUEST
       contentType(response) mustBe Some("text/html")
@@ -196,11 +240,20 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val asyncCacheApi = MockAsyncCacheApi()
-      val controller = new AdditionalMetadataClosureStatusController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, asyncCacheApi)
-      val response = controller.submitClosureStatus(consignmentId, fileIds)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/additional-metadata/closure-status")
-          .withFormUrlEncodedBody(completedClosureStatusForm: _*)
-          .withCSRFToken)
+      val controller = new AdditionalMetadataClosureStatusController(
+        consignmentService,
+        customMetadataService,
+        getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents,
+        asyncCacheApi
+      )
+      val response = controller
+        .submitClosureStatus(consignmentId, fileIds)
+        .apply(
+          FakeRequest(POST, f"/consignment/$consignmentId/additional-metadata/closure-status")
+            .withFormUrlEncodedBody(completedClosureStatusForm: _*)
+            .withCSRFToken
+        )
 
       status(response) mustBe SEE_OTHER
 
@@ -221,9 +274,12 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  def createController(closureType: String, consignmentType: String = "standard",
-                       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-                       controllerComponents: SecurityComponents = getAuthorisedSecurityComponents): AdditionalMetadataClosureStatusController = {
+  def createController(
+      closureType: String,
+      consignmentType: String = "standard",
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
+      controllerComponents: SecurityComponents = getAuthorisedSecurityComponents
+  ): AdditionalMetadataClosureStatusController = {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
     setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = parentFolderId.some)
     setConsignmentFilesMetadataResponse(wiremockServer, fileIds = List(UUID.randomUUID()), closureType = closureType)
@@ -235,7 +291,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     new AdditionalMetadataClosureStatusController(consignmentService, customMetadataService, keycloakConfiguration, controllerComponents, asyncCacheApi)
   }
 
-  //scalastyle:off method.length
+  // scalastyle:off method.length
   def verifyClosureStatusPage(closureStatusPage: String, consignmentId: UUID, isChecked: Boolean = false, isErrorOnThePage: Boolean = false): Unit = {
 
     checkPageForStaticElements.checkContentOfPagesThatUseMainScala(closureStatusPage, userType = "standard")
@@ -258,7 +314,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     ) mustBe true
     val href = s"/consignment/$consignmentId/additional-metadata/closure-status?fileIds=${fileIds.mkString("&")}"
     closureStatusPage.contains(s"""<form action="$href" method="POST" novalidate="">""") mustBe true
-    closureStatusPage.contains("<input\n                " + (if (isChecked) "checked\n" else "\n") +
+    closureStatusPage.contains(
+      "<input\n                " + (if (isChecked) "checked\n" else "\n") +
         """                class="govuk-checkboxes__input"
           |                id="closureStatus"
           |                name="closureStatus"
@@ -295,7 +352,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         |                            </ul>""".stripMargin
     )
 
-    val cancelHref = s"/consignment/$consignmentId/additional-metadata/closure/$parentFolderId/1"
+    val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure/"
     closureStatusPage.contains(
       s"""<div class="govuk-button-group">
          |                        <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">

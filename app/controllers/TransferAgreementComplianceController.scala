@@ -15,13 +15,16 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TransferAgreementComplianceController @Inject()(val controllerComponents: SecurityComponents,
-                                                      val graphqlConfiguration: GraphQLConfiguration,
-                                                      val transferAgreementService: TransferAgreementService,
-                                                      val keycloakConfiguration: KeycloakConfiguration,
-                                                      val consignmentService: ConsignmentService,
-                                                      val consignmentStatusService: ConsignmentStatusService)
-                                                     (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+class TransferAgreementComplianceController @Inject() (
+    val controllerComponents: SecurityComponents,
+    val graphqlConfiguration: GraphQLConfiguration,
+    val transferAgreementService: TransferAgreementService,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService
+)(implicit val ec: ExecutionContext)
+    extends TokenSecurity
+    with I18nSupport {
   val transferAgreementForm: Form[TransferAgreementComplianceData] = Form(
     mapping(
       "droAppraisalSelection" -> boolean
@@ -39,8 +42,9 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
     ("openRecords", "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
   )
 
-  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementComplianceData] = transferAgreementForm)
-                                             (implicit request: Request[AnyContent]): Future[Result] = {
+  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementComplianceData] = transferAgreementForm)(implicit
+      request: Request[AnyContent]
+  ): Future[Result] = {
     for {
       consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
       transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
@@ -51,11 +55,10 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
         case Some("Completed") =>
           transferAgreementStatus match {
             case Some("Completed") =>
-              Ok(views.html.standard.transferAgreementComplianceAlreadyConfirmed(
-                consignmentId, reference, transferAgreementForm, taFormNamesAndLabels, request.token.name)).uncache()
+              Ok(views.html.standard.transferAgreementComplianceAlreadyConfirmed(consignmentId, reference, transferAgreementForm, taFormNamesAndLabels, request.token.name))
+                .uncache()
             case Some("InProgress") =>
-              httpStatus(views.html.standard.transferAgreementCompliance(
-                consignmentId, reference, taForm, taFormNamesAndLabels, request.token.name)).uncache()
+              httpStatus(views.html.standard.transferAgreementCompliance(consignmentId, reference, taForm, taFormNamesAndLabels, request.token.name)).uncache()
             case None =>
               Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)).uncache()
             case _ =>
@@ -83,8 +86,10 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
         transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
         result <- transferAgreementStatus match {
           case Some("Completed") => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
-          case Some("InProgress") => transferAgreementService.addTransferAgreementCompliance(consignmentId, request.token.bearerAccessToken, formData)
-            .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
+          case Some("InProgress") =>
+            transferAgreementService
+              .addTransferAgreementCompliance(consignmentId, request.token.bearerAccessToken, formData)
+              .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
           case _ =>
             throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
         }
@@ -100,6 +105,4 @@ class TransferAgreementComplianceController @Inject()(val controllerComponents: 
   }
 }
 
-case class TransferAgreementComplianceData(droAppraisalSelection: Boolean,
-                                           droSensitivity: Boolean,
-                                           openRecords: Boolean)
+case class TransferAgreementComplianceData(droAppraisalSelection: Boolean, droSensitivity: Boolean, openRecords: Boolean)

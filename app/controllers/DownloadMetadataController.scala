@@ -12,14 +12,17 @@ import services.{ConsignmentService, CustomMetadataService}
 import java.util.UUID
 import javax.inject.Inject
 
-class DownloadMetadataController @Inject()(val controllerComponents: SecurityComponents,
-                                           val consignmentService: ConsignmentService,
-                                           val customMetadataService: CustomMetadataService,
-                                           val keycloakConfiguration: KeycloakConfiguration) extends TokenSecurity {
+class DownloadMetadataController @Inject() (
+    val controllerComponents: SecurityComponents,
+    val consignmentService: ConsignmentService,
+    val customMetadataService: CustomMetadataService,
+    val keycloakConfiguration: KeycloakConfiguration
+) extends TokenSecurity {
 
-  def downloadMetadataPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
-    implicit request: Request[AnyContent] =>
-      consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map(ref => {
+  def downloadMetadataPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    consignmentService
+      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      .map(ref => {
         Ok(views.html.standard.downloadMetadata(consignmentId, ref, request.token.name))
       })
   }
@@ -30,24 +33,23 @@ class DownloadMetadataController @Inject()(val controllerComponents: SecurityCom
     }
   }
 
-  def downloadMetadataCsv(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) {
-    implicit request: Request[AnyContent] =>
-      val fileFilters = FileFilters(Option("File"), None, None)
-      for {
-        metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
-        customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
-      } yield {
-        val filePathKey = "ClientSideOriginalFilepath"
-        val filteredMetadata = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
-        val header: List[String] = "File Name" :: filteredMetadata.map(f => f.fullName.getOrElse(f.name))
-        val rows: List[List[String]] = metadata.files.map(file => {
-          val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
-          groupedMetadata.value(filePathKey) :: filteredMetadata.map(fm => groupedMetadata.value(fm.name))
-        })
-        val csvString = CsvUtils.writeCsv(header :: rows)
-        Ok(csvString)
-          .as("text/csv")
-          .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-metadata.csv")
-      }
+  def downloadMetadataCsv(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    val fileFilters = FileFilters(Option("File"), None, None)
+    for {
+      metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
+      customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      val filePathKey = "ClientSideOriginalFilepath"
+      val filteredMetadata = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
+      val header: List[String] = "File Name" :: filteredMetadata.map(f => f.fullName.getOrElse(f.name))
+      val rows: List[List[String]] = metadata.files.map(file => {
+        val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
+        groupedMetadata.value(filePathKey) :: filteredMetadata.map(fm => groupedMetadata.value(fm.name))
+      })
+      val csvString = CsvUtils.writeCsv(header :: rows)
+      Ok(csvString)
+        .as("text/csv")
+        .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-metadata.csv")
+    }
   }
 }

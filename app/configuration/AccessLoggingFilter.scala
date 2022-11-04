@@ -13,10 +13,14 @@ import javax.inject.Inject
 import scala.compat.java8.OptionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class AccessLoggingFilter @Inject()(implicit val mat: Materializer,
-                                    val keycloakConfiguration: KeycloakConfiguration,
-                                    val controllerComponents: SecurityComponents,
-                                    executionContext: ExecutionContext) extends OidcSecurity with Filter with Logging {
+class AccessLoggingFilter @Inject() (implicit
+    val mat: Materializer,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val controllerComponents: SecurityComponents,
+    executionContext: ExecutionContext
+) extends OidcSecurity
+    with Filter
+    with Logging {
 
   private val ignoredPaths = List("/keycloak.json", "/silent-sso-login", "/assets")
 
