@@ -1,28 +1,14 @@
 @import helper._
 @import java.util.UUID
 @import controllers.AdditionalMetadataNavigationController.{NodesFormData, ResultsCount}
+@import views.html.partials.fileNavigationContent
 @(consignmentId: UUID, name: String, metadataType: String, folderUploaded: String, totalPages: Int, limit:Option[Int], currentPage: Int, selectedFolderId: UUID, parentFolder: Option[UUID],
         nodesFormData: Form[NodesFormData], resultsCount: ResultsCount)(implicit messages: Messages, request: RequestHeader)
 @main("Additional Metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
-                <h1 class="govuk-heading-l">
-                    Add or edit closure metadata on file basis
-                </h1>
-                <div class="govuk-warning-text">
-                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                    <strong class="govuk-warning-text__text">
-                        <span class="govuk-warning-text__assistive">Warning</span>
-                        Do not use your browsers back/forward buttons as this can lead to loss of data.
-                    </strong>
-                </div>
-                <p class="govuk-body">You can now add or edit closure metadata to individual files or folders.</p>
-                <p class="govuk-body">
-                    Click on a particular file or folder to see what metadata is already captured and add or edit properties there.
-                    For a bulk edit, first select files and/or folders and then choose an action from the menu.
-                </p>
-                <h2 class="app-task-list__section">Folder uploaded: @folderUploaded</h2>
+                @fileNavigationContent(metadataType, folderUploaded)
 
                 @form(action = routes.AdditionalMetadataNavigationController.submit(consignmentId, limit, selectedFolderId, metadataType)) {
                     @CSRF.formField
@@ -33,7 +19,11 @@
                             </button>
                         }
                         <button class="govuk-button" name="addClosureProperties" data-prevent-double-click="true" type="submit" role="button" value="@parentFolder">
-                            Add closure properties
+                            @if(metadataType == "closure") {
+                                Add closure properties
+                            } else {
+                                Add Descriptive Metadata
+                            }
                         </button>
                     </div>
                     <section id="page-@currentPage">

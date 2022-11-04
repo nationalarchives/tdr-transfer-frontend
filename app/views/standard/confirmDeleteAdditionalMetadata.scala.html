@@ -1,0 +1,32 @@
+@import java.util.UUID
+
+@(consignmentId: UUID, fileIds: List[UUID], fileNames: List[String], name: String)(implicit messages: Messages, request: RequestHeader)
+    @main(title = "Delete closure metadata", name = name) {
+        @defining(play.core.PlayVersion.current) { version =>
+
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-two-thirds">
+                    <h1 class="govuk-heading-xl">
+                        Delete closure metadata
+                    </h1>
+                    <div class="govuk-warning-text">
+                        <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                        <strong class="govuk-warning-text__text">
+                            <span class="govuk-warning-text__assistive">Warning</span>
+                            If you proceed, closure metadata for file '@{fileNames.mkString(", ")}' will be removed.
+                        </strong>
+                    </div>
+                    <p class="govuk-body">Are you sure you would like to proceed?</p>
+
+                    <div class="govuk-button-group">
+                        <a href="@routes.DeleteAdditionalMetadataController.deleteAdditionalMetadata(consignmentId, fileIds)" role="button" draggable="false" class="govuk-button">
+                            Delete and return to all files
+                        </a>
+                        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds)">
+                            Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
