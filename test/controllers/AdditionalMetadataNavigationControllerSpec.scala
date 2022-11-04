@@ -96,16 +96,16 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         val result = additionalMetadataController.submitFiles(consignmentId, "closure")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/add-closure-metadata")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure-status")
       }
 
       "redirect to the metadata summary page if the metadata type is descriptive" in {
         val consignmentService = mockConsignmentService(Nil, "standard")
         val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-        val result = additionalMetadataController.submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+        val result = additionalMetadataController.submitFiles(consignmentId, "descriptive")
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/add-closure-metadata")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata")
       }
 
       "return forbidden for a judgment user" in {
