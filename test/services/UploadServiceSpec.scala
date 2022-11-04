@@ -1,5 +1,6 @@
 package services
 
+import cats.implicits.catsSyntaxOptionId
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import configuration.GraphQLBackend._
@@ -62,7 +63,7 @@ class UploadServiceSpec extends AnyFlatSpec {
     when(graphQlConfig.getClient[ucs.Data, ucs.Variables]())
       .thenReturn(graphQlClientForUpdateConsignmentStatus)
 
-    val input = ConsignmentStatusInput(UUID.randomUUID(), "type", "value")
+    val input = ConsignmentStatusInput(UUID.randomUUID(), "type", "value".some)
     val graphQlResponse =
       GraphQlResponse(Some(ucs.Data(Option(1))), Nil)
     when(graphQlClientForUpdateConsignmentStatus.getResult(token, ucs.document, Some(ucs.Variables(input))))
