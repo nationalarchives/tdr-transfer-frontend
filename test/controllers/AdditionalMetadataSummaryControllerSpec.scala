@@ -59,17 +59,18 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           |        </h1>""".stripMargin
       ) mustBe true
       closureMetadataSummaryPage.contains(
-        """        <p class="govuk-body">You can edit, save or abandon any changes to closure metadata here.</p>""".stripMargin
+        """        <p class="govuk-body">You can edit, remove or save closure metadata here.</p>""".stripMargin
       ) mustBe true
       val href = s"/consignment/$consignmentId/add-closure-metadata?fileIds=${fileIds.mkString("&")}"
       closureMetadataSummaryPage.contains(
-        s"""          <a href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-          |            Edit properties
+        s"""          <a href="$href" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
+          |            Edit metadata
           |          </a>""".stripMargin
       ) mustBe true
+      val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata?fileIds=${fileIds.mkString("&")}"
       closureMetadataSummaryPage.contains(
-        """          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--warning">
-          |            Abandon changes
+        s"""          <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--warning">
+          |            Delete metadata
           |          </a>""".stripMargin
       ) mustBe true
       List(("FOI decision asserted", "12/01/1995"), ("Closure start date", "01/12/1990"), ("Closure period", "4 years")).foreach{
