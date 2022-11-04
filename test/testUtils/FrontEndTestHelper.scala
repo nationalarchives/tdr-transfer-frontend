@@ -1,5 +1,6 @@
 package testUtils
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
@@ -9,13 +10,15 @@ import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakC
 import graphql.codegen.AddBulkFileMetadata.addBulkFileMetadata.UpdateBulkFileMetadata
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.DeleteFileMetadata.deleteFileMetadata.DeleteFileMetadata
+import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetAllDescendants.getAllDescendantIds
 import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
-import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
+import graphql.codegen.GetConsignments.getConsignments.Consignments
+import graphql.codegen.GetConsignments.{getConsignments => gc}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -55,7 +58,7 @@ import viewsapi.FrontEndInfo
 import java.io.File
 import java.net.URI
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.{Date, UUID}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -226,6 +229,40 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
+  def setConsignmentsHistoryResponse(wiremockServer: WireMockServer, noConsignment: Boolean = false): List[Consignments.Edges] = {
+
+    val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
+    val edges = List(
+      Consignments.Edges(gc.Consignments.Edges.Node(
+        consignmentid = UUID.randomUUID().some,
+        consignmentReference = "TEST-TDR-2021-GB",
+        exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 20, 0, 0), ZoneId.systemDefault())),
+        createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 15, 0, 0), ZoneId.systemDefault())),
+        currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some),
+        totalFiles = 5), "Cursor").some,
+      Consignments.Edges(gc.Consignments.Edges.Node(
+        consignmentid = UUID.randomUUID().some,
+        consignmentReference = "TEST-TDR-2022-GB",
+        exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 15, 0, 0), ZoneId.systemDefault())),
+        createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 10, 0, 0), ZoneId.systemDefault())),
+        currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some),
+        totalFiles = 6), "Cursor").some
+    )
+
+    val consignments = gc.Data(gc.Consignments(
+      if (noConsignment) None else edges.some,
+      Consignments.PageInfo(hasNextPage = false, None)
+    ))
+
+    val data: client.GraphqlData = client.GraphqlData(Some(consignments))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
+      .withRequestBody(containing("getConsignments"))
+      .willReturn(okJson(dataString)))
+    edges.map(_.get)
+  }
+
   val userTypes: TableFor1[String] = Table(
     "User type",
     "judgment",
@@ -282,6 +319,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     accessToken.setOtherClaims("standard_user", "true")
     accessToken.setName("Standard Username")
+    accessToken.setEmail("test@example.com")
     val token = Token(accessToken, new BearerAccessToken)
     doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
     keycloakMock
