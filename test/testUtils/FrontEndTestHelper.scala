@@ -232,6 +232,12 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     "standard"
   )
 
+  val metadataType: TableFor1[String] = Table(
+    "Metadata Type",
+    "closure",
+    "descriptive"
+  )
+
   val userChecks: TableFor2[KeycloakConfiguration, String] = Table(
     ("user", "url"),
     (getValidJudgmentUserKeycloakConfiguration, "consignment"),

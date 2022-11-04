@@ -37,24 +37,39 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
   "AdditionalMetadataNavigationController" should {
     "getAllFiles" should {
-      "render the file navigation page with nested directories" in {
-        val parentId = UUID.randomUUID()
-        val descendantOneFileId = UUID.randomUUID()
-        val descendantTwoFileId = UUID.randomUUID()
-        val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("Folder"), None, emptyMetadata)
-        val descendantOneFile = gcf.GetConsignment.Files(descendantOneFileId, Option("descendantOneFile"), Option("Folder"), Option(parentId), emptyMetadata)
-        val descendantTwoFile = gcf.GetConsignment.Files(descendantTwoFileId, Option("descendantTwoFile"), Option("File"), Option(descendantOneFileId), emptyMetadata)
-        val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile, descendantOneFile, descendantTwoFile), "standard")
+      forAll(metadataType) { metadataType =>
+        s"render the correct description for metadata type $metadataType" in {
+          val parentFile = gcf.GetConsignment.Files(UUID.randomUUID(), Option("parent"), Option("Folder"), None, emptyMetadata)
+          val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile), "standard")
 
-        val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-        val result = additionalMetadataController.getAllFiles(consignmentId, "closure")
-          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val result = additionalMetadataController.getAllFiles(consignmentId, metadataType)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
+          val content = contentAsString(result)
 
-        val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
+          content.contains(s"Add or edit $metadataType metadata on file basis") must be(true)
+          content.contains(s"Folder uploaded: ${parentFile.fileName.get}")
+        }
 
-        content.contains(getExpectedCheckboxHtml(parentId, "parent")) must equal(true)
-        content.contains(getExpectedCheckboxHtml(descendantOneFileId, "descendantOneFile")) must equal(true)
-        content.contains(getExpectedCheckboxHtml(descendantTwoFileId, "descendantTwoFile")) must equal(true)
+        s"render the file navigation page with nested directories for metadata type $metadataType" in {
+          val parentId = UUID.randomUUID()
+          val descendantOneFileId = UUID.randomUUID()
+          val descendantTwoFileId = UUID.randomUUID()
+          val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("Folder"), None, emptyMetadata)
+          val descendantOneFile = gcf.GetConsignment.Files(descendantOneFileId, Option("descendantOneFile"), Option("Folder"), Option(parentId), emptyMetadata)
+          val descendantTwoFile = gcf.GetConsignment.Files(descendantTwoFileId, Option("descendantTwoFile"), Option("File"), Option(descendantOneFileId), emptyMetadata)
+          val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile, descendantOneFile, descendantTwoFile), "standard")
+
+          val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val result = additionalMetadataController.getAllFiles(consignmentId, metadataType)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
+
+          val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
+
+          content.contains(getExpectedCheckboxHtml(parentId, "parent")) must equal(true)
+          content.contains(getExpectedCheckboxHtml(descendantOneFileId, "descendantOneFile")) must equal(true)
+          content.contains(getExpectedCheckboxHtml(descendantTwoFileId, "descendantTwoFile")) must equal(true)
+        }
       }
 
       "return forbidden for a judgment user" in {
