@@ -64,10 +64,12 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
             List(
               cm.CustomMetadata.Values(
                 "TestValue",
-                List(cm.CustomMetadata.Values.Dependencies("TestDependency")), 1
+                List(cm.CustomMetadata.Values.Dependencies("TestDependency")),
+                1
               )
             ),
-            None, allowExport = false
+            None,
+            allowExport = false
           ),
           cm.CustomMetadata(
             "TestDependency",
@@ -81,7 +83,8 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
             Some("TestDependencyValue"),
             2,
             List(),
-            None, allowExport = false
+            None,
+            allowExport = false
           )
         )
       )
@@ -107,10 +110,12 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
           List(
             cm.CustomMetadata.Values(
               "TestValue",
-              List(cm.CustomMetadata.Values.Dependencies("TestDependency")), 1
+              List(cm.CustomMetadata.Values.Dependencies("TestDependency")),
+              1
             )
           ),
-          None, allowExport = false
+          None,
+          allowExport = false
         ),
         cm.CustomMetadata(
           "TestDependency",
@@ -124,7 +129,8 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
           Some("TestDependencyValue"),
           2,
           List(),
-          None, allowExport = false
+          None,
+          allowExport = false
         )
       )
     )
@@ -142,8 +148,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
     when(customMetadataClient.getResult(token, cm.document, Some(cm.Variables(consignmentId))))
       .thenReturn(Future.successful(response))
 
-    val results = customMetadataService.getCustomMetadata(consignmentId, token).failed
-      .futureValue.asInstanceOf[AuthorisationException]
+    val results = customMetadataService.getCustomMetadata(consignmentId, token).failed.futureValue.asInstanceOf[AuthorisationException]
 
     results shouldBe a[AuthorisationException]
   }
@@ -162,7 +167,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
 
   "saveMetadata" should "return an error if the API call fails" in {
     val variables = abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, fileIds, Nil))
-    when(addBulkMetadataClient.getResult(token, abfm.document,  Option(variables)))
+    when(addBulkMetadataClient.getResult(token, abfm.document, Option(variables)))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
     customMetadataService.saveMetadata(consignmentId, fileIds, token, Nil).failed.futureValue shouldBe a[HttpError]
@@ -192,7 +197,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
 
   "deleteMetadata" should "return an error if the API call fails" in {
     val variables = dfm.Variables(DeleteFileMetadataInput(fileIds))
-    when(deleteFileMetadataClient.getResult(token, dfm.document,  Option(variables)))
+    when(deleteFileMetadataClient.getResult(token, dfm.document, Option(variables)))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
     customMetadataService.deleteMetadata(fileIds, token).failed.futureValue shouldBe a[HttpError]
@@ -201,7 +206,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
   "deleteMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
     val variables = dfm.Variables(DeleteFileMetadataInput(fileIds))
     val response = GraphQlResponse[dfm.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
-    when(deleteFileMetadataClient.getResult(token, dfm.document,  Option(variables)))
+    when(deleteFileMetadataClient.getResult(token, dfm.document, Option(variables)))
       .thenReturn(Future.successful(response))
 
     customMetadataService.deleteMetadata(fileIds, token).failed.futureValue shouldBe a[AuthorisationException]

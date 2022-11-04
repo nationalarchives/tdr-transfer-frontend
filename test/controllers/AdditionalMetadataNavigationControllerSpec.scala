@@ -79,11 +79,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val controller = setUpController(cacheApi)
       val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
 
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
+      controller
+        .submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+            .withFormUrlEncodedBody(formPostData: _*)
+            .withCSRFToken
+        )
+        .futureValue
 
       Mockito.verify(folderMap).add(folderId.toString, allFolderFileDescendants)
       Mockito.verify(partSelectedSet).remove(folderId)
@@ -104,11 +107,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val controller = setUpController(cacheApi)
       val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
 
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
+      controller
+        .submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+            .withFormUrlEncodedBody(formPostData: _*)
+            .withCSRFToken
+        )
+        .futureValue
 
       Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
@@ -123,18 +129,20 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setAllDescendantIdsResponse(wiremockServer, List(), allFolderFileDescendants)
       folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
 
-      //initially id will be present, but then removed for subsequent "contains" calls
+      // initially id will be present, but then removed for subsequent "contains" calls
       when(selectedSet.contains(file1Id))
         .thenReturn(true)
         .thenReturn(false)
 
       val controller = setUpController(cacheApi)
       val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-      val response = controller.submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken)
+      val response = controller
+        .submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+            .withFormUrlEncodedBody(formPostData: _*)
+            .withCSRFToken
+        )
 
       status(response) mustBe SEE_OTHER
 
@@ -153,14 +161,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setAllDescendantIdsResponse(wiremockServer, List(file3Id, file4Id), allFolderFileDescendants :+ file4Id)
       folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants :+ file4Id)
 
-      //initially id will not be present, but then added for subsequent "contains" calls
+      // initially id will not be present, but then added for subsequent "contains" calls
       selectedNodes.map(id => {
         when(selectedSet.contains(id))
           .thenReturn(false)
           .thenReturn(true)
       })
 
-      //initially id will be present, but then removed for subsequent "contains" calls
+      // initially id will be present, but then removed for subsequent "contains" calls
       List(file1Id, file2Id).map(id => {
         when(selectedSet.contains(id))
           .thenReturn(true)
@@ -169,11 +177,13 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       val controller = setUpController(cacheApi)
       val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-      val response = controller.submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken)
+      val response = controller
+        .submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+            .withFormUrlEncodedBody(formPostData: _*)
+            .withCSRFToken
+        )
 
       status(response) mustBe SEE_OTHER
 
@@ -200,11 +210,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val controller = setUpController(cacheApi)
       val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
 
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
+      controller
+        .submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+            .withFormUrlEncodedBody(formPostData: _*)
+            .withCSRFToken
+        )
+        .futureValue
 
       Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
@@ -226,11 +239,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val controller = setUpController(cacheApi)
       val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
 
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
+      controller
+        .submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+            .withFormUrlEncodedBody(formPostData: _*)
+            .withCSRFToken
+        )
+        .futureValue
 
       Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
@@ -254,11 +270,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val controller = setUpController(cacheApi)
       val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
 
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
+      controller
+        .submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+            .withFormUrlEncodedBody(formPostData: _*)
+            .withCSRFToken
+        )
+        .futureValue
 
       Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
@@ -282,11 +301,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val controller = setUpController(cacheApi)
       val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
 
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
+      controller
+        .submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+            .withFormUrlEncodedBody(formPostData: _*)
+            .withCSRFToken
+        )
+        .futureValue
 
       Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
@@ -303,19 +325,24 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       setAllDescendantIdsResponse(wiremockServer, List(), List())
       folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
 
-      allFolderFileDescendants.map(id => when(selectedSet.contains(id))
-        .thenReturn(true)
-        .thenReturn(true)
-        .thenReturn(false))
+      allFolderFileDescendants.map(id =>
+        when(selectedSet.contains(id))
+          .thenReturn(true)
+          .thenReturn(true)
+          .thenReturn(false)
+      )
 
       val controller = setUpController(cacheApi)
       val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
 
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
+      controller
+        .submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+            .withFormUrlEncodedBody(formPostData: _*)
+            .withCSRFToken
+        )
+        .futureValue
 
       Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
@@ -335,11 +362,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val controller = setUpController(cacheApi)
       val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
 
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
+      controller
+        .submit(consignmentId, limit = None, selectedFolderId = folderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
+            .withFormUrlEncodedBody(formPostData: _*)
+            .withCSRFToken
+        )
+        .futureValue
 
       Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
       Mockito.verify(partSelectedSet).remove(folderId)
@@ -365,9 +395,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val cacheApi = mock[CacheApi]
       cacheApiMocking(cacheApi, folderId)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
@@ -393,9 +423,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val cacheApi = mock[CacheApi]
       cacheApiMocking(cacheApi, folderId)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, descriptiveMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, descriptiveMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$descriptiveMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
@@ -421,20 +451,23 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val cacheApi = mock[CacheApi]
       cacheApiMocking(cacheApi, folderId)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId, closureMetadata)
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">"""
+      ) mustBe true
     }
 
     "not display the 'previous' button if you are on the first page" in {
@@ -453,9 +486,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val cacheApi = mock[CacheApi]
       cacheApiMocking(cacheApi, folderId)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
@@ -487,9 +520,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val cacheApi = mock[CacheApi]
       cacheApiMocking(cacheApi, folderId)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
@@ -521,9 +554,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val cacheApi = mock[CacheApi]
       cacheApiMocking(cacheApi, folderId)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
@@ -555,9 +588,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val cacheApi = mock[CacheApi]
       cacheApiMocking(cacheApi, folderId)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
@@ -592,17 +625,16 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.submit(consignmentId, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
-          .withFormUrlEncodedBody(
-            Seq(
-              ("allNodes[]", fileId.toString),
-              ("selected[]", fileId.toString),
-              ("pageSelected", page),
-              ("folderSelected", selectedFolderId.toString)): _*)
-          .withCSRFToken)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .submit(consignmentId, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
+            .withFormUrlEncodedBody(
+              Seq(("allNodes[]", fileId.toString), ("selected[]", fileId.toString), ("pageSelected", page), ("folderSelected", selectedFolderId.toString)): _*
+            )
+            .withCSRFToken
+        )
 
       status(response) mustBe SEE_OTHER
 
@@ -629,18 +661,22 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.submit(consignmentId, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
-          .withFormUrlEncodedBody(
-            Seq(
-              ("returnToRoot", selectedFolderId.toString),
-              ("allNodes[]", fileId.toString),
-              ("selected[]", fileId.toString),
-              ("pageSelected", page),
-              ("folderSelected", folderId.toString)): _*)
-          .withCSRFToken)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .submit(consignmentId, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
+            .withFormUrlEncodedBody(
+              Seq(
+                ("returnToRoot", selectedFolderId.toString),
+                ("allNodes[]", fileId.toString),
+                ("selected[]", fileId.toString),
+                ("pageSelected", page),
+                ("folderSelected", folderId.toString)
+              ): _*
+            )
+            .withCSRFToken
+        )
 
       status(response) mustBe SEE_OTHER
 
@@ -669,17 +705,16 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetPartSelectedMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.submit(consignmentId, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
-          .withFormUrlEncodedBody(
-            Seq(
-              ("allNodes[]", fileId.toString),
-              ("selected[]", fileId.toString),
-              ("pageSelected", page),
-              ("folderSelected", selectedFolderId.toString)): _*)
-          .withCSRFToken)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .submit(consignmentId, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+        .apply(
+          FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
+            .withFormUrlEncodedBody(
+              Seq(("allNodes[]", fileId.toString), ("selected[]", fileId.toString), ("pageSelected", page), ("folderSelected", selectedFolderId.toString)): _*
+            )
+            .withCSRFToken
+        )
 
       status(response) mustBe SEE_OTHER
 
@@ -696,9 +731,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, page, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, page, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$page").withCSRFToken)
 
       status(response) mustBe FORBIDDEN
@@ -712,18 +747,21 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
       val errors = Error(errorMessage, Nil, Nil, None) :: Nil
       val dataString: String = client.GraphqlData(None, errors).asJson.noSpaces
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentPaginatedFiles"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getConsignmentPaginatedFiles"))
+          .willReturn(okJson(dataString))
+      )
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage")
-          .withCSRFToken).failed.futureValue
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
+        .failed
+        .futureValue
 
       response.getMessage.contains(errorMessage) mustBe true
     }
@@ -734,9 +772,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val cacheApi = mock[CacheApi]
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getUnauthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, page, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, page, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$page").withCSRFToken)
 
       status(response) mustBe SEE_OTHER
@@ -767,9 +805,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = Option(3), selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = Option(3), selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
@@ -802,9 +840,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = Option(3), selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = Option(3), selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
@@ -856,36 +894,43 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId, closureMetadata)
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe false
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">"""
+      ) mustBe false
+      fileSelectionPageAsString.contains(s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
       fileSelectionPageAsString.contains(
-        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 6" value="6">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 6" value="6">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 7" value="7">"""
+      ) mustBe true
+      fileSelectionPageAsString.contains(s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 7" value="7">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 8" value="8">"""
+      ) mustBe false
       fileSelectionPageAsString.contains(
-        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 8" value="8">""") mustBe false
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 9" value="9">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 9" value="9">"""
+      ) mustBe true
     }
 
     "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages when on the first page" in {
@@ -912,26 +957,30 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
       when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId, closureMetadata)
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">"""
+      ) mustBe true
+      fileSelectionPageAsString.contains(s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
       fileSelectionPageAsString.contains(
-        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">"""
+      ) mustBe false
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">""") mustBe false
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">"""
+      ) mustBe true
     }
 
     "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages when on the last page" in {
@@ -950,111 +999,120 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       val cacheApi = mock[CacheApi]
       cacheApiMocking(cacheApi, folderId)
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
+      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
+      val response = controller
+        .getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, closureMetadata)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$closureMetadata/$selectedFolderId/$currentPage").withCSRFToken)
       val fileSelectionPageAsString = contentAsString(response)
 
       status(response) mustBe OK
       checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId, closureMetadata)
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe false
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">"""
+      ) mustBe false
+      fileSelectionPageAsString.contains(s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
       fileSelectionPageAsString.contains(
-        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">"""
+      ) mustBe true
       fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">""") mustBe true
+        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">"""
+      ) mustBe true
     }
   }
 
   // scalastyle:off line.size.limit
-  private def checkCommonFileNavigationElements(fileSelectionPageAsString: String,
-                                                parentFolder: String,
-                                                folderId: UUID,
-                                                fileId: UUID,
-                                                selectedFolderId: UUID,
-                                                metadataType: String): Unit = {
-    if(metadataType == closureMetadata) {
+  private def checkCommonFileNavigationElements(
+      fileSelectionPageAsString: String,
+      parentFolder: String,
+      folderId: UUID,
+      fileId: UUID,
+      selectedFolderId: UUID,
+      metadataType: String
+  ): Unit = {
+    if (metadataType == closureMetadata) {
       fileSelectionPageAsString.contains(s"Add or edit closure metadata on file basis") mustBe true
       fileSelectionPageAsString.contains(s"You can now add or edit closure metadata to individual files or folders.") mustBe true
       fileSelectionPageAsString.contains(s"Add closure properties") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""Click on a particular file or folder to see what metadata is already captured and add or edit properties there.
+      fileSelectionPageAsString.contains(s"""Click on a particular file or folder to see what metadata is already captured and add or edit properties there.
            |            For a bulk edit, first select files and/or folders and then choose an action from the menu.""".stripMargin) mustBe true
     } else {
       fileSelectionPageAsString.contains(s"Add or edit descriptive data on file basis") mustBe true
       fileSelectionPageAsString.contains(s"You can now add or edit descriptive metadata to individual files or folders.") mustBe true
       fileSelectionPageAsString.contains(s"Add Descriptive Metadata") mustBe true
       fileSelectionPageAsString.contains(
-        s"""You can do this by selecting the relevant record(s) from the table below and proceed by clicking "Add Descriptive Metadata".""") mustBe true
+        s"""You can do this by selecting the relevant record(s) from the table below and proceed by clicking "Add Descriptive Metadata"."""
+      ) mustBe true
     }
     fileSelectionPageAsString.contains(s"Folder uploaded: $parentFolder") mustBe true
     fileSelectionPageAsString.contains(
-      s"""<button class="govuk-button__tna-button-link" name="folderSelected" data-prevent-double-click="true" type="submit" role="link" value="$folderId">""") mustBe true
-    fileSelectionPageAsString.contains(
-      s"""<label class="govuk-label govuk-checkboxes__label" for="$fileId">""") mustBe true
+      s"""<button class="govuk-button__tna-button-link" name="folderSelected" data-prevent-double-click="true" type="submit" role="link" value="$folderId">"""
+    ) mustBe true
+    fileSelectionPageAsString.contains(s"""<label class="govuk-label govuk-checkboxes__label" for="$fileId">""") mustBe true
     fileSelectionPageAsString.contains(s"""<input type="hidden" id="folderSelected" name="folderSelected" value="$selectedFolderId"/>""") mustBe true
     fileSelectionPageAsString.contains(s"Back to overview") mustBe true
   }
   // scalastyle:on line.size.limit
 
-  private def setConsignmentPaginatedFilesResponse(wiremockServer: WireMockServer,
-                                                   parentFolder: String,
-                                                   folderId: UUID,
-                                                   fileId: UUID,
-                                                   totalPages: Option[Int] = Some(1),
-                                                   totalFiles: Option[Int] = Some(1)
-                                                  ): StubMapping = {
+  private def setConsignmentPaginatedFilesResponse(
+      wiremockServer: WireMockServer,
+      parentFolder: String,
+      folderId: UUID,
+      fileId: UUID,
+      totalPages: Option[Int] = Some(1),
+      totalFiles: Option[Int] = Some(1)
+  ): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcpf.Data, gcpf.Variables]()
     val paginatedFiles: gcpf.GetConsignment.PaginatedFiles =
-      PaginatedFiles(PageInfo(startCursor = None, endCursor = None, hasNextPage = true, hasPreviousPage = true),
-        Some(List(
-          Some(Edges(Edges.Node(fileId = folderId, fileName = Some(parentFolder), fileType = Some("Folder"), parentId = None))),
-          Some(Edges(Edges.Node(fileId = fileId, fileName = Some("FileName"), fileType = Some("File"), parentId = Some(folderId)))))),
-        totalPages = totalPages, totalItems = totalFiles)
-    val graphQlPaginatedData = gcpf.GetConsignment(parentFolder = Some(parentFolder), parentFolderId = Some(folderId),
-      paginatedFiles = paginatedFiles)
+      PaginatedFiles(
+        PageInfo(startCursor = None, endCursor = None, hasNextPage = true, hasPreviousPage = true),
+        Some(
+          List(
+            Some(Edges(Edges.Node(fileId = folderId, fileName = Some(parentFolder), fileType = Some("Folder"), parentId = None))),
+            Some(Edges(Edges.Node(fileId = fileId, fileName = Some("FileName"), fileType = Some("File"), parentId = Some(folderId))))
+          )
+        ),
+        totalPages = totalPages,
+        totalItems = totalFiles
+      )
+    val graphQlPaginatedData = gcpf.GetConsignment(parentFolder = Some(parentFolder), parentFolderId = Some(folderId), paginatedFiles = paginatedFiles)
     val response = gcpf.Data(Some(graphQlPaginatedData))
     val data = client.GraphqlData(Some(response))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentPaginatedFiles"))
-      .willReturn(okJson(dataString)))
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentPaginatedFiles"))
+        .willReturn(okJson(dataString))
+    )
   }
 
-  private def setEmptyConsignmentPaginatedFilesResponse(wiremockServer: WireMockServer,
-                                                   parentFolder: String,
-                                                   folderId: UUID
-                                                  ): StubMapping = {
+  private def setEmptyConsignmentPaginatedFilesResponse(wiremockServer: WireMockServer, parentFolder: String, folderId: UUID): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcpf.Data, gcpf.Variables]()
     val paginatedFiles: gcpf.GetConsignment.PaginatedFiles =
-      PaginatedFiles(PageInfo(startCursor = None, endCursor = None, hasNextPage = true, hasPreviousPage = true),
-        Some(List.empty),
-        totalPages = Some(0), totalItems = Some(0))
-    val graphQlPaginatedData = gcpf.GetConsignment(parentFolder = Some(parentFolder), parentFolderId = Some(folderId),
-      paginatedFiles = paginatedFiles)
+      PaginatedFiles(PageInfo(startCursor = None, endCursor = None, hasNextPage = true, hasPreviousPage = true), Some(List.empty), totalPages = Some(0), totalItems = Some(0))
+    val graphQlPaginatedData = gcpf.GetConsignment(parentFolder = Some(parentFolder), parentFolderId = Some(folderId), paginatedFiles = paginatedFiles)
     val response = gcpf.Data(Some(graphQlPaginatedData))
     val data = client.GraphqlData(Some(response))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentPaginatedFiles"))
-      .willReturn(okJson(dataString)))
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentPaginatedFiles"))
+        .willReturn(okJson(dataString))
+    )
   }
 
   private def setUpController(cacheApi: CacheApi): AdditionalMetadataNavigationController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 
-    new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-      getAuthorisedSecurityComponents, cacheApi)
+    new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, cacheApi)
   }
 
   private def cacheApiMocking(cacheApi: CacheApi, folderId: UUID) = {
@@ -1068,11 +1126,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
   }
 
-  private def folderCacheResponseMocking(
-                                          folderMap: RedisMap[List[UUID], SynchronousResult],
-                                          folderId: UUID,
-                                          descendants: List[UUID],
-                                          contains: Boolean = true) = {
+  private def folderCacheResponseMocking(folderMap: RedisMap[List[UUID], SynchronousResult], folderId: UUID, descendants: List[UUID], contains: Boolean = true) = {
     when(folderMap.getFields(folderId.toString)).thenReturn(Seq(Some(descendants)))
     when(folderMap.get(folderId.toString)).thenReturn(Some(descendants))
     when(folderMap.contains(folderId.toString)).thenReturn(contains)
@@ -1081,9 +1135,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   private def setUpFormPostData(selectedNodes: List[UUID] = List(), allNodes: List[UUID], selectedFolderId: UUID): Seq[(String, String)] = {
     val selected: Seq[(String, String)] = selectedNodes.map(n => ("selected[]", n.toString))
     val all: Seq[(String, String)] = allNodes.map(n => ("allNodes[]", n.toString))
-    val other: Seq[(String, String)] = Seq(
-      ("pageSelected", "1"),
-      ("folderSelected", selectedFolderId.toString))
+    val other: Seq[(String, String)] = Seq(("pageSelected", "1"), ("folderSelected", selectedFolderId.toString))
 
     all ++ selected ++ other
   }

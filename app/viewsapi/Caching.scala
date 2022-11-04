@@ -2,7 +2,6 @@ package viewsapi
 
 import play.api.mvc.Result
 
-
 object Caching {
 
   class CacheControl(status: Result) {

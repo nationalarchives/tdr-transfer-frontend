@@ -18,7 +18,7 @@ import java.util.concurrent.CompletionException
 class ErrorHandlerSpec extends AnyFlatSpec with Matchers {
 
   val sessionStore: SessionStore = mock[SessionStore]
-  val pac4jTemplateHelper : Pac4jScalaTemplateHelper[CommonProfile] = new Pac4jScalaTemplateHelper[CommonProfile](sessionStore, Config.INSTANCE)
+  val pac4jTemplateHelper: Pac4jScalaTemplateHelper[CommonProfile] = new Pac4jScalaTemplateHelper[CommonProfile](sessionStore, Config.INSTANCE)
   val errorHandler = new ErrorHandler(new DefaultMessagesApi(), pac4jTemplateHelper)
 
   "client error handler" should "return a Default response for any status code not explicitly handled" in {

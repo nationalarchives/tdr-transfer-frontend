@@ -42,9 +42,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
 
   private val token = new BearerAccessToken("some-token")
 
-  private val formData = FinalTransferConfirmationData(
-    openRecords = true,
-    transferLegalCustody = true)
+  private val formData = FinalTransferConfirmationData(openRecords = true, transferLegalCustody = true)
 
   val addFinalTransferConfirmationInput: AddFinalTransferConfirmationInput = AddFinalTransferConfirmationInput(
     consignmentId,
@@ -61,15 +59,17 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
   }
 
   "addFinalTransferConfirmation" should "return the TransferConfirmation from the API" in {
-    val finalTransferConfirmationResponse = AddFinalTransferConfirmation(
-      consignmentId,
-      finalOpenRecordsConfirmed = true,
-      legalCustodyTransferConfirmed = true)
+    val finalTransferConfirmationResponse = AddFinalTransferConfirmation(consignmentId, finalOpenRecordsConfirmed = true, legalCustodyTransferConfirmed = true)
 
     val graphQlResponse =
-      GraphQlResponse(Some(aftc.Data(
-        finalTransferConfirmationResponse
-      )), Nil) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
+      GraphQlResponse(
+        Some(
+          aftc.Data(
+            finalTransferConfirmationResponse
+          )
+        ),
+        Nil
+      ) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
     when(standardGraphQlClient.getResult(token, aftc.document, Some(aftc.Variables(addFinalTransferConfirmationInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
@@ -86,8 +86,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
     when(standardGraphQlClient.getResult(token, aftc.document, Some(aftc.Variables(addFinalTransferConfirmationInput))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed
-      .futureValue.asInstanceOf[HttpError]
+    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed.futureValue.asInstanceOf[HttpError]
 
     transferConfirmation shouldBe a[HttpError]
   }
@@ -97,21 +96,23 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
     when(standardGraphQlClient.getResult(token, aftc.document, Some(aftc.Variables(addFinalTransferConfirmationInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed
-      .futureValue.asInstanceOf[AuthorisationException]
+    val transferConfirmation = confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).failed.futureValue.asInstanceOf[AuthorisationException]
 
     transferConfirmation shouldBe a[AuthorisationException]
   }
 
   "addFinalJudgmentTransferConfirmation" should "return the TransferConfirmation from the API" in {
-    val finalJudgmentTransferConfirmationResponse = AddFinalJudgmentTransferConfirmation(
-      consignmentId,
-      legalCustodyTransferConfirmed = true)
+    val finalJudgmentTransferConfirmationResponse = AddFinalJudgmentTransferConfirmation(consignmentId, legalCustodyTransferConfirmed = true)
 
     val graphQlResponse =
-      GraphQlResponse(Some(afjtc.Data(
-        finalJudgmentTransferConfirmationResponse
-      )), Nil) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
+      GraphQlResponse(
+        Some(
+          afjtc.Data(
+            finalJudgmentTransferConfirmationResponse
+          )
+        ),
+        Nil
+      ) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
     when(judgmentGraphQlClient.getResult(token, afjtc.document, Some(afjtc.Variables(addFinalJudgmentTransferConfirmationInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
@@ -127,8 +128,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
     when(judgmentGraphQlClient.getResult(token, afjtc.document, Some(afjtc.Variables(addFinalJudgmentTransferConfirmationInput))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferConfirmation = confirmTransferService.addFinalJudgmentTransferConfirmation(consignmentId, token).failed
-      .futureValue.asInstanceOf[HttpError]
+    val transferConfirmation = confirmTransferService.addFinalJudgmentTransferConfirmation(consignmentId, token).failed.futureValue.asInstanceOf[HttpError]
 
     transferConfirmation shouldBe a[HttpError]
   }
@@ -138,8 +138,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
     when(judgmentGraphQlClient.getResult(token, afjtc.document, Some(afjtc.Variables(addFinalJudgmentTransferConfirmationInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferConfirmation = confirmTransferService.addFinalJudgmentTransferConfirmation(consignmentId, token).failed
-      .futureValue.asInstanceOf[AuthorisationException]
+    val transferConfirmation = confirmTransferService.addFinalJudgmentTransferConfirmation(consignmentId, token).failed.futureValue.asInstanceOf[AuthorisationException]
 
     transferConfirmation shouldBe a[AuthorisationException]
   }

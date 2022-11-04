@@ -18,11 +18,12 @@ import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class AdditionalMetadataNavigationController @Inject()(val consignmentService: ConsignmentService,
-                                                       val keycloakConfiguration: KeycloakConfiguration,
-                                                       val controllerComponents: SecurityComponents,
-                                                       val cacheApi: CacheApi
-                                                      ) extends TokenSecurity {
+class AdditionalMetadataNavigationController @Inject() (
+    val consignmentService: ConsignmentService,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val controllerComponents: SecurityComponents,
+    val cacheApi: CacheApi
+) extends TokenSecurity {
 
   implicit class ListHelper(list: List[String]) {
     def toUuids: List[UUID] = {
@@ -39,11 +40,12 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
   implicit class CacheMapHelper(cache: RedisMap[List[UUID], SynchronousResult]) {
     def getDescendantFileIds(consignmentId: UUID, folderId: UUID, token: BearerAccessToken): Future[List[UUID]] = {
       for {
-        _ <- if (!cache.contains(folderId.toString)) {
-          consignmentService.getAllDescendants(consignmentId, Set(folderId), token).map {
-            data => cache.add(folderId.toString, data.toDescendantFileIds)
-          }
-        } else { Future.successful(()) }
+        _ <-
+          if (!cache.contains(folderId.toString)) {
+            consignmentService.getAllDescendants(consignmentId, Set(folderId), token).map { data =>
+              cache.add(folderId.toString, data.toDescendantFileIds)
+            }
+          } else { Future.successful(()) }
       } yield { cache.get(folderId.toString).getOrElse(List()) }
     }
   }
@@ -57,9 +59,10 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       val allDisplayedNodesIds: List[UUID] = formData.allNodes.toUuids
       val selectedNodeIds: List[UUID] = formData.selected.toUuids
       val deselectedNodeIds: List[UUID] = allDisplayedNodesIds
-        .filter(id => !selectedNodeIds.contains(id)).filter(id => !partSelectedCache.contains(id))
+        .filter(id => !selectedNodeIds.contains(id))
+        .filter(id => !partSelectedCache.contains(id))
 
-      //Handle folder deselection separately, as has three potential states: deselected, partially deselected, descendantFilesSelected
+      // Handle folder deselection separately, as has three potential states: deselected, partially deselected, descendantFilesSelected
       val deselectedIdsExceptFolder: Set[UUID] = deselectedNodeIds.filter(_ != currentFolderId).toSet
 
       for {
@@ -71,7 +74,7 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
         cache.addSelectedIds(allSelectedIds.toDescendantFileIds)
         cache.removedDeselectedIds(allDeselectedExceptFolderIds.toDescendantFileIds)
 
-        //Folder has been actively deselected
+        // Folder has been actively deselected
         if (deselectedNodeIds.contains(currentFolderId) && cache.containsAll(allFolderIds)) {
           cache.removedDeselectedIds(allFolderIds)
         }
@@ -91,11 +94,13 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
     }
 
     def containsAll(elems: List[UUID]): Boolean = {
-      if (elems.isEmpty) { false } else { elems.forall(cache.contains) }
+      if (elems.isEmpty) { false }
+      else { elems.forall(cache.contains) }
     }
 
     def containsSome(elems: List[UUID]): Boolean = {
-      if (elems.isEmpty) { false } else { elems.exists(cache.contains) && !containsAll(elems) }
+      if (elems.isEmpty) { false }
+      else { elems.exists(cache.contains) && !containsAll(elems) }
     }
   }
 
@@ -116,64 +121,74 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       "folderSelected" -> text,
       "returnToRoot" -> optional(text),
       "addClosureProperties" -> optional(text)
-    )(NodesFormData.apply)(NodesFormData.unapply))
+    )(NodesFormData.apply)(NodesFormData.unapply)
+  )
 
-  def getPaginatedFiles(consignmentId: UUID, pageNumber: Int, limit: Option[Int], selectedFolderId: UUID,
-                        metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    for {
-      paginatedFiles <- consignmentService.getConsignmentPaginatedFile(consignmentId, pageNumber - 1, limit, selectedFolderId, request.token.bearerAccessToken)
-      edges = paginatedFiles.paginatedFiles.edges.getOrElse(List()).flatten
-      nodesToDisplay <- generateNodesToDisplay(consignmentId, edges, request.token.bearerAccessToken)
-    } yield {
-      val totalPages = paginatedFiles.paginatedFiles.totalPages
-        .getOrElse(throw new IllegalStateException(s"No 'total pages' returned for folderId $selectedFolderId"))
-      val totalFiles = paginatedFiles.paginatedFiles.totalItems
-        .getOrElse(throw new IllegalStateException(s"No 'total items' returned for folderId $selectedFolderId"))
-      val parentFolder = paginatedFiles.parentFolder.
-        getOrElse(throw new IllegalStateException(s"No 'parent folder' returned for consignment $consignmentId"))
-      val pageSize = limit.getOrElse(totalFiles)
-      val resultsCount = if (nodesToDisplay.isEmpty) {
-        ResultsCount(0, 0, 0)
-      } else {
-        ResultsCount(((pageNumber - 1) * pageSize) + 1, (pageNumber * pageSize).min(totalFiles), totalFiles)
+  def getPaginatedFiles(consignmentId: UUID, pageNumber: Int, limit: Option[Int], selectedFolderId: UUID, metadataType: String): Action[AnyContent] =
+    standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+      for {
+        paginatedFiles <- consignmentService.getConsignmentPaginatedFile(consignmentId, pageNumber - 1, limit, selectedFolderId, request.token.bearerAccessToken)
+        edges = paginatedFiles.paginatedFiles.edges.getOrElse(List()).flatten
+        nodesToDisplay <- generateNodesToDisplay(consignmentId, edges, request.token.bearerAccessToken)
+      } yield {
+        val totalPages = paginatedFiles.paginatedFiles.totalPages
+          .getOrElse(throw new IllegalStateException(s"No 'total pages' returned for folderId $selectedFolderId"))
+        val totalFiles = paginatedFiles.paginatedFiles.totalItems
+          .getOrElse(throw new IllegalStateException(s"No 'total items' returned for folderId $selectedFolderId"))
+        val parentFolder = paginatedFiles.parentFolder.getOrElse(throw new IllegalStateException(s"No 'parent folder' returned for consignment $consignmentId"))
+        val pageSize = limit.getOrElse(totalFiles)
+        val resultsCount = if (nodesToDisplay.isEmpty) {
+          ResultsCount(0, 0, 0)
+        } else {
+          ResultsCount(((pageNumber - 1) * pageSize) + 1, (pageNumber * pageSize).min(totalFiles), totalFiles)
+        }
+        Ok(
+          views.html.standard.additionalMetadataNavigation(
+            consignmentId,
+            request.token.name,
+            metadataType,
+            parentFolder,
+            totalPages,
+            limit,
+            pageNumber,
+            selectedFolderId,
+            paginatedFiles.parentFolderId,
+            navigationForm.fill(NodesFormData(nodesToDisplay, selected = List(), allNodes = List(), pageNumber, selectedFolderId.toString, paginatedFiles.parentFolder, None)),
+            resultsCount
+          )
+        ).uncache()
       }
-      Ok(views.html.standard.additionalMetadataNavigation(
-        consignmentId,
-        request.token.name,
-        metadataType,
-        parentFolder,
-        totalPages,
-        limit,
-        pageNumber,
-        selectedFolderId,
-        paginatedFiles.parentFolderId,
-        navigationForm.fill(NodesFormData(nodesToDisplay, selected = List(), allNodes = List(), pageNumber, selectedFolderId.toString,
-          paginatedFiles.parentFolder, None)), resultsCount)
-      ).uncache()
     }
-  }
 
   def submit(consignmentId: UUID, limit: Option[Int], selectedFolderId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       val errorFunction: Form[NodesFormData] => Future[Result] = { _: Form[NodesFormData] =>
-        Future(Redirect(routes.AdditionalMetadataNavigationController
-          .getPaginatedFiles(consignmentId, 1, limit, selectedFolderId, metadataType)))
+        Future(
+          Redirect(
+            routes.AdditionalMetadataNavigationController
+              .getPaginatedFiles(consignmentId, 1, limit, selectedFolderId, metadataType)
+          )
+        )
       }
 
       val successFunction: NodesFormData => Future[Result] = { formData: NodesFormData =>
         val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_selectedFiles")
         val pageSelected: Int = formData.pageSelected
         val folderSelected: String = formData.folderSelected
-        selectedFiles.updateCache(formData, consignmentId, request.token.bearerAccessToken).map(_ => {
-          val folderId = UUID.fromString(formData.returnToRoot.getOrElse(folderSelected))
-          if(formData.addClosureProperties.isDefined) {
-            Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, selectedFiles.toSet.toList))
-          } else {
-            Redirect(routes.AdditionalMetadataNavigationController
-              .getPaginatedFiles(consignmentId, pageSelected, limit, folderId, metadataType))
-          }
+        selectedFiles
+          .updateCache(formData, consignmentId, request.token.bearerAccessToken)
+          .map(_ => {
+            val folderId = UUID.fromString(formData.returnToRoot.getOrElse(folderSelected))
+            if (formData.addClosureProperties.isDefined) {
+              Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, selectedFiles.toSet.toList))
+            } else {
+              Redirect(
+                routes.AdditionalMetadataNavigationController
+                  .getPaginatedFiles(consignmentId, pageSelected, limit, folderId, metadataType)
+              )
+            }
 
-        })
+          })
       }
 
       val formValidationResult: Form[NodesFormData] = navigationForm.bindFromRequest()
@@ -183,16 +198,16 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
       )
   }
 
-  private def generateNodesToDisplay(consignmentId: UUID,
-                                     edges: List[PaginatedFiles.Edges],
-                                     token: BearerAccessToken): Future[List[NodesToDisplay]] = {
+  private def generateNodesToDisplay(consignmentId: UUID, edges: List[PaginatedFiles.Edges], token: BearerAccessToken): Future[List[NodesToDisplay]] = {
     val nodes = edges.map(edge => {
       val edgeNode = edge.node
       val edgeNodeId = edgeNode.fileId
       val isFolder = edgeNode.fileType.contains("Folder")
 
       for {
-        descendantFilesSelected <- if (isFolder) { getDescendantFilesSelected(consignmentId, edgeNodeId, token) } else { Future(0) }
+        descendantFilesSelected <-
+          if (isFolder) { getDescendantFilesSelected(consignmentId, edgeNodeId, token) }
+          else { Future(0) }
         isSelected <- selected(consignmentId, edgeNodeId, isFolder, token)
       } yield {
         NodesToDisplay(
@@ -201,7 +216,8 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
           isSelected,
           isFolder,
           descendantFilesSelected
-        )}
+        )
+      }
     })
     Future.sequence(nodes)
   }
@@ -211,15 +227,14 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
     val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_selectedFiles")
 
     for {
-      ids <- if (isFolder) {
-        folderDescendantsCache.getDescendantFileIds(consignmentId, nodeId, token)
-      } else { Future(List(nodeId)) }
+      ids <-
+        if (isFolder) {
+          folderDescendantsCache.getDescendantFileIds(consignmentId, nodeId, token)
+        } else { Future(List(nodeId)) }
     } yield selectedFiles.containsAll(ids)
   }
 
-  private def getDescendantFilesSelected(consignmentId: UUID,
-                                folderId: UUID,
-                                token: BearerAccessToken): Future[Int] = {
+  private def getDescendantFilesSelected(consignmentId: UUID, folderId: UUID, token: BearerAccessToken): Future[Int] = {
     val selectedFiles: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_selectedFiles")
     val partSelectedCache: RedisSet[UUID, SynchronousResult] = cacheApi.set[UUID](s"${consignmentId}_partSelected")
     val folderDescendantsCache = cacheApi.map[List[UUID]](s"${consignmentId}_folders")
@@ -234,19 +249,17 @@ class AdditionalMetadataNavigationController @Inject()(val consignmentService: C
 
 object AdditionalMetadataNavigationController {
 
-  case class NodesFormData(nodesToDisplay: Seq[NodesToDisplay],
-                           selected: List[String],
-                           allNodes: List[String],
-                           pageSelected: Int,
-                           folderSelected: String,
-                           returnToRoot: Option[String],
-                           addClosureProperties: Option[String])
+  case class NodesFormData(
+      nodesToDisplay: Seq[NodesToDisplay],
+      selected: List[String],
+      allNodes: List[String],
+      pageSelected: Int,
+      folderSelected: String,
+      returnToRoot: Option[String],
+      addClosureProperties: Option[String]
+  )
 
-  case class NodesToDisplay(fileId: String,
-                            displayName: String,
-                            isSelected: Boolean = false,
-                            isFolder: Boolean = false,
-                            descendantFilesSelected: Int = 0)
+  case class NodesToDisplay(fileId: String, displayName: String, isSelected: Boolean = false, isFolder: Boolean = false, descendantFilesSelected: Int = 0)
 
   case class ResultsCount(startCount: Int, endCount: Int, total: Int)
 }

@@ -14,13 +14,16 @@ import viewsapi.Caching.preventCaching
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class FileChecksResultsController @Inject()(val controllerComponents: SecurityComponents,
-                                            val keycloakConfiguration: KeycloakConfiguration,
-                                            val graphqlConfiguration: GraphQLConfiguration,
-                                            val consignmentService: ConsignmentService,
-                                            val consignmentStatusService: ConsignmentStatusService,
-                                            val frontEndInfoConfiguration: FrontEndInfoConfiguration
-                                           )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+class FileChecksResultsController @Inject() (
+    val controllerComponents: SecurityComponents,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val graphqlConfiguration: GraphQLConfiguration,
+    val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService,
+    val frontEndInfoConfiguration: FrontEndInfoConfiguration
+)(implicit val ec: ExecutionContext)
+    extends TokenSecurity
+    with I18nSupport {
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val pageTitle = "Results of your checks"
@@ -56,13 +59,12 @@ class FileChecksResultsController @Inject()(val controllerComponents: SecurityCo
             fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
-                consignmentService.getConsignmentFilePath(consignmentId, request.token.bearerAccessToken)
-                  .flatMap(
-                    files => {
-                      val filename = files.files.head.metadata.clientSideOriginalFilePath.get
-                      Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, pageTitle, consignmentId, reference, request.token.name)).uncache())
-                    }
-                  )
+                consignmentService
+                  .getConsignmentFilePath(consignmentId, request.token.bearerAccessToken)
+                  .flatMap(files => {
+                    val filename = files.files.head.metadata.clientSideOriginalFilePath.get
+                    Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, pageTitle, consignmentId, reference, request.token.name)).uncache())
+                  })
               } else {
                 Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
               }
