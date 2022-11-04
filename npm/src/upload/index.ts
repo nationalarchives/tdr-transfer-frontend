@@ -47,7 +47,7 @@ export class FileUploader {
         accessKeyId: "placeholder-id",
         secretAccessKey: "placeholder-secret"
       },
-      requestHandler: new TdrFetchHandler({ requestTimeoutMs }),
+      requestHandler: new TdrFetchHandler({ requestTimeoutMs })
     }
 
     const client = new S3Client(config)
