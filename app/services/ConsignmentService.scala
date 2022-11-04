@@ -13,9 +13,11 @@ import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentReference.getConsignmentReference
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
+import graphql.codegen.GetConsignments.getConsignments.Consignments
+import graphql.codegen.GetConsignments.{getConsignments => gcs}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
-import graphql.codegen.types.{AddConsignmentInput, FileFilters, UpdateConsignmentSeriesIdInput}
+import graphql.codegen.types.{AddConsignmentInput, ConsignmentFilters, FileFilters, UpdateConsignmentSeriesIdInput}
 import graphql.codegen.{AddConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
 import services.ApiErrorHandling._
 import services.ConsignmentService.File
@@ -40,6 +42,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentFilesClient = graphqlConfiguration.getClient[getConsignmentFiles.Data, getConsignmentFiles.Variables]()
   private val getConsignmentExportClient = graphqlConfiguration.getClient[getConsignmentForExport.Data, getConsignmentForExport.Variables]()
   private val updateConsignmentSeriesIdClient = graphqlConfiguration.getClient[updateConsignmentSeriesId.Data, updateConsignmentSeriesId.Variables]()
+  private val getConsignments = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
 
 
@@ -139,7 +142,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       .map(data => data.getConsignment.toList.flatMap(_.files)).map {
       def sortByName(l: File, r: File): Boolean = natural().compare(l.name, r.name) < 0
 
-      files =>
+        files =>
       val grouped = files.groupBy(_.parentId)
       val parent = files.find(_.parentId.isEmpty).getOrElse(throw new Exception(s"Parent ID not found for consignment $consignmentId"))
 
@@ -173,6 +176,11 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
     sendApiRequest(getConsignmentExportClient, getConsignmentForExport.document, token, variables)
       .map(data => data.getConsignment.get)
+  }
+
+  def getConsignments(consignmentFilters: ConsignmentFilters, token: BearerAccessToken): Future[Consignments] = {
+    sendApiRequest(getConsignments, gcs.document, token, gcs.Variables(100, None, Option(consignmentFilters)))
+      .map(data => data.consignments)
   }
 }
 object ConsignmentService {

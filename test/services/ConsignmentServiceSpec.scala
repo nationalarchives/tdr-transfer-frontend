@@ -1,5 +1,6 @@
 package services
 
+import cats.implicits.catsSyntaxOptionId
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
@@ -13,7 +14,11 @@ import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails.GetConsignment
 import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFiles => gcpf}
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
-import graphql.codegen.types.{AddConsignmentInput, FileFilters}
+import graphql.codegen.GetConsignments.getConsignments.Consignments
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.CurrentStatus
+import graphql.codegen.GetConsignments.{getConsignments => gcs}
+import graphql.codegen.types.{AddConsignmentInput, ConsignmentFilters, FileFilters}
 import org.keycloak.representations.AccessToken
 import org.mockito.Mockito
 import org.mockito.Mockito._
@@ -29,6 +34,7 @@ import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
+import java.time.ZonedDateTime
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -45,6 +51,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val getConsignmentFilesMetadataClient = mock[GraphQLClient[gcfm.Data, gcfm.Variables]]
   private val getConsignmentPaginatedFilesClient = mock[GraphQLClient[gcpf.Data, gcpf.Variables]]
   private val getConsignmentFilesClient = mock[GraphQLClient[gcf.Data, gcf.Variables]]
+  private val getConsignmentsClient = mock[GraphQLClient[gcs.Data, gcs.Variables]]
   when(graphQlConfig.getClient[gc.Data, gc.Variables]()).thenReturn(getConsignmentClient)
   when(graphQlConfig.getClient[addConsignment.Data, addConsignment.Variables]()).thenReturn(addConsignmentClient)
   when(graphQlConfig.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()).thenReturn(getConsignmentFolderInfoClient)
@@ -53,6 +60,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   when(graphQlConfig.getClient[gcfm.Data, gcfm.Variables]()).thenReturn(getConsignmentFilesMetadataClient)
   when(graphQlConfig.getClient[gcpf.Data, gcpf.Variables]()).thenReturn(getConsignmentPaginatedFilesClient)
   when(graphQlConfig.getClient[gcf.Data, gcf.Variables]()).thenReturn(getConsignmentFilesClient)
+  when(graphQlConfig.getClient[gcs.Data, gcs.Variables]()).thenReturn(getConsignmentsClient)
 
   private val consignmentService = new ConsignmentService(graphQlConfig)
 
@@ -301,15 +309,15 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
     def mockErrorResponse: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] =
       when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
-      .thenReturn(Future.successful(GraphQlResponse(None, List(NotAuthorisedError("error", Nil, Nil)))))
+        .thenReturn(Future.successful(GraphQlResponse(None, List(NotAuthorisedError("error", Nil, Nil)))))
 
     def mockMissingConsignmentType: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] =
       when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
-      .thenReturn(Future.successful(GraphQlResponse(Some(gct.Data(Some(gct.GetConsignment(None)))), List())))
+        .thenReturn(Future.successful(GraphQlResponse(Some(gct.Data(Some(gct.GetConsignment(None)))), List())))
 
     def mockAPIFailedResponse: OngoingStubbing[Future[GraphQlResponse[gct.Data]]] =
       when(getConsignmentTypeClient.getResult(bearerAccessToken, gct.document, Some(gct.Variables(consignmentId))))
-      .thenReturn(Future.failed(new Exception("API failure")))
+        .thenReturn(Future.failed(new Exception("API failure")))
 
     "return the correct consignment type for a judgment type" in {
       val expectedType = "judgment"
@@ -429,6 +437,42 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
       val error = consignmentService.getAllConsignmentFiles(consignmentId, bearerAccessToken).failed.futureValue
       error.getMessage should equal(s"Parent ID not found for consignment $consignmentId")
+    }
+  }
+
+  "getConsignments" should {
+    "return a list of the user's consignments" in {
+      val userId = UUID.randomUUID()
+      val edges = List(
+        Consignments.Edges(Node(
+          UUID.randomUUID().some,
+          "TEST-TDR-2021-GB",
+          Some(ZonedDateTime.now()),
+          Some(ZonedDateTime.now()),
+          CurrentStatus("Completed".some),
+          5), "Cursor").some
+      )
+
+      val consignments = gcs.Consignments(edges.some, Consignments.PageInfo(hasNextPage = false, None))
+
+      val response = GraphQlResponse[gcs.Data](Some(gcs.Data(consignments)), Nil)
+
+      val consignmentFilter = ConsignmentFilters(userId.some, None)
+      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, consignmentFilter.some).some))
+        .thenReturn(Future.successful(response))
+
+      val history = consignmentService.getConsignments(consignmentFilter, bearerAccessToken).futureValue
+      history.edges.get should be(edges)
+    }
+
+    "return an error when the API has an error" in {
+
+      val consignmentFilter = ConsignmentFilters(UUID.randomUUID().some, None)
+      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, consignmentFilter.some).some))
+        .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+      val results = consignmentService.getConsignments(consignmentFilter, bearerAccessToken)
+      results.failed.futureValue shouldBe a[HttpError]
     }
   }
 }
