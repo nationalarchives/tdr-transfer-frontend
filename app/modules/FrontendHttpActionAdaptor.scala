@@ -14,8 +14,9 @@ class FrontendHttpActionAdaptor extends PlayHttpActionAdapter {
 
   override def adapt(action: HttpAction, context: WebContext): Result = {
     action match {
-      case _ => val code = action.getCode
-        if(isAjax(context)) {
+      case _ =>
+        val code = action.getCode
+        if (isAjax(context)) {
           super.adapt(action, context)
         } else if (code == HttpConstants.UNAUTHORIZED) {
           Results.redirect("/")

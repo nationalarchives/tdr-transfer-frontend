@@ -55,13 +55,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       |              There is a problem
       |          </h2>""".stripMargin
 
-  forAll (userTypes) { userType =>
+  forAll(userTypes) { userType =>
     "FileChecksResultsController GET" should {
 
-      val (pathName, keycloakConfiguration, expectedTitle,
-          expectedHeading, expectedSuccessMessage,
-          buttonToProgress, expectedGenericErrorMessage) = if(userType == "judgment") {
-        ("judgment",
+      val (pathName, keycloakConfiguration, expectedTitle, expectedHeading, expectedSuccessMessage, buttonToProgress, expectedGenericErrorMessage) = if (userType == "judgment") {
+        (
+          "judgment",
           getValidJudgmentUserKeycloakConfiguration,
           "<title>Results of checks</title>",
           """<h1 class="govuk-heading-l">Results of checks</h1>""",
@@ -81,13 +80,14 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         )
       } else {
         // scalastyle:off line.size.limit
-        ("consignment",
+        (
+          "consignment",
           getValidStandardUserKeycloakConfiguration,
           "<title>Results of your checks</title>",
           """<h1 class="govuk-heading-l">Results of your checks</h1>""",
           """                    <p class="govuk-body">Your folder 'parentFolder' containing 1 item has been successfully checked and uploaded.</p>
             |                    <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""".stripMargin,
-         s"""            <a href="/consignment/$consignmentId/confirm-transfer" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          s"""            <a href="/consignment/$consignmentId/confirm-transfer" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
             |                Continue
             |            </a>""".stripMargin,
           """              <p class="govuk-body">
@@ -114,8 +114,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val fileChecksData = gfcp.Data(
           Option(
-            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus,
-              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
           )
         )
 
@@ -123,8 +122,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           Option(gcf.GetConsignment(List(Files(UUID.randomUUID(), Option(""), Option(""), Option(UUID.randomUUID()), Metadata(Some("test file.docx"))))))
         )
 
-        val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables ]()
-        val getConsignmentFilesClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables ]()
+        val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables]()
+        val getConsignmentFilesClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables]()
         val fileStatusResponse: String =
           getFileChecksProgressClient.GraphqlData(Option(fileChecksData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
         val filePathResponse: String =
@@ -143,8 +142,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         )
 
         val recordCheckResultsPage = {
-          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
-          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId) }
+          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
@@ -158,7 +157,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           resultsPageAsString must include(expectedSuccessSummaryTitle)
         }
         resultsPageAsString must include(expectedSuccessMessage)
-        resultsPageAsString must include regex(buttonToProgress)
+        resultsPageAsString must include regex (buttonToProgress)
       }
 
       s"return a redirect to the auth server if an unauthenticated user tries to access the $userType file checks page" in {
@@ -173,7 +172,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           consignmentStatusService,
           frontEndInfoConfiguration
         )
-        val recordChecksResultsPage = controller.fileCheckResultsPage(consignmentId)
+        val recordChecksResultsPage = controller
+          .fileCheckResultsPage(consignmentId)
           .apply(FakeRequest(GET, s"consignment/$consignmentId/file-checks-results"))
 
         status(recordChecksResultsPage) mustBe FOUND
@@ -201,12 +201,18 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           "\"extensions\":{" +
           "\"code\":\"NOT_AUTHORISED\"}}]}"
 
-        wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-          .willReturn(okJson(exampleApiResponse)))
+        wiremockServer.stubFor(
+          post(urlEqualTo("/graphql"))
+            .willReturn(okJson(exampleApiResponse))
+        )
 
-        val results: Throwable = controller.fileCheckResultsPage(consignmentId).apply(
-          FakeRequest(GET, s"consignment/$consignmentId/file-checks-results")
-        ).failed.futureValue
+        val results: Throwable = controller
+          .fileCheckResultsPage(consignmentId)
+          .apply(
+            FakeRequest(GET, s"consignment/$consignmentId/file-checks-results")
+          )
+          .failed
+          .futureValue
 
         results.getMessage mustBe "User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '0a3f617c-04e8-41c2-9f24-99622a779528'"
       }
@@ -220,11 +226,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus,
-              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
           )
         )
-        val client = graphQLConfiguration.getClient[Data, Variables ]()
+        val client = graphQLConfiguration.getClient[Data, Variables]()
         val fileStatusResponse: String = client.GraphqlData(Option(data), List()).asJson.printWith(Printer(dropNullValues = false, ""))
 
         mockGraphqlResponse(userType, fileStatusResponse)
@@ -240,8 +245,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         )
 
         val recordCheckResultsPage = {
-          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
-          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId) }
+          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
@@ -264,8 +269,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus,
-              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -284,8 +288,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         )
 
         val recordCheckResultsPage = {
-          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
-          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId) }
+          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
@@ -293,8 +297,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           resultsPageAsString must include(expectedGenericErrorMessage)
         } else {
           resultsPageAsString must include(
-          """              <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more password protected files.</p>""" +
-          """<p>We cannot accept password protected files. Once removed or replaced, try uploading your folder again.</p>"""
+            """              <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more password protected files.</p>""" +
+              """<p>We cannot accept password protected files. Once removed or replaced, try uploading your folder again.</p>"""
           )
         }
 
@@ -316,8 +320,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus,
-              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -336,8 +339,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         )
 
         val recordCheckResultsPage = {
-          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
-          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId) }
+          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
@@ -345,7 +348,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           resultsPageAsString must include(expectedGenericErrorMessage)
         } else {
           resultsPageAsString must include(
-          """              <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more zip files.</p><p>
+            """              <p class="govuk-body govuk-!-font-weight-bold">Your folder contains one or more zip files.</p><p>
             |                We cannot accept zip files and similar archival package file formats.
             |                These commonly have file extensions such as .zip, .iso, .7z, .rar and others.
             |                please see our
@@ -376,8 +379,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val data = Data(
           Option(
-            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus,
-              FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+            GetConsignment(allChecksSucceeded = false, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
           )
         )
         val client = graphQLConfiguration.getClient[Data, Variables]()
@@ -396,8 +398,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         )
 
         val recordCheckResultsPage = {
-          if (userType == "judgment") {fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)}
-          else {fileCheckResultsController.fileCheckResultsPage(consignmentId)}
+          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId) }
+          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
@@ -432,7 +434,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, userType)
       setConsignmentReferenceResponse(wiremockServer)
 
-      val transferAlreadyCompletedPage = fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
+      val transferAlreadyCompletedPage = fileCheckResultsController
+        .judgmentFileCheckResultsPage(consignmentId)
         .apply(FakeRequest(GET, s"/$userType/$consignmentId/file-checks").withCSRFToken)
 
       val transferAlreadyCompletedPageAsString = contentAsString(transferAlreadyCompletedPage)
@@ -443,8 +446,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = userType)
       transferAlreadyCompletedPageAsString must include("<title>Transfer Already Completed</title>")
-      transferAlreadyCompletedPageAsString must include (
-      """                <h1 class="govuk-heading-l">Your transfer has already been completed</h1>
+      transferAlreadyCompletedPageAsString must include(
+        """                <h1 class="govuk-heading-l">Your transfer has already been completed</h1>
         |                <p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>""".stripMargin
       )
       transferAlreadyCompletedPageAsString must include(
@@ -474,28 +477,34 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val fileCheckResultsPage = url match {
           case "judgment" =>
             mockGraphqlResponse(consignmentType = "standard")
-            fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
-            .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks-results"))
+            fileCheckResultsController
+              .judgmentFileCheckResultsPage(consignmentId)
+              .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks-results"))
           case "consignment" =>
             mockGraphqlResponse(consignmentType = "judgment")
-            fileCheckResultsController.fileCheckResultsPage(consignmentId)
-            .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks-results"))
+            fileCheckResultsController
+              .fileCheckResultsPage(consignmentId)
+              .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks-results"))
         }
         status(fileCheckResultsPage) mustBe FORBIDDEN
       }
     }
   }
 
-  private def mockGraphqlResponse(consignmentType: String, fileStatusResponse: String = "", filePathResponse: String= "") = {
-    if(consignmentType == "judgment") {
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentFiles"))
-        .willReturn(okJson(filePathResponse)))
+  private def mockGraphqlResponse(consignmentType: String, fileStatusResponse: String = "", filePathResponse: String = "") = {
+    if (consignmentType == "judgment") {
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getConsignmentFiles"))
+          .willReturn(okJson(filePathResponse))
+      )
     }
-    if(fileStatusResponse.nonEmpty) {
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getFileCheckProgress"))
-        .willReturn(okJson(fileStatusResponse)))
+    if (fileStatusResponse.nonEmpty) {
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getFileCheckProgress"))
+          .willReturn(okJson(fileStatusResponse))
+      )
     }
     setConsignmentTypeResponse(wiremockServer, consignmentType)
   }

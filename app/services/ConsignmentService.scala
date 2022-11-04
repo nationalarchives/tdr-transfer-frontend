@@ -28,8 +28,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguration)
-                                  (implicit val ec: ExecutionContext) {
+class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
 
   private val getFileCheckProgressClient = graphqlConfiguration.getClient[gfcp.Data, gfcp.Variables]()
   private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
@@ -45,13 +44,12 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignments = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
 
-
   def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
     val variables = gfcp.Variables(consignmentId)
     sendApiRequest(getFileCheckProgressClient, gfcp.document, token, variables).map(data => {
       data.getConsignment match {
         case Some(progress) => progress
-        case None => throw new RuntimeException(s"No data found for file checks for consignment $consignmentId")
+        case None           => throw new RuntimeException(s"No data found for file checks for consignment $consignmentId")
       }
     })
   }
@@ -60,10 +58,12 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
     val variables: getConsignment.Variables = new getConsignment.Variables(consignmentId)
 
     sendApiRequest(getConsignmentClient, getConsignment.document, token, variables)
-      .map(data => data.getConsignment match {
-        case Some(consignment) => consignment
-        case None => throw new IllegalStateException(s"No consignment found for consignment $consignmentId")
-      })
+      .map(data =>
+        data.getConsignment match {
+          case Some(consignment) => consignment
+          case None              => throw new IllegalStateException(s"No consignment found for consignment $consignmentId")
+        }
+      )
   }
 
   def getConsignmentFileMetadata(consignmentId: UUID, token: BearerAccessToken, fileFilters: Option[FileFilters] = None): Future[gcfm.GetConsignment] = {
@@ -71,14 +71,15 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       new GetConsignmentFilesMetadata.getConsignmentFilesMetadata.Variables(consignmentId, fileFilters)
 
     sendApiRequest(getConsignmentFilesMetadataClient, gcfm.document, token, variables)
-      .map(data => data.getConsignment match {
-        case Some(consignment) => consignment
-        case None => throw new IllegalStateException(s"No consignment found for consignment $consignmentId")
-      })
+      .map(data =>
+        data.getConsignment match {
+          case Some(consignment) => consignment
+          case None              => throw new IllegalStateException(s"No consignment found for consignment $consignmentId")
+        }
+      )
   }
 
-  def consignmentExists(consignmentId: UUID,
-                        token: BearerAccessToken): Future[Boolean] = {
+  def consignmentExists(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
     val variables: getConsignment.Variables = new getConsignment.Variables(consignmentId)
 
     sendApiRequest(getConsignmentClient, getConsignment.document, token, variables)
@@ -87,12 +88,16 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
   def getConsignmentType(consignmentId: UUID, token: BearerAccessToken): Future[String] = {
     sendApiRequest(gctClient, gct.document, token, gct.Variables(consignmentId))
-      .map(data => data.getConsignment.flatMap(_.consignmentType)
-        .getOrElse(throw new IllegalStateException(s"No consignment type found for consignment $consignmentId")))
+      .map(data =>
+        data.getConsignment
+          .flatMap(_.consignmentType)
+          .getOrElse(throw new IllegalStateException(s"No consignment type found for consignment $consignmentId"))
+      )
   }
 
   def createConsignment(seriesId: Option[UUID], token: Token): Future[addConsignment.AddConsignment] = {
-    val consignmentType: String = if (token.isJudgmentUser) { "judgment" } else { "standard" }
+    val consignmentType: String = if (token.isJudgmentUser) { "judgment" }
+    else { "standard" }
     val addConsignmentInput: AddConsignmentInput = AddConsignmentInput(seriesId, consignmentType)
     val variables: addConsignment.Variables = AddConsignment.addConsignment.Variables(addConsignmentInput)
 
@@ -139,28 +144,29 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
     val variables: getConsignmentFiles.Variables = new getConsignmentFiles.Variables(consignmentId)
 
     sendApiRequest(getConsignmentFilesClient, getConsignmentFiles.document, token, variables)
-      .map(data => data.getConsignment.toList.flatMap(_.files)).map {
-      def sortByName(l: File, r: File): Boolean = natural().compare(l.name, r.name) < 0
+      .map(data => data.getConsignment.toList.flatMap(_.files))
+      .map {
+        def sortByName(l: File, r: File): Boolean = natural().compare(l.name, r.name) < 0
 
         files =>
-      val grouped = files.groupBy(_.parentId)
-      val parent = files.find(_.parentId.isEmpty).getOrElse(throw new Exception(s"Parent ID not found for consignment $consignmentId"))
+          val grouped = files.groupBy(_.parentId)
+          val parent = files.find(_.parentId.isEmpty).getOrElse(throw new Exception(s"Parent ID not found for consignment $consignmentId"))
 
-      def getChildren(parentId: UUID): List[File] = {
-        val files: List[Files] = grouped.getOrElse(Option(parentId), Nil)
-        files.map(file => {
-          if (grouped.contains(Option(file.fileId))) {
-            val children = getChildren(file.fileId)
+          def getChildren(parentId: UUID): List[File] = {
+            val files: List[Files] = grouped.getOrElse(Option(parentId), Nil)
+            files.map(file => {
+              if (grouped.contains(Option(file.fileId))) {
+                val children = getChildren(file.fileId)
 
-            File(file.fileId, file.fileName.getOrElse(""), file.fileType, children.sortWith(sortByName))
-          } else {
-            File(file.fileId, file.fileName.getOrElse(""), file.fileType, Nil)
+                File(file.fileId, file.fileName.getOrElse(""), file.fileType, children.sortWith(sortByName))
+              } else {
+                File(file.fileId, file.fileName.getOrElse(""), file.fileType, Nil)
+              }
+            })
           }
-        })
+          val children = getChildren(parent.fileId).sortWith(sortByName)
+          File(parent.fileId, parent.fileName.getOrElse(""), parent.fileType, children)
       }
-      val children = getChildren(parent.fileId).sortWith(sortByName)
-      File(parent.fileId, parent.fileName.getOrElse(""), parent.fileType, children)
-    }
   }
 
   def updateSeriesIdOfConsignment(consignmentId: UUID, seriesId: UUID, token: BearerAccessToken): Future[Boolean] = {

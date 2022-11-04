@@ -36,7 +36,8 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.viewConsignments()
+      val response = controller
+        .viewConsignments()
         .apply(FakeRequest(GET, s"/view-history"))
       val viewHistoryPageAsString = contentAsString(response)
 
@@ -46,8 +47,7 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
       contentType(response) mustBe Some("text/html")
 
       viewHistoryPageAsString.contains("<h1 class=\"govuk-heading-l\">Transfer history</h1>") mustBe true
-      viewHistoryPageAsString.contains(
-        s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
+      viewHistoryPageAsString.contains(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
            |                  <th scope="col" class="govuk-table__header">Status</th>
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
            |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin) mustBe true
@@ -63,7 +63,8 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller.viewConsignments()
+      val response = controller
+        .viewConsignments()
         .apply(FakeRequest(GET, s"/view-history"))
       val viewHistoryPageAsString = contentAsString(response)
 
@@ -73,8 +74,7 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
       contentType(response) mustBe Some("text/html")
 
       viewHistoryPageAsString.contains("<h1 class=\"govuk-heading-l\">Transfer history</h1>") mustBe true
-      viewHistoryPageAsString.contains(
-        s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
+      viewHistoryPageAsString.contains(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
            |                  <th scope="col" class="govuk-table__header">Status</th>
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
            |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin) mustBe true
@@ -82,14 +82,16 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
       viewHistoryPageAsString.contains(
         """              <tbody class="govuk-table__body">""" +
           "\n                " +
-          "\n              </tbody>") mustBe true
+          "\n              </tbody>"
+      ) mustBe true
     }
 
     "redirect to the login page if the page is accessed by a logged out user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
-      val response = controller.viewConsignments()
+      val response = controller
+        .viewConsignments()
         .apply(FakeRequest(GET, s"/view-history"))
 
       status(response) mustBe FOUND

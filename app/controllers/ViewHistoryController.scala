@@ -13,18 +13,15 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
 
-class ViewHistoryController @Inject()(val consignmentService: ConsignmentService,
-                                      val keycloakConfiguration: KeycloakConfiguration,
-                                      val controllerComponents: SecurityComponents
-                                     ) extends TokenSecurity {
+class ViewHistoryController @Inject() (val consignmentService: ConsignmentService, val keycloakConfiguration: KeycloakConfiguration, val controllerComponents: SecurityComponents)
+    extends TokenSecurity {
   def viewConsignments(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
-
     val consignmentFilters = ConsignmentFilters(Some(request.token.userId), None)
     for {
       consignmentHistory <- consignmentService.getConsignments(consignmentFilters, request.token.bearerAccessToken)
       consignments = consignmentHistory.edges match {
         case Some(edges) => edges.flatMap(createView)
-        case None => Nil
+        case None        => Nil
       }
     } yield {
       Ok(views.html.viewHistory(consignments, request.token.name, request.token.email))
