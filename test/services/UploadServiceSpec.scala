@@ -30,7 +30,7 @@ class UploadServiceSpec extends AnyFlatSpec {
       .thenReturn(graphQlClientForStartUpload)
 
     val graphQlResponse =
-      GraphQlResponse(Some(su.Data("ok")),Nil)
+      GraphQlResponse(Some(su.Data("ok")), Nil)
     when(graphQlClientForStartUpload.getResult(token, su.document, Some(su.Variables(input))))
       .thenReturn(Future.successful(graphQlResponse))
 
@@ -48,7 +48,7 @@ class UploadServiceSpec extends AnyFlatSpec {
     val input = afam.AddFilesAndMetadata(UUID.randomUUID(), 0)
 
     val graphQlResponse =
-      GraphQlResponse(Some(afam.Data(List(input))),Nil)
+      GraphQlResponse(Some(afam.Data(List(input))), Nil)
     when(graphQlClientForAddFilesAndMetadata.getResult(token, afam.document, Some(afam.Variables(addFileAndMetadataInput))))
       .thenReturn(Future.successful(graphQlResponse))
 
@@ -66,7 +66,7 @@ class UploadServiceSpec extends AnyFlatSpec {
     val input = ConsignmentStatusInput(UUID.randomUUID(), "type", "value".some)
 
     val graphQlResponse =
-      GraphQlResponse(Some(ucs.Data(Option(1))),Nil)
+      GraphQlResponse(Some(ucs.Data(Option(1))), Nil)
     when(graphQlClientForUpdateConsignmentStatus.getResult(token, ucs.document, Some(ucs.Variables(input))))
       .thenReturn(Future.successful(graphQlResponse))
 

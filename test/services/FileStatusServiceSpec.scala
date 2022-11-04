@@ -30,7 +30,7 @@ class FileStatusServiceSpec extends AnyFlatSpec {
       .thenReturn(graphQlClientForAddFileStatus)
 
     val graphQlResponse =
-      GraphQlResponse(Some(afs.Data(AddFileStatus(input.fileId, "Upload", "Success"))),Nil)
+      GraphQlResponse(Some(afs.Data(AddFileStatus(input.fileId, "Upload", "Success"))), Nil)
     when(graphQlClientForAddFileStatus.getResult(token, afs.document, Some(afs.Variables(input))))
       .thenReturn(Future.successful(graphQlResponse))
 

@@ -42,8 +42,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           val parentFile = gcf.GetConsignment.Files(UUID.randomUUID(), Option("parent"), Option("Folder"), None, emptyMetadata)
           val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile), "standard")
 
-          val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-          val result = additionalMetadataController.getAllFiles(consignmentId, metadataType)
+          val additionalMetadataController =
+            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val result = additionalMetadataController
+            .getAllFiles(consignmentId, metadataType)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
           val content = contentAsString(result)
 
@@ -60,8 +62,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           val descendantTwoFile = gcf.GetConsignment.Files(descendantTwoFileId, Option("descendantTwoFile"), Option("File"), Option(descendantOneFileId), emptyMetadata)
           val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile, descendantOneFile, descendantTwoFile), "standard")
 
-          val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-          val result = additionalMetadataController.getAllFiles(consignmentId, metadataType)
+          val additionalMetadataController =
+            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val result = additionalMetadataController
+            .getAllFiles(consignmentId, metadataType)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
 
           val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
@@ -74,16 +78,20 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       "return forbidden for a judgment user" in {
         val consignmentService = mockConsignmentService(Nil, "judgment")
-        val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-        val result = additionalMetadataController.getAllFiles(consignmentId, "closure")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val result = additionalMetadataController
+          .getAllFiles(consignmentId, "closure")
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
         playStatus(result) must equal(FORBIDDEN)
       }
 
       "return a redirect the login page for a logged out user" in {
         val consignmentService = mockConsignmentService(Nil, "standard")
-        val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
-        val result = additionalMetadataController.getAllFiles(consignmentId, "closure")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+        val result = additionalMetadataController
+          .getAllFiles(consignmentId, "closure")
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
         playStatus(result) must equal(FOUND)
       }
@@ -92,8 +100,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     "submitFiles" should {
       "redirect to the closure metadata page with the correct file ids and closure metadata type" in {
         val consignmentService = mockConsignmentService(Nil, "standard")
-        val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-        val result = additionalMetadataController.submitFiles(consignmentId, "closure")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, "closure")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure-status")
@@ -101,8 +111,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       "redirect to the metadata summary page if the metadata type is descriptive" in {
         val consignmentService = mockConsignmentService(Nil, "standard")
-        val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-        val result = additionalMetadataController.submitFiles(consignmentId, "descriptive")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, "descriptive")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata")
@@ -110,16 +122,20 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
       "return forbidden for a judgment user" in {
         val consignmentService = mockConsignmentService(Nil, "judgment")
-        val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-        val result = additionalMetadataController.submitFiles(consignmentId, "closure")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, "closure")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
         playStatus(result) must equal(FORBIDDEN)
       }
 
       "return a redirect the login page for a logged out user" in {
         val consignmentService = mockConsignmentService(Nil, "standard")
-        val additionalMetadataController = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-        val result = additionalMetadataController.submitFiles(consignmentId, "descriptive")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, "descriptive")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
       }
@@ -141,9 +157,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     val graphqlClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables]()
     val dataString = graphqlClient.GraphqlData(Option(gcf.Data(Option(consignmentData)))).asJson.printWith(Printer.noSpaces)
     setConsignmentTypeResponse(wiremockServer, consignmentType)
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentFiles"))
-      .willReturn(okJson(dataString)))
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentFiles"))
+        .willReturn(okJson(dataString))
+    )
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     consignmentService
   }
