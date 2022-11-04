@@ -12,12 +12,14 @@ import graphql.codegen.GetConsignmentReference.getConsignmentReference
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
+import graphql.codegen.GetConsignments.{getConsignments => gcs}
 import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
 import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFiles => gcpf}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
-import graphql.codegen.types.{AddConsignmentInput, AllDescendantsInput, FileFilters, PaginationInput, UpdateConsignmentSeriesIdInput}
+import graphql.codegen.types.{AddConsignmentInput, AllDescendantsInput, ConsignmentFilters, FileFilters, PaginationInput, UpdateConsignmentSeriesIdInput}
 import graphql.codegen.{AddConsignment, GetConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
 import graphql.codegen.GetAllDescendants.{getAllDescendantIds => gadids}
+import graphql.codegen.GetConsignments.getConsignments.Consignments
 import services.ApiErrorHandling._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
@@ -42,6 +44,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   private val getConsignmentExportClient = graphqlConfiguration.getClient[getConsignmentForExport.Data, getConsignmentForExport.Variables]()
   private val getConsignmentPaginatedFilesClient = graphqlConfiguration.getClient[gcpf.Data, gcpf.Variables]()
   private val updateConsignmentSeriesIdClient = graphqlConfiguration.getClient[updateConsignmentSeriesId.Data, updateConsignmentSeriesId.Variables]()
+  private val getConsignments = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
 
 
@@ -169,5 +172,10 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
           data.allDescendants
         }
       )
+  }
+
+  def getConsignments(consignmentFilters: ConsignmentFilters, token: BearerAccessToken): Future[Consignments] = {
+    sendApiRequest(getConsignments, gcs.document, token, gcs.Variables(100, None, Option(consignmentFilters)))
+      .map(data => data.consignments)
   }
 }
