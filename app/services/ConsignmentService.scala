@@ -1,26 +1,26 @@
 package services
 
+import com.google.common.collect.Ordering.natural
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles
+import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentReference.getConsignmentReference
 import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
-import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
-import graphql.codegen.GetConsignments.{getConsignments => gcs}
-import graphql.codegen.GetFileCheckProgress.getFileCheckProgress
-import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFiles => gcpf}
-import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
-import graphql.codegen.types.{AddConsignmentInput, AllDescendantsInput, ConsignmentFilters, FileFilters, PaginationInput, UpdateConsignmentSeriesIdInput}
-import graphql.codegen.{AddConsignment, GetConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
-import graphql.codegen.GetAllDescendants.{getAllDescendantIds => gadids}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
+import graphql.codegen.GetConsignments.{getConsignments => gcs}
+import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
+import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
+import graphql.codegen.types.{AddConsignmentInput, ConsignmentFilters, FileFilters, UpdateConsignmentSeriesIdInput}
+import graphql.codegen.{AddConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
 import services.ApiErrorHandling._
+import services.ConsignmentService.File
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.util.UUID
@@ -31,18 +31,16 @@ import scala.concurrent.{ExecutionContext, Future}
 class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguration)
                                   (implicit val ec: ExecutionContext) {
 
-  private val getAllDescendantsClient = graphqlConfiguration.getClient[gadids.Data, gadids.Variables]()
   private val getFileCheckProgressClient = graphqlConfiguration.getClient[gfcp.Data, gfcp.Variables]()
   private val getConsignmentClient = graphqlConfiguration.getClient[getConsignment.Data, getConsignment.Variables]()
   private val getConsignmentFilesMetadataClient = graphqlConfiguration.getClient[gcfm.Data, gcfm.Variables]()
   private val addConsignmentClient = graphqlConfiguration.getClient[addConsignment.Data, addConsignment.Variables]()
-  private val getConsignmentFileCheckClient = graphqlConfiguration.getClient[getFileCheckProgress.Data, getFileCheckProgress.Variables]()
+  private val getConsignmentFileCheckClient = graphqlConfiguration.getClient[gfcp.Data, gfcp.Variables]()
   private val getConsignmentFolderDetailsClient = graphqlConfiguration.getClient[getConsignmentFolderDetails.Data, getConsignmentFolderDetails.Variables]()
   private val getConsignmentSummaryClient = graphqlConfiguration.getClient[getConsignmentSummary.Data, getConsignmentSummary.Variables]()
   private val getConsignmentReferenceClient = graphqlConfiguration.getClient[getConsignmentReference.Data, getConsignmentReference.Variables]()
   private val getConsignmentFilesClient = graphqlConfiguration.getClient[getConsignmentFiles.Data, getConsignmentFiles.Variables]()
   private val getConsignmentExportClient = graphqlConfiguration.getClient[getConsignmentForExport.Data, getConsignmentForExport.Variables]()
-  private val getConsignmentPaginatedFilesClient = graphqlConfiguration.getClient[gcpf.Data, gcpf.Variables]()
   private val updateConsignmentSeriesIdClient = graphqlConfiguration.getClient[updateConsignmentSeriesId.Data, updateConsignmentSeriesId.Variables]()
   private val getConsignments = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
@@ -59,7 +57,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
   }
 
   def getConsignmentDetails(consignmentId: UUID, token: BearerAccessToken): Future[getConsignment.GetConsignment] = {
-    val variables: getConsignment.Variables = new GetConsignment.getConsignment.Variables(consignmentId)
+    val variables: getConsignment.Variables = new getConsignment.Variables(consignmentId)
 
     sendApiRequest(getConsignmentClient, getConsignment.document, token, variables)
       .map(data => data.getConsignment match {
@@ -81,7 +79,7 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
 
   def consignmentExists(consignmentId: UUID,
                         token: BearerAccessToken): Future[Boolean] = {
-    val variables: getConsignment.Variables = new GetConsignment.getConsignment.Variables(consignmentId)
+    val variables: getConsignment.Variables = new getConsignment.Variables(consignmentId)
 
     sendApiRequest(getConsignmentClient, getConsignment.document, token, variables)
       .map(data => data.getConsignment.isDefined)
@@ -102,10 +100,10 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       .map(data => data.addConsignment)
   }
 
-  def getConsignmentFileChecks(consignmentId: UUID, token: BearerAccessToken): Future[getFileCheckProgress.GetConsignment] = {
-    val variables: getFileCheckProgress.Variables = new GetFileCheckProgress.getFileCheckProgress.Variables(consignmentId)
+  def getConsignmentFileChecks(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
+    val variables: gfcp.Variables = new GetFileCheckProgress.getFileCheckProgress.Variables(consignmentId)
 
-    sendApiRequest(getConsignmentFileCheckClient, getFileCheckProgress.document, token, variables)
+    sendApiRequest(getConsignmentFileCheckClient, gfcp.document, token, variables)
       .map(data => data.getConsignment.get)
   }
 
@@ -137,6 +135,34 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       .map(data => data.getConsignment.get)
   }
 
+  def getAllConsignmentFiles(consignmentId: UUID, token: BearerAccessToken): Future[File] = {
+    val variables: getConsignmentFiles.Variables = new getConsignmentFiles.Variables(consignmentId)
+
+    sendApiRequest(getConsignmentFilesClient, getConsignmentFiles.document, token, variables)
+      .map(data => data.getConsignment.toList.flatMap(_.files)).map {
+      def sortByName(l: File, r: File): Boolean = natural().compare(l.name, r.name) < 0
+
+        files =>
+      val grouped = files.groupBy(_.parentId)
+      val parent = files.find(_.parentId.isEmpty).getOrElse(throw new Exception(s"Parent ID not found for consignment $consignmentId"))
+
+      def getChildren(parentId: UUID): List[File] = {
+        val files: List[Files] = grouped.getOrElse(Option(parentId), Nil)
+        files.map(file => {
+          if (grouped.contains(Option(file.fileId))) {
+            val children = getChildren(file.fileId)
+
+            File(file.fileId, file.fileName.getOrElse(""), file.fileType, children.sortWith(sortByName))
+          } else {
+            File(file.fileId, file.fileName.getOrElse(""), file.fileType, Nil)
+          }
+        })
+      }
+      val children = getChildren(parent.fileId).sortWith(sortByName)
+      File(parent.fileId, parent.fileName.getOrElse(""), parent.fileType, children)
+    }
+  }
+
   def updateSeriesIdOfConsignment(consignmentId: UUID, seriesId: UUID, token: BearerAccessToken): Future[Boolean] = {
     val updateConsignmentSeriesIdInput = UpdateConsignmentSeriesIdInput(consignmentId, seriesId)
     val variables = new updateConsignmentSeriesId.Variables(updateConsignmentSeriesIdInput)
@@ -152,30 +178,11 @@ class ConsignmentService @Inject()(val graphqlConfiguration: GraphQLConfiguratio
       .map(data => data.getConsignment.get)
   }
 
-  def getConsignmentPaginatedFile(consignmentId: UUID, page: Int, limit: Option[Int],
-                                  selectedFolderId: UUID, token: BearerAccessToken): Future[gcpf.GetConsignment] = {
-    val fileFiltersInput = Some(FileFilters(None, None, parentId = Some(selectedFolderId)))
-    val paginatedInput = Some(PaginationInput(limit, Some(page), None, fileFiltersInput))
-    val variables: gcpf.Variables = new gcpf.Variables(consignmentId, paginatedInput)
-
-    sendApiRequest(getConsignmentPaginatedFilesClient, gcpf.document, token, variables)
-      .map(data => data.getConsignment.get)
-  }
-
-  def getAllDescendants(consignmentId: UUID, parentIds: Set[UUID], token: BearerAccessToken): Future[List[gadids.AllDescendants]] = {
-    val input = AllDescendantsInput(consignmentId, parentIds.toList)
-    val variables: gadids.Variables = new gadids.Variables(input)
-
-    sendApiRequest(getAllDescendantsClient, gadids.document, token, variables)
-      .map(
-        data => {
-          data.allDescendants
-        }
-      )
-  }
-
   def getConsignments(consignmentFilters: ConsignmentFilters, token: BearerAccessToken): Future[Consignments] = {
     sendApiRequest(getConsignments, gcs.document, token, gcs.Variables(100, None, Option(consignmentFilters)))
       .map(data => data.consignments)
   }
+}
+object ConsignmentService {
+  case class File(id: UUID, name: String, fileType: Option[String], children: List[File])
 }
