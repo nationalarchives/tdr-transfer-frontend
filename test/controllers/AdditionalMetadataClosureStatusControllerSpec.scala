@@ -352,7 +352,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         |                            </ul>""".stripMargin
     )
 
-    val cancelHref = s"/consignment/$consignmentId/additional-metadata/closure/$parentFolderId/1"
+    val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure/"
     closureStatusPage.contains(
       s"""<div class="govuk-button-group">
          |                        <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">

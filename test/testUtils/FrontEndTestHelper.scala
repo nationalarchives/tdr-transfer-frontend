@@ -125,10 +125,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           gcfm.GetConsignment.Files.FileMetadata("TitleClosed", "false"),
           gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path")
         ),
-        gcfm.GetConsignment.Files.Metadata(Some("mock code1"), Some(4), Some(closureStartDate), Some(foiExampleAsserted), None)
+        gcfm.GetConsignment.Files.Metadata(Some("mock code1"), Some(4), Some(closureStartDate), Some(foiExampleAsserted), None, None)
       )
     } else {
-      (Nil, gcfm.GetConsignment.Files.Metadata(None, None, None, None, None))
+      (Nil, gcfm.GetConsignment.Files.Metadata(None, None, None, None, None, None))
     }
     val consignmentFilesMetadata = gcfm.Data(
       Option(
@@ -320,6 +320,12 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     "User type",
     "judgment",
     "standard"
+  )
+
+  val metadataType: TableFor1[String] = Table(
+    "Metadata Type",
+    "closure",
+    "descriptive"
   )
 
   val userChecks: TableFor2[KeycloakConfiguration, String] = Table(
