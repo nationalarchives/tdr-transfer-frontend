@@ -1,4 +1,3 @@
-
 name := """tdr-transfer-frontend"""
 organization := "tna"
 maintainer := "TDRTeam@nationalarchives.gov.uk"
@@ -25,14 +24,14 @@ val sttpVersion = "2.3.0"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
-  "org.pac4j" % "pac4j-http" % pac4jVersion exclude("com.fasterxml.jackson.core", "jackson-databind"),
-  "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude("commons-io", "commons-io") exclude("com.fasterxml.jackson.core", "jackson-databind"),
+  "org.pac4j" % "pac4j-http" % pac4jVersion exclude ("com.fasterxml.jackson.core", "jackson-databind"),
+  "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude ("commons-io", "commons-io") exclude ("com.fasterxml.jackson.core", "jackson-databind"),
   "io.circe" %% "circe-core" % "0.14.3",
   "io.circe" %% "circe-generic" % "0.14.3",
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.69",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.71",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.94",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.279",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
