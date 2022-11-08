@@ -117,7 +117,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "descriptive")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure/selected-summary")
       }
 
       "return forbidden for a judgment user" in {
