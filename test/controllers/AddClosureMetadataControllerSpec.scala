@@ -154,7 +154,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       playStatus(addClosureMetadataPage) mustBe OK
       contentType(addClosureMetadataPage) mustBe Some("text/html")
       addClosureMetadataPageAsString must include(
-        "<h2>original/file/path</h2>"
+        "<h3>original/file/path</h3>"
       )
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addClosureMetadataPageAsString, userType = "standard")
       checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString)

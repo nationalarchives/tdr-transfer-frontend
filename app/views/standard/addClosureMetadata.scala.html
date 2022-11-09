@@ -20,10 +20,7 @@
       <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("addClosureMetadata.progress"))
       <h1 class="govuk-heading-l">@pageInfo.pageTitle</h1>
-        @for(file <- controllerInfo.files) {
-          <h2>@file.name</h2>
-          <input type="hidden" value="@file.fileId" name="fileIds[]">
-        }
+        @for(file <- controllerInfo.files) {<h3>@file.name</h3>}
       <p class="govuk-body">@pageInfo.pageDescription</p>
         @errorSummary(
           pageInfo.fieldsToApplyToFile.collect {
