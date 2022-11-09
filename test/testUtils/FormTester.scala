@@ -1,6 +1,7 @@
 package testUtils
 
 import org.scalatest.matchers.must.Matchers._
+import testUtils.DefaultMockFormOptions.MockInputOption
 
 class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = " govuk-checkboxes--small") {
   def generateWaysToIncorrectlySubmitAForm(value: String = "true", combineOptionNameWithValue: Boolean = false): Seq[Seq[(String, String)]] = {
@@ -219,16 +220,5 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
     }
   }
 }
-
-case class MockInputOption(
-    name: String,
-    label: String = "",
-    id: String = "",
-    value: String = "",
-    placeholder: String = "",
-    fieldType: String = "",
-    errorMessage: String = "",
-    errorMessageDependency: String = ""
-) // some fields (like month) can only display their error if another field (like day) has none
 
 case class OptionStatus(valueHasBeenEnteredOrSelected: Boolean, aDifferentValueFromSameGroupHasBeenSelected: Boolean)

@@ -27,7 +27,8 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
 import services.{ConsignmentService, CustomMetadataService}
-import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper, MockInputOption}
+import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
+import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions, MockInputOption}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.util.UUID
@@ -55,132 +56,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     )
   )
 
-  val expectedDefaultOptions: List[MockInputOption] = List(
-    MockInputOption(
-      name = "inputdate-ClosureStartDate-day",
-      label = "Day",
-      id = "date-input-ClosureStartDate-day",
-      placeholder = "dd",
-      fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Day."
-    ),
-    MockInputOption(
-      name = "inputdate-ClosureStartDate-month",
-      label = "Month",
-      id = "date-input-ClosureStartDate-month",
-      placeholder = "mm",
-      fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Month.",
-      errorMessageDependency = "inputdate-ClosureStartDate-day"
-    ),
-    MockInputOption(
-      name = "inputdate-ClosureStartDate-year",
-      label = "Year",
-      id = "date-input-ClosureStartDate-year",
-      placeholder = "yyyy",
-      fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Year.",
-      errorMessageDependency = "inputdate-ClosureStartDate-month"
-    ),
-    MockInputOption(
-      name = "inputdate-FoiExemptionAsserted-day",
-      label = "Day",
-      id = "date-input-FoiExemptionAsserted-day",
-      placeholder = "dd",
-      fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Day."
-    ),
-    MockInputOption(
-      name = "inputdate-FoiExemptionAsserted-month",
-      label = "Month",
-      id = "date-input-FoiExemptionAsserted-month",
-      placeholder = "mm",
-      fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Month.",
-      errorMessageDependency = "inputdate-FoiExemptionAsserted-day"
-    ),
-    MockInputOption(
-      name = "inputdate-FoiExemptionAsserted-year",
-      label = "Year",
-      id = "date-input-FoiExemptionAsserted-year",
-      placeholder = "yyyy",
-      fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Year.",
-      errorMessageDependency = "inputdate-FoiExemptionAsserted-month"
-    ),
-    MockInputOption(
-      name = "inputnumeric-ClosurePeriod-years",
-      label = "years",
-      id = "years",
-      fieldType = "inputNumeric",
-      errorMessage = s"There was no number entered for the Closure period."
-    ),
-    MockInputOption(
-      name = "inputdropdown-FoiExemptionCode",
-      id = "inputdropdown-FoiExemptionCode",
-      label = "mock code1",
-      value = "mock code1",
-      fieldType = "inputDropdown",
-      errorMessage = "There was no value selected for the FOI exemption code."
-    ),
-    MockInputOption(
-      name = "inputdropdown-FoiExemptionCode",
-      id = "inputdropdown-FoiExemptionCode",
-      label = "mock code2",
-      value = "mock code2",
-      fieldType = "inputDropdown",
-      errorMessage = "There was no value selected for the FOI exemption code."
-    ),
-    MockInputOption(
-      name = "inputradio-TitleClosed",
-      label = "Yes",
-      id = "inputradio-TitleClosed-Yes",
-      value = "yes",
-      fieldType = "inputRadio",
-      errorMessage = s"There was no value selected for Is the title closed?."
-    ),
-    MockInputOption(
-      name = "inputradio-TitleClosed",
-      label = "No",
-      id = "inputradio-TitleClosed-No",
-      value = "no",
-      errorMessage = s"There was no value selected for Is the title closed?.",
-      fieldType = "inputRadio"
-    ),
-    MockInputOption(
-      name = "inputradio-DescriptionClosed",
-      label = "Yes",
-      id = "inputradio-DescriptionClosed-Yes",
-      value = "yes",
-      fieldType = "inputRadio",
-      errorMessage = s"There was no value selected for Is the description closed?."
-    ),
-    MockInputOption(
-      name = "inputradio-DescriptionClosed",
-      label = "No",
-      id = "inputradio-DescriptionClosed-No",
-      value = "no",
-      errorMessage = s"There was no value selected for Is the description closed?.",
-      fieldType = "inputRadio"
-    )
-  )
-
-  val expectedDependencyDefaultOptions: List[MockInputOption] = List(
-    MockInputOption(
-      name = "inputtext-TitleAlternate-TitleAlternate",
-      id = "TitleAlternate",
-      fieldType = "inputText",
-      errorMessage = s"There was no text entered for the Alternate Title."
-    ),
-    MockInputOption(
-      name = "inputtext-DescriptionAlternate-DescriptionAlternate",
-      id = "DescriptionAlternate",
-      fieldType = "inputText",
-      errorMessage = s"There was no text entered for the Alternate Description."
-    )
-  )
   private val fieldAndValueSelectedPriorToMainPage: List[String] = List("ClosureType-Closed")
-  private val dependencyFormTester = new FormTester(expectedDependencyDefaultOptions)
+  private val dependencyFormTester = new FormTester(expectedClosureDependencyDefaultOptions)
   private val expectedDependencyDefaultForm: Seq[Seq[(String, String)]] =
     dependencyFormTester.generateWaysToIncorrectlySubmitAForm("value", combineOptionNameWithValue = true)
 
@@ -197,7 +74,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "render the add closure metadata page, with the default form, if file has no closure metadata, for an authenticated standard user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val formTester = new FormTester(expectedDefaultOptions)
+      val formTester = new FormTester(expectedClosureDefaultOptions)
 
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -252,7 +129,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         "inputdate-ClosureStartDate-year" -> "1990",
         "inputnumeric-ClosurePeriod-years" -> "4"
       )
-      val expectedOptions = expectedDefaultOptions.map { mockOption =>
+      val expectedOptions = expectedClosureDefaultOptions.map { mockOption =>
         newInputTextValues.get(mockOption.name) match {
           case Some(newValue) => mockOption.copy(value = newValue)
           case None           => mockOption
@@ -317,7 +194,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "rerender form with errors for each field if empty form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val formTester = new FormTester(expectedDefaultOptions)
+      val formTester = new FormTester(expectedClosureDefaultOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
@@ -353,7 +230,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "rerender form with user's data if form is partially submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val formTester = new FormTester(expectedDefaultOptions)
+      val formTester = new FormTester(expectedClosureDefaultOptions)
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
@@ -389,7 +266,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "display the most immediate date error if more than one date input (per date field) has an mistake in it" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val formTester = new FormTester(expectedDefaultOptions)
+      val formTester = new FormTester(expectedClosureDefaultOptions)
 
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -601,7 +478,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
           val addClosureMetadataController = instantiateAddClosureMetadataController()
           val formTester = new FormTester(
-            expectedDependencyDefaultOptions.filter(mockInputOption => dependencyInputNames.contains(mockInputOption.name))
+            expectedClosureDependencyDefaultOptions.filter(mockInputOption => dependencyInputNames.contains(mockInputOption.name))
           )
 
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
@@ -633,7 +510,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         " for an authenticated standard user, with the file's closure metadata" in {
           val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
           val addClosureMetadataController = instantiateAddClosureMetadataController()
-          val formTester = new FormTester(expectedDependencyDefaultOptions.filter(mockInputOption => dependencyInputNames.contains(mockInputOption.name)))
+          val formTester = new FormTester(expectedClosureDependencyDefaultOptions.filter(mockInputOption => dependencyInputNames.contains(mockInputOption.name)))
 
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
           setConsignmentTypeResponse(wiremockServer, "standard")
@@ -670,7 +547,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         " for an authenticated standard user, if empty form is submitted" in {
           val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
           val addClosureMetadataController = instantiateAddClosureMetadataController()
-          val formTester = new FormTester(expectedDependencyDefaultOptions.filter(mockInputOption => dependencyInputNames.contains(mockInputOption.name)))
+          val formTester = new FormTester(expectedClosureDependencyDefaultOptions.filter(mockInputOption => dependencyInputNames.contains(mockInputOption.name)))
 
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
           setConsignmentTypeResponse(wiremockServer, "standard")

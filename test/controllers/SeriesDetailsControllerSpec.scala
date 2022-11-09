@@ -19,7 +19,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
-import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper, MockInputOption}
+import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
+import testUtils.DefaultMockFormOptions.{getExpectedSeriesDefaultOptions, MockInputOption}
 
 import java.util.UUID
 import scala.collection.immutable.TreeMap
@@ -43,23 +44,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  val expectedDefaultOptions: List[MockInputOption] = List(
-    MockInputOption(
-      name = "series",
-      id = "series",
-      placeholder = "Please choose...",
-      fieldType = "inputDropdown",
-      errorMessage = "error.required"
-    ),
-    MockInputOption(
-      name = "series",
-      id = "series",
-      label = "MOCK1",
-      value = s"$seriesId",
-      fieldType = "inputDropdown",
-      errorMessage = "error.required"
-    )
-  )
+  val expectedSeriesDefaultOptions: List[MockInputOption] = getExpectedSeriesDefaultOptions(seriesId)
 
   val checkPageForStaticElements = new CheckPageForStaticElements
 
@@ -76,7 +61,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val formTester = new FormTester(expectedDefaultOptions)
+      val formTester = new FormTester(expectedSeriesDefaultOptions)
       val expectedDefaultForm = Map("series" -> "")
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
@@ -192,7 +177,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val formTester = new FormTester(expectedDefaultOptions)
+      val formTester = new FormTester(expectedSeriesDefaultOptions)
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit(consignmentId).apply(FakeRequest(POST, "/series").withCSRFToken)
