@@ -106,8 +106,16 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
           field.isInstanceOf[RadioButtonGroupField] should be(true)
           verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
         case Text =>
-          field.isInstanceOf[DropdownField] should be(true)
-          verifyText(field.asInstanceOf[DropdownField], property)
+          property.propertyType match {
+            case Defined =>
+              field.isInstanceOf[DropdownField] should be(true)
+              verifyText(field.asInstanceOf[DropdownField], property)
+            case Supplied =>
+              field.isInstanceOf[TextField] should be(true)
+              field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue(property.name, property.defaultValue.getOrElse("")))
+            case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
+          }
+
         case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
       }
       field.fieldDescription should equal(property.description.getOrElse(""))
@@ -135,8 +143,15 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
           field.isInstanceOf[RadioButtonGroupField] should be(true)
           verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
         case Text =>
-          field.isInstanceOf[DropdownField] should be(true)
-          verifyText(field.asInstanceOf[DropdownField], property)
+          property.propertyType match {
+            case Defined =>
+              field.isInstanceOf[DropdownField] should be(true)
+              verifyText(field.asInstanceOf[DropdownField], property)
+            case Supplied =>
+              field.isInstanceOf[TextField] should be(true)
+              field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue(property.name, property.defaultValue.getOrElse("")))
+            case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
+          }
         case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
       }
       field.fieldDescription should equal(property.description.getOrElse(""))
