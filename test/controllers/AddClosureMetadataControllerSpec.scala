@@ -14,12 +14,12 @@ import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import graphql.codegen.types.UpdateBulkFileMetadataInput
 import io.circe.Printer
 import io.circe.generic.auto._
-import io.circe.syntax._
 import io.circe.parser.decode
+import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.prop.TableFor3
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.prop.TableFor3
 import play.api.Play.materializer
 import play.api.cache.AsyncCacheApi
 import play.api.mvc.Result
@@ -202,6 +202,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
+      setConsignmentReferenceResponse(wiremockServer)
       mockGraphqlResponse()
 
       val addClosureMetadataPage = addClosureMetadataController
@@ -236,6 +237,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+      setConsignmentReferenceResponse(wiremockServer)
       mockGraphqlResponse()
 
       val addClosureMetadataPage = addClosureMetadataController
