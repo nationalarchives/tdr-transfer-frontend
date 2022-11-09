@@ -186,7 +186,7 @@ class AddClosureMetadataController @Inject() (
         updateFormFields(defaultFieldsForForm, consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil))
       }
     } yield {
-      val files: List[File] = getFilesFromConsignment(consignment.files.filter(file => fileIds.contains(file.fileId)))
+      val files: List[File] = getFilesFromConsignment(consignment.files)
       // Call to details.parentFolderId.get should be temporary. User shouldn't see this page if the parent ID is empty.
       val pageInfo = PageInfo(request.token.name, consignment.consignmentReference, "", "", updatedFieldsForForm)
       val controllerInfo = ControllerInfo(isMainForm, fieldsAndValuesSelectedOnPrevPage, consignmentId, files, details.parentFolderId.get)
