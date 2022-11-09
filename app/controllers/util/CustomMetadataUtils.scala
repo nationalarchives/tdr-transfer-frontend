@@ -13,7 +13,9 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     closureStartDate -> "Closure start date",
     closurePeriod -> "Closure period",
     foiExemptionCode -> "FOI exemption code",
-    titleClosed -> "Is the title closed?"
+    titleClosed -> "Is the title closed?",
+    titleAlternate -> "Alternate Title",
+    descriptionAlternate -> "Alternate Description"
   )
 
   def getCustomMetadataProperties(propertiesToGet: Set[String]): Set[CustomMetadata] =
@@ -71,7 +73,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
               isRequired
             )
           case Supplied =>
-            DropdownField(property.name, fieldLabel, fieldDescription, property.multiValue, Seq(), property.defaultValue.map(value => InputNameAndValue(value, value)), isRequired)
+            TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue(property.name, property.defaultValue.getOrElse("")), "text", isRequired)
           case _ =>
             DropdownField(
               property.name,
@@ -103,5 +105,7 @@ object MetadataProperty {
   val titleClosed = "TitleClosed"
   val clientSideOriginalFilepath = "ClientSideOriginalFilepath"
   val descriptionPublic = "DescriptionPublic"
+  val titleAlternate = "TitleAlternate"
+  val descriptionAlternate = "DescriptionAlternate"
   val closureType: StaticMetadata = StaticMetadata("ClosureType", "Closed")
 }
