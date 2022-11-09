@@ -43,21 +43,11 @@ class AddClosureMetadataController @Inject() (
 
   def addClosureMetadata(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      // This is another API call to get the parent ID but this won't be needed once the JS solution is in so we can live with it.
-      details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
-      consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None)))
       (_, defaultFieldForm) <- getDefaultFieldsForForm(Set(closureType), consignmentId, request)
-      updatedFieldsForForm <- {
-        cache.set(s"$consignmentId-reference", consignment.consignmentReference, 1.hour)
-        // Set the values to those of the first file's metadata until we decide what to do with multiple files.
-        updateFormFields(defaultFieldForm, consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil))
-      }
+      (pageInfo, controllerInfo) <- getInfoForClosurePage(consignmentId, request, isMainForm = true, List(s"${closureType.name}-${closureType.value}"), defaultFieldForm, fileIds)
     } yield {
-      val files = getFilesFromConsignment(consignment.files.filter(file => fileIds.contains(file.fileId)))
-      // Call to details.parentFolderId.get should be temporary. User shouldn't see this page if the parent ID is empty.
-      val pageInfo = PageInfo(request.token.name, consignment.consignmentReference, mainFormPageTitle, mainFormPageDescription, updatedFieldsForForm)
-      val controllerInfo = ControllerInfo(isMainForm = true, List(s"${closureType.name}-${closureType.value}"), consignmentId, files, details.parentFolderId.get)
-      Ok(views.html.standard.addClosureMetadata(pageInfo, controllerInfo))
+      val updatedPageInfo = pageInfo.copy(pageTitle = mainFormPageTitle, pageDescription = mainFormPageDescription)
+      Ok(views.html.standard.addClosureMetadata(updatedPageInfo, controllerInfo))
     }
   }
 
@@ -135,8 +125,7 @@ class AddClosureMetadataController @Inject() (
               val staticMetadata: Set[StaticMetadata] = convertNameAndFieldToObject(fieldsAndValuesSelectedOnPrevPage)
               getDefaultFieldsForForm(staticMetadata, consignmentId, request).map { case (_, formFields) => formFields }
             }
-            isMainForm = false
-            (pageInfo, controllerInfo) <- getInfoForClosurePage(consignmentId, request, isMainForm, fieldsAndValuesSelectedOnPrevPage, defaultFields, fileIds)
+            (pageInfo, controllerInfo) <- getInfoForClosurePage(consignmentId, request, isMainForm = false, fieldsAndValuesSelectedOnPrevPage, defaultFields, fileIds)
             fieldNames = defaultFields.map(_.fieldName)
             (formPageTitle, formPageDescription) = getDependenciesPageTitle(fieldNames)
             page = Ok(
@@ -201,6 +190,7 @@ class AddClosureMetadataController @Inject() (
       }
     } yield {
       val files: List[File] = getFilesFromConsignment(consignment.files.filter(file => fileIds.contains(file.fileId)))
+      // Call to details.parentFolderId.get should be temporary. User shouldn't see this page if the parent ID is empty.
       val pageInfo = PageInfo(request.token.name, consignmentRef, "", "", updatedFieldsForForm)
       val controllerInfo = ControllerInfo(isMainForm, fieldsAndValuesSelectedOnPrevPage, consignmentId, files, details.parentFolderId.get)
       (pageInfo, controllerInfo)
