@@ -202,7 +202,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
-      setConsignmentReferenceResponse(wiremockServer)
       mockGraphqlResponse()
 
       val addClosureMetadataPage = addClosureMetadataController
@@ -237,7 +236,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
-      setConsignmentReferenceResponse(wiremockServer)
       mockGraphqlResponse()
 
       val addClosureMetadataPage = addClosureMetadataController
@@ -323,7 +321,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
-      setConsignmentReferenceResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
 
       val formSubmission = Seq(
@@ -360,7 +357,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
-      setConsignmentReferenceResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
 
       val formSubmission = Seq(
@@ -398,7 +394,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
-      setConsignmentReferenceResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
 
       val formSubmission = Seq(
@@ -465,7 +460,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
-      setConsignmentReferenceResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
 
@@ -505,7 +499,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
           setConsignmentTypeResponse(wiremockServer, "standard")
           mockGraphqlResponse()
-          setConsignmentReferenceResponse(wiremockServer)
           setConsignmentFilesMetadataResponse(wiremockServer)
           setBulkUpdateMetadataResponse(wiremockServer)
 
@@ -560,7 +553,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
-      setConsignmentReferenceResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
 
@@ -613,7 +605,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           )
 
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
-          setConsignmentReferenceResponse(wiremockServer)
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
           mockGraphqlResponse()
@@ -645,7 +636,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           val formTester = new FormTester(expectedDependencyDefaultOptions.filter(mockInputOption => dependencyInputNames.contains(mockInputOption.name)))
 
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
-          setConsignmentReferenceResponse(wiremockServer)
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
           mockGraphqlResponse()
@@ -683,7 +673,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           val formTester = new FormTester(expectedDependencyDefaultOptions.filter(mockInputOption => dependencyInputNames.contains(mockInputOption.name)))
 
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
-          setConsignmentReferenceResponse(wiremockServer)
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false, fileIds = fileIds)
           mockGraphqlResponse()
@@ -719,7 +708,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           val addClosureMetadataController = instantiateAddClosureMetadataController()
 
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
-          setConsignmentReferenceResponse(wiremockServer)
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false, fileIds = fileIds)
           mockGraphqlResponse()
@@ -758,7 +746,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
-      setConsignmentReferenceResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
 
