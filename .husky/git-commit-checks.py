@@ -112,10 +112,10 @@ def run_scala_tests(list_of_scala_tests_to_run):
 
 def run_npm_tests(list_of_npm_tests_to_run, run_all_tests):
     if run_all_tests:
-        subprocess.run(["echo", f"""\nRunning "npm test\n"""])
+        subprocess.run(["echo", f"""\nRunning "npm lint-staged\n"""])
 
         try:
-            subprocess.run(f"""cd npm && npm test""", shell=True, check=True)
+            subprocess.run(f"""npx --prefix npm lint-staged""", shell=True, check=True)
         except subprocess.CalledProcessError:
             sys.exit("\nA error occurred when running npm test. Please check the error above.\n")
 
@@ -124,7 +124,7 @@ def run_npm_tests(list_of_npm_tests_to_run, run_all_tests):
         subprocess.run(["echo", f"""\nRunning "npm test -- {file_names_as_string}\n"""])
 
         try:
-            subprocess.run(f"""cd npm && npm test -- {file_names_as_string}""", shell=True, check=True)
+            subprocess.run(f"""npm --prefix npm test -- {file_names_as_string}""", shell=True, check=True)
         except subprocess.CalledProcessError:
             sys.exit(
                 f"\nA error occurred when running npm test -- {file_names_as_string}. Please check the error above.\n")
