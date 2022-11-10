@@ -22,15 +22,15 @@ def group_files_by_extension(list_of_staged_files):
     return staged_files_grouped_by_extension
 
 
-def is_scala_file_controller_or_spec_test(scala_files):
+def check_which_scala_checks_should_be_run(scala_files):
     return {
         "sbt scalafmtCheck": any("app/" in scala_file for scala_file in scala_files),
         "sbt test:scalafmtCheck": any("test/" in scala_file for scala_file in scala_files)
     }
 
 
-def run_scalafmt(files_are_controllers):
-    for scalafmt_command, run_scalafmt_command in files_are_controllers.items():
+def run_scalafmt(scalafmt_commands_to_run):
+    for scalafmt_command, run_scalafmt_command in scalafmt_commands_to_run.items():
         if run_scalafmt_command:
             subprocess.run(["echo", f"""\nRunning "{scalafmt_command}"\n"""])
             try:
@@ -51,7 +51,7 @@ def run_npx_lint_staged():
 def run_style_checkers(staged_files_grouped_by_extension):
     for extension, files in staged_files_grouped_by_extension.items():
         if extension in ["scala", "sc"]:
-            scalafmt_commands_to_run = is_scala_file_controller_or_spec_test(files)
+            scalafmt_commands_to_run = check_which_scala_checks_should_be_run(files)
             run_scalafmt(scalafmt_commands_to_run)
         elif extension in ["ts", "scss"]:
             run_npx_lint_staged()
