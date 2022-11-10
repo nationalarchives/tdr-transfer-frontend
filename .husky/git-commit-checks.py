@@ -4,10 +4,12 @@ import sys
 import os
 from collections import defaultdict
 
+
 def get_list_of_staged_files():
-    staged_files = subprocess.run("git diff --name-only --cached", shell = True, capture_output = True,
-                                  text = True).stdout
+    staged_files = subprocess.run("git diff --name-only --cached", shell=True, capture_output=True,
+                                  text=True).stdout
     return staged_files.rstrip("\n").split("\n")
+
 
 def group_files_by_extension(list_of_staged_files):
     staged_files_grouped_by_extension = defaultdict(list)
@@ -19,28 +21,32 @@ def group_files_by_extension(list_of_staged_files):
 
     return staged_files_grouped_by_extension
 
+
 def is_scala_file_controller_or_spec_test(scala_files):
     return {
         "sbt scalafmtCheck": any("app/" in scala_file for scala_file in scala_files),
         "sbt test:scalafmtCheck": any("test/" in scala_file for scala_file in scala_files)
     }
 
+
 def run_scalafmt(files_are_controllers):
     for scalafmt_command, run_scalafmt_command in files_are_controllers.items():
         if run_scalafmt_command:
             subprocess.run(["echo", f"""\nRunning "{scalafmt_command}"\n"""])
             try:
-                subprocess.run(f"{scalafmt_command}", shell = True, check=True)
-            except subprocess.CalledProcessError as e:
-                sys.exit(f"\nA error occurred after running the command '{scalafmt_command}'. Please check the error above.\n")
+                subprocess.run(f"{scalafmt_command}", shell=True, check=True)
+            except subprocess.CalledProcessError:
+                sys.exit(f"\nA error occurred after running '{scalafmt_command}'. Please check the error above.\n")
+
 
 def run_npx_lint_staged():
     subprocess.run(["echo", """\nRunning "npx lint-staged"\n"""])
 
     try:
-        subprocess.run("cd npm && npx lint-staged", shell = True, check=True)
+        subprocess.run("cd npm && npx lint-staged", shell=True, check=True)
     except subprocess.CalledProcessError:
         sys.exit("\nA ESLint error occurred. Please check the error above.\n")
+
 
 def run_style_checkers(staged_files_grouped_by_extension):
     for extension, files in staged_files_grouped_by_extension.items():
@@ -51,6 +57,7 @@ def run_style_checkers(staged_files_grouped_by_extension):
             run_npx_lint_staged()
         else:
             continue
+
 
 def get_associated_scala_tests_for_files(scala_file_names):
     test_file_names = [file_name for (parent_dir, current_dir, file_names) in os.walk("./test") for file_name in
@@ -63,7 +70,7 @@ def get_associated_scala_tests_for_files(scala_file_names):
         index_of_extension = scala_file_name_without_path.find(".")
         scala_file_name_without_path_and_ext = scala_file_name_without_path[:index_of_extension]
 
-        if "test/" in scala_file_name: # if file is a test, then it doesn't need to find test file
+        if "test/" in scala_file_name:  # if file is a test, then it doesn't need to find test file
             tests_to_run.append(scala_file_name_without_path)
             continue
 
@@ -72,6 +79,7 @@ def get_associated_scala_tests_for_files(scala_file_names):
                 tests_to_run.append(test_file_name)
 
     return tests_to_run
+
 
 def get_associated_scala_controllers_for_files(scala_html_files):
     associated_scala_controllers = []
@@ -82,12 +90,14 @@ def get_associated_scala_controllers_for_files(scala_html_files):
         scala_html_file_without_path_and_ext = scala_html_file_without_path.replace(".scala.html", "")
         calling_view_file_pattern = f""""\.{scala_html_file_without_path_and_ext}(\""""
 
-        controller_files = subprocess.run(f"""grep -rl {calling_view_file_pattern} "./app" "--exclude-dir=./app/views\"""",
-                                          shell = True, capture_output = True, text = True).stdout
+        controller_files = subprocess.run(
+            f"""grep -rl {calling_view_file_pattern} "./app" "--exclude-dir=./app/views\"""",
+            shell=True, capture_output=True, text=True).stdout
 
         associated_scala_controllers.extend(controller_files.rstrip("\n").split("\n"))
 
     return associated_scala_controllers
+
 
 def get_associated_typescript_for_files(typescript_files):
     tests_to_run = []
@@ -97,15 +107,17 @@ def get_associated_typescript_for_files(typescript_files):
         typescript_file_without_path = typescript_file[index_of_file_name:]
         typescript_file_without_path_and_ext = typescript_file_without_path.replace(".ts", "")
 
-        if "test/" in typescript_file: # if file is a test, then don't need to find test file
+        if "test/" in typescript_file:  # if file is a test, then don't need to find test file
             tests_to_run.append(typescript_file_without_path)
             continue
 
-        test_files = subprocess.run(f"""cd npm && grep -rl "src.*/{typescript_file_without_path_and_ext}" "./test" "--include=*.test.ts" """,
-                                    shell = True, capture_output = True, text = True).stdout
+        test_files = subprocess.run(
+            f"""cd npm && grep -rl "src.*/{typescript_file_without_path_and_ext}" "./test" "--include=*.test.ts" """,
+            shell=True, capture_output=True, text=True).stdout
         tests_to_run.extend(test_files.rstrip("\n").split("\n"))
 
     return tests_to_run
+
 
 def run_scala_tests(list_of_scala_tests_to_run):
     file_names_without_ext = ["*" + scala_test.replace(".scala", "") for scala_test in list_of_scala_tests_to_run]
@@ -113,16 +125,17 @@ def run_scala_tests(list_of_scala_tests_to_run):
     subprocess.run(["echo", f"""\nRunning sbt "testOnly {file_names_as_string}"\n"""])
 
     try:
-        subprocess.run(f"""sbt "testOnly {file_names_as_string}\"""", shell = True, check=True)
+        subprocess.run(f"""sbt "testOnly {file_names_as_string}\"""", shell=True, check=True)
     except subprocess.CalledProcessError:
         sys.exit("\nA error occurred when running the Scala tests. Please check the error above.\n")
 
-def run_npm_tests(run_all_tests=True, list_of_npm_tests_to_run=[]):
+
+def run_npm_tests(list_of_npm_tests_to_run, run_all_tests=True):
     if run_all_tests:
         subprocess.run(["echo", f"""\nRunning "npm test\n"""])
 
         try:
-            subprocess.run(f"""cd npm && npm test""", shell = True, check=True)
+            subprocess.run(f"""cd npm && npm test""", shell=True, check=True)
         except subprocess.CalledProcessError:
             sys.exit("\nA error occurred when running npm test. Please check the error above.\n")
 
@@ -131,9 +144,11 @@ def run_npm_tests(run_all_tests=True, list_of_npm_tests_to_run=[]):
         subprocess.run(["echo", f"""\nRunning "npm test -- {file_names_as_string}\n"""])
 
         try:
-            subprocess.run(f"""cd npm && npm test -- {file_names_as_string}""", shell = True, check=True)
+            subprocess.run(f"""cd npm && npm test -- {file_names_as_string}""", shell=True, check=True)
         except subprocess.CalledProcessError:
-            sys.exit(f"\nA error occurred when running npm test -- {file_names_as_string}. Please check the error above.\n")
+            sys.exit(
+                f"\nA error occurred when running npm test -- {file_names_as_string}. Please check the error above.\n")
+
 
 def run_tests(staged_files_grouped_by_extension):
     list_of_scala_tests_to_run = set()
@@ -159,11 +174,12 @@ def run_tests(staged_files_grouped_by_extension):
         else:
             continue
 
-    if list_of_scala_tests_to_run :
+    if list_of_scala_tests_to_run:
         run_scala_tests(list_of_scala_tests_to_run)
 
-    if list_typescript_tests_to_run :
-        run_npm_tests(run_all_typescript_tests, list_typescript_tests_to_run)
+    if list_typescript_tests_to_run:
+        run_npm_tests(list_typescript_tests_to_run, run_all_typescript_tests)
+
 
 def main():
     list_of_staged_files = get_list_of_staged_files()
@@ -171,10 +187,12 @@ def main():
     if list_of_staged_files:
         staged_files_grouped_by_extension = group_files_by_extension(list_of_staged_files)
         if any(extension in staged_files_grouped_by_extension for extension in ["scala", "sc", "ts"]):
-            runFormattingChecksResponse = input("Run formatting checks on your staged files? Enter y or press any key to skip: ").lower()
-            runTestsResponse = input("Run tests on your staged files? Enter y or press any key to skip: ").lower()
-            run_style_checkers(staged_files_grouped_by_extension) if runFormattingChecksResponse == "y" else "don't run"
-            run_tests(staged_files_grouped_by_extension) if runTestsResponse == "y" else "don't run"
+            run_formatting_checks_response = input(
+                "Run formatting checks on your staged files? Enter y or press any key to skip: ").lower()
+            run_tests_response = input("Run tests on your staged files? Enter y or press any key to skip: ").lower()
+            run_style_checkers(staged_files_grouped_by_extension) if run_formatting_checks_response == "y" else ""
+            run_tests(staged_files_grouped_by_extension) if run_tests_response == "y" else ""
+
 
 if __name__ == "__main__":
     main()
