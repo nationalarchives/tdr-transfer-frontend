@@ -235,6 +235,13 @@ In order to run the tests via CLI, you just navigate to the `tdr-transfer-fronte
 
 Bonus: Jest test Coverage - In order to see if how much of your code is covered by the Jest tests, run `npm test -- --coverage --verbose`
 
+### Pre-commit checks
+
+We have pre-commit checks that will run Scalafmt and run the unit tests associated with the files you've edited,
+only on Scala/Typescript files, if you have any staged. In order to run this script, you need to install Husky; to do this, run
+
+`npx husky install`
+
 ## Generated GraphQL classes
 
 There is a separate repository which contains the generated case classes needed to query the Consignment API.
