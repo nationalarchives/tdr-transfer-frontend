@@ -64,15 +64,6 @@ To resolve this, you need to create a sym link with the install version of npm. 
 - `sudo ln -s /home/{username}/.nvm/versions/node/{version}/bin/npm /usr/bin/npm`; and
 -  `sudo ln -s /home/{username}/.nvm/versions/node/{version}/bin/node /usr/bin/node`
 
-### Scalastyle (illegal start of simple expression error)
-
-Scalastyle throws this message when there is an syntax error `illegal start of simple expression: Token(RPAREN,),{number},))` but it doesn't inform you of which line this error occurs on. The "{number}" it gives is the byte offset; in order to find where this error starts, you can run this command:
-
-```
-tail -c +{number} {path of file that contains the error}
-```
-Note: Scalastyle considers a trailing comma to be an error so if you are struggling to figure out what your error could be, it could be that.
-
 [auth-admin]: https://auth.tdr-integration.nationalarchives.gov.uk/auth/admin
 
 ### Incognito mode
