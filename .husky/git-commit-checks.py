@@ -50,7 +50,7 @@ def run_npx_lint_staged():
 
 def run_style_checkers(staged_files_grouped_by_extension):
     for extension, files in staged_files_grouped_by_extension.items():
-        if extension == "scala":
+        if extension in ["scala", "sc"]:
             scalafmt_commands_to_run = is_scala_file_controller_or_spec_test(files)
             run_scalafmt(scalafmt_commands_to_run)
         elif extension in ["ts", "scss"]:
@@ -157,8 +157,8 @@ def run_tests(staged_files_grouped_by_extension):
     list_typescript_tests_to_run = set()
 
     for extension, files in staged_files_grouped_by_extension.items():
-        if extension == "scala" or extension == "scala.html":
-            if extension == "scala" or extension == "sc":
+        if extension in ["scala", "sc", "scala.html"]:
+            if extension != "scala.html":
                 # find test controllers with the same name as the controllers
                 list_of_scala_tests = get_associated_scala_tests_for_files(files)
                 list_of_scala_tests_to_run.update(list_of_scala_tests)
