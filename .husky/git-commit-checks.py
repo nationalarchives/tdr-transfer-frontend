@@ -99,26 +99,6 @@ def get_associated_scala_controllers_for_files(scala_html_files):
     return associated_scala_controllers
 
 
-def get_associated_typescript_for_files(typescript_files):
-    tests_to_run = []
-
-    for typescript_file in typescript_files:
-        index_of_file_name = typescript_file.rfind("/") + 1
-        typescript_file_without_path = typescript_file[index_of_file_name:]
-        typescript_file_without_path_and_ext = typescript_file_without_path.replace(".ts", "")
-
-        if "test/" in typescript_file:  # if file is a test, then don't need to find test file
-            tests_to_run.append(typescript_file_without_path)
-            continue
-
-        test_files = subprocess.run(
-            f"""cd npm && grep -rl "src.*/{typescript_file_without_path_and_ext}" "./test" "--include=*.test.ts" """,
-            shell=True, capture_output=True, text=True).stdout
-        tests_to_run.extend(test_files.rstrip("\n").split("\n"))
-
-    return tests_to_run
-
-
 def run_scala_tests(list_of_scala_tests_to_run):
     file_names_without_ext = ["*" + scala_test.replace(".scala", "") for scala_test in list_of_scala_tests_to_run]
     file_names_as_string = " ".join(file_names_without_ext)
