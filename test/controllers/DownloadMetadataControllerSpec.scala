@@ -137,11 +137,11 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         customMetadata("FileName", "File Name", 1)
       )
       val metadataFileOne = List(
-          FileMetadata("FileName", "FileName1"),
-          FileMetadata("TestProperty1", "TestValue1File1"),
-          FileMetadata("TestProperty2", "TestValue2File1"),
-          FileMetadata("TestProperty3", "TestValue3File1"),
-          FileMetadata("TestProperty4", "TestValue4File1")
+        FileMetadata("FileName", "FileName1"),
+        FileMetadata("TestProperty1", "TestValue1File1"),
+        FileMetadata("TestProperty2", "TestValue2File1"),
+        FileMetadata("TestProperty3", "TestValue3File1"),
+        FileMetadata("TestProperty4", "TestValue4File1")
       )
       val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata))
 
