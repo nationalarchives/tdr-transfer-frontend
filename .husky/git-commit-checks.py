@@ -130,7 +130,7 @@ def run_scala_tests(list_of_scala_tests_to_run):
         sys.exit("\nA error occurred when running the Scala tests. Please check the error above.\n")
 
 
-def run_npm_tests(list_of_npm_tests_to_run, run_all_tests=True):
+def run_npm_tests(list_of_npm_tests_to_run, run_all_tests):
     if run_all_tests:
         subprocess.run(["echo", f"""\nRunning "npm test\n"""])
 
@@ -177,7 +177,7 @@ def run_tests(staged_files_grouped_by_extension):
     if list_of_scala_tests_to_run:
         run_scala_tests(list_of_scala_tests_to_run)
 
-    if list_typescript_tests_to_run:
+    if list_typescript_tests_to_run or run_all_typescript_tests:
         run_npm_tests(list_typescript_tests_to_run, run_all_typescript_tests)
 
 
