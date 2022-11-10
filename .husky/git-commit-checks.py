@@ -21,18 +21,18 @@ def group_files_by_extension(list_of_staged_files):
 
 def is_scala_file_controller_or_spec_test(scala_files):
     return {
-        "sbt scalastyle": any("app/" in scala_file for scala_file in scala_files),
-        "sbt test:scalastyle": any("test/" in scala_file for scala_file in scala_files)
+        "sbt scalafmtCheck": any("app/" in scala_file for scala_file in scala_files),
+        "sbt test:scalafmtCheck": any("test/" in scala_file for scala_file in scala_files)
     }
 
-def run_scalastyle(files_are_controllers):
-    for scalastyle_command, run_scalastyle_command in files_are_controllers.items():
-        if run_scalastyle_command:
-            subprocess.run(["echo", f"""\nRunning "{scalastyle_command}"\n"""])
+def run_scalafmt(files_are_controllers):
+    for scalafmt_command, run_scalafmt_command in files_are_controllers.items():
+        if run_scalafmt_command:
+            subprocess.run(["echo", f"""\nRunning "{scalafmt_command}"\n"""])
             try:
-                subprocess.run(f"{scalastyle_command}", shell = True, check=True)
+                subprocess.run(f"{scalafmt_command}", shell = True, check=True)
             except subprocess.CalledProcessError as e:
-                sys.exit(f"\nA error occurred after running the command '{scalastyle_command}'. Please check the error above.\n")
+                sys.exit(f"\nA error occurred after running the command '{scalafmt_command}'. Please check the error above.\n")
 
 def run_npx_lint_staged():
     subprocess.run(["echo", """\nRunning "npx lint-staged"\n"""])
@@ -45,8 +45,8 @@ def run_npx_lint_staged():
 def run_style_checkers(staged_files_grouped_by_extension):
     for extension, files in staged_files_grouped_by_extension.items():
         if extension == "scala":
-            scalastyle_commands_to_run = is_scala_file_controller_or_spec_test(files)
-            run_scalastyle(scalastyle_commands_to_run)
+            scalafmt_commands_to_run = is_scala_file_controller_or_spec_test(files)
+            run_scalafmt(scalafmt_commands_to_run)
         elif extension in ["ts", "scss"]:
             run_npx_lint_staged()
         else:
@@ -171,9 +171,9 @@ def main():
     if list_of_staged_files:
         staged_files_grouped_by_extension = group_files_by_extension(list_of_staged_files)
         if any(extension in staged_files_grouped_by_extension for extension in ["scala", "sc", "ts"]):
-            runStyleChecksResponse = input("Run style checks on your staged files? Enter y or press any key to skip: ").lower()
+            runFormattingChecksResponse = input("Run formatting checks on your staged files? Enter y or press any key to skip: ").lower()
             runTestsResponse = input("Run tests on your staged files? Enter y or press any key to skip: ").lower()
-            run_style_checkers(staged_files_grouped_by_extension) if runStyleChecksResponse == "y" else "don't run"
+            run_style_checkers(staged_files_grouped_by_extension) if runFormattingChecksResponse == "y" else "don't run"
             run_tests(staged_files_grouped_by_extension) if runTestsResponse == "y" else "don't run"
 
 if __name__ == "__main__":
