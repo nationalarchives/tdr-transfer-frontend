@@ -168,8 +168,8 @@ def main():
         staged_files_grouped_by_extension = group_files_by_extension(list_of_staged_files)
         if any(extension in staged_files_grouped_by_extension for extension in ["scala", "sc", "ts"]):
             run_formatting_checks_response = input(
-                "Run formatting checks on your staged files? Enter y or press any key to skip: ").lower()
-            run_tests_response = input("Run tests on your staged files? Enter y or press any key to skip: ").lower()
+                "Run formatting checks on your staged files? Enter y or enter any key to skip: ").lower()
+            run_tests_response = input("Run tests on your staged files? Enter y or enter any key to skip: ").lower()
             run_style_checkers(staged_files_grouped_by_extension) if run_formatting_checks_response == "y" else ""
             run_tests(staged_files_grouped_by_extension) if run_tests_response == "y" else ""
 
