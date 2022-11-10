@@ -143,7 +143,7 @@ def run_tests(staged_files_grouped_by_extension):
 
     for extension, files in staged_files_grouped_by_extension.items():
         if extension == "scala" or extension == "scala.html":
-            if extension == "scala":
+            if extension == "scala" or extension == "sc":
                 # find test controllers with the same name as the controllers
                 list_of_scala_tests = get_associated_scala_tests_for_files(files)
                 list_of_scala_tests_to_run.update(list_of_scala_tests)
@@ -170,7 +170,7 @@ def main():
 
     if list_of_staged_files:
         staged_files_grouped_by_extension = group_files_by_extension(list_of_staged_files)
-        if "scala" in staged_files_grouped_by_extension or "ts" in staged_files_grouped_by_extension:
+        if any(extension in staged_files_grouped_by_extension for extension in ["scala", "sc", "ts"]):
             runStyleChecksResponse = input("Run style checks on your staged files? Enter y or press any key to skip: ").lower()
             runTestsResponse = input("Run tests on your staged files? Enter y or press any key to skip: ").lower()
             run_style_checkers(staged_files_grouped_by_extension) if runStyleChecksResponse == "y" else "don't run"
