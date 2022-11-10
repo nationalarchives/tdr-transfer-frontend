@@ -12,20 +12,25 @@ import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class TransferCompleteController @Inject()(val controllerComponents: SecurityComponents,
-                                           val keycloakConfiguration: KeycloakConfiguration,
-                                           val consignmentService: ConsignmentService)
-                                          (implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+class TransferCompleteController @Inject() (
+    val controllerComponents: SecurityComponents,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val consignmentService: ConsignmentService
+)(implicit val ec: ExecutionContext)
+    extends TokenSecurity
+    with I18nSupport {
 
   def transferComplete(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+    consignmentService
+      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { consignmentReference =>
         Ok(views.html.standard.transferComplete(consignmentId, consignmentReference, request.token.name))
       }
   }
 
   def judgmentTransferComplete(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+    consignmentService
+      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { consignmentReference =>
         Ok(views.html.judgment.judgmentComplete(consignmentReference, request.token.name))
       }
@@ -38,8 +43,8 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
       consignmentExport <- consignmentService.getConsignmentExport(consignmentId, request.token.bearerAccessToken)
       exportDateTime = consignmentExport.exportDatetime
     } yield {
-      val rows = consignmentExport.files.foldLeft(List[List[String]]()) {
-        case (record, file) => record :+ List(
+      val rows = consignmentExport.files.foldLeft(List[List[String]]()) { case (record, file) =>
+        record :+ List(
           file.metadata.clientSideOriginalFilePath.getOrElse(""),
           file.fileName.getOrElse(""),
           file.fileType.getOrElse(""),
@@ -50,7 +55,8 @@ class TransferCompleteController @Inject()(val controllerComponents: SecurityCom
           file.metadata.language.getOrElse(""),
           file.metadata.foiExemptionCode.getOrElse(""),
           file.metadata.clientSideLastModifiedDate.map(_.toString).getOrElse(""),
-          exportDateTime.map(_.toString).getOrElse(""))
+          exportDateTime.map(_.toString).getOrElse("")
+        )
       }
       val csvString = CsvUtils.writeCsv(headers :: rows)
       Ok(csvString)

@@ -42,95 +42,111 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   val parentFolderId = Option(UUID.randomUUID())
   val expectedDefaultOptions: List[MockInputOption] = List(
     MockInputOption(
-      name="inputdate-ClosureStartDate-day",
-      label="Day",
-      id="date-input-ClosureStartDate-day",
-      placeholder="dd",
-      fieldType="inputDate",
-      errorMessage=s"There was no number entered for the Day."
+      name = "inputdate-ClosureStartDate-day",
+      label = "Day",
+      id = "date-input-ClosureStartDate-day",
+      placeholder = "dd",
+      fieldType = "inputDate",
+      errorMessage = s"There was no number entered for the Day."
     ),
     MockInputOption(
-      name="inputdate-ClosureStartDate-month",
-      label="Month",
-      id="date-input-ClosureStartDate-month",
-      placeholder="mm",
-      fieldType="inputDate",
-      errorMessage=s"There was no number entered for the Month.",
-      errorMessageDependency="inputdate-ClosureStartDate-day"
+      name = "inputdate-ClosureStartDate-month",
+      label = "Month",
+      id = "date-input-ClosureStartDate-month",
+      placeholder = "mm",
+      fieldType = "inputDate",
+      errorMessage = s"There was no number entered for the Month.",
+      errorMessageDependency = "inputdate-ClosureStartDate-day"
     ),
     MockInputOption(
-      name="inputdate-ClosureStartDate-year",
-      label="Year",
-      id="date-input-ClosureStartDate-year",
-      placeholder="yyyy",
-      fieldType="inputDate",
-      errorMessage=s"There was no number entered for the Year.",
-      errorMessageDependency="inputdate-ClosureStartDate-month"
+      name = "inputdate-ClosureStartDate-year",
+      label = "Year",
+      id = "date-input-ClosureStartDate-year",
+      placeholder = "yyyy",
+      fieldType = "inputDate",
+      errorMessage = s"There was no number entered for the Year.",
+      errorMessageDependency = "inputdate-ClosureStartDate-month"
     ),
     MockInputOption(
-      name="inputdate-FoiExemptionAsserted-day",
-      label="Day",
-      id="date-input-FoiExemptionAsserted-day",
-      placeholder="dd",
-      fieldType="inputDate",
-      errorMessage=s"There was no number entered for the Day."
+      name = "inputdate-FoiExemptionAsserted-day",
+      label = "Day",
+      id = "date-input-FoiExemptionAsserted-day",
+      placeholder = "dd",
+      fieldType = "inputDate",
+      errorMessage = s"There was no number entered for the Day."
     ),
     MockInputOption(
-      name="inputdate-FoiExemptionAsserted-month",
-      label="Month",
-      id="date-input-FoiExemptionAsserted-month",
-      placeholder="mm",
-      fieldType="inputDate",
-      errorMessage=s"There was no number entered for the Month.",
-      errorMessageDependency="inputdate-FoiExemptionAsserted-day"
+      name = "inputdate-FoiExemptionAsserted-month",
+      label = "Month",
+      id = "date-input-FoiExemptionAsserted-month",
+      placeholder = "mm",
+      fieldType = "inputDate",
+      errorMessage = s"There was no number entered for the Month.",
+      errorMessageDependency = "inputdate-FoiExemptionAsserted-day"
     ),
     MockInputOption(
-      name="inputdate-FoiExemptionAsserted-year",
-      label="Year",
-      id="date-input-FoiExemptionAsserted-year",
-      placeholder="yyyy",
-      fieldType="inputDate",
-      errorMessage=s"There was no number entered for the Year.",
-      errorMessageDependency="inputdate-FoiExemptionAsserted-month"
+      name = "inputdate-FoiExemptionAsserted-year",
+      label = "Year",
+      id = "date-input-FoiExemptionAsserted-year",
+      placeholder = "yyyy",
+      fieldType = "inputDate",
+      errorMessage = s"There was no number entered for the Year.",
+      errorMessageDependency = "inputdate-FoiExemptionAsserted-month"
     ),
     MockInputOption(
-      name="inputnumeric-ClosurePeriod-years",
-      label="years",
-      id="years",
-      fieldType="inputNumeric",
-      errorMessage=s"There was no number entered for the years."
+      name = "inputnumeric-ClosurePeriod-years",
+      label = "years",
+      id = "years",
+      fieldType = "inputNumeric",
+      errorMessage = s"There was no number entered for the years."
     ),
     MockInputOption(
-      name="inputdropdown-FoiExemptionCode",
-      id="inputdropdown-FoiExemptionCode",
-      label="mock code1",
-      value="mock code1",
-      fieldType="inputDropdown",
-      errorMessage="There was no value selected for the FOI exemption code."
+      name = "inputdropdown-FoiExemptionCode",
+      id = "inputdropdown-FoiExemptionCode",
+      label = "mock code1",
+      value = "mock code1",
+      fieldType = "inputDropdown",
+      errorMessage = "There was no value selected for the FOI exemption code."
     ),
     MockInputOption(
-      name="inputdropdown-FoiExemptionCode",
-      id="inputdropdown-FoiExemptionCode",
-      label="mock code2",
-      value="mock code2",
-      fieldType="inputDropdown",
-      errorMessage="There was no value selected for the FOI exemption code."
+      name = "inputdropdown-FoiExemptionCode",
+      id = "inputdropdown-FoiExemptionCode",
+      label = "mock code2",
+      value = "mock code2",
+      fieldType = "inputDropdown",
+      errorMessage = "There was no value selected for the FOI exemption code."
     ),
     MockInputOption(
-      name="inputradio-TitleClosed",
-      label="Yes",
-      id="inputradio-TitleClosed-Yes",
-      value="yes",
-      fieldType="inputRadio",
-      errorMessage=s"There was no value selected for Is the title closed?."
+      name = "inputradio-TitleClosed",
+      label = "Yes",
+      id = "inputradio-TitleClosed-Yes",
+      value = "yes",
+      fieldType = "inputRadio",
+      errorMessage = s"There was no value selected for Is the title closed?."
     ),
     MockInputOption(
-      name="inputradio-TitleClosed",
-      label="No",
-      id="inputradio-TitleClosed-No",
-      value="no",
-      errorMessage=s"There was no value selected for Is the title closed?.",
-      fieldType="inputRadio"
+      name = "inputradio-TitleClosed",
+      label = "No",
+      id = "inputradio-TitleClosed-No",
+      value = "no",
+      errorMessage = s"There was no value selected for Is the title closed?.",
+      fieldType = "inputRadio"
+    ),
+    MockInputOption(
+      name = "inputradio-DescriptionPublic",
+      label = "Yes",
+      id = "inputradio-DescriptionPublic-Yes",
+      value = "yes",
+      fieldType = "inputRadio",
+      errorMessage = s"There was no value selected for Description Public."
+    ),
+    MockInputOption(
+      name = "inputradio-DescriptionPublic",
+      label = "No",
+      id = "inputradio-DescriptionPublic-No",
+      value = "no",
+      errorMessage = s"There was no value selected for Description Public.",
+      fieldType = "inputRadio"
     )
   )
 
@@ -151,10 +167,11 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata=false)
+      setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
       mockGraphqlResponse()
 
-      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadata(consignmentId, fileIds)
+      val addClosureMetadataPage = addClosureMetadataController
+        .addClosureMetadata(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata").withCSRFToken)
       val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
       val expectedDefaultForm = Seq(
@@ -166,7 +183,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputradio-TitleClosed", "yes")
+        ("inputradio-TitleClosed", "yes"),
+        ("inputradio-DescriptionPublic", "yes")
       )
 
       playStatus(addClosureMetadataPage) mustBe OK
@@ -186,7 +204,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
       mockGraphqlResponse()
 
-      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadata(consignmentId, fileIds)
+      val addClosureMetadataPage = addClosureMetadataController
+        .addClosureMetadata(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata").withCSRFToken)
       val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
 
@@ -199,12 +218,11 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         "inputdate-ClosureStartDate-year" -> "1990",
         "inputnumeric-ClosurePeriod-years" -> "4"
       )
-      val expectedOptions = expectedDefaultOptions.map {
-        mockOption =>
-          newInputTextValues.get(mockOption.name) match {
-            case Some(newValue) => mockOption.copy(value = newValue)
-            case None => mockOption
-          }
+      val expectedOptions = expectedDefaultOptions.map { mockOption =>
+        newInputTextValues.get(mockOption.name) match {
+          case Some(newValue) => mockOption.copy(value = newValue)
+          case None           => mockOption
+        }
       }
 
       val formTester = new FormTester(expectedOptions)
@@ -218,7 +236,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", "1990"),
         ("inputnumeric-ClosurePeriod-years", "4"),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputradio-TitleClosed", "no")
+        ("inputradio-TitleClosed", "no"),
+        ("inputradio-DescriptionPublic", "yes")
       )
 
       playStatus(addClosureMetadataPage) mustBe OK
@@ -234,7 +253,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "return a redirect to the auth server with an unauthenticated user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = instantiateAddClosureMetadataController(getUnauthorisedSecurityComponents)
-      val addClosureMetadataPage = controller.addClosureMetadata(consignmentId, fileIds)
+      val addClosureMetadataPage = controller
+        .addClosureMetadata(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata").withCSRFToken)
       redirectLocation(addClosureMetadataPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(addClosureMetadataPage) mustBe FOUND
@@ -246,11 +266,14 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Error", Nil, Nil, None)))
       val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .willReturn(okJson(dataString)))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString))
+      )
 
       val controller = instantiateAddClosureMetadataController()
-      val addClosureMetadataPage = controller.addClosureMetadata(consignmentId, fileIds)
+      val addClosureMetadataPage = controller
+        .addClosureMetadata(consignmentId, fileIds)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata").withCSRFToken)
 
       val failure = addClosureMetadataPage.failed.futureValue
@@ -276,13 +299,16 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", ""),
-        ("inputradio-TitleClosed", "")
+        ("inputradio-TitleClosed", ""),
+        ("inputradio-DescriptionPublic", "")
       )
 
-      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId, fileIds)
-        .apply(FakeRequest(POST, s"/standard/$consignmentId/add-closure-metadata")
-          .withFormUrlEncodedBody(formSubmission: _*)
-          .withCSRFToken
+      val addClosureMetadataPage = addClosureMetadataController
+        .addClosureMetadataSubmit(consignmentId, fileIds)
+        .apply(
+          FakeRequest(POST, s"/standard/$consignmentId/add-closure-metadata")
+            .withFormUrlEncodedBody(formSubmission: _*)
+            .withCSRFToken
         )
       val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
 
@@ -310,13 +336,16 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputradio-TitleClosed", "yes")
+        ("inputradio-TitleClosed", "yes"),
+        ("inputradio-DescriptionPublic", "no")
       )
 
-      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId, fileIds)
-        .apply(FakeRequest(POST, s"/standard/$consignmentId/add-closure-metadata")
-          .withFormUrlEncodedBody(formSubmission: _*)
-          .withCSRFToken
+      val addClosureMetadataPage = addClosureMetadataController
+        .addClosureMetadataSubmit(consignmentId, fileIds)
+        .apply(
+          FakeRequest(POST, s"/standard/$consignmentId/add-closure-metadata")
+            .withFormUrlEncodedBody(formSubmission: _*)
+            .withCSRFToken
         )
       val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
 
@@ -345,13 +374,16 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputradio-TitleClosed", "yes")
+        ("inputradio-TitleClosed", "yes"),
+        ("inputradio-DescriptionPublic", "no")
       )
 
-      val addClosureMetadataPage = addClosureMetadataController.addClosureMetadataSubmit(consignmentId, fileIds)
-        .apply(FakeRequest(POST, s"/standard/$consignmentId/add-closure-metadata")
-          .withFormUrlEncodedBody(formSubmission: _*)
-          .withCSRFToken
+      val addClosureMetadataPage = addClosureMetadataController
+        .addClosureMetadataSubmit(consignmentId, fileIds)
+        .apply(
+          FakeRequest(POST, s"/standard/$consignmentId/add-closure-metadata")
+            .withFormUrlEncodedBody(formSubmission: _*)
+            .withCSRFToken
         )
       val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
 
@@ -370,7 +402,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       val addClosureMetadata = {
         setConsignmentTypeResponse(wiremockServer, consignmentType = "judgment")
-        addClosureMetadataController.addClosureMetadata(consignmentId, fileIds)
+        addClosureMetadataController
+          .addClosureMetadata(consignmentId, fileIds)
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/add-closure-metadata").withCSRFToken)
       }
       playStatus(addClosureMetadata) mustBe FORBIDDEN
@@ -390,7 +423,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
         ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputradio-TitleClosed", "no")
+        ("inputradio-TitleClosed", "no"),
+        ("inputradio-DescriptionPublic", "no")
       )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -399,10 +433,14 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
 
-      addClosureMetadataController.addClosureMetadataSubmit(consignmentId, fileIds)
-        .apply(FakeRequest(POST, s"/standard/$consignmentId/add-closure-metadata")
-          .withFormUrlEncodedBody(formSubmission: _*)
-          .withCSRFToken).futureValue
+      addClosureMetadataController
+        .addClosureMetadataSubmit(consignmentId, fileIds)
+        .apply(
+          FakeRequest(POST, s"/standard/$consignmentId/add-closure-metadata")
+            .withFormUrlEncodedBody(formSubmission: _*)
+            .withCSRFToken
+        )
+        .futureValue
 
       case class GraphqlRequestData(query: String, variables: abfm.Variables)
       val events = wiremockServer.getAllServeEvents
@@ -416,7 +454,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
       input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00"
       input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00"
-      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "no"
+      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "false"
+      input.metadataProperties.find(_.filePropertyName == "DescriptionPublic").get.value mustBe "false"
       input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
     }
   }
@@ -436,19 +475,19 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     )
   }
 
-
-
   private def mockGraphqlResponse() = {
     val client: GraphQLClient[cm.Data, cm.Variables] = new GraphQLConfiguration(app.configuration).getClient[cm.Data, cm.Variables]()
     val customMetadataResponse: cm.Data = getDataObject
     val data: client.GraphqlData = client.GraphqlData(Some(customMetadataResponse))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("customMetadata"))
-      .willReturn(okJson(dataString)))
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("customMetadata"))
+        .willReturn(okJson(dataString))
+    )
   }
-  //scalastyle:off method.length
+  // scalastyle:off method.length
   private def checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString: String) = {
     addClosureMetadataPageAsString must include(
       """      <title>Add closure metadata to files</title>"""
@@ -506,6 +545,11 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         |            Is the title closed?
         |        </legend>""".stripMargin
     )
+    addClosureMetadataPageAsString must include(
+      """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+        |            Description Public
+        |        </legend>""".stripMargin
+    )
   }
 
   private def getDataObject = {
@@ -513,61 +557,165 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     // no longer needed, the real names have to be returned
     cm.Data(
       List(
-        cm.CustomMetadata("ClosureType", None, Some("Closure Type"), Defined, Some("MandatoryClosure"),
-          Text, editable = true, multiValue = false, Some("Open"), 1,
+        cm.CustomMetadata(
+          "ClosureType",
+          None,
+          Some("Closure Type"),
+          Defined,
+          Some("MandatoryClosure"),
+          Text,
+          editable = true,
+          multiValue = false,
+          Some("Open"),
+          1,
           List(
-            Values("Closed",
+            Values(
+              "Closed",
               List(
                 Dependencies("FoiExemptionAsserted"),
                 Dependencies("ClosurePeriod"),
                 Dependencies("ClosureStartDate"),
                 Dependencies("FoiExemptionCode"),
                 Dependencies("TitleClosed"),
-                Dependencies("DescriptionPublic")), 1),
-            Values("Open",
-              List(
-                Dependencies("TitleClosed"),
-                Dependencies("DescriptionPublic")), 1)), None, allowExport = false),
+                Dependencies("DescriptionPublic")
+              ),
+              1
+            ),
+            Values("Open", List(Dependencies("TitleClosed"), Dependencies("DescriptionPublic")), 1)
+          ),
+          None,
+          allowExport = false
+        ),
         cm.CustomMetadata(
-          "ClosurePeriod", Some("Number of years the record is closed from the closure start date"), Some("Closure Period"),
-          Supplied, Some("MandatoryClosure"), Integer, editable = true, multiValue = false, None, 2, List(Values("0", List(), 1)), None, allowExport = false),
+          "ClosurePeriod",
+          Some("Number of years the record is closed from the closure start date"),
+          Some("Closure Period"),
+          Supplied,
+          Some("MandatoryClosure"),
+          Integer,
+          editable = true,
+          multiValue = false,
+          None,
+          2,
+          List(Values("0", List(), 1)),
+          None,
+          allowExport = false
+        ),
         cm.CustomMetadata(
-          "DescriptionPublic", None, Some("Description Public"), Supplied, Some("MandatoryClosure"), Boolean, editable = true, multiValue = false, Some("True"), 3,
-          List(
-            Values("True", List(), 1),
-            Values("False",
-              List(
-                Dependencies("DescriptionAlternate")), 1)), None, allowExport = false),
+          "DescriptionPublic",
+          None,
+          Some("Description Public"),
+          Supplied,
+          Some("MandatoryClosure"),
+          Boolean,
+          editable = true,
+          multiValue = false,
+          Some("True"),
+          3,
+          List(Values("True", List(), 1), Values("False", List(Dependencies("DescriptionAlternate")), 1)),
+          None,
+          allowExport = false
+        ),
         cm.CustomMetadata(
-          "TitleClosed", None, Some("Is the title closed?"), Supplied, Some("MandatoryClosure"), Boolean, editable = true, multiValue = false, Some("True"), 4,
-          List(
-            Values("False",
-              List(
-                Dependencies("TitleAlternate")), 1),
-            Values("True", List(), 1)), None, allowExport = false),
+          "TitleClosed",
+          None,
+          Some("Is the title closed?"),
+          Supplied,
+          Some("MandatoryClosure"),
+          Boolean,
+          editable = true,
+          multiValue = false,
+          Some("True"),
+          4,
+          List(Values("False", List(Dependencies("TitleAlternate")), 1), Values("True", List(), 1)),
+          None,
+          allowExport = false
+        ),
         cm.CustomMetadata(
-          "ClosureStartDate", Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."),
-          Some("Closure Start Date"), Supplied, Some("OptionalClosure"), DateTime, editable = true, multiValue = false, None, 5, List(), None, allowExport = false),
+          "ClosureStartDate",
+          Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."),
+          Some("Closure Start Date"),
+          Supplied,
+          Some("OptionalClosure"),
+          DateTime,
+          editable = true,
+          multiValue = false,
+          None,
+          5,
+          List(),
+          None,
+          allowExport = false
+        ),
         cm.CustomMetadata(
-          "DescriptionAlternate", None, Some("Description Alternate"), Supplied, Some("OptionalClosure"), Text, editable = true, multiValue = false, None, 6, List(), None, allowExport = false),
+          "DescriptionAlternate",
+          None,
+          Some("Description Alternate"),
+          Supplied,
+          Some("OptionalClosure"),
+          Text,
+          editable = true,
+          multiValue = false,
+          None,
+          6,
+          List(),
+          None,
+          allowExport = false
+        ),
         cm.CustomMetadata(
-          "TitleAlternate", None, Some("Title Alternate"), Supplied, Some("OptionalClosure"), Text, editable = true, multiValue = false, None, 7, List(), None, allowExport = false),
+          "TitleAlternate",
+          None,
+          Some("Title Alternate"),
+          Supplied,
+          Some("OptionalClosure"),
+          Text,
+          editable = true,
+          multiValue = false,
+          None,
+          7,
+          List(),
+          None,
+          allowExport = false
+        ),
         cm.CustomMetadata(
-          "FoiExemptionAsserted", Some("Date of the Advisory Council approval (or SIRO approval if appropriate)"), Some("Foi Exemption Asserted"),
-          Supplied, Some("MandatoryClosure"), DateTime, editable = true, multiValue = false, None, 8, List(), None, allowExport = false),
+          "FoiExemptionAsserted",
+          Some("Date of the Advisory Council approval (or SIRO approval if appropriate)"),
+          Some("Foi Exemption Asserted"),
+          Supplied,
+          Some("MandatoryClosure"),
+          DateTime,
+          editable = true,
+          multiValue = false,
+          None,
+          8,
+          List(),
+          None,
+          allowExport = false
+        ),
         cm.CustomMetadata(
-          "FoiExemptionCode", Some("Select the exemption code that applies"), Some("Foi Exemption Code"), Defined, Some("MandatoryClosure"),
-          Text, editable = true, multiValue = true, Some("mock code1"), 9,
-          List(
-            Values("mock code1", List(), 1), Values("mock code2", List(), 2)), None, allowExport = false)))
+          "FoiExemptionCode",
+          Some("Select the exemption code that applies"),
+          Some("Foi Exemption Code"),
+          Defined,
+          Some("MandatoryClosure"),
+          Text,
+          editable = true,
+          multiValue = true,
+          Some("mock code1"),
+          9,
+          List(Values("mock code1", List(), 1), Values("mock code2", List(), 2)),
+          None,
+          allowExport = false
+        )
+      )
+    )
   }
-  //scalastyle:on method.length
+  // scalastyle:on method.length
 }
 
 case class MockAsyncCacheApi()(implicit val ec: ExecutionContext) extends AsyncCacheApi {
   override def set(key: String, value: Any, expiration: Duration): Future[Done] = Future(Done)
   override def remove(key: String): Future[Done] = Future(Done)
-  override def getOrElseUpdate[A](key: String, expiration: Duration)(orElse: => Future[A])(implicit evidence$1: ClassTag[A]): Future[A] =  orElse
+  override def getOrElseUpdate[A](key: String, expiration: Duration)(orElse: => Future[A])(implicit evidence$1: ClassTag[A]): Future[A] = orElse
   override def get[T](key: String)(implicit evidence$2: ClassTag[T]): Future[Option[T]] = Future(None)
   override def removeAll(): Future[Done] = Future(Done)
 }

@@ -9,7 +9,7 @@ import play.api.mvc.{AnyContent, Request}
 
 import javax.inject.Inject
 
-class UnprotectedPageController @Inject ()(val controllerComponents: SecurityComponents) extends Security[CommonProfile] {
+class UnprotectedPageController @Inject() (val controllerComponents: SecurityComponents) extends Security[CommonProfile] {
 
   private def getProfile(request: Request[AnyContent]): ProfileManager = {
     val webContext = new PlayWebContext(request)
@@ -25,7 +25,7 @@ class UnprotectedPageController @Inject ()(val controllerComponents: SecurityCom
     def name: String = {
       val profileManager = getProfile(request)
       val profile = profileManager.getProfile
-      if(profile.isPresent){
+      if (profile.isPresent) {
         val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
         val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
         parsedToken.getClaim("name").toString
@@ -35,14 +35,14 @@ class UnprotectedPageController @Inject ()(val controllerComponents: SecurityCom
     }
 
     def isJudgmentUser: Boolean = {
-        val profileManager = getProfile(request)
-        val profile = profileManager.getProfile
-        if (profile.isPresent) {
-          val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
-          val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
-          parsedToken.getBooleanClaim("judgment_user")
-        } else {
-         false
+      val profileManager = getProfile(request)
+      val profile = profileManager.getProfile
+      if (profile.isPresent) {
+        val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
+        val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
+        parsedToken.getBooleanClaim("judgment_user")
+      } else {
+        false
       }
     }
   }

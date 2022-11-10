@@ -27,32 +27,30 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     )
     val dynamicFormUtils = instantiateDynamicFormsUtils(rawFormWithCsrfToken)
 
-    rawFormWithCsrfToken.foreach {
-      case (inputName, value) =>
-        if (inputName != "csrfToken") {
-          dynamicFormUtils.formAnswersWithValidInputNames(inputName) should equal(value)
-        } else {
-          dynamicFormUtils.formAnswersWithValidInputNames.contains("csrfToken") should equal(false)
-        }
+    rawFormWithCsrfToken.foreach { case (inputName, value) =>
+      if (inputName != "csrfToken") {
+        dynamicFormUtils.formAnswersWithValidInputNames(inputName) should equal(value)
+      } else {
+        dynamicFormUtils.formAnswersWithValidInputNames.contains("csrfToken") should equal(false)
+      }
     }
   }
 
   "formAnswersWithValidInputNames" should "return values passed into the request so long as the input name has a prefix of 'input'" +
     "regardless of whether an implementation of the field exists" in {
-    val unsupportedFieldType = "inputwrong"
+      val unsupportedFieldType = "inputwrong"
 
-    val rawFormWithoutCsrfToken = ListMap(
-      s"$unsupportedFieldType-testproperty3-day" -> List("3"),
-      "inputdate-testproperty3-month" -> List("5")
-    )
+      val rawFormWithoutCsrfToken = ListMap(
+        s"$unsupportedFieldType-testproperty3-day" -> List("3"),
+        "inputdate-testproperty3-month" -> List("5")
+      )
 
-    val dynamicFormUtils = instantiateDynamicFormsUtils(rawFormWithoutCsrfToken)
+      val dynamicFormUtils = instantiateDynamicFormsUtils(rawFormWithoutCsrfToken)
 
-    rawFormWithoutCsrfToken.foreach {
-      case (inputName, value) =>
+      rawFormWithoutCsrfToken.foreach { case (inputName, value) =>
         dynamicFormUtils.formAnswersWithValidInputNames(inputName) should equal(value)
+      }
     }
-  }
 
   "formAnswersWithValidInputNames" should "throw an exception if the input name does not have a prefix of 'input'" in {
     val fieldTypeWithIncorrectPrefix = "wrongprefixinputdate"
@@ -87,43 +85,44 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
   "validateAndConvertSubmittedValuesToFormFields" should "not throw an exception if the metadata name (in the input name) " +
     "contains/ends with a 'unitType'" in {
 
-    val rawFormWithCsrfToken = ListMap(
-      "inputdate-fieldidcontainsdaymonthyearoryears-day" -> List("29"),
-      "inputdate-fieldidcontainsdaymonthyearoryears-month" -> List("4"),
-      "inputdate-fieldidcontainsdaymonthyearoryears-year" -> List("2020"),
-      "inputnumeric-fieldidcontainsdaymonthoryear-years" -> List("4"),
-      "inputdropdown-fieldidendswithday" -> List("TestValue 3"),
-      "inputradio-fieldidendswithmonth" -> List("yes"),
-      "inputtext-fieldidendswithyear" -> List("Some Text"),
-      "csrfToken" -> List("12345")
-    )
+      val rawFormWithCsrfToken = ListMap(
+        "inputdate-fieldidcontainsdaymonthyearoryears-day" -> List("29"),
+        "inputdate-fieldidcontainsdaymonthyearoryears-month" -> List("4"),
+        "inputdate-fieldidcontainsdaymonthyearoryears-year" -> List("2020"),
+        "inputnumeric-fieldidcontainsdaymonthoryear-years" -> List("4"),
+        "inputdropdown-fieldidendswithday" -> List("TestValue 3"),
+        "inputradio-fieldidendswithmonth" -> List("yes"),
+        "inputtext-fieldidendswithyear" -> List("Some Text"),
+        "csrfToken" -> List("12345")
+      )
 
-    val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
-      FakeRequest.apply(POST, s"/consignment/12345/add-closure-metadata")
-        .withBody(AnyContentAsFormUrlEncoded(rawFormWithCsrfToken))
+      val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
+        FakeRequest
+          .apply(POST, s"/consignment/12345/add-closure-metadata")
+          .withBody(AnyContentAsFormUrlEncoded(rawFormWithCsrfToken))
 
-    val metadataUsedForFormAsFields = List(
-      DateField(
-        "fieldidcontainsdaymonthyearoryears",
-        "fieldId contains day month and year",
-        "We were previously using '.contains('day')' which meant that this type of form (above) would have showed the user the wrong error",
-        multiValue = false,
-        InputNameAndValue("Day", "", "DD"),
-        InputNameAndValue("Month", "", "MM"),
-        InputNameAndValue("Year", "", "YYYY"),
-        isRequired = true
-      ),
-      TextField("fieldidcontainsdaymonthoryear", "", "", multiValue = false,  InputNameAndValue("years", "0", "0"), "numeric", isRequired = true),
-      DropdownField("fieldidendswithday", "", "", multiValue = true, Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, isRequired = true),
-      RadioButtonGroupField("fieldidendswithmonth", "", "", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", isRequired = true),
-      TextField("fieldidendswithyear", "", "", multiValue = false, InputNameAndValue("text", ""), "text", isRequired = true)
-    )
+      val metadataUsedForFormAsFields = List(
+        DateField(
+          "fieldidcontainsdaymonthyearoryears",
+          "fieldId contains day month and year",
+          "We were previously using '.contains('day')' which meant that this type of form (above) would have showed the user the wrong error",
+          multiValue = false,
+          InputNameAndValue("Day", "", "DD"),
+          InputNameAndValue("Month", "", "MM"),
+          InputNameAndValue("Year", "", "YYYY"),
+          isRequired = true
+        ),
+        TextField("fieldidcontainsdaymonthoryear", "", "", multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true),
+        DropdownField("fieldidendswithday", "", "", multiValue = true, Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, isRequired = true),
+        RadioButtonGroupField("fieldidendswithmonth", "", "", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", isRequired = true),
+        TextField("fieldidendswithyear", "", "", multiValue = false, InputNameAndValue("text", ""), "text", isRequired = true)
+      )
 
-    val dynamicFormUtils = new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
-    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+      val dynamicFormUtils = new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
+      val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
 
-    validatedForm.foreach(_.fieldErrors shouldBe Nil)
-  }
+      validatedForm.foreach(_.fieldErrors shouldBe Nil)
+    }
 
   "validateAndConvertSubmittedValuesToFormFields" should "return a 'no-value selected'-selection-related error for selection fields if they are missing" in {
     val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
@@ -183,7 +182,8 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
       )
 
     val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
-      FakeRequest.apply(POST, s"/consignment/12345/add-closure-metadata")
+      FakeRequest
+        .apply(POST, s"/consignment/12345/add-closure-metadata")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
     val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new CustomMetadataUtilsSpec().allProperties.find(_.name == "TestProperty3").toList
@@ -200,15 +200,9 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
   }
 
   "validateAndConvertSubmittedValuesToFormFields" should "return a 'whole number'-related error for the numeric fields that are missing values" in {
-    //Shouldn't be possible on client-side due to "type:numeric" attribute added to HTML, but in case that is removed
+    // Shouldn't be possible on client-side due to "type:numeric" attribute added to HTML, but in case that is removed
     val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues(month = List("b4"),
-        year = List("2r"),
-        numericTextBoxValue = List("1.5"),
-        day2 = List("000"),
-        month2 = List("e"),
-        year2 = List("-")
-      )
+      MockFormValues(month = List("b4"), year = List("2r"), numericTextBoxValue = List("1.5"), day2 = List("000"), month2 = List("e"), year2 = List("-"))
     )
 
     val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
@@ -223,21 +217,21 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
   "validateAndConvertSubmittedValuesToFormFields" should "return all values, with any value submitted with whitespace " +
     "at the beginning/end of it, trimmed and no errors" in {
-    val mockFormValues = MockFormValues(
-      day = List(" 3"),
-      month = List("4 "),
-      year = List(" 2021 "),
-      numericTextBoxValue = List("       5"),
-      day2 = List("   7   ")
-    )
-    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      mockFormValues
-    )
+      val mockFormValues = MockFormValues(
+        day = List(" 3"),
+        month = List("4 "),
+        year = List(" 2021 "),
+        numericTextBoxValue = List("       5"),
+        day2 = List("   7   ")
+      )
+      val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+        mockFormValues
+      )
 
-    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
-    validatedForm.exists(_.fieldErrors.nonEmpty) should be(false)
-    verifyUpdatedFormFields(mockFormValues, validatedForm)
-  }
+      val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+      validatedForm.exists(_.fieldErrors.nonEmpty) should be(false)
+      verifyUpdatedFormFields(mockFormValues, validatedForm)
+    }
 
   private def verifyUpdatedFormFields(mockFormValues: MockFormValues, validatedForm: List[FormField]): Unit = {
 
@@ -283,7 +277,8 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
   private def instantiateDynamicFormsUtils(rawFormToMakeRequestWith: Map[String, Seq[String]], passInFieldsForAllMetadata: Boolean = true): DynamicFormUtils = {
     val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
-      FakeRequest.apply(POST, s"/consignment/12345/add-closure-metadata")
+      FakeRequest
+        .apply(POST, s"/consignment/12345/add-closure-metadata")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
     val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new CustomMetadataUtilsSpec().allProperties.take(5)
@@ -294,25 +289,26 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     if (passInFieldsForAllMetadata) {
       new DynamicFormUtils(mockRequest, allMetadataAsFields)
     } else {
-      val metadataUsedForFormAsFields: List[FormField] = allMetadataAsFields.filter {
-        formField =>
-          val rawFormWithoutCsrfToken: Map[String, Seq[String]] = rawFormToMakeRequestWith - "csrfToken"
-          val metadataNames: List[String] = rawFormWithoutCsrfToken.keys.map { inputName => inputName.split("-")(1) }.toList
-          metadataNames.contains(formField.fieldId)
+      val metadataUsedForFormAsFields: List[FormField] = allMetadataAsFields.filter { formField =>
+        val rawFormWithoutCsrfToken: Map[String, Seq[String]] = rawFormToMakeRequestWith - "csrfToken"
+        val metadataNames: List[String] = rawFormWithoutCsrfToken.keys.map { inputName => inputName.split("-")(1) }.toList
+        metadataNames.contains(formField.fieldId)
       }
       new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
     }
   }
 }
 
-case class MockFormValues(day: List[String] = List("3"),
-                          month: List[String] = List("4"),
-                          year: List[String] = List("2021"),
-                          numericTextBoxValue: List[String] = List("5"),
-                          dropdownValue: List[String] = List("TestValue 3"),
-                          radioValue: List[String] = List("yes"),
-                          day2: List[String] = List("7"),
-                          month2: List[String] = List("9"),
-                          year2: List[String] = List("2022"),
-                          textValue: List[String] = List("Some Text"),
-                          csrfToken: List[String] = List("12345"))
+case class MockFormValues(
+    day: List[String] = List("3"),
+    month: List[String] = List("4"),
+    year: List[String] = List("2021"),
+    numericTextBoxValue: List[String] = List("5"),
+    dropdownValue: List[String] = List("TestValue 3"),
+    radioValue: List[String] = List("yes"),
+    day2: List[String] = List("7"),
+    month2: List[String] = List("9"),
+    year2: List[String] = List("2022"),
+    textValue: List[String] = List("Some Text"),
+    csrfToken: List[String] = List("12345")
+)
