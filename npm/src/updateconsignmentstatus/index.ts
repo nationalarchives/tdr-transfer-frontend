@@ -12,8 +12,7 @@ export class UpdateConsignmentStatus {
   ): Promise<number | void | Error> {
     const updateConsignmentStatusInput: ConsignmentStatusInput = {
       consignmentId: uploadFilesInfo.consignmentId,
-      statusType: "Upload",
-      statusValue: "Completed"
+      statusType: "Upload"
     }
     const csrfInput: HTMLInputElement = document.querySelector(
       "input[name='csrfToken']"
