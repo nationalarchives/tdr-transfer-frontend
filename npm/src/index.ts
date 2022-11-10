@@ -1,4 +1,5 @@
 import { initAll } from "govuk-frontend"
+import { NestedNavigation } from "@nationalarchives/tdr-components"
 
 window.onload = async function () {
   initAll()
@@ -38,8 +39,10 @@ export const renderModules = async () => {
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
+  const fileNavigation = document.querySelector(".govuk-tna-tree")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
+
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
@@ -103,5 +106,43 @@ export const renderModules = async () => {
   } else if (timeoutDialog) {
     const sessionTimeoutModule = await import("./auth/session-timeout")
     await sessionTimeoutModule.initialiseSessionTimeout()
+  }
+  if (fileNavigation) {
+    const treeItems: NodeListOf<HTMLUListElement> =
+      document.querySelectorAll("[role=tree]")
+    const tree: HTMLUListElement | null = document.querySelector("[role=tree]")
+    const treeItemList: HTMLUListElement[] = []
+    if (tree != null) {
+      treeItems.forEach((item) => treeItemList.push(item))
+      const nestedNavigation = new NestedNavigation(tree, treeItemList)
+      nestedNavigation.initialiseFormListeners()
+    }
+    const form = document.querySelector("form")
+    if (form) {
+      form.addEventListener("submit", async (ev) => {
+        ev.preventDefault()
+        const body = new URLSearchParams()
+        document
+          .querySelectorAll("li[aria-checked=true]")
+          .forEach((el, _, __) => {
+            body.set(el.id, "on")
+          })
+        const csrfInput: HTMLInputElement | null = document.querySelector(
+          "input[name='csrfToken']"
+        )
+        fetch(form.action, {
+          body,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Csrf-Token": csrfInput!.value,
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          redirect: "follow"
+        }).then((res) => {
+          window.location.replace(res.url)
+        })
+      })
+    }
   }
 }

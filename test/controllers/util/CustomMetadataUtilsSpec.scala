@@ -11,53 +11,47 @@ import org.scalatestplus.mockito.MockitoSugar
 
 class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
   private val dataType = List(Text, DateTime)
-  val allProperties: List[CustomMetadata] = (1 to 10).toList.map(
-    number => {
-      val numberOfValues = number % 5
-      CustomMetadata(
-        name = s"TestProperty$number",
-        description = Some(s"It's the Test Property $number"),
-        fullName = Some(s"Test Property $number"),
-        propertyType = if (numberOfValues > 2) Defined else Supplied,
-        propertyGroup = Some(s"Test Property Group $number"),
-        dataType = if (numberOfValues == 1) {
-          Integer
-        } else if (numberOfValues == 2) {
-          Boolean
-        } else {
-          dataType(number % dataType.length)
-        },
-        editable = true,
-        multiValue = numberOfValues > 1,
-        defaultValue = Some(s"TestValue $number"),
-        uiOrdinal = number,
-        values = (1 to numberOfValues).toList.map(
-          valueNumber =>
-            CustomMetadata.Values(
-              s"TestValue $valueNumber",
-              (1 to number % 6).toList.map(
-                depNumber => {
-                  val propertyNumber = depNumber * 2 % 11
-                  CustomMetadata.Values.Dependencies(s"TestProperty$propertyNumber")
-                }
-              ), valueNumber
-            )
-        ), None, allowExport = false
-      )
-    }
-  )
+  val allProperties: List[CustomMetadata] = (1 to 10).toList.map(number => {
+    val numberOfValues = number % 5
+    CustomMetadata(
+      name = s"TestProperty$number",
+      description = Some(s"It's the Test Property $number"),
+      fullName = Some(s"Test Property $number"),
+      propertyType = if (numberOfValues > 2) Defined else Supplied,
+      propertyGroup = Some(s"Test Property Group $number"),
+      dataType = if (numberOfValues == 1) {
+        Integer
+      } else if (numberOfValues == 2) {
+        Boolean
+      } else {
+        dataType(number % dataType.length)
+      },
+      editable = true,
+      multiValue = numberOfValues > 1,
+      defaultValue = Some(s"TestValue $number"),
+      uiOrdinal = number,
+      values = (1 to numberOfValues).toList.map(valueNumber =>
+        CustomMetadata.Values(
+          s"TestValue $valueNumber",
+          (1 to number % 6).toList.map(depNumber => {
+            val propertyNumber = depNumber * 2 % 11
+            CustomMetadata.Values.Dependencies(s"TestProperty$propertyNumber")
+          }),
+          valueNumber
+        )
+      ),
+      None,
+      allowExport = false
+    )
+  })
 
   private val customMetadataUtils = CustomMetadataUtils(allProperties)
-
 
   "getCustomMetadataProperties" should "return the list of properties requested" in {
     val namesOfPropertiesToGet = allProperties.map(_.name).toSet
     val listOfPropertiesRetrieved: Set[CustomMetadata] = customMetadataUtils.getCustomMetadataProperties(namesOfPropertiesToGet)
 
-    val propertiesRetrievedEqualPropertiesRequested = listOfPropertiesRetrieved.forall(
-      propertyRetrieved =>
-        namesOfPropertiesToGet.contains(propertyRetrieved.name)
-    )
+    val propertiesRetrievedEqualPropertiesRequested = listOfPropertiesRetrieved.forall(propertyRetrieved => namesOfPropertiesToGet.contains(propertyRetrieved.name))
     propertiesRetrievedEqualPropertiesRequested should equal(true)
   }
 
@@ -81,9 +75,8 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     val actualPropertiesAndTheirValues: Map[String, List[CustomMetadata.Values]] =
       customMetadataUtils.getValuesOfProperties(namesOfPropertiesAndTheirExpectedValues.keys.toSet)
 
-    namesOfPropertiesAndTheirExpectedValues.foreach {
-      case (propertyName, expectedValues) =>
-        actualPropertiesAndTheirValues(propertyName).map(_.value) should equal(expectedValues)
+    namesOfPropertiesAndTheirExpectedValues.foreach { case (propertyName, expectedValues) =>
+      actualPropertiesAndTheirValues(propertyName).map(_.value) should equal(expectedValues)
     }
   }
 
@@ -100,23 +93,26 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
 
-    propertiesToConvertToFields.foreach {
-      property =>
-        val field = fieldValuesByDataType.find(_.fieldId == property.name).get
-        property.dataType match {
-          case Integer => field.isInstanceOf[TextField] should be(true)
-            field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", property.defaultValue.getOrElse("")))
-          case DateTime => field.isInstanceOf[DateField] should be(true)
-            verifyDate(field.asInstanceOf[DateField])
-          case Boolean => field.isInstanceOf[RadioButtonGroupField] should be(true)
-            verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
-          case Text => field.isInstanceOf[DropdownField] should be(true)
-            verifyText(field.asInstanceOf[DropdownField], property)
-          case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
-        }
-        field.fieldDescription should equal(property.description.getOrElse(""))
-        field.fieldName should equal(property.fullName.get)
-        field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
+    propertiesToConvertToFields.foreach { property =>
+      val field = fieldValuesByDataType.find(_.fieldId == property.name).get
+      property.dataType match {
+        case Integer =>
+          field.isInstanceOf[TextField] should be(true)
+          field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", property.defaultValue.getOrElse("")))
+        case DateTime =>
+          field.isInstanceOf[DateField] should be(true)
+          verifyDate(field.asInstanceOf[DateField])
+        case Boolean =>
+          field.isInstanceOf[RadioButtonGroupField] should be(true)
+          verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
+        case Text =>
+          field.isInstanceOf[DropdownField] should be(true)
+          verifyText(field.asInstanceOf[DropdownField], property)
+        case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
+      }
+      field.fieldDescription should equal(property.description.getOrElse(""))
+      field.fieldName should equal(property.fullName.get)
+      field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
     }
   }
 
@@ -126,29 +122,34 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     val customMetadataUtils = CustomMetadataUtils(allPropertiesWithoutDefaultValue)
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
 
-    propertiesToConvertToFields.foreach {
-      property =>
-        val field = fieldValuesByDataType.find(_.fieldId == property.name).get
-        property.dataType match {
-          case Integer => field.isInstanceOf[TextField] should be(true)
-            field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", ""))
-          case DateTime => field.isInstanceOf[DateField] should be(true)
-            verifyDate(field.asInstanceOf[DateField])
-          case Boolean => field.isInstanceOf[RadioButtonGroupField] should be(true)
-            verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
-          case Text => field.isInstanceOf[DropdownField] should be(true)
-            verifyText(field.asInstanceOf[DropdownField], property)
-          case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
-        }
-        field.fieldDescription should equal(property.description.getOrElse(""))
-        field.fieldName should equal(property.fullName.get)
-        field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
+    propertiesToConvertToFields.foreach { property =>
+      val field = fieldValuesByDataType.find(_.fieldId == property.name).get
+      property.dataType match {
+        case Integer =>
+          field.isInstanceOf[TextField] should be(true)
+          field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", ""))
+        case DateTime =>
+          field.isInstanceOf[DateField] should be(true)
+          verifyDate(field.asInstanceOf[DateField])
+        case Boolean =>
+          field.isInstanceOf[RadioButtonGroupField] should be(true)
+          verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
+        case Text =>
+          field.isInstanceOf[DropdownField] should be(true)
+          verifyText(field.asInstanceOf[DropdownField], property)
+        case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
+      }
+      field.fieldDescription should equal(property.description.getOrElse(""))
+      field.fieldName should equal(property.fullName.get)
+      field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
     }
   }
 
   "convertPropertiesToFields" should "convert date property to field and it shouldn't allow future date when property name is foiExemptionAsserted" in {
-    val propertiesToConvertToFields: CustomMetadata = allProperties.find(_.dataType == graphql.codegen.types.DataType.DateTime)
-      .head.copy(name = "FoiExemptionAsserted", fullName = "FOI decision asserted".some, description = "Date of the Advisory Council Approval".some)
+    val propertiesToConvertToFields: CustomMetadata = allProperties
+      .find(_.dataType == graphql.codegen.types.DataType.DateTime)
+      .head
+      .copy(name = "FoiExemptionAsserted", fullName = "FOI decision asserted".some, description = "Date of the Advisory Council Approval".some)
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(Set(propertiesToConvertToFields))
 
     val field = fieldValuesByDataType.head.asInstanceOf[DateField]
@@ -162,9 +163,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
     fieldValuesByDataType.size should equal(10)
-    (1 to 10).toList.foreach(number =>
-      fieldValuesByDataType(number - 1).fieldId should equal(s"TestProperty$number")
-    )
+    (1 to 10).toList.foreach(number => fieldValuesByDataType(number - 1).fieldId should equal(s"TestProperty$number"))
   }
 
   def verifyDate(field: DateField, isFutureDateAllowed: Boolean = true): Unit = {
