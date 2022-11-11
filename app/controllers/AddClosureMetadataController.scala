@@ -177,8 +177,6 @@ class AddClosureMetadataController @Inject() (
       fileIds: List[UUID]
   ): Future[(PageInfo, ControllerInfo)] =
     for {
-      // This is another API call to get the parent ID but this won't be needed once the JS solution is in so we can live with it.
-      details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
       consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None)))
       updatedFieldsForForm <- {
         cache.set(s"$consignmentId-reference", consignment.consignmentReference, 1.hour)
@@ -189,7 +187,7 @@ class AddClosureMetadataController @Inject() (
       val files: List[File] = getFilesFromConsignment(consignment.files)
       // Call to details.parentFolderId.get should be temporary. User shouldn't see this page if the parent ID is empty.
       val pageInfo = PageInfo(request.token.name, consignment.consignmentReference, "", "", updatedFieldsForForm)
-      val controllerInfo = ControllerInfo(isMainForm, fieldsAndValuesSelectedOnPrevPage, consignmentId, files, details.parentFolderId.get)
+      val controllerInfo = ControllerInfo(isMainForm, fieldsAndValuesSelectedOnPrevPage, consignmentId, files)
       (pageInfo, controllerInfo)
     }
 
@@ -312,5 +310,5 @@ object AddClosureMetadataController {
   case class File(fileId: UUID, name: String)
   case class ValueSelectedAndDepsToDel(propertyName: String, valueSelected: String, valueHasDependencies: Boolean, depsOfNonSelectedValues: List[String])
   case class PageInfo(userName: String, consignmentRef: String, pageTitle: String, pageDescription: String, fieldsToApplyToFile: List[FormField])
-  case class ControllerInfo(isMainForm: Boolean, fieldsAndValuesSelectedOnPrevPage: List[String], consignmentId: UUID, files: List[File], parentFolderId: UUID)
+  case class ControllerInfo(isMainForm: Boolean, fieldsAndValuesSelectedOnPrevPage: List[String], consignmentId: UUID, files: List[File])
 }
