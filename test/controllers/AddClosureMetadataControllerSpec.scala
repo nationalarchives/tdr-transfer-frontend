@@ -537,6 +537,36 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           formTester.checkHtmlForOptionAndItsAttributes(addClosureMetadataPageAsString, expectedDependencyDefaultForm.toMap)
         }
     }
+
+    "return a redirect to the auth server with an unauthenticated user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = instantiateAddClosureMetadataController(getUnauthorisedSecurityComponents)
+      val addClosureMetadataPage = controller
+        .addClosureMetadataDependenciesPage(List("dummyPropertyNameAndFieldSelected-True"), consignmentId, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata/nestedDependencies").withCSRFToken)
+      redirectLocation(addClosureMetadataPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      playStatus(addClosureMetadataPage) mustBe FOUND
+    }
+
+    "render an error if the api returns errors" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val client = new GraphQLConfiguration(app.configuration).getClient[cm.Data, cm.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(Option.empty, List(GraphQLClient.Error("Error", Nil, Nil, None)))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .willReturn(okJson(dataString))
+      )
+
+      val controller = instantiateAddClosureMetadataController()
+      val addClosureMetadataPage = controller
+        .addClosureMetadataDependenciesPage(List("dummyPropertyNameAndFieldSelected-True"), consignmentId, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata/nestedDependencies").withCSRFToken)
+
+      val failure = addClosureMetadataPage.failed.futureValue
+      failure mustBe an[GraphQlException]
+    }
   }
 
   "AddClosureMetadataController nestedDependencies page POST" should {
