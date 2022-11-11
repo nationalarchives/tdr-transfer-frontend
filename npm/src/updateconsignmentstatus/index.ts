@@ -7,7 +7,7 @@ import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
 
 export class UpdateConsignmentStatus {
-  async markUploadStatusAsCompleted(
+  async setUploadStatusBasedOnFileStatuses(
     uploadFilesInfo: FileUploadInfo
   ): Promise<number | void | Error> {
     const updateConsignmentStatusInput: ConsignmentStatusInput = {

@@ -89,7 +89,7 @@ export class FileUploader {
         this.keycloak.tokenParsed?.sub
       )
       const statusUpdate =
-        await this.updateConsignmentStatus.markUploadStatusAsCompleted(
+        await this.updateConsignmentStatus.setUploadStatusBasedOnFileStatuses(
           uploadFilesInfo
         )
       if (isError(processResult)) {
