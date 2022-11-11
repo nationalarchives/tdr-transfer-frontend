@@ -7,13 +7,12 @@ import { FileUploadInfo } from "../upload/form/upload-form"
 import { isError } from "../errorhandling"
 
 export class UpdateConsignmentStatus {
-  async markUploadStatusAsCompleted(
+  async setUploadStatusBasedOnFileStatuses(
     uploadFilesInfo: FileUploadInfo
   ): Promise<number | void | Error> {
     const updateConsignmentStatusInput: ConsignmentStatusInput = {
       consignmentId: uploadFilesInfo.consignmentId,
-      statusType: "Upload",
-      statusValue: "Completed"
+      statusType: "Upload"
     }
     const csrfInput: HTMLInputElement = document.querySelector(
       "input[name='csrfToken']"
