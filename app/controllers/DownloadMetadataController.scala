@@ -39,12 +39,11 @@ class DownloadMetadataController @Inject() (
       metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val filePathKey = "ClientSideOriginalFilepath"
       val filteredMetadata = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
-      val header: List[String] = "File Name" :: filteredMetadata.map(f => f.fullName.getOrElse(f.name))
+      val header: List[String] = filteredMetadata.map(f => f.fullName.getOrElse(f.name))
       val rows: List[List[String]] = metadata.files.map(file => {
         val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
-        groupedMetadata.value(filePathKey) :: filteredMetadata.map(fm => groupedMetadata.value(fm.name))
+        filteredMetadata.map(fm => groupedMetadata.value(fm.name))
       })
       val csvString = CsvUtils.writeCsv(header :: rows)
       Ok(csvString)
