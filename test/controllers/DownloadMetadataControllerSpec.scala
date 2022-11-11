@@ -45,16 +45,20 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
   "DownloadMetadataController downloadMetadataCsv GET" should {
     "download the csv for a multiple properties and rows" in {
-      val customProperties = List(customMetadata("TestProperty1", "Test Property 1"), customMetadata("TestProperty2", "Test Property 2"))
+      val customProperties = List(
+        customMetadata("TestProperty1", "Test Property 1"),
+        customMetadata("TestProperty2", "Test Property 2"),
+        customMetadata("FileName", "File Name")
+      )
       val metadataFileOne = List(
         FileMetadata("TestProperty1", "TestValue1File1"),
         FileMetadata("TestProperty2", "TestValue2File1"),
-        FileMetadata("ClientSideOriginalFilepath", "FileName1")
+        FileMetadata("FileName", "FileName1")
       )
       val metadataFileTwo = List(
         FileMetadata("TestProperty1", "TestValue1File2"),
         FileMetadata("TestProperty2", "TestValue2File2"),
-        FileMetadata("ClientSideOriginalFilepath", "FileName2")
+        FileMetadata("FileName", "FileName2")
       )
       val files = List(
         gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata),
@@ -73,12 +77,19 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     }
 
     "download the csv for rows with different numbers of metadata" in {
-      val customProperties = List(customMetadata("TestProperty1", "Test Property 1"), customMetadata("TestProperty2", "Test Property 2"))
-      val metadataFileOne = List(FileMetadata("TestProperty1", "TestValue1File1"), FileMetadata("ClientSideOriginalFilepath", "FileName1"))
+      val customProperties = List(
+        customMetadata("TestProperty1", "Test Property 1"),
+        customMetadata("TestProperty2", "Test Property 2"),
+        customMetadata("FileName", "File Name")
+      )
+      val metadataFileOne = List(
+        FileMetadata("TestProperty1", "TestValue1File1"),
+        FileMetadata("FileName", "FileName1")
+      )
       val metadataFileTwo = List(
         FileMetadata("TestProperty1", "TestValue1File2"),
         FileMetadata("TestProperty2", "TestValue2File2"),
-        FileMetadata("ClientSideOriginalFilepath", "FileName2")
+        FileMetadata("FileName", "FileName2")
       )
       val files = List(
         gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata),
@@ -97,11 +108,15 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     }
 
     "ignore fields set with allowExport set to false" in {
-      val customProperties = List(customMetadata("TestProperty1", "Test Property 1", allowExport = false), customMetadata("TestProperty2", "Test Property 2"))
+      val customProperties = List(
+        customMetadata("TestProperty1", "Test Property 1", allowExport = false),
+        customMetadata("TestProperty2", "Test Property 2"),
+        customMetadata("FileName", "File Name")
+      )
       val metadataFileOne = List(
         FileMetadata("TestProperty1", "TestValue1File1"),
         FileMetadata("TestProperty2", "TestValue2File1"),
-        FileMetadata("ClientSideOriginalFilepath", "FileName1")
+        FileMetadata("FileName", "FileName1")
       )
       val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata))
 
@@ -116,16 +131,17 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     "order fields correctly" in {
       val customProperties = List(
         customMetadata("TestProperty1", "Test Property 1"),
-        customMetadata("TestProperty2", "Test Property 2", 2),
-        customMetadata("TestProperty3", "Test Property 3", 1),
-        customMetadata("TestProperty4", "Test Property 4", 3)
+        customMetadata("TestProperty2", "Test Property 2", 3),
+        customMetadata("TestProperty3", "Test Property 3", 2),
+        customMetadata("TestProperty4", "Test Property 4", 4),
+        customMetadata("FileName", "File Name", 1)
       )
       val metadataFileOne = List(
+        FileMetadata("FileName", "FileName1"),
         FileMetadata("TestProperty1", "TestValue1File1"),
         FileMetadata("TestProperty2", "TestValue2File1"),
         FileMetadata("TestProperty3", "TestValue3File1"),
-        FileMetadata("TestProperty4", "TestValue4File1"),
-        FileMetadata("ClientSideOriginalFilepath", "FileName1")
+        FileMetadata("TestProperty4", "TestValue4File1")
       )
       val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata))
 
