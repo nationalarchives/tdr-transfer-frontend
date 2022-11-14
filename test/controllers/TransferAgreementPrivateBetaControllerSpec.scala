@@ -34,7 +34,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   val formOptions: FormTester = taHelper.checkHtmlOfPrivateBetaFormOptions
   val optionsToSelectToGenerateFormErrors: Seq[Seq[(String, String)]] =
-    formOptions.generateWaysToIncorrectlySubmitAForm()
+    formOptions.generateOptionsToSelectToGenerateFormErrors()
 
   "TransferAgreementPrivateBetaController GET" should {
 

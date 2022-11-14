@@ -34,7 +34,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   val formOptions: FormTester = taHelper.checkHtmlOfComplianceFormOptions
   val optionsToSelectToGenerateFormErrors: Seq[Seq[(String, String)]] =
-    formOptions.generateWaysToIncorrectlySubmitAForm()
+    formOptions.generateOptionsToSelectToGenerateFormErrors()
 
   "TransferAgreementComplianceController GET" should {
 
