@@ -59,7 +59,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   private val fieldAndValueSelectedPriorToMainPage: List[String] = List("ClosureType-Closed")
   private val dependencyFormTester = new FormTester(expectedClosureDependencyDefaultOptions)
   private val expectedDependencyDefaultForm: Seq[Seq[(String, String)]] =
-    dependencyFormTester.generateWaysToIncorrectlySubmitAForm("value", combineOptionNameWithValue = true)
+    dependencyFormTester.generateOptionsToSelectToGenerateFormErrors("value", combineOptionNameWithValue = true)
 
   override def beforeEach(): Unit = {
     wiremockServer.start()

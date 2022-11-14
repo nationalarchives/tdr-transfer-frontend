@@ -4,15 +4,12 @@ import org.scalatest.matchers.must.Matchers._
 import testUtils.DefaultMockFormOptions.MockInputOption
 
 class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = " govuk-checkboxes--small") {
-  def generateWaysToIncorrectlySubmitAForm(value: String = "true", combineOptionNameWithValue: Boolean = false): Seq[Seq[(String, String)]] = {
+  def generateOptionsToSelectToGenerateFormErrors(value: String = "true", combineOptionNameWithValue: Boolean = false): Seq[Seq[(String, String)]] = {
     val possibleOptions: Seq[String] = defaultOptions.map(_.name)
-    val optionsToSelectToGenerateFormErrors =
-      for {
-        numberRangeOfOptionsToSelect <- (1 until possibleOptions.length).toList
-        optionsToSelect <- possibleOptions.combinations(numberRangeOfOptionsToSelect)
-      } yield optionsToSelect.map(option => (option, if (combineOptionNameWithValue) s"$option $value" else value))
-
-    optionsToSelectToGenerateFormErrors
+    for {
+      numberRangeOfOptionsToSelect <- (1 until possibleOptions.length).toList
+      optionsToSelect <- possibleOptions.combinations(numberRangeOfOptionsToSelect)
+    } yield optionsToSelect.map(option => (option, if (combineOptionNameWithValue) s"$option $value" else value))
   }
   // scalastyle:off cyclomatic.complexity
   def checkHtmlForOptionAndItsAttributes(htmlAsString: String, optionsSelected: Map[String, String], formStatus: String = "NotSubmitted"): Unit = {
