@@ -41,6 +41,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val wiremockServer = new WireMockServer(9006)
+  val twoOrMoreSpaces = "\\s{2,}"
   val checkPageForStaticElements = new CheckPageForStaticElements
   val fileIds: List[UUID] = List(UUID.fromString("ae4b7cad-ee83-46bd-b952-80bc8263c6c2"))
   val parentFolderId = Option(UUID.randomUUID())
@@ -707,85 +708,75 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     )
   }
   // scalastyle:off method.length
-  private def checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsString: String) = {
-    addClosureMetadataPageAsString must include(
-      """      <title>Add closure metadata to files</title>"""
-    )
-    addClosureMetadataPageAsString must include(
-      """      <h1 class="govuk-heading-l">Add closure metadata to</h1>"""
-    )
-
-    addClosureMetadataPageAsString must include("""      <p class="govuk-body">Enter metadata for closure fields here.</p>""")
-    addClosureMetadataPageAsString must include(
+  private def checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsFormattedString: String): Unit = {
+    val addClosureMetadataPageAsString = addClosureMetadataPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
+    val closureMetadataHtmlElements = Set(
+      """      <title>Add closure metadata to files</title>""",
+      """      <h1 class="govuk-heading-l">Add closure metadata to</h1>""",
+      """      <p class="govuk-body">Enter metadata for closure fields here.</p>""",
       """            <h2 class="govuk-label govuk-label--m">
         |                FOI decision asserted
-        |            </h2>""".stripMargin
-    )
-    addClosureMetadataPageAsString must include(
+        |            </h2>""",
       """        <div id="date-input-FoiExemptionAsserted-hint" class="govuk-hint">
         |            Date of the Advisory Council approval (or SIRO approval if appropriate)
-        |        </div>""".stripMargin
-    )
-    addClosureMetadataPageAsString must include(
+        |        </div>""",
       """            <h2 class="govuk-label govuk-label--m">
         |                Closure start date
-        |            </h2>""".stripMargin
-    )
-    addClosureMetadataPageAsString must include(
+        |            </h2>""",
       """        <div id="date-input-ClosureStartDate-hint" class="govuk-hint">
         |            This has been defaulted to the last date modified. If this is not correct, amend the field below.
-        |        </div>""".stripMargin
-    )
-    addClosureMetadataPageAsString must include(
+        |        </div>""",
       """        <label class="govuk-label govuk-label--m" for=years>
         |            Closure period
-        |        </label>""".stripMargin
-    )
-    addClosureMetadataPageAsString must include(
+        |        </label>""",
       """    <div id="numeric-input-hint" class="govuk-hint">
         |        Number of years the record is closed from the closure start date
-        |    </div>""".stripMargin
-    )
-    addClosureMetadataPageAsString must include(
+        |    </div>""",
       """            <label class="govuk-label govuk-label--m" for="inputdropdown-FoiExemptionCode">
         |                FOI exemption code
-        |            </label>""".replace("................", "                ").stripMargin
-    )
-    addClosureMetadataPageAsString must include(
+        |            </label>""".replace("................", "                "),
       """        <div id="inputdropdown-FoiExemptionCode-hint" class="govuk-hint">
         |            Select the exemption code that applies
-        |        </div>""".stripMargin
-    )
-    addClosureMetadataPageAsString must include(
-      """<select class="govuk-select" id="inputdropdown-FoiExemptionCode" name="inputdropdown-FoiExemptionCode"  >""".stripMargin
-    )
-    addClosureMetadataPageAsString must include(
+        |        </div>""",
+      """<select class="govuk-select" id="inputdropdown-FoiExemptionCode" name="inputdropdown-FoiExemptionCode"  >""",
       """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
         |            Is the title closed?
-        |        </legend>""".stripMargin
-    )
-    addClosureMetadataPageAsString must include(
+        |        </legend>""",
       """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
         |            Is the description closed?
-        |        </legend>""".stripMargin
+        |        </legend>"""
     )
+
+    closureMetadataHtmlElements.foreach { htmlElement =>
+      addClosureMetadataPageAsString must include(
+        htmlElement.stripMargin.replaceAll(twoOrMoreSpaces, "")
+      )
+    }
   }
 
-  private def checkForExpectedClosureMetadataDependenciesFormPageContent(addClosureMetadataPageAsString: String, fullNameAndName: Map[String, String]): Unit = {
+  private def checkForExpectedClosureMetadataDependenciesFormPageContent(
+      addClosureMetadataDependenciesPageAsFormattedString: String,
+      fullNameAndName: Map[String, String]
+  ): Unit = {
     val title = fullNameAndName.keys.mkString(" and ")
     val pronoun = if (fullNameAndName.size > 1) "they contain" else "it contains"
 
-    addClosureMetadataPageAsString must include(s"""      <title>Add an $title to files</title>""")
-    addClosureMetadataPageAsString must include(s"""      <h1 class="govuk-heading-l">Add an $title to</h1>""")
-
-    addClosureMetadataPageAsString must include(s"""      <p class="govuk-body">Enter a publicly visible $title if, for example, $pronoun sensitive information.
-                | For guidance on how to create an $title, read our FAQs (opens in a new tab)</p>""".stripMargin)
+    val addClosureMetadataDependenciesPageAsString = addClosureMetadataDependenciesPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
+    val closureMetadataDependenciesHtmlElements = Set(
+      s"""      <title>Add an $title to files</title>""",
+      s"""      <h1 class="govuk-heading-l">Add an $title to</h1>""",
+      s"""      <p class="govuk-body">Enter a publicly visible $title if, for example, $pronoun sensitive information.
+                | For guidance on how to create an $title, read our FAQs (opens in a new tab)</p>""".stripMargin
+    )
+    closureMetadataDependenciesHtmlElements.foreach { closureMetadataDependenciesHtmlElement =>
+      addClosureMetadataDependenciesPageAsString must include(closureMetadataDependenciesHtmlElement.replaceAll(twoOrMoreSpaces, ""))
+    }
 
     fullNameAndName.foreach { case (fullName, name) =>
-      addClosureMetadataPageAsString must include(
+      addClosureMetadataDependenciesPageAsString must include(
         s"""        <label class="govuk-label govuk-label--m" for=$name>
             |            $fullName
-            |        </label>""".stripMargin
+            |        </label>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
       )
     }
   }
