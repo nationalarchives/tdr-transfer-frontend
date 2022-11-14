@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import controllers.AddClosureMetadataController.{ControllerInfo, File, PageInfo, ValueSelectedAndDepsToDel}
+import controllers.AddClosureMetadataController.{ControllerInfo, File, FormData, PageInfo, ValueSelectedAndDepsToDel}
 import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType}
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
@@ -43,8 +43,15 @@ class AddClosureMetadataController @Inject() (
 
   def addClosureMetadata(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      (_, defaultFieldForm) <- getDefaultFieldsForForm(Set(closureType), consignmentId, request)
-      (pageInfo, controllerInfo) <- getInfoForClosurePage(consignmentId, request, isMainForm = true, List(s"${closureType.name}-${closureType.value}"), defaultFieldForm, fileIds)
+      formData <- getDefaultFieldsForForm(Set(closureType), consignmentId, request)
+      (pageInfo, controllerInfo) <- getInfoForClosurePage(
+        consignmentId,
+        request,
+        isMainForm = true,
+        List(s"${closureType.name}-${closureType.value}"),
+        formData.formFields,
+        fileIds
+      )
     } yield {
       val updatedPageInfo = pageInfo.copy(pageTitle = mainFormPageTitle, pageDescription = mainFormPageDescription)
       Ok(views.html.standard.addClosureMetadata(updatedPageInfo, controllerInfo))
@@ -53,7 +60,8 @@ class AddClosureMetadataController @Inject() (
 
   def addClosureMetadataSubmit(isMainForm: Boolean, fieldsAndValuesSelectedOnPrevPage: List[String], consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-      validateForm(consignmentId: UUID, isMainForm, fieldsAndValuesSelectedOnPrevPage).flatMap { case (validatedFields, dependencyProperties) =>
+      validateForm(consignmentId: UUID, isMainForm, fieldsAndValuesSelectedOnPrevPage).flatMap { formData =>
+        val validatedFields: List[FormField] = formData.formFields
         if (validatedFields.exists(_.fieldErrors.nonEmpty)) {
           val (formPageTitle, formPageDescription) =
             if (!isMainForm) {
@@ -83,7 +91,7 @@ class AddClosureMetadataController @Inject() (
             case DropdownField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
               UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.map(_.value).getOrElse(""))
           }
-          val propertyNameFieldSelectedAndDeps: Set[ValueSelectedAndDepsToDel] = getValuesThatWereSelectedIfTheyHaveDependencies(dependencyProperties, metadataInput)
+          val propertyNameFieldSelectedAndDeps: Set[ValueSelectedAndDepsToDel] = getValuesThatWereSelectedIfTheyHaveDependencies(formData.metadataProperties, metadataInput)
           saveMetadataAndReturnPage(consignmentId, fileIds, metadataInput, propertyNameFieldSelectedAndDeps)
         }
       }
@@ -123,7 +131,7 @@ class AddClosureMetadataController @Inject() (
           for {
             defaultFields <- {
               val staticMetadata: Set[StaticMetadata] = convertNameAndFieldToObject(fieldsAndValuesSelectedOnPrevPage)
-              getDefaultFieldsForForm(staticMetadata, consignmentId, request).map { case (_, formFields) => formFields }
+              getDefaultFieldsForForm(staticMetadata, consignmentId, request).map { defaultFormData => defaultFormData.formFields }
             }
             (pageInfo, controllerInfo) <- getInfoForClosurePage(consignmentId, request, isMainForm = false, fieldsAndValuesSelectedOnPrevPage, defaultFields, fileIds)
             fieldNames = defaultFields.map(_.fieldName)
@@ -147,16 +155,16 @@ class AddClosureMetadataController @Inject() (
 
   private def validateForm(consignmentId: UUID, isMainForm: Boolean, fieldsAndValuesSelectedOnPrevPage: List[String])(implicit
       request: Request[AnyContent]
-  ): Future[(List[FormField], Set[CustomMetadata])] = {
+  ): Future[FormData] = {
     val propertyName = if (isMainForm) closureType.name else "Dependency"
     for {
-      (dependencyProperties, defaultFieldValues) <- cache.getOrElseUpdate[(Set[CustomMetadata], List[FormField])](s"$propertyName-propertiesAndFieldValues") {
+      formData <- cache.getOrElseUpdate[FormData](s"$propertyName-propertiesAndFieldValues") {
         getDefaultFieldsForForm(convertNameAndFieldToObject(fieldsAndValuesSelectedOnPrevPage), consignmentId, request)
       }
-      dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues)
+      dynamicFormUtils = new DynamicFormUtils(request, formData.formFields)
       formAnswers: Map[String, Seq[String]] = dynamicFormUtils.formAnswersWithValidInputNames
       updatedFormFields: List[FormField] = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(formAnswers)
-    } yield (updatedFormFields, dependencyProperties)
+    } yield FormData(formData.metadataProperties, updatedFormFields)
   }
 
   private def getDependenciesPageTitle(fieldNames: List[String]): (String, String) = {
@@ -200,7 +208,7 @@ class AddClosureMetadataController @Inject() (
     valuesThatWereSelectedThatHaveDependencies
   }
 
-  private def getDefaultFieldsForForm(staticMetadata: Set[StaticMetadata], consignmentId: UUID, request: Request[AnyContent]): Future[(Set[CustomMetadata], List[FormField])] = {
+  private def getDefaultFieldsForForm(staticMetadata: Set[StaticMetadata], consignmentId: UUID, request: Request[AnyContent]): Future[FormData] = {
     for {
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       customMetadataUtils = new CustomMetadataUtils(customMetadata)
@@ -211,8 +219,9 @@ class AddClosureMetadataController @Inject() (
       formFields = customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
     } yield {
       val pageType = if (staticMetadata.exists(_.name == closureType.name)) closureType.name else "Dependency"
-      cache.set(s"$pageType-propertiesAndFieldValues", (dependencyProperties, formFields), 1.hour)
-      (dependencyProperties, formFields)
+      val defaultFormData = FormData(dependencyProperties, formFields)
+      cache.set(s"$pageType-propertiesAndFieldValues", defaultFormData, 1.hour)
+      defaultFormData
     }
   }
 
@@ -308,6 +317,7 @@ class AddClosureMetadataController @Inject() (
 
 object AddClosureMetadataController {
   case class File(fileId: UUID, name: String)
+  case class FormData(metadataProperties: Set[CustomMetadata], formFields: List[FormField])
   case class ValueSelectedAndDepsToDel(propertyName: String, valueSelected: String, valueHasDependencies: Boolean, depsOfNonSelectedValues: List[String])
   case class PageInfo(userName: String, consignmentRef: String, pageTitle: String, pageDescription: String, fieldsToApplyToFile: List[FormField])
   case class ControllerInfo(isMainForm: Boolean, fieldsAndValuesSelectedOnPrevPage: List[String], consignmentId: UUID, files: List[File])
