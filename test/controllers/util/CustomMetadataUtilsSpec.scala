@@ -93,35 +93,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
 
-    propertiesToConvertToFields.foreach { property =>
-      val field = fieldValuesByDataType.find(_.fieldId == property.name).get
-      property.dataType match {
-        case Integer =>
-          field.isInstanceOf[TextField] should be(true)
-          field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", property.defaultValue.getOrElse("")))
-        case DateTime =>
-          field.isInstanceOf[DateField] should be(true)
-          verifyDate(field.asInstanceOf[DateField])
-        case Boolean =>
-          field.isInstanceOf[RadioButtonGroupField] should be(true)
-          verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
-        case Text =>
-          property.propertyType match {
-            case Defined =>
-              field.isInstanceOf[DropdownField] should be(true)
-              verifyText(field.asInstanceOf[DropdownField], property)
-            case Supplied =>
-              field.isInstanceOf[TextField] should be(true)
-              field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue(property.name, property.defaultValue.getOrElse("")))
-            case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
-          }
-
-        case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
-      }
-      field.fieldDescription should equal(property.description.getOrElse(""))
-      field.fieldName should equal(property.fullName.get)
-      field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
-    }
+    propertiesToConvertToFields.foreach { property => checkMetadataToFieldConversion(property, fieldValuesByDataType) }
   }
 
   "convertPropertiesToFields" should "convert properties to fields for the form when the given properties don't have default values" in {
@@ -130,34 +102,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     val customMetadataUtils = CustomMetadataUtils(allPropertiesWithoutDefaultValue)
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
 
-    propertiesToConvertToFields.foreach { property =>
-      val field = fieldValuesByDataType.find(_.fieldId == property.name).get
-      property.dataType match {
-        case Integer =>
-          field.isInstanceOf[TextField] should be(true)
-          field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", ""))
-        case DateTime =>
-          field.isInstanceOf[DateField] should be(true)
-          verifyDate(field.asInstanceOf[DateField])
-        case Boolean =>
-          field.isInstanceOf[RadioButtonGroupField] should be(true)
-          verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
-        case Text =>
-          property.propertyType match {
-            case Defined =>
-              field.isInstanceOf[DropdownField] should be(true)
-              verifyText(field.asInstanceOf[DropdownField], property)
-            case Supplied =>
-              field.isInstanceOf[TextField] should be(true)
-              field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue(property.name, property.defaultValue.getOrElse("")))
-            case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
-          }
-        case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
-      }
-      field.fieldDescription should equal(property.description.getOrElse(""))
-      field.fieldName should equal(property.fullName.get)
-      field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
-    }
+    propertiesToConvertToFields.foreach { property => checkMetadataToFieldConversion(property, fieldValuesByDataType) }
   }
 
   "convertPropertiesToFields" should "convert date property to field and it shouldn't allow future date when property name is foiExemptionAsserted" in {
@@ -205,5 +150,37 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         field.options should equal(Seq(InputNameAndValue(property.name, property.fullName.getOrElse(""))))
         field.selectedOption should equal(None)
     }
+  }
+
+  private def checkMetadataToFieldConversion(property: CustomMetadata, fieldValuesByDataType: List[FormField]) = {
+    val field = fieldValuesByDataType.find(_.fieldId == property.name).get
+
+    property.dataType match {
+      case Integer =>
+        field.isInstanceOf[TextField] should be(true)
+        field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue("years", property.defaultValue.getOrElse("")))
+      case DateTime =>
+        field.isInstanceOf[DateField] should be(true)
+        verifyDate(field.asInstanceOf[DateField])
+      case Boolean =>
+        field.isInstanceOf[RadioButtonGroupField] should be(true)
+        verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
+      case Text =>
+        property.propertyType match {
+          case Defined =>
+            field.isInstanceOf[DropdownField] should be(true)
+            verifyText(field.asInstanceOf[DropdownField], property)
+          case Supplied =>
+            field.isInstanceOf[TextField] should be(true)
+            field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue(property.name, property.defaultValue.getOrElse("")))
+          case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
+        }
+
+      case unknownType => throw new IllegalArgumentException(s"Invalid type $unknownType")
+    }
+
+    field.fieldDescription should equal(property.description.getOrElse(""))
+    field.fieldName should equal(property.fullName.get)
+    field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
   }
 }
