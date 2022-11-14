@@ -413,9 +413,9 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           val redirectLocation = addClosureMetadataPage.header.headers.getOrElse("Location", "")
 
           addClosureMetadataPage.header.status should equal(303)
-          redirectLocation.contains(s"/consignment/$consignmentId/add-closure-metadata/nestedDependencies") should equal(true)
+          redirectLocation.contains(s"/consignment/$consignmentId/add-closure-metadata/nested-dependencies") should equal(true)
           propertyNamesThatHaveDeps.foreach { propertyNameWhereUserDoesHaveToFillInDeps =>
-            redirectLocation.contains(s"nestedDependencies=$propertyNameWhereUserDoesHaveToFillInDeps-True") should equal(true)
+            redirectLocation.contains(s"nested-dependencies=$propertyNameWhereUserDoesHaveToFillInDeps-True") should equal(true)
           }
           propertyNamesWhereUserDoesNotHaveToFillInDeps.foreach { propertyNameWhereUserDoesNotHaveToFillInDeps =>
             redirectLocation.contains(s"$propertyNameWhereUserDoesNotHaveToFillInDeps-True") should equal(false)
@@ -492,7 +492,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
               .apply(
                 FakeRequest(
                   GET,
-                  s"/standard/$consignmentId/add-closure-metadata?nestedDependencies=${propertyNamesThatHaveDeps.mkString("&nestedDependencies=")}"
+                  s"/standard/$consignmentId/add-closure-metadata?nested-dependencies=${propertyNamesThatHaveDeps.mkString("&nested-dependencies=")}"
                 ).withCSRFToken
               )
           val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
@@ -523,7 +523,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
               .apply(
                 FakeRequest(
                   GET,
-                  s"/standard/$consignmentId/add-closure-metadata?nestedDependencies=${propertyNamesThatHaveDeps.mkString("&nestedDependencies=")}"
+                  s"/standard/$consignmentId/add-closure-metadata?nested-dependencies=${propertyNamesThatHaveDeps.mkString("&nested-dependencies=")}"
                 ).withCSRFToken
               )
           val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
@@ -543,7 +543,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val controller = instantiateAddClosureMetadataController(getUnauthorisedSecurityComponents)
       val addClosureMetadataPage = controller
         .addClosureMetadataDependenciesPage(List("dummyPropertyNameAndFieldSelected-True"), consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata/nestedDependencies").withCSRFToken)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata/nested-dependencies").withCSRFToken)
       redirectLocation(addClosureMetadataPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(addClosureMetadataPage) mustBe FOUND
     }
@@ -562,14 +562,14 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val controller = instantiateAddClosureMetadataController()
       val addClosureMetadataPage = controller
         .addClosureMetadataDependenciesPage(List("dummyPropertyNameAndFieldSelected-True"), consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata/nestedDependencies").withCSRFToken)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-closure-metadata/nested-dependencies").withCSRFToken)
 
       val failure = addClosureMetadataPage.failed.futureValue
       failure mustBe an[GraphQlException]
     }
   }
 
-  "AddClosureMetadataController nestedDependencies page POST" should {
+  "AddClosureMetadataController nested-dependencies page POST" should {
     forAll(fieldsThatHaveDependenciesToSelect) { (fieldsThatHaveDependencies, fullNameAndName, dependencyInputNames) =>
       val propertyNamesThatHaveDeps: Seq[String] = fieldsThatHaveDependencies.map(_.split("-")(1))
       val propertyNamesThatHaveDepsAndTheirValues = propertyNamesThatHaveDeps.map(propertyNames => s"$propertyNames-True").toList
@@ -592,7 +592,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
               .apply(
                 FakeRequest(
                   POST,
-                  s"/standard/$consignmentId/add-closure-metadata?nestedDependencies=${propertyNamesThatHaveDeps.mkString("&nestedDependencies=")}"
+                  s"/standard/$consignmentId/add-closure-metadata?nested-dependencies=${propertyNamesThatHaveDeps.mkString("&nested-dependencies=")}"
                 ).withFormUrlEncodedBody(expectedDependencyDefaultForm: _*).withCSRFToken
               )
           val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
@@ -629,7 +629,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
               .apply(
                 FakeRequest(
                   POST,
-                  s"/standard/$consignmentId/add-closure-metadata?nestedDependencies=${propertyNamesThatHaveDeps.mkString("&nestedDependencies=")}"
+                  s"/standard/$consignmentId/add-closure-metadata?nested-dependencies=${propertyNamesThatHaveDeps.mkString("&nested-dependencies=")}"
                 ).withFormUrlEncodedBody(incompleteDependencyForm.toSeq: _*).withCSRFToken
               )
           val addClosureMetadataPageAsString = contentAsString(addClosureMetadataPage)
