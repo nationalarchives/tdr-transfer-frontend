@@ -12,6 +12,7 @@
 @import views.html.partials.inputDropdown
 
 @import controllers.AddClosureMetadataController.File
+@import views.html.partials.multipleDropdown
 @(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File], parentFolderId: UUID)(implicit request: RequestHeader, messages: Messages)
 @main(s"Add closure metadata to files", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
@@ -88,6 +89,8 @@
                     ),
                     fieldErrors
                   )
+                case CheckboxField(fieldId, fieldName, fieldDescription, multiValue, value, _, fieldErrors) =>
+                  multipleDropdown(fieldId, fieldName, fieldDescription, multiValue, value, fieldErrors)
               }
             }
           }

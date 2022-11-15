@@ -1,5 +1,6 @@
 import { initAll } from "govuk-frontend"
 import { NestedNavigation } from "@nationalarchives/tdr-components"
+import AriaAutocomplete from "aria-autocomplete";
 
 window.onload = async function () {
   initAll()
@@ -145,4 +146,12 @@ export const renderModules = async () => {
       })
     }
   }
+  AriaAutocomplete(document.querySelector('#foi-exemption-codes')!, {
+    placeholder: 'Search for FOI Exemption codes',
+    deleteOnBackspace: true,
+    showAllControl: true,
+    autoGrow: false,
+    srAssistiveText: "",
+    cssNameSpace: "govuk-multi-autocomplete"
+  });
 }

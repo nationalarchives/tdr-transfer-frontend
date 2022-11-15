@@ -28,6 +28,8 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     dependencyProperties.toList.sortBy(_.uiOrdinal).map(generateFieldOptions)
   }
 
+  // scalastyle:off method.length
+  // scalastyle:off cyclomatic.complexity
   private def generateFieldOptions(property: CustomMetadata): FormField = {
     val fieldLabel = dbAndFieldLabel.getOrElse(property.name, property.fullName.getOrElse(""))
     val fieldDescription = property.description.getOrElse("")
@@ -60,6 +62,15 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
         TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue("years", property.defaultValue.getOrElse("")), "numeric", isRequired)
       case Text =>
         property.propertyType match {
+          case Defined if property.multiValue =>
+            CheckboxField(
+              property.name,
+              fieldLabel,
+              fieldDescription,
+              property.multiValue,
+              property.values.map(_.value),
+              isRequired
+            )
           case Defined =>
             DropdownField(
               property.name,
@@ -88,6 +99,8 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     }
   }
 }
+// scalastyle:on method.length
+// scalastyle:on cyclomatic.complexity
 
 object CustomMetadataUtils {
   def apply(allCustomMetadataProperties: List[CustomMetadata]): CustomMetadataUtils = new CustomMetadataUtils(allCustomMetadataProperties)

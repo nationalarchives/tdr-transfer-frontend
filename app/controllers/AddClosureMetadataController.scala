@@ -148,6 +148,11 @@ class AddClosureMetadataController @Inject() (
             .get(dropdownField.fieldId)
             .map(metadata => DropdownField.update(dropdownField, metadata.value))
             .getOrElse(dropdownField)
+        case checkboxField: CheckboxField =>
+          metadataMap
+            .get(checkboxField.fieldId)
+            .map(metadata => CheckboxField.update(checkboxField, metadata.value))
+            .getOrElse(checkboxField)
         case radioButtonGroupField: RadioButtonGroupField =>
           metadataMap
             .get(radioButtonGroupField.fieldId)

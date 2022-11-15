@@ -49,6 +49,16 @@ case class DropdownField(
     fieldErrors: List[String] = Nil
 ) extends FormField
 
+case class CheckboxField(
+    fieldId: String,
+    fieldName: String,
+    fieldDescription: String,
+    multiValue: Boolean,
+    value: List[String],
+    isRequired: Boolean,
+    fieldErrors: List[String] = Nil
+) extends FormField
+
 case class DateField(
     fieldId: String,
     fieldName: String,
@@ -103,6 +113,14 @@ object DropdownField {
   def update(dropdownField: DropdownField, value: String): DropdownField = {
     val optionSelected: Option[InputNameAndValue] = if (value.isEmpty) None else Some(InputNameAndValue(value, value))
     dropdownField.copy(selectedOption = optionSelected)
+  }
+}
+
+object CheckboxField {
+
+  def update(checkboxField: CheckboxField, value: String): CheckboxField = {
+    //    checkboxField.copy(value = "")
+    checkboxField
   }
 }
 

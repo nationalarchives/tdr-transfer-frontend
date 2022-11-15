@@ -1,0 +1,163 @@
+@import views.html.partials.inputSingleCheckbox
+@(fieldId: String,
+fieldName: String,
+fieldDescription: String,
+multiValue: Boolean=false,
+values: List[String],
+fieldErrors: List[String] = Nil
+)(implicit messages: Messages)
+
+<div class="govuk-form-group">
+    <fieldset class="govuk-fieldset" aria-describedby="foi-hint">
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+            <h2 class="govuk-fieldset__heading">
+                @fieldName
+            </h2>
+        </legend>
+        <div class="govuk-hint">
+        @fieldDescription
+        </div>
+
+        <div class="govuk-checkboxes" data-module="govuk-checkboxes" id="foi-exemption-codes">
+            <div class="govuk-grid-row">
+        @values.zipWithIndex.map {
+            case (foiCode, index) => {
+                @if(index == 0 || index % 15 == 0) {<div class="govuk-grid-column-one-third">}
+                @{
+                    inputSingleCheckbox(
+                        index.toString,
+                        Map(
+                            Symbol("_label") -> foiCode,
+                            Symbol("_value") -> foiCode,
+                            Symbol("_smallCheckbox") -> false,
+                            Symbol("_checkedOption") -> false,
+                            Symbol("_dynamicForm") -> true,
+                        ),
+                        fieldErrors
+                    )
+                }
+                @if((index + 1) % 15 == 0 || index == values.length-1) {</div>}
+            }
+        }
+            </div>
+        </div>
+    </fieldset>
+</div>
+
+<div class="govuk-form-group">
+    <fieldset class="govuk-fieldset" aria-describedby="waste-hint">
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+            <h2 class="govuk-fieldset__heading">
+                @fieldName
+            </h2>
+        </legend>
+        <div class="govuk-hint">
+              @fieldDescription
+        </div>
+        <div class="govuk-checkboxes" data-module="govuk-checkboxes" id="foi-exemption-codes2">
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-third">
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="1" name="foi_id_selection" type="checkbox" value="22">
+                        <label class="govuk-label govuk-checkboxes__label" for="1">
+                        22
+                        </label>
+                    </div>
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="2" name="foi_id_selection" type="checkbox" value="22A">
+                        <label class="govuk-label govuk-checkboxes__label" for="2">
+                        22A
+                        </label>
+                    </div>
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="3" name="foi_id_selection" type="checkbox" value="23">
+                        <label class="govuk-label govuk-checkboxes__label" for="3">
+                        23
+                        </label>
+                    </div>
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="4" name="foi_id_selection" type="checkbox" value="23/24 – In the alternative">
+                        <label class="govuk-label govuk-checkboxes__label" for="4">
+                        23/24 – In the alternative
+                        </label>
+                    </div>
+                </div>
+                <div class="govuk-grid-column-one-third">
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="16" name="foi_id_selection" type="checkbox" value="36">
+                        <label class="govuk-label govuk-checkboxes__label" for="16">
+                        36
+                        </label>
+                    </div>
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="17" name="foi_id_selection" type="checkbox" value="37(1)(a)">
+                        <label class="govuk-label govuk-checkboxes__label" for="17">
+                        37(1)(a)
+                        </label>
+                    </div>
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="18" name="foi_id_selection" type="checkbox" value="37(1)(aa)">
+                        <label class="govuk-label govuk-checkboxes__label" for="18">
+                        37(1)(aa)
+                        </label>
+                    </div>
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="19" name="foi_id_selection" type="checkbox" value="37(1)(ab)">
+                        <label class="govuk-label govuk-checkboxes__label" for="19">
+                        37(1)(ab)
+                        </label>
+                    </div>
+                </div>
+                <div class="govuk-grid-column-one-third">
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="31" name="foi_id_selection" type="checkbox" value="42">
+                        <label class="govuk-label govuk-checkboxes__label" for="31">
+                        42
+                        </label>
+                    </div>
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="32" name="foi_id_selection" type="checkbox" value="43(1)">
+                        <label class="govuk-label govuk-checkboxes__label" for="32">
+                        43(1)
+                        </label>
+                    </div>
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="33" name="foi_id_selection" type="checkbox" value="43(1)">
+                        <label class="govuk-label govuk-checkboxes__label" for="33">
+                        43(1)
+                        </label>
+                    </div>
+
+
+                    <div class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="34" name="foi_id_selection" type="checkbox" value="43(2)">
+                        <label class="govuk-label govuk-checkboxes__label" for="34">
+                        43(2)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</div>
