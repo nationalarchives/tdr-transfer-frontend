@@ -1,6 +1,5 @@
 @* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
 @import helper.{inputRadioGroup => _, _}
-@import java.util.UUID
 
 @import scala.language.postfixOps
 @import views.html.partials.{inputDate, inputText, errorSummary, progressIndicator}
@@ -11,30 +10,29 @@
 @import controllers.util._
 @import views.html.partials.inputDropdown
 
-@import controllers.AddClosureMetadataController.File
-@(consignmentId: UUID, consignmentRef: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File], parentFolderId: UUID)(implicit request: RequestHeader, messages: Messages)
-@main(s"Add closure metadata to files", name = name) {
+@import controllers.AddClosureMetadataController.{PageInfo, ControllerInfo}
+
+@(pageInfo: PageInfo, controllerInfo: ControllerInfo)(implicit request: RequestHeader, messages: Messages)
+@main(s"${pageInfo.pageTitle} files", name = pageInfo.userName) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("addClosureMetadata.progress"))
-      <h1 class="govuk-heading-l">Add closure metadata to</h1>
-        @for(file <- files) {
-          <h2>@file.name</h2>
-          <input type="hidden" value="@file.fileId" name="fileIds[]">
-        }
-      <p class="govuk-body">Enter metadata for closure fields here.</p>
+      <h1 class="govuk-heading-l">@pageInfo.pageTitle</h1>
+        @for(file <- controllerInfo.files) {<h3>@file.name</h3>}
+      <p class="govuk-body">@pageInfo.pageDescription</p>
         @errorSummary(
-          fieldsToApplyToFile.collect {
+          pageInfo.fieldsToApplyToFile.collect {
             case p if p.fieldErrors.nonEmpty => (p.fieldId, p.fieldErrors)
           }
         )
         @form(
-          routes.AddClosureMetadataController.addClosureMetadataSubmit(consignmentId, files.map(_.fileId)),
+          routes.AddClosureMetadataController.addClosureMetadataSubmit(
+              controllerInfo.isMainForm, controllerInfo.fieldsAndValuesSelectedOnPrevPage, controllerInfo.consignmentId, controllerInfo.files.map(_.fileId)),
           (Symbol("novalidate"), "")
         ) {
           @CSRF.formField
-          @for(fieldToApplyToFile <- fieldsToApplyToFile) {
+          @for(fieldToApplyToFile <- pageInfo.fieldsToApplyToFile) {
             @{
               fieldToApplyToFile match {
                 case RadioButtonGroupField(fieldId, name, description, _, options, selectedOption, isRequired, fieldErrors) => inputRadioGroup(
@@ -68,11 +66,11 @@
                   fieldName,
                   fieldDescription,
                   inputNameAndValue,
-                  "number",
+                  if(inputMode == "numeric") "number" else "text",
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true),
                   inputMode,
-                  addSuffixText = true
+                  addSuffixText = if(inputMode == "numeric") true else false
                 )
                 case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
                   inputDropdown(
@@ -96,11 +94,11 @@
             <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
               Continue
             </button>
-            <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, "closure")">Cancel</a>
+            <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(controllerInfo.consignmentId, "closure")">Cancel</a>
           </div>
         </div>
       }
-      @transferReference(consignmentRef, isJudgmentUser = false)
+      @transferReference(pageInfo.consignmentRef, isJudgmentUser = false)
     </div>
 
   }
