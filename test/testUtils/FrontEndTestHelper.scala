@@ -116,6 +116,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       val foiExampleAsserted = LocalDateTime.of(1995, 1, 12, 10, 0)
       (
         List(
+          gcfm.GetConsignment.Files.FileMetadata("FileType", "File"),
           gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType),
           gcfm.GetConsignment.Files.FileMetadata("FoiExemptionCode", "mock code1"),
           gcfm.GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
