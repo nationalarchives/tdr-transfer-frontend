@@ -2,6 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+import graphql.codegen.types.FileFilters
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
@@ -32,7 +33,17 @@ class AdditionalMetadataNavigationController @Inject() (
       .filter(_ != "csrfToken")
       .map(UUID.fromString)
     if (metadataType == "closure") {
-      Future(Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, fileIds)))
+      val fileFilters = FileFilters(None, Option(fileIds), None)
+      consignmentService
+        .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
+        .map(consignment => {
+          val areAllClosed = consignmentService.areAllFilesClosed(consignment)
+          if (areAllClosed) {
+            Redirect(routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds))
+          } else {
+            Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, fileIds))
+          }
+        })
     } else {
       Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds)))
     }
