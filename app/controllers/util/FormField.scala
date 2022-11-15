@@ -1,6 +1,7 @@
 package controllers.util
 
 import controllers.util.FormField._
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 
 import java.time.{LocalDateTime, Year}
 import scala.util.control.Exception.allCatch
@@ -54,7 +55,8 @@ case class CheckboxField(
     fieldName: String,
     fieldDescription: String,
     multiValue: Boolean,
-    value: List[String],
+    options: Seq[InputNameAndValue],
+    selectedOptions: Seq[InputNameAndValue],
     isRequired: Boolean,
     fieldErrors: List[String] = Nil
 ) extends FormField
@@ -118,9 +120,9 @@ object DropdownField {
 
 object CheckboxField {
 
-  def update(checkboxField: CheckboxField, value: String): CheckboxField = {
-    //    checkboxField.copy(value = "")
-    checkboxField
+  def update(checkboxField: CheckboxField, selectedOptions: List[FileMetadata]): CheckboxField = {
+    val optionsSelected = selectedOptions.map(selectedFoiCodes => InputNameAndValue(selectedFoiCodes.value, selectedFoiCodes.value))
+    checkboxField.copy(selectedOptions = optionsSelected)
   }
 }
 

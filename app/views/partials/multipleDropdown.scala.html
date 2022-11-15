@@ -1,9 +1,11 @@
 @import views.html.partials.inputSingleCheckbox
+@import controllers.util.InputNameAndValue
 @(fieldId: String,
 fieldName: String,
 fieldDescription: String,
 multiValue: Boolean=false,
-values: List[String],
+options: Seq[InputNameAndValue],
+selectedOptions: Seq[InputNameAndValue],
 fieldErrors: List[String] = Nil
 )(implicit messages: Messages)
 
@@ -20,23 +22,23 @@ fieldErrors: List[String] = Nil
 
         <div class="govuk-checkboxes" data-module="govuk-checkboxes" id="foi-exemption-codes">
             <div class="govuk-grid-row">
-        @values.zipWithIndex.map {
+        @options.zipWithIndex.map {
             case (foiCode, index) => {
                 @if(index == 0 || index % 15 == 0) {<div class="govuk-grid-column-one-third">}
                 @{
                     inputSingleCheckbox(
                         index.toString,
                         Map(
-                            Symbol("_label") -> foiCode,
-                            Symbol("_value") -> foiCode,
+                            Symbol("_label") -> foiCode.name,
+                            Symbol("_value") -> foiCode.value,
                             Symbol("_smallCheckbox") -> false,
-                            Symbol("_checkedOption") -> false,
+                            Symbol("_checkedOption") -> (if(selectedOptions.contains(foiCode)) "checked" else ""),
                             Symbol("_dynamicForm") -> true,
                         ),
                         fieldErrors
                     )
                 }
-                @if((index + 1) % 15 == 0 || index == values.length-1) {</div>}
+                @if((index + 1) % 15 == 0 || index == options.length-1) {</div>}
             }
         }
             </div>

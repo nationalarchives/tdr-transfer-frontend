@@ -261,6 +261,7 @@ class AddClosureMetadataController @Inject() (
   private def updateFormFields(orderedFieldsForForm: List[FormField], fileMetadata: List[FileMetadata]): Future[List[FormField]] = {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     val metadataMap = fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
+    val selectedFoiExemptionCode: Option[List[FileMetadata]] = fileMetadata.groupBy(_.name).view.toMap.get("FoiExemptionCode")
     Future.successful {
       orderedFieldsForForm.map {
         case dateField: DateField =>
@@ -276,7 +277,7 @@ class AddClosureMetadataController @Inject() (
         case checkboxField: CheckboxField =>
           metadataMap
             .get(checkboxField.fieldId)
-            .map(metadata => CheckboxField.update(checkboxField, metadata.value))
+            .map(metadata => CheckboxField.update(checkboxField, selectedFoiExemptionCode.get))
             .getOrElse(checkboxField)
         case radioButtonGroupField: RadioButtonGroupField =>
           metadataMap

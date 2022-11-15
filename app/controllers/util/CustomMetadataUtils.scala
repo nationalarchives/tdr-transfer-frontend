@@ -70,7 +70,8 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
               fieldLabel,
               fieldDescription,
               property.multiValue,
-              property.values.map(_.value),
+              property.values.map(v => InputNameAndValue(v.value, v.value)),
+              property.values.map(v => InputNameAndValue(v.value, v.value)),
               isRequired
             )
           case Defined =>

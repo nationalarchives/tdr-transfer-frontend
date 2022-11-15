@@ -88,8 +88,8 @@
                     ),
                     fieldErrors
                   )
-                case CheckboxField(fieldId, fieldName, fieldDescription, multiValue, value, _, fieldErrors) =>
-                  multipleDropdown(fieldId, fieldName, fieldDescription, multiValue, value, fieldErrors)
+                case CheckboxField(fieldId, fieldName, fieldDescription, multiValue, options, value, _, fieldErrors) =>
+                  multipleDropdown(fieldId, fieldName, fieldDescription, multiValue, options, value, fieldErrors)
               }
             }
           }
