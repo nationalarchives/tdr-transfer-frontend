@@ -110,11 +110,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       fileIds: List[UUID] = Nil,
       closureType: String = "Open"
   ): StubMapping = {
-
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
-    val closureStartDate = LocalDateTime.of(1990, 12, 1, 10, 0)
-    val foiExampleAsserted = LocalDateTime.of(1995, 1, 12, 10, 0)
     val (fileMetadata, metadata) = if (fileHasMetadata) {
+      val closureStartDate = LocalDateTime.of(1990, 12, 1, 10, 0)
+      val foiExampleAsserted = LocalDateTime.of(1995, 1, 12, 10, 0)
       (
         List(
           gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType),
@@ -122,7 +121,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           gcfm.GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
           gcfm.GetConsignment.Files.FileMetadata("ClosureStartDate", closureStartDate.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
           gcfm.GetConsignment.Files.FileMetadata("FoiExemptionAsserted", foiExampleAsserted.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
-          gcfm.GetConsignment.Files.FileMetadata("TitleClosed", "false"),
+          gcfm.GetConsignment.Files.FileMetadata("TitleClosed", "true"),
+          gcfm.GetConsignment.Files.FileMetadata("DescriptionClosed", "true"),
+          gcfm.GetConsignment.Files.FileMetadata("TitleAlternate", "inputtext-TitleAlternate-TitleAlternate value"),
+          gcfm.GetConsignment.Files.FileMetadata("DescriptionAlternate", "inputtext-DescriptionAlternate-DescriptionAlternate value"),
           gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path")
         ),
         gcfm.GetConsignment.Files.Metadata(Some("mock code1"), Some(4), Some(closureStartDate), Some(foiExampleAsserted), None, None)
