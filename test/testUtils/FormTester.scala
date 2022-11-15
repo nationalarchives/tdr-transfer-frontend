@@ -1,17 +1,15 @@
 package testUtils
 
 import org.scalatest.matchers.must.Matchers._
+import testUtils.DefaultMockFormOptions.MockInputOption
 
 class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = " govuk-checkboxes--small") {
-  def generateWaysToIncorrectlySubmitAForm(): Seq[Seq[(String, String)]] = {
+  def generateOptionsToSelectToGenerateFormErrors(value: String = "true", combineOptionNameWithValue: Boolean = false): Seq[Seq[(String, String)]] = {
     val possibleOptions: Seq[String] = defaultOptions.map(_.name)
-    val optionsToSelectToGenerateFormErrors =
-      for {
-        numberRangeOfOptionsToSelect <- (1 until possibleOptions.length).toList
-        optionsToSelect <- possibleOptions.combinations(numberRangeOfOptionsToSelect)
-      } yield optionsToSelect.map(option => (option, "true"))
-
-    optionsToSelectToGenerateFormErrors
+    for {
+      numberRangeOfOptionsToSelect <- (1 until possibleOptions.length).toList
+      optionsToSelect <- possibleOptions.combinations(numberRangeOfOptionsToSelect)
+    } yield optionsToSelect.map(option => (option, if (combineOptionNameWithValue) s"$option $value" else value))
   }
   // scalastyle:off cyclomatic.complexity
   def checkHtmlForOptionAndItsAttributes(htmlAsString: String, optionsSelected: Map[String, String], formStatus: String = "NotSubmitted"): Unit = {
@@ -163,12 +161,12 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
   }
 
   private def addValuesToTextBoxAttributes(id: String, name: String, value: String, placeholder: String, fieldType: String, submitAttempted: Boolean): String = {
-    val (inputType, inputMode) = fieldType match {
-      case "inputNumeric" => ("number", "numeric")
-      case "inputText"    => ("text", "text")
+    val (width, inputType, inputMode) = fieldType match {
+      case "inputNumeric" => ("govuk-input--width-5", "number", "numeric")
+      case "inputText"    => ("", "text", "text")
     }
     s"""        <input
-       |            class="govuk-input govuk-input--width-5 ${if (submitAttempted && value.isEmpty) "govuk-input--error" else ""}"
+       |            class="govuk-input $width ${if (submitAttempted && value.isEmpty) "govuk-input--error" else ""}"
        |            id="$id"
        |            name="$name"
        |            type="$inputType"
@@ -219,16 +217,5 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
     }
   }
 }
-
-case class MockInputOption(
-    name: String,
-    label: String = "",
-    id: String = "",
-    value: String = "",
-    placeholder: String = "",
-    fieldType: String = "",
-    errorMessage: String = "",
-    errorMessageDependency: String = ""
-) // some fields (like month) can only display their error if another field (like day) has none
 
 case class OptionStatus(valueHasBeenEnteredOrSelected: Boolean, aDifferentValueFromSameGroupHasBeenSelected: Boolean)

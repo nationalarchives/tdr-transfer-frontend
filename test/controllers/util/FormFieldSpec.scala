@@ -51,7 +51,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "validate should return an error when the given value is empty" in {
 
-      TextField.validate("", textField) shouldBe Some("There was no number entered for the years.")
+      TextField.validate("", textField) shouldBe Some("There was no number entered for the name.")
     }
 
     "validate should return an error when the given value is not a numeric value" in {

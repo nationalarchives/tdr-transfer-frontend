@@ -76,7 +76,7 @@ object FormField {
 
   val dropdownOptionNotSelectedError = "There was no value selected for the %s."
   val invalidDropdownOptionSelectedError = "Option '%s' was not an option provided to the user."
-  val emptyValueError = "There was no number entered for the %s."
+  val emptyValueError = "There was no %s entered for the %s."
   val numberError = "%s entered must be a whole number."
   val negativeNumberError = "%s must not be a negative number."
   val invalidYearError = "The year should be 4 digits in length."
@@ -127,10 +127,12 @@ object CheckboxField {
 object TextField {
 
   def validate(text: String, textField: TextField): Option[String] =
-    if (textField.inputMode.equals("numeric")) {
+    if (text == "") {
+      val fieldType: String = if (textField.inputMode.equals("numeric")) "number" else "text"
+      Some(emptyValueError.format(fieldType, textField.fieldName))
+    } else if (textField.inputMode.equals("numeric")) {
       val inputName = textField.nameAndValue.name
       text match {
-        case ""                                 => Some(emptyValueError.format(inputName))
         case t if allCatch.opt(t.toInt).isEmpty => Some(numberError.format(inputName))
         case t if t.toInt < 0                   => Some(negativeNumberError.format(inputName))
         case _                                  => None
@@ -139,9 +141,7 @@ object TextField {
       None
     }
 
-  def update(textField: TextField, value: String): TextField = {
-    textField.copy(nameAndValue = textField.nameAndValue.copy(value = value))
-  }
+  def update(textField: TextField, value: String): TextField = textField.copy(nameAndValue = textField.nameAndValue.copy(value = value))
 }
 
 object DateField {
@@ -180,7 +180,7 @@ object DateField {
 
   private def validateValue(day: String, unitType: String, isInvalidDate: Int => Boolean): Option[String] =
     day match {
-      case ""                                 => Some(emptyValueError.format(unitType))
+      case ""                                 => Some(emptyValueError.format("number", unitType))
       case d if allCatch.opt(d.toInt).isEmpty => Some(numberError.format(unitType))
       case d if d.toInt < 0                   => Some(negativeNumberError.format(unitType))
       case d if isInvalidDate(d.toInt) =>
