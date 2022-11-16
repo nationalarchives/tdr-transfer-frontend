@@ -124,6 +124,9 @@ object CheckboxField {
     val optionsSelected = selectedOptions.map(selectedFoiCodes => InputNameAndValue(selectedFoiCodes.value, selectedFoiCodes.value))
     checkboxField.copy(selectedOptions = optionsSelected)
   }
+
+  //TODO add validation for if no checkboxes selected
+  def validate(): Option[String] = None
 }
 
 object TextField {

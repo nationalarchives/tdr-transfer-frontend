@@ -27,7 +27,7 @@ fieldErrors: List[String] = Nil
                 @if(index == 0 || index % 15 == 0) {<div class="govuk-grid-column-one-third">}
                 @{
                     inputSingleCheckbox(
-                        index.toString,
+                        s"FoiExemptionCode-$index",
                         Map(
                             Symbol("_label") -> foiCode.name,
                             Symbol("_value") -> foiCode.value,

@@ -80,16 +80,20 @@ class AddClosureMetadataController @Inject() (
             )
           }
         } else {
-          val metadataInput: List[UpdateFileMetadataInput] = validatedFields.map {
+          val metadataInput: List[UpdateFileMetadataInput] = validatedFields.flatMap {
             case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _) =>
-              UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value)
+              List(UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value))
             case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _) =>
               val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
-              UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace("T", " "))
+              List(UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace("T", " ")))
             case RadioButtonGroupField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
-              UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString)
+              List(UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString))
             case DropdownField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
-              UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.map(_.value).getOrElse(""))
+              List(UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.map(_.value).getOrElse("")))
+            case CheckboxField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOptions, isRequired, fieldErrors) =>
+              selectedOptions.map( selectedOption => {
+                UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.value)
+              })
           }
           val propertyNameFieldSelectedAndDeps: Set[ValueSelectedAndDepsToDel] = getValuesThatWereSelectedIfTheyHaveDependencies(formData.metadataProperties, metadataInput)
           saveMetadataAndReturnPage(consignmentId, fileIds, metadataInput, propertyNameFieldSelectedAndDeps)

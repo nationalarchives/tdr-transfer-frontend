@@ -1,5 +1,6 @@
 package controllers.util
 
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import play.api.mvc.{AnyContent, Request}
 
 class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[FormField]) {
@@ -46,6 +47,16 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
             DropdownField
               .update(dropdownField, text)
               .copy(fieldErrors = DropdownField.validate(text, dropdownField).map(List(_)).getOrElse(Nil))
+
+          case checkboxField: CheckboxField =>
+            val selectedOption = fieldValue.flatMap{fieldValue => {
+              fieldValue._2.map(nameAndValue => {
+                FileMetadata(nameAndValue, nameAndValue)
+              })
+            }}
+              CheckboxField
+                .update(checkboxField, selectedOption)
+                .copy(fieldErrors = CheckboxField.validate().map(List(_)).getOrElse(Nil))
         }
       }
     }
