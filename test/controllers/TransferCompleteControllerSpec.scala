@@ -7,7 +7,7 @@ import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.Metadata
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
 import io.circe.Printer
 import io.circe.generic.auto._
@@ -20,9 +20,9 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
 import services.ConsignmentService
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
-import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.io.StringReader
 import java.time.{LocalDateTime, ZonedDateTime}
@@ -252,16 +252,16 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
               Some("File"),
               Some("The National Archives, Kew"),
               None,
-              Metadata(
-                Some(1L),
-                clientSideLastModifiedDate,
-                Some("Filepath/SomeFile"),
-                Some("Open"),
-                Some("TNA"),
-                Some("English"),
-                Some("Public Record"),
-                Some("Crown Copyright"),
-                None
+              List(
+                FileMetadata("ClientSideFileSize", "1"),
+                FileMetadata("ClientSideFileLastModifiedDate", clientSideLastModifiedDate.map(_.toString).getOrElse("")),
+                FileMetadata("ClientSideOriginalFilepath", "Filepath/SomeFile"),
+                FileMetadata("FoiExemptionCode", "Open"),
+                FileMetadata("HeldBy", "TNA"),
+                FileMetadata("Language", "English"),
+                FileMetadata("LegalStatus", "Public Record"),
+                FileMetadata("RightsCopyright", "Crown Copyright"),
+                FileMetadata("SHA256ClientSideChecksum", "")
               ),
               None,
               None
@@ -271,16 +271,16 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
               Some("Folder"),
               Some("FileName"),
               None,
-              Metadata(
-                Some(2L),
-                clientSideLastModifiedDate,
-                Some("Filepath/SomeFile2"),
-                Some("Closed"),
-                Some("The National Archives, Kew"),
-                Some("French"),
-                Some("Private Record"),
-                Some("Rights Copyright"),
-                None
+              List(
+                FileMetadata("ClientSideFileSize", "2"),
+                FileMetadata("ClientSideFileLastModifiedDate", clientSideLastModifiedDate.map(_.toString).getOrElse("")),
+                FileMetadata("ClientSideOriginalFilepath", "Filepath/SomeFile2"),
+                FileMetadata("FoiExemptionCode", "Closed"),
+                FileMetadata("HeldBy", "The National Archives, Kew"),
+                FileMetadata("Language", "French"),
+                FileMetadata("LegalStatus", "Private Record"),
+                FileMetadata("RightsCopyright", "Rights Copyright"),
+                FileMetadata("SHA256ClientSideChecksum", "")
               ),
               None,
               None

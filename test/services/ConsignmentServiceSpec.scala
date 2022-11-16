@@ -7,6 +7,7 @@ import configuration.GraphQLConfiguration
 import errors.AuthorisationException
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.{getConsignment => gc}
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
@@ -372,11 +373,11 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val filename = "filename"
       val filetype = Some("File")
       val filepath = "filepath"
-      val exemptionCode = Some("Open")
-      val heldBy = Some("TNA")
-      val language = Some("English")
-      val legalStatus = Some("Public Record")
-      val rightsCopyright = Some("Crown Copyright")
+      val exemptionCode = "Open"
+      val heldBy = "TNA"
+      val language = "English"
+      val legalStatus = "Public Record"
+      val rightsCopyright = "Crown Copyright"
       val graphQlExportData = gcfe.GetConsignment(
         consignmentId,
         None,
@@ -392,8 +393,17 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
             filetype,
             fileName = Some(filename),
             None,
-            metadata = gcfe.GetConsignment.Files
-              .Metadata(None, None, clientSideOriginalFilePath = Some(s"$filepath/$filename"), exemptionCode, heldBy, language, legalStatus, rightsCopyright, None),
+            fileMetadata = List(
+              FileMetadata("ClientSideFileSize", "2"),
+              FileMetadata("ClientSideFileLastModifiedDate", ""),
+              FileMetadata("ClientSideOriginalFilePath", s"$filepath/$filename"),
+              FileMetadata("FoiExemptionCode", exemptionCode),
+              FileMetadata("HeldBy", heldBy),
+              FileMetadata("Language", language),
+              FileMetadata("LegalStatus", legalStatus),
+              FileMetadata("RightsCopyright", rightsCopyright),
+              FileMetadata("SHA256ClientSideChecksum", "")
+            ),
             ffidMetadata = None,
             antivirusMetadata = None
           )

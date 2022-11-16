@@ -3,6 +3,8 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.CsvUtils
+import controllers.util.MetadataProperty._
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
@@ -43,18 +45,19 @@ class TransferCompleteController @Inject() (
       consignmentExport <- consignmentService.getConsignmentExport(consignmentId, request.token.bearerAccessToken)
       exportDateTime = consignmentExport.exportDatetime
     } yield {
+      val getValue = (name: String, fileMetadata: List[FileMetadata]) => fileMetadata.find(_.name == name).map(_.value).getOrElse("")
       val rows = consignmentExport.files.foldLeft(List[List[String]]()) { case (record, file) =>
         record :+ List(
-          file.metadata.clientSideOriginalFilePath.getOrElse(""),
+          getValue(clientSideOriginalFilepath, file.fileMetadata),
           file.fileName.getOrElse(""),
           file.fileType.getOrElse(""),
-          file.metadata.clientSideFileSize.map(_.toString).getOrElse(""),
-          file.metadata.rightsCopyright.getOrElse(""),
-          file.metadata.legalStatus.getOrElse(""),
-          file.metadata.heldBy.getOrElse(""),
-          file.metadata.language.getOrElse(""),
-          file.metadata.foiExemptionCode.getOrElse(""),
-          file.metadata.clientSideLastModifiedDate.map(_.toString).getOrElse(""),
+          getValue(clientSideFileSize, file.fileMetadata),
+          getValue(rightsCopyright, file.fileMetadata),
+          getValue(legalStatus, file.fileMetadata),
+          getValue(heldBy, file.fileMetadata),
+          getValue(language, file.fileMetadata),
+          getValue(foiExemptionCode, file.fileMetadata),
+          getValue(clientSideFileLastModifiedDate, file.fileMetadata),
           exportDateTime.map(_.toString).getOrElse("")
         )
       }

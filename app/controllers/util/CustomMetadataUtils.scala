@@ -107,5 +107,11 @@ object MetadataProperty {
   val descriptionPublic = "DescriptionPublic"
   val titleAlternate = "TitleAlternate"
   val descriptionAlternate = "DescriptionAlternate"
+  val clientSideFileLastModifiedDate = "ClientSideFileLastModifiedDate"
+  val clientSideFileSize = "ClientSideFileSize"
+  val rightsCopyright = "RightsCopyright"
+  val legalStatus = "LegalStatus"
+  val heldBy = "HeldBy"
+  val language = "Language"
   val closureType: StaticMetadata = StaticMetadata("ClosureType", "Closed")
 }
