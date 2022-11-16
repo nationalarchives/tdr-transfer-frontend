@@ -3,11 +3,13 @@ package services
 import com.google.common.collect.Ordering.natural
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import controllers.util.MetadataProperty.closureType
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
 import graphql.codegen.GetConsignmentReference.getConsignmentReference
@@ -64,6 +66,12 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
           case None              => throw new IllegalStateException(s"No consignment found for consignment $consignmentId")
         }
       )
+  }
+
+  def areAllFilesClosed(consignment: GetConsignment): Boolean = {
+    !consignment.files
+      .filter(file => file.fileMetadata.exists(metadata => metadata.name == "FileType" && metadata.value == "File"))
+      .exists(file => file.fileMetadata.exists(metadata => metadata.name == closureType.name && metadata.value != closureType.value))
   }
 
   def getConsignmentFileMetadata(consignmentId: UUID, token: BearerAccessToken, fileFilters: Option[FileFilters] = None): Future[gcfm.GetConsignment] = {
