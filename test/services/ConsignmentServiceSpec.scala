@@ -505,7 +505,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   }
 
   "areAllFilesClosed" should {
-    "return true if all file files have a closure type of Closed" in {
+    "return true if all files have a closure type of Closed" in {
       val files = generateMetadata(2, "File", "Closed")
       consignmentService.areAllFilesClosed(gcfm.GetConsignment(files, "")) should equal(true)
     }
