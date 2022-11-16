@@ -69,11 +69,9 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   }
 
   def areAllFilesClosed(consignment: GetConsignment): Boolean = {
-    consignment.files
+    !consignment.files
       .filter(file => file.fileMetadata.exists(metadata => metadata.name == "FileType" && metadata.value == "File"))
-      .filter(file => file.fileMetadata.exists(metadata => metadata.name == closureType.name && metadata.value != closureType.value))
-      .map(_.fileId)
-      .isEmpty
+      .exists(file => file.fileMetadata.exists(metadata => metadata.name == closureType.name && metadata.value != closureType.value))
   }
 
   def getConsignmentFileMetadata(consignmentId: UUID, token: BearerAccessToken, fileFilters: Option[FileFilters] = None): Future[gcfm.GetConsignment] = {
