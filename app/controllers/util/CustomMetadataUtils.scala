@@ -71,7 +71,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
               fieldDescription,
               property.multiValue,
               property.values.map(v => InputNameAndValue(v.value, v.value)),
-              property.values.map(v => InputNameAndValue(v.value, v.value)),
+              Nil,
               isRequired
             )
           case Defined =>
