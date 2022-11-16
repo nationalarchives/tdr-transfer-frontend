@@ -28,7 +28,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
 import services.{ConsignmentService, CustomMetadataService}
 import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
-import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions, MockInputOption}
+import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.util.UUID
