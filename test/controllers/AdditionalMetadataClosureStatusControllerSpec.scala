@@ -62,7 +62,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
-    "render the closure status page with the closure status checkbox checked when the closure status is already set to 'closed'" in {
+    "render the closure status page with the closure status checkbox checked and disabled when the closure status is already set to 'closed'" in {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Closed")
 
@@ -293,46 +293,47 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
   // scalastyle:off method.length
   def verifyClosureStatusPage(closureStatusPage: String, consignmentId: UUID, isChecked: Boolean = false, isErrorOnThePage: Boolean = false): Unit = {
-
+    val twoOrMoreSpaces = "\\s{2,}"
+    val page = closureStatusPage.replaceAll(twoOrMoreSpaces, "")
     checkPageForStaticElements.checkContentOfPagesThatUseMainScala(closureStatusPage, userType = "standard")
     if (isErrorOnThePage) {
-      closureStatusPage.contains("<div class=\"govuk-form-group govuk-form-group--error\">") mustBe true
-      closureStatusPage.contains(
+      page.contains("<div class=\"govuk-form-group govuk-form-group--error\">") mustBe true
+      page.contains(
         """<p class="govuk-error-message" id="error-closure">
           |        <span class="govuk-visually-hidden">Error:</span>
           |        You must confirm this closure has been approved before continuing.
-          |    </p>""".stripMargin
+          |    </p>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
       ) mustBe true
     }
 
-    closureStatusPage.contains("Confirm the closure status of your record") mustBe true
-    closureStatusPage.contains("<p class=\"govuk-body\">You are updating the status for the selected file 'original/file/path'</p>") mustBe true
-    closureStatusPage.contains(
+    page.contains("Confirm the closure status of your record") mustBe true
+    page.contains("<p class=\"govuk-body\">You are updating the status for the selected file 'original/file/path'</p>") mustBe true
+    page.contains(
       """<h2 class="govuk-fieldset__heading">
         |                                    Has this closure been approved by the Advisory Council?
-        |                                </h2>""".stripMargin
+        |                                </h2>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
     ) mustBe true
     val href = s"/consignment/$consignmentId/additional-metadata/closure-status?fileIds=${fileIds.mkString("&")}"
-    closureStatusPage.contains(s"""<form action="$href" method="POST" novalidate="">""") mustBe true
-    closureStatusPage.contains(
-      "<input\n                " + (if (isChecked) "checked\n" else "\n") +
-        """                class="govuk-checkboxes__input"
+    page.contains(s"""<form action="$href" method="POST" novalidate="">""") mustBe true
+    page.contains(
+      "<input" + (if (isChecked) "checked" else "") +
+        s"""                class="govuk-checkboxes__input"
           |                id="closureStatus"
           |                name="closureStatus"
           |                type="checkbox"
           |                value="true"
-          |                 />
+          |                ${if (isChecked) "disabled" else ""} />
           |            <label class="govuk-label govuk-checkboxes__label" for="closureStatus">
           |                Yes, I confirm
-          |            </label>""".stripMargin
+          |            </label>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
     ) mustBe true
 
-    closureStatusPage must include(
+    page must include(
       """<span class="govuk-details__summary-text">
         |                                You must provide the following information, as they are mandatory for closure.
-        |                            </span>""".stripMargin
+        |                            </span>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
     )
-    closureStatusPage must include(
+    page must include(
       """<ul class="govuk-list govuk-list--bullet govuk-list--spaced">
         |                                <li>
         |                                    FOI decision asserted, this is the date of the Advisory Council approval
@@ -349,18 +350,21 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         |                                <li>
         |                                    Title public
         |                                </li>
-        |                            </ul>""".stripMargin
+        |                            </ul>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
     )
 
     val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure/"
-    closureStatusPage.contains(
-      s"""<div class="govuk-button-group">
+    val continueButton = (if (isChecked) {
+                            s"""<a class="govuk-button" href="/consignment/$consignmentId/add-closure-metadata"""
+                          } else {
+                            s"""<div class="govuk-button-group">
          |                        <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
          |                            Continue
          |                        </button>
          |                        <a class="govuk-link" href="$cancelHref">Cancel</a>
          |                    </div>
-         |""".stripMargin
-    ) mustBe true
+         |"""
+                          }).stripMargin.replaceAll(twoOrMoreSpaces, "").replaceAll("\n", "")
+    page.contains(continueButton) mustBe true
   }
 }
