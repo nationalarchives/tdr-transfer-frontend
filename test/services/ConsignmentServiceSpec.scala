@@ -70,6 +70,16 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val consignmentId = UUID.fromString("180f9166-fe3c-486e-b9ab-6dfa5f3058dc")
   private val seriesId = Some(UUID.fromString("d54a5118-33a0-4ba2-8030-d16efcf1d1f4"))
 
+  def generateMetadata(numberOfFiles: Int, fileType: String, closureType: String): List[gcfm.GetConsignment.Files] = {
+    val oldMetadata = gcfm.GetConsignment.Files.Metadata(None, None, None, None, None, None)
+    List
+      .fill(numberOfFiles)(UUID.randomUUID())
+      .map(fileId => {
+        val fileMetadata = List(gcfm.GetConsignment.Files.FileMetadata("FileType", fileType), gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType))
+        gcfm.GetConsignment.Files(fileId, fileMetadata, oldMetadata)
+      })
+  }
+
   override def afterEach(): Unit = {
     Mockito.reset(getConsignmentClient)
     Mockito.reset(addConsignmentClient)
@@ -491,6 +501,36 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
       val results = consignmentService.getConsignments(consignmentFilter, bearerAccessToken)
       results.failed.futureValue shouldBe a[HttpError]
+    }
+  }
+
+  "areAllFilesClosed" should {
+    "return true if all files have a closure type of Closed" in {
+      val files = generateMetadata(2, "File", "Closed")
+      consignmentService.areAllFilesClosed(gcfm.GetConsignment(files, "")) should equal(true)
+    }
+
+    "return true if all files are closed but folders are open" in {
+      val files = generateMetadata(2, "File", "Closed")
+      val folders = generateMetadata(2, "Folder", "Open")
+      val consignment = gcfm.GetConsignment(files ++ folders, "")
+      consignmentService.areAllFilesClosed(consignment) should equal(true)
+    }
+
+    "return true if no files are provided" in {
+      consignmentService.areAllFilesClosed(gcfm.GetConsignment(Nil, "")) should equal(true)
+    }
+
+    "return false if one file is open and the others closed" in {
+      val closedFile = generateMetadata(1, "File", "Open")
+      val openFiles = generateMetadata(3, "File", "Closed")
+      val consignment = gcfm.GetConsignment(closedFile ++ openFiles, "")
+      consignmentService.areAllFilesClosed(consignment) should equal(false)
+    }
+
+    "return false if all files are open" in {
+      val files = generateMetadata(3, "File", "Open")
+      consignmentService.areAllFilesClosed(gcfm.GetConsignment(files, "")) should equal(false)
     }
   }
 }
