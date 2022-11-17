@@ -1,7 +1,14 @@
 @import views.html.partials.{transferReference, progressIndicator}
 @import java.util.UUID
 
-@(consignmentId: UUID, fileIds: List[UUID], fileNames: List[String], consignmentRef: String, metadata: Metadata, name: String)(implicit messages: Messages, request: RequestHeader)
+@(
+    consignmentId: UUID,
+    fileIds: List[UUID],
+    fileNames: List[String],
+    consignmentRef: String,
+    metadata: Metadata,
+    name: String,
+    metadataTypeAndValueSelected: List[String])(implicit messages: Messages, request: RequestHeader)
 @main(title = "Review metadata added", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     @progressIndicator(Messages("additionalMetadataSummary.progress"))
@@ -12,10 +19,10 @@
         </h1>
         <p class="govuk-body">You can edit, remove or save closure metadata here.</p>
         <div class="govuk-button-group">
-          <a href="@routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds)" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
+          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(metadataTypeAndValueSelected, consignmentId, fileIds)" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
             Edit metadata
           </a>
-          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--warning">
+          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, fileIds, metadataTypeAndValueSelected)" role="button" draggable="false" class="govuk-button govuk-button--warning">
             Delete metadata
           </a>
         </div>

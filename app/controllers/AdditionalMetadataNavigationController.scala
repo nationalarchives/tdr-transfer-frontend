@@ -34,7 +34,7 @@ class AdditionalMetadataNavigationController @Inject() (
     if (metadataType == "closure") {
       Future(Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, fileIds)))
     } else {
-      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds)))
+      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds, List(""))))
     }
   }
 }

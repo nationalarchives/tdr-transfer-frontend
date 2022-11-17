@@ -35,10 +35,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
 
   val fileIds: List[UUID] = List(UUID.randomUUID())
 
+  private val mockMetadataTypeAndValue = List("mockMetadataTypeAndValue-MockValue")
+
   "AdditionalMetadataSummaryController" should {
     "render the additional metadata summary page" in {
       val consignmentId = UUID.randomUUID()
       val consignmentReference = "TEST-TDR-2021-GB"
+      val mockMetadataTypeAndValueString = mockMetadataTypeAndValue.head
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()))
 
@@ -46,7 +49,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, fileIds)
+        .getSelectedSummaryPage(consignmentId, fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
       val closureMetadataSummaryPage = contentAsString(response)
 
@@ -62,13 +65,14 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       closureMetadataSummaryPage.contains(
         """        <p class="govuk-body">You can edit, remove or save closure metadata here.</p>""".stripMargin
       ) mustBe true
-      val href = s"/consignment/$consignmentId/add-closure-metadata?fileIds=${fileIds.mkString("&")}"
+      val href = s"/consignment/$consignmentId/additional-metadata/add?propertyNameAndFieldSelected=$mockMetadataTypeAndValueString&amp;fileIds=${fileIds.mkString("&amp;")}"
       closureMetadataSummaryPage.contains(
         s"""          <a href="$href" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
           |            Edit metadata
           |          </a>""".stripMargin
       ) mustBe true
-      val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata?fileIds=${fileIds.mkString("&")}"
+      val deleteMetadataButtonHref =
+        s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata?fileIds=${fileIds.mkString("&amp;")}&amp;metadataTypeAndValueSelected=$mockMetadataTypeAndValueString"
       closureMetadataSummaryPage.contains(
         s"""          <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--warning">
           |            Delete metadata
@@ -124,7 +128,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, fileIds)
+        .getSelectedSummaryPage(consignmentId, fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
 
       status(response) mustBe FORBIDDEN
@@ -146,7 +150,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, fileIds)
+        .getSelectedSummaryPage(consignmentId, fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
 
       status(response) mustBe FORBIDDEN
@@ -158,7 +162,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, fileIds)
+        .getSelectedSummaryPage(consignmentId, fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
 
       status(response) mustBe FOUND
@@ -180,7 +184,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, fileIds)
+        .getSelectedSummaryPage(consignmentId, fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
         .failed
         .futureValue
@@ -203,7 +207,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, fileIds)
+        .getSelectedSummaryPage(consignmentId, fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
         .failed
         .futureValue
