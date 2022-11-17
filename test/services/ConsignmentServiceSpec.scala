@@ -366,69 +366,6 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     }
   }
 
-  "getConsignmentExport" should {
-    "return export information about a consignment when given a consignment id" in {
-      val fileId = UUID.randomUUID()
-      val filename = "filename"
-      val filetype = Some("File")
-      val filepath = "filepath"
-      val exemptionCode = Some("Open")
-      val heldBy = Some("TNA")
-      val language = Some("English")
-      val legalStatus = Some("Public Record")
-      val rightsCopyright = Some("Crown Copyright")
-      val graphQlExportData = gcfe.GetConsignment(
-        consignmentId,
-        None,
-        None,
-        None,
-        "TEST-TDR-2021-GB",
-        None,
-        None,
-        None,
-        List(
-          gcfe.GetConsignment.Files(
-            fileId,
-            filetype,
-            fileName = Some(filename),
-            None,
-            metadata = gcfe.GetConsignment.Files
-              .Metadata(None, None, clientSideOriginalFilePath = Some(s"$filepath/$filename"), exemptionCode, heldBy, language, legalStatus, rightsCopyright, None),
-            ffidMetadata = None,
-            antivirusMetadata = None
-          )
-        )
-      )
-      val response = GraphQlResponse(Some(gcfe.Data(Some(graphQlExportData))), Nil)
-
-      when(getConsignmentForExportClient.getResult(bearerAccessToken, gcfe.document, Some(gcfe.Variables(consignmentId))))
-        .thenReturn(Future.successful(response))
-
-      val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken)
-      val actualResults = getConsignmentExport.futureValue
-
-      actualResults should be(graphQlExportData)
-    }
-
-    "return an error if the API fails" in {
-      when(getConsignmentForExportClient.getResult(bearerAccessToken, gcfe.document, Some(gcfe.Variables(consignmentId))))
-        .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
-
-      val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken).failed.futureValue
-
-      getConsignmentExport shouldBe a[HttpError]
-    }
-
-    "return an error if there is an error from the API" in {
-      when(getConsignmentForExportClient.getResult(bearerAccessToken, gcfe.document, Some(gcfe.Variables(consignmentId))))
-        .thenReturn(Future.successful(GraphQlResponse(None, List(NotAuthorisedError("error", Nil, Nil)))))
-
-      val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken).failed.futureValue
-
-      getConsignmentExport.getMessage should be("error")
-    }
-  }
-
   "getAllConsignmentFiles" should {
     "return nested files correctly" in {
       val parentId = UUID.randomUUID()
