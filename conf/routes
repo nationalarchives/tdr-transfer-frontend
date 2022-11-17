@@ -32,7 +32,6 @@ POST        /consignment/:consignmentId/add-closure-metadata                    
 GET         /consignment/:consignmentId/confirm-transfer                                          controllers.ConfirmTransferController.confirmTransfer(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/confirm-transfer                                          controllers.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/transfer-complete                                         controllers.TransferCompleteController.transferComplete(consignmentId: java.util.UUID)
-GET         /consignment/:consignmentId/download-report                                           controllers.TransferCompleteController.downloadReport(consignmentId: java.util.UUID, ref: String)
 GET         /consignment/:consignmentId/additional-metadata                                       controllers.AdditionalMetadataController.start(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/additional-metadata/closure-status                        controllers.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId: java.util.UUID, fileIds: List[java.util.UUID])
 POST        /consignment/:consignmentId/additional-metadata/closure-status                        controllers.AdditionalMetadataClosureStatusController.submitClosureStatus(consignmentId: java.util.UUID, fileIds: List[java.util.UUID])
