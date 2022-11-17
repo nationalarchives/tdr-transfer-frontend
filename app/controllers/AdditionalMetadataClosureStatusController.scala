@@ -97,7 +97,10 @@ class AdditionalMetadataClosureStatusController @Inject() (
       val metadataInput = UpdateFileMetadataInput(filePropertyIsMultiValue = false, closureType.name, closureType.value)
       customMetadataService
         .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, List(metadataInput))
-        .map(_ => Redirect(routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds)))
+        .map { _ =>
+          val propertyNameAndFieldSelected = List(s"${closureType.name}-${closureType.value}")
+          Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(propertyNameAndFieldSelected, consignmentId, fileIds))
+        }
     }
 
     closureStatusForm.bindFromRequest().fold(errorFunction, successFunction)
