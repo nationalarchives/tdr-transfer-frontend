@@ -35,7 +35,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
 
   val fileIds: List[UUID] = List(UUID.randomUUID())
 
-  private val mockMetadataTypeAndValue = List("mockMetadataTypeAndValue-MockValue")
+  private val mockMetadataTypeAndValue = List("mockMetadataType-mockMetadataValue")
 
   "AdditionalMetadataSummaryController" should {
     "render the additional metadata summary page" in {
