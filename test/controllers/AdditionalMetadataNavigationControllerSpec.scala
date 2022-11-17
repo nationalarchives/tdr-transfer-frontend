@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
+import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -98,8 +99,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     }
 
     "submitFiles" should {
-      "redirect to the closure metadata page with the correct file ids and closure metadata type" in {
-        val consignmentService = mockConsignmentService(Nil, "standard")
+      "redirect to the closure status page with the correct file ids and closure metadata type if the files are not already closed" in {
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
+        val consignmentService = mockConsignmentService(files, "standard")
         val additionalMetadataController =
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
@@ -107,6 +109,18 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure-status")
+      }
+
+      "redirect to the closure metadata page with the correct file ids and closure metadata type if the files are already closed" in {
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
+        val consignmentService = mockConsignmentService(files, "standard", allClosed = true)
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, "closure")
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+        playStatus(result) must equal(SEE_OTHER)
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/add-closure-metadata")
       }
 
       "redirect to the metadata summary page if the metadata type is descriptive" in {
@@ -151,15 +165,29 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
   }
 
-  private def mockConsignmentService(files: List[gcf.GetConsignment.Files], consignmentType: String) = {
+  private def mockConsignmentService(files: List[gcf.GetConsignment.Files], consignmentType: String, allClosed: Boolean = false) = {
     val consignmentData: gcf.GetConsignment = gcf.GetConsignment(files)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val graphqlClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables]()
     val dataString = graphqlClient.GraphqlData(Option(gcf.Data(Option(consignmentData)))).asJson.printWith(Printer.noSpaces)
+    val metadataClient = graphQLConfiguration.getClient[gcfm.Data, gcfm.Variables]()
+    val oldMetadata = gcfm.GetConsignment.Files.Metadata(None, None, None, None, None, None)
+    val getMetadataFiles = files.map(file => {
+      val closureType: String = if (allClosed) "Closed" else "Open"
+      val fileMetadata = List(gcfm.GetConsignment.Files.FileMetadata("FileType", "File"), gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType))
+      gcfm.GetConsignment.Files(file.fileId, fileMetadata, oldMetadata)
+    })
+
+    val metadataDataString = metadataClient.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(getMetadataFiles, "Reference"))))).asJson.printWith(Printer.noSpaces)
     setConsignmentTypeResponse(wiremockServer, consignmentType)
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentFiles"))
+        .withRequestBody(containing("getConsignmentFilesMetadata"))
+        .willReturn(okJson(metadataDataString))
+    )
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentFiles("))
         .willReturn(okJson(dataString))
     )
     val consignmentService = new ConsignmentService(graphQLConfiguration)

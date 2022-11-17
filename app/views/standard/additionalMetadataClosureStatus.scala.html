@@ -8,7 +8,7 @@
 @import controllers.util.InputNameAndValue
 
 @(consignmentId: UUID, fileNames: List[String], fileIds: List[UUID], formData: Form[ClosureStatusFormData], inputNameAndValue: InputNameAndValue,
-        closureStatus: Boolean, consignmentRef: String, parentFolderId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
+        areAllFilesClosed: Boolean, consignmentRef: String, parentFolderId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
 @fieldErrors = @{formData("closureStatus").errors.headOption match {
     case Some(formError) => formError.messages
     case None => Nil
@@ -44,9 +44,9 @@
                                     Symbol("_label") -> inputNameAndValue.value,
                                     Symbol("_value") -> "true",
                                     Symbol("_smallCheckbox") -> false,
-                                    Symbol("_checkedOption") -> (if(closureStatus) "checked" else ""),
+                                    Symbol("_checkedOption") -> (if(areAllFilesClosed) "checked" else ""),
                                     Symbol("_requiredOption") -> true,
-                                    Symbol("_disabledOption") -> ""
+                                    Symbol("_disabledOption") -> (if(areAllFilesClosed) "disabled" else "")
                                 ),
                                 Nil
                             )
@@ -80,9 +80,15 @@
                     </details>
 
                     <div class="govuk-button-group">
-                        <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-                            Continue
-                        </button>
+                        @if(areAllFilesClosed) {
+                            <a class="govuk-button" href="@routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds)" role="button" draggable="false" data-module="govuk-button">
+                                Continue
+                            </a>
+                        } else {
+                            <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+                                Continue
+                            </button>
+                        }
                         <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, "closure")">Cancel</a>
                     </div>
                 }

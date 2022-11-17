@@ -2,29 +2,22 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
-import com.github.tototoshi.csv.CSVReader
 import configuration.GraphQLConfiguration
-import errors.AuthorisationException
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.Metadata
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.http.Status.FORBIDDEN
 import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
 import services.ConsignmentService
-import uk.gov.nationalarchives.tdr.GraphQLClient
-import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
-import java.io.StringReader
 import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
@@ -67,7 +60,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         |                        </div>""".stripMargin
       )
       transferCompletePageAsString must include(s"""                    <p class="govuk-body">Download a printable report of the
-           |                        <a class="govuk-link" href=/consignment/${consignmentId}/download-report?ref=TEST-TDR-2021-GB>
+           |                        <a class="govuk-link" href=/consignment/$consignmentId/additional-metadata/download-metadata/csv>
            |                            records that you have transferred with the metadata included.
            |                        </a>
            |                    </p>""".stripMargin)
@@ -118,70 +111,6 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       )
       checkTransferCompletePageForCommonElements(transferCompletePageAsString, survey = "5YDPSA")
     }
-
-    "downloadReport should have the correct headers and rows" in {
-      val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, "standard")
-      val consignmentId = UUID.randomUUID()
-      val lastModified = LocalDateTime.now()
-      val exportDateTime = ZonedDateTime.now()
-      mockGetConsignmentForExport(Some(lastModified), Some(exportDateTime))
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      val response = controller
-        .downloadReport(consignmentId, "TEST-TDR-2021-GB")
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
-      val responseAsString = contentAsString(response)
-      val bufferedSource = new StringReader(responseAsString)
-      val csvList: List[Map[String, String]] = CSVReader.open(bufferedSource).toLazyListWithHeaders().toList
-      val firstRow = csvList.head
-      val lastRow = csvList.last
-
-      csvList.size must equal(2)
-      firstRow("LegalStatus") must equal("Public Record")
-      firstRow("Filesize") must equal("1")
-      firstRow("LastModified") must equal(s"$lastModified")
-      firstRow("Language") must equal(s"English")
-      firstRow("FileName") must equal(s"The National Archives, Kew")
-      firstRow("HeldBy") must equal(s"TNA")
-      firstRow("FileType") must equal(s"File")
-      firstRow("Filepath") must equal(s"Filepath/SomeFile")
-      firstRow("RightsCopyright") must equal(s"Crown Copyright")
-      firstRow("ExportDatetime") must equal(s"$exportDateTime")
-      firstRow("FoiExemptionCode") must equal(s"Open")
-
-      lastRow("LegalStatus") must equal("Private Record")
-      lastRow("Filesize") must equal("2")
-      lastRow("LastModified") must equal(s"$lastModified")
-      lastRow("Language") must equal(s"French")
-      lastRow("FileName") must equal(s"FileName")
-      lastRow("HeldBy") must equal(s"The National Archives, Kew")
-      lastRow("FileType") must equal(s"Folder")
-      lastRow("Filepath") must equal(s"Filepath/SomeFile2")
-      lastRow("RightsCopyright") must equal(s"Rights Copyright")
-      lastRow("ExportDatetime") must equal(s"$exportDateTime")
-      lastRow("FoiExemptionCode") must equal(s"Closed")
-    }
-
-    "throw an authorisation exception when the user does not have permission to download the report" in {
-      val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, "standard")
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      val consignmentId = UUID.randomUUID()
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcfe.Data, gcfe.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(Some(gcfe.Data(None)), List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(
-        post(urlEqualTo("/graphql"))
-          .withRequestBody(containing("getConsignmentForExport"))
-          .willReturn(okJson(dataString))
-      )
-
-      val downloadReport = controller
-        .downloadReport(consignmentId, "TEST-TDR-2021-GB")
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
-
-      val failure: Throwable = downloadReport.failed.futureValue
-
-      failure mustBe an[AuthorisationException]
-    }
   }
 
   forAll(userChecks) { (_, url) =>
@@ -231,72 +160,6 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         .transferComplete(consignmentId)
         .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
     }
-  }
-
-  private def mockGetConsignmentForExport(clientSideLastModifiedDate: Option[LocalDateTime], exportDateTime: Option[ZonedDateTime]) = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[gcfe.Data, gcfe.Variables]()
-    val consignmentResponse = gcfe.Data(
-      Option(
-        GetConsignment(
-          UUID.randomUUID(),
-          None,
-          None,
-          exportDateTime,
-          "TDR-2022",
-          None,
-          None,
-          None,
-          List(
-            Files(
-              UUID.randomUUID(),
-              Some("File"),
-              Some("The National Archives, Kew"),
-              None,
-              Metadata(
-                Some(1L),
-                clientSideLastModifiedDate,
-                Some("Filepath/SomeFile"),
-                Some("Open"),
-                Some("TNA"),
-                Some("English"),
-                Some("Public Record"),
-                Some("Crown Copyright"),
-                None
-              ),
-              None,
-              None
-            ),
-            Files(
-              UUID.randomUUID(),
-              Some("Folder"),
-              Some("FileName"),
-              None,
-              Metadata(
-                Some(2L),
-                clientSideLastModifiedDate,
-                Some("Filepath/SomeFile2"),
-                Some("Closed"),
-                Some("The National Archives, Kew"),
-                Some("French"),
-                Some("Private Record"),
-                Some("Rights Copyright"),
-                None
-              ),
-              None,
-              None
-            )
-          )
-        )
-      )
-    )
-    val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentForExport"))
-        .willReturn(okJson(dataString))
-    )
   }
 
   private def checkTransferCompletePageForCommonElements(transferCompletePageAsString: String, survey: String = "tdr-feedback") = {

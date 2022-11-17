@@ -43,7 +43,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
       response <-
         if (consignment.files.nonEmpty) {
           val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
-          val closureStatus = consignment.files.flatMap(_.fileMetadata).find(_.name == closureType.name).exists(_.value == closureType.value)
+          val areAllFilesClosed = consignmentService.areAllFilesClosed(consignment)
           cache.set(s"$consignmentId-data", (consignment.consignmentReference, filePaths, details.parentFolderId.get), 1.hour)
           Future(
             Ok(
@@ -53,7 +53,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
                 fileIds,
                 closureStatusForm,
                 closureStatusField,
-                closureStatus,
+                areAllFilesClosed,
                 consignment.consignmentReference,
                 details.parentFolderId.get,
                 request.token.name
@@ -84,7 +84,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
             fileIds,
             formWithErrors,
             closureStatusField,
-            closureStatus = false,
+            areAllFilesClosed = false,
             consignmentRef,
             parentFolderId,
             request.token.name
