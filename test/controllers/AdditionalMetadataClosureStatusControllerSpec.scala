@@ -357,7 +357,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
     val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure/"
     val continueButton = (if (isChecked) {
-                            s"""<a class="govuk-button" href="/consignment/$consignmentId/add-closure-metadata"""
+                            s"""<a class="govuk-button" href="/consignment/$consignmentId/additional-metadata/add?propertyNameAndFieldSelected=ClosureType-Closed"""
                           } else {
                             s"""<div class="govuk-button-group">
          |                        <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
