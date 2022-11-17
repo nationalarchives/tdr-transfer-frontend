@@ -81,7 +81,7 @@
 
                     <div class="govuk-button-group">
                         @if(areAllFilesClosed) {
-                            <a class="govuk-button" href="@routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds)" role="button" draggable="false" data-module="govuk-button">
+                            <a class="govuk-button" href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, fileIds)" role="button" draggable="false" data-module="govuk-button">
                                 Continue
                             </a>
                         } else {

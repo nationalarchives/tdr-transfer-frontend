@@ -120,7 +120,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "closure")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/add-closure-metadata")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/add?propertyNameAndFieldSelected=ClosureType-Closed")
       }
 
       "redirect to the metadata summary page if the metadata type is descriptive" in {
