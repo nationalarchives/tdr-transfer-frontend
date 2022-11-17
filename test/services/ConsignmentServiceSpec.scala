@@ -70,6 +70,16 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   private val consignmentId = UUID.fromString("180f9166-fe3c-486e-b9ab-6dfa5f3058dc")
   private val seriesId = Some(UUID.fromString("d54a5118-33a0-4ba2-8030-d16efcf1d1f4"))
 
+  def generateMetadata(numberOfFiles: Int, fileType: String, closureType: String): List[gcfm.GetConsignment.Files] = {
+    val oldMetadata = gcfm.GetConsignment.Files.Metadata(None, None, None, None, None, None)
+    List
+      .fill(numberOfFiles)(UUID.randomUUID())
+      .map(fileId => {
+        val fileMetadata = List(gcfm.GetConsignment.Files.FileMetadata("FileType", fileType), gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType))
+        gcfm.GetConsignment.Files(fileId, fileMetadata, oldMetadata)
+      })
+  }
+
   override def afterEach(): Unit = {
     Mockito.reset(getConsignmentClient)
     Mockito.reset(addConsignmentClient)
@@ -356,69 +366,6 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     }
   }
 
-  "getConsignmentExport" should {
-    "return export information about a consignment when given a consignment id" in {
-      val fileId = UUID.randomUUID()
-      val filename = "filename"
-      val filetype = Some("File")
-      val filepath = "filepath"
-      val exemptionCode = Some("Open")
-      val heldBy = Some("TNA")
-      val language = Some("English")
-      val legalStatus = Some("Public Record")
-      val rightsCopyright = Some("Crown Copyright")
-      val graphQlExportData = gcfe.GetConsignment(
-        consignmentId,
-        None,
-        None,
-        None,
-        "TEST-TDR-2021-GB",
-        None,
-        None,
-        None,
-        List(
-          gcfe.GetConsignment.Files(
-            fileId,
-            filetype,
-            fileName = Some(filename),
-            None,
-            metadata = gcfe.GetConsignment.Files
-              .Metadata(None, None, clientSideOriginalFilePath = Some(s"$filepath/$filename"), exemptionCode, heldBy, language, legalStatus, rightsCopyright, None),
-            ffidMetadata = None,
-            antivirusMetadata = None
-          )
-        )
-      )
-      val response = GraphQlResponse(Some(gcfe.Data(Some(graphQlExportData))), Nil)
-
-      when(getConsignmentForExportClient.getResult(bearerAccessToken, gcfe.document, Some(gcfe.Variables(consignmentId))))
-        .thenReturn(Future.successful(response))
-
-      val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken)
-      val actualResults = getConsignmentExport.futureValue
-
-      actualResults should be(graphQlExportData)
-    }
-
-    "return an error if the API fails" in {
-      when(getConsignmentForExportClient.getResult(bearerAccessToken, gcfe.document, Some(gcfe.Variables(consignmentId))))
-        .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
-
-      val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken).failed.futureValue
-
-      getConsignmentExport shouldBe a[HttpError]
-    }
-
-    "return an error if there is an error from the API" in {
-      when(getConsignmentForExportClient.getResult(bearerAccessToken, gcfe.document, Some(gcfe.Variables(consignmentId))))
-        .thenReturn(Future.successful(GraphQlResponse(None, List(NotAuthorisedError("error", Nil, Nil)))))
-
-      val getConsignmentExport = consignmentService.getConsignmentExport(consignmentId, bearerAccessToken).failed.futureValue
-
-      getConsignmentExport.getMessage should be("error")
-    }
-  }
-
   "getAllConsignmentFiles" should {
     "return nested files correctly" in {
       val parentId = UUID.randomUUID()
@@ -491,6 +438,36 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
       val results = consignmentService.getConsignments(consignmentFilter, bearerAccessToken)
       results.failed.futureValue shouldBe a[HttpError]
+    }
+  }
+
+  "areAllFilesClosed" should {
+    "return true if all files have a closure type of Closed" in {
+      val files = generateMetadata(2, "File", "Closed")
+      consignmentService.areAllFilesClosed(gcfm.GetConsignment(files, "")) should equal(true)
+    }
+
+    "return true if all files are closed but folders are open" in {
+      val files = generateMetadata(2, "File", "Closed")
+      val folders = generateMetadata(2, "Folder", "Open")
+      val consignment = gcfm.GetConsignment(files ++ folders, "")
+      consignmentService.areAllFilesClosed(consignment) should equal(true)
+    }
+
+    "return true if no files are provided" in {
+      consignmentService.areAllFilesClosed(gcfm.GetConsignment(Nil, "")) should equal(true)
+    }
+
+    "return false if one file is open and the others closed" in {
+      val closedFile = generateMetadata(1, "File", "Open")
+      val openFiles = generateMetadata(3, "File", "Closed")
+      val consignment = gcfm.GetConsignment(closedFile ++ openFiles, "")
+      consignmentService.areAllFilesClosed(consignment) should equal(false)
+    }
+
+    "return false if all files are open" in {
+      val files = generateMetadata(3, "File", "Open")
+      consignmentService.areAllFilesClosed(gcfm.GetConsignment(files, "")) should equal(false)
     }
   }
 }
