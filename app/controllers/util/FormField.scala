@@ -88,6 +88,7 @@ object FormField {
   val futureDateError = "%s date cannot be a future date."
   val radioOptionNotSelectedError = "There was no value selected for %s."
   val invalidRadioOptionSelectedError = "Option '%s' was not an option provided to the user."
+  val invalidCheckboxOptionSelectedError = "Invalid option was provided for '%s'."
 }
 
 object RadioButtonGroupField {
@@ -125,8 +126,13 @@ object CheckboxField {
     checkboxField.copy(selectedOptions = optionsSelected)
   }
 
-  //TODO add validation for if no checkboxes selected
-  def validate(): Option[String] = None
+  def validate(checkboxField: CheckboxField, filemetadata: List[FileMetadata]): Option[String] = {
+    filemetadata match {
+      case Nil => Some(dropdownOptionNotSelectedError.format(checkboxField.fieldName))
+      case _ if checkboxField.options.flatMap(option => filemetadata.find(_.value == option.value)).isEmpty => Some(invalidCheckboxOptionSelectedError.format(checkboxField.fieldName))
+      case _ => None
+    }
+  }
 }
 
 object TextField {

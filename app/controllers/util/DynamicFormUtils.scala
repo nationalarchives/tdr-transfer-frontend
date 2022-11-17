@@ -49,14 +49,15 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
               .copy(fieldErrors = DropdownField.validate(text, dropdownField).map(List(_)).getOrElse(Nil))
 
           case checkboxField: CheckboxField =>
-            val selectedOption = fieldValue.flatMap{fieldValue => {
+            //Updates the selectedOptions with the values of all checkboxes that are checked
+            val selectedOptions = fieldValue.flatMap{fieldValue => {
               fieldValue._2.map(nameAndValue => {
                 FileMetadata(nameAndValue, nameAndValue)
               })
             }}
               CheckboxField
-                .update(checkboxField, selectedOption)
-                .copy(fieldErrors = CheckboxField.validate().map(List(_)).getOrElse(Nil))
+                .update(checkboxField, selectedOptions)
+                .copy(fieldErrors = CheckboxField.validate(checkboxField, selectedOptions).map(List(_)).getOrElse(Nil))
         }
       }
     }
@@ -64,11 +65,12 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
 
   private def getSubmittedFieldValue(fieldId: String, submittedValues: Map[String, Seq[String]]): List[(String, Seq[String])] = {
     val fieldValue = submittedValues.filter(_._1.contains(fieldId)).toList
-    if (fieldValue.isEmpty) {
+/*    if (fieldValue.isEmpty) {
       throw new IllegalArgumentException(s"Metadata name $fieldId does not exist in submitted form values")
     } else {
       fieldValue
-    }
+    }*/
+    fieldValue
   }
 
   private def trimValues(submittedValues: Map[String, Seq[String]]): Map[String, Seq[String]] =

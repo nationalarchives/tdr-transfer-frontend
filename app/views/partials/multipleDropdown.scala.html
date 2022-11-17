@@ -1,5 +1,6 @@
 @import views.html.partials.inputSingleCheckbox
 @import controllers.util.InputNameAndValue
+@import views.html.partials.errorMessage
 @(fieldId: String,
 fieldName: String,
 fieldDescription: String,
@@ -9,7 +10,7 @@ selectedOptions: Seq[InputNameAndValue],
 fieldErrors: List[String] = Nil
 )(implicit messages: Messages)
 
-<div class="govuk-form-group">
+<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
     <fieldset class="govuk-fieldset" aria-describedby="foi-hint">
         <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
             <h2 class="govuk-fieldset__heading">
@@ -19,6 +20,7 @@ fieldErrors: List[String] = Nil
         <div class="govuk-hint">
         @fieldDescription
         </div>
+        @errorMessage("foi-exemption-codes", fieldErrors)
 
         <div class="govuk-checkboxes" data-module="govuk-checkboxes" id="foi-exemption-codes">
             <div class="govuk-grid-row">
@@ -35,7 +37,7 @@ fieldErrors: List[String] = Nil
                             Symbol("_checkedOption") -> (if(selectedOptions.contains(foiCode)) "checked" else ""),
                             Symbol("_dynamicForm") -> true,
                         ),
-                        fieldErrors
+                        Nil
                     )
                 }
                 @if((index + 1) % 15 == 0 || index == options.length-1) {</div>}
