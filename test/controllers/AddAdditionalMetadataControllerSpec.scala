@@ -84,7 +84,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-additional-metadata/add").withCSRFToken)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add").withCSRFToken)
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
       val expectedDefaultForm = Seq(
         ("inputdate-FoiExemptionAsserted-day", ""),
@@ -118,7 +118,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-additional-metadata/add").withCSRFToken)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add").withCSRFToken)
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       val newInputTextValues = Map(
@@ -167,7 +167,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller = instantiateAddAdditionalMetadataController(getUnauthorisedSecurityComponents)
       val addAdditionalMetadataPage = controller
         .addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-additional-metadata/add").withCSRFToken)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add").withCSRFToken)
       redirectLocation(addAdditionalMetadataPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(addAdditionalMetadataPage) mustBe FOUND
     }
@@ -186,7 +186,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller = instantiateAddAdditionalMetadataController()
       val addAdditionalMetadataPage = controller
         .addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-additional-metadata/add").withCSRFToken)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add").withCSRFToken)
 
       val failure = addAdditionalMetadataPage.failed.futureValue
       failure mustBe an[GraphQlException]
@@ -217,7 +217,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadataSubmit("closure", isMainForm = true, fieldAndValueSelectedPriorToMainPage, consignmentId, fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/add-additional-metadata/add")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
@@ -253,7 +253,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadataSubmit("closure", isMainForm = true, fieldAndValueSelectedPriorToMainPage, consignmentId, fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/add-additional-metadata/add")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
@@ -290,7 +290,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadataSubmit("closure", isMainForm = true, fieldAndValueSelectedPriorToMainPage, consignmentId, fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/add-additional-metadata/add")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
@@ -313,7 +313,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         setConsignmentTypeResponse(wiremockServer, consignmentType = "judgment")
         addAdditionalMetadataController
           .addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, fileIds)
-          .apply(FakeRequest(GET, s"/consignment/$consignmentId/add-additional-metadata/add").withCSRFToken)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/add").withCSRFToken)
       }
       playStatus(addAdditionalMetadata) mustBe FORBIDDEN
     }
@@ -344,7 +344,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       addAdditionalMetadataController
         .addAdditionalMetadataSubmit("closure", isMainForm = true, fieldAndValueSelectedPriorToMainPage, consignmentId, fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/add-additional-metadata/add")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
@@ -405,7 +405,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
             addAdditionalMetadataController
               .addAdditionalMetadataSubmit("closure", isMainForm = true, fieldAndValueSelectedPriorToMainPage, consignmentId, fileIds)
               .apply(
-                FakeRequest(POST, s"/standard/$consignmentId/add-additional-metadata/add")
+                FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add")
                   .withFormUrlEncodedBody(formToSubmit: _*)
                   .withCSRFToken
               )
@@ -414,7 +414,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           val redirectLocation = addAdditionalMetadataPage.header.headers.getOrElse("Location", "")
 
           addAdditionalMetadataPage.header.status should equal(303)
-          redirectLocation.contains(s"/consignment/$consignmentId/add-additional-metadata/add/dependencies") should equal(true)
+          redirectLocation.contains(s"/consignment/$consignmentId/additional-metadata/add/dependencies") should equal(true)
           propertyNamesThatHaveDeps.foreach { propertyNameWhereUserDoesHaveToFillInDeps =>
             redirectLocation.contains(s"dependees=$propertyNameWhereUserDoesHaveToFillInDeps-True") should equal(true)
           }
@@ -450,7 +450,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataPage: Result = addAdditionalMetadataController
         .addAdditionalMetadataSubmit("closure", isMainForm = true, fieldAndValueSelectedPriorToMainPage, consignmentId, fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/add-additional-metadata/add")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add")
             .withFormUrlEncodedBody(formToSubmitDefault: _*)
             .withCSRFToken
         )
@@ -498,7 +498,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
               .apply(
                 FakeRequest(
                   GET,
-                  s"/standard/$consignmentId/add-additional-metadata/add?dependencies=${propertyNamesThatHaveDeps.mkString("&dependees=")}"
+                  s"/standard/$consignmentId/additional-metadata/add?dependencies=${propertyNamesThatHaveDeps.mkString("&dependees=")}"
                 ).withCSRFToken
               )
           val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
@@ -534,7 +534,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
               .apply(
                 FakeRequest(
                   GET,
-                  s"/standard/$consignmentId/add-additional-metadata/add?dependencies=${propertyNamesThatHaveDeps.mkString("&dependees=")}"
+                  s"/standard/$consignmentId/additional-metadata/add?dependencies=${propertyNamesThatHaveDeps.mkString("&dependees=")}"
                 ).withCSRFToken
               )
           val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
@@ -554,7 +554,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller = instantiateAddAdditionalMetadataController(getUnauthorisedSecurityComponents)
       val addAdditionalMetadataPage = controller
         .addAdditionalMetadataDependenciesPage(List("dummyPropertyNameAndFieldSelected-True"), "closure", consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-additional-metadata/add/dependencies").withCSRFToken)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/dependencies").withCSRFToken)
       redirectLocation(addAdditionalMetadataPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(addAdditionalMetadataPage) mustBe FOUND
     }
@@ -573,7 +573,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller = instantiateAddAdditionalMetadataController()
       val addAdditionalMetadataPage = controller
         .addAdditionalMetadataDependenciesPage(List("dummyPropertyNameAndFieldSelected-True"), "closure", consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/add-additional-metadata/add/dependencies").withCSRFToken)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/dependencies").withCSRFToken)
 
       val failure = addAdditionalMetadataPage.failed.futureValue
       failure mustBe an[GraphQlException]
@@ -603,7 +603,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
               .apply(
                 FakeRequest(
                   POST,
-                  s"/standard/$consignmentId/add-additional-metadata/add?dependencies=${propertyNamesThatHaveDeps.mkString("&dependees=")}"
+                  s"/standard/$consignmentId/additional-metadata/add?dependencies=${propertyNamesThatHaveDeps.mkString("&dependees=")}"
                 ).withFormUrlEncodedBody(expectedDependencyDefaultForm: _*).withCSRFToken
               )
           val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
@@ -640,7 +640,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
               .apply(
                 FakeRequest(
                   POST,
-                  s"/standard/$consignmentId/add-additional-metadata/add?dependencies=${propertyNamesThatHaveDeps.mkString("&dependees=")}"
+                  s"/standard/$consignmentId/additional-metadata/add?dependencies=${propertyNamesThatHaveDeps.mkString("&dependees=")}"
                 ).withFormUrlEncodedBody(incompleteDependencyForm.toSeq: _*).withCSRFToken
               )
           val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
@@ -670,7 +670,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       addAdditionalMetadataController
         .addAdditionalMetadataSubmit("closure", isMainForm = true, List("TitleClosed-True", "DescriptionClosed-True"), consignmentId, fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/add-additional-metadata/add")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
