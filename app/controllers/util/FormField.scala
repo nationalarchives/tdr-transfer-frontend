@@ -56,7 +56,7 @@ case class CheckboxField(
     fieldDescription: String,
     multiValue: Boolean,
     options: Seq[InputNameAndValue],
-    selectedOptions: Seq[InputNameAndValue],
+    selectedOptions: Option[Seq[InputNameAndValue]],
     isRequired: Boolean,
     fieldErrors: List[String] = Nil
 ) extends FormField
@@ -123,7 +123,7 @@ object CheckboxField {
 
   def update(checkboxField: CheckboxField, selectedOptions: List[FileMetadata]): CheckboxField = {
     val optionsSelected = selectedOptions.map(selectedFoiCodes => InputNameAndValue(selectedFoiCodes.value, selectedFoiCodes.value))
-    checkboxField.copy(selectedOptions = optionsSelected)
+    checkboxField.copy(selectedOptions = Some(optionsSelected))
   }
 
   def validate(checkboxField: CheckboxField, filemetadata: List[FileMetadata]): Option[String] = {
