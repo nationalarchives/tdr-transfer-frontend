@@ -19,18 +19,18 @@ class DeleteAdditionalMetadataController @Inject() (
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  def confirmDeleteAdditionalMetadata(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] =
+  def confirmDeleteAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       if (fileIds.isEmpty) {
         Future.failed(new IllegalArgumentException("fileIds are empty"))
       } else {
-        val filters = Option(FileFilters(None, Option(fileIds), None))
+        val filters = Option(FileFilters(None, Option(fileIds), None, None))
         for {
           consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, filters)
           response <-
             if (consignment.files.nonEmpty) {
               val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
-              Future(Ok(views.html.standard.confirmDeleteAdditionalMetadata(consignmentId, fileIds, filePaths, request.token.name)))
+              Future(Ok(views.html.standard.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds, filePaths, request.token.name)))
             } else {
               Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
             }
@@ -38,21 +38,21 @@ class DeleteAdditionalMetadataController @Inject() (
       }
     }
 
-  def deleteAdditionalMetadata(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    if (fileIds.isEmpty) {
-      Future.failed(new IllegalArgumentException("fileIds are empty"))
-    } else {
-      for {
-        _ <- customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken)
-        consignment <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
-        response <-
-          Future(
-            Redirect(
-              routes.AdditionalMetadataNavigationController
-                .getAllFiles(consignmentId, "closure")
+  def deleteAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
+    implicit request: Request[AnyContent] =>
+      if (fileIds.isEmpty) {
+        Future.failed(new IllegalArgumentException("fileIds are empty"))
+      } else {
+        for {
+          _ <- customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken)
+          response <-
+            Future(
+              Redirect(
+                routes.AdditionalMetadataNavigationController
+                  .getAllFiles(consignmentId, metadataType)
+              )
             )
-          )
-      } yield response
-    }
+        } yield response
+      }
   }
 }

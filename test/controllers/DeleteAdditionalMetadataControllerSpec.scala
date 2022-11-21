@@ -48,7 +48,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, fileIds)
+        .confirmDeleteAdditionalMetadata(consignmentId, "closure", fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
       val deleteMetadataPage = contentAsString(response)
 
@@ -89,7 +89,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, fileIds)
+        .confirmDeleteAdditionalMetadata(consignmentId, "closure", fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
 
       status(response) mustBe FORBIDDEN
@@ -112,7 +112,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, fileIds)
+        .confirmDeleteAdditionalMetadata(consignmentId, "closure", fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
         .failed
         .futureValue
@@ -128,7 +128,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller =
         new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, fileIds)
+        .confirmDeleteAdditionalMetadata(consignmentId, "closure", fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
 
       status(response) mustBe FOUND
@@ -145,7 +145,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, Nil)
+        .confirmDeleteAdditionalMetadata(consignmentId, "closure", Nil)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
         .failed
         .futureValue
@@ -169,7 +169,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, fileIds)
+        .confirmDeleteAdditionalMetadata(consignmentId, "closure", fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
         .failed
         .futureValue
@@ -184,7 +184,6 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val parentFolderId = UUID.randomUUID()
       val metadataType = "closure"
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = parentFolderId.some)
       setDeleteFileMetadataResponse(app.configuration, wiremockServer, fileIds, List("PropertyName1"))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -192,7 +191,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .deleteAdditionalMetadata(consignmentId, fileIds)
+        .deleteAdditionalMetadata(consignmentId, "closure", fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/delete-metadata"))
 
       status(response) mustBe SEE_OTHER
@@ -210,7 +209,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .deleteAdditionalMetadata(consignmentId, Nil)
+        .deleteAdditionalMetadata(consignmentId, "closure", Nil)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/delete-metadata"))
         .failed
         .futureValue
@@ -226,7 +225,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .deleteAdditionalMetadata(consignmentId, fileIds)
+        .deleteAdditionalMetadata(consignmentId, "closure", fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/delete-metadata"))
 
       status(response) mustBe FORBIDDEN
@@ -240,7 +239,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller =
         new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
-        .deleteAdditionalMetadata(consignmentId, fileIds)
+        .deleteAdditionalMetadata(consignmentId, "closure", fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/delete-metadata"))
 
       status(response) mustBe FOUND
