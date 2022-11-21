@@ -33,7 +33,7 @@ class AdditionalMetadataNavigationController @Inject() (
       .filter(_ != "csrfToken")
       .map(UUID.fromString)
     if (metadataType == "closure") {
-      val fileFilters = FileFilters(None, Option(fileIds), None)
+      val fileFilters = FileFilters(None, Option(fileIds), None, None)
       consignmentService
         .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
         .map(consignment => {
@@ -45,7 +45,7 @@ class AdditionalMetadataNavigationController @Inject() (
           }
         })
     } else {
-      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds)))
+      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)))
     }
   }
 }

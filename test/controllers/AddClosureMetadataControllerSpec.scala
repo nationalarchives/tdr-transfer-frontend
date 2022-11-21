@@ -2,15 +2,11 @@ package controllers
 
 import akka.Done
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
-import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
-import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import graphql.codegen.types.UpdateBulkFileMetadataInput
 import io.circe.Printer
 import io.circe.generic.auto._
@@ -80,7 +76,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
-      mockGraphqlResponse()
+      setCustomMetadataResponse(wiremockServer)
 
       val addClosureMetadataPage = addClosureMetadataController
         .addClosureMetadata(consignmentId, fileIds)
@@ -114,7 +110,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
-      mockGraphqlResponse()
+      setCustomMetadataResponse(wiremockServer)
 
       val addClosureMetadataPage = addClosureMetadataController
         .addClosureMetadata(consignmentId, fileIds)
@@ -197,7 +193,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val addClosureMetadataController = instantiateAddClosureMetadataController()
       val formTester = new FormTester(expectedClosureDefaultOptions)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      mockGraphqlResponse()
+      setCustomMetadataResponse(wiremockServer)
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentFilesMetadataResponse(wiremockServer)
 
@@ -234,7 +230,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val formTester = new FormTester(expectedClosureDefaultOptions)
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      mockGraphqlResponse()
+      setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
 
       val formSubmission = Seq(
@@ -271,7 +267,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      mockGraphqlResponse()
+      setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
 
       val formSubmission = Seq(
@@ -337,7 +333,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
-      mockGraphqlResponse()
+      setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
 
@@ -360,8 +356,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       input.consignmentId mustBe consignmentId
       input.fileIds mustBe fileIds
       input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00"
-      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00"
+      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
       input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "false"
       input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
       input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
@@ -376,7 +372,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
           setConsignmentTypeResponse(wiremockServer, "standard")
-          mockGraphqlResponse()
+          setCustomMetadataResponse(wiremockServer)
           setConsignmentFilesMetadataResponse(wiremockServer)
           setBulkUpdateMetadataResponse(wiremockServer)
 
@@ -430,7 +426,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      mockGraphqlResponse()
+      setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
 
@@ -485,7 +481,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
-          mockGraphqlResponse()
+          setCustomMetadataResponse(wiremockServer)
 
           val addClosureMetadataPage =
             addClosureMetadataController
@@ -516,7 +512,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
-          mockGraphqlResponse()
+          setCustomMetadataResponse(wiremockServer)
 
           val addClosureMetadataPage =
             addClosureMetadataController
@@ -583,7 +579,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false, fileIds = fileIds)
-          mockGraphqlResponse()
+          setCustomMetadataResponse(wiremockServer)
 
           val expectedDependencyDefaultForm: Seq[(String, String)] = dependencyInputNames.map(field => (field, ""))
 
@@ -618,7 +614,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
           setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false, fileIds = fileIds)
-          mockGraphqlResponse()
+          setCustomMetadataResponse(wiremockServer)
 
           val incompleteDependencyForm: Map[String, String] =
             Map("inputtext-DescriptionAlternate-DescriptionAlternate" -> "", "inputtext-TitleAlternate-TitleAlternate" -> "") ++ optionsToEnter
@@ -653,7 +649,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
-      mockGraphqlResponse()
+      setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
 
@@ -695,18 +691,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     )
   }
 
-  private def mockGraphqlResponse() = {
-    val client: GraphQLClient[cm.Data, cm.Variables] = new GraphQLConfiguration(app.configuration).getClient[cm.Data, cm.Variables]()
-    val customMetadataResponse: cm.Data = getDataObject
-    val data: client.GraphqlData = client.GraphqlData(Some(customMetadataResponse))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("customMetadata"))
-        .willReturn(okJson(dataString))
-    )
-  }
   // scalastyle:off method.length
   private def checkForExpectedClosureMetadataFormPageContent(addClosureMetadataPageAsFormattedString: String): Unit = {
     val addClosureMetadataPageAsString = addClosureMetadataPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
@@ -779,164 +763,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
             |        </label>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
       )
     }
-  }
-
-  private def getDataObject = {
-    // Until the 'sortMetadataIntoCorrectPageOrder', getDefaultValue and getFieldHints methods in the MetadataUtils are
-    // no longer needed, the real names have to be returned
-    cm.Data(
-      List(
-        cm.CustomMetadata(
-          "ClosureType",
-          None,
-          Some("Closure Type"),
-          Defined,
-          Some("MandatoryClosure"),
-          Text,
-          editable = true,
-          multiValue = false,
-          Some("Open"),
-          1,
-          List(
-            Values(
-              "Closed",
-              List(
-                Dependencies("FoiExemptionAsserted"),
-                Dependencies("ClosurePeriod"),
-                Dependencies("ClosureStartDate"),
-                Dependencies("FoiExemptionCode"),
-                Dependencies("TitleClosed"),
-                Dependencies("DescriptionClosed")
-              ),
-              1
-            ),
-            Values("Open", List(Dependencies("TitleClosed"), Dependencies("DescriptionClosed")), 1)
-          ),
-          None,
-          allowExport = false
-        ),
-        cm.CustomMetadata(
-          "ClosurePeriod",
-          Some("Number of years the record is closed from the closure start date"),
-          Some("Closure Period"),
-          Supplied,
-          Some("MandatoryClosure"),
-          Integer,
-          editable = true,
-          multiValue = false,
-          None,
-          2,
-          List(Values("0", List(), 1)),
-          None,
-          allowExport = false
-        ),
-        cm.CustomMetadata(
-          "DescriptionClosed",
-          None,
-          Some("Is the description closed?"),
-          Supplied,
-          Some("MandatoryClosure"),
-          Boolean,
-          editable = true,
-          multiValue = false,
-          Some("True"),
-          3,
-          List(Values("False", List(), 1), Values("True", List(Dependencies("DescriptionAlternate")), 1)),
-          None,
-          allowExport = false
-        ),
-        cm.CustomMetadata(
-          "TitleClosed",
-          None,
-          Some("Is the title closed?"),
-          Supplied,
-          Some("MandatoryClosure"),
-          Boolean,
-          editable = true,
-          multiValue = false,
-          Some("True"),
-          4,
-          List(Values("True", List(Dependencies("TitleAlternate")), 1), Values("False", List(), 1)),
-          None,
-          allowExport = false
-        ),
-        cm.CustomMetadata(
-          "ClosureStartDate",
-          Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."),
-          Some("Closure Start Date"),
-          Supplied,
-          Some("OptionalClosure"),
-          DateTime,
-          editable = true,
-          multiValue = false,
-          None,
-          5,
-          List(),
-          None,
-          allowExport = false
-        ),
-        cm.CustomMetadata(
-          "DescriptionAlternate",
-          None,
-          Some("Description Alternate"),
-          Supplied,
-          Some("OptionalClosure"),
-          Text,
-          editable = true,
-          multiValue = false,
-          None,
-          6,
-          List(),
-          None,
-          allowExport = false
-        ),
-        cm.CustomMetadata(
-          "TitleAlternate",
-          None,
-          Some("Title Alternate"),
-          Supplied,
-          Some("OptionalClosure"),
-          Text,
-          editable = true,
-          multiValue = false,
-          None,
-          7,
-          List(),
-          None,
-          allowExport = false
-        ),
-        cm.CustomMetadata(
-          "FoiExemptionAsserted",
-          Some("Date of the Advisory Council approval (or SIRO approval if appropriate)"),
-          Some("Foi Exemption Asserted"),
-          Supplied,
-          Some("MandatoryClosure"),
-          DateTime,
-          editable = true,
-          multiValue = false,
-          None,
-          8,
-          List(),
-          None,
-          allowExport = false
-        ),
-        cm.CustomMetadata(
-          "FoiExemptionCode",
-          Some("Select the exemption code that applies"),
-          Some("Foi Exemption Code"),
-          Defined,
-          Some("MandatoryClosure"),
-          Text,
-          editable = true,
-          multiValue = true,
-          Some("mock code1"),
-          9,
-          List(Values("mock code1", List(), 1), Values("mock code2", List(), 2)),
-          None,
-          allowExport = false
-        )
-      )
-    )
   }
   // scalastyle:on method.length
 }

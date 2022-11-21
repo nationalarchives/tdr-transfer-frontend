@@ -131,7 +131,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "descriptive")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure/selected-summary")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/descriptive/selected-summary")
       }
 
       "return forbidden for a judgment user" in {
@@ -171,11 +171,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     val graphqlClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables]()
     val dataString = graphqlClient.GraphqlData(Option(gcf.Data(Option(consignmentData)))).asJson.printWith(Printer.noSpaces)
     val metadataClient = graphQLConfiguration.getClient[gcfm.Data, gcfm.Variables]()
-    val oldMetadata = gcfm.GetConsignment.Files.Metadata(None, None, None, None, None, None)
     val getMetadataFiles = files.map(file => {
       val closureType: String = if (allClosed) "Closed" else "Open"
       val fileMetadata = List(gcfm.GetConsignment.Files.FileMetadata("FileType", "File"), gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType))
-      gcfm.GetConsignment.Files(file.fileId, fileMetadata, oldMetadata)
+      gcfm.GetConsignment.Files(file.fileId, Some("FileName"), fileMetadata)
     })
 
     val metadataDataString = metadataClient.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(getMetadataFiles, "Reference"))))).asJson.printWith(Printer.noSpaces)
