@@ -70,7 +70,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
               fieldLabel,
               fieldDescription,
               property.multiValue,
-              property.values.map(v => InputNameAndValue(v.value, v.value)),
+              property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
               property.defaultValue.map(value => Seq(InputNameAndValue(value, value))),
               isRequired
             )

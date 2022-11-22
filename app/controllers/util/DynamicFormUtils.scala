@@ -20,7 +20,7 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
 
     defaultFieldValues.map { formField =>
       {
-        val fieldValue: List[(String, Seq[String])] = getSubmittedFieldValue(formField.fieldId, submittedValuesTrimmed)
+        val fieldValue: List[(String, Seq[String])] = getSubmittedFieldValue(formField, submittedValuesTrimmed)
         formField match {
           case dateField: DateField =>
             val day = fieldValue.find(_._1.endsWith("-day")).map(_._2.head).getOrElse("")
@@ -63,14 +63,13 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
     }
   }
 
-  private def getSubmittedFieldValue(fieldId: String, submittedValues: Map[String, Seq[String]]): List[(String, Seq[String])] = {
-    val fieldValue = submittedValues.filter(_._1.contains(fieldId)).toList
-/*    if (fieldValue.isEmpty) {
-      throw new IllegalArgumentException(s"Metadata name $fieldId does not exist in submitted form values")
+  private def getSubmittedFieldValue(formfield: FormField, submittedValues: Map[String, Seq[String]]): List[(String, Seq[String])] = {
+    val fieldValue = submittedValues.filter(_._1.contains(formfield.fieldId)).toList
+    if (fieldValue.isEmpty && !formfield.isInstanceOf[CheckboxField]) {
+      throw new IllegalArgumentException(s"Metadata name ${formfield.fieldId} does not exist in submitted form values")
     } else {
       fieldValue
-    }*/
-    fieldValue
+    }
   }
 
   private def trimValues(submittedValues: Map[String, Seq[String]]): Map[String, Seq[String]] =
