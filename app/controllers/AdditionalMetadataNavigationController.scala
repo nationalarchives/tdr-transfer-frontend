@@ -7,7 +7,6 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.cache.AsyncCacheApi
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
-import viewsapi.Caching.preventCaching
 
 import java.util.UUID
 import javax.inject.Inject
@@ -23,8 +22,8 @@ class AdditionalMetadataNavigationController @Inject() (
 
   def getAllFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     getCachedFiles(consignmentId, metadataType, request).map(allFiles => {
-        Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType))
-      })
+      Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType))
+    })
   }
 
   def submitFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
@@ -53,8 +52,8 @@ class AdditionalMetadataNavigationController @Inject() (
       }
     } else {
       getCachedFiles(consignmentId, metadataType, request).map(allFiles => {
-          BadRequest(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, displayError = true))
-        })
+        BadRequest(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, displayError = true))
+      })
     }
   }
 
