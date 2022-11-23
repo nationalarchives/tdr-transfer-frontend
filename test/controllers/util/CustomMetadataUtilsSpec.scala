@@ -138,20 +138,24 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     field.selectedOption should equal(defaultValue.map(v => if (v == "True") "yes" else "no").getOrElse("no"))
   }
 
-  def verifyText(field: DropdownField, property: CustomMetadata): Unit = {
+  def verifyText(field: Option[DropdownField] = None, checkbox: Option[CheckboxField] = None, property: CustomMetadata): Unit = {
     property.propertyType match {
+      case Defined if property.multiValue =>
+        checkbox.get.options should equal(property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
+        checkbox.get.selectedOptions should equal(property.defaultValue.map(value => Seq(InputNameAndValue(value, value))))
       case Defined =>
-        field.options should equal(property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
-        field.selectedOption should equal(property.defaultValue.map(value => InputNameAndValue(value, value)))
+        field.get.options should equal(property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
+        field.get.selectedOption should equal(property.defaultValue.map(value => InputNameAndValue(value, value)))
       case Supplied =>
-        field.options should equal(Seq())
-        field.selectedOption should equal(property.defaultValue.map(value => InputNameAndValue(value, value)))
+        field.get.options should equal(Seq())
+        field.get.selectedOption should equal(property.defaultValue.map(value => InputNameAndValue(value, value)))
       case _ =>
-        field.options should equal(Seq(InputNameAndValue(property.name, property.fullName.getOrElse(""))))
-        field.selectedOption should equal(None)
+        field.get.options should equal(Seq(InputNameAndValue(property.name, property.fullName.getOrElse(""))))
+        field.get.selectedOption should equal(None)
     }
   }
 
+  // scalastyle:off cyclomatic.complexity
   private def checkMetadataToFieldConversion(property: CustomMetadata, fieldValuesByDataType: List[FormField]) = {
     val field = fieldValuesByDataType.find(_.fieldId == property.name).get
 
@@ -167,9 +171,12 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
       case Text =>
         property.propertyType match {
+          case Defined if property.multiValue =>
+            field.isInstanceOf[CheckboxField] should be(true)
+            verifyText(None, Some(field.asInstanceOf[CheckboxField]), property)
           case Defined =>
             field.isInstanceOf[DropdownField] should be(true)
-            verifyText(field.asInstanceOf[DropdownField], property)
+            verifyText(field = Some(field.asInstanceOf[DropdownField]), property = property)
           case Supplied =>
             field.isInstanceOf[TextField] should be(true)
             field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue(property.name, property.defaultValue.getOrElse("")))
@@ -183,4 +190,5 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     field.fieldName should equal(property.fullName.get)
     field.isRequired should equal(property.propertyGroup.contains("MandatoryMetadata"))
   }
+  // scalastyle:on cyclomatic.complexity
 }
