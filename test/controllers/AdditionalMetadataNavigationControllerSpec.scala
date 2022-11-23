@@ -108,9 +108,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/")
-            .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
-            .withCSRFToken)
+          .apply(
+            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/")
+              .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
+              .withCSRFToken
+          )
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure-status?fileIds=$fileId")
       }
@@ -123,9 +125,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/")
-            .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
-            .withCSRFToken)
+          .apply(
+            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/")
+              .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
+              .withCSRFToken
+          )
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(s"/consignment/$consignmentId/add-closure-metadata?fileIds=$fileId")
       }
@@ -137,9 +141,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         val fileId = UUID.randomUUID().toString
         val result = additionalMetadataController
           .submitFiles(consignmentId, "descriptive")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/")
-            .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
-            .withCSRFToken)
+          .apply(
+            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/")
+              .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
+              .withCSRFToken
+          )
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure/selected-summary?fileIds=$fileId")
       }
@@ -151,8 +157,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/")
-            .withCSRFToken)
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
 
         playStatus(result) must equal(BAD_REQUEST)
         val content = contentAsString(result)
