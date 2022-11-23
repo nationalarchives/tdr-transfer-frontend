@@ -8,6 +8,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.AnyContentAsFormUrlEncoded
 import play.api.test.FakeRequest
 import play.api.test.Helpers.POST
+import testUtils.FormTestData
 
 import java.time.LocalDateTime
 import scala.collection.immutable.ListMap
@@ -79,7 +80,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val thrownException: IllegalArgumentException =
       the[IllegalArgumentException] thrownBy dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
 
-    thrownException.getMessage should equal(s"Metadata name TestProperty1 does not exist in submitted form values")
+    thrownException.getMessage should equal(s"Metadata name FoiExemptionAsserted does not exist in submitted form values")
   }
 
   "validateAndConvertSubmittedValuesToFormFields" should "not throw an exception if the metadata name (in the input name) " +
@@ -235,38 +236,42 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
   private def verifyUpdatedFormFields(mockFormValues: MockFormValues, validatedForm: List[FormField]): Unit = {
 
-    val date = validatedForm.find(_.fieldId == "TestProperty3").map(_.asInstanceOf[DateField]).get
+    val date = validatedForm.find(_.fieldId == "FoiExemptionAsserted").map(_.asInstanceOf[DateField]).get
     date.day.value should equal(mockFormValues.day.head.trim)
     date.month.value should equal(mockFormValues.month.head.trim)
     date.year.value should equal(mockFormValues.year.head.trim)
 
-    val date2 = validatedForm.find(_.fieldId == "TestProperty5").map(_.asInstanceOf[DateField]).get
+    val date2 = validatedForm.find(_.fieldId == "ClosureStartDate").map(_.asInstanceOf[DateField]).get
     date2.day.value should equal(mockFormValues.day2.head.trim)
     date2.month.value should equal(mockFormValues.month2.head.trim)
     date2.year.value should equal(mockFormValues.year2.head.trim)
 
-    val text = validatedForm.find(_.fieldId == "TestProperty1").map(_.asInstanceOf[TextField]).get
+    val text = validatedForm.find(_.fieldId == "ClosurePeriod").map(_.asInstanceOf[TextField]).get
     text.nameAndValue.value should equal(mockFormValues.numericTextBoxValue.head.trim)
 
-    val dropdownField = validatedForm.find(_.fieldId == "TestProperty4").map(_.asInstanceOf[DropdownField]).get
+    val dropdownField = validatedForm.find(_.fieldId == "Dropdown").map(_.asInstanceOf[DropdownField]).get
     dropdownField.selectedOption.map(_.value).get should equal(mockFormValues.dropdownValue.head)
 
-    val radioButtonGroupField = validatedForm.find(_.fieldId == "TestProperty2").map(_.asInstanceOf[RadioButtonGroupField]).get
+    val multiCheckboxField = validatedForm.find(_.fieldId == "MultiCheckbox").map(_.asInstanceOf[CheckboxField]).get
+    multiCheckboxField.selectedOptions.get.map(_.value) should equal(mockFormValues.multiCheckboxValue)
+
+    val radioButtonGroupField = validatedForm.find(_.fieldId == "Radio").map(_.asInstanceOf[RadioButtonGroupField]).get
     radioButtonGroupField.selectedOption should equal(mockFormValues.radioValue.head)
   }
 
   private def generateFormAndSendRequest(mockFormValues: MockFormValues): (ListMap[String, List[String]], DynamicFormUtils) = {
     val rawFormToMakeRequestWith =
       ListMap(
-        "inputdate-TestProperty3-day" -> mockFormValues.day,
-        "inputdate-TestProperty3-month" -> mockFormValues.month,
-        "inputdate-TestProperty3-year" -> mockFormValues.year,
-        "inputdate-TestProperty5-day" -> mockFormValues.day2,
-        "inputdate-TestProperty5-month" -> mockFormValues.month2,
-        "inputdate-TestProperty5-year" -> mockFormValues.year2,
-        "inputnumeric-TestProperty1-years" -> mockFormValues.numericTextBoxValue,
-        "inputdropdown-TestProperty4" -> mockFormValues.dropdownValue,
-        "inputradio-TestProperty2" -> mockFormValues.radioValue,
+        "inputdate-FoiExemptionAsserted-day" -> mockFormValues.day,
+        "inputdate-FoiExemptionAsserted-month" -> mockFormValues.month,
+        "inputdate-FoiExemptionAsserted-year" -> mockFormValues.year,
+        "inputdate-ClosureStartDate-day" -> mockFormValues.day2,
+        "inputdate-ClosureStartDate-month" -> mockFormValues.month2,
+        "inputdate-ClosureStartDate-year" -> mockFormValues.year2,
+        "inputnumeric-ClosurePeriod" -> mockFormValues.numericTextBoxValue,
+        "inputdropdown-Dropdown" -> mockFormValues.dropdownValue,
+        "inputradio-Radio" -> mockFormValues.radioValue,
+        "inputcheckbox-MultiCheckbox" -> mockFormValues.multiCheckboxValue,
         "csrfToken" -> mockFormValues.csrfToken
       )
 
@@ -281,7 +286,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         .apply(POST, s"/consignment/12345/add-closure-metadata")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new CustomMetadataUtilsSpec().allProperties.take(5)
+    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new FormTestData().setupCustomMetadatas()
     val customMetadataUtils: CustomMetadataUtils = new CustomMetadataUtils(mockProperties)
 
     val allMetadataAsFields: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(mockProperties.toSet)
@@ -303,12 +308,13 @@ case class MockFormValues(
     day: List[String] = List("3"),
     month: List[String] = List("4"),
     year: List[String] = List("2021"),
-    numericTextBoxValue: List[String] = List("5"),
-    dropdownValue: List[String] = List("TestValue 3"),
-    radioValue: List[String] = List("yes"),
     day2: List[String] = List("7"),
     month2: List[String] = List("9"),
     year2: List[String] = List("2022"),
+    numericTextBoxValue: List[String] = List("5"),
+    dropdownValue: List[String] = List("dropdownValue"),
+    radioValue: List[String] = List("yes"),
+    multiCheckboxValue: List[String] = List("foicode1", "foicode2"),
     textValue: List[String] = List("Some Text"),
     csrfToken: List[String] = List("12345")
 )
