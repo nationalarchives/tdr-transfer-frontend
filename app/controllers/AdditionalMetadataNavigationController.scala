@@ -4,23 +4,25 @@ import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import graphql.codegen.types.FileFilters
 import org.pac4j.play.scala.SecurityComponents
+import play.api.cache.AsyncCacheApi
 import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
+import viewsapi.Caching.preventCaching
 
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 
 class AdditionalMetadataNavigationController @Inject() (
     val consignmentService: ConsignmentService,
     val keycloakConfiguration: KeycloakConfiguration,
-    val controllerComponents: SecurityComponents
+    val controllerComponents: SecurityComponents,
+    val cache: AsyncCacheApi
 ) extends TokenSecurity {
 
   def getAllFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    consignmentService
-      .getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken)
-      .map(allFiles => {
+    getCachedFiles(consignmentId, metadataType, request).map(allFiles => {
         Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType))
       })
   }
@@ -32,20 +34,34 @@ class AdditionalMetadataNavigationController @Inject() (
       .toList
       .filter(_ != "csrfToken")
       .map(UUID.fromString)
-    if (metadataType == "closure") {
-      val fileFilters = FileFilters(None, Option(fileIds), None)
-      consignmentService
-        .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
-        .map(consignment => {
-          val areAllClosed = consignmentService.areAllFilesClosed(consignment)
-          if (areAllClosed) {
-            Redirect(routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds))
-          } else {
-            Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, fileIds))
-          }
-        })
+
+    if (fileIds.nonEmpty) {
+      if (metadataType == "closure") {
+        val fileFilters = FileFilters(None, Option(fileIds), None)
+        consignmentService
+          .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
+          .map(consignment => {
+            val areAllClosed = consignmentService.areAllFilesClosed(consignment)
+            if (areAllClosed) {
+              Redirect(routes.AddClosureMetadataController.addClosureMetadata(consignmentId, fileIds))
+            } else {
+              Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, fileIds))
+            }
+          })
+      } else {
+        Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds)))
+      }
     } else {
-      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds)))
+      getCachedFiles(consignmentId, metadataType, request).map(allFiles => {
+          BadRequest(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, displayError = true))
+        })
     }
   }
+
+  private def getCachedFiles(consignmentId: UUID, metadataType: String, request: Request[AnyContent]): Future[ConsignmentService.File] = {
+    cache.getOrElseUpdate(s"$consignmentId-$metadataType-allFiles", 1.hour)(
+      consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken)
+    )
+  }
+
 }
