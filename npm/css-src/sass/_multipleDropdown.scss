@@ -1,52 +1,49 @@
 .govuk-multi-autocomplete__wrapper {
-  position: relative;
   font-size: 16px;
+  position: relative;
 }
-.govuk-multi-autocomplete--hide {
-  display: none !important;
-}
+
 .govuk-multi-autocomplete__sr-only {
-  position: absolute;
-  width: 1px;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
   height: 1px;
-  padding: 0;
   margin: -1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
+  padding: 0;
+  position: absolute;
+  width: 1px;
 }
 
 .govuk-multi-autocomplete__input {
 
   @include govuk-font($size: 19);
 
-  box-sizing: border-box;
-  width: 100%;
-  height: 40px;
+  appearance: none;
+  border: $govuk-border-width-form-element solid $govuk-input-border-colour;
   @if $govuk-typography-use-rem {
     height: govuk-px-to-rem(40px);
   }
-  margin-top: 0;
-
-  padding: govuk-spacing(1);
-  // setting any background-color makes text invisible when changing colours to dark backgrounds in Firefox (https://bugzilla.mozilla.org/show_bug.cgi?id=1335476)
-  // as background-color and color need to always be set together, color should not be set either
-  border: $govuk-border-width-form-element solid $govuk-input-border-colour;
   border-radius: 0;
 
+  box-sizing: border-box;
+  // setting any background-color makes text invisible when changing colours to dark backgrounds in Firefox (https://bugzilla.mozilla.org/show_bug.cgi?id=1335476)
+  // as background-color and color need to always be set together, color should not be set either
+  height: 40px;
+  margin-top: 0;
+
   // Disable inner shadow and remove rounded corners
-  -webkit-appearance: none;
-  appearance: none;
+  padding: govuk-spacing(1);
+  width: 100%;
 
   &:focus {
-    outline: $govuk-focus-width solid $govuk-focus-colour;
+    box-shadow: inset 0 0 0 $govuk-border-width-form-element;
     // Ensure outline appears outside of the element
-    outline-offset: 0;
+    outline: $govuk-focus-width solid $govuk-focus-colour;
     // Double the border by adding its width again. Use `box-shadow` for this // instead of changing `border-width` - this is for consistency with
     // components such as textarea where we avoid changing `border-width` as
     // it will change the element size. Also, `outline` cannot be utilised
     // here as it is already used for the yellow focus state.
-    box-shadow: inset 0 0 0 $govuk-border-width-form-element;
+    outline-offset: 0;
 
     @include govuk-if-ie8 {
       // IE8 doesn't support `box-shadow` so double the border with
@@ -56,158 +53,138 @@
   }
 }
 
-.govuk-multi-autocomplete__input--disabled {
-  background-color: #ebebeb;
-  cursor: not-allowed;
-}
-
-.govuk-multi-autocomplete__show-all:focus-within::before {
-  content: " ";
-  display: block;
-  position: absolute;
-  background: red;
-  height: 40px;
-  width: 40px;
-  top: -23px;
-  right: -10px;
-  @include govuk-shape-arrow($direction: down, $base: 20px);
-  border-color: $govuk-text-colour;
-}
-
-.govuk-multi-autocomplete__show-all:focus-within {
-  top: 7px;
-  right: 7px;
-  @include govuk-shape-arrow($direction: down, $base: 30px);
-  border-color: $govuk-focus-colour;
-}
+@include govuk-shape-arrow($direction: down, $base: 20px);
 
 .govuk-multi-autocomplete__show-all {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  border: 1px solid #606060;
-  @include govuk-shape-arrow($direction: down, $base: 20px);
-  border-color: $govuk-text-colour;
+  border: 1px solid $govuk-text-colour;
   cursor: pointer;
-}
-.govuk-multi-autocomplete__show-all--disabled {
-  background-color: #ebebeb;
-  cursor: not-allowed;
+  position: absolute;
+  right: 12px;
+  top: 10px;
 }
 
 .govuk-multi-autocomplete__list {
-  list-style: none;
-  position: absolute;
-  top: 38px;
-  z-index: 99999;
-  left: 0;
-  margin: 0;
-  padding: 3px 0 !important;
-  height: auto;
-  min-height: 0;
-  max-height: 304px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  width: 100%;
+  @include govuk-font($size: 19);
   background: #fff;
   border: 2px solid $govuk-text-colour;
   border-radius: 2px;
-  box-sizing: border-box;
   box-shadow: none;
-  @include govuk-font($size: 19);
-}
-.govuk-multi-autocomplete__list--has-results[aria-label]:before {
-  content: attr(aria-label) !important;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  padding: 3px 10px 0;
-  font-size: 13px;
-  text-align: right;
-  opacity: 0.5;
   box-sizing: border-box;
+  height: auto;
+  left: 0;
+  list-style: none;
+  margin: 0;
+  max-height: 304px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 3px 0;
+  position: absolute;
+  top: 38px;
+  width: 100%;
+  z-index: 99999;
 }
+
+.govuk-multi-autocomplete__list--has-results[aria-label]::before {
+  box-sizing: border-box;
+  content: attr(aria-label);
+  font-size: 13px;
+  left: 0;
+  opacity: 0.5;
+  padding: 3px 10px 0;
+  position: absolute;
+  text-align: right;
+  top: 0;
+  width: 100%;
+}
+
 @media reader, speech, aural {
-  .govuk-multi-autocomplete__list--has-results[aria-label]:before {
+  .govuk-multi-autocomplete__list--has-results[aria-label]::before {
     display: none;
   }
 }
+
 .govuk-multi-autocomplete__list--has-results[aria-label] li:first-child {
   margin-top: 20px;
 }
+
 .govuk-multi-autocomplete__option {
-  display: block;
+  border-bottom: 1px solid $govuk-border-colour;
   color: #434143;
-  text-decoration: none;
+  cursor: pointer;
+  display: block;
   font-weight: normal;
   list-style: none;
-  cursor: pointer;
-  padding: 7px 10px;
   margin-bottom: 0;
+  padding: 7px 10px;
+  text-decoration: none;
   word-break: break-word;
-  border-bottom: 1px solid $govuk-border-colour;
 }
+
 .govuk-multi-autocomplete__option:focus {
   border: none;
-  outline: none;
   box-shadow: none;
+  outline: none;
 }
+
 .govuk-multi-autocomplete__option:hover,
 .govuk-multi-autocomplete__option--focused {
-  background:  $govuk-link-colour;
-  color: #FFF;
-  margin: 0;
-  font-weight: normal;
+  background: $govuk-link-colour;
+  color: #fff;
   cursor: pointer;
+  font-weight: normal;
+  margin: 0;
 }
+
 .govuk-multi-autocomplete__option:hover[aria-disabled='true'],
 .govuk-multi-autocomplete__option--focused[aria-disabled='true'] {
   background: #f5f5f5;
 }
+
 .govuk-multi-autocomplete__option--no-results,
 .govuk-multi-autocomplete__option[aria-disabled='true'] {
-  opacity: 0.65 !important;
-  color: #434143 !important;
-  cursor: not-allowed !important;
-  text-decoration: none !important;
+  color: #434143;
+  cursor: not-allowed;
+  opacity: 0.65;
+  text-decoration: none;
 }
 
 .govuk-multi-autocomplete__option--no-results {
-  margin-top: 0 !important;
-  background: transparent !important;
+  background: transparent;
+  margin-top: 0;
 }
 
 .govuk-multi-autocomplete__selected {
-  position: relative;
-  display: inline-flex;
   align-items: center;
+  background-color: govuk-colour('light-grey');
+  border: 1px solid govuk-colour('dark-grey');
+  border-radius: govuk-em(5, 16px);
+  cursor: pointer;
+  display: inline-flex;
   margin: 5px 10px 5px 0;
   padding: govuk-em(5, 16px);
   padding-right: 30px;
-  border: 1px solid govuk-colour("dark-grey");
-  border-radius: govuk-em(5, 16px);
-  background-color: govuk-colour("light-grey");
+  position: relative;
   word-break: break-word;
-  cursor: pointer;
 }
 
 .govuk-multi-autocomplete__selected:hover,
 .govuk-multi-autocomplete__selected:focus {
-  background: govuk-colour("mid-grey");
+  background: govuk-colour('mid-grey');
 }
-.govuk-multi-autocomplete__selected:after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: 5px;
-  width: 20px;
-  height: 20px;
-  background-repeat: no-repeat;
+
+.govuk-multi-autocomplete__selected::after {
+  background-image: url('/assets/images/xmark.svg');
   background-position: center center;
-  background-image: url("/assets/images/xmark.svg");
-  transform: translateY(-50%);
-  fill: govuk-colour("black");
-  stroke: govuk-colour("black");
+  background-repeat: no-repeat;
+  content: '';
+  fill: govuk-colour('black');
+  height: 20px;
+  position: absolute;
+  right: 5px;
+  stroke: govuk-colour('black');
   stroke-width: 2;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
 }
