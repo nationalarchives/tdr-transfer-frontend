@@ -1,6 +1,9 @@
 import AriaAutocomplete from "aria-autocomplete"
 
-export const displayMultiSelect = (selector: string, placeholder: string): void => {
+export const displayMultiSelect = (
+  selector: string,
+  placeholder: string
+): void => {
   AriaAutocomplete(document.querySelector(selector)!, {
     placeholder: placeholder,
     deleteOnBackspace: true,

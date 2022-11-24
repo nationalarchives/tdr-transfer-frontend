@@ -151,6 +151,9 @@ export const renderModules = async () => {
   }
   if (foiExemptionElement) {
     const multiSelectModule = await import("./form/multi-select")
-    multiSelectModule.displayMultiSelect(foiExemptionSelections, "Search for FOI Exemption codes")
+    multiSelectModule.displayMultiSelect(
+      foiExemptionSelections,
+      "Search for FOI Exemption codes"
+    )
   }
 }
