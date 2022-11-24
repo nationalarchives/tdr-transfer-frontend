@@ -92,7 +92,7 @@ class AddClosureMetadataController @Inject() (
               List(UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.map(_.value).getOrElse("")))
             case CheckboxField(fieldId, fieldName, fieldDescription, multiValue, options, potentialSelectedOptions, isRequired, fieldErrors) =>
               val selectedOptions = potentialSelectedOptions.getOrElse(Nil)
-              selectedOptions.map( selectedOption => {
+              selectedOptions.map(selectedOption => {
                 UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.value)
               })
           }

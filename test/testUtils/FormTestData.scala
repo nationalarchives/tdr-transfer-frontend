@@ -68,7 +68,7 @@ class FormTestData() {
       defaultValue = None,
       4,
       List(
-        Values("dropdownValue", List(Dependencies("TestDropdownProperty")), 3),
+        Values("dropdownValue", List(Dependencies("TestDropdownProperty")), 3)
       ),
       None,
       allowExport = false
@@ -86,7 +86,7 @@ class FormTestData() {
       5,
       List(
         Values("yes", List(Dependencies("TestProperty2")), 1),
-        Values("no", Nil, 2),
+        Values("no", Nil, 2)
       ),
       None,
       allowExport = false
@@ -104,7 +104,7 @@ class FormTestData() {
       6,
       List(
         Values("foicode1", dependencies = Nil, 1),
-        Values("foicode2", dependencies = Nil, 2),
+        Values("foicode2", dependencies = Nil, 2)
       ),
       None,
       allowExport = false

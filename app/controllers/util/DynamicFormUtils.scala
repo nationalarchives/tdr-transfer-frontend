@@ -49,15 +49,16 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
               .copy(fieldErrors = DropdownField.validate(text, dropdownField).map(List(_)).getOrElse(Nil))
 
           case checkboxField: CheckboxField =>
-            //Updates the selectedOptions with the values of all checkboxes that are checked
-            val selectedOptions = fieldValue.flatMap{fieldValue => {
-              fieldValue._2.map(nameAndValue => {
-                FileMetadata(nameAndValue, nameAndValue)
-              })
-            }}
-              CheckboxField
-                .update(checkboxField, selectedOptions)
-                .copy(fieldErrors = CheckboxField.validate(checkboxField, selectedOptions).map(List(_)).getOrElse(Nil))
+            val selectedOptions = fieldValue.flatMap { fieldValue =>
+              {
+                fieldValue._2.map(nameAndValue => {
+                  FileMetadata(nameAndValue, nameAndValue)
+                })
+              }
+            }
+            CheckboxField
+              .update(checkboxField, selectedOptions)
+              .copy(fieldErrors = CheckboxField.validate(checkboxField, selectedOptions).map(List(_)).getOrElse(Nil))
         }
       }
     }

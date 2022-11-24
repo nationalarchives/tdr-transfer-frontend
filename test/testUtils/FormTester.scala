@@ -116,7 +116,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
 
   private def addValuesToCheckBoxAttributes(name: String, label: String, value: String, checked: Boolean, disabledStatus: String = "") = {
     val checkedStatus = if (checked) "checked" else ""
-    val isMultipleCheckbox = if(name.contains("FoiExemptionCode")) "-0" else ""
+    val isMultipleCheckbox = if (name.contains("FoiExemptionCode")) "-0" else ""
     s"""
        |        <div class='govuk-checkboxes__item$smallCheckbox'>
        |            <input

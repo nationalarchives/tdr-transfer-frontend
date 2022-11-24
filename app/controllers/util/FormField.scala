@@ -129,7 +129,8 @@ object CheckboxField {
   def validate(checkboxField: CheckboxField, filemetadata: List[FileMetadata]): Option[String] = {
     filemetadata match {
       case Nil => Some(dropdownOptionNotSelectedError.format(checkboxField.fieldName))
-      case _ if checkboxField.options.flatMap(option => filemetadata.find(_.value == option.value)).isEmpty => Some(invalidCheckboxOptionSelectedError.format(checkboxField.fieldName))
+      case _ if checkboxField.options.flatMap(option => filemetadata.find(_.value == option.value)).isEmpty =>
+        Some(invalidCheckboxOptionSelectedError.format(checkboxField.fieldName))
       case _ => None
     }
   }
