@@ -39,13 +39,13 @@ class AdditionalMetadataNavigationController @Inject() (
         .map(consignment => {
           val areAllClosed = consignmentService.areAllFilesClosed(consignment)
           if (areAllClosed) {
-            Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, fileIds))
+            Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, metadataType, fileIds))
           } else {
-            Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, fileIds))
+            Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, metadataType, fileIds))
           }
         })
     } else {
-      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds, List(""))))
+      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, List(""))))
     }
   }
 }

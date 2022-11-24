@@ -3,6 +3,7 @@
 
 @(
     consignmentId: UUID,
+    metadataType: String,
     fileIds: List[UUID],
     fileNames: List[String],
     consignmentRef: String,
@@ -19,10 +20,10 @@
         </h1>
         <p class="govuk-body">You can edit, remove or save closure metadata here.</p>
         <div class="govuk-button-group">
-          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(metadataTypeAndValueSelected, consignmentId, fileIds)" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
+          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(metadataTypeAndValueSelected, consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
             Edit metadata
           </a>
-          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, fileIds, metadataTypeAndValueSelected)" role="button" draggable="false" class="govuk-button govuk-button--warning">
+          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds, metadataTypeAndValueSelected)" role="button" draggable="false" class="govuk-button govuk-button--warning">
             Delete metadata
           </a>
         </div>

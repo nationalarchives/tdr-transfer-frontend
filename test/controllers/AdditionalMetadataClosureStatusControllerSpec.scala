@@ -51,8 +51,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       val controller = createController("Open")
 
       val response = controller
-        .getClosureStatusPage(consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status").withCSRFToken)
+        .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}").withCSRFToken)
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
@@ -67,8 +67,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       val controller = createController("Closed")
 
       val response = controller
-        .getClosureStatusPage(consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status").withCSRFToken)
+        .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}").withCSRFToken)
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
@@ -82,8 +82,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Closed", "judgment", getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getClosureStatusPage(consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status").withCSRFToken)
+        .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}").withCSRFToken)
 
       status(response) mustBe FORBIDDEN
     }
@@ -112,8 +112,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         asyncCacheApi
       )
       val response = controller
-        .getClosureStatusPage(consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status"))
+        .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}"))
 
       status(response) mustBe FORBIDDEN
     }
@@ -122,8 +122,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Closed", "standard", getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
-        .getClosureStatusPage(consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status"))
+        .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}"))
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -153,8 +153,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         asyncCacheApi
       )
       val response = controller
-        .getClosureStatusPage(consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status"))
+        .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}"))
         .failed
         .futureValue
 
@@ -184,8 +184,8 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         asyncCacheApi
       )
       val response = controller
-        .getClosureStatusPage(consignmentId, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure-status"))
+        .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}"))
         .failed
         .futureValue
 
@@ -215,9 +215,9 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         asyncCacheApi
       )
       val response = controller
-        .submitClosureStatus(consignmentId, fileIds)
+        .submitClosureStatus(consignmentId, metadataType(0), fileIds)
         .apply(
-          FakeRequest(POST, f"/consignment/$consignmentId/additional-metadata/closure-status")
+          FakeRequest(POST, f"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}")
             .withFormUrlEncodedBody(incompleteClosureStatusForm: _*)
             .withCSRFToken
         )
@@ -248,9 +248,9 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         asyncCacheApi
       )
       val response = controller
-        .submitClosureStatus(consignmentId, fileIds)
+        .submitClosureStatus(consignmentId, metadataType(0), fileIds)
         .apply(
-          FakeRequest(POST, f"/consignment/$consignmentId/additional-metadata/closure-status")
+          FakeRequest(POST, f"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}")
             .withFormUrlEncodedBody(completedClosureStatusForm: _*)
             .withCSRFToken
         )
@@ -258,7 +258,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       status(response) mustBe SEE_OTHER
 
       redirectLocation(response) must be(
-        Some(s"/consignment/$consignmentId/additional-metadata/add?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=${fileIds.mkString("&")}")
+        Some(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=${fileIds.mkString("&")}")
       )
 
       case class GraphqlRequestData(query: String, variables: abfm.Variables)
@@ -315,7 +315,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         |                                    Has this closure been approved by the Advisory Council?
         |                                </h2>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
     ) mustBe true
-    val href = s"/consignment/$consignmentId/additional-metadata/closure-status?fileIds=${fileIds.mkString("&")}"
+    val href = s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}/?fileIds=${fileIds.mkString("&")}"
     page.contains(s"""<form action="$href" method="POST" novalidate="">""") mustBe true
     page.contains(
       "<input" + (if (isChecked) "checked" else "") +
@@ -357,7 +357,9 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
     val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure/"
     val continueButton = (if (isChecked) {
-                            s"""<a class="govuk-button" href="/consignment/$consignmentId/additional-metadata/add?propertyNameAndFieldSelected=ClosureType-Closed"""
+                            s"""<a class="govuk-button" href="/consignment/$consignmentId/additional-metadata/add/${metadataType(
+                                0
+                              )}/?propertyNameAndFieldSelected=ClosureType-Closed"""
                           } else {
                             s"""<div class="govuk-button-group">
          |                        <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">

@@ -20,7 +20,7 @@ class AdditionalMetadataSummaryController @Inject() (
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  def getSelectedSummaryPage(consignmentId: UUID, fileIds: List[UUID], metadataTypeAndValueSelected: List[String]): Action[AnyContent] =
+  def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID], metadataTypeAndValueSelected: List[String]): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       val filters = Option(FileFilters(None, Option(fileIds), None))
       for {
@@ -33,6 +33,7 @@ class AdditionalMetadataSummaryController @Inject() (
                 views.html.standard
                   .additionalMetadataSummary(
                     consignmentId,
+                    metadataType,
                     fileIds,
                     filePaths,
                     consignment.consignmentReference,
