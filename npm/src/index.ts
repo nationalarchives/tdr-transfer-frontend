@@ -1,6 +1,5 @@
 import { initAll } from "govuk-frontend"
 import { NestedNavigation } from "@nationalarchives/tdr-components"
-import AriaAutocomplete from "aria-autocomplete";
 
 window.onload = async function () {
   initAll()
@@ -43,6 +42,10 @@ export const renderModules = async () => {
   const fileNavigation = document.querySelector(".govuk-tna-tree")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
+  const foiExemptionSelections = "#FoiExemptionCode"
+  const foiExemptionElement: HTMLInputElement | null = document.querySelector(
+    foiExemptionSelections
+  )
 
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
@@ -146,12 +149,8 @@ export const renderModules = async () => {
       })
     }
   }
-  AriaAutocomplete(document.querySelector('#FoiExemptionCode')!, {
-    placeholder: 'Search for FOI Exemption codes',
-    deleteOnBackspace: true,
-    showAllControl: true,
-    autoGrow: false,
-    srAssistiveText: "",
-    cssNameSpace: "govuk-multi-autocomplete"
-  });
+  if (foiExemptionElement) {
+    const multiSelectModule = await import("./form/multi-select")
+    multiSelectModule.displayMultiSelect(foiExemptionSelections, "Search for FOI Exemption codes")
+  }
 }
