@@ -46,7 +46,7 @@ class AddAdditionalMetadataController @Inject() (
       val metadataType = if (propertyNameAndFieldSelected.head.contains("Closure")) "closure" else "descriptive"
       for {
         formData <- getDefaultFieldsForForm(metadataType, isMainForm = true, convertNameAndFieldToObject(propertyNameAndFieldSelected), consignmentId, request)
-        (pageInfo, controllerInfo) <- getInfoForAdditionalMetadataPage(
+        (pageInfo, controllerInfo) <- getInfoForAddAdditionalMetadataPage(
           consignmentId,
           request,
           metadataType,
@@ -80,7 +80,7 @@ class AddAdditionalMetadataController @Inject() (
               (mainFormPageTitle.format(metadataType), mainFormPageDescription.format(metadataType))
             }
 
-          getInfoForAdditionalMetadataPage(consignmentId, request, metadataType, isMainForm, fieldsAndValuesSelectedOnPrevPage, validatedFields, fileIds).map {
+          getInfoForAddAdditionalMetadataPage(consignmentId, request, metadataType, isMainForm, fieldsAndValuesSelectedOnPrevPage, validatedFields, fileIds).map {
             case (pageInfo, controllerInfo) =>
               Ok(
                 views.html.standard.addAdditionalMetadata(
@@ -150,7 +150,7 @@ class AddAdditionalMetadataController @Inject() (
               val staticMetadata: Set[StaticMetadata] = convertNameAndFieldToObject(fieldsAndValuesSelectedOnPrevPage)
               getDefaultFieldsForForm(metadataType, isMainForm = false, staticMetadata, consignmentId, request).map { defaultFormData => defaultFormData.formFields }
             }
-            (pageInfo, controllerInfo) <- getInfoForAdditionalMetadataPage(
+            (pageInfo, controllerInfo) <- getInfoForAddAdditionalMetadataPage(
               consignmentId,
               request,
               metadataType,
@@ -201,7 +201,7 @@ class AddAdditionalMetadataController @Inject() (
     (formPageTitle, formPageDescription)
   }
 
-  private def getInfoForAdditionalMetadataPage(
+  private def getInfoForAddAdditionalMetadataPage(
       consignmentId: UUID,
       request: Request[AnyContent],
       metadataType: String,
