@@ -19,7 +19,6 @@ import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
-
   val wiremockServer = new WireMockServer(9006)
 
   override def beforeEach(): Unit = {
@@ -51,8 +50,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller =
         new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, fileIds, mockMetadataTypeAndValue)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
+        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
       val deleteMetadataPage = contentAsString(response)
 
       status(response) mustBe OK
@@ -69,9 +68,9 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       deleteMetadataPage.contains("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>") mustBe true
 
       val deleteButtonHref =
-        s"/consignment/$consignmentId/additional-metadata/closure/delete-metadata?fileIds=${fileIds.mkString("&amp;")}&amp;metadataTypeAndValueSelected=$mockMetadataTypeAndValueString"
+        s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}?fileIds=${fileIds.mkString("&amp;")}&amp;metadataTypeAndValueSelected=$mockMetadataTypeAndValueString"
       val cancelButtonHref =
-        s"/consignment/$consignmentId/additional-metadata/closure/selected-summary?fileIds=${fileIds.mkString("&amp;")}&amp;metadataTypeAndValueSelected=$mockMetadataTypeAndValueString"
+        s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}?fileIds=${fileIds.mkString("&amp;")}&amp;metadataTypeAndValueSelected=$mockMetadataTypeAndValueString"
       deleteMetadataPage.contains(
         s"""                    <div class="govuk-button-group">
            |                        <a href="$deleteButtonHref" role="button" draggable="false" class="govuk-button">
@@ -95,8 +94,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller =
         new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, fileIds, mockMetadataTypeAndValue)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
+        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
 
       status(response) mustBe FORBIDDEN
     }
@@ -119,8 +118,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller =
         new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, fileIds, mockMetadataTypeAndValue)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
+        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
         .failed
         .futureValue
 
@@ -135,8 +134,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller =
         new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, fileIds, mockMetadataTypeAndValue)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
+        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -153,8 +152,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller =
         new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, Nil, mockMetadataTypeAndValue)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
+        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), Nil, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
         .failed
         .futureValue
 
@@ -178,8 +177,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller =
         new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, fileIds, mockMetadataTypeAndValue)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata"))
+        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
         .failed
         .futureValue
 
@@ -191,7 +190,6 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     "delete the metadata and redirect to the navigation page" in {
       val consignmentId = UUID.randomUUID()
       val parentFolderId = UUID.randomUUID()
-      val metadataType = "mockMetadataType"
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = parentFolderId.some)
       setDeleteFileMetadataResponse(app.configuration, wiremockServer, fileIds, List("PropertyName1"))
@@ -201,12 +199,12 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .deleteAdditionalMetadata(consignmentId, fileIds, mockMetadataTypeAndValue)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/delete-metadata"))
+        .deleteAdditionalMetadata(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
 
       status(response) mustBe SEE_OTHER
 
-      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/$metadataType/"))
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/mockMetadataType/"))
     }
 
     "return an error if the fileIds are empty" in {
@@ -219,8 +217,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .deleteAdditionalMetadata(consignmentId, Nil, mockMetadataTypeAndValue)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/delete-metadata"))
+        .deleteAdditionalMetadata(consignmentId, metadataType(0), Nil, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
         .failed
         .futureValue
 
@@ -235,8 +233,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .deleteAdditionalMetadata(consignmentId, fileIds, mockMetadataTypeAndValue)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/delete-metadata"))
+        .deleteAdditionalMetadata(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
 
       status(response) mustBe FORBIDDEN
     }
@@ -249,8 +247,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller =
         new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
-        .deleteAdditionalMetadata(consignmentId, fileIds, mockMetadataTypeAndValue)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/delete-metadata"))
+        .deleteAdditionalMetadata(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")

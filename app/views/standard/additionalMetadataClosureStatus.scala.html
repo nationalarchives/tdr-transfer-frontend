@@ -7,7 +7,7 @@
 @import views.html.partials.errorMessage
 @import controllers.util.InputNameAndValue
 
-@(consignmentId: UUID, fileNames: List[String], fileIds: List[UUID], formData: Form[ClosureStatusFormData], inputNameAndValue: InputNameAndValue,
+@(consignmentId: UUID, metadataType: String, fileNames: List[String], fileIds: List[UUID], formData: Form[ClosureStatusFormData], inputNameAndValue: InputNameAndValue,
         areAllFilesClosed: Boolean, consignmentRef: String, parentFolderId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
 @fieldErrors = @{formData("closureStatus").errors.headOption match {
     case Some(formError) => formError.messages
@@ -23,7 +23,7 @@
                 <h1 class="govuk-heading-xl">
                 Confirm the closure status of your record
                 </h1>
-                @form(routes.AdditionalMetadataClosureStatusController.submitClosureStatus(consignmentId, fileIds), (Symbol("novalidate"), "")) {
+                @form(routes.AdditionalMetadataClosureStatusController.submitClosureStatus(consignmentId, metadataType, fileIds), (Symbol("novalidate"), "")) {
                     @CSRF.formField
                     <p class="govuk-body">You are updating the status for the selected file '@{
                         fileNames.mkString(", ")
@@ -81,7 +81,7 @@
 
                     <div class="govuk-button-group">
                         @if(areAllFilesClosed) {
-                            <a class="govuk-button" href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, fileIds)" role="button" draggable="false" data-module="govuk-button">
+                            <a class="govuk-button" href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, metadataType, fileIds)" role="button" draggable="false" data-module="govuk-button">
                                 Continue
                             </a>
                         } else {

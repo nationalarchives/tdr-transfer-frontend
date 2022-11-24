@@ -83,7 +83,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
           .getAllFiles(consignmentId, "closure")
-          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
         playStatus(result) must equal(FORBIDDEN)
       }
 
@@ -93,7 +93,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
         val result = additionalMetadataController
           .getAllFiles(consignmentId, "closure")
-          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
         playStatus(result) must equal(FOUND)
       }
     }
@@ -106,9 +106,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure-status")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}/")
       }
 
       "redirect to the closure metadata page with the correct file ids and closure metadata type if the files are already closed" in {
@@ -117,10 +117,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         val additionalMetadataController =
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
-          .submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          .submitFiles(consignmentId, metadataType(0))
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/add?propertyNameAndFieldSelected=ClosureType-Closed")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=ClosureType-Closed")
       }
 
       "redirect to the metadata summary page if the metadata type is descriptive" in {
@@ -131,7 +131,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "descriptive")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/").withCSRFToken)
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure/selected-summary?metadataTypeAndValueSelected=")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/descriptive?metadataTypeAndValueSelected=")
       }
 
       "return forbidden for a judgment user" in {

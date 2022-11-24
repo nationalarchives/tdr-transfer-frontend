@@ -34,7 +34,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
 
   val closureStatusField: InputNameAndValue = InputNameAndValue("closureStatus", "Yes, I confirm")
 
-  def getClosureStatusPage(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def getClosureStatusPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val filters = Option(FileFilters(None, Option(fileIds), None))
 
     for {
@@ -49,6 +49,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
             Ok(
               views.html.standard.additionalMetadataClosureStatus(
                 consignmentId,
+                metadataType,
                 filePaths,
                 fileIds,
                 closureStatusForm,
@@ -66,7 +67,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
     } yield response
   }
 
-  def submitClosureStatus(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def submitClosureStatus(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val errorFunction: Form[ClosureStatusFormData] => Future[Result] = { formWithErrors: Form[ClosureStatusFormData] =>
       for {
         (consignmentRef, filePaths, parentFolderId) <- cache.getOrElseUpdate[(String, List[String], UUID)](s"$consignmentId-data", 1.hour)(
@@ -80,6 +81,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
         BadRequest(
           views.html.standard.additionalMetadataClosureStatus(
             consignmentId,
+            metadataType,
             filePaths,
             fileIds,
             formWithErrors,
@@ -99,7 +101,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
         .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, List(metadataInput))
         .map { _ =>
           val propertyNameAndFieldSelected = List(s"${closureType.name}-${closureType.value}")
-          Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(propertyNameAndFieldSelected, consignmentId, fileIds))
+          Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(propertyNameAndFieldSelected, consignmentId, metadataType, fileIds))
         }
     }
 
