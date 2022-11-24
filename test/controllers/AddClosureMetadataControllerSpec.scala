@@ -75,7 +75,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "render the add closure metadata page, with the default form, if file has no closure metadata, for an authenticated standard user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val formTester = new FormTester(expectedClosureDefaultOptions)
+      val formTester = new FormTester(expectedClosureDefaultOptions, smallCheckbox = "")
 
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -94,7 +94,8 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputcheckbox-FoiExemptionCode", "mock code1"),
+//        ("inputdropdown-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "yes")
       )
@@ -137,7 +138,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         }
       }
 
-      val formTester = new FormTester(expectedOptions)
+      val formTester = new FormTester(expectedOptions, smallCheckbox = "")
 
       val expectedDefaultForm = Seq(
         ("inputdate-FoiExemptionAsserted-day", "12"),
@@ -147,7 +148,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1990"),
         ("inputnumeric-ClosurePeriod-years", "4"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputcheckbox-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "yes")
       )
@@ -195,7 +196,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "rerender form with errors for each field if empty form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val formTester = new FormTester(expectedClosureDefaultOptions)
+      val formTester = new FormTester(expectedClosureDefaultOptions, smallCheckbox = "")
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
@@ -209,7 +210,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", ""),
+        ("inputcheckbox-FoiExemptionCode", ""),
         ("inputradio-TitleClosed", ""),
         ("inputradio-DescriptionClosed", "")
       )
@@ -231,7 +232,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "rerender form with user's data if form is partially submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val formTester = new FormTester(expectedClosureDefaultOptions)
+      val formTester = new FormTester(expectedClosureDefaultOptions, smallCheckbox = "")
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
       mockGraphqlResponse()
@@ -245,7 +246,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputcheckbox-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "no")
       )
@@ -267,7 +268,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
     "display the most immediate date error if more than one date input (per date field) has an mistake in it" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addClosureMetadataController = instantiateAddClosureMetadataController()
-      val formTester = new FormTester(expectedClosureDefaultOptions)
+      val formTester = new FormTester(expectedClosureDefaultOptions, smallCheckbox = "")
 
       setConsignmentDetailsResponse(wiremockServer, None, "reference", parentFolderId)
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -282,7 +283,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputcheckbox-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "no")
       )
@@ -732,13 +733,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       """    <div id="numeric-input-hint" class="govuk-hint">
         |        Number of years the record is closed from the closure start date
         |    </div>""",
-      """            <label class="govuk-label govuk-label--m" for="inputdropdown-FoiExemptionCode">
-        |                FOI exemption code
-        |            </label>""".replace("................", "                "),
-      """        <div id="inputdropdown-FoiExemptionCode-hint" class="govuk-hint">
-        |            Select the exemption code that applies
-        |        </div>""",
-      """<select class="govuk-select" id="inputdropdown-FoiExemptionCode" name="inputdropdown-FoiExemptionCode"  >""",
       """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
         |            Is the title closed?
         |        </legend>""",

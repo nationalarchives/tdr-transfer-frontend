@@ -88,7 +88,7 @@ object FormField {
   val futureDateError = "%s date cannot be a future date."
   val radioOptionNotSelectedError = "There was no value selected for %s."
   val invalidRadioOptionSelectedError = "Option '%s' was not an option provided to the user."
-  val invalidCheckboxOptionSelectedError = "Invalid option was provided for '%s'."
+  val invalidCheckboxOptionSelectedError = "Invalid option was provided for %s."
 }
 
 object RadioButtonGroupField {

@@ -146,7 +146,7 @@ export const renderModules = async () => {
       })
     }
   }
-  AriaAutocomplete(document.querySelector('#foi-exemption-codes')!, {
+  AriaAutocomplete(document.querySelector('#FoiExemptionCode')!, {
     placeholder: 'Search for FOI Exemption codes',
     deleteOnBackspace: true,
     showAllControl: true,

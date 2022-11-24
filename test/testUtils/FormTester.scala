@@ -105,7 +105,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
   ): String = {
 
     option.fieldType match {
-      case "inputCheckbox" => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
+      case "inputCheckbox" => addValuesToCheckBoxAttributes(option.name, option.label, option.value, selected, disabledStatus)
       case "inputDate"     => addValuesToDateAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, hasDependency, submitAttempted)
       case "inputDropdown" => addValuesToDropdownAttributes(selected, valueEnteredOrSelected, option.label, option.placeholder)
       case "inputNumeric"  => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
@@ -114,19 +114,20 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
     }
   }
 
-  private def addValuesToCheckBoxAttributes(name: String, label: String, checked: Boolean, disabledStatus: String = "") = {
+  private def addValuesToCheckBoxAttributes(name: String, label: String, value: String, checked: Boolean, disabledStatus: String = "") = {
     val checkedStatus = if (checked) "checked" else ""
+    val isMultipleCheckbox = if(name.contains("FoiExemptionCode")) "-0" else ""
     s"""
        |        <div class='govuk-checkboxes__item$smallCheckbox'>
        |            <input
        |                $checkedStatus
        |                class="govuk-checkboxes__input"
-       |                id="$name"
-       |                name="$name"
+       |                id="$name$isMultipleCheckbox"
+       |                name="$name$isMultipleCheckbox"
        |                type="checkbox"
-       |                value="true"
+       |                value="$value"
        |                $disabledStatus />
-       |            <label class="govuk-label govuk-checkboxes__label" for="$name">
+       |            <label class="govuk-label govuk-checkboxes__label" for="$name$isMultipleCheckbox">
        |                $label""".stripMargin
   }
 

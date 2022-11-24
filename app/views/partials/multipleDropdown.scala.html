@@ -20,9 +20,9 @@ fieldErrors: List[String] = Nil
         <div class="govuk-hint">
         @fieldDescription
         </div>
-        @errorMessage("foi-exemption-codes", fieldErrors)
 
-        <div class="govuk-checkboxes" data-module="govuk-checkboxes" id="foi-exemption-codes">
+        @errorMessage(fieldId, fieldErrors)
+        <div class="govuk-checkboxes" data-module="govuk-checkboxes" id="@fieldId">
             <div class="govuk-grid-row">
         @options.zipWithIndex.map {
             case (foiCode, index) => {
