@@ -53,10 +53,27 @@
   }
 }
 
-@include govuk-shape-arrow($direction: down, $base: 20px);
+.govuk-multi-autocomplete__show-all:focus-within::before {
+  @include govuk-shape-arrow($direction: down, $base: 20px);
+  border-color: $govuk-text-colour;
+  content: '';
+  display: block;
+  height: 40px;
+  position: absolute;
+  right: -10px;
+  top: -23px;
+  width: 40px;
+}
+
+.govuk-multi-autocomplete__show-all:focus-within {
+  @include govuk-shape-arrow($direction: down, $base: 30px);
+  border-color: $govuk-focus-colour;
+  right: 7px;
+  top: 7px;
+}
 
 .govuk-multi-autocomplete__show-all {
-  border: 1px solid $govuk-text-colour;
+  @include govuk-shape-arrow($direction: down, $base: 20px);
   cursor: pointer;
   position: absolute;
   right: 12px;
