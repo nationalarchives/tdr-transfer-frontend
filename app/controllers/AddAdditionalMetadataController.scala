@@ -41,9 +41,9 @@ class AddAdditionalMetadataController @Inject() (
     s"""Enter a publicly visible %s if, for example, %s sensitive information.
        | For guidance on how to create %s, read our FAQs (opens in a new tab)""".stripMargin
 
-  def addAdditionalMetadata(propertyNameAndFieldSelected: List[String], consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] =
+  def addAdditionalMetadata(propertyNameAndFieldSelected: List[String], consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-      val metadataType = if (propertyNameAndFieldSelected.head.contains("Closure")) "closure" else "descriptive"
+
       for {
         formData <- getDefaultFieldsForForm(metadataType, isMainForm = true, convertNameAndFieldToObject(propertyNameAndFieldSelected), consignmentId, request)
         (pageInfo, controllerInfo) <- getInfoForAdditionalMetadataPage(
@@ -123,8 +123,8 @@ class AddAdditionalMetadataController @Inject() (
     val dependenciesToDelete: List[String] = propertyNameValueSelectedAndDepsToDel.flatMap(_.depsOfNonSelectedValues).toList
     for {
       _ <-
-        if (dependenciesToDelete.nonEmpty) Future.successful(dependenciesToDelete)
-        else Future.successful(Nil) // "Future.successful" should be replaced with a call to delete dependencies
+        if (dependenciesToDelete.nonEmpty) { Future.successful(dependenciesToDelete) }
+        else { Future.successful(Nil) } // "Future.successful" should be replaced with a call to delete dependencies
       _ <- customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, metadataInput)
     } yield {
       val valueSelectedAndDeps: Set[ValueSelectedAndDepsToDel] = propertyNameValueSelectedAndDepsToDel.filter(_.valueHasDependencies)
@@ -134,7 +134,7 @@ class AddAdditionalMetadataController @Inject() (
         }
         Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadataDependenciesPage(fieldsAndValuesSelectedOnPrevPage.toList, metadataType, consignmentId, fileIds))
       } else {
-        Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds, List(s"${metadataType.capitalize}-True")))
+        Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, List(s"${metadataType.capitalize}-True")))
       }
     }
   }
@@ -143,7 +143,7 @@ class AddAdditionalMetadataController @Inject() (
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       propertyNamesAndFieldsSelected match {
         case Nil =>
-          Future.successful(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds, propertyNamesAndFieldsSelected)))
+          Future.successful(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, propertyNamesAndFieldsSelected)))
         case fieldsAndValuesSelectedOnPrevPage =>
           for {
             defaultFields <- {
