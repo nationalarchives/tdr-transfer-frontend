@@ -150,7 +150,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure/selected-summary?fileIds=$fileId")
       }
 
-      "redirect to the file navigation page with an error message if a user submits the page without selecting any files" in {
+      "redirect to the file navigation page with an error message if a user submits the page without selecting any files and folders" in {
         val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
         val consignmentService = mockConsignmentService(files, "standard")
         val additionalMetadataController =
