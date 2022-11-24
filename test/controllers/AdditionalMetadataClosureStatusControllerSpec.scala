@@ -9,8 +9,8 @@ import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.types.UpdateBulkFileMetadataInput
 import io.circe.generic.auto._
-import io.circe.syntax._
 import io.circe.parser.decode
+import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.http.Status._

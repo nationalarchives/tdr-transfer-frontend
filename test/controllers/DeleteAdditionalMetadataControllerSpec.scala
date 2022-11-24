@@ -2,18 +2,18 @@ package controllers
 
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, postRequestedFor, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignment.getConsignment
 import io.circe.generic.auto.exportEncoder
 import io.circe.syntax.EncoderOps
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.{ConsignmentService, CustomMetadataService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
-import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
