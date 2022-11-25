@@ -1,18 +1,10 @@
 @* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@import controllers.AddClosureMetadataController.{ControllerInfo, PageInfo}
+@import controllers.util._
 @import helper.{inputRadioGroup => _, _}
+@import views.html.partials.{errorSummary, inputDate, inputDropdown, inputRadioGroup, inputText, multipleCheckbox, progressIndicator, transferReference}
 
 @import scala.language.postfixOps
-@import views.html.partials.{inputDate, inputText, errorSummary, progressIndicator}
-
-@import views.html.partials.transferReference
-@import views.html.partials.inputRadioGroup
-
-@import controllers.util._
-@import views.html.partials.inputDropdown
-
-@import controllers.AddClosureMetadataController.File
-@import views.html.partials.multipleDropdown
-@import controllers.AddClosureMetadataController.{PageInfo, ControllerInfo}
 
 @(pageInfo: PageInfo, controllerInfo: ControllerInfo)(implicit request: RequestHeader, messages: Messages)
 @main(s"${pageInfo.pageTitle} files", name = pageInfo.userName) {
@@ -89,7 +81,7 @@
                     fieldErrors
                   )
                 case CheckboxField(fieldId, fieldName, fieldDescription, multiValue, options, value, _, fieldErrors) =>
-                  multipleDropdown(fieldId, fieldName, fieldDescription, multiValue, options, value.getOrElse(Nil), fieldErrors)
+                  multipleCheckbox(fieldId, fieldName, fieldDescription, multiValue, options, value.getOrElse(Nil), fieldErrors)
               }
             }
           }
