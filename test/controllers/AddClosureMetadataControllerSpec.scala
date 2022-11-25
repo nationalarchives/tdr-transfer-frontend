@@ -95,7 +95,6 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputcheckbox-FoiExemptionCode", "mock code1"),
-//        ("inputdropdown-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "yes")
       )

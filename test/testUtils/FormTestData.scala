@@ -9,7 +9,7 @@ import graphql.codegen.types.{DataType, PropertyType}
 
 class FormTestData() {
 
-  // noinspection ScalaStyle
+  // scalastyle:off method.length
   def setupCustomMetadatas(): List[CustomMetadata] = {
     val foiExemptionAsserted = CustomMetadata(
       "FoiExemptionAsserted",
@@ -112,4 +112,5 @@ class FormTestData() {
 
     List(foiExemptionAsserted, closureStartDate, closurePeriod, dropdown, radio, multiCheckbox)
   }
+  // scalastyle:on method.length
 }
