@@ -177,9 +177,9 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val dateTime = LocalDateTime.now().plusDays(1)
     val rawFormToMakeRequestWith =
       ListMap(
-        "inputdate-TestProperty3-day" -> List(dateTime.getDayOfMonth.toString),
-        "inputdate-TestProperty3-month" -> List(dateTime.getMonthValue.toString),
-        "inputdate-TestProperty3-year" -> List(dateTime.getYear.toString)
+        "inputdate-FoiExemptionAsserted-day" -> List(dateTime.getDayOfMonth.toString),
+        "inputdate-FoiExemptionAsserted-month" -> List(dateTime.getMonthValue.toString),
+        "inputdate-FoiExemptionAsserted-year" -> List(dateTime.getYear.toString)
       )
 
     val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
@@ -187,7 +187,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         .apply(POST, s"/consignment/12345/add-closure-metadata")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new CustomMetadataUtilsSpec().allProperties.find(_.name == "TestProperty3").toList
+    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new FormTestData().setupCustomMetadatas().find(_.name == "FoiExemptionAsserted").toList
     val allMetadataAsFields: List[FormField] = new CustomMetadataUtils(mockProperties).convertPropertiesToFormFields(mockProperties.toSet)
     val metaDataField = allMetadataAsFields.head match {
       case e: DateField => e.copy(isFutureDateAllowed = false)
@@ -197,7 +197,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
     val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
     val dateField = validatedForm.find(_.isInstanceOf[DateField]).get
-    dateField.fieldErrors should equal(List(s"Test Property 3 date cannot be a future date."))
+    dateField.fieldErrors should equal(List(s"FOI decision asserted date cannot be a future date."))
   }
 
   "validateAndConvertSubmittedValuesToFormFields" should "return a 'whole number'-related error for the numeric fields that are missing values" in {

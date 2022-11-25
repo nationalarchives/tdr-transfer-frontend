@@ -14,7 +14,7 @@ class FormTestData() {
     val foiExemptionAsserted = CustomMetadata(
       "FoiExemptionAsserted",
       Some("Date of the Advisory Council approval (or SIRO approval if appropriate)"),
-      Some("Foi Exemption Asserted"),
+      Some("FOI decision asserted"),
       Supplied,
       Some("MandatoryClosure"),
       DateTime,
@@ -29,7 +29,7 @@ class FormTestData() {
     val closureStartDate = CustomMetadata(
       "ClosureStartDate",
       Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."),
-      Some("Closure Start Date"),
+      Some("Closure start date"),
       Supplied,
       Some("OptionalClosure"),
       DateTime,
@@ -44,7 +44,7 @@ class FormTestData() {
     val closurePeriod = CustomMetadata(
       "ClosurePeriod",
       Some("Number of years the record is closed from the closure start date"),
-      Some("Closure Period"),
+      Some("Closure period"),
       Supplied,
       Some("MandatoryClosure"),
       Integer,
