@@ -2,7 +2,8 @@
 @import services.ConsignmentService.File
 @import views.html.helper.CSRF
 @import views.html.partials.fileNavigationContent
-@(consignmentId: UUID, name: String, files: File, metadataType: String)(implicit messages: Messages, request: RequestHeader)
+
+@(consignmentId: UUID, name: String, files: File, metadataType: String, displayError: Boolean = false)(implicit messages: Messages, request: RequestHeader)
 
 @display(file: File, level: Int, size: Int, pos: Int) = {
   @if(file.fileType.contains("File") || file.children.isEmpty) {
@@ -56,18 +57,35 @@
   </li>
   }
 }
+@error = {
+  @if(displayError) {
+    <div class="govuk-error-summary govuk-!-margin-bottom-4" data-module="govuk-error-summary">
+      <div role="alert">
+        <h2 class="govuk-error-summary__title">There is a problem</h2>
+        <div class="govuk-error-summary__body">
+          <ul class="govuk-list govuk-error-summary__list">
+            <li>
+              <a href="#file-selection">Select at least one file or folder</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  }
+}
 
 @main("Additional Metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         @fileNavigationContent(metadataType, files.name)
+        @error
         <form method="post" action="@routes.AdditionalMetadataNavigationController.submitFiles(consignmentId, metadataType)">
           @CSRF.formField
           <button class="govuk-button" type="submit" role="button" draggable="false">
             Add or Edit Metadata
           </button>
-          <div class="govuk-tna-tree">
+          <div class="govuk-tna-tree" id="file-selection">
             <ul tabindex="0" class="govuk-tna-tree__nested-item-list" role="tree" aria-multiselectable="true">
             @display(files, 1, files.children.length, 0)
             </ul>
@@ -76,7 +94,6 @@
             Add or Edit Metadata
           </button>
         </form>
-
       </div>
     </div>
   }
