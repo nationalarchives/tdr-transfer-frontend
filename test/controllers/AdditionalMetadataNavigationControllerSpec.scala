@@ -9,6 +9,7 @@ import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata 
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
+import org.scalatest.Assertion
 import play.api.Play.materializer
 import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, FOUND, SEE_OTHER}
 import play.api.test.CSRFTokenHelper.CSRFRequest
@@ -53,6 +54,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           content.contains(s"Add or edit $metadataType metadata on file basis") must be(true)
           content.contains(s"Folder uploaded: ${parentFile.fileName.get}") must be(true)
           content.contains("Select at least one file or folder") must be(false)
+          content.contains(s"""<a href="/consignment/$consignmentId/additional-metadata" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+            |          Back
+            |          </a>""".stripMargin) must be(true)
+          if (metadataType == "closure") getExpectedClosureHtml(content: String)
         }
 
         s"render the file navigation page with nested directories for metadata type $metadataType" in {
@@ -206,6 +211,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         |        $label
         |        </label>
         |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
+  }
+
+  private def getExpectedClosureHtml(htmlContent: String): Assertion = {
+    htmlContent.contains(s"""
+       |        <div class="govuk-inset-text govuk-!-margin-top-0">
+       |            Once you have added all necessary closure metadata return to the <a href="/consignment/$consignmentId/additional-metadata">previous page</a> to add descriptive metadata or continue with the transfer.
+       |        </div>
+       |""".stripMargin) must be(true)
   }
 
   private def mockConsignmentService(files: List[gcf.GetConsignment.Files], consignmentType: String, allClosed: Boolean = false) = {
