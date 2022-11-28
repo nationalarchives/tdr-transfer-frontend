@@ -111,7 +111,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           |              </dd>""".stripMargin.replaceAll("\\.", " ")
       )
       closureMetadataSummaryPage must include(
-        """        <a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        s"""        <a href="/consignment/$consignmentId/additional-metadata/files/closure/" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
         |          Save and return to all files
         |        </a>""".stripMargin
       )
