@@ -45,7 +45,7 @@ class AdditionalMetadataNavigationController @Inject() (
 
   def submitAndRedirectToNextPage(metadataType: String, fileIds: List[UUID], consignmentId: UUID)(implicit request: Request[AnyContent]): Future[Result] = {
     if (metadataType == "closure") {
-      val fileFilters = FileFilters(None, Option(fileIds), None)
+      val fileFilters = FileFilters(None, Option(fileIds), None, None)
       consignmentService
         .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
         .map(consignment => {
@@ -57,7 +57,7 @@ class AdditionalMetadataNavigationController @Inject() (
           }
         })
     } else {
-      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds)))
+      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds, metadataType)))
     }
   }
 
