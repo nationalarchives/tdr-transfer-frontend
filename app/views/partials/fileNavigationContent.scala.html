@@ -1,5 +1,6 @@
 @import views.html.partials.warningMessage
-@(metadataType: String = "", folderUploaded: String)
+@import java.util.UUID
+@(consignmentId: UUID, metadataType: String = "", folderUploaded: String)
     @if(metadataType == "closure") {
         <h1 class="govuk-heading-l">
             Add or edit closure metadata on file basis
@@ -10,6 +11,9 @@
             Click on a particular file or folder to see what metadata is already captured and add or edit properties there.
             For a bulk edit, first select files and/or folders and then choose an action from the menu.
         </p>
+        <div class="govuk-inset-text govuk-!-margin-top-0">
+            Once you have added all necessary closure metadata return to the <a href="@routes.AdditionalMetadataController.start(consignmentId)">previous page</a> to add descriptive metadata or continue with the transfer.
+        </div>
     } else {
         <h1 class="govuk-heading-l">
             Add or edit descriptive metadata on file basis
