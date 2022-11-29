@@ -26,7 +26,7 @@ class AdditionalMetadataSummaryController @Inject() (
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def getSelectedSummaryPage(consignmentId: UUID, fileIds: List[UUID], metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       val fileMetadataFilters = metadataType match {
         case "closure"     => FileMetadataFilters(Some(true), None)

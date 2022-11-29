@@ -19,10 +19,10 @@
                     <p class="govuk-body">Are you sure you would like to proceed?</p>
 
                     <div class="govuk-button-group">
-                        <a href="@routes.DeleteAdditionalMetadataController.deleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button">
+                        <a href="@routes.DeleteAdditionalMetadataController.deleteAdditionalMetadata(consignmentId, fileIds, metadataType)" role="button" draggable="false" class="govuk-button">
                             Delete and return to all files
                         </a>
-                        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)">
+                        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds, metadataType)">
                             Cancel
                         </a>
                     </div>

@@ -117,7 +117,7 @@ class AddClosureMetadataController @Inject() (
         }
         Redirect(routes.AddClosureMetadataController.addClosureMetadataDependenciesPage(fieldsAndValuesSelectedOnPrevPage.toList, consignmentId, fileIds))
       } else {
-        Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, "closure", fileIds))
+        Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds, "closure"))
       }
     }
   }
@@ -126,7 +126,7 @@ class AddClosureMetadataController @Inject() (
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       propertyNamesAndFieldsSelected match {
         case Nil =>
-          Future.successful(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, "closure", fileIds)))
+          Future.successful(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds, "closure")))
         case fieldsAndValuesSelectedOnPrevPage =>
           for {
             defaultFields <- {

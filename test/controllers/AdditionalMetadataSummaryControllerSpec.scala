@@ -59,8 +59,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val controller =
         new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, "closure", fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
+        .getSelectedSummaryPage(consignmentId, fileIds, "closure")
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/closure"))
       val closureMetadataSummaryPage = contentAsString(response)
 
       status(response) mustBe OK
@@ -81,7 +81,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           |            Edit metadata
           |          </a>""".stripMargin
       ) mustBe true
-      val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/closure/confirm-delete-metadata?fileIds=${fileIds.mkString("&")}"
+      val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/closure?fileIds=${fileIds.mkString("&")}"
       closureMetadataSummaryPage.contains(
         s"""          <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--warning">
           |            Delete metadata
@@ -128,8 +128,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val controller =
         new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, "closure", fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
+        .getSelectedSummaryPage(consignmentId, fileIds, "closure")
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/closure"))
 
       status(response) mustBe FORBIDDEN
     }
@@ -152,8 +152,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val controller =
         new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, "closure", fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
+        .getSelectedSummaryPage(consignmentId, fileIds, "closure")
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/closure"))
 
       status(response) mustBe FORBIDDEN
     }
@@ -166,8 +166,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val controller =
         new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, "closure", fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
+        .getSelectedSummaryPage(consignmentId, fileIds, "closure")
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/closure"))
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -191,8 +191,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val controller =
         new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, "closure", fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
+        .getSelectedSummaryPage(consignmentId, fileIds, "closure")
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/closure"))
         .failed
         .futureValue
 
@@ -209,8 +209,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val controller =
         new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, "inValid", fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
+        .getSelectedSummaryPage(consignmentId, fileIds, "inValid")
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/closure"))
         .failed
         .futureValue
 
@@ -234,8 +234,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val controller =
         new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, "closure", fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/closure/selected-summary"))
+        .getSelectedSummaryPage(consignmentId, fileIds, "closure")
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/closure"))
         .failed
         .futureValue
 

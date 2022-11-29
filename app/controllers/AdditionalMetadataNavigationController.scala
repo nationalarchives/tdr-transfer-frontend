@@ -57,7 +57,7 @@ class AdditionalMetadataNavigationController @Inject() (
           }
         })
     } else {
-      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)))
+      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, fileIds, metadataType)))
     }
   }
 

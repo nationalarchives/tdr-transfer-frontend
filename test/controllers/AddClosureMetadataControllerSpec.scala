@@ -459,7 +459,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
       val redirectLocation = addClosureMetadataPage.header.headers.getOrElse("Location", "")
 
       addClosureMetadataPage.header.status should equal(303)
-      redirectLocation.contains(s"/consignment/$consignmentId/additional-metadata/closure/selected-summary") should equal(true)
+      redirectLocation.contains(s"/consignment/$consignmentId/additional-metadata/selected-summary/closure") should equal(true)
 
       propertyNamesWhereUserDoesNotHaveToFillInDeps.foreach { propertyNameWhereUserDoesNotHaveToFillInDeps =>
         redirectLocation.contains(s"$propertyNameWhereUserDoesNotHaveToFillInDeps-True") should equal(false)
