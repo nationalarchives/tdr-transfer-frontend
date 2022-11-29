@@ -19,7 +19,7 @@ class DeleteAdditionalMetadataController @Inject() (
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  def confirmDeleteAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
+  def confirmDeleteAdditionalMetadata(consignmentId: UUID, fileIds: List[UUID], metadataType: String): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       if (fileIds.isEmpty) {
         Future.failed(new IllegalArgumentException("fileIds are empty"))
@@ -38,7 +38,7 @@ class DeleteAdditionalMetadataController @Inject() (
       }
     }
 
-  def deleteAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def deleteAdditionalMetadata(consignmentId: UUID, fileIds: List[UUID], metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       if (fileIds.isEmpty) {
         Future.failed(new IllegalArgumentException("fileIds are empty"))

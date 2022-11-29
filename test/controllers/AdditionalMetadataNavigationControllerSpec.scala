@@ -147,7 +147,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/descriptive/selected-summary?fileIds=$fileId")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/descriptive?fileIds=$fileId")
       }
 
       "redirect to the file navigation page with an error message if a user submits the page without selecting any files and folders" in {
