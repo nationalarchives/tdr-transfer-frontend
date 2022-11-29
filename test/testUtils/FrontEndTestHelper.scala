@@ -13,12 +13,18 @@ import graphql.codegen.DeleteFileMetadata.deleteFileMetadata.DeleteFileMetadata
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetAllDescendants.getAllDescendantIds
 import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.{getConsignments => gc}
+import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
+import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
+import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
+import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
+import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -52,12 +58,13 @@ import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
 import play.api.{Application, Configuration}
+import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.FrontEndInfo
 
 import java.io.File
 import java.net.URI
-import java.time.format.DateTimeFormatter
+import java.sql.Timestamp
 import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.{Date, UUID}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -108,30 +115,28 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       consignmentRef: String = "TEST-TDR-2021-GB",
       fileHasMetadata: Boolean = true,
       fileIds: List[UUID] = Nil,
-      closureType: String = "Open"
+      closureType: String = "Open",
+      fileMetadata: List[FileMetadata] = Nil
   ): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
-    val (fileMetadata, metadata) = if (fileHasMetadata) {
+    val defaultFileMetadata = if (fileHasMetadata) {
       val closureStartDate = LocalDateTime.of(1990, 12, 1, 10, 0)
       val foiExampleAsserted = LocalDateTime.of(1995, 1, 12, 10, 0)
-      (
-        List(
-          gcfm.GetConsignment.Files.FileMetadata("FileType", "File"),
-          gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType),
-          gcfm.GetConsignment.Files.FileMetadata("FoiExemptionCode", "mock code1"),
-          gcfm.GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
-          gcfm.GetConsignment.Files.FileMetadata("ClosureStartDate", closureStartDate.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
-          gcfm.GetConsignment.Files.FileMetadata("FoiExemptionAsserted", foiExampleAsserted.format(DateTimeFormatter.ISO_DATE_TIME).replace("T", " ")),
-          gcfm.GetConsignment.Files.FileMetadata("TitleClosed", "true"),
-          gcfm.GetConsignment.Files.FileMetadata("DescriptionClosed", "true"),
-          gcfm.GetConsignment.Files.FileMetadata("TitleAlternate", "inputtext-TitleAlternate-TitleAlternate value"),
-          gcfm.GetConsignment.Files.FileMetadata("DescriptionAlternate", "inputtext-DescriptionAlternate-DescriptionAlternate value"),
-          gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path")
-        ),
-        gcfm.GetConsignment.Files.Metadata(Some("mock code1"), Some(4), Some(closureStartDate), Some(foiExampleAsserted), None, None)
+      List(
+        gcfm.GetConsignment.Files.FileMetadata("FileType", "File"),
+        gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType),
+        gcfm.GetConsignment.Files.FileMetadata("FoiExemptionCode", "mock code1"),
+        gcfm.GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
+        gcfm.GetConsignment.Files.FileMetadata("ClosureStartDate", Timestamp.valueOf(closureStartDate).toString),
+        gcfm.GetConsignment.Files.FileMetadata("FoiExemptionAsserted", Timestamp.valueOf(foiExampleAsserted).toString),
+        gcfm.GetConsignment.Files.FileMetadata("TitleClosed", "true"),
+        gcfm.GetConsignment.Files.FileMetadata("DescriptionClosed", "true"),
+        gcfm.GetConsignment.Files.FileMetadata("TitleAlternate", "inputtext-TitleAlternate-TitleAlternate value"),
+        gcfm.GetConsignment.Files.FileMetadata("DescriptionAlternate", "inputtext-DescriptionAlternate-DescriptionAlternate value"),
+        gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path")
       )
     } else {
-      (Nil, gcfm.GetConsignment.Files.Metadata(None, None, None, None, None, None))
+      Nil
     }
     val consignmentFilesMetadata = gcfm.Data(
       Option(
@@ -139,8 +144,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           fileIds.map(fileId =>
             gcfm.GetConsignment.Files(
               fileId,
-              fileMetadata,
-              metadata
+              Some("FileName"),
+              if (fileMetadata.nonEmpty) fileMetadata else defaultFileMetadata
             )
           ),
           consignmentRef
@@ -317,6 +322,175 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         .willReturn(okJson(dataString))
     )
     edges.map(_.get)
+  }
+
+  def setCustomMetadataResponse(wiremockServer: WireMockServer): Unit = {
+    val client: GraphQLClient[cm.Data, cm.Variables] = new GraphQLConfiguration(app.configuration).getClient[cm.Data, cm.Variables]()
+    val customMetadataResponse: cm.Data = getDataObject
+    val data: client.GraphqlData = client.GraphqlData(Some(customMetadataResponse))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("customMetadata"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
+  private def getDataObject = {
+    cm.Data(
+      List(
+        cm.CustomMetadata(
+          "ClosureType",
+          None,
+          Some("Closure Type"),
+          Defined,
+          Some("MandatoryClosure"),
+          Text,
+          editable = true,
+          multiValue = false,
+          Some("Open"),
+          1,
+          List(
+            Values(
+              "Closed",
+              List(
+                Dependencies("FoiExemptionAsserted"),
+                Dependencies("ClosurePeriod"),
+                Dependencies("ClosureStartDate"),
+                Dependencies("FoiExemptionCode"),
+                Dependencies("TitleClosed"),
+                Dependencies("DescriptionClosed")
+              ),
+              1
+            ),
+            Values("Open", List(Dependencies("TitleClosed"), Dependencies("DescriptionClosed")), 1)
+          ),
+          None,
+          allowExport = false
+        ),
+        cm.CustomMetadata(
+          "ClosurePeriod",
+          Some("Number of years the record is closed from the closure start date"),
+          Some("Closure Period"),
+          Supplied,
+          Some("MandatoryClosure"),
+          Integer,
+          editable = true,
+          multiValue = false,
+          None,
+          2,
+          List(Values("0", List(), 1)),
+          None,
+          allowExport = false
+        ),
+        cm.CustomMetadata(
+          "DescriptionClosed",
+          None,
+          Some("Is the description closed?"),
+          Supplied,
+          Some("MandatoryClosure"),
+          Boolean,
+          editable = true,
+          multiValue = false,
+          Some("True"),
+          3,
+          List(Values("False", List(), 1), Values("True", List(Dependencies("DescriptionAlternate")), 1)),
+          None,
+          allowExport = false
+        ),
+        cm.CustomMetadata(
+          "TitleClosed",
+          None,
+          Some("Is the title closed?"),
+          Supplied,
+          Some("MandatoryClosure"),
+          Boolean,
+          editable = true,
+          multiValue = false,
+          Some("True"),
+          4,
+          List(Values("True", List(Dependencies("TitleAlternate")), 1), Values("False", List(), 1)),
+          None,
+          allowExport = false
+        ),
+        cm.CustomMetadata(
+          "ClosureStartDate",
+          Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."),
+          Some("Closure Start Date"),
+          Supplied,
+          Some("OptionalClosure"),
+          DateTime,
+          editable = true,
+          multiValue = false,
+          None,
+          5,
+          List(),
+          None,
+          allowExport = false
+        ),
+        cm.CustomMetadata(
+          "DescriptionAlternate",
+          None,
+          Some("Description Alternate"),
+          Supplied,
+          Some("OptionalClosure"),
+          Text,
+          editable = true,
+          multiValue = false,
+          None,
+          6,
+          List(),
+          None,
+          allowExport = false
+        ),
+        cm.CustomMetadata(
+          "TitleAlternate",
+          None,
+          Some("Title Alternate"),
+          Supplied,
+          Some("OptionalClosure"),
+          Text,
+          editable = true,
+          multiValue = false,
+          None,
+          7,
+          List(),
+          None,
+          allowExport = false
+        ),
+        cm.CustomMetadata(
+          "FoiExemptionAsserted",
+          Some("Date of the Advisory Council approval (or SIRO approval if appropriate)"),
+          Some("Foi Exemption Asserted"),
+          Supplied,
+          Some("MandatoryClosure"),
+          DateTime,
+          editable = true,
+          multiValue = false,
+          None,
+          8,
+          List(),
+          None,
+          allowExport = false
+        ),
+        cm.CustomMetadata(
+          "FoiExemptionCode",
+          Some("Select the exemption code that applies"),
+          Some("Foi Exemption Code"),
+          Defined,
+          Some("MandatoryClosure"),
+          Text,
+          editable = true,
+          multiValue = true,
+          Some("mock code1"),
+          9,
+          List(Values("mock code1", List(), 1), Values("mock code2", List(), 2)),
+          None,
+          allowExport = false
+        )
+      )
+    )
   }
 
   val userTypes: TableFor1[String] = Table(

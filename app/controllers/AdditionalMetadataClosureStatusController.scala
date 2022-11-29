@@ -35,7 +35,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
   val closureStatusField: InputNameAndValue = InputNameAndValue("closureStatus", "Yes, I confirm")
 
   def getClosureStatusPage(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val filters = Option(FileFilters(None, Option(fileIds), None))
+    val filters = Option(FileFilters(None, Option(fileIds), None, None))
 
     for {
       details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
@@ -72,7 +72,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
         (consignmentRef, filePaths, parentFolderId) <- cache.getOrElseUpdate[(String, List[String], UUID)](s"$consignmentId-data", 1.hour)(
           for {
             details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
-            consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None)))
+            consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None, None)))
             filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
           } yield (consignment.consignmentReference, filePaths, details.parentFolderId.get)
         )
