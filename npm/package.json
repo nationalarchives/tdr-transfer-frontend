@@ -43,7 +43,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.218.0",
     "@aws-sdk/lib-storage": "^3.85.0",
-    "@nationalarchives/file-information": "^1.0.400",
+    "@nationalarchives/file-information": "^1.0.402",
     "@nationalarchives/tdr-components": "1.0.14",
     "@nationalarchives/tdr-generated-graphql": "1.0.314",
     "copyfiles": "^2.4.1",
