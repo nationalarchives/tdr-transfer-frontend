@@ -30,6 +30,43 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     dependencyProperties.toList.sortBy(_.uiOrdinal).map(generateFieldOptions)
   }
 
+  private def generateTextField(property: CustomMetadata, fieldLabel: String, fieldDescription: String, isRequired: Boolean): FormField = {
+    property.propertyType match {
+      case Defined if property.multiValue =>
+        CheckboxField(
+          property.name,
+          fieldLabel,
+          fieldDescription,
+          property.multiValue,
+          property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
+          property.defaultValue.map(value => Seq(InputNameAndValue(value, value))),
+          isRequired
+        )
+      case Defined =>
+        DropdownField(
+          property.name,
+          fieldLabel,
+          fieldDescription,
+          property.multiValue,
+          property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
+          property.defaultValue.map(value => InputNameAndValue(value, value)),
+          isRequired
+        )
+      case Supplied =>
+        TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue(property.name, property.defaultValue.getOrElse("")), "text", isRequired)
+      case _ =>
+        DropdownField(
+          property.name,
+          fieldLabel,
+          fieldDescription,
+          property.multiValue,
+          Seq(InputNameAndValue(property.name, property.fullName.getOrElse(""))),
+          None,
+          isRequired
+        )
+    }
+  }
+
   // scalastyle:off method.length
   // scalastyle:off cyclomatic.complexity
   private def generateFieldOptions(property: CustomMetadata): FormField = {
@@ -63,40 +100,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       case Integer =>
         TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue("years", property.defaultValue.getOrElse("")), "numeric", isRequired)
       case Text =>
-        property.propertyType match {
-          case Defined if property.multiValue =>
-            CheckboxField(
-              property.name,
-              fieldLabel,
-              fieldDescription,
-              property.multiValue,
-              property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
-              property.defaultValue.map(value => Seq(InputNameAndValue(value, value))),
-              isRequired
-            )
-          case Defined =>
-            DropdownField(
-              property.name,
-              fieldLabel,
-              fieldDescription,
-              property.multiValue,
-              property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
-              property.defaultValue.map(value => InputNameAndValue(value, value)),
-              isRequired
-            )
-          case Supplied =>
-            TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue(property.name, property.defaultValue.getOrElse("")), "text", isRequired)
-          case _ =>
-            DropdownField(
-              property.name,
-              fieldLabel,
-              fieldDescription,
-              property.multiValue,
-              Seq(InputNameAndValue(property.name, property.fullName.getOrElse(""))),
-              None,
-              isRequired
-            )
-        }
+        generateTextField(property, fieldLabel, fieldDescription, isRequired)
       // We don't have any examples of Decimal yet, so this is in the case Decimal or something else gets used
       case _ => throw new IllegalArgumentException(s"${property.dataType} is not a supported dataType")
     }

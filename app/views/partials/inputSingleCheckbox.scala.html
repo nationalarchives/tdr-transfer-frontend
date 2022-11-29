@@ -13,10 +13,8 @@ fieldError: Seq[String]
 @isSmallCheckbox = {@attributes.get(Symbol("_smallCheckbox"))}
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @fieldId = @{if(isDynamicForm) s"inputcheckbox-$fieldName" else fieldName}
-    @if(!isDynamicForm) {
-        <div class="govuk-checkboxes @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
-        }
-        @errorMessage(fieldId, fieldError)
+
+@displayCheckbox() = {
         <div class='govuk-checkboxes__item@if(isSmallCheckbox.toString() == "true"){ govuk-checkboxes--small}'>
             <input
                 @checkedStatus
@@ -30,6 +28,14 @@ fieldError: Seq[String]
                 @label
             </label>
         </div>
-    @if(!isDynamicForm) {
-        </div>
-        }
+}
+
+
+@if(!isDynamicForm) {
+    <div class="govuk-checkboxes @{if(fieldError.nonEmpty) "govuk-form-group--error" else ""}">
+        @errorMessage(fieldId, fieldError)
+        @displayCheckbox()
+    </div>
+    } else {
+        @displayCheckbox()
+    }
