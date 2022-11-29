@@ -78,7 +78,7 @@
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        @fileNavigationContent(metadataType, files.name)
+        @fileNavigationContent(consignmentId, metadataType, files.name)
         @error
         <form method="post" action="@routes.AdditionalMetadataNavigationController.submitFiles(consignmentId, metadataType)">
           @CSRF.formField
@@ -90,9 +90,14 @@
             @display(files, 1, files.children.length, 0)
             </ul>
           </div>
-          <button class="govuk-button" type="submit" role="button" draggable="false">
-            Add or Edit Metadata
+        <div class="govuk-button-group">
+          <button draggable="false" class="govuk-button" data-module="govuk-button">
+          Add or Edit metadata
           </button>
+          <a href="@routes.AdditionalMetadataController.start(consignmentId)" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+          Back
+          </a>
+        </div>
         </form>
       </div>
     </div>
