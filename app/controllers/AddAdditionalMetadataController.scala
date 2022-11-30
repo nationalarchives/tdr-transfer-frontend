@@ -116,8 +116,8 @@ class AddAdditionalMetadataController @Inject() (
       consignmentId: UUID,
       fileIds: List[UUID],
       metadataInput: List[UpdateFileMetadataInput],
-      propertyNameValueSelectedAndDepsToDel: Set[ValueSelectedAndDepsToDel],
-      metadataType: String // There will be no need for this once we get rid of deps page
+      propertyNameValueSelectedAndDepsToDel: Set[ValueSelectedAndDepsToDel], // There will be no need for this once we get rid of deps page
+      metadataType: String
   )(implicit request: Request[AnyContent]): Future[Result] = {
     val dependenciesToDelete: List[String] = propertyNameValueSelectedAndDepsToDel.flatMap(_.depsOfNonSelectedValues).toList
     for {
@@ -133,7 +133,7 @@ class AddAdditionalMetadataController @Inject() (
         }
         Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadataDependenciesPage(fieldsAndValuesSelectedOnPrevPage.toList, metadataType, consignmentId, fileIds))
       } else {
-        Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, List(s"${metadataType.capitalize}-True")))
+        Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, List(s"${metadataType.capitalize}Type-Closed")))
       }
     }
   }
