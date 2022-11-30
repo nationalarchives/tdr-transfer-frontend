@@ -720,7 +720,7 @@ class AddClosureMetadataControllerSpec extends FrontEndTestHelper {
         |                FOI exemption code
         |            </label>""".replace("................", "                "),
       """        <div id="inputdropdown-FoiExemptionCode-hint" class="govuk-hint">
-        |            Select the exemption code that applies
+        |            Add one or more exemption code to this closure. Here is a<a target="_blank" href="https://www.legislation.gov.uk/ukpga/2000/36/contents">full list of FOI codes and their designated exemptions</a>.
         |        </div>""",
       """<select class="govuk-select" id="inputdropdown-FoiExemptionCode" name="inputdropdown-FoiExemptionCode"  >""",
       """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
