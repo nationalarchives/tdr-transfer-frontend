@@ -119,7 +119,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}/")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}/?fileIds=$fileId")
       }
 
       "redirect to the closure metadata page with the correct file ids and closure metadata type if the files are already closed" in {
@@ -136,7 +136,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=ClosureType-Closed?fileIds=$fileId")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=$fileId")
       }
 
       "redirect to the metadata summary page if the metadata type is descriptive" in {
@@ -152,7 +152,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/descriptive?metadataTypeAndValueSelected=&?fileIds=$fileId")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/descriptive?fileIds=$fileId&metadataTypeAndValueSelected=")
       }
 
       "redirect to the file navigation page with an error message if a user submits the page without selecting any files and folders" in {

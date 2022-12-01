@@ -23,6 +23,7 @@ import scala.concurrent.ExecutionContext
 
 class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
+  private val mockMetadataTypeAndValue = List("mockMetadataType-mockMetadataValue")
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -37,8 +38,6 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val fileIds: List[UUID] = List(UUID.randomUUID())
-
-  private val mockMetadataTypeAndValue = List("mockMetadataType-mockMetadataValue")
 
   "AdditionalMetadataSummaryController" should {
     "render the additional metadata summary page for closure metadata type" in {
@@ -208,6 +207,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
     "return an error if metadataType is not valid" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer)
+      setCustomMetadataResponse(wiremockServer)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -215,12 +216,12 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val controller =
         new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, fileIds, "inValid")
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/closure"))
+        .getSelectedSummaryPage(consignmentId, "invalidMetadataType", fileIds, mockMetadataTypeAndValue)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}"))
         .failed
         .futureValue
 
-      response.getMessage mustBe "Invalid metadata type: inValid"
+      response.getMessage mustBe "Invalid metadata type: invalidMetadataType"
     }
 
     "return an error if the consignment doesn't exist" in {
