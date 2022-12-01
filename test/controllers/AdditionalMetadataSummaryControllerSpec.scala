@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignment.getConsignment
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
@@ -11,10 +12,12 @@ import play.api.Play.materializer
 import play.api.http.Status.{FORBIDDEN, FOUND, OK}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
-import services.ConsignmentService
-import uk.gov.nationalarchives.tdr.GraphQLClient.Error
+import services.{ConsignmentService, CustomMetadataService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
+import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 
+import java.sql.Timestamp
+import java.time.LocalDateTime
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
@@ -38,16 +41,26 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
   private val mockMetadataTypeAndValue = List("mockMetadataType-mockMetadataValue")
 
   "AdditionalMetadataSummaryController" should {
-    "render the additional metadata summary page" in {
+    "render the additional metadata summary page for closure metadata type" in {
       val consignmentId = UUID.randomUUID()
       val consignmentReference = "TEST-TDR-2021-GB"
       val mockMetadataTypeAndValueString = mockMetadataTypeAndValue.head
+
+      val closureStartDate = LocalDateTime.of(1990, 12, 1, 10, 0)
+      val fileMetadata = List(
+        GetConsignment.Files.FileMetadata("TitleClosed", "true"),
+        GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
+        GetConsignment.Files.FileMetadata("ClosureStartDate", Timestamp.valueOf(closureStartDate).toString)
+      )
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()))
+      setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()), fileMetadata = fileMetadata)
+      setCustomMetadataResponse(wiremockServer)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val controller =
+        new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .getSelectedSummaryPage(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}"))
@@ -80,16 +93,18 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           |            Delete metadata
           |          </a>""".stripMargin
       ) mustBe true
-      List(("FOI decision asserted", "12/01/1995"), ("Closure start date", "01/12/1990"), ("Closure period", "4 years")).foreach { field =>
+      List(("Is the title closed?", "Yes"), ("Closure Period", "4 years"), ("Closure Start Date", "01/12/1990")).foreach { field =>
         closureMetadataSummaryPage.contains(
-          s"""          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
-                                                 |            <dt class="govuk-summary-list__key">
-                                                 |              ${field._1}
-                                                 |            </dt>
-                                                 |            <dd class="govuk-summary-list__value">
-                                                 |              ${field._2}
-                                                 |            </dd>
-                                                 |          </div>""".stripMargin
+          s"""
+             |            <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+             |              <dt class="govuk-summary-list__key">
+             |              ${field._1}
+             |              </dt>
+             |              <dd class="govuk-summary-list__value">
+             |              ${field._2}
+             |              </dd>
+             |            </div>
+             |""".stripMargin
         ) mustBe true
       }
       closureMetadataSummaryPage must include(
@@ -98,24 +113,11 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           |            </dt>
           |............
           |              <dd class="govuk-summary-list__value">
-          |                original/file/path
+          |                FileName
           |              </dd>""".stripMargin.replaceAll("\\.", " ")
       )
       closureMetadataSummaryPage must include(
-        """            <dt class="govuk-summary-list__key">
-          |              FOI example code
-          |            </dt>
-          |            <dd class="govuk-summary-list__value">
-          |              mock code1
-          |            </dd>""".stripMargin
-      )
-      closureMetadataSummaryPage must include(
-        s"""        <div class="govuk-details__text">
-           |            $consignmentReference
-           |        </div>""".stripMargin
-      )
-      closureMetadataSummaryPage must include(
-        """        <a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        s"""        <a href="/consignment/$consignmentId/additional-metadata/files/closure/" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
         |          Save and return to all files
         |        </a>""".stripMargin
       )
@@ -128,7 +130,9 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataSummaryController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val controller =
+        new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .getSelectedSummaryPage(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}"))
@@ -150,7 +154,9 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataSummaryController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val controller =
+        new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .getSelectedSummaryPage(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}"))
@@ -162,7 +168,9 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val controller =
+        new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
         .getSelectedSummaryPage(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}"))
@@ -181,10 +189,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           .withRequestBody(containing("getConsignmentFilesMetadata($consignmentId:UUID!,$fileFiltersInput:FileFilters)"))
           .willReturn(okJson(dataString))
       )
+      setCustomMetadataResponse(wiremockServer)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val controller =
+        new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .getSelectedSummaryPage(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}"))
@@ -192,6 +203,24 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         .futureValue
 
       response.getMessage mustBe s"Can't find selected files for the consignment $consignmentId"
+    }
+
+    "return an error if metadataType is not valid" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val controller =
+        new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val response = controller
+        .getSelectedSummaryPage(consignmentId, fileIds, "inValid")
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/closure"))
+        .failed
+        .futureValue
+
+      response.getMessage mustBe "Invalid metadata type: inValid"
     }
 
     "return an error if the consignment doesn't exist" in {
@@ -207,7 +236,9 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataSummaryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val controller =
+        new AdditionalMetadataSummaryController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .getSelectedSummaryPage(consignmentId, metadataType(0), fileIds, mockMetadataTypeAndValue)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}"))

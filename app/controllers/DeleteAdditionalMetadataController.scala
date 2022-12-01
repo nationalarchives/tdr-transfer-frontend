@@ -24,7 +24,7 @@ class DeleteAdditionalMetadataController @Inject() (
       if (fileIds.isEmpty) {
         Future.failed(new IllegalArgumentException("fileIds are empty"))
       } else {
-        val filters = Option(FileFilters(None, Option(fileIds), None))
+        val filters = Option(FileFilters(None, Option(fileIds), None, None))
         for {
           consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, filters)
           response <-
@@ -47,8 +47,6 @@ class DeleteAdditionalMetadataController @Inject() (
       } else {
         for {
           _ <- customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken)
-          consignment <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
-          metadataType = metadataTypeAndValueSelected.head.split("-")(0)
           response <-
             Future(
               Redirect(
