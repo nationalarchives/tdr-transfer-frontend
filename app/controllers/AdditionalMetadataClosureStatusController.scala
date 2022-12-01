@@ -34,9 +34,8 @@ class AdditionalMetadataClosureStatusController @Inject() (
 
   val closureStatusField: InputNameAndValue = InputNameAndValue("closureStatus", "Yes, I confirm")
 
-  def getClosureStatusPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
-    implicit request: Request[AnyContent] =>
-      val filters = Option(FileFilters(None, Option(fileIds), None))
+  def getClosureStatusPage(consignmentId: UUID, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    val filters = Option(FileFilters(None, Option(fileIds), None, None))
 
       for {
         details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)

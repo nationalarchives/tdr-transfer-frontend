@@ -30,7 +30,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements()
 
-  val getConsignmentMetadata: Files.Metadata = gcfm.GetConsignment.Files.Metadata(None, None, None, None, None, None)
   def customMetadata(name: String, fullName: String, exportOrdinal: Int = Int.MaxValue, allowExport: Boolean = true): cm.CustomMetadata =
     cm.CustomMetadata(name, None, Option(fullName), Supplied, None, Text, editable = false, multiValue = false, None, 1, Nil, Option(exportOrdinal), allowExport)
 
@@ -61,8 +60,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("FileName", "FileName2")
       )
       val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata),
-        gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileTwo, getConsignmentMetadata)
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne),
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo)
       )
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
@@ -92,8 +91,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("FileName", "FileName2")
       )
       val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata),
-        gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileTwo, getConsignmentMetadata)
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne),
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo)
       )
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
@@ -118,7 +117,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("TestProperty2", "TestValue2File1"),
         FileMetadata("FileName", "FileName1")
       )
-      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata))
+      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne))
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
 
@@ -143,7 +142,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("TestProperty3", "TestValue3File1"),
         FileMetadata("TestProperty4", "TestValue4File1")
       )
-      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), metadataFileOne, getConsignmentMetadata))
+      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne))
 
       val csvList = getCsvFromController(customProperties, files).toLazyList()
 

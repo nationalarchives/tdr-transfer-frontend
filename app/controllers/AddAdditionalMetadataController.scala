@@ -2,8 +2,8 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import controllers.AddAdditionalMetadataController.{ControllerInfo, File, FormData, PageInfo, ValueSelectedAndDepsToDel}
-import controllers.util.MetadataProperty.clientSideOriginalFilepath
+import controllers.AddClosureMetadataController._
+import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType}
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
@@ -16,7 +16,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.{ConsignmentService, CustomMetadataService}
 
-import java.time.format.DateTimeFormatter
+import java.sql.Timestamp
 import java.time.{LocalDate, LocalDateTime, LocalTime}
 import java.util.UUID
 import javax.inject.Inject
@@ -94,7 +94,7 @@ class AddAdditionalMetadataController @Inject() (
               UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value)
             case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _) =>
               val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
-              UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace("T", " "))
+              UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, Timestamp.valueOf(dateTime).toString)
             case RadioButtonGroupField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
               UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString)
             case DropdownField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
@@ -210,7 +210,7 @@ class AddAdditionalMetadataController @Inject() (
       fileIds: List[UUID]
   ): Future[(PageInfo, ControllerInfo)] =
     for {
-      consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None)))
+      consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None, None)))
       updatedFieldsForForm <- {
         cache.set(s"$consignmentId-reference", consignment.consignmentReference, 1.hour)
         // Set the values to those of the first file's metadata until we decide what to do with multiple files.
@@ -286,14 +286,13 @@ class AddAdditionalMetadataController @Inject() (
   }
 
   private def updateFormFields(orderedFieldsForForm: List[FormField], fileMetadata: List[FileMetadata]): Future[List[FormField]] = {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     val metadataMap = fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
     Future.successful {
       orderedFieldsForForm.map {
         case dateField: DateField =>
           metadataMap
             .get(dateField.fieldId)
-            .map(metadata => DateField.update(dateField, LocalDateTime.parse(metadata.value, formatter)))
+            .map(metadata => DateField.update(dateField, Timestamp.valueOf(metadata.value).toLocalDateTime))
             .getOrElse(dateField)
         case dropdownField: DropdownField =>
           metadataMap

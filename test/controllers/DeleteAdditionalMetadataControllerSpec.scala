@@ -8,7 +8,6 @@ import graphql.codegen.GetConsignment.getConsignment
 import io.circe.generic.auto.exportEncoder
 import io.circe.syntax.EncoderOps
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.{ConsignmentService, CustomMetadataService}
@@ -191,7 +190,6 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val parentFolderId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = parentFolderId.some)
       setDeleteFileMetadataResponse(app.configuration, wiremockServer, fileIds, List("PropertyName1"))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
