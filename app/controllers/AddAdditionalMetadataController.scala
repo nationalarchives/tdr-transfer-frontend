@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import controllers.AddClosureMetadataController._
+import controllers.AddAdditionalMetadataController._
 import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType}
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata

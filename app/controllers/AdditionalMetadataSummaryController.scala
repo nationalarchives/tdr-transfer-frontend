@@ -49,8 +49,8 @@ class AdditionalMetadataSummaryController @Inject() (
                     fileIds,
                     filePaths,
                     consignment.consignmentReference,
-                    getMetadataForView(first.fileMetadata, customMetadata),
                     request.token.name,
+                    getMetadataForView(first.fileMetadata, customMetadata),
                     metadataTypeAndValueSelected
                   )
               )

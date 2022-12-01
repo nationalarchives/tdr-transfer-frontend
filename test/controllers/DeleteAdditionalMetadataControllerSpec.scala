@@ -13,6 +13,7 @@ import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTim
 import services.{ConsignmentService, CustomMetadataService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
+import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -202,7 +203,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe SEE_OTHER
 
-      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/mockMetadataType/"))
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/closure/"))
     }
 
     "return an error if the fileIds are empty" in {
