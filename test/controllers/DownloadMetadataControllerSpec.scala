@@ -106,6 +106,30 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       csvList.last("File Name") must equal("FileName2")
     }
 
+    "download the csv for rows with multiple values" in {
+      val customProperties = List(
+        customMetadata("TestProperty1", "Test Property 1"),
+        customMetadata("TestProperty2", "Test Property 2"),
+        customMetadata("FileName", "File Name")
+      )
+      val metadataFileOne = List(
+        FileMetadata("TestProperty1", "TestValue1File1"),
+        FileMetadata("TestProperty2", "TestValue2File1"),
+        FileMetadata("TestProperty2", "TestValue2File2"),
+        FileMetadata("FileName", "FileName1")
+      )
+      val files = List(
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne),
+      )
+
+      val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
+
+      csvList.size must equal(1)
+      csvList.head("Test Property 1") must equal("TestValue1File1")
+      csvList.head("Test Property 2") must equal("TestValue2File1|TestValue2File2")
+      csvList.head("File Name") must equal("FileName1")
+    }
+
     "ignore fields set with allowExport set to false" in {
       val customProperties = List(
         customMetadata("TestProperty1", "Test Property 1", allowExport = false),
