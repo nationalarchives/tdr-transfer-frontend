@@ -8,47 +8,14 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
+import testUtils.FormTestData
 
 class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
-  private val dataType = List(Text, DateTime)
-  val allProperties: List[CustomMetadata] = (1 to 10).toList.map(number => {
-    val numberOfValues = number % 5
-    CustomMetadata(
-      name = s"TestProperty$number",
-      description = Some(s"It's the Test Property $number"),
-      fullName = Some(s"Test Property $number"),
-      propertyType = if (numberOfValues > 2) Defined else Supplied,
-      propertyGroup = Some(s"Test Property Group $number"),
-      dataType = if (numberOfValues == 1) {
-        Integer
-      } else if (numberOfValues == 2) {
-        Boolean
-      } else {
-        dataType(number % dataType.length)
-      },
-      editable = true,
-      multiValue = numberOfValues > 1,
-      defaultValue = Some(s"TestValue $number"),
-      uiOrdinal = number,
-      values = (1 to numberOfValues).toList.map(valueNumber =>
-        CustomMetadata.Values(
-          s"TestValue $valueNumber",
-          (1 to number % 6).toList.map(depNumber => {
-            val propertyNumber = depNumber * 2 % 11
-            CustomMetadata.Values.Dependencies(s"TestProperty$propertyNumber")
-          }),
-          valueNumber
-        )
-      ),
-      None,
-      allowExport = false
-    )
-  })
-
-  private val customMetadataUtils = CustomMetadataUtils(allProperties)
+  private val formProperties = new FormTestData().setupCustomMetadatas()
+  private val customMetadataUtils = CustomMetadataUtils(formProperties)
 
   "getCustomMetadataProperties" should "return the list of properties requested" in {
-    val namesOfPropertiesToGet = allProperties.map(_.name).toSet
+    val namesOfPropertiesToGet = formProperties.map(_.name).toSet
     val listOfPropertiesRetrieved: Set[CustomMetadata] = customMetadataUtils.getCustomMetadataProperties(namesOfPropertiesToGet)
 
     val propertiesRetrievedEqualPropertiesRequested = listOfPropertiesRetrieved.forall(propertyRetrieved => namesOfPropertiesToGet.contains(propertyRetrieved.name))
@@ -66,10 +33,9 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
 
   "getValuesOfProperties" should "return the values for a given property" in {
     val namesOfPropertiesAndTheirExpectedValues = Map(
-      "TestProperty1" -> List("TestValue 1"),
-      "TestProperty2" -> List("TestValue 1", "TestValue 2"),
-      "TestProperty3" -> List("TestValue 1", "TestValue 2", "TestValue 3"),
-      "TestProperty8" -> List("TestValue 1", "TestValue 2", "TestValue 3")
+      "FoiExemptionAsserted" -> List(),
+      "Dropdown" -> List("dropdownValue"),
+      "Radio" -> List("yes", "no")
     )
 
     val actualPropertiesAndTheirValues: Map[String, List[CustomMetadata.Values]] =
@@ -81,23 +47,23 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   }
 
   "getValuesOfProperties" should "throw an 'NoSuchElementException' if any properties (from which to obtain values from) are not present" in {
-    val namesOfPropertiesToGet = Set("TestProperty2", "TestProperty12", "TestProperty4")
+    val namesOfPropertiesToGet = Set("FoiExemptionAsserted", "UnknownProperty")
 
     val thrownException: NoSuchElementException =
       the[NoSuchElementException] thrownBy customMetadataUtils.getCustomMetadataProperties(namesOfPropertiesToGet)
 
-    thrownException.getMessage should equal("key not found: TestProperty12")
+    thrownException.getMessage should equal("key not found: UnknownProperty")
   }
 
   "convertPropertiesToFields" should "convert properties to fields for the form, if given correctly formatted properties" in {
-    val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
+    val propertiesToConvertToFields: Set[CustomMetadata] = formProperties.toSet
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
 
     propertiesToConvertToFields.foreach { property => checkMetadataToFieldConversion(property, fieldValuesByDataType) }
   }
 
   "convertPropertiesToFields" should "convert properties to fields for the form when the given properties don't have default values" in {
-    val allPropertiesWithoutDefaultValue = allProperties.map(p => p.copy(defaultValue = None))
+    val allPropertiesWithoutDefaultValue = formProperties.map(p => p.copy(defaultValue = None))
     val propertiesToConvertToFields: Set[CustomMetadata] = allPropertiesWithoutDefaultValue.toSet
     val customMetadataUtils = CustomMetadataUtils(allPropertiesWithoutDefaultValue)
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
@@ -106,7 +72,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   }
 
   "convertPropertiesToFields" should "convert date property to field and it shouldn't allow future date when property name is foiExemptionAsserted" in {
-    val propertiesToConvertToFields: CustomMetadata = allProperties
+    val propertiesToConvertToFields: CustomMetadata = formProperties
       .find(_.dataType == graphql.codegen.types.DataType.DateTime)
       .head
       .copy(name = "FoiExemptionAsserted", fullName = "FOI decision asserted".some, description = "Date of the Advisory Council Approval".some)
@@ -120,13 +86,14 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   }
 
   "convertPropertiesToFields" should "order the fields in the correct order" in {
-    val propertiesToConvertToFields: Set[CustomMetadata] = allProperties.toSet
+    val propertiesToConvertToFields: Set[CustomMetadata] = formProperties.toSet
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
-    fieldValuesByDataType.size should equal(10)
-    (1 to 10).toList.foreach(number => fieldValuesByDataType(number - 1).fieldId should equal(s"TestProperty$number"))
+    fieldValuesByDataType.size should equal(5)
+    fieldValuesByDataType.map(_.fieldId) should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Dropdown", "Radio"))
   }
 
   def verifyDate(field: DateField, isFutureDateAllowed: Boolean = true): Unit = {
+    val isFutureDateAllowed = field.fieldName != "FOI decision asserted"
     field.day should equal(InputNameAndValue("Day", "", "DD"))
     field.month should equal(InputNameAndValue("Month", "", "MM"))
     field.year should equal(InputNameAndValue("Year", "", "YYYY"))
