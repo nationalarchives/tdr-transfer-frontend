@@ -119,7 +119,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("FileName", "FileName1")
       )
       val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne),
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne)
       )
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
