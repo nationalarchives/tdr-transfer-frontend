@@ -115,7 +115,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val metadataFileOne = List(
         FileMetadata("TestProperty1", "TestValue1File1"),
         FileMetadata("TestProperty2", "TestValue2File1"),
-        FileMetadata("TestProperty2", "TestValue2File2"),
+        FileMetadata("TestProperty2", "TestValue3File1"),
         FileMetadata("FileName", "FileName1")
       )
       val files = List(
@@ -126,7 +126,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
       csvList.size must equal(1)
       csvList.head("Test Property 1") must equal("TestValue1File1")
-      csvList.head("Test Property 2") must equal("TestValue2File1|TestValue2File2")
+      csvList.head("Test Property 2") must equal("TestValue2File1|TestValue3File1")
       csvList.head("File Name") must equal("FileName1")
     }
 
