@@ -42,8 +42,8 @@ class DownloadMetadataController @Inject() (
       val filteredMetadata = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
       val header: List[String] = filteredMetadata.map(f => f.fullName.getOrElse(f.name))
       val rows: List[List[String]] = metadata.files.map(file => {
-        val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
-        filteredMetadata.map(fm => groupedMetadata.value(fm.name))
+        val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
+        filteredMetadata.map(fm => groupedMetadata.getOrElse(fm.name, ""))
       })
       val csvString = CsvUtils.writeCsv(header :: rows)
       Ok(csvString)
