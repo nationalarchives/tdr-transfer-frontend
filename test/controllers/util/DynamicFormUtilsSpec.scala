@@ -99,7 +99,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
       val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
         FakeRequest
-          .apply(POST, s"/consignment/12345/add-closure-metadata")
+          .apply(POST, s"/consignment/12345/additional-metadata/add")
           .withBody(AnyContentAsFormUrlEncoded(rawFormWithCsrfToken))
 
       val metadataUsedForFormAsFields = List(
@@ -184,7 +184,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
     val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
       FakeRequest
-        .apply(POST, s"/consignment/12345/add-closure-metadata")
+        .apply(POST, s"/consignment/12345/additional-metadata/add")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
     val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new FormTestData().setupCustomMetadatas().find(_.name == "FoiExemptionAsserted").toList
@@ -279,7 +279,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
   private def instantiateDynamicFormsUtils(rawFormToMakeRequestWith: Map[String, Seq[String]], passInFieldsForAllMetadata: Boolean = true): DynamicFormUtils = {
     val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
       FakeRequest
-        .apply(POST, s"/consignment/12345/add-closure-metadata")
+        .apply(POST, s"/consignment/12345/additional-metadata/add")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
     val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new FormTestData().setupCustomMetadatas()
