@@ -89,7 +89,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .getAllFiles(consignmentId, "closure")
-          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
         playStatus(result) must equal(FORBIDDEN)
       }
 
@@ -99,7 +99,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .getAllFiles(consignmentId, "closure")
-          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
         playStatus(result) must equal(FOUND)
       }
     }
@@ -114,12 +114,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
           .apply(
-            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/")
+            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
               .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/closure-status?fileIds=$fileId")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}/?fileIds=$fileId")
       }
 
       "redirect to the closure metadata page with the correct file ids and closure metadata type if the files are already closed" in {
@@ -129,14 +129,16 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         val additionalMetadataController =
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
-          .submitFiles(consignmentId, "closure")
+          .submitFiles(consignmentId, metadataType(0))
           .apply(
-            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/")
+            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
               .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/add-closure-metadata?fileIds=$fileId")
+        redirectLocation(result).get must equal(
+          s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=$fileId"
+        )
       }
 
       "redirect to the metadata summary page if the metadata type is descriptive" in {
@@ -152,7 +154,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/descriptive?fileIds=$fileId")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/descriptive?fileIds=$fileId&metadataTypeAndValueSelected=")
       }
 
       "redirect to the file navigation page with an error message if a user submits the page without selecting any files and folders" in {
