@@ -26,8 +26,8 @@ class AdditionalMetadataSummaryController @Inject() (
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  def getSelectedSummaryPage(consignmentId: UUID, fileIds: List[UUID], metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) {
-    implicit request: Request[AnyContent] =>
+  def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID], metadataTypeAndValueSelected: List[String]): Action[AnyContent] =
+    standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       val fileMetadataFilters = metadataType match {
         case "closure"     => FileMetadataFilters(Some(true), None)
         case "descriptive" => FileMetadataFilters(None, Some(true))
@@ -49,15 +49,16 @@ class AdditionalMetadataSummaryController @Inject() (
                     fileIds,
                     filePaths,
                     consignment.consignmentReference,
+                    request.token.name,
                     getMetadataForView(first.fileMetadata, customMetadata),
-                    request.token.name
+                    metadataTypeAndValueSelected
                   )
               )
             )
           case Nil => Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
         }
       } yield response
-  }
+    }
 
   private def getMetadataForView(metaData: List[GetConsignment.Files.FileMetadata], customMetadata: List[CustomMetadata]): List[FileMetadata] = {
 
