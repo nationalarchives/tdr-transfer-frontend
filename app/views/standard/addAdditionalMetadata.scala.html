@@ -10,14 +10,14 @@
 @import controllers.util._
 @import views.html.partials.inputDropdown
 
-@import controllers.AddClosureMetadataController.{PageInfo, ControllerInfo}
+@import controllers.AddAdditionalMetadataController.{PageInfo, ControllerInfo}
 
 @(pageInfo: PageInfo, controllerInfo: ControllerInfo)(implicit request: RequestHeader, messages: Messages)
 @main(s"${pageInfo.pageTitle} files", name = pageInfo.userName) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("addClosureMetadata.progress"))
+        @progressIndicator(Messages(s"additionalMetadata${controllerInfo.metadataType.capitalize}.progress"))
       <h1 class="govuk-heading-l">@pageInfo.pageTitle</h1>
         @for(file <- controllerInfo.files) {<h3>@file.name</h3>}
       <p class="govuk-body">@pageInfo.pageDescription</p>
@@ -27,8 +27,13 @@
           }
         )
         @form(
-          routes.AddClosureMetadataController.addClosureMetadataSubmit(
-              controllerInfo.isMainForm, controllerInfo.fieldsAndValuesSelectedOnPrevPage, controllerInfo.consignmentId, controllerInfo.files.map(_.fileId)),
+          routes.AddAdditionalMetadataController.addAdditionalMetadataSubmit(
+              controllerInfo.metadataType,
+              controllerInfo.isMainForm,
+              controllerInfo.fieldsAndValuesSelectedOnPrevPage,
+              controllerInfo.consignmentId,
+              controllerInfo.files.map(_.fileId)
+          ),
           (Symbol("novalidate"), "")
         ) {
           @CSRF.formField
@@ -94,7 +99,7 @@
             <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
               Continue
             </button>
-            <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(controllerInfo.consignmentId, "closure")">Cancel</a>
+            <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(controllerInfo.consignmentId, controllerInfo.metadataType)">Cancel</a>
           </div>
         </div>
       }
