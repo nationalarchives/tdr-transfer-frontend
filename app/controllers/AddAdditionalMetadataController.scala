@@ -302,7 +302,7 @@ class AddAdditionalMetadataController @Inject() (
         case radioButtonGroupField: RadioButtonGroupField =>
           metadataMap
             .get(radioButtonGroupField.fieldId)
-            .map(metadata => RadioButtonGroupField.update(radioButtonGroupField, stringToBoolean(metadata.value)))
+            .map(_ => RadioButtonGroupField.update(radioButtonGroupField, stringToBoolean(radioButtonGroupField.selectedOption)))
             .getOrElse(radioButtonGroupField)
         case textField: TextField =>
           metadataMap
