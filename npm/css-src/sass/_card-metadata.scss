@@ -1,9 +1,9 @@
 .tdr-metadata-card {
-  border: 1px solid $govuk-border-colour;
   @include govuk-responsive-padding(5);
-  @include govuk-responsive-padding(6, "right");
-  @include govuk-responsive-padding(6, "left");
-  @include govuk-responsive-margin(6, "bottom");
+  @include govuk-responsive-padding(6, 'right');
+  @include govuk-responsive-padding(6, 'left');
+  @include govuk-responsive-margin(6, 'bottom');
+  border: 1px solid $govuk-border-colour;
 }
 
 .tdr-metadata-card__content {
@@ -16,6 +16,6 @@
 
 .tdr-metadata-card__state {
   position: absolute;
-  top: 0;
   right: 0;
+  top: 0;
 }
