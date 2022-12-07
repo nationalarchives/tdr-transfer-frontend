@@ -1,0 +1,21 @@
+.tdr-metadata-card {
+  border: 1px solid $govuk-border-colour;
+  @include govuk-responsive-padding(5);
+  @include govuk-responsive-padding(6, "right");
+  @include govuk-responsive-padding(6, "left");
+  @include govuk-responsive-margin(6, "bottom");
+}
+
+.tdr-metadata-card__content {
+  position: relative;
+}
+
+.tdr-metadata-card__content > *:last-child {
+  margin: 0;
+}
+
+.tdr-metadata-card__state {
+  position: absolute;
+  top: 0;
+  right: 0;
+}

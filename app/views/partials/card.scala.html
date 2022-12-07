@@ -1,0 +1,15 @@
+@(fileNames: List[String], metadataType: String, isEditing: Boolean = true)
+<div class="tdr-metadata-card">
+    <div class="tdr-metadata-card__content">
+        @if(isEditing){
+            <p class="govuk-body govuk-!-margin-bottom-2 govuk-!-font-weight-bold">You are adding/editing @metadataType metadata for the following files:</p>
+        } else {
+            <p class="govuk-body govuk-!-margin-bottom-2 govuk-!-font-weight-bold">You are adding @metadataType to the following files:</p>
+        }
+        <ul class="govuk-list govuk-list--bullet">
+            @for(fileName <- fileNames) {
+                <li>@fileName</li>
+            }
+        </ul>
+    </div>
+</div>
