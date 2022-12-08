@@ -68,17 +68,17 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
         s"""        <p class="tdr-card__description">If you'd like to add or edit closure metadata to your records, you can do so here.</p>""".stripMargin
       ) mustBe true
       startPageAsString.contains(
-        s"""        <a href="/consignment/$consignmentId/additional-metadata/download-metadata/" """ +
+        s"""        <a href="/consignment/$consignmentId/additional-metadata/download-metadata" """ +
           """role="button" draggable="false" class="govuk-button" data-module="govuk-button">""" + """
                                                                                                      |          Continue
                                                                                                      |        </a>""".stripMargin
       ) mustBe true
       // Will change these links when we have the metadata pages to link them to.
       startPageAsString.contains(
-        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/files/descriptive/">"""
+        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/files/descriptive">"""
       ) mustBe true
       startPageAsString.contains(
-        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/files/closure/">"""
+        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/files/closure">"""
       ) mustBe true
       // scalastyle:on line.size.limit
     }
