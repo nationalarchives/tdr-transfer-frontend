@@ -2,7 +2,7 @@
 @import controllers.AddAdditionalMetadataController.{ControllerInfo, PageInfo}
 @import controllers.util._
 @import helper.{inputRadioGroup => _, _}
-@import views.html.partials.{card, errorSummary, inputDate, inputDropdown, inputRadioGroup, inputText, progressIndicator, transferReference}
+@import views.html.partials.{fileNameCard, errorSummary, inputDate, inputDropdown, inputRadioGroup, inputText, progressIndicator, transferReference}
 
 @import scala.language.postfixOps
 @(pageInfo: PageInfo, controllerInfo: ControllerInfo)(implicit request: RequestHeader, messages: Messages)
@@ -12,7 +12,7 @@
       <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages(s"additionalMetadata${controllerInfo.metadataType.capitalize}.progress"))
       <h1 class="govuk-heading-l">@pageInfo.pageTitle</h1>
-      @card(controllerInfo.files.map(_.name), controllerInfo.metadataType)
+      @fileNameCard(controllerInfo.files.map(_.name), s"You are adding/editing ${controllerInfo.metadataType} metadata for the following files:")
       <p class="govuk-body">@pageInfo.pageDescription</p>
         @errorSummary(
           pageInfo.fieldsToApplyToFile.collect {
