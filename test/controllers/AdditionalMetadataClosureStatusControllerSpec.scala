@@ -258,7 +258,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       status(response) mustBe SEE_OTHER
 
       redirectLocation(response) must be(
-        Some(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=${fileIds.mkString("&")}")
+        Some(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=${fileIds.mkString("&")}")
       )
 
       case class GraphqlRequestData(query: String, variables: abfm.Variables)
@@ -315,7 +315,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         |                                    Has this closure been approved by the Advisory Council?
         |                                </h2>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
     ) mustBe true
-    val href = s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}/?fileIds=${fileIds.mkString("&")}"
+    val href = s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}?fileIds=${fileIds.mkString("&")}"
     page.contains(s"""<form action="$href" method="POST" novalidate="">""") mustBe true
     page.contains(
       "<input" + (if (isChecked) "checked" else "") +
@@ -355,11 +355,11 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         |                            </ul>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
     )
 
-    val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure/"
+    val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure"
     val continueButton = (if (isChecked) {
                             s"""<a class="govuk-button" href="/consignment/$consignmentId/additional-metadata/add/${metadataType(
                                 0
-                              )}/?propertyNameAndFieldSelected=ClosureType-Closed"""
+                              )}?propertyNameAndFieldSelected=ClosureType-Closed"""
                           } else {
                             s"""<div class="govuk-button-group">
          |                        <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
