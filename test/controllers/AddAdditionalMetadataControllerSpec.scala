@@ -2,15 +2,11 @@ package controllers
 
 import akka.Done
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
-import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
-import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import graphql.codegen.types.UpdateBulkFileMetadataInput
 import io.circe.Printer
 import io.circe.generic.auto._
@@ -27,8 +23,8 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
 import services.{ConsignmentService, CustomMetadataService}
-import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
 import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions}
+import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.util.UUID
@@ -414,12 +410,12 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           val redirectLocation = addAdditionalMetadataPage.header.headers.getOrElse("Location", "")
 
           addAdditionalMetadataPage.header.status should equal(303)
-          redirectLocation.contains(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/dependencies/") should equal(true)
+          redirectLocation must include(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/dependencies/")
           propertyNamesThatHaveDeps.foreach { propertyNameWhereUserDoesHaveToFillInDeps =>
-            redirectLocation.contains(s"dependees=$propertyNameWhereUserDoesHaveToFillInDeps-True") should equal(true)
+            redirectLocation must include(s"dependees=$propertyNameWhereUserDoesHaveToFillInDeps-True")
           }
           propertyNamesWhereUserDoesNotHaveToFillInDeps.foreach { propertyNameWhereUserDoesNotHaveToFillInDeps =>
-            redirectLocation.contains(s"$propertyNameWhereUserDoesNotHaveToFillInDeps-True") should equal(false)
+            redirectLocation must not include (s"$propertyNameWhereUserDoesNotHaveToFillInDeps-True")
           }
         }
     }
@@ -463,10 +459,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val redirectLocation = addAdditionalMetadataPage.header.headers.getOrElse("Location", "")
 
       addAdditionalMetadataPage.header.status should equal(303)
-      redirectLocation.contains(s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}") should equal(true)
+      redirectLocation must include(s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}")
 
       propertyNamesWhereUserDoesNotHaveToFillInDeps.foreach { propertyNameWhereUserDoesNotHaveToFillInDeps =>
-        redirectLocation.contains(s"$propertyNameWhereUserDoesNotHaveToFillInDeps-True") should equal(false)
+        redirectLocation must not include (s"$propertyNameWhereUserDoesNotHaveToFillInDeps-True")
       }
     }
   }

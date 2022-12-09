@@ -299,25 +299,25 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     val page = closureStatusPage.replaceAll(twoOrMoreSpaces, "")
     checkPageForStaticElements.checkContentOfPagesThatUseMainScala(closureStatusPage, userType = "standard")
     if (isErrorOnThePage) {
-      page.contains("<div class=\"govuk-form-group govuk-form-group--error\">") mustBe true
-      page.contains(
+      page must include("<div class=\"govuk-form-group govuk-form-group--error\">")
+      page must include(
         """<p class="govuk-error-message" id="error-closure">
           |        <span class="govuk-visually-hidden">Error:</span>
           |        You must confirm this closure has been approved before continuing.
           |    </p>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
-      ) mustBe true
+      )
     }
 
-    page.contains("Confirm the closure status of your record") mustBe true
-    page.contains("<p class=\"govuk-body\">You are updating the status for the selected file 'original/file/path'</p>") mustBe true
-    page.contains(
+    page must include("Confirm the closure status of your record")
+    page must include("<p class=\"govuk-body\">You are updating the status for the selected file 'original/file/path'</p>")
+    page must include(
       """<h2 class="govuk-fieldset__heading">
         |                                    Has this closure been approved by the Advisory Council?
         |                                </h2>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
-    ) mustBe true
+    )
     val href = s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}/?fileIds=${fileIds.mkString("&")}"
-    page.contains(s"""<form action="$href" method="POST" novalidate="">""") mustBe true
-    page.contains(
+    page must include(s"""<form action="$href" method="POST" novalidate="">""")
+    page must include(
       "<input" + (if (isChecked) "checked" else "") +
         s"""                class="govuk-checkboxes__input"
           |                id="closureStatus"
@@ -328,7 +328,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
           |            <label class="govuk-label govuk-checkboxes__label" for="closureStatus">
           |                Yes, I confirm
           |            </label>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
-    ) mustBe true
+    )
 
     page must include(
       """<span class="govuk-details__summary-text">
@@ -369,6 +369,6 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
          |                    </div>
          |"""
                           }).stripMargin.replaceAll(twoOrMoreSpaces, "").replaceAll("\n", "")
-    page.contains(continueButton) mustBe true
+    page must include(continueButton)
   }
 }
