@@ -69,31 +69,31 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       contentType(response) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(closureMetadataSummaryPage, userType = "standard")
-      closureMetadataSummaryPage.contains(
+      closureMetadataSummaryPage must include(
         """        <h1 class="govuk-heading-xl">
           |          Review closure metadata changes
           |        </h1>""".stripMargin
-      ) mustBe true
-      closureMetadataSummaryPage.contains(
+      )
+      closureMetadataSummaryPage must include(
         """        <p class="govuk-body">You can edit, remove or save closure metadata here.</p>""".stripMargin
-      ) mustBe true
+      )
       val href =
         s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=$mockMetadataTypeAndValueString&amp;fileIds=${fileIds.mkString("&amp;")}"
-      closureMetadataSummaryPage.contains(
+      closureMetadataSummaryPage must include(
         s"""          <a href="$href" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
           |            Edit metadata
           |          </a>""".stripMargin
-      ) mustBe true
+      )
       val deleteMetadataButtonHref =
         s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}?" +
           s"fileIds=${fileIds.mkString(" & amp; ")}&amp;metadataTypeAndValueSelected=$mockMetadataTypeAndValueString"
-      closureMetadataSummaryPage.contains(
+      closureMetadataSummaryPage must include(
         s"""          <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--warning">
           |            Delete metadata
           |          </a>""".stripMargin
-      ) mustBe true
+      )
       List(("Is the title closed?", "Yes"), ("Closure Period", "4 years"), ("Closure Start Date", "01/12/1990")).foreach { field =>
-        closureMetadataSummaryPage.contains(
+        closureMetadataSummaryPage must include(
           s"""
              |            <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
              |              <dt class="govuk-summary-list__key">
@@ -104,7 +104,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
              |              </dd>
              |            </div>
              |""".stripMargin
-        ) mustBe true
+        )
       }
       closureMetadataSummaryPage must include(
         """            <dt class="govuk-summary-list__key">
