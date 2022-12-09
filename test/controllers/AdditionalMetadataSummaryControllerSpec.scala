@@ -49,6 +49,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val fileMetadata = List(
         GetConsignment.Files.FileMetadata("TitleClosed", "true"),
         GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
+        GetConsignment.Files.FileMetadata("FoiExemptionCode", "1"),
+        GetConsignment.Files.FileMetadata("FoiExemptionCode", "2"),
         GetConsignment.Files.FileMetadata("ClosureStartDate", Timestamp.valueOf(closureStartDate).toString)
       )
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -113,6 +115,14 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           |............
           |              <dd class="govuk-summary-list__value">
           |                FileName
+          |              </dd>""".stripMargin.replaceAll("\\.", " ")
+      )
+      closureMetadataSummaryPage must include(
+        """             <dt class="govuk-summary-list__key">
+          |              Foi Exemption Code
+          |              </dt>
+          |              <dd class="govuk-summary-list__value">
+          |              1,2
           |              </dd>""".stripMargin.replaceAll("\\.", " ")
       )
       closureMetadataSummaryPage must include(
