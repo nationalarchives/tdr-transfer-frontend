@@ -102,7 +102,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard", isNotAMetadataPage = false)
       checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
     }
@@ -157,7 +157,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       addAdditionalMetadataPageAsString must include(
         "<h3>original/file/path</h3>"
       )
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard", isNotAMetadataPage = false)
       checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
     }
@@ -223,7 +223,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard", isNotAMetadataPage = false)
       checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, formSubmission.toMap, formStatus = "PartiallySubmitted")
     }
@@ -259,7 +259,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard", isNotAMetadataPage = false)
       checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, formSubmission.toMap, formStatus = "PartiallySubmitted")
     }
@@ -296,7 +296,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard", isNotAMetadataPage = false)
       checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, formSubmission.toMap, formStatus = "PartiallySubmitted")
     }
@@ -507,7 +507,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           playStatus(addAdditionalMetadataPage) mustBe OK
           contentType(addAdditionalMetadataPage) mustBe Some("text/html")
 
-          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard", isNotAMetadataPage = false)
           checkForExpectedAdditionalMetadataDependenciesFormPageContent(addAdditionalMetadataPageAsString, fullNameAndName)
           formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDependencyDefaultForm.toMap)
         }
@@ -543,7 +543,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           playStatus(addAdditionalMetadataPage) mustBe OK
           contentType(addAdditionalMetadataPage) mustBe Some("text/html")
 
-          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard", isNotAMetadataPage = false)
           checkForExpectedAdditionalMetadataDependenciesFormPageContent(addAdditionalMetadataPageAsString, fullNameAndName)
           formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDependencyDefaultForm.toMap)
         }
@@ -611,7 +611,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           playStatus(addAdditionalMetadataPage) mustBe OK
           contentType(addAdditionalMetadataPage) mustBe Some("text/html")
 
-          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard", isNotAMetadataPage = false)
           checkForExpectedAdditionalMetadataDependenciesFormPageContent(addAdditionalMetadataPageAsString, fullNameAndName)
           formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDependencyDefaultForm.toMap, formStatus = "PartiallySubmitted")
         }
@@ -648,7 +648,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           playStatus(addAdditionalMetadataPage) mustBe OK
           contentType(addAdditionalMetadataPage) mustBe Some("text/html")
 
-          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard", isNotAMetadataPage = false)
           checkForExpectedAdditionalMetadataDependenciesFormPageContent(addAdditionalMetadataPageAsString, fullNameAndName)
           dependencyFormTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, incompleteDependencyForm, formStatus = "PartiallySubmitted")
         }
@@ -709,8 +709,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   private def checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsFormattedString: String): Unit = {
     val addAdditionalMetadataPageAsString = addAdditionalMetadataPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
     val closureMetadataHtmlElements = Set(
-      """      <title>Add closure metadata to files</title>""",
-      """      <h1 class="govuk-heading-l">Add closure metadata to</h1>""",
+      """      <title>Add or edit metadata</title>""",
+      """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
       """      <p class="govuk-body">Enter metadata for closure fields here.</p>""",
       """            <h2 class="govuk-label govuk-label--m">
         |                FOI decision asserted
@@ -761,7 +761,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
     val addAdditionalMetadataDependenciesPageAsString = addAdditionalMetadataDependenciesPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
     val closureMetadataDependenciesHtmlElements = Set(
-      s"""      <title>Add an $title to files</title>""",
+      s"""      <title>Add an $title to</title>""",
       s"""      <h1 class="govuk-heading-l">Add an $title to</h1>""",
       s"""      <p class="govuk-body">Enter a publicly visible $title if, for example, $pronoun sensitive information.
                 | For guidance on how to create an $title, read our FAQs (opens in a new tab)</p>""".stripMargin

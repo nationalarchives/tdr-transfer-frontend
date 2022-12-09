@@ -13,11 +13,11 @@
 @import controllers.AddAdditionalMetadataController.{PageInfo, ControllerInfo}
 
 @(pageInfo: PageInfo, controllerInfo: ControllerInfo)(implicit request: RequestHeader, messages: Messages)
-@main(s"${pageInfo.pageTitle} files", name = pageInfo.userName) {
+@main(pageInfo.pageTitle, name = pageInfo.userName) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages(s"additionalMetadata${controllerInfo.metadataType.capitalize}.progress"))
+      <span class="govuk-caption-l">@controllerInfo.metadataType.capitalize metadata</span>
       <h1 class="govuk-heading-l">@pageInfo.pageTitle</h1>
         @for(file <- controllerInfo.files) {<h3>@file.name</h3>}
       <p class="govuk-body">@pageInfo.pageDescription</p>
@@ -97,7 +97,7 @@
           <div class="govuk-button-group">
               <!-- Continue -->
             <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-              Continue
+              Save and review changes
             </button>
             <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(controllerInfo.consignmentId, controllerInfo.metadataType)">Cancel</a>
           </div>

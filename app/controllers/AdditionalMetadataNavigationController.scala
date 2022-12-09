@@ -57,8 +57,7 @@ class AdditionalMetadataNavigationController @Inject() (
           }
         })
     } else {
-      // This is a placeholder; need to remove it once we have Descriptive metadata
-      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, List(""))))
+      Future(Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(List("Description-Description"), consignmentId, metadataType, fileIds)))
     }
   }
 

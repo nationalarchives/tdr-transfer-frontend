@@ -3,12 +3,14 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddAdditionalMetadataController._
-import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType}
+import controllers.util.MetadataProperty.clientSideOriginalFilepath
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
+import graphql.codegen.types.DataType.Text
+import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import graphql.codegen.types.{FileFilters, UpdateFileMetadataInput}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
@@ -34,12 +36,45 @@ class AddAdditionalMetadataController @Inject() (
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
-  private val mainFormPageTitle = "Add %s metadata to"
+  private val mainFormPageTitle = "Add or edit metadata"
   private val mainFormPageDescription = "Enter metadata for %s fields here."
   private val dependencyFormPageTitle = "Add %s to"
   private val dependencyFormPageDescription =
     s"""Enter a publicly visible %s if, for example, %s sensitive information.
        | For guidance on how to create %s, read our FAQs (opens in a new tab)""".stripMargin
+
+  private val tempDescriptiveCustomMetadata = List(
+    CustomMetadata(
+      "description",
+      Some("This description will be visible on Discovery and help explain the content of your file(s)."),
+      Some("Description"),
+      Supplied,
+      Some("OptionalMetadata"),
+      Text,
+      editable = true,
+      multiValue = false,
+      None,
+      2147483647,
+      Nil,
+      Some(80),
+      allowExport = true
+    ),
+    CustomMetadata(
+      "Language",
+      Some("Choose one or more languages used in this record."),
+      Some("Language"),
+      Defined,
+      Some("OptionalMetadata"),
+      Text,
+      editable = true,
+      multiValue = true,
+      Some("English"),
+      2147483647,
+      List(Values("English", Nil, 2147483647), Values("Welsh", Nil, 2147483647)),
+      Some(95),
+      allowExport = true
+    )
+  )
 
   def addAdditionalMetadata(propertyNameAndFieldSelected: List[String], consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
@@ -55,7 +90,7 @@ class AddAdditionalMetadataController @Inject() (
           fileIds
         )
       } yield {
-        val updatedPageInfo = pageInfo.copy(pageTitle = mainFormPageTitle.format(metadataType), pageDescription = mainFormPageDescription.format(metadataType))
+        val updatedPageInfo = pageInfo.copy(pageDescription = mainFormPageDescription.format(metadataType))
         Ok(views.html.standard.addAdditionalMetadata(updatedPageInfo, controllerInfo))
       }
     }
@@ -76,7 +111,7 @@ class AddAdditionalMetadataController @Inject() (
               val fieldNames: List[String] = validatedFields.map(_.fieldName)
               getDependenciesPageTitle(fieldNames)
             } else {
-              (mainFormPageTitle.format(metadataType), mainFormPageDescription.format(metadataType))
+              (mainFormPageTitle, mainFormPageDescription.format(metadataType))
             }
 
           getInfoForAddAdditionalMetadataPage(consignmentId, request, metadataType, isMainForm, fieldsAndValuesSelectedOnPrevPage, validatedFields, fileIds).map {
@@ -219,7 +254,7 @@ class AddAdditionalMetadataController @Inject() (
     } yield {
       val files: List[File] = getFilesFromConsignment(consignment.files)
       // Call to details.parentFolderId.get should be temporary. User shouldn't see this page if the parent ID is empty.
-      val pageInfo = PageInfo(request.token.name, consignment.consignmentReference, "", "", updatedFieldsForForm)
+      val pageInfo = PageInfo(request.token.name, consignment.consignmentReference, mainFormPageTitle, "", updatedFieldsForForm)
       val controllerInfo = ControllerInfo(metadataType, isMainForm, fieldsAndValuesSelectedOnPrevPage, consignmentId, files)
       (pageInfo, controllerInfo)
     }
@@ -240,19 +275,30 @@ class AddAdditionalMetadataController @Inject() (
       consignmentId: UUID,
       request: Request[AnyContent]
   ): Future[FormData] = {
-    for {
-      customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
-      customMetadataUtils = new CustomMetadataUtils(customMetadata)
+    val pageType: String = if (isMainForm) s"Main-$metadataType" else s"Dependency-$metadataType"
+    if (metadataType == "closure") {
+      for {
+        customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
+        customMetadataUtils = new CustomMetadataUtils(customMetadata)
 
-      dependencyProperties: Set[CustomMetadata] = staticMetadata.flatMap { propertyNameAndValue =>
-        getDependenciesFromValue(customMetadataUtils, Set(propertyNameAndValue.name), Some(propertyNameAndValue.value))
+        dependencyProperties: Set[CustomMetadata] = staticMetadata.flatMap { propertyNameAndValue =>
+          getDependenciesFromValue(customMetadataUtils, Set(propertyNameAndValue.name), Some(propertyNameAndValue.value))
+        }
+        formFields: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
+      } yield {
+
+        val defaultFormData = FormData(dependencyProperties, formFields)
+        cache.set(s"$pageType-propertiesAndFieldValues", defaultFormData, 1.hour)
+        defaultFormData
       }
-      formFields = customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
-    } yield {
-      val pageType: String = if (isMainForm) s"Main-$metadataType" else s"Dependency-$metadataType"
+    } else {
+      // Temporarily used hard-coded values until we get the UI table ready
+      val customMetadataUtils = new CustomMetadataUtils(tempDescriptiveCustomMetadata)
+      val dependencyProperties: Set[CustomMetadata] = tempDescriptiveCustomMetadata.toSet
+      val formFields: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
       val defaultFormData = FormData(dependencyProperties, formFields)
       cache.set(s"$pageType-propertiesAndFieldValues", defaultFormData, 1.hour)
-      defaultFormData
+      Future.successful(defaultFormData)
     }
   }
 
@@ -339,6 +385,7 @@ class AddAdditionalMetadataController @Inject() (
     }
     propertyAndValueSelected
   }
+
 }
 
 object AddAdditionalMetadataController {

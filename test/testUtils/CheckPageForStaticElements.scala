@@ -9,7 +9,8 @@ class CheckPageForStaticElements() {
       userType: String,
       consignmentExists: Boolean = true,
       transferStillInProgress: Boolean = true,
-      pageRequiresAwsServices: Boolean = false
+      pageRequiresAwsServices: Boolean = false,
+      isNotAMetadataPage: Boolean = true
   ): Unit = {
     page must include("""
     |    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,7 +30,7 @@ class CheckPageForStaticElements() {
     page must include(", except where otherwise stated")
     page must include("© Crown copyright")
     if (signedIn) {
-      checkContentOfSignedInPagesThatUseMainScala(page, userType, consignmentExists, transferStillInProgress, pageRequiresAwsServices)
+      checkContentOfSignedInPagesThatUseMainScala(page, userType, consignmentExists, transferStillInProgress, pageRequiresAwsServices, isNotAMetadataPage)
     }
   }
 
@@ -39,7 +40,8 @@ class CheckPageForStaticElements() {
       userType: String,
       consignmentExists: Boolean,
       transferStillInProgress: Boolean,
-      pageRequiresAwsServices: Boolean
+      pageRequiresAwsServices: Boolean,
+      isNotAMetadataPage: Boolean
   ) = {
     page must include(
       """<a href="/sign-out" class="govuk-header__link">
@@ -64,7 +66,7 @@ class CheckPageForStaticElements() {
       if (consignmentExists) {
         page must include("TEST-TDR-2021-GB")
 
-        if (transferStillInProgress) {
+        if (transferStillInProgress && isNotAMetadataPage) {
           page must include("""<span class="govuk-caption-l">progressIndicator.step</span>""")
           page must include("Transfer reference")
         }
@@ -76,7 +78,7 @@ class CheckPageForStaticElements() {
       if (consignmentExists) {
         page must include("TEST-TDR-2021-GB")
 
-        if (transferStillInProgress) {
+        if (transferStillInProgress && isNotAMetadataPage) {
           page must include("""<span class="govuk-caption-l">progressIndicator.step</span>""")
           page must include("Consignment reference")
         }
