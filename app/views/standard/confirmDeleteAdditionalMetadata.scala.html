@@ -1,5 +1,6 @@
-@import java.util.UUID
+@import views.html.partials.{fileNameCard, warningMessage}
 
+@import java.util.UUID
 @(consignmentId: UUID, metadataType: String, fileIds: List[UUID], fileNames: List[String], name: String, metadataTypeAndValueSelected: List[String])(implicit messages: Messages, request: RequestHeader)
     @main(title = "Delete closure metadata", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
@@ -9,13 +10,8 @@
                     <h1 class="govuk-heading-xl">
                         Delete closure metadata
                     </h1>
-                    <div class="govuk-warning-text">
-                        <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
-                        <strong class="govuk-warning-text__text">
-                            <span class="govuk-warning-text__assistive">Warning</span>
-                            If you proceed, closure metadata for file '@{fileNames.mkString(", ")}' will be removed.
-                        </strong>
-                    </div>
+                    @fileNameCard(fileNames, "You are deleting closure metadata for the following files and setting them as open:")
+                    @warningMessage("Once deleted closure metadata cannot be recovered.")
                     <p class="govuk-body">Are you sure you would like to proceed?</p>
 
                     <div class="govuk-button-group">
