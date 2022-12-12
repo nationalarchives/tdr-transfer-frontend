@@ -69,15 +69,18 @@ class AdditionalMetadataSummaryController @Inject() (
       (metaDataName, metaDataValue) <- groupedMetadata
       customMetadata <- customMetadata.find(_.name == metaDataName)
     } yield {
-      FileMetadata(
-        customMetadata.fullName.getOrElse(metaDataName),
-        customMetadata.dataType match {
-          case DateTime => formatter.format(Timestamp.valueOf(metaDataValue))
-          case Boolean => toStringYesNo(metaDataValue.toBoolean).capitalize
-          case _ => metaDataValue + (if (customMetadata.name == closurePeriod) " years" else "")
-        }
+      (
+        FileMetadata(
+          customMetadata.fullName.getOrElse(metaDataName),
+          customMetadata.dataType match {
+            case DateTime => formatter.format(Timestamp.valueOf(metaDataValue))
+            case Boolean  => toStringYesNo(metaDataValue.toBoolean).capitalize
+            case _        => metaDataValue + (if (customMetadata.name == closurePeriod) " years" else "")
+          }
+        ),
+        customMetadata.uiOrdinal
       )
-    }).toList
+    }).toList.sortBy(_._2).map(_._1)
   }
 }
 
