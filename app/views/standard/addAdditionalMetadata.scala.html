@@ -1,17 +1,10 @@
 @* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@import controllers.AddAdditionalMetadataController.{ControllerInfo, PageInfo}
+@import controllers.util._
 @import helper.{inputRadioGroup => _, _}
+@import views.html.partials.{fileNameCard, errorSummary, inputDate, inputDropdown, inputRadioGroup, inputText, progressIndicator, transferReference}
 
 @import scala.language.postfixOps
-@import views.html.partials.{inputDate, inputText, errorSummary, progressIndicator}
-
-@import views.html.partials.transferReference
-@import views.html.partials.inputRadioGroup
-
-@import controllers.util._
-@import views.html.partials.inputDropdown
-
-@import controllers.AddAdditionalMetadataController.{PageInfo, ControllerInfo}
-
 @(pageInfo: PageInfo, controllerInfo: ControllerInfo)(implicit request: RequestHeader, messages: Messages)
 @main(s"${pageInfo.pageTitle} files", name = pageInfo.userName) {
   @defining(play.core.PlayVersion.current) { version =>
@@ -19,7 +12,7 @@
       <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages(s"additionalMetadata${controllerInfo.metadataType.capitalize}.progress"))
       <h1 class="govuk-heading-l">@pageInfo.pageTitle</h1>
-        @for(file <- controllerInfo.files) {<h3>@file.name</h3>}
+      @fileNameCard(controllerInfo.files.map(_.name), s"You are adding/editing ${controllerInfo.metadataType} metadata for the following files:")
       <p class="govuk-body">@pageInfo.pageDescription</p>
         @errorSummary(
           pageInfo.fieldsToApplyToFile.collect {
