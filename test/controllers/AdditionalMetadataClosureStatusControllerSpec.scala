@@ -309,7 +309,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     }
 
     page.contains("Confirm the closure status of your record") mustBe true
-    page.contains("<p class=\"govuk-body\">You are updating the status for the selected file 'original/file/path'</p>") mustBe true
+    page.contains("<p class=\"govuk-body govuk-!-margin-bottom-2 govuk-!-font-weight-bold\">You are adding closure to the following files:</p>") mustBe true
     page.contains(
       """<h2 class="govuk-fieldset__heading">
         |                                    Has this closure been approved by the Advisory Council?

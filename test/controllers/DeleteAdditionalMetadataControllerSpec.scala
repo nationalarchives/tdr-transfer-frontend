@@ -64,7 +64,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           |                        Delete closure metadata
           |                    </h1>""".stripMargin
       ) mustBe true
-      deleteMetadataPage.contains("If you proceed, closure metadata for file 'original/file/path' will be removed.") mustBe true
+      deleteMetadataPage.contains("You are deleting closure metadata for the following files and setting them as open:") mustBe true
+      deleteMetadataPage.contains("Once deleted closure metadata cannot be recovered.") mustBe true
       deleteMetadataPage.contains("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>") mustBe true
 
       val deleteButtonHref =
