@@ -63,7 +63,7 @@ class CheckPageForStaticElements() {
       page must include("Judgment Username")
       page must include("""href="/judgment/faq">""")
       page must include("""href="/judgment/help">""")
-      if (consignmentExists) {
+      if (consignmentExists && isNotAMetadataPage) {
         page must include("TEST-TDR-2021-GB")
 
         if (transferStillInProgress && isNotAMetadataPage) {
@@ -75,7 +75,7 @@ class CheckPageForStaticElements() {
       page must include("Standard Username")
       page must include("""href="/faq">""")
       page must include("""href="/help">""")
-      if (consignmentExists) {
+      if (consignmentExists && isNotAMetadataPage) {
         page must include("TEST-TDR-2021-GB")
 
         if (transferStillInProgress && isNotAMetadataPage) {

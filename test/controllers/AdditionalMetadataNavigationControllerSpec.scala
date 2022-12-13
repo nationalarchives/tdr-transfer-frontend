@@ -51,6 +51,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
           val content = contentAsString(result)
 
+          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(content, userType = "standard", isNotAMetadataPage = false)
           content.contains(s"Add or edit $metadataType metadata on file basis") must be(true)
           content.contains(s"Folder uploaded: ${parentFile.fileName.get}") must be(true)
           content.contains("Select at least one file or folder") must be(false)
@@ -75,8 +76,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             .getAllFiles(consignmentId, metadataType)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
 
-          val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
+          val content = contentAsString(result)
 
+          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(content, userType = "standard", isNotAMetadataPage = false)
           content.contains(getExpectedCheckboxHtml(parentId, "parent")) must equal(true)
           content.contains(getExpectedCheckboxHtml(descendantOneFileId, "descendantOneFile")) must equal(true)
           content.contains(getExpectedCheckboxHtml(descendantTwoFileId, "descendantTwoFile")) must equal(true)
@@ -184,6 +186,8 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             |      </div>
             |    </div>""".stripMargin
         ) must be(true)
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(content, userType = "standard", isNotAMetadataPage = false)
       }
 
       "return forbidden for a judgment user" in {
@@ -210,11 +214,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
   private def getExpectedCheckboxHtml(id: UUID, label: String): String = {
     s"""
-        |<input class="govuk-checkboxes__input" name="$id" id="checkbox-$id" tabindex="-1" type="checkbox"/>
-        |        <label class="govuk-label govuk-checkboxes__label" for="checkbox-$id">
-        |        $label
-        |        </label>
-        |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
+       |        <input class="govuk-checkboxes__input" name="$id" id="checkbox-$id" tabindex="-1" type="checkbox" />
+       |        <label class="govuk-label govuk-checkboxes__label" for="checkbox-$id">
+       |          $label
+       |        </label>
+       |""".stripMargin
   }
 
   private def getExpectedClosureHtml(htmlContent: String): Assertion = {
