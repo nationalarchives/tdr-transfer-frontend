@@ -26,7 +26,7 @@ class AdditionalMetadataSummaryController @Inject() (
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID], metadataTypeAndValueSelected: List[String]): Action[AnyContent] =
+  def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       val fileMetadataFilters = metadataType match {
         case "closure"     => FileMetadataFilters(Some(true), None)
@@ -50,8 +50,7 @@ class AdditionalMetadataSummaryController @Inject() (
                     filePaths,
                     consignment.consignmentReference,
                     request.token.name,
-                    getMetadataForView(first.fileMetadata, customMetadata),
-                    metadataTypeAndValueSelected
+                    getMetadataForView(first.fileMetadata, customMetadata)
                   )
               )
             )
@@ -64,7 +63,7 @@ class AdditionalMetadataSummaryController @Inject() (
 
     val formatter = new SimpleDateFormat("dd/MM/yyyy")
 
-    metaData.map(metaData =>
+    metaData.filter(_.value.nonEmpty).map(metaData =>
       customMetadata
         .find(_.name == metaData.name)
         .map(customMetadata =>
