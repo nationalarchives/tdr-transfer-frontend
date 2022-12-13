@@ -49,6 +49,8 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val fileMetadata = List(
         GetConsignment.Files.FileMetadata("TitleClosed", "true"),
         GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
+        GetConsignment.Files.FileMetadata("FoiExemptionCode", "1"),
+        GetConsignment.Files.FileMetadata("FoiExemptionCode", "2"),
         GetConsignment.Files.FileMetadata("ClosureStartDate", Timestamp.valueOf(closureStartDate).toString)
       )
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -78,7 +80,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         """        <p class="govuk-body">You can edit, remove or save closure metadata here.</p>""".stripMargin
       ) mustBe true
       val href =
-        s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=$mockMetadataTypeAndValueString&amp;fileIds=${fileIds.mkString("&amp;")}"
+        s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}?propertyNameAndFieldSelected=$mockMetadataTypeAndValueString&amp;fileIds=${fileIds.mkString("&amp;")}"
       closureMetadataSummaryPage.contains(
         s"""          <a href="$href" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
           |            Edit metadata
@@ -116,7 +118,15 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           |              </dd>""".stripMargin.replaceAll("\\.", " ")
       )
       closureMetadataSummaryPage must include(
-        s"""        <a href="/consignment/$consignmentId/additional-metadata/files/closure/" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        """             <dt class="govuk-summary-list__key">
+          |              Foi Exemption Code
+          |              </dt>
+          |              <dd class="govuk-summary-list__value">
+          |              1,2
+          |              </dd>""".stripMargin.replaceAll("\\.", " ")
+      )
+      closureMetadataSummaryPage must include(
+        s"""        <a href="/consignment/$consignmentId/additional-metadata/files/closure" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
         |          Save and return to all files
         |        </a>""".stripMargin
       )
