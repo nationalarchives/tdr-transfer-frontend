@@ -117,7 +117,16 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         ),
         TextField("fieldidcontainsdaymonthoryear", "", "", multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true),
         DropdownField("fieldidendswithday", "", "", multiValue = true, Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, isRequired = true),
-        RadioButtonGroupField("fieldidendswithmonth", "", "", "", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", isRequired = true),
+        RadioButtonGroupField(
+          "fieldidendswithmonth",
+          "",
+          "",
+          "",
+          multiValue = false,
+          Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")),
+          "yes",
+          isRequired = true
+        ),
         TextField("fieldidendswithyear", "", "", multiValue = false, InputNameAndValue("text", ""), "text", isRequired = true)
       )
 
@@ -196,7 +205,6 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val dateField = validatedForm.find(_.isInstanceOf[RadioButtonGroupField]).get
     dateField.fieldErrors.isEmpty should be(true)
   }
-
 
   "validateAndConvertSubmittedValuesToFormFields" should "not return an error if the value is present for the dependency" in {
     val mockFormValues = MockFormValues(radioValue = List("yes"))
@@ -305,7 +313,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         numericTextBoxValue = List("       5"),
         day2 = List("   7   "),
         radioValue = List("no")
-    )
+      )
       val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
         mockFormValues
       )
