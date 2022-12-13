@@ -2,7 +2,7 @@ package controllers
 
 import akka.Done
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
@@ -151,7 +151,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
       addAdditionalMetadataPageAsString must include(
-        "<h3>original/file/path</h3>"
+        "<li>original/file/path</li>"
       )
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
@@ -410,7 +410,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           val redirectLocation = addAdditionalMetadataPage.header.headers.getOrElse("Location", "")
 
           addAdditionalMetadataPage.header.status should equal(303)
-          redirectLocation must include(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/dependencies/")
+          redirectLocation must include(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/dependencies")
           propertyNamesThatHaveDeps.foreach { propertyNameWhereUserDoesHaveToFillInDeps =>
             redirectLocation must include(s"dependees=$propertyNameWhereUserDoesHaveToFillInDeps-True")
           }

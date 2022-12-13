@@ -64,8 +64,9 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           |                        Delete closure metadata
           |                    </h1>""".stripMargin
       )
-      deleteMetadataPage must include("If you proceed, closure metadata for file 'original/file/path' will be removed.")
-      deleteMetadataPage must include("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>")
+      deleteMetadataPage must include("You are deleting closure metadata for the following files and setting them as open:") mustBe true
+      deleteMetadataPage must include("Once deleted closure metadata cannot be recovered.") mustBe true
+      deleteMetadataPage must include("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>") mustBe true
 
       val deleteButtonHref =
         s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}?fileIds=${fileIds.mkString("&amp;")}&amp;metadataTypeAndValueSelected=$mockMetadataTypeAndValueString"
@@ -203,7 +204,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe SEE_OTHER
 
-      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/closure/"))
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/closure"))
     }
 
     "return an error if the fileIds are empty" in {
