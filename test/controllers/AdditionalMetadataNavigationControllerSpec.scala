@@ -157,7 +157,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           )
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(
-          s"/consignment/$consignmentId/additional-metadata/add/descriptive/?propertyNameAndFieldSelected=Description-Description&fileIds=$fileId"
+          s"/consignment/$consignmentId/additional-metadata/add/descriptive?propertyNameAndFieldSelected=Description-Description&fileIds=$fileId"
         )
       }
 
