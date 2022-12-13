@@ -24,6 +24,7 @@ import services.{ConsignmentService, CustomMetadataService}
 import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions}
 import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
+import org.scalatest.concurrent.ScalaFutures._
 
 import java.util.UUID
 import scala.concurrent.duration.Duration
