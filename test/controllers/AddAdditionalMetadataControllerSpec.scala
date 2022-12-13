@@ -155,7 +155,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
       addAdditionalMetadataPageAsString must include(
-        "<h3>original/file/path</h3>"
+        "<li>original/file/path</li>"
       )
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
@@ -414,7 +414,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           val redirectLocation = addAdditionalMetadataPage.header.headers.getOrElse("Location", "")
 
           addAdditionalMetadataPage.header.status should equal(303)
-          redirectLocation.contains(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/dependencies/") should equal(true)
+          redirectLocation.contains(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/dependencies") should equal(true)
           propertyNamesThatHaveDeps.foreach { propertyNameWhereUserDoesHaveToFillInDeps =>
             redirectLocation.contains(s"dependees=$propertyNameWhereUserDoesHaveToFillInDeps-True") should equal(true)
           }

@@ -1,77 +1,15 @@
-/* ==========================================================================
-   COMPONENTS / CARD
-   ========================================================================== */
 .tdr-card {
-  background: #fff;
-  border: 1px solid #d8dde0;
-  margin-bottom: 40px;
-  position: relative;
-  width: 100%;
+  @include govuk-responsive-padding(5);
+  @include govuk-responsive-padding(6, 'right');
+  @include govuk-responsive-padding(6, 'left');
+  @include govuk-responsive-margin(6, 'bottom');
+  border: 1px solid $govuk-border-colour;
 }
 
-@media (min-width: 40.0625em) {
-  .tdr-card {
-    margin-bottom: 48px;
-  }
-}
-
-/* CLICKABLE CARD
-  ========================================================================== */
-.tdr-card--clickable {
-  border-bottom-width: 4px;
-}
-
-.tdr-card--clickable:hover,
-.tdr-card--clickable:active {
-  cursor: pointer;
-}
-
-.tdr-card--clickable:hover {
-  border-color: #aeb7bd;
-}
-
-.tdr-card--clickable:active {
-  border-color: #aeb7bd;
-  bottom: -1px;
-}
-
-/* CARD CONTENT
-  ========================================================================== */
 .tdr-card__content {
-  padding: 24px;
   position: relative;
 }
 
-.tdr-card__link {
-  text-decoration: none;
-}
-
-.tdr-card__link:hover {
-  color: #7c2855;
-}
-
-.tdr-card__description {
-  color: initial;
-  font-size: 1.1875rem;
-  line-height: 1.5;
-  margin-bottom: 3px;
-}
-
-/* CARD HEADING
-  ========================================================================== */
-.tdr-card__heading {
-  text-decoration: underline;
-}
-
-.tdr-card__heading:hover {
-  text-decoration: none;
-}
-
-.tdr-heading-m {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 600;
-  line-height: 1.4;
-  margin-bottom: 16px;
-  margin-top: 0;
+.tdr-metadata-card__content > *:last-child {
+  margin: 0;
 }
