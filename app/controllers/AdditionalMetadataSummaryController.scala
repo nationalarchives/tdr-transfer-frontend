@@ -62,24 +62,24 @@ class AdditionalMetadataSummaryController @Inject() (
   private def getMetadataForView(metaData: List[GetConsignment.Files.FileMetadata], customMetadata: List[CustomMetadata]): List[FileMetadata] = {
 
     val formatter = new SimpleDateFormat("dd/MM/yyyy")
+    val groupedMetadata = metaData.filter(_.value.nonEmpty).groupBy(_.name).view.mapValues(_.map(_.value).mkString(",")).toMap
 
-    metaData
-      .filter(_.value.nonEmpty)
-      .map(metaData =>
-        customMetadata
-          .find(_.name == metaData.name)
-          .map(customMetadata =>
-            FileMetadata(
-              customMetadata.fullName.getOrElse(metaData.name),
-              customMetadata.dataType match {
-                case DateTime => formatter.format(Timestamp.valueOf(metaData.value))
-                case Boolean  => toStringYesNo(metaData.value.toBoolean).capitalize
-                case _        => metaData.value + (if (customMetadata.name == closurePeriod) " years" else "")
-              }
-            )
-          )
-          .getOrElse(metaData)
+    (for {
+      (metaDataName, metaDataValue) <- groupedMetadata
+      customMetadata <- customMetadata.find(_.name == metaDataName)
+    } yield {
+      (
+        FileMetadata(
+          customMetadata.fullName.getOrElse(metaDataName),
+          customMetadata.dataType match {
+            case DateTime => formatter.format(Timestamp.valueOf(metaDataValue))
+            case Boolean  => toStringYesNo(metaDataValue.toBoolean).capitalize
+            case _        => metaDataValue + (if (customMetadata.name == closurePeriod) " years" else "")
+          }
+        ),
+        customMetadata.uiOrdinal
       )
+    }).toList.sortBy(_._2).map(_._1)
   }
 }
 
