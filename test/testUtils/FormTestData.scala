@@ -84,14 +84,32 @@ class FormTestData() {
       defaultValue = None,
       5,
       List(
-        Values("yes", List(Dependencies("TestProperty2")), 1),
-        Values("no", Nil, 2)
+        Values("True", List(Dependencies("TestProperty2")), 1),
+        Values("False", Nil, 2)
       ),
       None,
       allowExport = false
     )
+    val dependency = CustomMetadata(
+      "TestProperty2",
+      Some("A TestProperty2 "),
+      Some("TestProperty2"),
+      Supplied,
+      Some("MandatoryMetadata"),
+      Text,
+      editable = true,
+      multiValue = false,
+      defaultValue = None,
+      5,
+      Nil,
+      None,
+      allowExport = false
+    )
 
-    List(foiExemptionAsserted, closureStartDate, closurePeriod, dropdown, radio)
+    List(foiExemptionAsserted, closureStartDate, closurePeriod, dropdown, radio, dependency)
   }
   // scalastyle:on method.length
+
+
+  def dependencies(): List[String] = List("TestProperty2")
 }

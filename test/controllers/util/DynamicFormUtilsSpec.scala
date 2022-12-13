@@ -15,6 +15,8 @@ import scala.collection.immutable.ListMap
 
 class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
 
+  private val testData = new FormTestData()
+
   "formAnswersWithValidInputNames" should "returns all values passed into the request except the CSRF token" in {
     val rawFormWithCsrfToken = ListMap(
       "inputdate-testproperty3-day" -> List("3"),
@@ -115,7 +117,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         ),
         TextField("fieldidcontainsdaymonthoryear", "", "", multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true),
         DropdownField("fieldidendswithday", "", "", multiValue = true, Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, isRequired = true),
-        RadioButtonGroupField("fieldidendswithmonth", "", "", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", isRequired = true),
+        RadioButtonGroupField("fieldidendswithmonth", "", "", "", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "yes", isRequired = true),
         TextField("fieldidendswithyear", "", "", multiValue = false, InputNameAndValue("text", ""), "text", isRequired = true)
       )
 
@@ -153,7 +155,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
   }
 
   "validateAndConvertSubmittedValuesToFormFields" should "return the selection-related values and no errors for selection fields if they are present" in {
-    val mockFormValues = MockFormValues()
+    val mockFormValues = MockFormValues(radioValue = List("no"))
     val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
       mockFormValues
     )
@@ -173,6 +175,84 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     dateField.fieldErrors should equal(List(s"There was no number entered for the Day."))
   }
 
+  "validateAndConvertSubmittedValuesToFormFields" should "exclude to validate the field if it is hidden" in {
+    val dateTime = LocalDateTime.now().plusDays(1)
+    val rawFormToMakeRequestWith =
+      ListMap(
+        "inputradio-Radio" -> List("exclude") // Set value as "exclude" for the hidden field
+      )
+
+    val mockRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
+      FakeRequest
+        .apply(POST, s"/consignment/12345/additional-metadata/add")
+        .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
+
+    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadatas().find(_.name == "Radio").toList
+    val allMetadataAsFields: List[FormField] = new CustomMetadataUtils(testData.setupCustomMetadatas()).convertPropertiesToFormFields(mockProperties.toSet)
+
+    val dynamicFormUtils = new DynamicFormUtils(mockRequest, allMetadataAsFields)
+
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    val dateField = validatedForm.find(_.isInstanceOf[RadioButtonGroupField]).get
+    dateField.fieldErrors.isEmpty should be(true)
+  }
+
+
+  "validateAndConvertSubmittedValuesToFormFields" should "not return an error if the value is present for the dependency" in {
+    val mockFormValues = MockFormValues(radioValue = List("yes"))
+    val dependencyFormValue = "title"
+    val rawFormToMakeRequestWith =
+      ListMap(
+        "inputdate-FoiExemptionAsserted-day" -> mockFormValues.day,
+        "inputdate-FoiExemptionAsserted-month" -> mockFormValues.month,
+        "inputdate-FoiExemptionAsserted-year" -> mockFormValues.year,
+        "inputdate-ClosureStartDate-day" -> mockFormValues.day2,
+        "inputdate-ClosureStartDate-month" -> mockFormValues.month2,
+        "inputdate-ClosureStartDate-year" -> mockFormValues.year2,
+        "inputnumeric-ClosurePeriod" -> mockFormValues.numericTextBoxValue,
+        "inputradio-Radio" -> mockFormValues.radioValue,
+        "inputtext-Radio-TestProperty2-yes" -> List(dependencyFormValue),
+        "inputdropdown-Dropdown" -> mockFormValues.dropdownValue,
+        "csrfToken" -> mockFormValues.csrfToken
+      )
+
+    val dynamicFormUtils: DynamicFormUtils = instantiateDynamicFormsUtils(rawFormToMakeRequestWith)
+
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    validatedForm.exists(_.fieldErrors.isEmpty) should be(true)
+    verifyUpdatedFormFields(mockFormValues, validatedForm)
+
+    val radioButtonGroupField = validatedForm.find(_.fieldId == "Radio").map(_.asInstanceOf[RadioButtonGroupField]).get
+    val textDependency = radioButtonGroupField.dependencies("yes").head.asInstanceOf[TextField]
+    textDependency.nameAndValue.value should be(dependencyFormValue)
+  }
+
+  "validateAndConvertSubmittedValuesToFormFields" should "return an error if the value is missing for the dependency" in {
+    val mockFormValues = MockFormValues(radioValue = List("yes"))
+
+    val rawFormToMakeRequestWith =
+      ListMap(
+        "inputdate-FoiExemptionAsserted-day" -> mockFormValues.day,
+        "inputdate-FoiExemptionAsserted-month" -> mockFormValues.month,
+        "inputdate-FoiExemptionAsserted-year" -> mockFormValues.year,
+        "inputdate-ClosureStartDate-day" -> mockFormValues.day2,
+        "inputdate-ClosureStartDate-month" -> mockFormValues.month2,
+        "inputdate-ClosureStartDate-year" -> mockFormValues.year2,
+        "inputnumeric-ClosurePeriod" -> mockFormValues.numericTextBoxValue,
+        "inputtext-Radio-TestProperty2-yes" -> Nil,
+        "inputdropdown-Dropdown" -> mockFormValues.dropdownValue,
+        "inputradio-Radio" -> mockFormValues.radioValue,
+        "csrfToken" -> mockFormValues.csrfToken
+      )
+
+    val dynamicFormUtils: DynamicFormUtils = instantiateDynamicFormsUtils(rawFormToMakeRequestWith)
+
+    val validatedForm = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    validatedForm.exists(_.fieldErrors.nonEmpty) should be(true)
+    val field = validatedForm.find(_.isInstanceOf[RadioButtonGroupField]).get
+    field.fieldErrors should equal(List("There was no text entered for the TestProperty2."))
+  }
+
   "validateAndConvertSubmittedValuesToFormFields" should "return an error when future date is not allowed" in {
     val dateTime = LocalDateTime.now().plusDays(1)
     val rawFormToMakeRequestWith =
@@ -187,7 +267,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         .apply(POST, s"/consignment/12345/additional-metadata/add")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new FormTestData().setupCustomMetadatas().find(_.name == "FoiExemptionAsserted").toList
+    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadatas().find(_.name == "FoiExemptionAsserted").toList
     val allMetadataAsFields: List[FormField] = new CustomMetadataUtils(mockProperties).convertPropertiesToFormFields(mockProperties.toSet)
     val metaDataField = allMetadataAsFields.head match {
       case e: DateField => e.copy(isFutureDateAllowed = false)
@@ -223,8 +303,9 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         month = List("4 "),
         year = List(" 2021 "),
         numericTextBoxValue = List("       5"),
-        day2 = List("   7   ")
-      )
+        day2 = List("   7   "),
+        radioValue = List("no")
+    )
       val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
         mockFormValues
       )
@@ -282,10 +363,11 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         .apply(POST, s"/consignment/12345/additional-metadata/add")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = new FormTestData().setupCustomMetadatas()
+    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadatas()
+
     val customMetadataUtils: CustomMetadataUtils = new CustomMetadataUtils(mockProperties)
 
-    val allMetadataAsFields: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(mockProperties.toSet)
+    val allMetadataAsFields: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(mockProperties.filterNot(p => testData.dependencies().contains(p.name)).toSet)
 
     if (passInFieldsForAllMetadata) {
       new DynamicFormUtils(mockRequest, allMetadataAsFields)
