@@ -64,9 +64,9 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           |                        Delete closure metadata
           |                    </h1>""".stripMargin
       )
-      deleteMetadataPage must include("You are deleting closure metadata for the following files and setting them as open:") mustBe true
-      deleteMetadataPage must include("Once deleted closure metadata cannot be recovered.") mustBe true
-      deleteMetadataPage must include("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>") mustBe true
+      deleteMetadataPage must include("You are deleting closure metadata for the following files and setting them as open:")
+      deleteMetadataPage must include("Once deleted closure metadata cannot be recovered.")
+      deleteMetadataPage must include("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>")
 
       val deleteButtonHref =
         s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}?fileIds=${fileIds.mkString("&amp;")}&amp;metadataTypeAndValueSelected=$mockMetadataTypeAndValueString"

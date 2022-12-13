@@ -355,7 +355,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         |                            </ul>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
     )
 
-    val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure/"
+    val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure"
     val continueButton = (if (isChecked) {
                             s"""<a class="govuk-button" href="/consignment/$consignmentId/additional-metadata/add/${metadataType(
                                 0
