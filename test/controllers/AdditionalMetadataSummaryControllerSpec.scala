@@ -78,7 +78,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         """        <p class="govuk-body">You can edit, remove or save closure metadata here.</p>""".stripMargin
       )
       val href =
-        s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=$mockMetadataTypeAndValueString&amp;fileIds=${fileIds.mkString("&amp;")}"
+        s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}?propertyNameAndFieldSelected=$mockMetadataTypeAndValueString&amp;fileIds=${fileIds.mkString("&amp;")}"
       closureMetadataSummaryPage must include(
         s"""          <a href="$href" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
           |            Edit metadata
@@ -116,7 +116,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
           |              </dd>""".stripMargin.replaceAll("\\.", " ")
       )
       closureMetadataSummaryPage must include(
-        s"""        <a href="/consignment/$consignmentId/additional-metadata/files/closure/" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        s"""        <a href="/consignment/$consignmentId/additional-metadata/files/closure" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
         |          Save and return to all files
         |        </a>""".stripMargin
       )

@@ -121,7 +121,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}/?fileIds=$fileId")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}?fileIds=$fileId")
       }
 
       "redirect to the closure metadata page with the correct file ids and closure metadata type if the files are already closed" in {
@@ -139,7 +139,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           )
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(
-          s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=$fileId"
+          s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=$fileId"
         )
       }
 
