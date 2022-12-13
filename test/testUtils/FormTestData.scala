@@ -110,6 +110,5 @@ class FormTestData() {
   }
   // scalastyle:on method.length
 
-
   def dependencies(): List[String] = List("TestProperty2")
 }

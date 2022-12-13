@@ -63,21 +63,23 @@ class AdditionalMetadataSummaryController @Inject() (
 
     val formatter = new SimpleDateFormat("dd/MM/yyyy")
 
-    metaData.filter(_.value.nonEmpty).map(metaData =>
-      customMetadata
-        .find(_.name == metaData.name)
-        .map(customMetadata =>
-          FileMetadata(
-            customMetadata.fullName.getOrElse(metaData.name),
-            customMetadata.dataType match {
-              case DateTime => formatter.format(Timestamp.valueOf(metaData.value))
-              case Boolean  => toStringYesNo(metaData.value.toBoolean).capitalize
-              case _        => metaData.value + (if (customMetadata.name == closurePeriod) " years" else "")
-            }
+    metaData
+      .filter(_.value.nonEmpty)
+      .map(metaData =>
+        customMetadata
+          .find(_.name == metaData.name)
+          .map(customMetadata =>
+            FileMetadata(
+              customMetadata.fullName.getOrElse(metaData.name),
+              customMetadata.dataType match {
+                case DateTime => formatter.format(Timestamp.valueOf(metaData.value))
+                case Boolean  => toStringYesNo(metaData.value.toBoolean).capitalize
+                case _        => metaData.value + (if (customMetadata.name == closurePeriod) " years" else "")
+              }
+            )
           )
-        )
-        .getOrElse(metaData)
-    )
+          .getOrElse(metaData)
+      )
   }
 }
 

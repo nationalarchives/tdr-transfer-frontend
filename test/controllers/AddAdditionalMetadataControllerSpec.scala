@@ -2,24 +2,18 @@ package controllers
 
 import akka.Done
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
-import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
-import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import graphql.codegen.types.UpdateBulkFileMetadataInput
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
-import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
-import org.scalatest.prop.TableFor3
 import play.api.Play.materializer
 import play.api.cache.AsyncCacheApi
 import play.api.mvc.Result
@@ -27,8 +21,8 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
 import services.{ConsignmentService, CustomMetadataService}
-import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
 import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions}
+import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.util.UUID
@@ -46,7 +40,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   val fileIds: List[UUID] = List(UUID.fromString("ae4b7cad-ee83-46bd-b952-80bc8263c6c2"))
 
   private val dependencyFormTester = new FormTester(expectedClosureDependencyDefaultOptions)
-    dependencyFormTester.generateOptionsToSelectToGenerateFormErrors("value", combineOptionNameWithValue = true)
+  dependencyFormTester.generateOptionsToSelectToGenerateFormErrors("value", combineOptionNameWithValue = true)
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -205,7 +199,11 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
-      formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, formSubmission.toMap.removed("inputradio-DescriptionClosed"), formStatus = "PartiallySubmitted")
+      formTester.checkHtmlForOptionAndItsAttributes(
+        addAdditionalMetadataPageAsString,
+        formSubmission.toMap.removed("inputradio-DescriptionClosed"),
+        formStatus = "PartiallySubmitted"
+      )
     }
 
     "rerender form with user's data if form is partially submitted" in {
@@ -240,7 +238,11 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
-      formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, formSubmission.toMap.removed("inputradio-DescriptionClosed"), formStatus = "PartiallySubmitted")
+      formTester.checkHtmlForOptionAndItsAttributes(
+        addAdditionalMetadataPageAsString,
+        formSubmission.toMap.removed("inputradio-DescriptionClosed"),
+        formStatus = "PartiallySubmitted"
+      )
     }
 
     "display the most immediate date error if more than one date input (per date field) has an mistake in it" in {
@@ -276,7 +278,11 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
-      formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, formSubmission.toMap.removed("inputradio-DescriptionClosed"), formStatus = "PartiallySubmitted")
+      formTester.checkHtmlForOptionAndItsAttributes(
+        addAdditionalMetadataPageAsString,
+        formSubmission.toMap.removed("inputradio-DescriptionClosed"),
+        formStatus = "PartiallySubmitted"
+      )
     }
 
     // need to add check for complete form submission
