@@ -2,6 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+import controllers.util.MetadataPagesUtils
 import controllers.util.MetadataProperty.closurePeriod
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
@@ -28,12 +29,7 @@ class AdditionalMetadataSummaryController @Inject() (
 
   def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID], metadataTypeAndValueSelected: List[String]): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-      val fileMetadataFilters = metadataType match {
-        case "closure"     => FileMetadataFilters(Some(true), None)
-        case "descriptive" => FileMetadataFilters(None, Some(true))
-        case _             => throw new IllegalArgumentException(s"Invalid metadata type: $metadataType")
-      }
-      val filters = Option(FileFilters(None, Option(fileIds), None, Option(fileMetadataFilters)))
+      val filters: Option[FileFilters] = MetadataPagesUtils.getFileFilters(metadataType, fileIds, filterByMetadataType = true)
       for {
         consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, filters)
         customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)

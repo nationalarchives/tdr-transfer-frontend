@@ -3,13 +3,13 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddAdditionalMetadataController._
-import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType}
+import controllers.util.MetadataProperty.clientSideOriginalFilepath
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
-import graphql.codegen.types.{FileFilters, UpdateFileMetadataInput}
+import graphql.codegen.types.UpdateFileMetadataInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
 import play.api.i18n.I18nSupport
@@ -210,7 +210,7 @@ class AddAdditionalMetadataController @Inject() (
       fileIds: List[UUID]
   ): Future[(PageInfo, ControllerInfo)] =
     for {
-      consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None, None)))
+      consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, MetadataPagesUtils.getFileFilters(metadataType, fileIds))
       updatedFieldsForForm <- {
         cache.set(s"$consignmentId-reference", consignment.consignmentReference, 1.hour)
         // Set the values to those of the first file's metadata until we decide what to do with multiple files.
