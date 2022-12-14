@@ -183,7 +183,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
   }
 
   "deleteMetadata" should "delete the additional metadata" in {
-    val deleteFileMetadataInput = DeleteFileMetadataInput(fileIds)
+    val deleteFileMetadataInput = DeleteFileMetadataInput(fileIds, None)
     val variables = Some(dfm.Variables(deleteFileMetadataInput))
     val deleteFileMetadata = dfm.DeleteFileMetadata(fileIds, List("PropertyName1"))
     when(deleteFileMetadataClient.getResult(token, dfm.document, variables))
@@ -196,7 +196,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
   }
 
   "deleteMetadata" should "return an error if the API call fails" in {
-    val variables = dfm.Variables(DeleteFileMetadataInput(fileIds))
+    val variables = dfm.Variables(DeleteFileMetadataInput(fileIds, None))
     when(deleteFileMetadataClient.getResult(token, dfm.document, Option(variables)))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
@@ -204,7 +204,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
   }
 
   "deleteMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
-    val variables = dfm.Variables(DeleteFileMetadataInput(fileIds))
+    val variables = dfm.Variables(DeleteFileMetadataInput(fileIds, None))
     val response = GraphQlResponse[dfm.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
     when(deleteFileMetadataClient.getResult(token, dfm.document, Option(variables)))
       .thenReturn(Future.successful(response))

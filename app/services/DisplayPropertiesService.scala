@@ -12,7 +12,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
-  private val displayPropertiesClient: GraphQLClient[dp.Data, Variables] = graphqlConfiguration.getClient[dp.Data, dp.Variables]
+  private val displayPropertiesClient: GraphQLClient[dp.Data, Variables] = graphqlConfiguration.getClient[dp.Data, dp.Variables]()
 
   def getDisplayProperties(consignmentId: UUID, token: BearerAccessToken): Future[List[DisplayProperties]] = {
     val variables = new Variables(consignmentId)
