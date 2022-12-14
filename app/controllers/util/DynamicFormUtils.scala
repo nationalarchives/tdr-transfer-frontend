@@ -14,7 +14,7 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
     case (inputName, _)                                  => throw new IllegalArgumentException(s"${inputName.split("-").head} is not a supported field type.")
   }
 
-  def validateAndConvertSubmittedValuesToFormFields(submittedValues: Map[String, Seq[String]]): List[FormField] = {
+  def convertSubmittedValuesToFormFields(submittedValues: Map[String, Seq[String]]): List[FormField] = {
     val submittedValuesTrimmed: Map[String, Seq[String]] = trimValues(submittedValues)
     val excludeFields = submittedValuesTrimmed.filter(p => p._2.contains("exclude")).keys.toList
 
