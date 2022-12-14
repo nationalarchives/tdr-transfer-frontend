@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import controllers.AddAdditionalMetadataController.{File, updateField}
+import controllers.AddAdditionalMetadataController.{File, formFieldOverrides}
 import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType, description, descriptionClosed}
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
@@ -39,17 +39,17 @@ class AddAdditionalMetadataController @Inject() (
     implicit request: Request[AnyContent] =>
       for {
         consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None, None)))
-        defaultFieldForm <- getDefaultFieldsForForm(consignmentId, request)
-        updatedFieldsForForm <- {
+        formFields <- getFormFields(consignmentId, request)
+        updatedFormFields <- {
           cache.set(s"$consignmentId-consignment", consignment, 1.hour)
           // Set the values to those of the first file's metadata until we decide what to do with multiple files.
           val metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.head).toMap
-          Future.successful(updateFormFields(defaultFieldForm, metadataMap))
+          Future.successful(updateFormFields(formFields, metadataMap))
         }
       } yield {
         Ok(
           views.html.standard
-            .addAdditionalMetadata(consignmentId, consignment.consignmentReference, metadataType, updatedFieldsForForm, request.token.name, consignment.files.toFiles)
+            .addAdditionalMetadata(consignmentId, consignment.consignmentReference, metadataType, updatedFormFields, request.token.name, consignment.files.toFiles)
         )
       }
   }
@@ -57,14 +57,14 @@ class AddAdditionalMetadataController @Inject() (
   def addAdditionalMetadataSubmit(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
-        defaultFieldValues <- cache.getOrElseUpdate[List[FormField]]("fieldValues") {
-          getDefaultFieldsForForm(consignmentId, request)
+        formFields <- cache.getOrElseUpdate[List[FormField]]("formFields") {
+          getFormFields(consignmentId, request)
         }
-        dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues)
+        dynamicFormUtils = new DynamicFormUtils(request, formFields)
         formAnswers: Map[String, Seq[String]] = dynamicFormUtils.formAnswersWithValidInputNames
 
         result <- {
-          val updatedFormFields: List[FormField] = dynamicFormUtils.validateAndConvertSubmittedValuesToFormFields(formAnswers)
+          val updatedFormFields: List[FormField] = dynamicFormUtils.convertSubmittedValuesToFormFields(formAnswers)
           if (updatedFormFields.exists(_.fieldErrors.nonEmpty)) {
             for {
               consignment <- cache.getOrElseUpdate[GetConsignment](s"$consignmentId-consignment") {
@@ -79,7 +79,7 @@ class AddAdditionalMetadataController @Inject() (
                     consignmentId,
                     consignment.consignmentReference,
                     metadataType,
-                    updatedFormFields.map(updateField(_, metadataMap)),
+                    updatedFormFields.map(formFieldOverrides(_, metadataMap)),
                     request.token.name,
                     files
                   )
@@ -112,25 +112,25 @@ class AddAdditionalMetadataController @Inject() (
     }
   }
 
-  private def getDefaultFieldsForForm(consignmentId: UUID, request: Request[AnyContent]): Future[List[FormField]] = {
+  private def getFormFields(consignmentId: UUID, request: Request[AnyContent]): Future[List[FormField]] = {
     for {
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       customMetadataUtils = new CustomMetadataUtils(customMetadata)
 
-      dependencyProperties: Set[CustomMetadata] = getDependenciesFromValue(customMetadataUtils, Set(closureType.name), closureType.value)
+      dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
 
       formFields = customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
     } yield {
-      cache.set("fieldValues", formFields, 1.hour)
+      cache.set("formFields", formFields, 1.hour)
       formFields
     }
   }
 
-  private def getDependenciesFromValue(customMetadataUtils: CustomMetadataUtils, propertyName: Set[String], valueToGetDependenciesFrom: String): Set[CustomMetadata] = {
-    val valuesByProperties: Map[String, List[CustomMetadata.Values]] = customMetadataUtils.getValuesOfProperties(propertyName)
-    val allValuesForProperty: Seq[CustomMetadata.Values] = valuesByProperties(propertyName.head)
-    val value: Seq[CustomMetadata.Values] = allValuesForProperty.filter(_.value == valueToGetDependenciesFrom)
-    val dependencyNames: Seq[String] = value.flatMap(_.dependencies.map(_.name))
+  private def getDependenciesForValue(customMetadataUtils: CustomMetadataUtils, propertyName: String, valueToGetDependenciesFrom: String): Set[CustomMetadata] = {
+    val propertyToValues: Map[String, List[CustomMetadata.Values]] = customMetadataUtils.getValuesOfProperties(Set(propertyName))
+    val allValuesForProperty: Seq[CustomMetadata.Values] = propertyToValues(propertyName)
+    val values: Seq[CustomMetadata.Values] = allValuesForProperty.filter(_.value == valueToGetDependenciesFrom)
+    val dependencyNames: Seq[String] = values.flatMap(_.dependencies.map(_.name))
     customMetadataUtils.getCustomMetadataProperties(dependencyNames.toSet)
   }
 
@@ -168,7 +168,7 @@ class AddAdditionalMetadataController @Inject() (
           .map(metadata => TextField.update(textField, metadata.value))
           .getOrElse(textField)
     }
-    updatedFormFields.map(updateField(_, metadataMap))
+    updatedFormFields.map(formFieldOverrides(_, metadataMap))
   }
 
   implicit class FileHelper(files: List[getConsignmentFilesMetadata.GetConsignment.Files]) {
@@ -182,7 +182,7 @@ class AddAdditionalMetadataController @Inject() (
 object AddAdditionalMetadataController {
   case class File(fileId: UUID, name: String)
 
-  def updateField(formField: FormField, fileMetadata: Map[String, FileMetadata]): FormField = {
+  def formFieldOverrides(formField: FormField, fileMetadata: Map[String, FileMetadata]): FormField = {
 
     // We have hard code this logic here as we are still not sure how to make it data-driven.
     if (formField.fieldId == descriptionClosed) {
