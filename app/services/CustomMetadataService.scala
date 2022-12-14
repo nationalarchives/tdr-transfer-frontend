@@ -30,7 +30,7 @@ class CustomMetadataService @Inject() (val graphqlConfiguration: GraphQLConfigur
     sendApiRequest(updateBulkMetadataClient, abfm.document, token, variables)
   }
 
-  def deleteMetadata(fileIds: List[UUID], token: BearerAccessToken, propertyNames: Option[List[String]] = Some(List["ClosureType"])): Future[dfm.Data] = {
+  def deleteMetadata(fileIds: List[UUID], token: BearerAccessToken, propertyNames: Option[List[String]] = Some(List("ClosureType"))): Future[dfm.Data] = {
     val input = DeleteFileMetadataInput(fileIds, propertyNames)
     val variables = dfm.Variables(input)
     sendApiRequest(deleteFileMetadataClient, dfm.document, token, variables)
