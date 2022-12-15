@@ -435,7 +435,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
         ("inputradio-DescriptionClosed", "yes"),
-        ("inputradio-DescriptionClosed-DescriptionAlternate-yes", "text"),
+        ("inputradio-DescriptionClosed-DescriptionAlternate-yes", "text")
       )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
