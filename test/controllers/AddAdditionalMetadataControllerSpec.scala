@@ -6,8 +6,9 @@ import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo
 import configuration.GraphQLConfiguration
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
+import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
-import graphql.codegen.types.UpdateBulkFileMetadataInput
+import graphql.codegen.types.{DeleteFileMetadataInput, UpdateBulkFileMetadataInput}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.parser.decode
@@ -305,7 +306,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   "AddAdditionalMetadataController POST" should {
-    "send the form data to the API" in {
+    "send the form data to the API and delete the dependencies if the relevant option is not selected by user" in {
       val consignmentId = UUID.randomUUID()
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
       val formSubmission = Seq(
@@ -325,6 +326,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
+      setDeleteFileMetadataResponse(wiremockServer)
 
       addAdditionalMetadataController
         .addAdditionalMetadataSubmit(consignmentId, "closure", fileIds)
@@ -350,6 +352,127 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "false"
       input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
       input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+
+      case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
+      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
+      val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
+      val input2 = deleteRequest.variables.deleteFileMetadataInput
+      input2.fileIds should be(fileIds)
+      input2.propertyNames.get should contain theSameElementsAs List("TitleAlternate", "DescriptionAlternate")
+    }
+
+    "send the form data to the API with dependencies and do not delete the dependencies if the relevant option is selected by user" in {
+      val consignmentId = UUID.randomUUID()
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+      val formSubmission = Seq(
+        ("inputdate-FoiExemptionAsserted-day", "1"),
+        ("inputdate-FoiExemptionAsserted-month", "1"),
+        ("inputdate-FoiExemptionAsserted-year", "1970"),
+        ("inputdate-ClosureStartDate-day", "1"),
+        ("inputdate-ClosureStartDate-month", "1"),
+        ("inputdate-ClosureStartDate-year", "1970"),
+        ("inputnumeric-ClosurePeriod-years", "10"),
+        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputradio-TitleClosed", "yes"),
+        ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
+        ("inputradio-DescriptionClosed", "no")
+      )
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setCustomMetadataResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
+      setBulkUpdateMetadataResponse(wiremockServer)
+      setDeleteFileMetadataResponse(wiremockServer)
+
+      addAdditionalMetadataController
+        .addAdditionalMetadataSubmit(consignmentId, "closure", fileIds)
+        .apply(
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}")
+            .withFormUrlEncodedBody(formSubmission: _*)
+            .withCSRFToken
+        )
+        .futureValue
+
+      case class GraphqlRequestData(query: String, variables: abfm.Variables)
+      val events = wiremockServer.getAllServeEvents
+      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
+      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+
+      val input = request.variables.updateBulkFileMetadataInput
+      input.consignmentId mustBe consignmentId
+      input.fileIds mustBe fileIds
+      input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
+      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
+      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
+      input.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
+      input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
+      input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+
+      case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
+      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
+      val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
+      val input2 = deleteRequest.variables.deleteFileMetadataInput
+      input2.fileIds should be(fileIds)
+      input2.propertyNames.get should contain theSameElementsAs List("DescriptionAlternate")
+    }
+
+    "send the form data to the API with dependencies and do not call delete metadata to remove the dependencies if the relevant option is selected by user for all properties" in {
+      val consignmentId = UUID.randomUUID()
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+      val formSubmission = Seq(
+        ("inputdate-FoiExemptionAsserted-day", "1"),
+        ("inputdate-FoiExemptionAsserted-month", "1"),
+        ("inputdate-FoiExemptionAsserted-year", "1970"),
+        ("inputdate-ClosureStartDate-day", "1"),
+        ("inputdate-ClosureStartDate-month", "1"),
+        ("inputdate-ClosureStartDate-year", "1970"),
+        ("inputnumeric-ClosurePeriod-years", "10"),
+        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputradio-TitleClosed", "yes"),
+        ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
+        ("inputradio-DescriptionClosed", "yes"),
+        ("inputradio-DescriptionClosed-DescriptionAlternate-yes", "text"),
+      )
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setCustomMetadataResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
+      setBulkUpdateMetadataResponse(wiremockServer)
+      setDeleteFileMetadataResponse(wiremockServer)
+
+      addAdditionalMetadataController
+        .addAdditionalMetadataSubmit(consignmentId, "closure", fileIds)
+        .apply(
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}")
+            .withFormUrlEncodedBody(formSubmission: _*)
+            .withCSRFToken
+        )
+        .futureValue
+
+      case class GraphqlRequestData(query: String, variables: abfm.Variables)
+      val events = wiremockServer.getAllServeEvents
+      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
+      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+
+      val input = request.variables.updateBulkFileMetadataInput
+      input.consignmentId mustBe consignmentId
+      input.fileIds mustBe fileIds
+      input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
+      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
+      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
+      input.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
+      input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "true"
+      input.metadataProperties.find(_.filePropertyName == "DescriptionAlternate").get.value mustBe "text"
+      input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+
+      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata"))
+      deleteMetadataEvent should be(None)
     }
 
     s"redirect user to additional summary page if there are no fields that need their dependencies filled in" in {
