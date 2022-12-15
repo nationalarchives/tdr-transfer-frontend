@@ -137,7 +137,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           )
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(
-          s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=$fileId"
+          s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}?fileIds=$fileId"
         )
       }
 
@@ -154,7 +154,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/descriptive?fileIds=$fileId&metadataTypeAndValueSelected=")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/descriptive?fileIds=$fileId")
       }
 
       "redirect to the file navigation page with an error message if a user submits the page without selecting any files and folders" in {
@@ -164,7 +164,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure").withCSRFToken)
 
         playStatus(result) must equal(BAD_REQUEST)
         val content = contentAsString(result)
@@ -190,7 +190,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure").withCSRFToken)
         playStatus(result) must equal(FORBIDDEN)
       }
 

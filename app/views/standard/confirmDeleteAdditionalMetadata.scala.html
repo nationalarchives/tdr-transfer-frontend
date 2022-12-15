@@ -1,7 +1,7 @@
 @import views.html.partials.{fileNameCard, warningMessage}
 
 @import java.util.UUID
-@(consignmentId: UUID, metadataType: String, fileIds: List[UUID], fileNames: List[String], name: String, metadataTypeAndValueSelected: List[String])(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, metadataType: String, fileIds: List[UUID], fileNames: List[String], name: String)(implicit messages: Messages, request: RequestHeader)
     @main(title = "Delete closure metadata", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
 
@@ -15,10 +15,10 @@
                     <p class="govuk-body">Are you sure you would like to proceed?</p>
 
                     <div class="govuk-button-group">
-                        <a href="@routes.DeleteAdditionalMetadataController.deleteAdditionalMetadata(consignmentId, metadataType, fileIds, metadataTypeAndValueSelected)" role="button" draggable="false" class="govuk-button">
+                        <a href="@routes.DeleteAdditionalMetadataController.deleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button">
                             Delete and return to all files
                         </a>
-                        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, metadataTypeAndValueSelected)">
+                        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)">
                             Cancel
                         </a>
                     </div>

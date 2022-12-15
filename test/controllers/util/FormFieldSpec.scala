@@ -19,7 +19,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
   "RadioButtonGroupField" should {
     val radioButtonGroupField =
-      RadioButtonGroupField("id", "name", "desc", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "no", isRequired = true)
+      RadioButtonGroupField("id", "name", "desc", "details", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "no", isRequired = true)
 
     "update should set selectedOption as 'yes' for the field" in {
 
