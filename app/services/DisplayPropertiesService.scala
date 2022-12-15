@@ -61,6 +61,8 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
     val group: String = attributes.find(_.attribute == "Group").getStringValue
 
+    val guidance: String = attributes.find(_.attribute == "Guidance").getStringValue
+
     val label: String = attributes.find(_.attribute == "Label").getStringValue
 
     val multiValue: Boolean = attributes.find(_.attribute == "MultiValue").getBoolean
@@ -76,7 +78,7 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
     val propertyType: String = attributes.find(_.attribute == "PropertyType").getStringValue
 
-    DisplayProperty(active, componentType, dataType, description, displayName, editable, group, label, multiValue, ordinal, p.propertyName, propertyType)
+    DisplayProperty(active, componentType, dataType, description, displayName, editable, group, guidance, label, multiValue, ordinal, p.propertyName, propertyType)
   }
 
   def getDisplayProperties(consignmentId: UUID, token: BearerAccessToken): Future[List[DisplayProperty]] = {
@@ -93,6 +95,7 @@ case class DisplayProperty(
     displayName: String,
     editable: Boolean,
     group: String,
+    guidance: String,
     label: String,
     multiValue: Boolean,
     ordinal: Int,

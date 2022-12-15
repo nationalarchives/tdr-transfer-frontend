@@ -51,6 +51,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
               dp.DisplayProperties.Attributes("Name", Some("display name"), Text),
               dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
               dp.DisplayProperties.Attributes("Group", Some("group"), Text),
+              dp.DisplayProperties.Attributes("Guidance", Some("guidance"), Text),
               dp.DisplayProperties.Attributes("Label", Some("label"), Text),
               dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
               dp.DisplayProperties.Attributes("Ordinal", Some("11"), Integer),
@@ -74,6 +75,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     property1.description shouldBe "description value"
     property1.editable shouldBe true
     property1.group shouldBe "group"
+    property1.guidance shouldBe "guidance"
     property1.label shouldBe "label"
     property1.multiValue shouldBe false
     property1.ordinal shouldBe 11
@@ -105,6 +107,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     property1.description shouldBe ""
     property1.editable shouldBe false
     property1.group shouldBe ""
+    property1.guidance shouldBe ""
     property1.label shouldBe ""
     property1.multiValue shouldBe false
     property1.ordinal shouldBe 0

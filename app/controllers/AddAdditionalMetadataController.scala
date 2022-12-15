@@ -121,10 +121,6 @@ class AddAdditionalMetadataController @Inject() (
       displayProperties <-
         if (closure) { Future(List()) }
         else { displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken) }
-      // customMetadataUtils = new CustomMetadataUtils(customMetadata)
-
-      // dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
-
       formFields =
         if (closure) {
           val customMetadataUtils = new CustomMetadataUtils(customMetadata)

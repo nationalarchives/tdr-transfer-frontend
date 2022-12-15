@@ -2,6 +2,7 @@ package controllers.util
 
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType.Text
+import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import services.DisplayProperty
 
 class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMetadata: List[CustomMetadata]) {
@@ -12,6 +13,20 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
       customMetadata match {
         case Some(cm) => cm.defaultValue.getOrElse("")
         case _        => ""
+      }
+    }
+
+    def defaultInput: Option[InputNameAndValue] = {
+      customMetadata match {
+        case Some(cm) => cm.defaultValue.map(value => InputNameAndValue(value, value))
+        case _        => None
+      }
+    }
+
+    def definedInputs: List[InputNameAndValue] = {
+      customMetadata match {
+        case Some(cm) => cm.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value))
+        case _        => List()
       }
     }
 
@@ -38,16 +53,38 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
   }
 
   private def textFieldHandler(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
-    val defaultValue = customMetadata.defaultValue
     val required = customMetadata.requiredField
-    TextField(
-      property.displayName,
-      property.label,
-      property.description,
-      property.multiValue,
-      InputNameAndValue(property.propertyName, defaultValue),
-      "text",
-      required
-    )
+    customMetadata.get.propertyType match {
+      case Defined =>
+        DropdownField(
+          property.propertyName,
+          property.label,
+          property.description,
+          property.multiValue,
+          customMetadata.definedInputs,
+          customMetadata.defaultInput,
+          required
+        )
+      case Supplied =>
+        TextField(
+          property.propertyName,
+          property.label,
+          property.description,
+          property.multiValue,
+          InputNameAndValue(property.propertyName, customMetadata.defaultValue),
+          "text",
+          required
+        )
+      case _ =>
+        DropdownField(
+          property.propertyName,
+          property.label,
+          property.description,
+          property.multiValue,
+          Seq(InputNameAndValue(property.propertyName, property.displayName)),
+          None,
+          required
+        )
+    }
   }
 }
