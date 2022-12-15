@@ -12,6 +12,7 @@ abstract class FormField {
   val multiValue: Boolean
   val isRequired: Boolean
   val fieldErrors: List[String]
+  val componentType: Option[String] = None
 }
 
 case class InputNameAndValue(name: String, value: String, placeHolder: String = "")

@@ -4,6 +4,7 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetDisplayProperties.displayProperties.{DisplayProperties, Variables}
 import graphql.codegen.GetDisplayProperties.{displayProperties => dp}
+import graphql.codegen.types.DataType
 import services.ApiErrorHandling._
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
@@ -19,3 +20,18 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
     sendApiRequest(displayPropertiesClient, dp.document, token, variables).map(data => data.displayProperties)
   }
 }
+
+case class DisplayProperty(
+    active: Boolean,
+    componentType: String,
+    dataType: DataType,
+    description: String,
+    displayName: String,
+    editable: Boolean,
+    group: String,
+    label: String,
+    multiValue: Boolean,
+    ordinal: Int,
+    propertyName: String,
+    propertyType: String
+)
