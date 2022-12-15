@@ -14,7 +14,8 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, CustomMetadataService}
+import sangria.schema.FutureValue
+import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 
 import java.sql.Timestamp
 import java.time.{LocalDate, LocalDateTime, LocalTime}
@@ -30,6 +31,7 @@ class AddAdditionalMetadataController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
     val customMetadataService: CustomMetadataService,
+    val displayPropertiesService: DisplayPropertiesService,
     val cache: AsyncCacheApi
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
@@ -39,7 +41,7 @@ class AddAdditionalMetadataController @Inject() (
     implicit request: Request[AnyContent] =>
       for {
         consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None, None)))
-        formFields <- getFormFields(consignmentId, request)
+        formFields <- getFormFields(consignmentId, request, metadataType)
         updatedFormFields <- {
           cache.set(s"$consignmentId-consignment", consignment, 1.hour)
           // Set the values to those of the first file's metadata until we decide what to do with multiple files.
@@ -58,7 +60,7 @@ class AddAdditionalMetadataController @Inject() (
     implicit request: Request[AnyContent] =>
       for {
         formFields <- cache.getOrElseUpdate[List[FormField]]("formFields") {
-          getFormFields(consignmentId, request)
+          getFormFields(consignmentId, request, metadataType)
         }
         dynamicFormUtils = new DynamicFormUtils(request, formFields)
         formAnswers: Map[String, Seq[String]] = dynamicFormUtils.formAnswersWithValidInputNames
@@ -112,14 +114,26 @@ class AddAdditionalMetadataController @Inject() (
     }
   }
 
-  private def getFormFields(consignmentId: UUID, request: Request[AnyContent]): Future[List[FormField]] = {
+  private def getFormFields(consignmentId: UUID, request: Request[AnyContent], metadataType: String): Future[List[FormField]] = {
+    val closure: Boolean = metadataType == "closure"
     for {
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
-      customMetadataUtils = new CustomMetadataUtils(customMetadata)
+      displayProperties <-
+        if (closure) { Future(List()) }
+        else { displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken) }
+      // customMetadataUtils = new CustomMetadataUtils(customMetadata)
 
-      dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
+      // dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
 
-      formFields = customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
+      formFields =
+        if (closure) {
+          val customMetadataUtils = new CustomMetadataUtils(customMetadata)
+          val dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
+          customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
+        } else {
+          val descriptiveProperties = displayProperties.filter(dp => dp.active && dp.propertyType.toLowerCase == metadataType)
+          new DisplayPropertiesUtils(descriptiveProperties, customMetadata).convertPropertiesToFormFields.toList
+        }
     } yield {
       cache.set("formFields", formFields, 1.hour)
       formFields
