@@ -1,42 +1,44 @@
 @* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
-@import controllers.AddAdditionalMetadataController.{ControllerInfo, PageInfo}
-@import controllers.util._
 @import helper.{inputRadioGroup => _, _}
-@import views.html.partials.{fileNameCard, errorSummary, inputDate, inputDropdown, inputRadioGroup, inputText, progressIndicator, transferReference}
+@import java.util.UUID
 
 @import scala.language.postfixOps
-@(pageInfo: PageInfo, controllerInfo: ControllerInfo)(implicit request: RequestHeader, messages: Messages)
-@main(s"${pageInfo.pageTitle} files", name = pageInfo.userName) {
+@import views.html.partials.{inputDate, inputText, errorSummary, progressIndicator}
+@import views.html.partials.transferReference
+@import views.html.partials.inputRadioGroup
+@import controllers.util._
+@import views.html.partials.inputDropdown
+
+@import controllers.AddAdditionalMetadataController.File
+@import views.html.partials.fileNameCard
+@(consignmentId: UUID, consignmentRef: String, metadataType: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File])(implicit request: RequestHeader, messages: Messages)
+@main(s"Add closure metadata to files", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages(s"additionalMetadata${controllerInfo.metadataType.capitalize}.progress"))
-      <h1 class="govuk-heading-l">@pageInfo.pageTitle</h1>
-      @fileNameCard(controllerInfo.files.map(_.name), s"You are adding/editing ${controllerInfo.metadataType} metadata for the following files:")
-      <p class="govuk-body">@pageInfo.pageDescription</p>
+        @progressIndicator(Messages(s"additionalMetadata${metadataType.capitalize}.progress"))
+        <h1 class="govuk-heading-l">Add closure metadata to</h1>
+        @fileNameCard(files.map(_.name), s"You are adding/editing $metadataType metadata for the following files:")
+
+        <p class="govuk-body">Enter metadata for closure fields here.</p>
         @errorSummary(
-          pageInfo.fieldsToApplyToFile.collect {
+          fieldsToApplyToFile.collect {
             case p if p.fieldErrors.nonEmpty => (p.fieldId, p.fieldErrors)
           }
         )
         @form(
-          routes.AddAdditionalMetadataController.addAdditionalMetadataSubmit(
-              controllerInfo.metadataType,
-              controllerInfo.isMainForm,
-              controllerInfo.fieldsAndValuesSelectedOnPrevPage,
-              controllerInfo.consignmentId,
-              controllerInfo.files.map(_.fileId)
-          ),
+          routes.AddAdditionalMetadataController.addAdditionalMetadataSubmit(consignmentId, metadataType, files.map(_.fileId)),
           (Symbol("novalidate"), "")
         ) {
           @CSRF.formField
-          @for(fieldToApplyToFile <- pageInfo.fieldsToApplyToFile) {
+          @for(fieldToApplyToFile <- fieldsToApplyToFile) {
             @{
               fieldToApplyToFile match {
-                case RadioButtonGroupField(fieldId, name, description, _, options, selectedOption, isRequired, fieldErrors) => inputRadioGroup(
+                case RadioButtonGroupField(fieldId, name, description, additionalInfo, _, options, selectedOption, isRequired, hideInputs, dependencies, fieldErrors) => inputRadioGroup(
                   fieldId,
                   name,
                   description,
+                  additionalInfo,
                   options,
                   selectedOption,
                   Map(
@@ -47,6 +49,8 @@
                     Symbol("_disabledOption") -> "",
                     Symbol("_dynamicForm") -> true
                   ),
+                  hideInputs,
+                  dependencies,
                   fieldErrors
                 )
                 case DateField(fieldId, fieldName, fieldDescription, _, day, month, year, _, fieldErrors, _) => inputDate(
@@ -64,11 +68,11 @@
                   fieldName,
                   fieldDescription,
                   inputNameAndValue,
-                  if(inputMode == "numeric") "number" else "text",
+                  "number",
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true),
                   inputMode,
-                  addSuffixText = if(inputMode == "numeric") true else false
+                  addSuffixText = true
                 )
                 case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
                   inputDropdown(
@@ -92,13 +96,12 @@
             <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
               Continue
             </button>
-            <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(controllerInfo.consignmentId, controllerInfo.metadataType)">Cancel</a>
+            <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType)">Cancel</a>
           </div>
         </div>
       }
-      @transferReference(pageInfo.consignmentRef, isJudgmentUser = false)
+      @transferReference(consignmentRef, isJudgmentUser = false)
     </div>
 
   }
 }
-
