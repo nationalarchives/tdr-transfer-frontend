@@ -8,7 +8,6 @@ import services.DisplayProperty
 class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMetadata: List[CustomMetadata]) {
 
   implicit class CustomMetadataHelper(customMetadata: Option[CustomMetadata]) {
-
     def defaultValue: String = {
       customMetadata match {
         case Some(cm) => cm.defaultValue.getOrElse("")
@@ -31,7 +30,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
     }
 
     def requiredField: Boolean = customMetadata match {
-      case Some(cm) => cm.propertyGroup.contains("MandatoryClosure") || cm.propertyGroup.contains("MandatoryDescriptive")
+      case Some(cm) => cm.propertyGroup.contains("MandatoryClosure") || cm.propertyGroup.contains("MandatoryMetadata")
       case _        => false
     }
   }
@@ -48,7 +47,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
   private def generateFormField(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
     val required = customMetadata.requiredField
     property.componentType match {
-      // set 'large text to text field until has text area field
+      // set 'large text to text field until have text area field
       case "large text" =>
         TextField(
           property.propertyName,
