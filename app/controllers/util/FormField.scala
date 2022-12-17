@@ -40,7 +40,8 @@ case class TextField(
     nameAndValue: InputNameAndValue,
     inputMode: String,
     isRequired: Boolean,
-    fieldErrors: List[String] = Nil
+    fieldErrors: List[String] = Nil,
+    componentType: String = "text"
 ) extends FormField
 
 case class DropdownField(

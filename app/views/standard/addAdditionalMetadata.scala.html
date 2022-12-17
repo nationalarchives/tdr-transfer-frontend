@@ -63,7 +63,7 @@
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true)
                 )
-                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors) => inputText(
+                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, componentType) => inputText(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -72,7 +72,8 @@
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true),
                   inputMode,
-                  addSuffixText = true
+                  addSuffixText = true,
+                  componentType
                 )
                 case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
                   inputDropdown(

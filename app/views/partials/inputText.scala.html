@@ -9,8 +9,8 @@ inputType: String,
 fieldErrors: Seq[String],
 attributes: Map[Symbol, Any] = Map(),
 inputTextDataType: String = "text",
-addSuffixText: Boolean)(implicit messages: Messages)
-
+addSuffixText: Boolean,
+componentType: String)(implicit messages: Messages)
 
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @inputName = @{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${input.name}" else fieldId}
@@ -28,6 +28,20 @@ addSuffixText: Boolean)(implicit messages: Messages)
     </div>
     @errorMessage(fieldId, fieldErrors)
     <div class="govuk-input__wrapper">
+      @if(componentType == "large text") {
+          <textarea class="govuk-textarea @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
+            rows="5"
+            id="@input.name"
+            name="@{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${input.name}" else fieldId}"
+            type="@inputType"
+            value="@input.value"
+            placeholder="@input.placeHolder"
+            inputmode="@inputTextDataType"
+            wrap="hard"
+          >
+          </textarea>
+      }
+      else {
         <input
             class="govuk-input @{if(inputType == "number") "govuk-input--width-5" else ""} @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
             id="@input.name"
@@ -37,8 +51,9 @@ addSuffixText: Boolean)(implicit messages: Messages)
             placeholder="@input.placeHolder"
             inputmode="@inputTextDataType"
         >
-        @if(addSuffixText) {
-            <div class="govuk-input__suffix">@input.name</div>
-        }
+      }
+      @if(addSuffixText) {
+          <div class="govuk-input__suffix">@input.name</div>
+      }
     </div>
 </div>
