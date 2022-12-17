@@ -99,7 +99,7 @@ class AddAdditionalMetadataController @Inject() (
 
   private def buildUpdateMetadataInput(updatedFormFields: List[FormField]): List[UpdateFileMetadataInput] = {
     updatedFormFields.flatMap {
-      case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _) =>
+      case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _) =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
       case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _) =>
         val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
