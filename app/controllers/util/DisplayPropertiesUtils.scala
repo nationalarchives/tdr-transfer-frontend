@@ -46,45 +46,30 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
   }
 
   private def generateFormField(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
-    property.dataType match {
-      case Text => textFieldHandler(property, customMetadata)
-      case _    => throw new IllegalArgumentException(s"${property.dataType} is not a supported dataType")
-    }
-  }
-
-  private def textFieldHandler(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
     val required = customMetadata.requiredField
-    customMetadata.get.propertyType match {
-      case Defined =>
-        DropdownField(
-          property.propertyName,
-          property.label,
-          property.description,
-          property.multiValue,
-          customMetadata.definedInputs,
-          customMetadata.defaultInput,
-          required
-        )
-      case Supplied =>
+    property.componentType match {
+      // set 'large text to text field until has text area field
+      case "large text" =>
         TextField(
           property.propertyName,
-          property.label,
+          property.displayName,
           property.description,
           property.multiValue,
           InputNameAndValue(property.propertyName, customMetadata.defaultValue),
           "text",
           required
         )
-      case _ =>
+      case "dropdown" =>
         DropdownField(
           property.propertyName,
-          property.label,
+          property.displayName,
           property.description,
           property.multiValue,
-          Seq(InputNameAndValue(property.propertyName, property.displayName)),
-          None,
+          customMetadata.definedInputs,
+          customMetadata.defaultInput,
           required
         )
+      case _ => throw new IllegalArgumentException(s"${property.componentType} is not a supported component type")
     }
   }
 }

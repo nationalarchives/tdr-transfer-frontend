@@ -5,11 +5,12 @@ import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
 import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
+import services.DisplayProperty
 
 class FormTestData() {
 
   // scalastyle:off method.length
-  def setupCustomMetadatas(): List[CustomMetadata] = {
+  def setupCustomMetadata(): List[CustomMetadata] = {
     val foiExemptionAsserted = CustomMetadata(
       "FoiExemptionAsserted",
       Some("Date of the Advisory Council approval (or SIRO approval if appropriate)"),
@@ -109,6 +110,12 @@ class FormTestData() {
     List(foiExemptionAsserted, closureStartDate, closurePeriod, dropdown, radio, dependency)
   }
   // scalastyle:on method.length
+
+  def setupDisplayProperties(): List[DisplayProperty] = {
+    List(
+      DisplayProperty(true, "dropdown", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 1, "Dropdown", "propertyType")
+    )
+  }
 
   def dependencies(): List[String] = List("TestProperty2")
 }
