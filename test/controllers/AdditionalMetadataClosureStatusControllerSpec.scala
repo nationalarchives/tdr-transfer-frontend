@@ -258,7 +258,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       status(response) mustBe SEE_OTHER
 
       redirectLocation(response) must be(
-        Some(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=${fileIds.mkString("&")}")
+        Some(s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}?fileIds=${fileIds.mkString("&")}")
       )
 
       case class GraphqlRequestData(query: String, variables: abfm.Variables)
@@ -295,31 +295,32 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
   // scalastyle:off method.length
   def verifyClosureStatusPage(closureStatusPage: String, consignmentId: UUID, isChecked: Boolean = false, isErrorOnThePage: Boolean = false): Unit = {
-    val twoOrMoreSpaces = "\\s{2,}"
-    val page = closureStatusPage.replaceAll(twoOrMoreSpaces, "")
+
     checkPageForStaticElements.checkContentOfPagesThatUseMainScala(closureStatusPage, userType = "standard")
     if (isErrorOnThePage) {
-      page must include("<div class=\"govuk-form-group govuk-form-group--error\">")
-      page must include(
+      closureStatusPage must include("<div class=\"govuk-form-group govuk-form-group--error\">")
+      closureStatusPage must include(
         """<p class="govuk-error-message" id="error-closure">
           |        <span class="govuk-visually-hidden">Error:</span>
           |        You must confirm this closure has been approved before continuing.
-          |    </p>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
+          |    </p>""".stripMargin
       )
     }
 
-    page must include("Confirm the closure status of your record")
-    page must include("<p class=\"govuk-body govuk-!-margin-bottom-2 govuk-!-font-weight-bold\">You are adding closure to the following files:</p>")
-    page must include(
+    closureStatusPage must include("Confirm the closure status of your record")
+    closureStatusPage must include("<p class=\"govuk-body govuk-!-margin-bottom-2 govuk-!-font-weight-bold\">You are adding closure to the following files:</p>")
+    closureStatusPage must include("<li>original/file/path</li>")
+    closureStatusPage must include(
       """<h2 class="govuk-fieldset__heading">
         |                                    Has this closure been approved by the Advisory Council?
-        |                                </h2>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
+        |                                </h2>""".stripMargin
     )
-    val href = s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}?fileIds=${fileIds.mkString("&")}"
-    page must include(s"""<form action="$href" method="POST" novalidate="">""")
-    page must include(
-      "<input" + (if (isChecked) "checked" else "") +
-        s"""                class="govuk-checkboxes__input"
+    val href = s"/consignment/$consignmentId/additional-metadata/status/closure?fileIds=${fileIds.mkString("&")}"
+    closureStatusPage must include(s"""<form action="$href" method="POST" novalidate="">""")
+    closureStatusPage must include(
+      s"""<input
+          |                ${if (isChecked) "checked" else ""}
+          |                class="govuk-checkboxes__input"
           |                id="closureStatus"
           |                name="closureStatus"
           |                type="checkbox"
@@ -327,15 +328,15 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
           |                ${if (isChecked) "disabled" else ""} />
           |            <label class="govuk-label govuk-checkboxes__label" for="closureStatus">
           |                Yes, I confirm
-          |            </label>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
+          |            </label>""".stripMargin
     )
 
-    page must include(
+    closureStatusPage must include(
       """<span class="govuk-details__summary-text">
         |                                You must provide the following information, as they are mandatory for closure.
-        |                            </span>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
+        |                            </span>""".stripMargin
     )
-    page must include(
+    closureStatusPage must include(
       """<ul class="govuk-list govuk-list--bullet govuk-list--spaced">
         |                                <li>
         |                                    FOI decision asserted, this is the date of the Advisory Council approval
@@ -352,23 +353,24 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         |                                <li>
         |                                    Title public
         |                                </li>
-        |                            </ul>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
+        |                            </ul>""".stripMargin
     )
 
     val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure"
-    val continueButton = (if (isChecked) {
-                            s"""<a class="govuk-button" href="/consignment/$consignmentId/additional-metadata/add/${metadataType(
-                                0
-                              )}?propertyNameAndFieldSelected=ClosureType-Closed"""
-                          } else {
-                            s"""<div class="govuk-button-group">
-         |                        <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-         |                            Continue
-         |                        </button>
-         |                        <a class="govuk-link" href="$cancelHref">Cancel</a>
-         |                    </div>
-         |"""
-                          }).stripMargin.replaceAll(twoOrMoreSpaces, "").replaceAll("\n", "")
-    page must include(continueButton)
+    val continueHref = s"/consignment/$consignmentId/additional-metadata/add/closure?fileIds=${fileIds.mkString("&")}"
+    if (isChecked) {
+      closureStatusPage must include(
+        s"""<a class="govuk-button" href="$continueHref" role="button" draggable="false" data-module="govuk-button">
+           |                                Continue
+           |                            </a>""".stripMargin
+      )
+    } else {
+      closureStatusPage must include(
+        s"""                            <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+           |                                Continue
+           |                            </button>""".stripMargin
+      )
+    }
+    closureStatusPage must include(s"""<a class="govuk-link" href="$cancelHref">Cancel</a>""".stripMargin)
   }
 }
