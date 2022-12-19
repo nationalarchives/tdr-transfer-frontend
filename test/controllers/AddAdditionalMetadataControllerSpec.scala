@@ -166,7 +166,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedClosureFormPageContent(addAdditionalMetadataPageAsString)
+      checkForExpectedDescriptiveFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
     }
 
@@ -450,9 +450,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   private def checkForExpectedClosureFormPageContent(addClosureFormPageAsFormattedString: String): Unit = {
     val addAdditionalMetadataPageAsString = addClosureFormPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
     val closureMetadataHtmlElements = Set(
-      """      <title>Add closure metadata to files</title>""",
-      """      <h1 class="govuk-heading-l">Add closure metadata to</h1>""",
-      """      <p class="govuk-body">Enter metadata for closure fields here.</p>""",
+      """      <title>Add or edit closure metadata</title>""",
+      """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
       """            <h2 class="govuk-label govuk-label--m">
         |                FOI decision asserted
         |            </h2>""",
@@ -471,6 +470,39 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       """    <div id="numeric-input-hint" class="govuk-hint">
         |        Number of years the record is closed from the closure start date
         |    </div>""",
+      """            <label class="govuk-label govuk-label--m" for="inputdropdown-FoiExemptionCode">
+        |                FOI exemption code
+        |            </label>""".replace("................", "                "),
+      """        <div id="inputdropdown-FoiExemptionCode-hint" class="govuk-hint">
+        |            Add one or more exemption code to this closure. Here is a<a target="_blank" href="https://www.legislation.gov.uk/ukpga/2000/36/contents">full list of FOI codes and their designated exemptions</a>.
+        |        </div>""",
+      """<select class="govuk-select" id="inputdropdown-FoiExemptionCode" name="inputdropdown-FoiExemptionCode"  >""",
+      """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+        |            Is the title closed?
+        |        </legend>""",
+      """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+        |            Is the description closed?
+        |        </legend>"""
+    )
+
+    closureMetadataHtmlElements.foreach { htmlElement =>
+      addAdditionalMetadataPageAsString must include(
+        htmlElement.stripMargin.replaceAll(twoOrMoreSpaces, "")
+      )
+    }
+  }
+
+  private def checkForExpectedDescriptiveFormPageContent(addClosureFormPageAsFormattedString: String): Unit = {
+    val addAdditionalMetadataPageAsString = addClosureFormPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
+    val closureMetadataHtmlElements = Set(
+      """      <title>Add or edit descriptive metadata</title>""",
+      """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
+      """            <h2 class="govuk-label govuk-label--m">
+        |                Description
+        |            </h2>""",
+      """        <div id="text-input-description-hint" class="govuk-hint">
+        |            This description will be visible on Discovery and help explain the content of your file(s).
+        |        </div>""",
       """            <label class="govuk-label govuk-label--m" for="inputdropdown-FoiExemptionCode">
         |                FOI exemption code
         |            </label>""".replace("................", "                "),
