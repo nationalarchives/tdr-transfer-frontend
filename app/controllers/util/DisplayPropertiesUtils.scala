@@ -48,7 +48,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
     val required = customMetadata.requiredField
     property.componentType match {
       // set 'large text' to text field until have text area field
-      case "large text" =>
+      case "large text" | "" =>
         TextField(
           property.propertyName,
           property.displayName,

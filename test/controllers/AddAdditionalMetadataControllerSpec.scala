@@ -53,7 +53,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   "AddAdditionalMetadataController GET" should {
-    "render the add additional metadata page, with the default form, if file has no additional metadata, for an authenticated standard user" in {
+    "render the add additional metadata page, with the default closure form, if file has no additional metadata, for an authenticated standard user" in {
+      val closureMetadataType = metadataType(0)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
       val formTester = new FormTester(expectedClosureDefaultOptions.filterNot(_.name.contains("DescriptionClosed")))
@@ -64,7 +65,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}").withCSRFToken)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
       val expectedDefaultForm = Seq(
         ("inputdate-FoiExemptionAsserted-day", ""),
@@ -82,11 +83,13 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
+      checkForExpectedClosureFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
     }
 
-    "render the add additional metadata page, with the form updated with the file's additional metadata, for an authenticated standard user" in {
+    "render the add additional metadata page, with the closure form updated with the file's additional metadata, for an authenticated standard user" in {
+      val closureMetadataType = metadataType(0)
+
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
 
@@ -96,7 +99,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}").withCSRFToken)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       val newInputTextValues = Map(
@@ -135,7 +138,35 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         "<li>original/file/path</li>"
       )
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
+      checkForExpectedClosureFormPageContent(addAdditionalMetadataPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
+    }
+
+    "render the add additional metadata page, with the default descriptive form, if file has no additional metadata, for an authenticated standard user" in {
+      val descriptiveMetadataType = metadataType(1)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+      val formTester = new FormTester(expectedClosureDefaultOptions.filterNot(_.name.contains("DescriptionClosed")))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
+      setDisplayPropertiesResponse(wiremockServer)
+      setCustomMetadataResponse(wiremockServer)
+
+      val addAdditionalMetadataPage = addAdditionalMetadataController
+        .addAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType").withCSRFToken)
+      val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
+      val expectedDefaultForm = Seq(
+        ("inputtext-description-description", ""),
+        ("inputdropdown-Language-Language", "")
+      )
+
+      playStatus(addAdditionalMetadataPage) mustBe OK
+      contentType(addAdditionalMetadataPage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+      checkForExpectedClosureFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
     }
 
@@ -199,7 +230,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
+      checkForExpectedClosureFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(
         addAdditionalMetadataPageAsString,
         formSubmission.toMap.removed("inputradio-DescriptionClosed"),
@@ -238,7 +269,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
+      checkForExpectedClosureFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(
         addAdditionalMetadataPageAsString,
         formSubmission.toMap.removed("inputradio-DescriptionClosed"),
@@ -278,7 +309,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
+      checkForExpectedClosureFormPageContent(addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(
         addAdditionalMetadataPageAsString,
         formSubmission.toMap.removed("inputradio-DescriptionClosed"),
@@ -416,8 +447,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   // scalastyle:off method.length
-  private def checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsFormattedString: String): Unit = {
-    val addAdditionalMetadataPageAsString = addAdditionalMetadataPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
+  private def checkForExpectedClosureFormPageContent(addClosureFormPageAsFormattedString: String): Unit = {
+    val addAdditionalMetadataPageAsString = addClosureFormPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
     val closureMetadataHtmlElements = Set(
       """      <title>Add closure metadata to files</title>""",
       """      <h1 class="govuk-heading-l">Add closure metadata to</h1>""",
