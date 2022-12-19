@@ -58,21 +58,21 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       contentType(response) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
-      deleteMetadataPage.contains("<title>Delete closure metadata</title>") mustBe true
-      deleteMetadataPage.contains(
+      deleteMetadataPage must include("<title>Delete closure metadata</title>")
+      deleteMetadataPage must include(
         """                    <h1 class="govuk-heading-xl">
           |                        Delete closure metadata
           |                    </h1>""".stripMargin
-      ) mustBe true
-      deleteMetadataPage.contains("You are deleting closure metadata for the following files and setting them as open:") mustBe true
-      deleteMetadataPage.contains("Once deleted closure metadata cannot be recovered.") mustBe true
-      deleteMetadataPage.contains("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>") mustBe true
+      )
+      deleteMetadataPage must include("You are deleting closure metadata for the following files and setting them as open:")
+      deleteMetadataPage must include("Once deleted closure metadata cannot be recovered.")
+      deleteMetadataPage must include("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>")
 
       val deleteButtonHref =
         s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}?fileIds=${fileIds.mkString("&amp;")}"
       val cancelButtonHref =
         s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}?fileIds=${fileIds.mkString("&amp;")}"
-      deleteMetadataPage.contains(
+      deleteMetadataPage must include(
         s"""                    <div class="govuk-button-group">
            |                        <a href="$deleteButtonHref" role="button" draggable="false" class="govuk-button">
            |                            Delete and return to all files
@@ -81,7 +81,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
            |                            Cancel
            |                        </a>
            |                    </div>""".stripMargin
-      ) mustBe true
+      )
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
@@ -124,7 +124,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .failed
         .futureValue
 
-      response.getMessage.contains(errors.head.message) mustBe true
+      response.getMessage must include(errors.head.message)
     }
 
     "redirect to the login page if the page is accessed by a logged out user" in {
@@ -158,7 +158,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .failed
         .futureValue
 
-      response.getMessage.contains(errorMessage) mustBe true
+      response.getMessage must include(errorMessage)
     }
 
     "return an error if no files exist for the consignment" in {
@@ -192,7 +192,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val parentFolderId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setDeleteFileMetadataResponse(app.configuration, wiremockServer, fileIds, List("PropertyName1"))
+      setDeleteFileMetadataResponse(wiremockServer, fileIds, List("PropertyName1"))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -222,7 +222,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .failed
         .futureValue
 
-      response.getMessage.contains(errorMessage) mustBe true
+      response.getMessage must include(errorMessage)
     }
 
     "return forbidden if the url is accessed by a judgment user" in {

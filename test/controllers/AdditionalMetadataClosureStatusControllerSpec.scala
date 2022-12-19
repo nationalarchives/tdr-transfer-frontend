@@ -298,25 +298,25 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
     checkPageForStaticElements.checkContentOfPagesThatUseMainScala(closureStatusPage, userType = "standard")
     if (isErrorOnThePage) {
-      closureStatusPage.contains("<div class=\"govuk-form-group govuk-form-group--error\">") mustBe true
-      closureStatusPage.contains(
+      closureStatusPage must include("<div class=\"govuk-form-group govuk-form-group--error\">")
+      closureStatusPage must include(
         """<p class="govuk-error-message" id="error-closure">
           |        <span class="govuk-visually-hidden">Error:</span>
           |        You must confirm this closure has been approved before continuing.
           |    </p>""".stripMargin
-      ) mustBe true
+      )
     }
 
-    closureStatusPage.contains("Confirm the closure status of your record") mustBe true
-    closureStatusPage.contains("<p class=\"govuk-body govuk-!-margin-bottom-2 govuk-!-font-weight-bold\">You are adding closure to the following files:</p>") mustBe true
-    closureStatusPage.contains("<li>original/file/path</li>") mustBe true
-    closureStatusPage.contains(
+    closureStatusPage must include("Confirm the closure status of your record")
+    closureStatusPage must include("<p class=\"govuk-body govuk-!-margin-bottom-2 govuk-!-font-weight-bold\">You are adding closure to the following files:</p>")
+    closureStatusPage must include("<li>original/file/path</li>")
+    closureStatusPage must include(
       """<h2 class="govuk-fieldset__heading">
         |                                    Has this closure been approved by the Advisory Council?
         |                                </h2>""".stripMargin
-    ) mustBe true
+    )
     val href = s"/consignment/$consignmentId/additional-metadata/status/closure?fileIds=${fileIds.mkString("&")}"
-    closureStatusPage.contains(s"""<form action="$href" method="POST" novalidate="">""") mustBe true
+    closureStatusPage must include(s"""<form action="$href" method="POST" novalidate="">""")
     closureStatusPage must include(
       s"""<input
           |                ${if (isChecked) "checked" else ""}

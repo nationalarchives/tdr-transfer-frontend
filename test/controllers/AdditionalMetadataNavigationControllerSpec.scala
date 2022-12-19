@@ -51,12 +51,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
           val content = contentAsString(result)
 
-          content.contains(s"Add or edit $metadataType metadata on file basis") must be(true)
-          content.contains(s"Folder uploaded: ${parentFile.fileName.get}") must be(true)
-          content.contains("Select at least one file or folder") must be(false)
-          content.contains(s"""<a href="/consignment/$consignmentId/additional-metadata" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+          content must include(s"Add or edit $metadataType metadata on file basis")
+          content must include(s"Folder uploaded: ${parentFile.fileName.get}")
+          content must not include ("Select at least one file or folder")
+          content must include(
+            s"""<a href="/consignment/$consignmentId/additional-metadata" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
             |          Back
-            |          </a>""".stripMargin) must be(true)
+            |          </a>""".stripMargin
+          )
           if (metadataType == "closure") getExpectedClosureHtml(content: String)
         }
 
@@ -77,9 +79,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
           val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
 
-          content.contains(getExpectedCheckboxHtml(parentId, "parent")) must equal(true)
-          content.contains(getExpectedCheckboxHtml(descendantOneFileId, "descendantOneFile")) must equal(true)
-          content.contains(getExpectedCheckboxHtml(descendantTwoFileId, "descendantTwoFile")) must equal(true)
+          content must include(getExpectedCheckboxHtml(parentId, "parent"))
+          content must include(getExpectedCheckboxHtml(descendantOneFileId, "descendantOneFile"))
+          content must include(getExpectedCheckboxHtml(descendantTwoFileId, "descendantTwoFile"))
         }
       }
 
@@ -168,7 +170,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
         playStatus(result) must equal(BAD_REQUEST)
         val content = contentAsString(result)
-        content.contains(
+        content must include(
           """    <div class="govuk-error-summary govuk-!-margin-bottom-4" data-module="govuk-error-summary">
             |      <div role="alert">
             |        <h2 class="govuk-error-summary__title">There is a problem</h2>
@@ -181,7 +183,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             |        </div>
             |      </div>
             |    </div>""".stripMargin
-        ) must be(true)
+        )
       }
 
       "return forbidden for a judgment user" in {
@@ -216,11 +218,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   }
 
   private def getExpectedClosureHtml(htmlContent: String): Assertion = {
-    htmlContent.contains(s"""
+    htmlContent must include(s"""
        |        <div class="govuk-inset-text govuk-!-margin-top-0">
        |            Once you have added all necessary closure metadata return to the <a href="/consignment/$consignmentId/additional-metadata">previous page</a> to add descriptive metadata or continue with the transfer.
        |        </div>
-       |""".stripMargin) must be(true)
+       |""".stripMargin)
   }
 
   private def mockConsignmentService(files: List[gcf.GetConsignment.Files], consignmentType: String, allClosed: Boolean = false) = {
