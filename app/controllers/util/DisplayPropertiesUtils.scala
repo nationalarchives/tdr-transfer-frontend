@@ -47,7 +47,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
   private def generateFormField(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
     val required = customMetadata.requiredField
     property.componentType match {
-      // set 'large text to text field until have text area field
+      // set 'large text' to text field until have text area field
       case "large text" =>
         TextField(
           property.propertyName,
@@ -58,7 +58,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           "text",
           required
         )
-      case "dropdown" =>
+      case "select" =>
         DropdownField(
           property.propertyName,
           property.displayName,

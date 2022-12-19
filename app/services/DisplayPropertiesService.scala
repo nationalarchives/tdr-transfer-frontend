@@ -5,7 +5,7 @@ import configuration.GraphQLConfiguration
 import graphql.codegen.GetDisplayProperties.displayProperties.{DisplayProperties, Variables}
 import graphql.codegen.GetDisplayProperties.{displayProperties => dp}
 import graphql.codegen.types.DataType
-import graphql.codegen.types.DataType.{Boolean, Integer, Text}
+import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import services.ApiErrorHandling._
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
@@ -34,10 +34,11 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
   private def toDataType(dataType: Option[String]): DataType = {
     dataType match {
-      case Some("text")    => Text
-      case Some("integer") => Integer
-      case Some("boolean") => Boolean
-      case _               => throw new Exception(s"Invalid data type $dataType")
+      case Some("text")     => Text
+      case Some("integer")  => Integer
+      case Some("boolean")  => Boolean
+      case Some("datetime") => DateTime
+      case _                => throw new Exception(s"Invalid data type $dataType")
     }
   }
 

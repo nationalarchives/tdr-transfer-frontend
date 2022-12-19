@@ -1,15 +1,14 @@
 package controllers.util
 
-import cats.implicits.catsSyntaxOptionId
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
-import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
+import graphql.codegen.types.DataType.{DateTime, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar
+import services.DisplayProperty
 import testUtils.FormTestData
 
 class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
@@ -20,22 +19,96 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
   "convertPropertiesToFormFields" should "return the list of properties requested in ordinal order" in {
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
 
-    fields.size shouldBe 3
+    fields.size should equal(3)
     fields.head.fieldId should equal("Dropdown1")
     fields.tail.head.fieldId should equal("Dropdown2")
     fields.last.fieldId should equal("Dropdown3")
   }
 
-  "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'dropdown'" in {
+  "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select'" in {
+    val customMetadata = CustomMetadata(
+      "Dropdown1",
+      None,
+      None,
+      Defined,
+      None,
+      Text,
+      editable = true,
+      multiValue = false,
+      defaultValue = Some("dropdownValue1"),
+      4,
+      List(Values("dropdownValue3", List(), 3), Values("dropdownValue1", List(), 1), Values("dropdownValue2", List(), 2)),
+      None,
+      allowExport = false
+    )
+    val displayProperty = DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown1", "propertyType")
 
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+
+    val dropdownField: DropdownField = fields.head.asInstanceOf[DropdownField]
+    dropdownField.fieldId should equal("Dropdown1")
+    dropdownField.multiValue should equal(false)
+    dropdownField.fieldName should equal("Dropdown Display")
+    dropdownField.fieldDescription should equal("description")
+    dropdownField.isRequired should equal(false)
+    dropdownField.fieldErrors should equal(Nil)
+    dropdownField.selectedOption.get.value should equal("dropdownValue1")
+    dropdownField.selectedOption.get.name should equal("dropdownValue1")
+
+    val selectOptions = dropdownField.options
+    selectOptions.size should equal(3)
+    selectOptions.head.name should equal("dropdownValue1")
+    selectOptions.head.value should equal("dropdownValue1")
+    selectOptions.tail.head.name should equal("dropdownValue2")
+    selectOptions.tail.head.value should equal("dropdownValue2")
+    selectOptions.last.name should equal("dropdownValue3")
+    selectOptions.last.value should equal("dropdownValue3")
   }
 
   "convertPropertiesToFormFields" should "generate 'text field' field for componentType value 'large text'" in {
+    val customMetadata = CustomMetadata(
+      "TextField",
+      None,
+      None,
+      Defined,
+      None,
+      Text,
+      editable = true,
+      multiValue = false,
+      defaultValue = Some("defaultValue"),
+      4,
+      List(),
+      None,
+      allowExport = false
+    )
+    val displayProperty = DisplayProperty(true, "large text", Text, "description", "TextField Display", true, "group", "guidance", "label", false, 3, "TextField", "propertyType")
 
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+
+    val textField: TextField = fields.head.asInstanceOf[TextField]
+    textField.fieldId should equal("TextField")
+    textField.fieldName should equal("TextField Display")
+    textField.fieldDescription should equal("description")
+    textField.fieldErrors should equal(Nil)
+    textField.isRequired should equal(false)
+    textField.inputMode should equal("text")
+    textField.multiValue should equal(false)
+    textField.nameAndValue.name should equal("TextField")
+    textField.nameAndValue.value should equal("defaultValue")
   }
 
   "convertPropertiesToFormFields" should "throw an error for an unsupported component type" in {
+    val displayProperty =
+      DisplayProperty(true, "unsupportedComponentType", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown1", "propertyType")
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List())
 
+    val thrownException = intercept[Exception] {
+      displayPropertiesUtils.convertPropertiesToFormFields
+    }
+
+    thrownException.getMessage should equal("unsupportedComponentType is not a supported component type")
   }
 
   "CustomMetadataHelper" should "return the correct 'default value' for custom metadata" in {
@@ -55,20 +128,22 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     someDefaultInput.name should equal("someValue")
     someDefaultInput.value should equal("someValue")
 
-    displayPropertiesUtils.CustomMetadataHelper(Some(noDefaultValue)).defaultInput shouldBe None
-    displayPropertiesUtils.CustomMetadataHelper(None).defaultInput shouldBe None
+    displayPropertiesUtils.CustomMetadataHelper(Some(noDefaultValue)).defaultInput should equal(None)
+    displayPropertiesUtils.CustomMetadataHelper(None).defaultInput should equal(None)
   }
 
   "CustomMetadataHelper" should "return the correct 'defined inputs' for custom metadata" in {
     val noValues = createCustomMetadata()
-    val withValues = createCustomMetadata(values = List(
-      Values("value3", List(), 3),
-      Values("value1", List(), 1),
-      Values("value2", List(), 2)
-    ))
-    
+    val withValues = createCustomMetadata(values =
+      List(
+        Values("value3", List(), 3),
+        Values("value1", List(), 1),
+        Values("value2", List(), 2)
+      )
+    )
+
     val values = displayPropertiesUtils.CustomMetadataHelper(Some(withValues)).definedInputs
-    values.size shouldBe 3
+    values.size should equal(3)
     values.head.name should equal("value1")
     values.head.value should equal("value1")
     values.tail.head.name should equal("value2")
@@ -85,14 +160,13 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     val mandatoryClosure = createCustomMetadata("MandatoryClosure")
     val other = createCustomMetadata("OtherPropertyGroup")
 
-    displayPropertiesUtils.CustomMetadataHelper(Some(mandatoryClosure)).requiredField shouldBe true
-    displayPropertiesUtils.CustomMetadataHelper(Some(mandatoryMetadata)).requiredField shouldBe true
-    displayPropertiesUtils.CustomMetadataHelper(Some(other)).requiredField shouldBe false
-    displayPropertiesUtils.CustomMetadataHelper(None).requiredField shouldBe false
+    displayPropertiesUtils.CustomMetadataHelper(Some(mandatoryClosure)).requiredField should equal(true)
+    displayPropertiesUtils.CustomMetadataHelper(Some(mandatoryMetadata)).requiredField should equal(true)
+    displayPropertiesUtils.CustomMetadataHelper(Some(other)).requiredField should equal(false)
+    displayPropertiesUtils.CustomMetadataHelper(None).requiredField should equal(false)
   }
 
   def createCustomMetadata(propertyGroup: String = "defaultGroup", defaultValue: Option[String] = None, values: List[Values] = Nil): CustomMetadata = {
-    CustomMetadata("Property", None, None, Supplied, Some(propertyGroup),
-      DateTime, editable = true, multiValue = false, defaultValue, 1, values, None, allowExport = false)
+    CustomMetadata("Property", None, None, Supplied, Some(propertyGroup), DateTime, editable = true, multiValue = false, defaultValue, 1, values, None, allowExport = false)
   }
 }
