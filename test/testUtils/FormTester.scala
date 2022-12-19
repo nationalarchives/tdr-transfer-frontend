@@ -178,17 +178,17 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
 
   private def addValuesToRadioAttributes(id: String, name: String, selected: Boolean, value: String): String = {
     val selectedStatus = if (selected) "checked" else ""
-    s"""            <div class="govuk-radios__item">
-      |                <input
+    s"""                <input
       |                        class="govuk-radios__input"
       |                        id="$id"
       |                        name="$name"
       |                        type="radio"
       |                        value="$value"
+      |                        data-aria-controls="conditional-$name-$value"
       |........................
       |                        $selectedStatus
       |                        required
-      |                />""".stripMargin.replace("........................", "                        ")
+      |                    />""".stripMargin.replace("........................", "                        ")
   }
 
   private def checkPageForElements(

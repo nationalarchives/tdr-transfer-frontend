@@ -102,8 +102,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
         customMetadataService
           .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, List(metadataInput))
           .map { _ =>
-            val propertyNameAndFieldSelected = List(s"${closureType.name}-${closureType.value}")
-            Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(propertyNameAndFieldSelected, consignmentId, metadataType, fileIds))
+            Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds))
           }
       }
 

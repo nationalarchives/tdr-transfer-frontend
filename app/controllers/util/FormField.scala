@@ -1,6 +1,7 @@
 package controllers.util
 
 import controllers.util.FormField._
+import org.apache.commons.lang3.NotImplementedException
 
 import java.time.{LocalDateTime, Year}
 import scala.util.control.Exception.allCatch
@@ -11,6 +12,7 @@ abstract class FormField {
   val fieldDescription: String
   val multiValue: Boolean
   val isRequired: Boolean
+  val hideInputs: Boolean = false
   val fieldErrors: List[String]
 }
 
@@ -20,10 +22,13 @@ case class RadioButtonGroupField(
     fieldId: String,
     fieldName: String,
     fieldDescription: String,
+    additionalInfo: String,
     multiValue: Boolean,
     options: Seq[InputNameAndValue],
     selectedOption: String,
     isRequired: Boolean,
+    override val hideInputs: Boolean = false,
+    dependencies: Map[String, List[FormField]] = Map.empty,
     fieldErrors: List[String] = Nil
 ) extends FormField
 
@@ -80,15 +85,39 @@ object FormField {
 
 object RadioButtonGroupField {
 
-  def validate(option: String, radioButtonGroupField: RadioButtonGroupField): Option[String] =
-    option match {
+  def validate(option: String, dependencies: Map[String, String], radioButtonGroupField: RadioButtonGroupField): List[String] = {
+    val optionErrors = option match {
       case ""                                                               => Some(radioOptionNotSelectedError.format(radioButtonGroupField.fieldName))
       case value if !radioButtonGroupField.options.exists(_.value == value) => Some(invalidRadioOptionSelectedError.format(value))
       case _                                                                => None
     }
+    def dependenciesError: Option[String] = radioButtonGroupField.dependencies
+      .get(option)
+      .flatMap(_.flatMap {
+        case textField: TextField => TextField.validate(dependencies(textField.fieldId), textField)
+        case formField: FormField => throw new NotImplementedException(s"Implement for ${formField.fieldId}")
+      }.headOption)
+
+    optionErrors.orElse(dependenciesError).map(List(_)).getOrElse(Nil)
+  }
 
   def update(radioButtonGroupField: RadioButtonGroupField, value: Boolean): RadioButtonGroupField =
     radioButtonGroupField.copy(selectedOption = if (value) "yes" else "no")
+
+  def update(radioButtonGroupField: RadioButtonGroupField, selectedOption: String, dependencies: Map[String, String]): RadioButtonGroupField = {
+
+    if (dependencies.nonEmpty) {
+      val updatedDependencies = radioButtonGroupField
+        .dependencies(selectedOption)
+        .map { case textField: TextField => TextField.update(textField, dependencies(textField.fieldId)) }
+      radioButtonGroupField.copy(
+        selectedOption = selectedOption,
+        dependencies = radioButtonGroupField.dependencies + (selectedOption -> updatedDependencies)
+      )
+    } else {
+      radioButtonGroupField.copy(selectedOption = selectedOption)
+    }
+  }
 }
 
 object DropdownField {
