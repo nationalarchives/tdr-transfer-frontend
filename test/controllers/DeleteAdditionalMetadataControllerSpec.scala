@@ -192,7 +192,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val parentFolderId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setDeleteFileMetadataResponse(app.configuration, wiremockServer, fileIds, List("PropertyName1"))
+      setDeleteFileMetadataResponse(wiremockServer, fileIds, List("PropertyName1"))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
