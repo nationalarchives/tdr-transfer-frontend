@@ -114,7 +114,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     property1.propertyType should equal("")
   }
 
-  "getDisplayProperties" should "return an error if property is missing a 'data type" in {
+  "getDisplayProperties" should "return an error if property is missing a 'data type'" in {
     val data: Option[dp.Data] = Some(
       dp.Data(
         List(

@@ -1,8 +1,6 @@
 package controllers.util
 
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
-import graphql.codegen.types.DataType.Text
-import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import services.DisplayProperty
 
 class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMetadata: List[CustomMetadata]) {
