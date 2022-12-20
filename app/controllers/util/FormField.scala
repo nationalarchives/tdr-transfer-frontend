@@ -41,6 +41,7 @@ case class TextField(
     inputMode: String,
     isRequired: Boolean,
     fieldErrors: List[String] = Nil,
+    addSuffixText: Boolean = true,
     inputType: String = "number"
 ) extends FormField
 
