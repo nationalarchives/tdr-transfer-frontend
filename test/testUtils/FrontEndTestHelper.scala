@@ -135,7 +135,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         gcfm.GetConsignment.Files.FileMetadata("DescriptionClosed", "true"),
         gcfm.GetConsignment.Files.FileMetadata("TitleAlternate", "inputtext-TitleAlternate-TitleAlternate value"),
         gcfm.GetConsignment.Files.FileMetadata("DescriptionAlternate", "inputtext-DescriptionAlternate-DescriptionAlternate value"),
-        gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path")
+        gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path"),
+        gcfm.GetConsignment.Files.FileMetadata("description", "a previously added description"),
+        gcfm.GetConsignment.Files.FileMetadata("Language", "Welsh")
       )
     } else {
       Nil
