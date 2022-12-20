@@ -6,9 +6,8 @@ class CheckFormPageElements() {
   val twoOrMoreSpaces = "\\s{2,}"
 
   private val expectedClosureFormHtmlElements = Set(
-    """      <title>Add closure metadata to files</title>""",
-    """      <h1 class="govuk-heading-l">Add closure metadata to</h1>""",
-    """      <p class="govuk-body">Enter metadata for closure fields here.</p>""",
+    """      <title>Add or edit closure metadata</title>""",
+    """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
     """            <h2 class="govuk-label govuk-label--m">
       |                FOI decision asserted
       |            </h2>""",
@@ -45,7 +44,7 @@ class CheckFormPageElements() {
   def checkFormContent(metadataType: String, formPageAsFormattedString: String): Unit = {
     val formPageAsString = formPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
     val expectedFormHtmlElements = if (metadataType == "descriptive") { Set() }
-    else expectedClosureFormHtmlElements
+    else { expectedClosureFormHtmlElements }
 
     expectedFormHtmlElements.foreach { htmlElement =>
       formPageAsString must include(
