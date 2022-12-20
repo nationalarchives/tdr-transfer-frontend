@@ -7,6 +7,7 @@ class CheckFormPageElements() {
 
   private val expectedClosureFormHtmlElements = Set(
     """      <title>Add or edit closure metadata</title>""",
+    """      <span class="govuk-caption-l">Closure metadata</span>""",
     """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
     """            <h2 class="govuk-label govuk-label--m">
       |                FOI decision asserted
