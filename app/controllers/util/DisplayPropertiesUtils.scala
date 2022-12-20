@@ -1,6 +1,7 @@
 package controllers.util
 
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
+import graphql.codegen.types.DataType
 import services.DisplayProperty
 
 class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMetadata: List[CustomMetadata]) {
@@ -43,7 +44,9 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
   }
 
   private def generateFormField(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
-    val required = customMetadata.requiredField
+    val required: Boolean = customMetadata.requiredField
+    val inputType: String = if (property.dataType == DataType.Integer) { "number" }
+    else { "text" }
     property.componentType match {
       // set 'large text' to text field until have text area field
       case "large text" =>
@@ -54,7 +57,8 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           property.multiValue,
           InputNameAndValue(property.propertyName, customMetadata.defaultValue),
           "text",
-          required
+          required,
+          inputType = inputType
         )
       case "select" =>
         DropdownField(

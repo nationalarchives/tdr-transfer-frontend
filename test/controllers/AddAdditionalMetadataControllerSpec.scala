@@ -21,7 +21,7 @@ import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
-import services.{ConsignmentService, CustomMetadataService}
+import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions}
 import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
@@ -525,6 +525,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+    val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
     new AddAdditionalMetadataController(
       securityComponents,
@@ -532,6 +533,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       getValidStandardUserKeycloakConfiguration,
       consignmentService,
       customMetadataService,
+      displayPropertiesService,
       MockAsyncCacheApi()
     )
   }
