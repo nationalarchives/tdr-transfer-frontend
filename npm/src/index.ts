@@ -148,10 +148,12 @@ export const renderModules = async () => {
     }
   }
   if (multiSelectSearch) {
-    const rootElement: HTMLElement | null = document.querySelector("[data-module=multi-select-search]")
+    const rootElement: HTMLElement | null = document.querySelector(
+      "[data-module=multi-select-search]"
+    )
     if (rootElement) {
-      const multiSelectSearch = new MultiSelectSearch(rootElement);
-      multiSelectSearch.initialise();
+      const multiSelectSearch = new MultiSelectSearch(rootElement)
+      multiSelectSearch.initialise()
     }
   }
 }
