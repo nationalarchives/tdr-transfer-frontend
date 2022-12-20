@@ -138,17 +138,23 @@ object DropdownField {
 
 object TextField {
 
+  private def toNumericValidationError(textValue: String, inputName: String): Option[String] = {
+    textValue match {
+      case t if allCatch.opt(t.toInt).isEmpty => Some(numberError.format(inputName))
+      case t if t.toInt < 0                   => Some(negativeNumberError.format(inputName))
+      case _                                  => None
+    }
+  }
+
   def validate(text: String, textField: TextField): Option[String] =
     if (text == "") {
       val fieldType: String = if (textField.inputMode.equals("numeric")) "number" else "text"
-      Some(emptyValueError.format(fieldType, textField.fieldName))
-    } else if (textField.inputMode.equals("numeric")) {
-      val inputName = textField.nameAndValue.name
-      text match {
-        case t if allCatch.opt(t.toInt).isEmpty => Some(numberError.format(inputName))
-        case t if t.toInt < 0                   => Some(negativeNumberError.format(inputName))
-        case _                                  => None
+      textField match {
+        case tf if tf.isRequired => Some(emptyValueError.format(fieldType, textField.fieldName))
+        case _                   => None
       }
+    } else if (textField.inputMode.equals("numeric")) {
+      toNumericValidationError(text, textField.nameAndValue.name)
     } else {
       None
     }
