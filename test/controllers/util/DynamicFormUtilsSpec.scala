@@ -196,8 +196,8 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         .apply(POST, s"/consignment/12345/additional-metadata/add")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadatas().find(_.name == "Radio").toList
-    val allMetadataAsFields: List[FormField] = new CustomMetadataUtils(testData.setupCustomMetadatas()).convertPropertiesToFormFields(mockProperties.toSet)
+    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadata().find(_.name == "Radio").toList
+    val allMetadataAsFields: List[FormField] = new CustomMetadataUtils(testData.setupCustomMetadata()).convertPropertiesToFormFields(mockProperties.toSet)
 
     val dynamicFormUtils = new DynamicFormUtils(mockRequest, allMetadataAsFields)
 
@@ -275,7 +275,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         .apply(POST, s"/consignment/12345/additional-metadata/add")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadatas().find(_.name == "FoiExemptionAsserted").toList
+    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadata().find(_.name == "FoiExemptionAsserted").toList
     val allMetadataAsFields: List[FormField] = new CustomMetadataUtils(mockProperties).convertPropertiesToFormFields(mockProperties.toSet)
     val metaDataField = allMetadataAsFields.head match {
       case e: DateField => e.copy(isFutureDateAllowed = false)
@@ -371,7 +371,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         .apply(POST, s"/consignment/12345/additional-metadata/add")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadatas()
+    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadata()
 
     val customMetadataUtils: CustomMetadataUtils = new CustomMetadataUtils(mockProperties)
 
