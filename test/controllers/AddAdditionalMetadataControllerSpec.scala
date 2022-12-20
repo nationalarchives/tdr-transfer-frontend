@@ -540,9 +540,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   private def checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsFormattedString: String): Unit = {
     val addAdditionalMetadataPageAsString = addAdditionalMetadataPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
     val closureMetadataHtmlElements = Set(
-      """      <title>Add closure metadata to files</title>""",
-      """      <h1 class="govuk-heading-l">Add closure metadata to</h1>""",
-      """      <p class="govuk-body">Enter metadata for closure fields here.</p>""",
+      """      <title>Add or edit closure metadata</title>""",
+      """      <span class="govuk-caption-l">Closure metadata</span>""",
+      """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
       """            <h2 class="govuk-label govuk-label--m">
         |                FOI decision asserted
         |            </h2>""",
