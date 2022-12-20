@@ -170,6 +170,32 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
     }
 
+    "render the add additional metadata page, with the descriptive form updated with the file's additional metadata, for an authenticated standard user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+      val formTester = new FormTester(expectedDescriptiveDefaultOptions)
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+      setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
+
+      val addAdditionalMetadataPage = addAdditionalMetadataController
+        .addAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType").withCSRFToken)
+      val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
+      val expectedDefaultForm = Seq(
+        ("inputtext-description-description", "a previously added description"),
+        ("inputdropdown-Language", "Welsh")
+      )
+      playStatus(addAdditionalMetadataPage) mustBe OK
+      contentType(addAdditionalMetadataPage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+      checkFormElements.checkFormContent(descriptiveMetadataType, addAdditionalMetadataPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
+    }
+
     "return a redirect to the auth server with an unauthenticated user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = instantiateAddAdditionalMetadataController(getUnauthorisedSecurityComponents)
