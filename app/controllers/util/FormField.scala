@@ -146,18 +146,21 @@ object TextField {
     }
   }
 
-  def validate(text: String, textField: TextField): Option[String] =
-    if (text == "") {
-      val fieldType: String = if (textField.inputMode.equals("numeric")) "number" else "text"
-      textField match {
-        case tf if tf.isRequired => Some(emptyValueError.format(fieldType, textField.fieldName))
-        case _                   => None
-      }
-    } else if (textField.inputMode.equals("numeric")) {
-      toNumericValidationError(text, textField.nameAndValue.name)
-    } else {
-      None
+  private def toEmptyValueError(textField: TextField): Option[String] = {
+    // some fields are not required, but still require text if they are submitted
+    val overriddenFields: Set[String] = Set("TitleAlternate", "DescriptionAlternate")
+    val fieldType: String = if (textField.inputMode.equals("numeric")) "number" else "text"
+
+    if (textField.isRequired || overriddenFields.contains(textField.fieldId)) Some(emptyValueError.format(fieldType, textField.fieldName)) else None
+  }
+
+  def validate(text: String, textField: TextField): Option[String] = {
+    (text, textField) match {
+      case t if t._1 == ""                       => toEmptyValueError(t._2)
+      case t if t._2.inputMode.equals("numeric") => toNumericValidationError(t._1, t._2.nameAndValue.name)
+      case _                                     => None
     }
+  }
 
   def update(textField: TextField, value: String): TextField = textField.copy(nameAndValue = textField.nameAndValue.copy(value = value))
 }

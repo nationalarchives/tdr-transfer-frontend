@@ -60,6 +60,19 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       TextField.validate("", notRequiredTextField) shouldBe None
     }
 
+    "validate should return an error when the field is 'TitleAlternate', is not required and the given value is empty" in {
+      val notRequiredTextField = TextField("TitleAlternate", "Alternative Title", "desc", multiValue = false, InputNameAndValue("years", "0", "0"), "text", isRequired = false)
+
+      TextField.validate("", notRequiredTextField) shouldBe Some("There was no text entered for the Alternative Title.")
+    }
+
+    "validate should return an error when the field is 'DescriptionAlternate', is not required and the given value is empty" in {
+      val notRequiredTextField =
+        TextField("DescriptionAlternate", "Alternative Description", "desc", multiValue = false, InputNameAndValue("years", "0", "0"), "text", isRequired = false)
+
+      TextField.validate("", notRequiredTextField) shouldBe Some("There was no text entered for the Alternative Description.")
+    }
+
     "validate should return an error when the given value is not a numeric value" in {
 
       List("1b12", "b1", "notNumeric", "e").foreach { invalidValue =>
