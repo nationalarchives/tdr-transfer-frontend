@@ -389,7 +389,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setDeleteFileMetadataResponse(wiremockServer)
 
       addAdditionalMetadataController
-        .addAdditionalMetadataSubmit(consignmentId, closureMetadataType, fileIds)
+        .addAdditionalMetadataSubmit(consignmentId, "closure", fileIds)
         .apply(
           FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
             .withFormUrlEncodedBody(formSubmission: _*)
