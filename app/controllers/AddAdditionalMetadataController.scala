@@ -43,7 +43,7 @@ class AddAdditionalMetadataController @Inject() (
         updatedFormFields <- {
           cache.set(s"$consignmentId-consignment", consignment, 1.hour)
           // Set the values to those of the first file's metadata until we decide what to do with multiple files.
-          val metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.head).toMap
+          val metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
           Future.successful(updateFormFields(formFields, metadataMap))
         }
       } yield {
@@ -70,7 +70,7 @@ class AddAdditionalMetadataController @Inject() (
               consignment <- cache.getOrElseUpdate[GetConsignment](s"$consignmentId-consignment") {
                 consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None, None)))
               }
-              metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.head).toMap
+              metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
             } yield {
               val files = consignment.files.toFiles
               Ok(
@@ -108,8 +108,8 @@ class AddAdditionalMetadataController @Inject() (
       case RadioButtonGroupField(fieldId, _, _, _, multiValue, _, selectedOption, _, _, dependencies, _) =>
         val fileMetadataInputs = dependencies.get(selectedOption).map(buildUpdateMetadataInput).getOrElse(Nil)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString) :: fileMetadataInputs
-      case DropdownField(fieldId, _, _, multiValue, _, selectedOption, _, _) =>
-        UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, selectedOption.map(_.value).getOrElse("")) :: Nil
+      case DropdownField(fieldId, _, _, multiValue, _, selectedOptions, _, _) =>
+        selectedOptions.getOrElse(Nil).map(p => UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, p.value))
     }
   }
 
@@ -154,31 +154,31 @@ class AddAdditionalMetadataController @Inject() (
     }
   }
 
-  private def updateFormFields(orderedFieldsForForm: List[FormField], metadataMap: Map[String, FileMetadata]): List[FormField] = {
+  private def updateFormFields(orderedFieldsForForm: List[FormField], metadataMap: Map[String, List[FileMetadata]]): List[FormField] = {
     val updatedFormFields = orderedFieldsForForm.map {
       case dateField: DateField =>
         metadataMap
           .get(dateField.fieldId)
-          .map(metadata => DateField.update(dateField, Timestamp.valueOf(metadata.value).toLocalDateTime))
+          .map(metadata => DateField.update(dateField, Timestamp.valueOf(metadata.head.value).toLocalDateTime))
           .getOrElse(dateField)
       case dropdownField: DropdownField =>
         metadataMap
           .get(dropdownField.fieldId)
-          .map(metadata => DropdownField.update(dropdownField, metadata.value))
+          .map(metadata => DropdownField.update(dropdownField, metadata.map(_.value)))
           .getOrElse(dropdownField)
       case radioButtonGroupField: RadioButtonGroupField =>
         metadataMap
           .get(radioButtonGroupField.fieldId)
           .map(metadata =>
             RadioButtonGroupField
-              .update(radioButtonGroupField, stringToBoolean(metadata.value))
+              .update(radioButtonGroupField, stringToBoolean(metadata.head.value))
               .copy(dependencies = radioButtonGroupField.dependencies.map { case (key, formFields) => key -> updateFormFields(formFields, metadataMap) })
           )
           .getOrElse(radioButtonGroupField)
       case textField: TextField =>
         metadataMap
           .get(textField.fieldId)
-          .map(metadata => TextField.update(textField, metadata.value))
+          .map(metadata => TextField.update(textField, metadata.head.value))
           .getOrElse(textField)
     }
     updatedFormFields.map(formFieldOverrides(_, metadataMap))
@@ -195,12 +195,12 @@ class AddAdditionalMetadataController @Inject() (
 object AddAdditionalMetadataController {
   case class File(fileId: UUID, name: String)
 
-  def formFieldOverrides(formField: FormField, fileMetadata: Map[String, FileMetadata]): FormField = {
+  def formFieldOverrides(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
 
     // We have hard code this logic here as we are still not sure how to make it data-driven.
     if (formField.fieldId == descriptionClosed) {
       // Hide DescriptionClosed field if the Description property value is empty
-      val value = fileMetadata.get(description).map(_.value).getOrElse("")
+      val value = fileMetadata.get(description).map(_.head.value).getOrElse("")
       val (fieldDescription, hideInputs, info) = if (value.isEmpty) {
         ("There is no description associated with this record. You can add a description in the <strong>Descriptive metadata</strong> section.", true, "")
       } else {

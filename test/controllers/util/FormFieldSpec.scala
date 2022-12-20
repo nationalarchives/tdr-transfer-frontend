@@ -74,22 +74,25 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "update should set value for the field" in {
 
-      DropdownField.update(dropdownField, "34") shouldBe dropdownField.copy(selectedOption = Some(InputNameAndValue("34", "34")))
+      DropdownField.update(dropdownField, Seq("34")) shouldBe dropdownField.copy(selectedOption = Some(List(InputNameAndValue("34", "34"))))
+      DropdownField.update(dropdownField, Seq("Open", "34")) shouldBe dropdownField.copy(selectedOption =
+        Some(List(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")))
+      )
     }
 
     "validate should not return an error when the given value is valid option" in {
 
-      DropdownField.validate("34", dropdownField) shouldBe None
+      DropdownField.validate(Seq("34"), dropdownField) shouldBe None
     }
 
     "validate should return an error when the given value is empty" in {
 
-      DropdownField.validate("", dropdownField) shouldBe Some("There was no value selected for the name.")
+      DropdownField.validate(Nil, dropdownField) shouldBe Some("There was no value selected for the name.")
     }
 
     "validate should return an error when the given value is not a valid option" in {
 
-      DropdownField.validate("ABC", dropdownField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
+      DropdownField.validate(Seq("ABC"), dropdownField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
     }
   }
 

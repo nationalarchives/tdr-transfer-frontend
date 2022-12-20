@@ -53,8 +53,8 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     dropdownField.fieldDescription should equal("description")
     dropdownField.isRequired should equal(false)
     dropdownField.fieldErrors should equal(Nil)
-    dropdownField.selectedOption.get.value should equal("dropdownValue1")
-    dropdownField.selectedOption.get.name should equal("dropdownValue1")
+    dropdownField.selectedOption.get.map(_.value) should equal(List("dropdownValue1"))
+    dropdownField.selectedOption.get.map(_.name) should equal(List("dropdownValue1"))
 
     val selectOptions = dropdownField.options
     selectOptions.size should equal(3)

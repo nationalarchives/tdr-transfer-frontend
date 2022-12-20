@@ -1,5 +1,6 @@
 import { initAll } from "govuk-frontend"
 import { NestedNavigation } from "@nationalarchives/tdr-components"
+import { MultiSelectSearch } from "@nationalarchives/tdr-components"
 
 window.onload = async function () {
   initAll()
@@ -42,6 +43,7 @@ export const renderModules = async () => {
   const fileNavigation = document.querySelector(".govuk-tna-tree")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
+  const multiSelectSearch = document.querySelector(".tna-multi-select-search")
 
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
@@ -143,6 +145,13 @@ export const renderModules = async () => {
           window.location.replace(res.url)
         })
       })
+    }
+  }
+  if (multiSelectSearch) {
+    const rootElement: HTMLElement | null = document.querySelector("[data-module=multi-select-search]")
+    if (rootElement) {
+      const multiSelectSearch = new MultiSelectSearch(rootElement);
+      multiSelectSearch.initialise();
     }
   }
 }
