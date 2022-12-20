@@ -34,7 +34,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   "getValuesOfProperties" should "return the values for a given property" in {
     val namesOfPropertiesAndTheirExpectedValues = Map(
       "FoiExemptionAsserted" -> List(),
-      "Dropdown" -> List("dropdownValue"),
+      "Dropdown" -> List("dropdownValue", "dropdownValue2"),
       "Radio" -> List("True", "False")
     )
 

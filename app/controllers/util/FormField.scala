@@ -50,7 +50,7 @@ case class DropdownField(
     fieldDescription: String,
     multiValue: Boolean,
     options: Seq[InputNameAndValue],
-    selectedOption: Option[InputNameAndValue],
+    selectedOption: Option[List[InputNameAndValue]],
     isRequired: Boolean,
     fieldErrors: List[String] = Nil
 ) extends FormField
@@ -123,16 +123,16 @@ object RadioButtonGroupField {
 
 object DropdownField {
 
-  def validate(option: String, dropdownField: DropdownField): Option[String] =
-    option match {
-      case ""                                                       => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
-      case value if !dropdownField.options.exists(_.value == value) => Some(invalidDropdownOptionSelectedError.format(value))
-      case _                                                        => None
+  def validate(slectedOptions: Seq[String], dropdownField: DropdownField): Option[String] =
+    slectedOptions match {
+      case Nil                                                                   => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
+      case values if !values.forall(dropdownField.options.map(_.value).contains) => Some(invalidDropdownOptionSelectedError.format(values.mkString(", ")))
+      case _                                                                     => None
     }
 
-  def update(dropdownField: DropdownField, value: String): DropdownField = {
-    val optionSelected: Option[InputNameAndValue] = if (value.isEmpty) None else Some(InputNameAndValue(value, value))
-    dropdownField.copy(selectedOption = optionSelected)
+  def update(dropdownField: DropdownField, selectedValues: Seq[String]): DropdownField = {
+    val selectedOptions: List[InputNameAndValue] = dropdownField.options.filter(v => selectedValues.contains(v.value)).toList
+    dropdownField.copy(selectedOption = Some(selectedOptions))
   }
 }
 

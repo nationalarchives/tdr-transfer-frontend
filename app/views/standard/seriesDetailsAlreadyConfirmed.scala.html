@@ -26,7 +26,7 @@ messages: Messages)
                 dropdownField.fieldName,
                 dropdownField.fieldDescription,
                 dropdownField.options,
-                dropdownField.selectedOption,
+                dropdownField.selectedOption.map(_.head),
                 dropdownField.multiValue,
                 Map(
                     Symbol("_dynamicForm") -> false,

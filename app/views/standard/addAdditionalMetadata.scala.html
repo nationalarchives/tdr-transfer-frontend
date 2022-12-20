@@ -7,10 +7,11 @@
 @import views.html.partials.transferReference
 @import views.html.partials.inputRadioGroup
 @import controllers.util._
-@import views.html.partials.inputDropdown
+@import views.html.partials.inputMultiSelectDropdown
 
 @import controllers.AddAdditionalMetadataController.File
 @import views.html.partials.fileNameCard
+
 @(consignmentId: UUID, consignmentRef: String, metadataType: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File])(implicit request: RequestHeader, messages: Messages)
 @main(s"Add or edit $metadataType metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
@@ -72,13 +73,13 @@
                   inputMode,
                   addSuffixText
                 )
-                case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
-                  inputDropdown(
+                case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOptions, _, fieldErrors) =>
+                  inputMultiSelectDropdown(
                     fieldId,
                     fieldName,
                     fieldDescription,
                     options,
-                    selectedOption,
+                    selectedOptions,
                     multiValue,
                     Map(
                       Symbol("_disabledOption") -> "",

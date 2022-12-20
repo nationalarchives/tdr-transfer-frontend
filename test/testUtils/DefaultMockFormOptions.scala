@@ -114,7 +114,7 @@ object DefaultMockFormOptions {
     ),
     MockInputOption(
       name = "inputdropdown-FoiExemptionCode",
-      id = "inputdropdown-FoiExemptionCode",
+      id = "inputdropdown-FoiExemptionCode-0",
       label = "mock code1",
       value = "mock code1",
       fieldType = "inputDropdown",
@@ -122,7 +122,7 @@ object DefaultMockFormOptions {
     ),
     MockInputOption(
       name = "inputdropdown-FoiExemptionCode",
-      id = "inputdropdown-FoiExemptionCode",
+      id = "inputdropdown-FoiExemptionCode-1",
       label = "mock code2",
       value = "mock code2",
       fieldType = "inputDropdown",

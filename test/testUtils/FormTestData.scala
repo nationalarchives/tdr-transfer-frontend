@@ -68,7 +68,8 @@ class FormTestData() {
       defaultValue = None,
       4,
       List(
-        Values("dropdownValue", List(Dependencies("TestDropdownProperty")), 3)
+        Values("dropdownValue", List(Dependencies("TestDropdownProperty")), 1),
+        Values("dropdownValue2", List(Dependencies("TestDropdownProperty")), 2)
       ),
       None,
       allowExport = false

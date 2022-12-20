@@ -63,7 +63,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           property.description,
           property.multiValue,
           customMetadata.definedInputs,
-          customMetadata.defaultInput,
+          customMetadata.defaultInput.map(List(_)),
           required
         )
       case _ => throw new IllegalArgumentException(s"${property.componentType} is not a supported component type")

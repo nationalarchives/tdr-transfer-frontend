@@ -71,20 +71,6 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     thrownException.getMessage should equal(s"$fieldTypeWithIncorrectPrefix is not a supported field type.")
   }
 
-  "convertSubmittedValuesToFormFields" should "throw an exception if the metadata name in the input name is not valid" in {
-    val unsupportedMetadataName = "wrongmetadataname"
-
-    val rawFormWithoutCsrfToken =
-      ListMap(s"inputdate-$unsupportedMetadataName-day" -> List("3"))
-
-    val dynamicFormUtils: DynamicFormUtils = instantiateDynamicFormsUtils(rawFormWithoutCsrfToken)
-
-    val thrownException: IllegalArgumentException =
-      the[IllegalArgumentException] thrownBy dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
-
-    thrownException.getMessage should equal(s"Metadata name FoiExemptionAsserted does not exist in submitted form values")
-  }
-
   "convertSubmittedValuesToFormFields" should "not throw an exception if the metadata name (in the input name) " +
     "contains/ends with a 'unitType'" in {
 
@@ -137,14 +123,41 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     }
 
   "convertSubmittedValuesToFormFields" should "return a 'no-value selected'-selection-related error for selection fields if they are missing" in {
-    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues(dropdownValue = List(""))
-    )
+    val mockFormValues = MockFormValues()
+    val rawFormToMakeRequestWith =
+      ListMap(
+        "inputdate-FoiExemptionAsserted-day" -> mockFormValues.day,
+        "inputdate-FoiExemptionAsserted-month" -> mockFormValues.month,
+        "inputdate-FoiExemptionAsserted-year" -> mockFormValues.year,
+        "inputdate-ClosureStartDate-day" -> mockFormValues.day2,
+        "inputdate-ClosureStartDate-month" -> mockFormValues.month2,
+        "inputdate-ClosureStartDate-year" -> mockFormValues.year2,
+        "inputnumeric-ClosurePeriod" -> mockFormValues.numericTextBoxValue,
+        "inputradio-Radio" -> mockFormValues.radioValue,
+        "inputtext-Radio-TestProperty2-yes" -> List("title"),
+        "csrfToken" -> mockFormValues.csrfToken
+      )
+
+    val dynamicFormUtils: DynamicFormUtils = instantiateDynamicFormsUtils(rawFormToMakeRequestWith)
 
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
     validatedForm.foreach {
       case dropdownField: DropdownField =>
         dropdownField.fieldErrors should equal(List(s"There was no value selected for the ${dropdownField.fieldName}."))
+      case _ =>
+    }
+  }
+
+  "convertSubmittedValuesToFormFields" should "not return an error if the user selected multiple values" in {
+    val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
+      MockFormValues(dropdownValue = List("dropdownValue2", "dropdownValue"))
+    )
+
+    val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
+    validatedForm.foreach {
+      case dropdownField: DropdownField =>
+        dropdownField.fieldErrors should be(Nil)
+        dropdownField.selectedOption should be(Some(List(InputNameAndValue("dropdownValue", "dropdownValue"), InputNameAndValue("dropdownValue2", "dropdownValue2"))))
       case _ =>
     }
   }
@@ -339,7 +352,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     text.nameAndValue.value should equal(mockFormValues.numericTextBoxValue.head.trim)
 
     val dropdownField = validatedForm.find(_.fieldId == "Dropdown").map(_.asInstanceOf[DropdownField]).get
-    dropdownField.selectedOption.map(_.value).get should equal(mockFormValues.dropdownValue.head)
+    dropdownField.selectedOption.map(_.map(_.value)).get should equal(mockFormValues.dropdownValue)
 
     val radioButtonGroupField = validatedForm.find(_.fieldId == "Radio").map(_.asInstanceOf[RadioButtonGroupField]).get
     radioButtonGroupField.selectedOption should equal(mockFormValues.radioValue.head)
