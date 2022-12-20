@@ -11,6 +11,7 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
   lazy val formAnswersWithValidInputNames: Map[String, Seq[String]] = formAnswers.filter {
     case (inputName, _) if inputName.startsWith("input") => true
     case (inputName, _) if inputName == "csrfToken"      => false
+    case (inputName, _) if inputName == "details"        => false
     case (inputName, _)                                  => throw new IllegalArgumentException(s"${inputName.split("-").head} is not a supported field type.")
   }
 
