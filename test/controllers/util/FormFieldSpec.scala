@@ -69,30 +69,30 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
   }
 
-  "DropdownField" should {
-    val dropdownField = DropdownField("id", "name", "desc", multiValue = true, Seq(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")), None, isRequired = true)
+  "MultiSelectField" should {
+    val multiSelectField = MultiSelectField("id", "name", "desc", multiValue = true, Seq(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")), None, isRequired = true)
 
     "update should set value for the field" in {
 
-      DropdownField.update(dropdownField, Seq("34")) shouldBe dropdownField.copy(selectedOption = Some(List(InputNameAndValue("34", "34"))))
-      DropdownField.update(dropdownField, Seq("Open", "34")) shouldBe dropdownField.copy(selectedOption =
+      MultiSelectField.update(multiSelectField, Seq("34")) shouldBe multiSelectField.copy(selectedOption = Some(List(InputNameAndValue("34", "34"))))
+      MultiSelectField.update(multiSelectField, Seq("Open", "34")) shouldBe multiSelectField.copy(selectedOption =
         Some(List(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")))
       )
     }
 
     "validate should not return an error when the given value is valid option" in {
 
-      DropdownField.validate(Seq("34"), dropdownField) shouldBe None
+      MultiSelectField.validate(Seq("34"), multiSelectField) shouldBe None
     }
 
     "validate should return an error when the given value is empty" in {
 
-      DropdownField.validate(Nil, dropdownField) shouldBe Some("There was no value selected for the name.")
+      MultiSelectField.validate(Nil, multiSelectField) shouldBe Some("There was no value selected for the name.")
     }
 
     "validate should return an error when the given value is not a valid option" in {
 
-      DropdownField.validate(Seq("ABC"), dropdownField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
+      MultiSelectField.validate(Seq("ABC"), multiSelectField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
     }
   }
 

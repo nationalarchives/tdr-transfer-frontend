@@ -72,7 +72,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       case Text =>
         property.propertyType match {
           case Defined =>
-            DropdownField(
+            MultiSelectField(
               property.name,
               fieldLabel,
               fieldDescription,

@@ -55,6 +55,17 @@ case class DropdownField(
     fieldErrors: List[String] = Nil
 ) extends FormField
 
+case class MultiSelectField(
+    fieldId: String,
+    fieldName: String,
+    fieldDescription: String,
+    multiValue: Boolean = true,
+    options: Seq[InputNameAndValue],
+    selectedOption: Option[List[InputNameAndValue]],
+    isRequired: Boolean,
+    fieldErrors: List[String] = Nil
+) extends FormField
+
 case class DateField(
     fieldId: String,
     fieldName: String,
@@ -121,18 +132,18 @@ object RadioButtonGroupField {
   }
 }
 
-object DropdownField {
+object MultiSelectField {
 
-  def validate(slectedOptions: Seq[String], dropdownField: DropdownField): Option[String] =
+  def validate(slectedOptions: Seq[String], multiSelectField: MultiSelectField): Option[String] =
     slectedOptions match {
-      case Nil                                                                   => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
-      case values if !values.forall(dropdownField.options.map(_.value).contains) => Some(invalidDropdownOptionSelectedError.format(values.mkString(", ")))
+      case Nil                                                                   => Some(dropdownOptionNotSelectedError.format(multiSelectField.fieldName))
+      case values if !values.forall(multiSelectField.options.map(_.value).contains) => Some(invalidDropdownOptionSelectedError.format(values.mkString(", ")))
       case _                                                                     => None
     }
 
-  def update(dropdownField: DropdownField, selectedValues: Seq[String]): DropdownField = {
-    val selectedOptions: List[InputNameAndValue] = dropdownField.options.filter(v => selectedValues.contains(v.value)).toList
-    dropdownField.copy(selectedOption = Some(selectedOptions))
+  def update(multiSelectField: MultiSelectField, selectedValues: Seq[String]): MultiSelectField = {
+    val selectedOptions: List[InputNameAndValue] = multiSelectField.options.filter(v => selectedValues.contains(v.value)).toList
+    multiSelectField.copy(selectedOption = Some(selectedOptions))
   }
 }
 
