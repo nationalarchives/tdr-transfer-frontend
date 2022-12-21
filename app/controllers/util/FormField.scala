@@ -44,6 +44,19 @@ case class TextField(
     addSuffixText: Boolean = true
 ) extends FormField
 
+case class TextAreaField(
+    fieldId: String,
+    fieldName: String,
+    fieldDescription: String,
+    multiValue: Boolean,
+    nameAndValue: InputNameAndValue,
+    inputMode: String,
+    isRequired: Boolean,
+    fieldErrors: List[String] = Nil,
+    rows: String = "5",
+    wrap: String = "hard"
+) extends FormField
+
 case class DropdownField(
     fieldId: String,
     fieldName: String,

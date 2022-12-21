@@ -3,7 +3,7 @@
 @import java.util.UUID
 
 @import scala.language.postfixOps
-@import views.html.partials.{inputDate, inputText, errorSummary, progressIndicator}
+@import views.html.partials.{inputDate, inputText, errorSummary, inputTextArea}
 @import views.html.partials.transferReference
 @import views.html.partials.inputRadioGroup
 @import controllers.util._
@@ -71,6 +71,18 @@
                   Map(Symbol("_dynamicForm") -> true),
                   inputMode,
                   addSuffixText
+                )
+                case TextAreaField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, rows, wrap) => inputTextArea(
+                  fieldId,
+                  fieldName,
+                  fieldDescription,
+                  inputNameAndValue,
+                  "text",
+                  fieldErrors,
+                  Map(Symbol("_dynamicForm") -> true),
+                  inputMode,
+                  rows,
+                  wrap
                 )
                 case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
                   inputDropdown(
