@@ -214,8 +214,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  def setDeleteFileMetadataResponse(config: Configuration, wiremockServer: WireMockServer, fileIds: List[UUID] = List(), filePropertyNames: List[String] = List()): StubMapping = {
-    val client = new GraphQLConfiguration(config).getClient[dfm.Data, dfm.Variables]()
+  def setDeleteFileMetadataResponse(wiremockServer: WireMockServer, fileIds: List[UUID] = List(), filePropertyNames: List[String] = List()): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[dfm.Data, dfm.Variables]()
     val deleteFileMetadataResponse = dfm.Data(DeleteFileMetadata(fileIds, filePropertyNames))
     val data: client.GraphqlData = client.GraphqlData(Some(deleteFileMetadataResponse))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))

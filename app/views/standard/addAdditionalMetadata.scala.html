@@ -12,15 +12,13 @@
 @import controllers.AddAdditionalMetadataController.File
 @import views.html.partials.fileNameCard
 @(consignmentId: UUID, consignmentRef: String, metadataType: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File])(implicit request: RequestHeader, messages: Messages)
-@main(s"Add closure metadata to files", name = name) {
+@main(s"Add or edit $metadataType metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages(s"additionalMetadata${metadataType.capitalize}.progress"))
-        <h1 class="govuk-heading-l">Add closure metadata to</h1>
+        <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
+        <h1 class="govuk-heading-l">Add or edit metadata</h1>
         @fileNameCard(files.map(_.name), s"You are adding/editing $metadataType metadata for the following files:")
-
-        <p class="govuk-body">Enter metadata for closure fields here.</p>
         @errorSummary(
           fieldsToApplyToFile.collect {
             case p if p.fieldErrors.nonEmpty => (p.fieldId, p.fieldErrors)
@@ -63,7 +61,7 @@
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true)
                 )
-                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, componentType) => inputText(
+                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText) => inputText(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -72,8 +70,7 @@
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true),
                   inputMode,
-                  addSuffixText = true,
-                  componentType
+                  addSuffixText
                 )
                 case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
                   inputDropdown(

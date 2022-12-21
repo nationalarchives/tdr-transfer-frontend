@@ -151,7 +151,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
         .failed
         .futureValue
 
-      response.getMessage.contains("Unexpected response from GraphQL API") should be(true)
+      response.getMessage must include("Unexpected response from GraphQL API")
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {

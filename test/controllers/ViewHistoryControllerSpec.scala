@@ -46,12 +46,12 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      viewHistoryPageAsString.contains("<h1 class=\"govuk-heading-l\">Transfer history</h1>") mustBe true
-      viewHistoryPageAsString.contains(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
+      viewHistoryPageAsString must include("<h1 class=\"govuk-heading-l\">Transfer history</h1>")
+      viewHistoryPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
            |                  <th scope="col" class="govuk-table__header">Status</th>
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
-           |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin) mustBe true
-      viewHistoryPageAsString.contains(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""") mustBe true
+           |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
+      viewHistoryPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
 
       consignments.foreach(c => verifyConsignmentRow(viewHistoryPageAsString, c.node))
     }
@@ -73,17 +73,17 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      viewHistoryPageAsString.contains("<h1 class=\"govuk-heading-l\">Transfer history</h1>") mustBe true
-      viewHistoryPageAsString.contains(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
+      viewHistoryPageAsString must include("<h1 class=\"govuk-heading-l\">Transfer history</h1>")
+      viewHistoryPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
            |                  <th scope="col" class="govuk-table__header">Status</th>
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
-           |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin) mustBe true
-      viewHistoryPageAsString.contains(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""") mustBe true
-      viewHistoryPageAsString.contains(
+           |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
+      viewHistoryPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
+      viewHistoryPageAsString must include(
         """              <tbody class="govuk-table__body">""" +
           "\n                " +
           "\n              </tbody>"
-      ) mustBe true
+      )
     }
 
     "redirect to the login page if the page is accessed by a logged out user" in {
@@ -133,8 +133,8 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
          |                    <td class="govuk-table__cell">$exportDate</td>
          |                    <td class="govuk-table__cell"></td>
          |""".stripMargin
-    viewHistoryPageAsString.contains(summary) mustBe true
-    viewHistoryPageAsString.contains(details) mustBe true
-    viewHistoryPageAsString.contains(statusAndDate) mustBe true
+    viewHistoryPageAsString must include(summary)
+    viewHistoryPageAsString must include(details)
+    viewHistoryPageAsString must include(statusAndDate)
   }
 }

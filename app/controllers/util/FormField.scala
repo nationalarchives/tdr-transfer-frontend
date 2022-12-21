@@ -41,7 +41,7 @@ case class TextField(
     inputMode: String,
     isRequired: Boolean,
     fieldErrors: List[String] = Nil,
-    componentType: String = "text"
+    addSuffixText: Boolean = true
 ) extends FormField
 
 case class DropdownField(

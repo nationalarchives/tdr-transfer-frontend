@@ -6,8 +6,9 @@ import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo
 import configuration.GraphQLConfiguration
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
+import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
-import graphql.codegen.types.UpdateBulkFileMetadataInput
+import graphql.codegen.types.{DeleteFileMetadataInput, UpdateBulkFileMetadataInput}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.parser.decode
@@ -22,7 +23,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
 import services.{ConsignmentService, CustomMetadataService}
 import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions}
-import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
+import testUtils.{CheckFormPageElements, CheckPageForStaticElements, FormTester, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import org.scalatest.concurrent.ScalaFutures._
 
@@ -38,6 +39,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val twoOrMoreSpaces = "\\s{2,}"
   val checkPageForStaticElements = new CheckPageForStaticElements
+  val checkFormElements = new CheckFormPageElements
   val fileIds: List[UUID] = List(UUID.fromString("ae4b7cad-ee83-46bd-b952-80bc8263c6c2"))
 
   private val dependencyFormTester = new FormTester(expectedClosureDependencyDefaultOptions)
@@ -52,8 +54,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
+  private val closureMetadataType = metadataType(0)
+
   "AddAdditionalMetadataController GET" should {
-    "render the add additional metadata page, with the default form, if file has no additional metadata, for an authenticated standard user" in {
+    "render the add additional metadata page, with the default closure form, if file has no additional metadata, for an authenticated standard user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
       val formTester = new FormTester(expectedClosureDefaultOptions.filterNot(_.name.contains("DescriptionClosed")))
@@ -63,8 +67,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setCustomMetadataResponse(wiremockServer)
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
-        .addAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}").withCSRFToken)
+        .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
       val expectedDefaultForm = Seq(
         ("inputdate-FoiExemptionAsserted-day", ""),
@@ -82,11 +86,11 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
+      checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
     }
 
-    "render the add additional metadata page, with the form updated with the file's additional metadata, for an authenticated standard user" in {
+    "render the add additional metadata page, with the closure form updated with the file's additional metadata, for an authenticated standard user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
 
@@ -95,8 +99,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setCustomMetadataResponse(wiremockServer)
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
-        .addAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}").withCSRFToken)
+        .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       val newInputTextValues = Map(
@@ -135,7 +139,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         "<li>original/file/path</li>"
       )
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
+      checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
     }
 
@@ -143,8 +147,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = instantiateAddAdditionalMetadataController(getUnauthorisedSecurityComponents)
       val addAdditionalMetadataPage = controller
-        .addAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}").withCSRFToken)
+        .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
       redirectLocation(addAdditionalMetadataPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(addAdditionalMetadataPage) mustBe FOUND
     }
@@ -161,14 +165,14 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val controller = instantiateAddAdditionalMetadataController()
       val addAdditionalMetadataPage = controller
-        .addAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}").withCSRFToken)
+        .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
 
       val failure = addAdditionalMetadataPage.failed.futureValue
       failure mustBe an[GraphQlException]
     }
 
-    "rerender form with errors for each field if empty form is submitted" in {
+    "rerender form with errors for each closure field if empty form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
       val formTester = new FormTester(expectedClosureDefaultOptions.filterNot(_.name.contains("DescriptionClosed")))
@@ -190,16 +194,16 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
-        .addAdditionalMetadataSubmit(consignmentId, "closure", fileIds)
+        .addAdditionalMetadataSubmit(consignmentId, closureMetadataType, fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
+      checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(
         addAdditionalMetadataPageAsString,
         formSubmission.toMap.removed("inputradio-DescriptionClosed"),
@@ -207,7 +211,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
     }
 
-    "rerender form with user's data if form is partially submitted" in {
+    "rerender closure form with user's data if form is partially submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
       val formTester = new FormTester(expectedClosureDefaultOptions.filterNot(_.name.contains("DescriptionClosed")))
@@ -229,16 +233,16 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
-        .addAdditionalMetadataSubmit(consignmentId, "closure", fileIds)
+        .addAdditionalMetadataSubmit(consignmentId, closureMetadataType, fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
+      checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(
         addAdditionalMetadataPageAsString,
         formSubmission.toMap.removed("inputradio-DescriptionClosed"),
@@ -271,14 +275,14 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadataSubmit(consignmentId, "closure", fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
-      checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsString)
+      checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(
         addAdditionalMetadataPageAsString,
         formSubmission.toMap.removed("inputradio-DescriptionClosed"),
@@ -297,7 +301,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadata = {
         setConsignmentTypeResponse(wiremockServer, consignmentType = "judgment")
         addAdditionalMetadataController
-          .addAdditionalMetadata(consignmentId, metadataType(0), fileIds)
+          .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/add").withCSRFToken)
       }
       playStatus(addAdditionalMetadata) mustBe FORBIDDEN
@@ -305,7 +309,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   "AddAdditionalMetadataController POST" should {
-    "send the form data to the API" in {
+    "send the closure form data to the API and delete the dependencies if the relevant option is not selected by user" in {
       val consignmentId = UUID.randomUUID()
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
       val formSubmission = Seq(
@@ -325,11 +329,12 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
+      setDeleteFileMetadataResponse(wiremockServer)
 
       addAdditionalMetadataController
-        .addAdditionalMetadataSubmit(consignmentId, "closure", fileIds)
+        .addAdditionalMetadataSubmit(consignmentId, closureMetadataType, fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
@@ -350,9 +355,130 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "false"
       input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
       input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+
+      case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
+      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
+      val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
+      val input2 = deleteRequest.variables.deleteFileMetadataInput
+      input2.fileIds should be(fileIds)
+      input2.propertyNames.get should contain theSameElementsAs List("TitleAlternate", "DescriptionAlternate")
     }
 
-    s"redirect user to additional summary page if there are no fields that need their dependencies filled in" in {
+    "send the closure form data to the API with dependencies and do not delete the dependencies if the relevant option is selected by user" in {
+      val consignmentId = UUID.randomUUID()
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+      val formSubmission = Seq(
+        ("inputdate-FoiExemptionAsserted-day", "1"),
+        ("inputdate-FoiExemptionAsserted-month", "1"),
+        ("inputdate-FoiExemptionAsserted-year", "1970"),
+        ("inputdate-ClosureStartDate-day", "1"),
+        ("inputdate-ClosureStartDate-month", "1"),
+        ("inputdate-ClosureStartDate-year", "1970"),
+        ("inputnumeric-ClosurePeriod-years", "10"),
+        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputradio-TitleClosed", "yes"),
+        ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
+        ("inputradio-DescriptionClosed", "no")
+      )
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setCustomMetadataResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
+      setBulkUpdateMetadataResponse(wiremockServer)
+      setDeleteFileMetadataResponse(wiremockServer)
+
+      addAdditionalMetadataController
+        .addAdditionalMetadataSubmit(consignmentId, "closure", fileIds)
+        .apply(
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
+            .withFormUrlEncodedBody(formSubmission: _*)
+            .withCSRFToken
+        )
+        .futureValue
+
+      case class GraphqlRequestData(query: String, variables: abfm.Variables)
+      val events = wiremockServer.getAllServeEvents
+      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
+      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+
+      val input = request.variables.updateBulkFileMetadataInput
+      input.consignmentId mustBe consignmentId
+      input.fileIds mustBe fileIds
+      input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
+      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
+      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
+      input.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
+      input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
+      input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+
+      case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
+      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
+      val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
+      val input2 = deleteRequest.variables.deleteFileMetadataInput
+      input2.fileIds should be(fileIds)
+      input2.propertyNames.get should contain theSameElementsAs List("DescriptionAlternate")
+    }
+
+    "send the closure form data to the API with dependencies and do not call delete metadata to remove the dependencies if the relevant option is selected by user for all properties" in {
+      val consignmentId = UUID.randomUUID()
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+      val formSubmission = Seq(
+        ("inputdate-FoiExemptionAsserted-day", "1"),
+        ("inputdate-FoiExemptionAsserted-month", "1"),
+        ("inputdate-FoiExemptionAsserted-year", "1970"),
+        ("inputdate-ClosureStartDate-day", "1"),
+        ("inputdate-ClosureStartDate-month", "1"),
+        ("inputdate-ClosureStartDate-year", "1970"),
+        ("inputnumeric-ClosurePeriod-years", "10"),
+        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputradio-TitleClosed", "yes"),
+        ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
+        ("inputradio-DescriptionClosed", "yes"),
+        ("inputradio-DescriptionClosed-DescriptionAlternate-yes", "text")
+      )
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setCustomMetadataResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer)
+      setBulkUpdateMetadataResponse(wiremockServer)
+      setDeleteFileMetadataResponse(wiremockServer)
+
+      addAdditionalMetadataController
+        .addAdditionalMetadataSubmit(consignmentId, closureMetadataType, fileIds)
+        .apply(
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
+            .withFormUrlEncodedBody(formSubmission: _*)
+            .withCSRFToken
+        )
+        .futureValue
+
+      case class GraphqlRequestData(query: String, variables: abfm.Variables)
+      val events = wiremockServer.getAllServeEvents
+      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
+      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+
+      val input = request.variables.updateBulkFileMetadataInput
+      input.consignmentId mustBe consignmentId
+      input.fileIds mustBe fileIds
+      input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
+      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
+      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
+      input.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
+      input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "true"
+      input.metadataProperties.find(_.filePropertyName == "DescriptionAlternate").get.value mustBe "text"
+      input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+
+      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata"))
+      deleteMetadataEvent should be(None)
+    }
+
+    s"redirect user to additional summary page if there are no closure fields that need their dependencies filled in" in {
       val consignmentId = UUID.randomUUID()
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
 
@@ -375,9 +501,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
 
       val addAdditionalMetadataPage: Result = addAdditionalMetadataController
-        .addAdditionalMetadataSubmit(consignmentId, metadataType(0), fileIds)
+        .addAdditionalMetadataSubmit(consignmentId, closureMetadataType, fileIds)
         .apply(
-          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/${metadataType(0)}")
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
             .withFormUrlEncodedBody(formToSubmitDefault: _*)
             .withCSRFToken
         )
@@ -390,10 +516,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val redirectLocation = addAdditionalMetadataPage.header.headers.getOrElse("Location", "")
 
       addAdditionalMetadataPage.header.status should equal(303)
-      redirectLocation.contains(s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}") should equal(true)
+      redirectLocation must include(s"/consignment/$consignmentId/additional-metadata/selected-summary/$closureMetadataType")
 
       propertyNamesWhereUserDoesNotHaveToFillInDeps.foreach { propertyNameWhereUserDoesNotHaveToFillInDeps =>
-        redirectLocation.contains(s"$propertyNameWhereUserDoesNotHaveToFillInDeps-True") should equal(false)
+        redirectLocation must not include (s"$propertyNameWhereUserDoesNotHaveToFillInDeps-True")
       }
     }
   }
@@ -412,81 +538,6 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       MockAsyncCacheApi()
     )
   }
-
-  // scalastyle:off method.length
-  private def checkForExpectedAdditionalMetadataFormPageContent(addAdditionalMetadataPageAsFormattedString: String): Unit = {
-    val addAdditionalMetadataPageAsString = addAdditionalMetadataPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
-    val closureMetadataHtmlElements = Set(
-      """      <title>Add closure metadata to files</title>""",
-      """      <h1 class="govuk-heading-l">Add closure metadata to</h1>""",
-      """      <p class="govuk-body">Enter metadata for closure fields here.</p>""",
-      """            <h2 class="govuk-label govuk-label--m">
-        |                FOI decision asserted
-        |            </h2>""",
-      """        <div id="date-input-FoiExemptionAsserted-hint" class="govuk-hint">
-        |            Date of the Advisory Council approval (or SIRO approval if appropriate)
-        |        </div>""",
-      """            <h2 class="govuk-label govuk-label--m">
-        |                Closure start date
-        |            </h2>""",
-      """        <div id="date-input-ClosureStartDate-hint" class="govuk-hint">
-        |            This has been defaulted to the last date modified. If this is not correct, amend the field below.
-        |        </div>""",
-      """        <label class="govuk-label govuk-label--m" for=years>
-        |            Closure period
-        |        </label>""",
-      """    <div id="numeric-input-hint" class="govuk-hint">
-        |        Number of years the record is closed from the closure start date
-        |    </div>""",
-      """            <label class="govuk-label govuk-label--m" for="inputdropdown-FoiExemptionCode">
-        |                FOI exemption code
-        |            </label>""".replace("................", "                "),
-      """        <div id="inputdropdown-FoiExemptionCode-hint" class="govuk-hint">
-        |            Add one or more exemption code to this closure. Here is a<a target="_blank" href="https://www.legislation.gov.uk/ukpga/2000/36/contents">full list of FOI codes and their designated exemptions</a>.
-        |        </div>""",
-      """<select class="govuk-select" id="inputdropdown-FoiExemptionCode" name="inputdropdown-FoiExemptionCode"  >""",
-      """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-        |            Is the title closed?
-        |        </legend>""",
-      """        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-        |            Is the description closed?
-        |        </legend>"""
-    )
-
-    closureMetadataHtmlElements.foreach { htmlElement =>
-      addAdditionalMetadataPageAsString must include(
-        htmlElement.stripMargin.replaceAll(twoOrMoreSpaces, "")
-      )
-    }
-  }
-
-  private def checkForExpectedAdditionalMetadataDependenciesFormPageContent(
-      addAdditionalMetadataDependenciesPageAsFormattedString: String,
-      fullNameAndName: Map[String, String]
-  ): Unit = {
-    val title = fullNameAndName.keys.mkString(" and ")
-    val pronoun = if (fullNameAndName.size > 1) "they contain" else "it contains"
-
-    val addAdditionalMetadataDependenciesPageAsString = addAdditionalMetadataDependenciesPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
-    val closureMetadataDependenciesHtmlElements = Set(
-      s"""      <title>Add an $title to files</title>""",
-      s"""      <h1 class="govuk-heading-l">Add an $title to</h1>""",
-      s"""      <p class="govuk-body">Enter a publicly visible $title if, for example, $pronoun sensitive information.
-                | For guidance on how to create an $title, read our FAQs (opens in a new tab)</p>""".stripMargin
-    )
-    closureMetadataDependenciesHtmlElements.foreach { closureMetadataDependenciesHtmlElement =>
-      addAdditionalMetadataDependenciesPageAsString must include(closureMetadataDependenciesHtmlElement.replaceAll(twoOrMoreSpaces, ""))
-    }
-
-    fullNameAndName.foreach { case (fullName, name) =>
-      addAdditionalMetadataDependenciesPageAsString must include(
-        s"""        <label class="govuk-label govuk-label--m" for=$name>
-            |            $fullName
-            |        </label>""".stripMargin.replaceAll(twoOrMoreSpaces, "")
-      )
-    }
-  }
-  // scalastyle:on method.length
 }
 
 case class MockAsyncCacheApi()(implicit val ec: ExecutionContext) extends AsyncCacheApi {
