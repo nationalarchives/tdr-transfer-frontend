@@ -137,8 +137,7 @@ class AddAdditionalMetadataController @Inject() (
           val dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
           customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
         } else {
-          val descriptiveProperties = displayProperties.filter(dp => dp.active && dp.propertyType.toLowerCase == metadataType)
-          new DisplayPropertiesUtils(descriptiveProperties, customMetadata).convertPropertiesToFormFields.toList
+          new DisplayPropertiesUtils(displayProperties, customMetadata).convertPropertiesToFormFields.toList
         }
     } yield {
       cache.set("formFields", formFields, 1.hour)
