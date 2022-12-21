@@ -52,6 +52,28 @@ object DefaultMockFormOptions {
     )
   )
 
+  val expectedDescriptiveDefaultOptions: List[MockInputOption] = List(
+    MockInputOption(
+      name = "inputtext-description-description",
+      id = "description",
+      fieldType = "inputText"
+    ),
+    MockInputOption(
+      name = "inputdropdown-Language",
+      id = "inputdropdown-Language",
+      fieldType = "inputDropdown",
+      label = "English",
+      value = "English"
+    ),
+    MockInputOption(
+      name = "inputdropdown-Language",
+      id = "inputdropdown-Language",
+      fieldType = "inputDropdown",
+      label = "Welsh",
+      value = "Welsh"
+    )
+  )
+
   val expectedClosureDefaultOptions: List[MockInputOption] = List(
     MockInputOption(
       name = "inputdate-ClosureStartDate-day",

@@ -48,9 +48,28 @@ class CheckFormPageElements() {
       |        </legend>"""
   )
 
+  private val expectedDescriptiveFormHtmlElements = Set(
+    """      <title>Add or edit descriptive metadata</title>""",
+    """      <span class="govuk-caption-l">Descriptive metadata</span>""",
+    """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
+    """        <label class="govuk-label govuk-label--m" for=description>
+      |            Description
+      |        </label>""",
+    """    <div id="text-input-hint" class="govuk-hint">
+      |        This description will be visible on Discovery and help explain the content of your file(s).
+      |    </div>""",
+    """            <label class="govuk-label govuk-label--m" for="inputdropdown-Language">
+      |                Language
+      |            </label>""".replace("................", "                "),
+    """        <div id="inputdropdown-Language-hint" class="govuk-hint">
+      |            Choose one or more languages used in this record.
+      |        </div>""",
+    """<select class="govuk-select" id="inputdropdown-Language" name="inputdropdown-Language"  >"""
+  )
+
   def checkFormContent(metadataType: String, formPageAsFormattedString: String): Unit = {
     val formPageAsString = formPageAsFormattedString.replaceAll(twoOrMoreSpaces, "")
-    val expectedFormHtmlElements = if (metadataType == "descriptive") { Set() }
+    val expectedFormHtmlElements = if (metadataType == "descriptive") { expectedDescriptiveFormHtmlElements }
     else { expectedClosureFormHtmlElements }
 
     expectedFormHtmlElements.foreach { htmlElement =>
