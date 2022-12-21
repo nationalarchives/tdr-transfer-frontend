@@ -95,6 +95,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     textField.isRequired should equal(false)
     textField.inputMode should equal("text")
     textField.multiValue should equal(false)
+    textField.inputType should equal("text")
     textField.nameAndValue.name should equal("TextField")
     textField.nameAndValue.value should equal("defaultValue")
   }

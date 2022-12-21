@@ -62,12 +62,12 @@
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true)
                 )
-                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText) => inputText(
+                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText, inputType) => inputText(
                   fieldId,
                   fieldName,
                   fieldDescription,
                   inputNameAndValue,
-                  "number",
+                  inputType,
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true),
                   inputMode,

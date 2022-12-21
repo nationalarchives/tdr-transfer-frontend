@@ -14,7 +14,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, CustomMetadataService}
+import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 
 import java.sql.Timestamp
 import java.time.{LocalDate, LocalDateTime, LocalTime}
@@ -30,6 +30,7 @@ class AddAdditionalMetadataController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
     val customMetadataService: CustomMetadataService,
+    val displayPropertiesService: DisplayPropertiesService,
     val cache: AsyncCacheApi
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
@@ -39,7 +40,7 @@ class AddAdditionalMetadataController @Inject() (
     implicit request: Request[AnyContent] =>
       for {
         consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None, None)))
-        formFields <- getFormFields(consignmentId, request)
+        formFields <- getFormFields(consignmentId, request, metadataType)
         updatedFormFields <- {
           cache.set(s"$consignmentId-consignment", consignment, 1.hour)
           // Set the values to those of the first file's metadata until we decide what to do with multiple files.
@@ -58,7 +59,7 @@ class AddAdditionalMetadataController @Inject() (
     implicit request: Request[AnyContent] =>
       for {
         formFields <- cache.getOrElseUpdate[List[FormField]]("formFields") {
-          getFormFields(consignmentId, request)
+          getFormFields(consignmentId, request, metadataType)
         }
         dynamicFormUtils = new DynamicFormUtils(request, formFields)
         formAnswers: Map[String, Seq[String]] = dynamicFormUtils.formAnswersWithValidInputNames
@@ -100,7 +101,7 @@ class AddAdditionalMetadataController @Inject() (
 
   private def buildUpdateMetadataInput(updatedFormFields: List[FormField]): List[UpdateFileMetadataInput] = {
     updatedFormFields.flatMap {
-      case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _) =>
+      case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _) =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
       case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _) =>
         val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
@@ -125,14 +126,19 @@ class AddAdditionalMetadataController @Inject() (
     }
   }
 
-  private def getFormFields(consignmentId: UUID, request: Request[AnyContent]): Future[List[FormField]] = {
+  private def getFormFields(consignmentId: UUID, request: Request[AnyContent], metadataType: String): Future[List[FormField]] = {
+    val closure: Boolean = metadataType == "closure"
     for {
+      displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, metadataType)
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
-      customMetadataUtils = new CustomMetadataUtils(customMetadata)
-
-      dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
-
-      formFields = customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
+      formFields =
+        if (closure) {
+          val customMetadataUtils = new CustomMetadataUtils(customMetadata)
+          val dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
+          customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
+        } else {
+          new DisplayPropertiesUtils(displayProperties, customMetadata).convertPropertiesToFormFields.toList
+        }
     } yield {
       cache.set("formFields", formFields, 1.hour)
       formFields
