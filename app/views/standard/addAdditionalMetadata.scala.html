@@ -7,7 +7,7 @@
 @import views.html.partials.transferReference
 @import views.html.partials.inputRadioGroup
 @import controllers.util._
-@import views.html.partials.inputMultiSelectDropdown
+@import views.html.partials.inputMultiSelect
 
 @import controllers.AddAdditionalMetadataController.File
 @import views.html.partials.fileNameCard
@@ -73,8 +73,8 @@
                   inputMode,
                   addSuffixText
                 )
-                case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOptions, _, fieldErrors) =>
-                  inputMultiSelectDropdown(
+                case MultiSelectField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOptions, _, fieldErrors) =>
+                  inputMultiSelect(
                     fieldId,
                     fieldName,
                     fieldDescription,

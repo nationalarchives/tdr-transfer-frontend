@@ -9,10 +9,10 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
   }
 
   lazy val formAnswersWithValidInputNames: Map[String, Seq[String]] = formAnswers.filter {
-    case (inputName, _) if inputName.startsWith("input") => true
-    case (inputName, _) if inputName == "csrfToken"      => false
-    case (inputName, _) if inputName.startsWith("tna-")  => false
-    case (inputName, _)                                  => throw new IllegalArgumentException(s"${inputName.split("-").head} is not a supported field type.")
+    case (inputName, _) if inputName.startsWith("input")                   => true
+    case (inputName, _) if inputName == "csrfToken"                        => false
+    case (inputName, _) if inputName.startsWith("tna-multi-select-search") => false
+    case (inputName, _)                                                    => throw new IllegalArgumentException(s"${inputName.split("-").head} is not a supported field type.")
   }
 
   def convertSubmittedValuesToFormFields(submittedValues: Map[String, Seq[String]]): List[FormField] = {
@@ -55,11 +55,11 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
           .update(textField, text)
           .copy(fieldErrors = TextField.validate(text, textField).map(List(_)).getOrElse(Nil))
 
-      case dropdownField: DropdownField =>
+      case multiSelectField: MultiSelectField =>
         val selectedValues = fieldValue.head._2
-        DropdownField
-          .update(dropdownField, selectedValues)
-          .copy(fieldErrors = DropdownField.validate(selectedValues, dropdownField).map(List(_)).getOrElse(Nil))
+        MultiSelectField
+          .update(multiSelectField, selectedValues)
+          .copy(fieldErrors = MultiSelectField.validate(selectedValues, multiSelectField).map(List(_)).getOrElse(Nil))
     }
   }
 

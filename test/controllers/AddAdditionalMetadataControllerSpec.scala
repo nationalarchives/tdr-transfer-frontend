@@ -78,7 +78,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes")
       )
 
@@ -129,7 +129,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1990"),
         ("inputnumeric-ClosurePeriod-years", "4"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes")
       )
 
@@ -230,7 +230,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "exclude")
       )
@@ -270,7 +270,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "exclude")
       )
@@ -323,7 +323,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "no"),
         ("inputradio-DescriptionClosed", "no")
       )
@@ -379,8 +379,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
-        ("inputdropdown-FoiExemptionCode", "mock code2"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code2"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
         ("inputradio-DescriptionClosed", "no")
@@ -438,7 +438,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
         ("inputradio-DescriptionClosed", "yes"),
@@ -499,7 +499,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "no"),
         ("inputradio-DescriptionClosed", "exclude")
       )

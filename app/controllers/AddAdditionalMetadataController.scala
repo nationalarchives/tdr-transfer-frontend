@@ -108,7 +108,7 @@ class AddAdditionalMetadataController @Inject() (
       case RadioButtonGroupField(fieldId, _, _, _, multiValue, _, selectedOption, _, _, dependencies, _) =>
         val fileMetadataInputs = dependencies.get(selectedOption).map(buildUpdateMetadataInput).getOrElse(Nil)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString) :: fileMetadataInputs
-      case DropdownField(fieldId, _, _, multiValue, _, selectedOptions, _, _) =>
+      case MultiSelectField(fieldId, _, _, multiValue, _, selectedOptions, _, _) =>
         selectedOptions.getOrElse(Nil).map(p => UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, p.value))
     }
   }
@@ -161,11 +161,11 @@ class AddAdditionalMetadataController @Inject() (
           .get(dateField.fieldId)
           .map(metadata => DateField.update(dateField, Timestamp.valueOf(metadata.head.value).toLocalDateTime))
           .getOrElse(dateField)
-      case dropdownField: DropdownField =>
+      case multiSelectField: MultiSelectField =>
         metadataMap
-          .get(dropdownField.fieldId)
-          .map(metadata => DropdownField.update(dropdownField, metadata.map(_.value)))
-          .getOrElse(dropdownField)
+          .get(multiSelectField.fieldId)
+          .map(metadata => MultiSelectField.update(multiSelectField, metadata.map(_.value)))
+          .getOrElse(multiSelectField)
       case radioButtonGroupField: RadioButtonGroupField =>
         metadataMap
           .get(radioButtonGroupField.fieldId)
