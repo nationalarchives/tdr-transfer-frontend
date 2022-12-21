@@ -56,7 +56,9 @@ object DefaultMockFormOptions {
     MockInputOption(
       name = "inputtext-description-description",
       id = "description",
-      fieldType = "inputText"
+      fieldType = "inputTextArea",
+      rows = "5",
+      wrap = "hard"
     ),
     MockInputOption(
       name = "inputdropdown-Language",
@@ -242,6 +244,8 @@ object DefaultMockFormOptions {
       placeholder: String = "",
       fieldType: String = "",
       errorMessage: String = "",
-      errorMessageDependency: String = ""
+      errorMessageDependency: String = "",
+      rows: String = "",
+      wrap: String = ""
   ) // some fields (like month) can only display their error if another field (like day) has none
 }

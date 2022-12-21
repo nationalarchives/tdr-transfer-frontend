@@ -170,6 +170,10 @@ object TextField {
   def update(textField: TextField, value: String): TextField = textField.copy(nameAndValue = textField.nameAndValue.copy(value = value))
 }
 
+object TextAreaField {
+  def update(textAreaField: TextAreaField, value: String): TextAreaField = textAreaField.copy(nameAndValue = textAreaField.nameAndValue.copy(value = value))
+}
+
 object DateField {
 
   val invalidDayValidation: Int => Boolean = (day: Int) => day < 1 || day > 31

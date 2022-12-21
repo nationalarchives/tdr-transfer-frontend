@@ -111,6 +111,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
       case "inputNumeric"  => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
       case "inputRadio"    => addValuesToRadioAttributes(option.id, option.name, selected, valueEnteredOrSelected: String)
       case "inputText"     => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
+      case "inputTextArea" => addValuesToTextAreaAttributes(option.id, option.rows, option.name, option.fieldType, valueEnteredOrSelected, option.placeholder, option.wrap)
     }
   }
 
@@ -174,6 +175,22 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
        |            placeholder="$placeholder"
        |            inputmode="$inputMode"
        |        >""".stripMargin
+  }
+
+  private def addValuesToTextAreaAttributes(id: String, rows: String, name: String, fieldType: String, value: String, placeholder: String, wrap: String): String = {
+    val inputType = "text"
+    val inputMode = "text"
+
+    s""" <textarea class="govuk-textarea "
+       |            rows="$rows"
+       |            id="$id"
+       |            name="$name"
+       |            type="$inputType"
+       |            value="$value"
+       |            placeholder="$placeholder"
+       |            inputmode="$inputMode"
+       |            wrap="$wrap"
+       |          >""".stripMargin
   }
 
   private def addValuesToRadioAttributes(id: String, name: String, selected: Boolean, value: String): String = {
