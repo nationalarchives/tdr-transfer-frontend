@@ -51,7 +51,7 @@ case class DropdownField(
     fieldDescription: String,
     multiValue: Boolean,
     options: Seq[InputNameAndValue],
-    selectedOption: Option[List[InputNameAndValue]],
+    selectedOption: Option[InputNameAndValue],
     isRequired: Boolean,
     fieldErrors: List[String] = Nil
 ) extends FormField
@@ -137,14 +137,29 @@ object MultiSelectField {
 
   def validate(slectedOptions: Seq[String], multiSelectField: MultiSelectField): Option[String] =
     slectedOptions match {
-      case Nil                                                                   => Some(dropdownOptionNotSelectedError.format(multiSelectField.fieldName))
+      case Nil                                                                      => Some(dropdownOptionNotSelectedError.format(multiSelectField.fieldName))
       case values if !values.forall(multiSelectField.options.map(_.value).contains) => Some(invalidDropdownOptionSelectedError.format(values.mkString(", ")))
-      case _                                                                     => None
+      case _                                                                        => None
     }
 
   def update(multiSelectField: MultiSelectField, selectedValues: Seq[String]): MultiSelectField = {
     val selectedOptions: List[InputNameAndValue] = multiSelectField.options.filter(v => selectedValues.contains(v.value)).toList
     multiSelectField.copy(selectedOption = Some(selectedOptions))
+  }
+}
+
+object DropdownField {
+
+  def validate(selectedOption: Option[String], dropdownField: DropdownField): Option[String] =
+    selectedOption match {
+      case None                                                           => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
+      case Some(value) if !dropdownField.options.exists(_.value == value) => Some(invalidDropdownOptionSelectedError.format(value))
+      case _                                                              => None
+    }
+
+  def update(multiSelectField: DropdownField, selectedValue: Option[String]): DropdownField = {
+    val selectedOption: Option[InputNameAndValue] = multiSelectField.options.find(v => selectedValue.contains(v.value))
+    multiSelectField.copy(selectedOption = selectedOption)
   }
 }
 

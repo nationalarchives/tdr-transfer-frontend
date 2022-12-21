@@ -64,7 +64,7 @@ class FormTestData() {
       Some("Dropdown property group"),
       Text,
       editable = true,
-      multiValue = false,
+      multiValue = true,
       defaultValue = None,
       4,
       List(

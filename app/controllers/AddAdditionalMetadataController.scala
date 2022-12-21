@@ -167,6 +167,11 @@ class AddAdditionalMetadataController @Inject() (
           .get(dateField.fieldId)
           .map(metadata => DateField.update(dateField, Timestamp.valueOf(metadata.head.value).toLocalDateTime))
           .getOrElse(dateField)
+      case dropdownField: DropdownField =>
+        metadataMap
+          .get(dropdownField.fieldId)
+          .map(metadata => DropdownField.update(dropdownField, metadata.headOption.map(_.value)))
+          .getOrElse(dropdownField)
       case multiSelectField: MultiSelectField =>
         metadataMap
           .get(multiSelectField.fieldId)
