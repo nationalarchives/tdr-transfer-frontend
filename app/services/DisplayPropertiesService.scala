@@ -42,7 +42,7 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
     }
   }
 
-  private def toDisplayProperty(p: DisplayProperties): DisplayProperty = {
+  def toDisplayProperty(p: DisplayProperties): DisplayProperty = {
     val attributes = p.attributes
 
     val active: Boolean = attributes.find(_.attribute == "Active").getBoolean
@@ -82,9 +82,13 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
     DisplayProperty(active, componentType, dataType, description, displayName, editable, group, guidance, label, multiValue, ordinal, p.propertyName, propertyType)
   }
 
-  def getDisplayProperties(consignmentId: UUID, token: BearerAccessToken): Future[List[DisplayProperty]] = {
+  private def displayPropertyFilter(dp: DisplayProperty, metadataType: String): Boolean = {
+    dp.active && dp.propertyType.toLowerCase == metadataType.toLowerCase
+  }
+
+  def getDisplayProperties(consignmentId: UUID, token: BearerAccessToken, metadataType: String): Future[List[DisplayProperty]] = {
     val variables = new Variables(consignmentId)
-    sendApiRequest(displayPropertiesClient, dp.document, token, variables).map(data => data.displayProperties.map(p => toDisplayProperty(p)))
+    sendApiRequest(displayPropertiesClient, dp.document, token, variables).map(data => data.displayProperties.map(toDisplayProperty).filter(displayPropertyFilter(_, metadataType)))
   }
 }
 
