@@ -129,11 +129,7 @@ class AddAdditionalMetadataController @Inject() (
   private def getFormFields(consignmentId: UUID, request: Request[AnyContent], metadataType: String): Future[List[FormField]] = {
     val closure: Boolean = metadataType == "closure"
     for {
-      displayProperties <-
-        if (closure) { Future(List()) }
-        else {
-          displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken)
-        }
+      displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, metadataType)
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       formFields =
         if (closure) {
