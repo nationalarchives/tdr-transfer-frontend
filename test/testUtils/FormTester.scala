@@ -108,6 +108,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
       case "inputCheckbox"    => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
       case "inputDate"        => addValuesToDateAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, hasDependency, submitAttempted)
       case "inputmultiselect" => addValuesToMultiSelectAttributes(selected, valueEnteredOrSelected, option.id, option.name)
+      case "inputDropdown"    => addValuesToDropdownAttributes(selected, valueEnteredOrSelected, option.label, option.placeholder)
       case "inputNumeric"     => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
       case "inputRadio"       => addValuesToRadioAttributes(option.id, option.name, selected, valueEnteredOrSelected: String)
       case "inputText"        => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
@@ -156,6 +157,17 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
          |                        <input class="govuk-checkboxes__input" id="$id" name="$name" type="checkbox" value="${values}" $status>
          |                        <label class="govuk-label govuk-checkboxes__label" for="$id">${values}</label>
          |                    </li>""".stripMargin
+  }
+
+  private def addValuesToDropdownAttributes(selected: Boolean, value: String, label: String, placeholder: String): String = {
+    if (placeholder.nonEmpty) {
+      val selectedStatus = if (selected) "selected" else ""
+      s"""    <option value="" $selectedStatus>
+         |                    $placeholder""".stripMargin
+    } else {
+      val selectedStatus = if (selected) """selected="selected" """ else ""
+      s"""                <option ${selectedStatus}value="$value">$label</option>""".stripMargin
+    }
   }
 
   private def addValuesToTextBoxAttributes(id: String, name: String, value: String, placeholder: String, fieldType: String, submitAttempted: Boolean): String = {

@@ -1,5 +1,6 @@
 package controllers.util
 
+import cats.implicits.catsSyntaxOptionId
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
@@ -66,6 +67,30 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       List("-1", "-12", "-03").foreach { negativeNumber =>
         TextField.validate(negativeNumber, textField) shouldBe Some("years must not be a negative number.")
       }
+    }
+  }
+
+  "DropdownField" should {
+    val dropdownField = DropdownField("id", "name", "desc", multiValue = true, Seq(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")), None, isRequired = true)
+
+    "update should set value for the field" in {
+
+      DropdownField.update(dropdownField, "34".some) shouldBe dropdownField.copy(selectedOption = Some(InputNameAndValue("34", "34")))
+    }
+
+    "validate should not return an error when the given value is valid option" in {
+
+      DropdownField.validate("34".some, dropdownField) shouldBe None
+    }
+
+    "validate should return an error when the given value is empty" in {
+
+      DropdownField.validate(None, dropdownField) shouldBe Some("There was no value selected for the name.")
+    }
+
+    "validate should return an error when the given value is not a valid option" in {
+
+      DropdownField.validate("ABC".some, dropdownField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
     }
   }
 

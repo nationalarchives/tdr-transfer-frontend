@@ -12,6 +12,7 @@
 @import controllers.AddAdditionalMetadataController.File
 @import views.html.partials.fileNameCard
 
+@import views.html.partials.inputDropdown
 @(consignmentId: UUID, consignmentRef: String, metadataType: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File])(implicit request: RequestHeader, messages: Messages)
 @main(s"Add or edit $metadataType metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
@@ -80,6 +81,20 @@
                     fieldDescription,
                     options,
                     selectedOptions,
+                    multiValue,
+                    Map(
+                      Symbol("_disabledOption") -> "",
+                      Symbol("_dynamicForm") -> true
+                    ),
+                    fieldErrors
+                  )
+                case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
+                  inputDropdown(
+                    fieldId,
+                    fieldName,
+                    fieldDescription,
+                    options,
+                    selectedOption,
                     multiValue,
                     Map(
                       Symbol("_disabledOption") -> "",

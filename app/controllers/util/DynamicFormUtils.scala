@@ -56,6 +56,12 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
           .update(textField, text)
           .copy(fieldErrors = TextField.validate(text, textField).map(List(_)).getOrElse(Nil))
 
+      case dropdownField: DropdownField =>
+        val selectedValue = fieldValue.head._2.headOption
+        DropdownField
+          .update(dropdownField, selectedValue)
+          .copy(fieldErrors = DropdownField.validate(selectedValue, dropdownField).map(List(_)).getOrElse(Nil))
+
       case multiSelectField: MultiSelectField =>
         val selectedValues = fieldValue.head._2
         MultiSelectField
