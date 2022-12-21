@@ -66,6 +66,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
@@ -124,6 +125,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
@@ -232,6 +234,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
         ("inputdate-FoiExemptionAsserted-day", ""),
@@ -271,6 +274,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
         ("inputdate-FoiExemptionAsserted-day", "5"),
@@ -311,6 +315,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
         ("inputdate-FoiExemptionAsserted-day", ""),
@@ -380,6 +385,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
       setDeleteFileMetadataResponse(wiremockServer)
@@ -437,6 +443,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
       setDeleteFileMetadataResponse(wiremockServer)
@@ -496,6 +503,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
       setDeleteFileMetadataResponse(wiremockServer)
@@ -537,6 +545,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
 
