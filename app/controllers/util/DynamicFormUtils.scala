@@ -55,6 +55,12 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
           .update(textField, text)
           .copy(fieldErrors = TextField.validate(text, textField).map(List(_)).getOrElse(Nil))
 
+      case textAreaField: TextAreaField =>
+        val text = fieldValue.head._2.head
+        TextAreaField
+          .update(textAreaField, text)
+          .copy(fieldErrors = Nil)
+
       case dropdownField: DropdownField =>
         val text = fieldValue.head._2.headOption.getOrElse("")
         DropdownField

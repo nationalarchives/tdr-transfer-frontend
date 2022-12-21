@@ -103,6 +103,8 @@ class AddAdditionalMetadataController @Inject() (
     updatedFormFields.flatMap {
       case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _) =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
+      case TextAreaField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _) =>
+        UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
       case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _) =>
         val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, Timestamp.valueOf(dateTime).toString) :: Nil
@@ -186,6 +188,11 @@ class AddAdditionalMetadataController @Inject() (
           .get(textField.fieldId)
           .map(metadata => TextField.update(textField, metadata.value))
           .getOrElse(textField)
+      case textAreaField: TextAreaField =>
+        metadataMap
+          .get(textAreaField.fieldId)
+          .map(metadata => TextAreaField.update(textAreaField, metadata.value))
+          .getOrElse(textAreaField)
     }
     updatedFormFields.map(formFieldOverrides(_, metadataMap))
   }
