@@ -11,7 +11,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import testUtils.FormTestData
 
 class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
-  private val formProperties = new FormTestData().setupCustomMetadatas()
+  private val formProperties = new FormTestData().setupCustomMetadata()
   private val customMetadataUtils = CustomMetadataUtils(formProperties)
 
   "getCustomMetadataProperties" should "return the list of properties requested" in {
