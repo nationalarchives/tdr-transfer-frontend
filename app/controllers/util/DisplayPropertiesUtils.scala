@@ -62,15 +62,27 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           inputType = inputType
         )
       case "select" =>
-        DropdownField(
-          property.propertyName,
-          property.displayName,
-          property.description,
-          property.multiValue,
-          customMetadata.definedInputs,
-          customMetadata.defaultInput,
-          required
-        )
+        if (property.multiValue) {
+          MultiSelectField(
+            property.propertyName,
+            property.displayName,
+            property.description,
+            property.multiValue,
+            customMetadata.definedInputs,
+            customMetadata.defaultInput.map(List(_)),
+            required
+          )
+        } else {
+          DropdownField(
+            property.propertyName,
+            property.displayName,
+            property.description,
+            property.multiValue,
+            customMetadata.definedInputs,
+            customMetadata.defaultInput,
+            required
+          )
+        }
       case _ => throw new IllegalArgumentException(s"${property.componentType} is not a supported component type")
     }
   }
