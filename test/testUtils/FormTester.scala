@@ -67,7 +67,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
   private def generateOptionStatus(option: MockInputOption, selectedValue: String): OptionStatus = {
     val optionWasSubmittedAndValueWasEnteredOrSelected = selectedValue != "OptionNotSubmitted" && selectedValue.nonEmpty
     val valueHasBeenEntered: Boolean = optionWasSubmittedAndValueWasEnteredOrSelected && option.value == ""
-    val valueHasBeenSelected: Boolean = optionWasSubmittedAndValueWasEnteredOrSelected && selectedValue == option.value
+    val valueHasBeenSelected: Boolean = optionWasSubmittedAndValueWasEnteredOrSelected && selectedValue.split(",").toList.contains(option.value)
     val valueHasBeenEnteredOrSelected = valueHasBeenEntered || valueHasBeenSelected
     val aDifferentValueFromSameGroupHasBeenSelected: Boolean =
       optionWasSubmittedAndValueWasEnteredOrSelected && selectedValue != option.value
@@ -107,6 +107,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
     option.fieldType match {
       case "inputCheckbox" => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
       case "inputDate"     => addValuesToDateAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, hasDependency, submitAttempted)
+      case "inputmultiselect" => addValuesToMultiSelectAttributes(selected, valueEnteredOrSelected, option.id, option.name)
       case "inputDropdown" => addValuesToDropdownAttributes(selected, valueEnteredOrSelected, option.label, option.placeholder)
       case "inputNumeric"  => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
       case "inputRadio"    => addValuesToRadioAttributes(option.id, option.name, selected, valueEnteredOrSelected: String)
@@ -148,6 +149,15 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
        |                           placeholder="$placeholder"
        |                           maxlength="${placeholder.length}"
        |                    >""".stripMargin
+  }
+
+  private def addValuesToMultiSelectAttributes(selected: Boolean, values: String, id: String, name: String): String = {
+
+    val status = if (selected) """checked""" else ""
+    s"""                    <li class="govuk-checkboxes__item">
+         |                        <input class="govuk-checkboxes__input" id="$id" name="$name" type="checkbox" value="${values}" $status>
+         |                        <label class="govuk-label govuk-checkboxes__label" for="$id">${values}</label>
+         |                    </li>""".stripMargin
   }
 
   private def addValuesToDropdownAttributes(selected: Boolean, value: String, label: String, placeholder: String): String = {

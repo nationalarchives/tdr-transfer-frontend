@@ -80,7 +80,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes")
       )
 
@@ -158,7 +158,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1990"),
         ("inputnumeric-ClosurePeriod-years", "4"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes")
       )
 
@@ -244,7 +244,6 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", ""),
         ("inputradio-TitleClosed", "no"),
         ("inputradio-DescriptionClosed", "exclude")
       )
@@ -265,6 +264,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         formSubmission.toMap.removed("inputradio-DescriptionClosed"),
         formStatus = "PartiallySubmitted"
       )
+      addAdditionalMetadataPageAsString should include("""    <p class="govuk-error-message" id="error-FoiExemptionCode">
+          |        <span class="govuk-visually-hidden">Error:</span>
+          |        There was no value selected for the FOI exemption code.
+          |    </p>""".stripMargin)
     }
 
     "rerender closure form with user's data if form is partially submitted" in {
@@ -284,7 +287,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "exclude")
       )
@@ -325,7 +328,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "exclude")
       )
@@ -378,7 +381,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "no"),
         ("inputradio-DescriptionClosed", "no")
       )
@@ -435,7 +438,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code2"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
         ("inputradio-DescriptionClosed", "no")
@@ -466,7 +470,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val input = request.variables.updateBulkFileMetadataInput
       input.consignmentId mustBe consignmentId
       input.fileIds mustBe fileIds
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
+      input.metadataProperties.filter(_.filePropertyName == "FoiExemptionCode").map(_.value) mustBe List("mock code1", "mock code2")
       input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
       input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
       input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
@@ -494,7 +498,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
         ("inputradio-DescriptionClosed", "yes"),
@@ -557,7 +561,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "no"),
         ("inputradio-DescriptionClosed", "exclude")
       )
