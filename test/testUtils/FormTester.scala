@@ -105,14 +105,14 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
   ): String = {
 
     option.fieldType match {
-      case "inputCheckbox" => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
-      case "inputDate"     => addValuesToDateAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, hasDependency, submitAttempted)
+      case "inputCheckbox"    => addValuesToCheckBoxAttributes(option.name, option.label, selected, disabledStatus)
+      case "inputDate"        => addValuesToDateAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, hasDependency, submitAttempted)
       case "inputmultiselect" => addValuesToMultiSelectAttributes(selected, valueEnteredOrSelected, option.id, option.name)
-      case "inputDropdown" => addValuesToDropdownAttributes(selected, valueEnteredOrSelected, option.label, option.placeholder)
-      case "inputNumeric"  => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
-      case "inputRadio"    => addValuesToRadioAttributes(option.id, option.name, selected, valueEnteredOrSelected: String)
-      case "inputText"     => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
-      case "inputTextArea" => addValuesToTextAreaAttributes(option.id, option.rows, option.name, valueEnteredOrSelected, option.placeholder, option.wrap, option.maxLength)
+      case "inputDropdown"    => addValuesToDropdownAttributes(selected, valueEnteredOrSelected, option.label, option.placeholder)
+      case "inputNumeric"     => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
+      case "inputRadio"       => addValuesToRadioAttributes(option.id, option.name, selected, valueEnteredOrSelected: String)
+      case "inputText"        => addValuesToTextBoxAttributes(option.id, option.name, valueEnteredOrSelected, option.placeholder, option.fieldType, submitAttempted)
+      case "inputTextArea"    => addValuesToTextAreaAttributes(option.id, option.rows, option.name, valueEnteredOrSelected, option.placeholder, option.wrap, option.maxLength)
     }
   }
 
