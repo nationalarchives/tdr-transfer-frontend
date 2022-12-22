@@ -59,16 +59,16 @@ object DefaultMockFormOptions {
       fieldType = "inputText"
     ),
     MockInputOption(
-      name = "inputdropdown-Language",
-      id = "inputdropdown-Language",
-      fieldType = "inputDropdown",
+      name = "inputmultiselect-Language",
+      id = "inputmultiselect-Language-0",
+      fieldType = "inputmultiselect",
       label = "English",
       value = "English"
     ),
     MockInputOption(
-      name = "inputdropdown-Language",
-      id = "inputdropdown-Language",
-      fieldType = "inputDropdown",
+      name = "inputmultiselect-Language",
+      id = "inputmultiselect-Language-1",
+      fieldType = "inputmultiselect",
       label = "Welsh",
       value = "Welsh"
     )
