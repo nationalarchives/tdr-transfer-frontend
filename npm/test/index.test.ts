@@ -117,7 +117,7 @@ test("renderModules does not call authorisation when dialog box is not present o
   keycloakInstance.mockRestore()
 })
 
-test("renderModules should initialize the tna-multi-select-search element on the page", async () => {
+test("renderModules should initialise the multi-select search module if the tna-multi-select-search element is present on the page", async () => {
   const keycloakInstance = getKeycloakInstance as jest.Mock
   keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
 

@@ -72,13 +72,14 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       case Text =>
         property.propertyType match {
           case Defined =>
+            val options = property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value))
             if (property.multiValue) {
               MultiSelectField(
                 property.name,
                 fieldLabel,
                 fieldDescription,
                 property.multiValue,
-                property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
+                options,
                 property.defaultValue.map(value => InputNameAndValue(value, value) :: Nil),
                 isRequired
               )
@@ -88,7 +89,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
                 fieldLabel,
                 fieldDescription,
                 property.multiValue,
-                property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
+                options,
                 property.defaultValue.map(value => InputNameAndValue(value, value)),
                 isRequired
               )
