@@ -135,19 +135,19 @@ object DefaultMockFormOptions {
       errorMessage = s"There was no number entered for the Closure period."
     ),
     MockInputOption(
-      name = "inputdropdown-FoiExemptionCode",
-      id = "inputdropdown-FoiExemptionCode",
+      name = "inputmultiselect-FoiExemptionCode",
+      id = "inputmultiselect-FoiExemptionCode-0",
       label = "mock code1",
       value = "mock code1",
-      fieldType = "inputDropdown",
+      fieldType = "inputmultiselect",
       errorMessage = "There was no value selected for the FOI exemption code."
     ),
     MockInputOption(
-      name = "inputdropdown-FoiExemptionCode",
-      id = "inputdropdown-FoiExemptionCode",
+      name = "inputmultiselect-FoiExemptionCode",
+      id = "inputmultiselect-FoiExemptionCode-1",
       label = "mock code2",
       value = "mock code2",
-      fieldType = "inputDropdown",
+      fieldType = "inputmultiselect",
       errorMessage = "There was no value selected for the FOI exemption code."
     ),
     MockInputOption(
