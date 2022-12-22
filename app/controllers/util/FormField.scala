@@ -135,8 +135,8 @@ object RadioButtonGroupField {
 
 object MultiSelectField {
 
-  def validate(slectedOptions: Seq[String], multiSelectField: MultiSelectField): Option[String] =
-    slectedOptions match {
+  def validate(selectedOptions: Seq[String], multiSelectField: MultiSelectField): Option[String] =
+    selectedOptions match {
       case Nil                                                                      => Some(dropdownOptionNotSelectedError.format(multiSelectField.fieldName))
       case values if !values.forall(multiSelectField.options.map(_.value).contains) => Some(invalidDropdownOptionSelectedError.format(values.mkString(", ")))
       case _                                                                        => None
@@ -157,9 +157,9 @@ object DropdownField {
       case _                                                              => None
     }
 
-  def update(multiSelectField: DropdownField, selectedValue: Option[String]): DropdownField = {
-    val selectedOption: Option[InputNameAndValue] = multiSelectField.options.find(v => selectedValue.contains(v.value))
-    multiSelectField.copy(selectedOption = selectedOption)
+  def update(dropdownField: DropdownField, selectedValue: Option[String]): DropdownField = {
+    val selectedOption: Option[InputNameAndValue] = dropdownField.options.find(v => selectedValue.contains(v.value))
+    dropdownField.copy(selectedOption = selectedOption)
   }
 }
 
