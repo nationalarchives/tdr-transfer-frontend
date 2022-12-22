@@ -116,13 +116,13 @@ class AddAdditionalMetadataController @Inject() (
 
   private def deleteDependencyProperties(updatedFormFields: List[FormField], fileIds: List[UUID])(implicit request: Request[AnyContent]): Unit = {
 
-    val propertyNames = updatedFormFields.flatMap {
+    val propertyNames: Set[String] = updatedFormFields.flatMap {
       case RadioButtonGroupField(_, _, _, _, _, _, selectedOption, _, _, dependencies, _) =>
-        dependencies.removed(selectedOption).flatMap { case (_, fields) => fields.map(_.fieldId) }.toList
+        dependencies.removed(selectedOption).flatMap { case (_, fields) => fields.map(_.fieldId) }
       case _ => Nil
-    }
+    }.toSet
     if (propertyNames.nonEmpty) {
-      customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, Some(propertyNames))
+      customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, propertyNames)
     }
   }
 

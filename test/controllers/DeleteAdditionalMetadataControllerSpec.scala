@@ -10,7 +10,7 @@ import io.circe.syntax.EncoderOps
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
-import services.{ConsignmentService, CustomMetadataService}
+import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
@@ -20,6 +20,8 @@ import scala.concurrent.ExecutionContext
 
 class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
+  val closureMetadataType = metadataType(0)
+  val descriptiveMetadataType = metadataType(1)
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -34,55 +36,69 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val fileIds: List[UUID] = List(UUID.randomUUID())
-  private val mockMetadataTypeAndValue = List("mockMetadataType-mockMetadataValue")
 
   "confirmDeleteAdditionalMetadata" should {
-    "render the delete closure metadata page with an authenticated user" in {
+    "render the delete closure metadata page with an authenticated user for the 'closure' metadata type" in {
       val consignmentId = UUID.randomUUID()
       val consignmentReference = "TEST-TDR-2021-GB"
-      val mockMetadataTypeAndValueString = mockMetadataTypeAndValue.head
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()))
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
       val controller =
-        new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
+        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType"))
       val deleteMetadataPage = contentAsString(response)
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
-      deleteMetadataPage must include("<title>Delete closure metadata</title>")
-      deleteMetadataPage must include(
-        """                    <h1 class="govuk-heading-xl">
-          |                        Delete closure metadata
-          |                    </h1>""".stripMargin
-      )
-      deleteMetadataPage must include("You are deleting closure metadata for the following files and setting them as open:")
-      deleteMetadataPage must include("Once deleted closure metadata cannot be recovered.")
-      deleteMetadataPage must include("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>")
+      checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, closureMetadataType)
+      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
+    }
 
-      val deleteButtonHref =
-        s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}?fileIds=${fileIds.mkString("&amp;")}"
-      val cancelButtonHref =
-        s"/consignment/$consignmentId/additional-metadata/selected-summary/${metadataType(0)}?fileIds=${fileIds.mkString("&amp;")}"
-      deleteMetadataPage must include(
-        s"""                    <div class="govuk-button-group">
-           |                        <a href="$deleteButtonHref" role="button" draggable="false" class="govuk-button">
-           |                            Delete and return to all files
-           |                        </a>
-           |                        <a class="govuk-link govuk-link--no-visited-state" href="$cancelButtonHref">
-           |                            Cancel
-           |                        </a>
-           |                    </div>""".stripMargin
-      )
+    "render the delete closure metadata page with an authenticated user for the 'descriptive' metadata type" in {
+      val consignmentId = UUID.randomUUID()
+      val consignmentReference = "TEST-TDR-2021-GB"
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()))
 
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val controller =
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
+      val response = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType"))
+      val deleteMetadataPage = contentAsString(response)
+
+      status(response) mustBe OK
+      contentType(response) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
+      checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, descriptiveMetadataType)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
@@ -92,8 +108,16 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
       val controller =
-        new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidJudgmentUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
@@ -116,8 +140,16 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
       val controller =
-        new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
@@ -132,8 +164,16 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
       val controller =
-        new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getUnauthorisedSecurityComponents
+        )
       val response = controller
         .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
@@ -150,8 +190,16 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
       val controller =
-        new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), Nil)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
@@ -175,8 +223,16 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
       val controller =
-        new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
@@ -190,14 +246,22 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   "deleteAdditionalMetadata" should {
     "delete the metadata and redirect to the navigation page" in {
       val consignmentId = UUID.randomUUID()
-      val parentFolderId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
       setDeleteFileMetadataResponse(wiremockServer, fileIds, List("PropertyName1"))
+      setDisplayPropertiesResponse(wiremockServer)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
-      val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val controller = new DeleteAdditionalMetadataController(
+        consignmentService,
+        customMetadataService,
+        displayPropertiesService,
+        getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents
+      )
       val response = controller
         .deleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
@@ -215,7 +279,15 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
-      val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val controller = new DeleteAdditionalMetadataController(
+        consignmentService,
+        customMetadataService,
+        displayPropertiesService,
+        getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents
+      )
       val response = controller
         .deleteAdditionalMetadata(consignmentId, metadataType(0), Nil)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
@@ -231,7 +303,16 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
-      val controller = new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val controller =
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidJudgmentUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .deleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
@@ -244,8 +325,16 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
       val controller =
-        new DeleteAdditionalMetadataController(consignmentService, customMetadataService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getUnauthorisedSecurityComponents
+        )
       val response = controller
         .deleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
@@ -253,5 +342,37 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
+  }
+
+  private def checkConfirmDeleteMetadataPage(pageString: String, consignmentId: UUID, metadataType: String): Unit = {
+    val closureDeletionMessage = "You are deleting closure metadata for the following files and setting them as open:"
+    val descriptiveDeletionMessage = "You are deleting descriptive metadata for the following files:"
+
+    val expectedDeletionMessage = if (metadataType == "closure") closureDeletionMessage else descriptiveDeletionMessage
+
+    pageString must include(s"<title>Delete $metadataType metadata</title>")
+    pageString must include(
+      s"""                    <h1 class="govuk-heading-xl">
+        |                        Delete $metadataType metadata
+        |                    </h1>""".stripMargin
+    )
+    pageString must include(expectedDeletionMessage)
+    pageString must include(s"Once deleted $metadataType metadata cannot be recovered.")
+    pageString must include("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>")
+
+    val deleteButtonHref =
+      s"/consignment/$consignmentId/additional-metadata/delete-metadata/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
+    val cancelButtonHref =
+      s"/consignment/$consignmentId/additional-metadata/selected-summary/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
+    pageString must include(
+      s"""                    <div class="govuk-button-group">
+         |                        <a href="$deleteButtonHref" role="button" draggable="false" class="govuk-button">
+         |                            Delete and return to all files
+         |                        </a>
+         |                        <a class="govuk-link govuk-link--no-visited-state" href="$cancelButtonHref">
+         |                            Cancel
+         |                        </a>
+         |                    </div>""".stripMargin
+    )
   }
 }

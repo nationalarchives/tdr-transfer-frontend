@@ -1,17 +1,17 @@
 @import views.html.partials.{fileNameCard, warningMessage}
 
 @import java.util.UUID
-@(consignmentId: UUID, metadataType: String, fileIds: List[UUID], fileNames: List[String], name: String)(implicit messages: Messages, request: RequestHeader)
-    @main(title = "Delete closure metadata", name = name) {
+@(consignmentId: UUID, metadataType: String, fileIds: List[UUID], fileNames: List[String], name: String, deletionMessage: String)(implicit messages: Messages, request: RequestHeader)
+    @main(title = s"Delete $metadataType metadata", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
 
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-two-thirds">
                     <h1 class="govuk-heading-xl">
-                        Delete closure metadata
+                        Delete @metadataType metadata
                     </h1>
-                    @fileNameCard(fileNames, "You are deleting closure metadata for the following files and setting them as open:")
-                    @warningMessage("Once deleted closure metadata cannot be recovered.")
+                    @fileNameCard(fileNames, deletionMessage)
+                    @warningMessage(s"Once deleted $metadataType metadata cannot be recovered.")
                     <p class="govuk-body">Are you sure you would like to proceed?</p>
 
                     <div class="govuk-button-group">

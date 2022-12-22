@@ -189,7 +189,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
     when(deleteFileMetadataClient.getResult(token, dfm.document, variables))
       .thenReturn(Future(GraphQlResponse(Option(dfm.Data(deleteFileMetadata)), Nil)))
 
-    val response = customMetadataService.deleteMetadata(fileIds, token, Some(List("PropertyName1"))).futureValue
+    val response = customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1")).futureValue
 
     response.deleteFileMetadata should equal(deleteFileMetadata)
     verify(deleteFileMetadataClient, times(1)).getResult(token, dfm.document, variables)
@@ -200,7 +200,7 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
     when(deleteFileMetadataClient.getResult(token, dfm.document, Option(variables)))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-    customMetadataService.deleteMetadata(fileIds, token, Some(List("PropertyName1"))).failed.futureValue shouldBe a[HttpError]
+    customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1")).failed.futureValue shouldBe a[HttpError]
   }
 
   "deleteMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
@@ -209,6 +209,6 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
     when(deleteFileMetadataClient.getResult(token, dfm.document, Option(variables)))
       .thenReturn(Future.successful(response))
 
-    customMetadataService.deleteMetadata(fileIds, token, Some(List("PropertyName1"))).failed.futureValue shouldBe a[AuthorisationException]
+    customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1")).failed.futureValue shouldBe a[AuthorisationException]
   }
 }
