@@ -54,11 +54,12 @@ object DefaultMockFormOptions {
 
   val expectedDescriptiveDefaultOptions: List[MockInputOption] = List(
     MockInputOption(
-      name = "inputtext-description-description",
-      id = "description",
+      name = "inputtextarea-description",
+      id = "inputtextarea-description",
       fieldType = "inputTextArea",
       rows = "5",
-      wrap = "hard"
+      wrap = "hard",
+      maxLength = "8000"
     ),
     MockInputOption(
       name = "inputdropdown-Language",
@@ -246,6 +247,7 @@ object DefaultMockFormOptions {
       errorMessage: String = "",
       errorMessageDependency: String = "",
       rows: String = "",
-      wrap: String = ""
+      wrap: String = "",
+      maxLength: String = ""
   ) // some fields (like month) can only display their error if another field (like day) has none
 }

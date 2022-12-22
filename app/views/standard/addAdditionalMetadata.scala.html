@@ -72,17 +72,16 @@
                   inputMode,
                   addSuffixText
                 )
-                case TextAreaField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, rows, wrap) => inputTextArea(
+                case TextAreaField(fieldId, fieldName, fieldDescription, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit) => inputTextArea(
                   fieldId,
                   fieldName,
                   fieldDescription,
                   inputNameAndValue,
-                  "text",
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true),
-                  inputMode,
                   rows,
-                  wrap
+                  wrap,
+                  characterLimit
                 )
                 case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
                   inputDropdown(
