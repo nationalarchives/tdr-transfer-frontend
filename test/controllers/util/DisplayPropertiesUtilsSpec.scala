@@ -93,7 +93,6 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     textAreaField.fieldDescription should equal("description")
     textAreaField.fieldErrors should equal(Nil)
     textAreaField.isRequired should equal(false)
-    textAreaField.inputMode should equal("text")
     textAreaField.multiValue should equal(false)
     textAreaField.rows should equal("5")
     textAreaField.wrap should equal("hard")

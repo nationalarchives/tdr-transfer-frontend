@@ -53,7 +53,6 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           property.description,
           property.multiValue,
           InputNameAndValue(property.propertyName, customMetadata.defaultValue),
-          "text",
           required
         )
       case "select" =>
