@@ -72,15 +72,28 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       case Text =>
         property.propertyType match {
           case Defined =>
-            DropdownField(
-              property.name,
-              fieldLabel,
-              fieldDescription,
-              property.multiValue,
-              property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
-              property.defaultValue.map(value => InputNameAndValue(value, value)),
-              isRequired
-            )
+            val options = property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value))
+            if (property.multiValue) {
+              MultiSelectField(
+                property.name,
+                fieldLabel,
+                fieldDescription,
+                property.multiValue,
+                options,
+                property.defaultValue.map(value => InputNameAndValue(value, value) :: Nil),
+                isRequired
+              )
+            } else {
+              DropdownField(
+                property.name,
+                fieldLabel,
+                fieldDescription,
+                property.multiValue,
+                options,
+                property.defaultValue.map(value => InputNameAndValue(value, value)),
+                isRequired
+              )
+            }
           case Supplied =>
             TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue(property.name, property.defaultValue.getOrElse("")), "text", isRequired)
           case _ =>

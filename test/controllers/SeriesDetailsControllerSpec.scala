@@ -61,8 +61,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val formTester = new FormTester(expectedSeriesDefaultOptions)
-      val expectedDefaultForm = Map("series" -> "")
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
@@ -75,7 +73,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(seriesDetailsPageAsString, optionsSelected = expectedDefaultForm)
+
+      seriesDetailsPageAsString should include("""<select class="govuk-select" id="series" name="series"  >""")
+      seriesDetailsPageAsString should include(s"""<option value="${seriesId.toString}">MOCK1</option>""")
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
@@ -177,7 +177,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val formTester = new FormTester(expectedSeriesDefaultOptions)
 
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesSubmit = controller.seriesSubmit(consignmentId).apply(FakeRequest(POST, "/series").withCSRFToken)
@@ -190,7 +189,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       seriesSubmitAsString must include("class=\"govuk-visually-hidden\">Error:")
       checkForExpectedSeriesPageContent(seriesSubmitAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesSubmitAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(seriesSubmitAsString, Map("series" -> ""), formStatus = "PartiallySubmitted")
+
+      seriesSubmitAsString should include("""<select class="govuk-select" id="series" name="series"  >""")
+      seriesSubmitAsString should include(s"""<option value="${seriesId.toString}">MOCK1</option>""")
     }
 
     "send the correct body if it is present on the user" in {
@@ -251,7 +252,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       checkForExpectedSeriesPageContent(seriesDetailsPageAsString, seriesAlreadyChosen = true)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(seriesDetailsPageAsString, Map("series" -> seriesId.toString), formStatus = "Submitted")
+      seriesDetailsPageAsString should include("""<select class="govuk-select" id="series" name="series"  disabled>""")
+      seriesDetailsPageAsString should include(s"""<option selected="selected" value="${seriesId.toString}">MOCK1</option>""")
     }
   }
 
