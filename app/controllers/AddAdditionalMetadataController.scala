@@ -196,7 +196,7 @@ class AddAdditionalMetadataController @Inject() (
       case textAreaField: TextAreaField =>
         metadataMap
           .get(textAreaField.fieldId)
-          .map(metadata => TextAreaField.update(textAreaField, metadata.value))
+          .map(metadata => TextAreaField.update(textAreaField, metadata.head.value))
           .getOrElse(textAreaField)
     }
     updatedFormFields.map(formFieldOverrides(_, metadataMap))
