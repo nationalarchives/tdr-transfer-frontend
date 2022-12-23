@@ -316,7 +316,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe SEE_OTHER
       fileIdsArg.getValue mustEqual fileIds
-      propertiesToDeleteArg.getValue mustEqual Set("ClosureType")
+      propertiesToDeleteArg.getValue mustEqual Set("ClosureType", "FOIExemptionCode")
 
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/$closureMetadataType"))
     }
@@ -453,10 +453,6 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkConfirmDeleteMetadataPage(pageString: String, consignmentId: UUID, metadataType: String): Unit = {
-    val closureDeletionMessage = "You are deleting closure metadata for the following files and setting them as open:"
-    val descriptiveDeletionMessage = "You are deleting descriptive metadata for the following files:"
-
-    val expectedDeletionMessage = if (metadataType == "closure") closureDeletionMessage else descriptiveDeletionMessage
 
     pageString must include(s"<title>Delete $metadataType metadata</title>")
     pageString must include(
@@ -464,7 +460,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         |                        Delete $metadataType metadata
         |                    </h1>""".stripMargin
     )
-    pageString must include(expectedDeletionMessage)
+
     pageString must include(s"Once deleted $metadataType metadata cannot be recovered.")
     pageString must include("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>")
 

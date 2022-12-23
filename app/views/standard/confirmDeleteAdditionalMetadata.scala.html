@@ -1,7 +1,7 @@
 @import views.html.partials.{fileNameCard, warningMessage}
 
 @import java.util.UUID
-@(consignmentId: UUID, metadataType: String, fileIds: List[UUID], fileNames: List[String], name: String, deletionMessage: String)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, metadataType: String, fileIds: List[UUID], fileNames: List[String], name: String)(implicit messages: Messages, request: RequestHeader)
     @main(title = s"Delete $metadataType metadata", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
 
@@ -10,7 +10,7 @@
                     <h1 class="govuk-heading-xl">
                         Delete @metadataType metadata
                     </h1>
-                    @fileNameCard(fileNames, deletionMessage)
+                    @fileNameCard(fileNames, Messages(s"deleteAdditionalMetadata.${metadataType}DeletionMessage"))
                     @warningMessage(s"Once deleted $metadataType metadata cannot be recovered.")
                     <p class="govuk-body">Are you sure you would like to proceed?</p>
 
