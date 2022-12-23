@@ -1,6 +1,5 @@
 package controllers
 
-import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
@@ -118,11 +117,17 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           getValidJudgmentUserKeycloakConfiguration,
           getAuthorisedSecurityComponents
         )
-      val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
 
-      status(response) mustBe FORBIDDEN
+      val closureResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType"))
+
+      val descriptiveResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType"))
+
+      status(closureResponse) mustBe FORBIDDEN
+      status(descriptiveResponse) mustBe FORBIDDEN
     }
 
     "return forbidden if the user does not own the consignment" in {
@@ -150,13 +155,21 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           getValidStandardUserKeycloakConfiguration,
           getAuthorisedSecurityComponents
         )
-      val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
+
+      val closureResponse: Throwable = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType"))
         .failed
         .futureValue
 
-      response.getMessage must include(errors.head.message)
+      val descriptiveResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType"))
+        .failed
+        .futureValue
+
+      closureResponse.getMessage must include(errors.head.message)
+      descriptiveResponse.getMessage must include(errors.head.message)
     }
 
     "redirect to the login page if the page is accessed by a logged out user" in {
@@ -174,12 +187,20 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           getValidStandardUserKeycloakConfiguration,
           getUnauthorisedSecurityComponents
         )
-      val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
 
-      status(response) mustBe FOUND
-      redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      val closureResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType"))
+
+      val descriptiveResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType"))
+
+      status(closureResponse) mustBe FOUND
+      redirectLocation(closureResponse).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+
+      status(descriptiveResponse) mustBe FOUND
+      redirectLocation(descriptiveResponse).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
     "return an error if the fileIds are empty" in {
@@ -200,13 +221,21 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           getValidStandardUserKeycloakConfiguration,
           getAuthorisedSecurityComponents
         )
-      val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), Nil)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
+
+      val closureResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, Nil)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType"))
         .failed
         .futureValue
 
-      response.getMessage must include(errorMessage)
+      val descriptiveResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, Nil)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType"))
+        .failed
+        .futureValue
+
+      closureResponse.getMessage must include(errorMessage)
+      descriptiveResponse.getMessage must include(errorMessage)
     }
 
     "return an error if no files exist for the consignment" in {
@@ -233,13 +262,21 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           getValidStandardUserKeycloakConfiguration,
           getAuthorisedSecurityComponents
         )
-      val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/${metadataType(0)}"))
+
+      val closureResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType"))
         .failed
         .futureValue
 
-      response.getMessage mustBe s"Can't find selected files for the consignment $consignmentId"
+      val descriptiveResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType"))
+        .failed
+        .futureValue
+
+      closureResponse.getMessage mustBe s"Can't find selected files for the consignment $consignmentId"
+      descriptiveResponse.getMessage mustBe s"Can't find selected files for the consignment $consignmentId"
     }
   }
 
@@ -262,13 +299,14 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents
       )
+
       val response = controller
-        .deleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
+        .deleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/$closureMetadataType"))
 
       status(response) mustBe SEE_OTHER
 
-      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/closure"))
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/$closureMetadataType"))
     }
 
     "return an error if the fileIds are empty" in {
@@ -288,13 +326,21 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         getValidStandardUserKeycloakConfiguration,
         getAuthorisedSecurityComponents
       )
-      val response = controller
-        .deleteAdditionalMetadata(consignmentId, metadataType(0), Nil)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
+
+      val closureResponse = controller
+        .deleteAdditionalMetadata(consignmentId, closureMetadataType, Nil)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/$closureMetadataType"))
         .failed
         .futureValue
 
-      response.getMessage must include(errorMessage)
+      val descriptiveResponse = controller
+        .deleteAdditionalMetadata(consignmentId, descriptiveMetadataType, Nil)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/$descriptiveMetadataType"))
+        .failed
+        .futureValue
+
+      closureResponse.getMessage must include(errorMessage)
+      descriptiveResponse.getMessage must include(errorMessage)
     }
 
     "return forbidden if the url is accessed by a judgment user" in {
@@ -313,11 +359,17 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           getValidJudgmentUserKeycloakConfiguration,
           getAuthorisedSecurityComponents
         )
-      val response = controller
-        .deleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
 
-      status(response) mustBe FORBIDDEN
+      val closureResponse = controller
+        .deleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/$closureMetadataType"))
+
+      val descriptiveResponse = controller
+        .deleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/$closureMetadataType"))
+
+      status(closureResponse) mustBe FORBIDDEN
+      status(descriptiveResponse) mustBe FORBIDDEN
     }
 
     "redirect to the login page if the url is accessed by a logged out user" in {
@@ -335,12 +387,20 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           getValidStandardUserKeycloakConfiguration,
           getUnauthorisedSecurityComponents
         )
-      val response = controller
-        .deleteAdditionalMetadata(consignmentId, metadataType(0), fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/${metadataType(0)}"))
 
-      status(response) mustBe FOUND
-      redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+      val closureResponse = controller
+        .deleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/$closureMetadataType"))
+
+      val descriptiveResponse = controller
+        .deleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/$descriptiveMetadataType"))
+
+      status(closureResponse) mustBe FOUND
+      redirectLocation(closureResponse).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+
+      status(descriptiveResponse) mustBe FOUND
+      redirectLocation(descriptiveResponse).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
   }
 
