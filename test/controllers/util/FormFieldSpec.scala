@@ -88,7 +88,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "validate should return an error if the given value is large than the specific character limit" in {
-      val tooLargeValueField = TextAreaField("id", "FieldName", "desc", multiValue = false, InputNameAndValue("name", "", ""), isRequired = false, characterLimit = "5")
+      val tooLargeValueField = TextAreaField("id", "FieldName", "desc", multiValue = false, InputNameAndValue("name", "", ""), isRequired = false, characterLimit = 5)
       TextAreaField.validate("more than character limit", tooLargeValueField) shouldBe Some("FieldName must be 5 characters or less")
     }
   }
