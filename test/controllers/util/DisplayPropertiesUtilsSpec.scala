@@ -25,7 +25,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     fields.last.fieldId should equal("Dropdown3")
   }
 
-  "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select'" in {
+  "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select' where the property is not mult-value" in {
     val customMetadata = CustomMetadata(
       "Dropdown1",
       None,
@@ -53,17 +53,41 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     dropdownField.fieldDescription should equal("description")
     dropdownField.isRequired should equal(false)
     dropdownField.fieldErrors should equal(Nil)
-    dropdownField.selectedOption.get.value should equal("dropdownValue1")
-    dropdownField.selectedOption.get.name should equal("dropdownValue1")
 
-    val selectOptions = dropdownField.options
-    selectOptions.size should equal(3)
-    selectOptions.head.name should equal("dropdownValue1")
-    selectOptions.head.value should equal("dropdownValue1")
-    selectOptions.tail.head.name should equal("dropdownValue2")
-    selectOptions.tail.head.value should equal("dropdownValue2")
-    selectOptions.last.name should equal("dropdownValue3")
-    selectOptions.last.value should equal("dropdownValue3")
+    dropdownField.selectedOption.get should equal(InputNameAndValue("dropdownValue1", "dropdownValue1"))
+    dropdownField.options should equal(customMetadata.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
+  }
+
+  "convertPropertiesToFormFields" should "generate 'multi-select' field for componentType value 'select' where display property is multi value" in {
+    val customMetadata = CustomMetadata(
+      "Dropdown1",
+      None,
+      None,
+      Defined,
+      None,
+      Text,
+      editable = true,
+      multiValue = true,
+      defaultValue = Some("dropdownValue1"),
+      4,
+      List(Values("dropdownValue3", List(), 3), Values("dropdownValue1", List(), 1), Values("dropdownValue2", List(), 2)),
+      None,
+      allowExport = false
+    )
+    val displayProperty = DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", true, 3, "Dropdown1", "propertyType")
+
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+
+    val multiSelectField: MultiSelectField = fields.head.asInstanceOf[MultiSelectField]
+    multiSelectField.fieldId should equal("Dropdown1")
+    multiSelectField.multiValue should equal(true)
+    multiSelectField.fieldName should equal("Dropdown Display")
+    multiSelectField.fieldDescription should equal("description")
+    multiSelectField.isRequired should equal(false)
+    multiSelectField.fieldErrors should equal(Nil)
+    multiSelectField.selectedOption.get should equal(List(InputNameAndValue("dropdownValue1", "dropdownValue1")))
+    multiSelectField.options should equal(customMetadata.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
   }
 
   "convertPropertiesToFormFields" should "generate 'text area' field for componentType value 'large text'" in {
