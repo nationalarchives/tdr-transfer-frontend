@@ -45,6 +45,19 @@ case class TextField(
     inputType: String = "number"
 ) extends FormField
 
+case class TextAreaField(
+    fieldId: String,
+    fieldName: String,
+    fieldDescription: String,
+    multiValue: Boolean,
+    nameAndValue: InputNameAndValue,
+    isRequired: Boolean,
+    fieldErrors: List[String] = Nil,
+    rows: String = "5",
+    wrap: String = "hard",
+    characterLimit: Int = 8000
+) extends FormField
+
 case class DropdownField(
     fieldId: String,
     fieldName: String,
@@ -94,6 +107,11 @@ object FormField {
   val futureDateError = "%s date cannot be a future date."
   val radioOptionNotSelectedError = "There was no value selected for %s."
   val invalidRadioOptionSelectedError = "Option '%s' was not an option provided to the user."
+  val tooLongInputError = "%s must be %s characters or less"
+
+  def inputModeToFieldType(inputMode: String): String = {
+    if (inputMode.equals("numeric")) "number" else "text"
+  }
 }
 
 object RadioButtonGroupField {
@@ -167,7 +185,7 @@ object TextField {
 
   def validate(text: String, textField: TextField): Option[String] =
     if (text == "") {
-      val fieldType: String = if (textField.inputMode.equals("numeric")) "number" else "text"
+      val fieldType: String = inputModeToFieldType(textField.inputMode)
       Some(emptyValueError.format(fieldType, textField.fieldName))
     } else if (textField.inputMode.equals("numeric")) {
       val inputName = textField.nameAndValue.name
@@ -181,6 +199,19 @@ object TextField {
     }
 
   def update(textField: TextField, value: String): TextField = textField.copy(nameAndValue = textField.nameAndValue.copy(value = value))
+}
+
+object TextAreaField {
+  def update(textAreaField: TextAreaField, value: String): TextAreaField = textAreaField.copy(nameAndValue = textAreaField.nameAndValue.copy(value = value))
+
+  def validate(text: String, textAreaField: TextAreaField): Option[String] = {
+
+    text match {
+      case t if t == "" && textAreaField.isRequired           => Some(emptyValueError.format("text", textAreaField.fieldName))
+      case t if t.length > textAreaField.characterLimit.toInt => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
+      case _                                                  => None
+    }
+  }
 }
 
 object DateField {
