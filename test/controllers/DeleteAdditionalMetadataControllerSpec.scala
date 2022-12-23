@@ -2,20 +2,24 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetConsignment.getConsignment
 import io.circe.generic.auto.exportEncoder
 import io.circe.syntax.EncoderOps
+import org.mockito.Mockito.when
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
-import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
 
 import java.util.UUID
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
@@ -280,8 +284,14 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  "x" should  {
+    "y" in {
+
+    }
+  }
+
   "deleteAdditionalMetadata" should {
-    "delete the metadata and redirect to the navigation page" in {
+    "delete the correct metadata and redirect to the navigation page for the 'closure' metadata type" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
       setDeleteFileMetadataResponse(wiremockServer, fileIds, List("PropertyName1"))
@@ -289,8 +299,14 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val customMetadataService = mock[CustomMetadataService]
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val mockData = mock[dfm.Data]
+      val fileIdsArg: ArgumentCaptor[List[UUID]] = ArgumentCaptor.forClass(classOf[List[UUID]])
+      val propertiesToDeleteArg: ArgumentCaptor[Set[String]] = ArgumentCaptor.forClass(classOf[Set[String]])
+
+      when(customMetadataService.deleteMetadata(fileIdsArg.capture(), ArgumentMatchers.any[BearerAccessToken], propertiesToDeleteArg.capture())).thenReturn(Future(mockData))
 
       val controller = new DeleteAdditionalMetadataController(
         consignmentService,
@@ -305,8 +321,46 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/$closureMetadataType"))
 
       status(response) mustBe SEE_OTHER
+      fileIdsArg.getValue mustEqual fileIds
+      propertiesToDeleteArg.getValue mustEqual Set("ClosureType")
 
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/$closureMetadataType"))
+    }
+
+    "delete the correct metadata and redirect to the navigation page for the 'descriptive' metadata type" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setDeleteFileMetadataResponse(wiremockServer, fileIds, List("PropertyName1"))
+      setDisplayPropertiesResponse(wiremockServer)
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val customMetadataService = mock[CustomMetadataService]
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val mockData = mock[dfm.Data]
+      val fileIdsArg: ArgumentCaptor[List[UUID]] = ArgumentCaptor.forClass(classOf[List[UUID]])
+      val propertiesToDeleteArg: ArgumentCaptor[Set[String]] = ArgumentCaptor.forClass(classOf[Set[String]])
+
+      when(customMetadataService.deleteMetadata(fileIdsArg.capture(), ArgumentMatchers.any[BearerAccessToken], propertiesToDeleteArg.capture())).thenReturn(Future(mockData))
+
+      val controller = new DeleteAdditionalMetadataController(
+        consignmentService,
+        customMetadataService,
+        displayPropertiesService,
+        getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents
+      )
+
+      val response = controller
+        .deleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/delete-metadata/$descriptiveMetadataType"))
+
+      status(response) mustBe SEE_OTHER
+      fileIdsArg.getValue mustEqual fileIds
+      propertiesToDeleteArg.getValue mustEqual Set("description", "Language")
+
+      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/$descriptiveMetadataType"))
     }
 
     "return an error if the fileIds are empty" in {
