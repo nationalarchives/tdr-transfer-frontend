@@ -9,7 +9,7 @@ fieldErrors: Seq[String],
 attributes: Map[Symbol, Any] = Map(),
 rows: String,
 wrap: String,
-characterLimit: String)(implicit messages: Messages)
+characterLimit: Int)(implicit messages: Messages)
 
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @inputName = @{if(isDynamicForm) s"inputtextarea-$fieldId" else fieldId}

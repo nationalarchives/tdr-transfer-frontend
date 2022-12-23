@@ -55,7 +55,7 @@ case class TextAreaField(
     fieldErrors: List[String] = Nil,
     rows: String = "5",
     wrap: String = "hard",
-    characterLimit: String = "8000"
+    characterLimit: Int = 8000
 ) extends FormField
 
 case class DropdownField(

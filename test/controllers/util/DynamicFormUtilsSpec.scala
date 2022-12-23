@@ -17,7 +17,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
   private val testData = new FormTestData()
 
-  "formAnswersWithValidInputNames" should "returns all values passed into the request except the CSRF token" in {
+  "formAnswersWithValidInputNames" should "returns all values passed into the request except restricted values" in {
     val rawFormWithCsrfToken = ListMap(
       "inputdate-testproperty3-day" -> List("3"),
       "inputdate-testproperty3-month" -> List("4"),
@@ -26,15 +26,20 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
       "inputmultiselect-testproperty8" -> List("TestValue 3"),
       "inputradio-testproperty7" -> List("Yes"),
       "inputtext-testproperty10" -> List("Some Text"),
-      "csrfToken" -> List("12345")
+      "inputtextarea-testproperty11" -> List("Lots of text"),
+      "csrfToken" -> List("12345"),
+      "tna-multi-select-search" -> List("12345"),
+      "details" -> List("12345")
     )
     val dynamicFormUtils = instantiateDynamicFormsUtils(rawFormWithCsrfToken)
 
+    val expectedRestrictedValues = Set("csrfToken", "tna-multi-select-search", "details")
+
     rawFormWithCsrfToken.foreach { case (inputName, value) =>
-      if (inputName != "csrfToken") {
-        dynamicFormUtils.formAnswersWithValidInputNames(inputName) should equal(value)
+      if (expectedRestrictedValues.contains(inputName)) {
+        dynamicFormUtils.formAnswersWithValidInputNames.contains(inputName) should equal(false)
       } else {
-        dynamicFormUtils.formAnswersWithValidInputNames.contains("csrfToken") should equal(false)
+        dynamicFormUtils.formAnswersWithValidInputNames(inputName) should equal(value)
       }
     }
   }
@@ -82,6 +87,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         "inputmultiselect-fieldidendswithday" -> List("TestValue 3"),
         "inputradio-fieldidendswithmonth" -> List("yes"),
         "inputtext-fieldidendswithyear" -> List("Some Text"),
+        "inputtextarea-textarea" -> List("Lots of text"),
         "csrfToken" -> List("12345")
       )
 
@@ -163,7 +169,6 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
   }
 
   "convertSubmittedValuesToFormFields" should "throws an exception if value selected is not one of the official options" in {
-    // This test is to try and catch bad actors
     val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
       MockFormValues(multiSelectField = List("hello"))
     )
@@ -198,7 +203,6 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
   }
 
   "convertSubmittedValuesToFormFields" should "not validate the field if it is hidden" in {
-    val dateTime = LocalDateTime.now().plusDays(1)
     val rawFormToMakeRequestWith =
       ListMap(
         "inputradio-Radio" -> List("exclude") // Set value as "exclude" for the hidden field
@@ -234,6 +238,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         "inputradio-Radio" -> mockFormValues.radioValue,
         "inputtext-Radio-TestProperty2-yes" -> List(dependencyFormValue),
         "inputmultiselect-Dropdown" -> mockFormValues.multiSelectField,
+        "inputtextarea-TextArea" -> mockFormValues.textAreaValue,
         "csrfToken" -> mockFormValues.csrfToken
       )
 
@@ -262,6 +267,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         "inputnumeric-ClosurePeriod" -> mockFormValues.numericTextBoxValue,
         "inputtext-Radio-TestProperty2-yes" -> Nil,
         "inputmultiselect-Dropdown" -> mockFormValues.multiSelectField,
+        "inputtextarea-TextArea" -> mockFormValues.textAreaValue,
         "inputradio-Radio" -> mockFormValues.radioValue,
         "csrfToken" -> mockFormValues.csrfToken
       )
@@ -302,7 +308,6 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
   }
 
   "convertSubmittedValuesToFormFields" should "return a 'whole number'-related error for the numeric fields that are missing values" in {
-    // Shouldn't be possible on client-side due to "type:numeric" attribute added to HTML, but in case that is removed
     val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
       MockFormValues(month = List("b4"), year = List("2r"), numericTextBoxValue = List("1.5"), day2 = List("000"), month2 = List("e"), year2 = List("-"))
     )
@@ -369,6 +374,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         "inputdate-ClosureStartDate-year" -> mockFormValues.year2,
         "inputnumeric-ClosurePeriod" -> mockFormValues.numericTextBoxValue,
         "inputmultiselect-Dropdown" -> mockFormValues.multiSelectField,
+        "inputtextarea-TextArea" -> mockFormValues.textAreaValue,
         "inputradio-Radio" -> mockFormValues.radioValue,
         "csrfToken" -> mockFormValues.csrfToken
       )
@@ -414,5 +420,6 @@ case class MockFormValues(
     multiSelectField: List[String] = List("dropdownValue"),
     radioValue: List[String] = List("yes"),
     textValue: List[String] = List("Some Text"),
+    textAreaValue: List[String] = List("A large amount of text"),
     csrfToken: List[String] = List("12345")
 )
