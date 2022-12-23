@@ -58,13 +58,14 @@ class CheckFormPageElements() {
     """    <div id="inputtextarea-description-hint" class="govuk-hint">
       |        This description will be visible on Discovery and help explain the content of your file(s).
       |    </div>""",
-    """            <label class="govuk-label govuk-label--m" for="inputdropdown-Language">
+    """        <h2 class="govuk-label-wrapper">
+      |            <label class="govuk-label govuk-label--m" for="inputmultiselect-Language">
       |                Language
-      |            </label>""".replace("................", "                "),
-    """        <div id="inputdropdown-Language-hint" class="govuk-hint">
-      |            Choose one or more languages used in this record.
-      |        </div>""",
-    """<select class="govuk-select" id="inputdropdown-Language" name="inputdropdown-Language"  >"""
+      |            </label>
+      |        </h2>""",
+    """        <div id="inputmultiselect-Language-hint" class="govuk-hint">""",
+    """                Choose one or more languages used in this record.""",
+    """        </div>"""
   )
 
   def checkFormContent(metadataType: String, formPageAsFormattedString: String): Unit = {

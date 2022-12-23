@@ -568,7 +568,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           Some("OptionalMetadata"),
           Text,
           editable = false,
-          multiValue = false,
+          multiValue = true,
           Some("English"),
           2,
           List(Values("English", List(), 1), Values("Welsh", List(), 2)),
