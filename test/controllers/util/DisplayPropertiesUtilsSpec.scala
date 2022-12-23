@@ -25,7 +25,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     fields.last.fieldId should equal("Dropdown3")
   }
 
-  "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select'" in {
+  "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select' where the property is not mult-value" in {
     val customMetadata = CustomMetadata(
       "Dropdown1",
       None,
@@ -58,7 +58,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     dropdownField.options should equal(customMetadata.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
   }
 
-  "convertPropertiesToFormFields" should "generate 'multi-select' field for componentType value 'select' and the DisplayProperty allows multi values" in {
+  "convertPropertiesToFormFields" should "generate 'multi-select' field for componentType value 'select' where display property is multi value" in {
     val customMetadata = CustomMetadata(
       "Dropdown1",
       None,
