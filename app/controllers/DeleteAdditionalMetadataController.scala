@@ -5,7 +5,7 @@ import configuration.KeycloakConfiguration
 import controllers.util.MetadataProperty.clientSideOriginalFilepath
 import graphql.codegen.types.FileFilters
 import org.pac4j.play.scala.SecurityComponents
-import play.api.i18n.{I18nSupport, Messages}
+import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 
