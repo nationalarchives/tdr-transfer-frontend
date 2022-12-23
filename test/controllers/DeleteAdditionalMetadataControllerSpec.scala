@@ -284,12 +284,6 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  "x" should  {
-    "y" in {
-
-    }
-  }
-
   "deleteAdditionalMetadata" should {
     "delete the correct metadata and redirect to the navigation page for the 'closure' metadata type" in {
       val consignmentId = UUID.randomUUID()
