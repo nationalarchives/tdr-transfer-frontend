@@ -90,7 +90,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     multiSelectField.options should equal(customMetadata.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
   }
 
-  "convertPropertiesToFormFields" should "generate 'text field' field for componentType value 'large text'" in {
+  "convertPropertiesToFormFields" should "generate 'text area' field for componentType value 'large text'" in {
     val customMetadata = CustomMetadata(
       "TextField",
       None,
@@ -111,17 +111,18 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
 
-    val textField: TextField = fields.head.asInstanceOf[TextField]
-    textField.fieldId should equal("TextField")
-    textField.fieldName should equal("TextField Display")
-    textField.fieldDescription should equal("description")
-    textField.fieldErrors should equal(Nil)
-    textField.isRequired should equal(false)
-    textField.inputMode should equal("text")
-    textField.multiValue should equal(false)
-    textField.inputType should equal("text")
-    textField.nameAndValue.name should equal("TextField")
-    textField.nameAndValue.value should equal("defaultValue")
+    val textAreaField: TextAreaField = fields.head.asInstanceOf[TextAreaField]
+    textAreaField.fieldId should equal("TextField")
+    textAreaField.fieldName should equal("TextField Display")
+    textAreaField.fieldDescription should equal("description")
+    textAreaField.fieldErrors should equal(Nil)
+    textAreaField.isRequired should equal(false)
+    textAreaField.multiValue should equal(false)
+    textAreaField.rows should equal("5")
+    textAreaField.wrap should equal("hard")
+    textAreaField.characterLimit should equal(8000)
+    textAreaField.nameAndValue.name should equal("TextField")
+    textAreaField.nameAndValue.value should equal("defaultValue")
   }
 
   "convertPropertiesToFormFields" should "throw an error for an unsupported component type" in {
