@@ -107,7 +107,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType").withCSRFToken)
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
       val expectedDefaultForm = Seq(
-        ("inputtext-description-description", ""),
+        ("inputtextarea-description", ""),
         ("inputdropdown-Language", "English")
       )
       playStatus(addAdditionalMetadataPage) mustBe OK
@@ -187,7 +187,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType").withCSRFToken)
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
       val expectedDefaultForm = Seq(
-        ("inputtext-description-description", "a previously added description"),
+        ("inputtextarea-description", "a previously added description"),
         ("inputdropdown-Language", "Welsh")
       )
       playStatus(addAdditionalMetadataPage) mustBe OK

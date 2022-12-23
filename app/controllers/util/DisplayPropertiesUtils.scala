@@ -45,21 +45,15 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
 
   private def generateFormField(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
     val required: Boolean = customMetadata.requiredField
-    val inputType: String = if (property.dataType == DataType.Integer) { "number" }
-    else { "text" }
     property.componentType match {
-      // set 'large text' to text field until have text area field
       case "large text" =>
-        TextField(
+        TextAreaField(
           property.propertyName,
           property.displayName,
           property.description,
           property.multiValue,
           InputNameAndValue(property.propertyName, customMetadata.defaultValue),
-          "text",
-          required,
-          addSuffixText = false,
-          inputType = inputType
+          required
         )
       case "select" =>
         DropdownField(
