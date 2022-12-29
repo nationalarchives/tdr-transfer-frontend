@@ -20,7 +20,6 @@ import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.{getConsignments => gc}
-import graphql.codegen.GetCustomMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
@@ -401,7 +400,13 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           List(
             dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
             dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
-            dp.DisplayProperties.Attributes("Description", Some("Add one or more exemption code to this closure. Here is a <a target=\"_blank\" href=\"https://www.legislation.gov.uk/ukpga/2000/36/contents\">full list of FOI codes an\nd their designated exemptions</a>"), Text),
+            dp.DisplayProperties.Attributes(
+              "Description",
+              Some(
+                "Add one or more exemption code to this closure. Here is a <a target=\"_blank\" href=\"https://www.legislation.gov.uk/ukpga/2000/36/contents\">full list of FOI codes an\nd their designated exemptions</a>"
+              ),
+              Text
+            ),
             dp.DisplayProperties.Attributes("Name", Some("FOI exemption code(s)"), Text),
             dp.DisplayProperties.Attributes("Guidance", Some("Search for FOI Exemption codes"), Text),
             dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
