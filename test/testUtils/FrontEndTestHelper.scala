@@ -397,10 +397,64 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           )
         ),
         dp.DisplayProperties(
-          "FOIExemptionCode",
+          "FoiExemptionCode",
           List(
             dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
             dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("Add one or more exemption code to this closure. Here is a <a target=\"_blank\" href=\"https://www.legislation.gov.uk/ukpga/2000/36/contents\">full list of FOI codes an\nd their designated exemptions</a>"), Text),
+            dp.DisplayProperties.Attributes("Name", Some("FOI exemption code(s)"), Text),
+            dp.DisplayProperties.Attributes("Guidance", Some("Search for FOI Exemption codes"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "ClosurePeriod",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("integer"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("Number of years the record is closed from the closure start date"), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Closure Period"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("15"), Integer),
+            dp.DisplayProperties.Attributes("UnitType", Some("Years"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "ClosureStartDate",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("datetime"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Closure Start Date"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+            dp.DisplayProperties.Attributes("Guidance", Some("dd|mm|yyyy"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "TitleClosed",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("boolean"), Text),
+            dp.DisplayProperties.Attributes("ComponentType", Some("radial"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("Is the title closed?"), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Is the title closed?"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Label", Some("Yes|No, this title can be made public"), Text),
+            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("25"), Integer),
+            dp.DisplayProperties.Attributes("UnitYpe", Some("Years"), Integer),
             dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
           )
         )
