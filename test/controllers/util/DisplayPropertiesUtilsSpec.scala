@@ -106,7 +106,8 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       None,
       allowExport = false
     )
-    val displayProperty = DisplayProperty(true, "large text", Text, "description", "TextField Display", true, "group", "guidance", "label", false, 3, "TextField", "propertyType", "")
+    val displayProperty =
+      DisplayProperty(true, "large text", Text, "description", "TextField Display", true, "group", "guidance", "label", false, 3, "TextField", "propertyType", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
