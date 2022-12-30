@@ -21,8 +21,8 @@ import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
-import services.{ConsignmentService, CustomMetadataService}
-import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions}
+import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions, expectedDescriptiveDefaultOptions}
 import testUtils.{CheckFormPageElements, CheckPageForStaticElements, FormTester, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import org.scalatest.concurrent.ScalaFutures._
@@ -55,6 +55,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   private val closureMetadataType = metadataType(0)
+  private val descriptiveMetadataType = metadataType(1)
 
   "AddAdditionalMetadataController GET" should {
     "render the add additional metadata page, with the default closure form, if file has no additional metadata, for an authenticated standard user" in {
@@ -65,6 +66,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
@@ -78,7 +80,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes")
       )
 
@@ -90,6 +92,32 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
     }
 
+    "render the add additional metadata page, with the default descriptive form, if file has no additional metadata, for an authenticated standard user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+      val formTester = new FormTester(expectedDescriptiveDefaultOptions)
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
+      setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
+
+      val addAdditionalMetadataPage = addAdditionalMetadataController
+        .addAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType").withCSRFToken)
+      val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
+      val expectedDefaultForm = Seq(
+        ("inputtextarea-description", ""),
+        ("inputmultiselect-Language", "English")
+      )
+      playStatus(addAdditionalMetadataPage) mustBe OK
+      contentType(addAdditionalMetadataPage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+      checkFormElements.checkFormContent(descriptiveMetadataType, addAdditionalMetadataPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
+    }
+
     "render the add additional metadata page, with the closure form updated with the file's additional metadata, for an authenticated standard user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
@@ -97,6 +125,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
@@ -129,7 +158,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1990"),
         ("inputnumeric-ClosurePeriod-years", "4"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes")
       )
 
@@ -140,6 +169,32 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
+      formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
+    }
+
+    "render the add additional metadata page, with the descriptive form updated with the file's additional metadata, for an authenticated standard user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+      val formTester = new FormTester(expectedDescriptiveDefaultOptions)
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+      setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
+
+      val addAdditionalMetadataPage = addAdditionalMetadataController
+        .addAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType").withCSRFToken)
+      val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
+      val expectedDefaultForm = Seq(
+        ("inputtextarea-description", "a previously added description"),
+        ("inputmultiselect-Language", "Welsh")
+      )
+      playStatus(addAdditionalMetadataPage) mustBe OK
+      contentType(addAdditionalMetadataPage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+      checkFormElements.checkFormContent(descriptiveMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
     }
 
@@ -179,6 +234,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
         ("inputdate-FoiExemptionAsserted-day", ""),
@@ -188,7 +244,6 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", ""),
         ("inputradio-TitleClosed", "no"),
         ("inputradio-DescriptionClosed", "exclude")
       )
@@ -209,6 +264,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         formSubmission.toMap.removed("inputradio-DescriptionClosed"),
         formStatus = "PartiallySubmitted"
       )
+      addAdditionalMetadataPageAsString should include("""    <p class="govuk-error-message" id="error-FoiExemptionCode">
+          |        <span class="govuk-visually-hidden">Error:</span>
+          |        There was no value selected for the FOI exemption code.
+          |    </p>""".stripMargin)
     }
 
     "rerender closure form with user's data if form is partially submitted" in {
@@ -218,6 +277,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
         ("inputdate-FoiExemptionAsserted-day", "5"),
@@ -227,7 +287,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "exclude")
       )
@@ -258,6 +318,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
         ("inputdate-FoiExemptionAsserted-day", ""),
@@ -267,7 +328,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-DescriptionClosed", "exclude")
       )
@@ -320,13 +381,14 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "no"),
         ("inputradio-DescriptionClosed", "no")
       )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
       setDeleteFileMetadataResponse(wiremockServer)
@@ -376,7 +438,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code2"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
         ("inputradio-DescriptionClosed", "no")
@@ -384,6 +447,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
       setDeleteFileMetadataResponse(wiremockServer)
@@ -406,7 +470,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val input = request.variables.updateBulkFileMetadataInput
       input.consignmentId mustBe consignmentId
       input.fileIds mustBe fileIds
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
+      input.metadataProperties.filter(_.filePropertyName == "FoiExemptionCode").map(_.value) mustBe List("mock code1", "mock code2")
       input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
       input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
       input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
@@ -434,7 +498,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
         ("inputradio-TitleClosed-TitleAlternate-yes", "text"),
         ("inputradio-DescriptionClosed", "yes"),
@@ -443,6 +507,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
       setDeleteFileMetadataResponse(wiremockServer)
@@ -484,6 +549,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
 
@@ -495,7 +561,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-ClosureStartDate-month", "1"),
         ("inputdate-ClosureStartDate-year", "1970"),
         ("inputnumeric-ClosurePeriod-years", "10"),
-        ("inputdropdown-FoiExemptionCode", "mock code1"),
+        ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "no"),
         ("inputradio-DescriptionClosed", "exclude")
       )
@@ -528,6 +594,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+    val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
     new AddAdditionalMetadataController(
       securityComponents,
@@ -535,6 +602,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       getValidStandardUserKeycloakConfiguration,
       consignmentService,
       customMetadataService,
+      displayPropertiesService,
       MockAsyncCacheApi()
     )
   }

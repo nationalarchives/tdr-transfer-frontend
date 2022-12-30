@@ -34,7 +34,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   "getValuesOfProperties" should "return the values for a given property" in {
     val namesOfPropertiesAndTheirExpectedValues = Map(
       "FoiExemptionAsserted" -> List(),
-      "Dropdown" -> List("dropdownValue"),
+      "Dropdown" -> List("dropdownValue", "dropdownValue2"),
       "Radio" -> List("True", "False")
     )
 
@@ -106,7 +106,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     field.selectedOption should equal(defaultValue.map(v => if (v == "True") "yes" else "no").getOrElse("no"))
   }
 
-  def verifyText(field: DropdownField, property: CustomMetadata): Unit = {
+  def verifyText(field: MultiSelectField, property: CustomMetadata): Unit = {
     property.propertyType match {
       case Defined =>
         field.options should equal(property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
@@ -143,8 +143,8 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
       case Text =>
         property.propertyType match {
           case Defined =>
-            field.isInstanceOf[DropdownField] should be(true)
-            verifyText(field.asInstanceOf[DropdownField], property)
+            field.isInstanceOf[MultiSelectField] should be(true)
+            verifyText(field.asInstanceOf[MultiSelectField], property)
           case Supplied =>
             field.isInstanceOf[TextField] should be(true)
             field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue(property.name, property.defaultValue.getOrElse("")))
