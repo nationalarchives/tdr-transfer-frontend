@@ -3,14 +3,16 @@
 @import java.util.UUID
 
 @import scala.language.postfixOps
-@import views.html.partials.{inputDate, inputText, errorSummary, progressIndicator}
+@import views.html.partials.{inputDate, inputText, errorSummary, inputTextArea}
 @import views.html.partials.transferReference
 @import views.html.partials.inputRadioGroup
 @import controllers.util._
-@import views.html.partials.inputDropdown
+@import views.html.partials.inputMultiSelect
 
 @import controllers.AddAdditionalMetadataController.File
 @import views.html.partials.fileNameCard
+
+@import views.html.partials.inputDropdown
 @(consignmentId: UUID, consignmentRef: String, metadataType: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File])(implicit request: RequestHeader, messages: Messages)
 @main(s"Add or edit $metadataType metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
@@ -61,17 +63,42 @@
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true)
                 )
-                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText) => inputText(
+                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText, inputType) => inputText(
                   fieldId,
                   fieldName,
                   fieldDescription,
                   inputNameAndValue,
-                  "number",
+                  inputType,
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true),
                   inputMode,
                   addSuffixText
                 )
+                case TextAreaField(fieldId, fieldName, fieldDescription, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit) => inputTextArea(
+                  fieldId,
+                  fieldName,
+                  fieldDescription,
+                  inputNameAndValue,
+                  fieldErrors,
+                  Map(Symbol("_dynamicForm") -> true),
+                  rows,
+                  wrap,
+                  characterLimit
+                )
+                case MultiSelectField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOptions, _, fieldErrors) =>
+                  inputMultiSelect(
+                    fieldId,
+                    fieldName,
+                    fieldDescription,
+                    options,
+                    selectedOptions,
+                    multiValue,
+                    Map(
+                      Symbol("_disabledOption") -> "",
+                      Symbol("_dynamicForm") -> true
+                    ),
+                    fieldErrors
+                  )
                 case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
                   inputDropdown(
                     fieldId,

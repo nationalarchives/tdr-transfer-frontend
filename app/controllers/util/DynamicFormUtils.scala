@@ -9,9 +9,11 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
   }
 
   lazy val formAnswersWithValidInputNames: Map[String, Seq[String]] = formAnswers.filter {
-    case (inputName, _) if inputName.startsWith("input") => true
-    case (inputName, _) if inputName == "csrfToken"      => false
-    case (inputName, _)                                  => throw new IllegalArgumentException(s"${inputName.split("-").head} is not a supported field type.")
+    case (inputName, _) if inputName.startsWith("input")          => true
+    case (inputName, _) if inputName == "csrfToken"               => false
+    case (inputName, _) if inputName == "tna-multi-select-search" => false
+    case (inputName, _) if inputName == "details"                 => false
+    case (inputName, _)                                           => throw new IllegalArgumentException(s"${inputName.split("-").head} is not a supported field type.")
   }
 
   def convertSubmittedValuesToFormFields(submittedValues: Map[String, Seq[String]]): List[FormField] = {
@@ -54,18 +56,30 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
           .update(textField, text)
           .copy(fieldErrors = TextField.validate(text, textField).map(List(_)).getOrElse(Nil))
 
+      case textAreaField: TextAreaField =>
+        val text = fieldValue.head._2.head
+        TextAreaField
+          .update(textAreaField, text)
+          .copy(fieldErrors = TextAreaField.validate(text, textAreaField).map(List(_)).getOrElse(Nil))
+
       case dropdownField: DropdownField =>
-        val text = fieldValue.head._2.headOption.getOrElse("")
+        val selectedValue = fieldValue.head._2.headOption
         DropdownField
-          .update(dropdownField, text)
-          .copy(fieldErrors = DropdownField.validate(text, dropdownField).map(List(_)).getOrElse(Nil))
+          .update(dropdownField, selectedValue)
+          .copy(fieldErrors = DropdownField.validate(selectedValue, dropdownField).map(List(_)).getOrElse(Nil))
+
+      case multiSelectField: MultiSelectField =>
+        val selectedValues = fieldValue.head._2
+        MultiSelectField
+          .update(multiSelectField, selectedValues)
+          .copy(fieldErrors = MultiSelectField.validate(selectedValues, multiSelectField).map(List(_)).getOrElse(Nil))
     }
   }
 
   private def getSubmittedFieldValue(fieldId: String, submittedValues: Map[String, Seq[String]]): List[(String, Seq[String])] = {
     val fieldValue = submittedValues.filter(_._1.contains(fieldId)).toList
     if (fieldValue.isEmpty) {
-      throw new IllegalArgumentException(s"Metadata name $fieldId does not exist in submitted form values")
+      List(fieldId -> Nil)
     } else {
       fieldValue
     }

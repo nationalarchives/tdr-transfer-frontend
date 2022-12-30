@@ -20,9 +20,11 @@ import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.{getConsignments => gc}
+import graphql.codegen.GetCustomMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
+import graphql.codegen.GetDisplayProperties.{displayProperties => dp}
 import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import io.circe.Printer
@@ -133,7 +135,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         gcfm.GetConsignment.Files.FileMetadata("DescriptionClosed", "true"),
         gcfm.GetConsignment.Files.FileMetadata("TitleAlternate", "inputtext-TitleAlternate-TitleAlternate value"),
         gcfm.GetConsignment.Files.FileMetadata("DescriptionAlternate", "inputtext-DescriptionAlternate-DescriptionAlternate value"),
-        gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path")
+        gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path"),
+        gcfm.GetConsignment.Files.FileMetadata("description", "a previously added description"),
+        gcfm.GetConsignment.Files.FileMetadata("Language", "Welsh")
       )
     } else {
       Nil
@@ -326,7 +330,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
   def setCustomMetadataResponse(wiremockServer: WireMockServer): Unit = {
     val client: GraphQLClient[cm.Data, cm.Variables] = new GraphQLConfiguration(app.configuration).getClient[cm.Data, cm.Variables]()
-    val customMetadataResponse: cm.Data = getDataObject
+    val customMetadataResponse: cm.Data = getCustomMetadataDataObject
     val data: client.GraphqlData = client.GraphqlData(Some(customMetadataResponse))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
@@ -337,7 +341,74 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  private def getDataObject = {
+  def setDisplayPropertiesResponse(wiremockServer: WireMockServer): Unit = {
+    val client: GraphQLClient[dp.Data, dp.Variables] = new GraphQLConfiguration(app.configuration).getClient[dp.Data, dp.Variables]()
+    val displayPropertiesResponse: dp.Data = getDisplayPropertiesDataObject
+    val data: client.GraphqlData = client.GraphqlData(Some(displayPropertiesResponse))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("displayProperties"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
+  private def getDisplayPropertiesDataObject: dp.Data = {
+    dp.Data(
+      List(
+        dp.DisplayProperties(
+          "description",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("ComponentType", Some("large text"), Text),
+            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("This description will be visible on Discovery and help explain the content of your file(s)."), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Description"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("1"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "Language",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("ComponentType", Some("select"), Text),
+            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("Choose one or more languages used in this record."), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Language"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("1"), Text),
+            dp.DisplayProperties.Attributes("Guidance", Some("Search for languages"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "ClosureType",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "FOIExemptionCode",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          )
+        )
+      )
+    )
+  }
+
+  private def getCustomMetadataDataObject: cm.Data = {
     cm.Data(
       List(
         cm.CustomMetadata(
@@ -488,6 +559,21 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           List(Values("mock code1", List(), 1), Values("mock code2", List(), 2)),
           None,
           allowExport = false
+        ),
+        cm.CustomMetadata(
+          "Language",
+          None,
+          Some("Language"),
+          Defined,
+          Some("OptionalMetadata"),
+          Text,
+          editable = false,
+          multiValue = true,
+          Some("English"),
+          2,
+          List(Values("English", List(), 1), Values("Welsh", List(), 2)),
+          None,
+          allowExport = true
         )
       )
     )

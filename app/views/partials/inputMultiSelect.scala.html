@@ -1,0 +1,66 @@
+@import controllers.util.InputNameAndValue
+@(fieldId: String,
+fieldName: String,
+fieldDescription: String,
+options: Seq[InputNameAndValue],
+selectedOptions: Option[List[InputNameAndValue]],
+multiValue: Boolean=false,
+attributes: Map[Symbol, Any],
+fieldErrors: List[String] = Nil
+)(implicit messages: Messages)
+
+@import viewsapi.FormFunctions._
+@import views.html.partials.errorMessage
+
+@disabledStatus = {@attributes.get(Symbol("_disabledOption"))}
+@isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
+@formFieldId = @{if(isDynamicForm) s"inputmultiselect-$fieldId" else fieldId}
+
+<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+    @if(fieldName != "") {
+        <h2 class="govuk-label-wrapper">
+            <label class="govuk-label govuk-label--m" for="@formFieldId">
+                @fieldName
+            </label>
+        </h2>
+        <div id="@formFieldId-hint" class="govuk-hint">
+            @if(fieldId == "FoiExemptionCode") {
+                @* hard coding the description as the database cannot contain html*@
+                Add one or more exemption code to this closure. Here is a
+                <a target="_blank" href="https://www.legislation.gov.uk/ukpga/2000/36/contents">full list of FOI codes and their designated exemptions</a>.
+            } else {
+                @fieldDescription
+            }
+        </div>
+    } else {
+        <label class="govuk-label" for="@formFieldId">
+            @fieldDescription
+        </label>
+    }
+
+    @errorMessage(fieldId, fieldErrors)
+
+    <div class="tna-multi-select-search" data-module="multi-select-search">
+
+        <div class="tna-multi-select-search__filter">
+            <label for="input-filter" class="govuk-label govuk-visually-hidden">Filter </label>
+            <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="@fieldId-filter-count" placeholder="Filter @fieldName">
+        </div>
+
+        <div class="js-selected-count"></div>
+
+        <span id="@fieldId-filter-count" class="govuk-visually-hidden js-filter-count" aria-live="polite"></span>
+
+        <div class="tna-multi-select-search__list-container js-container">
+            <ul class="govuk-checkboxes tna-multi-select-search__list"
+            id="@fieldId" aria-describedby="@fieldId-filter-count">
+                @for((option, index) <- options.zipWithIndex) {
+                    <li class="govuk-checkboxes__item">
+                        <input class="govuk-checkboxes__input" id="@formFieldId-@index" name="@formFieldId" type="checkbox" value="@option.value" @{if(selectedOptions.exists(_.contains(option))) "checked" else ""}>
+                        <label class="govuk-label govuk-checkboxes__label" for="@formFieldId-@index">@option.name</label>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>

@@ -116,3 +116,35 @@ test("renderModules does not call authorisation when dialog box is not present o
 
   keycloakInstance.mockRestore()
 })
+
+test("renderModules should initialise the multi-select search module if the tna-multi-select-search element is present on the page", async () => {
+  const keycloakInstance = getKeycloakInstance as jest.Mock
+  keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
+
+  document.body.innerHTML =
+    `
+    <div class="tna-multi-select-search" data-module="multi-select-search">
+        <div class="tna-multi-select-search" data-module="multi-select-search">
+            <div class="tna-multi-select-search__filter">
+                <label for="input-filter" class="govuk-label govuk-visually-hidden">Filter </label>
+                <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="fieldId-filter-count" placeholder="Filter @fieldName">
+            </div>
+            <div class="js-selected-count"></div>
+            <span id="fieldId-filter-count" class="govuk-visually-hidden js-filter-count" aria-live="polite"></span>
+            <div class="tna-multi-select-search__list-container js-container">
+                <ul class="govuk-checkboxes tna-multi-select-search__list"
+                id="fieldId" aria-describedby="fieldId-filter-count">
+                        <li class="govuk-checkboxes__item">
+                            <input class="govuk-checkboxes__input" id="formFieldId-index" name="formFieldId" type="checkbox" value="value">
+                            <label class="govuk-label govuk-checkboxes__label" for="formFieldId-index">name</label>
+                        </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    `
+
+  await renderModules()
+
+  expect(document.body.innerHTML).toContain('<div class="tna-multi-select-search" data-module="multi-select-search" data-module-active="true">')
+})
