@@ -2,13 +2,11 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import controllers.util.MetadataPagesUtils
 import controllers.util.MetadataProperty.closurePeriod
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime}
-import graphql.codegen.types.{FileFilters, FileMetadataFilters}
 import org.apache.commons.lang3.BooleanUtils.toStringYesNo
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
@@ -29,9 +27,8 @@ class AdditionalMetadataSummaryController @Inject() (
 
   def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-      val filters: Option[FileFilters] = MetadataPagesUtils.getFileFilters(metadataType, fileIds, filterByMetadataType = true)
       for {
-        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, filters)
+        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
         customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
         response <- consignment.files match {
           case first :: _ =>

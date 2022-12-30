@@ -2,9 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import controllers.util.MetadataPagesUtils
 import controllers.util.MetadataProperty.clientSideOriginalFilepath
-import graphql.codegen.types.FileFilters
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
@@ -28,9 +26,8 @@ class DeleteAdditionalMetadataController @Inject() (
       if (fileIds.isEmpty) {
         Future.failed(new IllegalArgumentException("fileIds are empty"))
       } else {
-        val filters: Option[FileFilters] = MetadataPagesUtils.getFileFilters(metadataType, fileIds)
         for {
-          consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, filters)
+          consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
           response <-
             if (consignment.files.nonEmpty) {
               val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
