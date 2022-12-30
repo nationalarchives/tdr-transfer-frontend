@@ -2,7 +2,6 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import graphql.codegen.types.FileFilters
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache.AsyncCacheApi
 import play.api.mvc.{Action, AnyContent, Request, Result}
@@ -45,9 +44,8 @@ class AdditionalMetadataNavigationController @Inject() (
 
   def submitAndRedirectToNextPage(metadataType: String, fileIds: List[UUID], consignmentId: UUID)(implicit request: Request[AnyContent]): Future[Result] = {
     if (metadataType == "closure") {
-      val fileFilters = FileFilters(None, Option(fileIds), None, None)
       consignmentService
-        .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
+        .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
         .map(consignment => {
           val areAllClosed = consignmentService.areAllFilesClosed(consignment)
           if (areAllClosed) {
