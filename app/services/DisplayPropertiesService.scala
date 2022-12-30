@@ -64,6 +64,8 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
     val guidance: String = attributes.find(_.attribute == "Guidance").getStringValue
 
+    val unitType: String = attributes.find(_.attribute == "UnitType").getStringValue
+
     val label: String = attributes.find(_.attribute == "Label").getStringValue
 
     val multiValue: Boolean = attributes.find(_.attribute == "MultiValue").getBoolean
@@ -79,7 +81,7 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
     val propertyType: String = attributes.find(_.attribute == "PropertyType").getStringValue
 
-    DisplayProperty(active, componentType, dataType, description, displayName, editable, group, guidance, label, multiValue, ordinal, p.propertyName, propertyType)
+    DisplayProperty(active, componentType, dataType, description, displayName, editable, group, guidance, label, multiValue, ordinal, p.propertyName, propertyType, unitType)
   }
 
   private def displayPropertyFilter(dp: DisplayProperty, metadataType: String): Boolean = {
@@ -105,5 +107,6 @@ case class DisplayProperty(
     multiValue: Boolean,
     ordinal: Int,
     propertyName: String,
-    propertyType: String
+    propertyType: String,
+    unitType: String
 )
