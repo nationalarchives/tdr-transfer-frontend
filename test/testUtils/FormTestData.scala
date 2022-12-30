@@ -116,9 +116,9 @@ class FormTestData() {
 
   def setupDisplayProperties(): List[DisplayProperty] = {
     List(
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown3", "propertyType"),
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 1, "Dropdown1", "propertyType"),
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 2, "Dropdown2", "propertyType")
+      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown3", "propertyType", "unitType"),
+      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 1, "Dropdown1", "propertyType", "unitType"),
+      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 2, "Dropdown2", "propertyType", "unitType")
     )
   }
 }
