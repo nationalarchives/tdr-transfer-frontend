@@ -4,7 +4,7 @@ import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.InputNameAndValue
 import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType}
-import graphql.codegen.types.{FileFilters, UpdateFileMetadataInput}
+import graphql.codegen.types.UpdateFileMetadataInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache.AsyncCacheApi
 import play.api.data.Form
@@ -36,11 +36,9 @@ class AdditionalMetadataClosureStatusController @Inject() (
 
   def getClosureStatusPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
-      val filters = Option(FileFilters(None, Option(fileIds), None, None))
-
       for {
         details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
-        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, filters)
+        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
         response <-
           if (consignment.files.nonEmpty) {
             val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
@@ -75,7 +73,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
           (consignmentRef, filePaths, parentFolderId) <- cache.getOrElseUpdate[(String, List[String], UUID)](s"$consignmentId-data", 1.hour)(
             for {
               details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
-              consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None, None)))
+              consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
               filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
             } yield (consignment.consignmentReference, filePaths, details.parentFolderId.get)
           )

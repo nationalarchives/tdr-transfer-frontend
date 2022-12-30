@@ -5,7 +5,7 @@ import configuration.KeycloakConfiguration
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime}
-import graphql.codegen.types.{FileFilters, FileMetadataFilters}
+import graphql.codegen.types.FileFilters
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, DisplayPropertiesService, DisplayProperty}
@@ -25,14 +25,8 @@ class AdditionalMetadataSummaryController @Inject() (
 
   def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-      val fileMetadataFilters = metadataType match {
-        case "closure"     => FileMetadataFilters(Some(true), None)
-        case "descriptive" => FileMetadataFilters(None, Some(true))
-        case _             => throw new IllegalArgumentException(s"Invalid metadata type: $metadataType")
-      }
-      val filters = Option(FileFilters(None, Option(fileIds), None, Option(fileMetadataFilters)))
       for {
-        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, filters)
+        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
         displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, metadataType)
         response <- consignment.files match {
           case first :: _ =>
