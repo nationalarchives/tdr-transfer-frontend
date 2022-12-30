@@ -47,7 +47,8 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
         dp.DisplayProperties.Attributes("Label", Some("label"), Text),
         dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
         dp.DisplayProperties.Attributes("Ordinal", Some("11"), Integer),
-        dp.DisplayProperties.Attributes("PropertyType", Some("propertyType"), Text)
+        dp.DisplayProperties.Attributes("PropertyType", Some("propertyType"), Text),
+        dp.DisplayProperties.Attributes("UnitType", Some("unitType"), Text)
       )
   )
 
@@ -210,6 +211,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     property.propertyName should equal("activeProperty")
     property.ordinal should equal(11)
     property.propertyType should equal("propertyType")
+    property.unitType should equal("unitType")
   }
 
   "toDisplayProperty" should "return default values for all optional property fields" in {
@@ -229,6 +231,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     property.propertyName should equal("property1")
     property.ordinal should equal(0)
     property.propertyType should equal("")
+    property.unitType should equal("")
   }
 
   private def requiredAttributes(dataType: Option[String] = Some("text")): List[dp.DisplayProperties.Attributes] = {
