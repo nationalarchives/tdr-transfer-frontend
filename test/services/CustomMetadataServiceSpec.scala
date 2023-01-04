@@ -10,6 +10,7 @@ import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.types.DataType.Text
 import graphql.codegen.types.PropertyType.Defined
 import graphql.codegen.types.{DeleteFileMetadataInput, UpdateBulkFileMetadataInput, UpdateFileMetadataInput}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -17,6 +18,7 @@ import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers.{a, convertToAnyShouldWrapper, equal}
 import org.scalatestplus.mockito.MockitoSugar
+import sangria.ast.Document
 import sttp.client.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
@@ -163,6 +165,28 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
     customMetadataService.saveMetadata(consignmentId, fileIds, token, updateFileMetadataInput).futureValue
 
     verify(addBulkMetadataClient, times(1)).getResult(token, abfm.document, variables)
+    verify(deleteFileMetadataClient, times(0)).getResult(token, dfm.document)
+  }
+
+  "saveMetadata" should "delete any input properties with empty values" in {
+    val inputWithEmptyValue =
+      List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test1", ""), UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test2", "someValue"))
+    val inputWithOutEmptyValue = List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test2", "someValue"))
+    val updateBulkFileMetadataInput = UpdateBulkFileMetadataInput(consignmentId, fileIds, inputWithOutEmptyValue)
+    val variables = Some(abfm.Variables(updateBulkFileMetadataInput))
+    val deleteFileMetadataInput = DeleteFileMetadataInput(fileIds, Some(List("test1")))
+    val delVariables = Some(dfm.Variables(deleteFileMetadataInput))
+    val deleteFileMetadata = dfm.DeleteFileMetadata(fileIds, List("test1"))
+
+    when(addBulkMetadataClient.getResult(token, abfm.document, variables))
+      .thenReturn(Future(GraphQlResponse(Option(abfm.Data(abfm.UpdateBulkFileMetadata(Nil, Nil))), Nil)))
+    when(deleteFileMetadataClient.getResult(token, dfm.document, delVariables))
+      .thenReturn(Future(GraphQlResponse(Option(dfm.Data(deleteFileMetadata)), Nil)))
+
+    customMetadataService.saveMetadata(consignmentId, fileIds, token, inputWithEmptyValue).futureValue
+
+    verify(addBulkMetadataClient, times(1)).getResult(token, abfm.document, variables)
+    verify(deleteFileMetadataClient, times(1)).getResult(token, dfm.document, delVariables)
   }
 
   "saveMetadata" should "return an error if the API call fails" in {

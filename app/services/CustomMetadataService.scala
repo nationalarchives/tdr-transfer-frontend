@@ -25,8 +25,14 @@ class CustomMetadataService @Inject() (val graphqlConfiguration: GraphQLConfigur
   }
 
   def saveMetadata(consignmentId: UUID, fileIds: List[UUID], token: BearerAccessToken, metadataInput: List[UpdateFileMetadataInput]): Future[abfm.Data] = {
-    val input = UpdateBulkFileMetadataInput(consignmentId, fileIds, metadataInput)
-    val variables = abfm.Variables(input)
+    val updateInputs = updateInputHandler(metadataInput)
+    val updateInput = UpdateBulkFileMetadataInput(consignmentId, fileIds, updateInputs.nonEmptyUpdates)
+    val emptyProperties = updateInputs.emptyProperties
+    val variables = abfm.Variables(updateInput)
+    if (emptyProperties.nonEmpty) {
+      deleteMetadata(fileIds, token, emptyProperties)
+    }
+
     sendApiRequest(updateBulkMetadataClient, abfm.document, token, variables)
   }
 
@@ -35,4 +41,11 @@ class CustomMetadataService @Inject() (val graphqlConfiguration: GraphQLConfigur
     val variables = dfm.Variables(input)
     sendApiRequest(deleteFileMetadataClient, dfm.document, token, variables)
   }
+
+  private def updateInputHandler(inputs: List[UpdateFileMetadataInput]): UpdateInput = {
+    val nonEmptyEmptyInputs = inputs.partition(_.value.nonEmpty)
+    UpdateInput(nonEmptyEmptyInputs._1, nonEmptyEmptyInputs._2.map(_.filePropertyName).toSet)
+  }
+
+  private case class UpdateInput(nonEmptyUpdates: List[UpdateFileMetadataInput], emptyProperties: Set[String])
 }
