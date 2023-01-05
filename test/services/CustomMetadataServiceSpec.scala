@@ -4,13 +4,12 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend.backend
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
-import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
+import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.types.DataType.Text
 import graphql.codegen.types.PropertyType.Defined
 import graphql.codegen.types.{DeleteFileMetadataInput, UpdateBulkFileMetadataInput, UpdateFileMetadataInput}
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -18,7 +17,6 @@ import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers.{a, convertToAnyShouldWrapper, equal}
 import org.scalatestplus.mockito.MockitoSugar
-import sangria.ast.Document
 import sttp.client.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
@@ -155,55 +153,85 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
     results shouldBe a[AuthorisationException]
   }
 
-  "saveMetadata" should "save the metadata" in {
-    val updateFileMetadataInput = List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test1", "test2"))
-    val updateBulkFileMetadataInput = UpdateBulkFileMetadataInput(consignmentId, fileIds, updateFileMetadataInput)
-    val variables = Some(abfm.Variables(updateBulkFileMetadataInput))
-    when(addBulkMetadataClient.getResult(token, abfm.document, variables))
-      .thenReturn(Future(GraphQlResponse(Option(abfm.Data(abfm.UpdateBulkFileMetadata(Nil, Nil))), Nil)))
-
-    customMetadataService.saveMetadata(consignmentId, fileIds, token, updateFileMetadataInput).futureValue
-
-    verify(addBulkMetadataClient, times(1)).getResult(token, abfm.document, variables)
-    verify(deleteFileMetadataClient, times(0)).getResult(token, dfm.document)
-  }
-
-  "saveMetadata" should "delete any input properties with empty values" in {
-    val inputWithEmptyValue =
-      List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test1", ""), UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test2", "someValue"))
-    val inputWithOutEmptyValue = List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test2", "someValue"))
+  "updateMetadataHandler" should "save metadata where there is a property value, and delete any properties that have an empty property value" in {
+    val updateFileMetadataInput = List(
+      UpdateFileMetadataInput(filePropertyIsMultiValue = false, "PropertyName1", "someValue"),
+      UpdateFileMetadataInput(filePropertyIsMultiValue = false, "EmptyPropertyName1", "")
+    )
+    val inputWithOutEmptyValue = List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "PropertyName1", "someValue"))
     val updateBulkFileMetadataInput = UpdateBulkFileMetadataInput(consignmentId, fileIds, inputWithOutEmptyValue)
     val variables = Some(abfm.Variables(updateBulkFileMetadataInput))
-    val deleteFileMetadataInput = DeleteFileMetadataInput(fileIds, Some(List("test1")))
+    val deleteFileMetadataInput = DeleteFileMetadataInput(fileIds, Some(List("EmptyPropertyName1")))
     val delVariables = Some(dfm.Variables(deleteFileMetadataInput))
-    val deleteFileMetadata = dfm.DeleteFileMetadata(fileIds, List("test1"))
+    val deleteFileMetadata = dfm.DeleteFileMetadata(fileIds, List("EmptyPropertyName1"))
 
     when(addBulkMetadataClient.getResult(token, abfm.document, variables))
       .thenReturn(Future(GraphQlResponse(Option(abfm.Data(abfm.UpdateBulkFileMetadata(Nil, Nil))), Nil)))
     when(deleteFileMetadataClient.getResult(token, dfm.document, delVariables))
       .thenReturn(Future(GraphQlResponse(Option(dfm.Data(deleteFileMetadata)), Nil)))
 
-    customMetadataService.saveMetadata(consignmentId, fileIds, token, inputWithEmptyValue).futureValue
+    customMetadataService.updateMetadataHandler(consignmentId, fileIds, token, updateFileMetadataInput).futureValue
 
     verify(addBulkMetadataClient, times(1)).getResult(token, abfm.document, variables)
     verify(deleteFileMetadataClient, times(1)).getResult(token, dfm.document, delVariables)
   }
 
-  "saveMetadata" should "return an error if the API call fails" in {
-    val variables = abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, fileIds, Nil))
-    when(addBulkMetadataClient.getResult(token, abfm.document, Option(variables)))
-      .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+  "updateMetadataHandler" should "should not delete properties if no empty value property inputs provided" in {
+    val inputWithOutEmptyValue = List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "PropertyName1", "someValue"))
+    val updateBulkFileMetadataInput = UpdateBulkFileMetadataInput(consignmentId, fileIds, inputWithOutEmptyValue)
+    val variables = Some(abfm.Variables(updateBulkFileMetadataInput))
 
-    customMetadataService.saveMetadata(consignmentId, fileIds, token, Nil).failed.futureValue shouldBe a[HttpError]
+    when(addBulkMetadataClient.getResult(token, abfm.document, variables))
+      .thenReturn(Future(GraphQlResponse(Option(abfm.Data(abfm.UpdateBulkFileMetadata(Nil, Nil))), Nil)))
+
+    customMetadataService.updateMetadataHandler(consignmentId, fileIds, token, inputWithOutEmptyValue).futureValue
+
+    verify(addBulkMetadataClient, times(1)).getResult(token, abfm.document, variables)
+    verify(deleteFileMetadataClient, times(0)).getResult(token, dfm.document)
   }
 
-  "saveMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
-    val variables = abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, fileIds, Nil))
+  "updateMetadataHandler" should "should not save properties if only empty value property inputs provided" in {
+    val inputWithEmptyValue =
+      List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test1", ""))
+    val deleteFileMetadataInput = DeleteFileMetadataInput(fileIds, Some(List("test1")))
+    val delVariables = Some(dfm.Variables(deleteFileMetadataInput))
+    val deleteFileMetadata = dfm.DeleteFileMetadata(fileIds, List("test1"))
+
+    when(deleteFileMetadataClient.getResult(token, dfm.document, delVariables))
+      .thenReturn(Future(GraphQlResponse(Option(dfm.Data(deleteFileMetadata)), Nil)))
+
+    customMetadataService.updateMetadataHandler(consignmentId, fileIds, token, inputWithEmptyValue).futureValue
+
+    verify(addBulkMetadataClient, times(0)).getResult(token, abfm.document)
+    verify(deleteFileMetadataClient, times(1)).getResult(token, dfm.document, delVariables)
+  }
+
+  "updateMetadataHandler" should "should not update or delete properties if no inputs provided" in {
+    customMetadataService.updateMetadataHandler(consignmentId, fileIds, token, List()).futureValue
+
+    verify(addBulkMetadataClient, times(0)).getResult(token, abfm.document)
+    verify(deleteFileMetadataClient, times(0)).getResult(token, dfm.document)
+  }
+
+  "updateMetadataHandler" should "return an error if an API call fails" in {
+    val inputWithOutEmptyValue = List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test2", "someValue"))
+    val updateBulkFileMetadataInput = UpdateBulkFileMetadataInput(consignmentId, fileIds, inputWithOutEmptyValue)
+    val variables = Some(abfm.Variables(updateBulkFileMetadataInput))
+    when(addBulkMetadataClient.getResult(token, abfm.document, variables))
+      .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
+
+    customMetadataService.updateMetadataHandler(consignmentId, fileIds, token, inputWithOutEmptyValue).failed.futureValue shouldBe a[HttpError]
+  }
+
+  "updateMetadataHandler" should "throw an AuthorisationException if the API returns an auth error" in {
+    val inputWithOutEmptyValue = List(UpdateFileMetadataInput(filePropertyIsMultiValue = false, "test2", "someValue"))
+    val updateBulkFileMetadataInput = UpdateBulkFileMetadataInput(consignmentId, fileIds, inputWithOutEmptyValue)
+    val variables = Some(abfm.Variables(updateBulkFileMetadataInput))
     val response = GraphQlResponse[abfm.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
-    when(addBulkMetadataClient.getResult(token, abfm.document, Option(variables)))
+    when(addBulkMetadataClient.getResult(token, abfm.document, variables))
       .thenReturn(Future.successful(response))
 
-    customMetadataService.saveMetadata(consignmentId, fileIds, token, Nil).failed.futureValue shouldBe a[AuthorisationException]
+    customMetadataService.updateMetadataHandler(consignmentId, fileIds, token, inputWithOutEmptyValue).failed.futureValue shouldBe a[AuthorisationException]
   }
 
   "deleteMetadata" should "delete the additional metadata" in {

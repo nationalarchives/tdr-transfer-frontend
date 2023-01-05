@@ -552,6 +552,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
+      setDeleteFileMetadataResponse(wiremockServer)
 
       val formToSubmitDefault = Seq(
         ("inputdate-FoiExemptionAsserted-day", "1"),
