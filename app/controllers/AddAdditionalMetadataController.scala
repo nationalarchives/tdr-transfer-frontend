@@ -90,7 +90,7 @@ class AddAdditionalMetadataController @Inject() (
             deleteDependencyProperties(updatedFormFields, fileIds)
             val metadataInput: List[UpdateFileMetadataInput] = buildUpdateMetadataInput(updatedFormFields)
             customMetadataService
-              .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, metadataInput)
+              .updateMetadataHandler(consignmentId, fileIds, request.token.bearerAccessToken, metadataInput)
               .map(_ => {
                 Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds))
               })
