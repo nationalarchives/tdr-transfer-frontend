@@ -1,12 +1,17 @@
 package controllers
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
+import controllers.util.MetadataProperty.{clientSideOriginalFilepath, fileType}
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetConsignment.getConsignment
-import io.circe.generic.auto.exportEncoder
+import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
+import graphql.codegen.types.FileMetadataFilters
+import io.circe.generic.auto._
+import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
 import org.mockito.Mockito.when
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -20,6 +25,7 @@ import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
@@ -64,6 +70,16 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType"))
       val deleteMetadataPage = contentAsString(response)
+
+      case class GraphqlRequestData(query: String, variables: gcfm.Variables)
+      val events = wiremockServer.getAllServeEvents
+      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
+      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+
+      val input = request.variables.fileFiltersInput
+      input.get.selectedFileIds mustBe fileIds.some
+      input.get.metadataFilters mustBe FileMetadataFilters(None, None, Some(List(clientSideOriginalFilepath))).some
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")

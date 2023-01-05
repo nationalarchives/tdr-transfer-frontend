@@ -4,10 +4,11 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
-import controllers.util.MetadataProperty.closureType
+import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType, fileType}
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.GetConsignment.getConsignment
-import graphql.codegen.types.UpdateBulkFileMetadataInput
+import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
+import graphql.codegen.types.{FileMetadataFilters, UpdateBulkFileMetadataInput}
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
@@ -58,6 +59,16 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       contentType(response) mustBe Some("text/html")
 
       verifyClosureStatusPage(contentAsString(response), consignmentId)
+
+      case class GraphqlRequestData(query: String, variables: gcfm.Variables)
+      val events = wiremockServer.getAllServeEvents
+      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
+      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+
+      val input = request.variables.fileFiltersInput
+      input.get.selectedFileIds mustBe fileIds.some
+      input.get.metadataFilters mustBe FileMetadataFilters(Some(true), None, Some(List(clientSideOriginalFilepath, fileType))).some
 
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }

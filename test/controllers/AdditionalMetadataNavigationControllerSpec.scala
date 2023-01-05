@@ -1,11 +1,14 @@
 package controllers
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
+import controllers.util.MetadataProperty.{fileType}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
+import graphql.codegen.types.FileMetadataFilters
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -20,6 +23,8 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.jdk.CollectionConverters.CollectionHasAsScala
+import io.circe.parser.decode
 
 class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
@@ -110,18 +115,29 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       "redirect to the closure status page with the correct file ids and closure metadata type if the files are not already closed" in {
         val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
         val consignmentService = mockConsignmentService(files, "standard")
-        val fileId = UUID.randomUUID().toString
+        val fileId = UUID.randomUUID()
         val additionalMetadataController =
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
+              .withFormUrlEncodedBody(Seq((fileId.toString, "checked")): _*)
               .withCSRFToken
           )
+
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}?fileIds=$fileId")
+
+        case class GraphqlRequestData(query: String, variables: gcfm.Variables)
+        val events = wiremockServer.getAllServeEvents
+        val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
+        val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+          .getOrElse(GraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+
+        val input = request.variables.fileFiltersInput
+        input.get.selectedFileIds mustBe List(fileId).some
+        input.get.metadataFilters mustBe FileMetadataFilters(Some(true), None, Some(List(fileType))).some
       }
 
       "redirect to the closure metadata page with the correct file ids and closure metadata type if the files are already closed" in {
