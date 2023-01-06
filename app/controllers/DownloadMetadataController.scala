@@ -35,7 +35,7 @@ class DownloadMetadataController @Inject() (
 
   def downloadMetadataCsv(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
+      metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None, None)
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
     } yield {
       val filteredMetadata = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))

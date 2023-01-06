@@ -131,6 +131,7 @@ object MetadataProperty {
   val titleAlternate = "TitleAlternate"
   val descriptionAlternate = "DescriptionAlternate"
   val description = "description"
+  val fileType = "FileType"
   val closureType: StaticMetadata = StaticMetadata("ClosureType", "Closed")
   val descriptiveType: StaticMetadata = StaticMetadata("DescriptiveType", "")
 }
