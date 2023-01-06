@@ -1,14 +1,19 @@
 package controllers
 
 import akka.Done
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
+import controllers.util.MetadataProperty.{clientSideOriginalFilepath, description, descriptionClosed, titleClosed}
+import controllers.util.{FormField, InputNameAndValue, RadioButtonGroupField}
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
+import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
-import graphql.codegen.types.{DeleteFileMetadataInput, UpdateBulkFileMetadataInput}
+import graphql.codegen.types.{DeleteFileMetadataInput, FileMetadataFilters, UpdateBulkFileMetadataInput}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.parser.decode
@@ -23,7 +28,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions, expectedDescriptiveDefaultOptions}
-import testUtils.{CheckFormPageElements, CheckPageForStaticElements, FormTester, FrontEndTestHelper}
+import testUtils._
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import org.scalatest.concurrent.ScalaFutures._
 
@@ -83,6 +88,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes")
       )
+      verifyConsignmentFileMetadataCall(consignmentId, FileMetadataFilters(Some(true), None, Some(List(clientSideOriginalFilepath, description))).some)
 
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
@@ -110,6 +116,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputtextarea-description", ""),
         ("inputmultiselect-Language", "English")
       )
+
+      verifyConsignmentFileMetadataCall(consignmentId, FileMetadataFilters(None, Some(true), None).some)
+
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
 
@@ -590,6 +599,61 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  "AddAdditionalMetadataController formFieldOverrides" should {
+    "override the 'descriptionClosed' field when the description is not empty" in {
+      val fileMetadata: Map[String, List[FileMetadata]] = Map(
+        descriptionClosed -> List(FileMetadata(descriptionClosed, "true")),
+        description -> List(FileMetadata(description, "some value"))
+      )
+      val formField: FormField = RadioButtonGroupField(descriptionClosed, "name", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+
+      val expectedField = RadioButtonGroupField(
+        descriptionClosed,
+        "name",
+        "This field cannot be edited here. You can edit the description in the <strong>Descriptive metadata</strong> step.",
+        "some value",
+        false,
+        Seq(InputNameAndValue("Yes", "Yes")),
+        "Yes",
+        false
+      )
+      actualFormField should equal(expectedField)
+    }
+
+    "not override the 'descriptionClosed' field when the description is empty" in {
+
+      val fileMetadata: Map[String, List[FileMetadata]] = Map(
+        descriptionClosed -> List(FileMetadata(descriptionClosed, "true"))
+      )
+      val formField: FormField = RadioButtonGroupField(descriptionClosed, "name", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+
+      val expectedField = RadioButtonGroupField(
+        descriptionClosed,
+        "name",
+        "There is no description associated with this record. You can add a description in the <strong>Descriptive metadata</strong> section.",
+        "",
+        false,
+        Seq(InputNameAndValue("Yes", "Yes")),
+        "Yes",
+        false,
+        hideInputs = true
+      )
+      actualFormField should equal(expectedField)
+    }
+
+    "not override the field when the given field is not descriptionClosed" in {
+      val fileMetadata: Map[String, List[FileMetadata]] = Map(
+        titleClosed -> List(FileMetadata(titleClosed, "true")),
+        description -> List(FileMetadata(description, "some value"))
+      )
+      val formField: FormField = RadioButtonGroupField(titleClosed, "name", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+      actualFormField should equal(formField)
+    }
+  }
+
   private def instantiateAddAdditionalMetadataController(securityComponents: SecurityComponents = getAuthorisedSecurityComponents) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -605,6 +669,17 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       displayPropertiesService,
       MockAsyncCacheApi()
     )
+  }
+
+  private def verifyConsignmentFileMetadataCall(consignmentId: UUID, expectedFileMetadataFilters: Option[FileMetadataFilters]): Unit = {
+    val events = wiremockServer.getAllServeEvents
+    val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
+    val request: GetConsignmentFilesMetadataGraphqlRequestData = decode[GetConsignmentFilesMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+      .getOrElse(GetConsignmentFilesMetadataGraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+
+    val input = request.variables.fileFiltersInput
+    input.get.selectedFileIds mustBe fileIds.some
+    input.get.metadataFilters mustBe expectedFileMetadataFilters
   }
 }
 
