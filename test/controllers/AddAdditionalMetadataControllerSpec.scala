@@ -28,7 +28,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions, expectedDescriptiveDefaultOptions}
-import testUtils.{CheckFormPageElements, CheckPageForStaticElements, FormTester, FrontEndTestHelper}
+import testUtils._
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import org.scalatest.concurrent.ScalaFutures._
 
@@ -600,7 +600,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   "AddAdditionalMetadataController formFieldOverrides" should {
-    "override the field when the description is not empty" in {
+    "override the 'descriptionClosed' field when the description is not empty" in {
       val fileMetadata: Map[String, List[FileMetadata]] = Map(
         descriptionClosed -> List(FileMetadata(descriptionClosed, "true")),
         description -> List(FileMetadata(description, "some value"))
@@ -621,7 +621,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       actualFormField should equal(expectedField)
     }
 
-    "not override the field when the description is empty" in {
+    "not override the 'descriptionClosed' field when the description is empty" in {
 
       val fileMetadata: Map[String, List[FileMetadata]] = Map(
         descriptionClosed -> List(FileMetadata(descriptionClosed, "true"))
@@ -672,11 +672,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   private def verifyConsignmentFileMetadataCall(consignmentId: UUID, expectedFileMetadataFilters: Option[FileMetadataFilters]): Unit = {
-    case class GraphqlRequestData(query: String, variables: gcfm.Variables)
     val events = wiremockServer.getAllServeEvents
     val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
-    val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
-      .getOrElse(GraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+    val request: GetConsignmentFilesMetadataGraphqlRequestData = decode[GetConsignmentFilesMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+      .getOrElse(GetConsignmentFilesMetadataGraphqlRequestData("", gcfm.Variables(consignmentId, None)))
 
     val input = request.variables.fileFiltersInput
     input.get.selectedFileIds mustBe fileIds.some

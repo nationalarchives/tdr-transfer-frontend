@@ -19,7 +19,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, POST, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.{ConsignmentService, CustomMetadataService}
-import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, GetConsignmentFilesMetadataGraphqlRequestData}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 
 import java.util.UUID
@@ -60,11 +60,10 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
       verifyClosureStatusPage(contentAsString(response), consignmentId)
 
-      case class GraphqlRequestData(query: String, variables: gcfm.Variables)
       val events = wiremockServer.getAllServeEvents
       val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
-      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+      val request: GetConsignmentFilesMetadataGraphqlRequestData = decode[GetConsignmentFilesMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GetConsignmentFilesMetadataGraphqlRequestData("", gcfm.Variables(consignmentId, None)))
 
       val input = request.variables.fileFiltersInput
       input.get.selectedFileIds mustBe fileIds.some

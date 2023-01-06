@@ -2,11 +2,9 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import controllers.util.MetadataProperty.fileType
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime}
-import graphql.codegen.types.FileFilters
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, DisplayPropertiesService, DisplayProperty}

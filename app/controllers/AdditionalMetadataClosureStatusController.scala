@@ -34,6 +34,8 @@ class AdditionalMetadataClosureStatusController @Inject() (
 
   val closureStatusField: InputNameAndValue = InputNameAndValue("closureStatus", "Yes, I confirm")
 
+  private val additionalProperties: List[String] = List(clientSideOriginalFilepath, fileType)
+
   def getClosureStatusPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
@@ -43,7 +45,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
           request.token.bearerAccessToken,
           Some(metadataType),
           Some(fileIds),
-          Some(List(clientSideOriginalFilepath, fileType))
+          Some(additionalProperties)
         )
         response <-
           if (consignment.files.nonEmpty) {
@@ -84,7 +86,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
                 request.token.bearerAccessToken,
                 Some(metadataType),
                 Some(fileIds),
-                Some(List(clientSideOriginalFilepath, fileType))
+                Some(additionalProperties)
               )
               filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
             } yield (consignment.consignmentReference, filePaths, details.parentFolderId.get)

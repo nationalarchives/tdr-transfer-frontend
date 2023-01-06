@@ -4,13 +4,14 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
-import controllers.util.MetadataProperty.{fileType}
+import controllers.util.MetadataProperty.fileType
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.types.FileMetadataFilters
 import io.circe.Printer
 import io.circe.generic.auto._
+import io.circe.parser.decode
 import io.circe.syntax._
 import org.scalatest.Assertion
 import play.api.Play.materializer
@@ -19,12 +20,11 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, POST, contentAsString, defaultAwaitTimeout, redirectLocation, status => playStatus}
 import services.ConsignmentService
-import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, GetConsignmentFilesMetadataGraphqlRequestData}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.jdk.CollectionConverters.CollectionHasAsScala
-import io.circe.parser.decode
 
 class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
@@ -129,11 +129,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}?fileIds=$fileId")
 
-        case class GraphqlRequestData(query: String, variables: gcfm.Variables)
         val events = wiremockServer.getAllServeEvents
         val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
-        val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
-          .getOrElse(GraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+        val request: GetConsignmentFilesMetadataGraphqlRequestData = decode[GetConsignmentFilesMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+          .getOrElse(GetConsignmentFilesMetadataGraphqlRequestData("", gcfm.Variables(consignmentId, None)))
 
         val input = request.variables.fileFiltersInput
         input.get.selectedFileIds mustBe List(fileId).some
