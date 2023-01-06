@@ -204,13 +204,6 @@ object DefaultMockFormOptions {
 
   val expectedConfirmTransferOptions: List[MockInputOption] = List(
     MockInputOption(
-      "openRecords",
-      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-      value = "true",
-      errorMessage = "All records must be confirmed as open before proceeding",
-      fieldType = "inputCheckbox"
-    ),
-    MockInputOption(
       "transferLegalCustody",
       "I confirm that I am transferring legal custody of these records to The National Archives.",
       value = "true",
