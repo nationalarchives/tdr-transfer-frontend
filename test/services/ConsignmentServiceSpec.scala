@@ -294,7 +294,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       getConsignmentDetails.files.head.fileMetadata.head.value should be(exemptionCode)
     }
 
-    "return consignment with closure metadata when metadata type as 'closure', fileIds and additionalProperties are passed" in {
+    "return consignment with closure metadata when metadata type is 'closure', fileIds and additionalProperties are passed" in {
       val fileId = UUID.randomUUID()
       val exemptionCode = "Open"
       val graphQlGetConsignmentFilesMetadata =
