@@ -1,5 +1,5 @@
 import { initAll } from "govuk-frontend"
-import { NestedNavigation } from "@nationalarchives/tdr-components"
+import { NestedNavigation, InputType } from "@nationalarchives/tdr-components"
 import { MultiSelectSearch } from "@nationalarchives/tdr-components"
 
 window.onload = async function () {
@@ -40,7 +40,7 @@ export const renderModules = async () => {
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
-  const fileNavigation = document.querySelector(".govuk-tna-tree")
+  const fileNavigation = document.querySelector(".tna-tree")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
   const multiSelectSearch = document.querySelector(".tna-multi-select-search")
@@ -117,7 +117,7 @@ export const renderModules = async () => {
     if (tree != null) {
       treeItems.forEach((item) => treeItemList.push(item))
       const nestedNavigation = new NestedNavigation(tree, treeItemList)
-      nestedNavigation.initialiseFormListeners()
+      nestedNavigation.initialiseFormListeners(InputType.radios)
     }
     const form = document.querySelector("form")
     if (form) {
