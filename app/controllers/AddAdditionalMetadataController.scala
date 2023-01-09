@@ -39,7 +39,7 @@ class AddAdditionalMetadataController @Inject() (
   def addAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
-        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
+        consignment <- getConsignmentFileMetadata(consignmentId, metadataType, fileIds)
         formFields <- getFormFields(consignmentId, request, metadataType)
         updatedFormFields <- {
           cache.set(s"$consignmentId-consignment", consignment, 1.hour)
@@ -69,7 +69,7 @@ class AddAdditionalMetadataController @Inject() (
           if (updatedFormFields.exists(_.fieldErrors.nonEmpty)) {
             for {
               consignment <- cache.getOrElseUpdate[GetConsignment](s"$consignmentId-consignment") {
-                consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
+                getConsignmentFileMetadata(consignmentId, metadataType, fileIds)
               }
               metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
             } yield {
@@ -116,6 +116,14 @@ class AddAdditionalMetadataController @Inject() (
     customMetadataService
       .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, updateMetadataInputs)
       .map(_ => Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)))
+  }
+
+  private def getConsignmentFileMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID])(implicit request: Request[AnyContent]): Future[GetConsignment] = {
+    val additionalProperties = metadataType match {
+      case "closure" => Some(List(clientSideOriginalFilepath, description))
+      case _ => None
+    }
+    consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds), additionalProperties)
   }
 
   private def buildUpdateMetadataInput(updatedFormFields: List[FormField]): List[UpdateFileMetadataInput] = {

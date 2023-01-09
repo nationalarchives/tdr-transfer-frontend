@@ -844,3 +844,5 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     }
   }
 }
+
+case class GetConsignmentFilesMetadataGraphqlRequestData(query: String, variables: gcfm.Variables)
