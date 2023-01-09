@@ -4,6 +4,7 @@ import akka.Done
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent
 import configuration.GraphQLConfiguration
 import controllers.util.MetadataProperty.{clientSideOriginalFilepath, description, descriptionClosed, titleClosed}
 import controllers.util.{FormField, InputNameAndValue, RadioButtonGroupField}
@@ -89,6 +90,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputradio-TitleClosed", "yes")
       )
       verifyConsignmentFileMetadataCall(consignmentId, FileMetadataFilters(Some(true), None, Some(List(clientSideOriginalFilepath, description))).some)
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
 
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
@@ -118,6 +121,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
 
       verifyConsignmentFileMetadataCall(consignmentId, FileMetadataFilters(None, Some(true), None).some)
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
 
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
@@ -139,6 +144,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
+
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       val newInputTextValues = Map(
@@ -176,6 +182,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       addAdditionalMetadataPageAsString must include(
         "<li>original/file/path</li>"
       )
+
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
+
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
@@ -201,6 +211,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
+
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(descriptiveMetadataType, addAdditionalMetadataPageAsString)
@@ -266,6 +279,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
+
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(
@@ -310,6 +326,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
+
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(
@@ -350,6 +369,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
             .withCSRFToken
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
+
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
@@ -411,11 +433,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-      case class GraphqlRequestData(query: String, variables: abfm.Variables)
-      val events = wiremockServer.getAllServeEvents
-      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
-      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+      val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
+      val request: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
       val input = request.variables.updateBulkFileMetadataInput
       input.consignmentId mustBe consignmentId
@@ -427,8 +447,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
       input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
-      case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
-      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
+      // case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
+      val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
       val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
         .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
       val input2 = deleteRequest.variables.deleteFileMetadataInput
@@ -470,11 +490,11 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-      case class GraphqlRequestData(query: String, variables: abfm.Variables)
-      val events = wiremockServer.getAllServeEvents
-      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
-      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+//      case class GraphqlRequestData(query: String, variables: abfm.Variables)
+//      val events = wiremockServer.getAllServeEvents
+      val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
+      val request: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
       val input = request.variables.updateBulkFileMetadataInput
       input.consignmentId mustBe consignmentId
@@ -487,8 +507,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
       input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
-      case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
-      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
+      /// case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
+      val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
       val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
         .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
       val input2 = deleteRequest.variables.deleteFileMetadataInput
@@ -530,11 +550,11 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-      case class GraphqlRequestData(query: String, variables: abfm.Variables)
-      val events = wiremockServer.getAllServeEvents
-      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
-      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+//      case class GraphqlRequestData(query: String, variables: abfm.Variables)
+//      val events = wiremockServer.getAllServeEvents
+      val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
+      val request: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
       val input = request.variables.updateBulkFileMetadataInput
       input.consignmentId mustBe consignmentId
@@ -548,8 +568,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       input.metadataProperties.find(_.filePropertyName == "DescriptionAlternate").get.value mustBe "text"
       input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
-      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata"))
-      deleteMetadataEvent should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
     }
 
     s"redirect user to additional summary page if there are no closure fields that need their dependencies filled in" in {
@@ -624,8 +643,6 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-      case class GraphqlAddRequestData(query: String, variables: abfm.Variables)
-      case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
       val events = wiremockServer.getAllServeEvents
       val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
       val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
@@ -728,6 +745,11 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     val input = request.variables.fileFiltersInput
     input.get.selectedFileIds mustBe fileIds.some
     input.get.metadataFilters mustBe expectedFileMetadataFilters
+  }
+
+  private def getServeEvent(request: String): Option[ServeEvent] = {
+    val events = wiremockServer.getAllServeEvents
+    events.asScala.find(event => event.getRequest.getBodyAsString.contains(request))
   }
 }
 
