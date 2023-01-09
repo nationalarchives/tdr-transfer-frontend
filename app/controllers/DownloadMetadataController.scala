@@ -47,13 +47,18 @@ class DownloadMetadataController @Inject() (
       val header: List[String] = filteredMetadata.map(f => f.fullName.getOrElse(f.name))
       val fileMetadataRows: List[List[String]] = metadata.files.map(file => {
         val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
-        filteredMetadata.map(customMetadata => groupedMetadata.get(customMetadata.name).map(fileMetadataValue => {
-          if (filteredMetadata.find(_.name == customMetadata.name).exists(_.dataType == DataType.DateTime)) {
-            LocalDateTime.parse(fileMetadataValue, parseFormatter).format(formatter)
-          } else {
-            fileMetadataValue
-          }
-        }).getOrElse(""))
+        filteredMetadata.map(customMetadata =>
+          groupedMetadata
+            .get(customMetadata.name)
+            .map(fileMetadataValue => {
+              if (filteredMetadata.find(_.name == customMetadata.name).exists(_.dataType == DataType.DateTime)) {
+                LocalDateTime.parse(fileMetadataValue, parseFormatter).format(formatter)
+              } else {
+                fileMetadataValue
+              }
+            })
+            .getOrElse("")
+        )
       })
       val csvString = CsvUtils.writeCsv(header :: fileMetadataRows)
       Ok(csvString)
