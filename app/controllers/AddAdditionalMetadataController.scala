@@ -13,7 +13,7 @@ import graphql.codegen.types.UpdateFileMetadataInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request}
+import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 
 import java.sql.Timestamp
@@ -87,16 +87,35 @@ class AddAdditionalMetadataController @Inject() (
               )
             }
           } else {
-            deleteDependencyProperties(updatedFormFields, fileIds)
-            val metadataInput: List[UpdateFileMetadataInput] = buildUpdateMetadataInput(updatedFormFields)
-            customMetadataService
-              .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, metadataInput)
-              .map(_ => {
-                Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds))
-              })
+            updateMetadata(updatedFormFields, consignmentId, fileIds, metadataType).map(_ => {
+              Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds))
+            })
           }
         }
       } yield result
+  }
+
+  private def updateMetadata(updatedFormFields: List[FormField], consignmentId: UUID, fileIds: List[UUID], metadataType: String)(implicit
+      request: Request[AnyContent]
+  ): Future[Result] = {
+
+    val updateMetadataInputs = buildUpdateMetadataInput(updatedFormFields)
+
+    val deleteMetadataNames = updatedFormFields
+      .collect {
+        case p if !updateMetadataInputs.exists(_.filePropertyName == p.fieldId) => p.fieldId :: Nil
+        case RadioButtonGroupField(_, _, _, _, _, _, selectedOption, _, _, dependencies, _) =>
+          dependencies.removed(selectedOption).flatMap { case (_, fields) => fields.map(_.fieldId) }
+      }
+      .flatten
+      .toSet
+
+    if (deleteMetadataNames.nonEmpty) {
+      customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, deleteMetadataNames)
+    }
+    customMetadataService
+      .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, updateMetadataInputs)
+      .map(_ => Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)))
   }
 
   private def getConsignmentFileMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID])(implicit request: Request[AnyContent]): Future[GetConsignment] = {
@@ -108,32 +127,20 @@ class AddAdditionalMetadataController @Inject() (
   }
 
   private def buildUpdateMetadataInput(updatedFormFields: List[FormField]): List[UpdateFileMetadataInput] = {
-    updatedFormFields.flatMap {
-      case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _) =>
+    updatedFormFields.collect {
+      case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
-      case TextAreaField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _) =>
+      case TextAreaField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
-      case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _) =>
+      case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _) if day.value.nonEmpty =>
         val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, Timestamp.valueOf(dateTime).toString) :: Nil
       case RadioButtonGroupField(fieldId, _, _, _, multiValue, _, selectedOption, _, _, dependencies, _) =>
         val fileMetadataInputs = dependencies.get(selectedOption).map(buildUpdateMetadataInput).getOrElse(Nil)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString) :: fileMetadataInputs
-      case MultiSelectField(fieldId, _, _, multiValue, _, selectedOptions, _, _) =>
+      case MultiSelectField(fieldId, _, _, multiValue, _, selectedOptions, _, _) if selectedOptions.isDefined =>
         selectedOptions.getOrElse(Nil).map(p => UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, p.value))
-    }
-  }
-
-  private def deleteDependencyProperties(updatedFormFields: List[FormField], fileIds: List[UUID])(implicit request: Request[AnyContent]): Unit = {
-
-    val propertyNames: Set[String] = updatedFormFields.flatMap {
-      case RadioButtonGroupField(_, _, _, _, _, _, selectedOption, _, _, dependencies, _) =>
-        dependencies.removed(selectedOption).flatMap { case (_, fields) => fields.map(_.fieldId) }
-      case _ => Nil
-    }.toSet
-    if (propertyNames.nonEmpty) {
-      customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, propertyNames)
-    }
+    }.flatten
   }
 
   private def getFormFields(consignmentId: UUID, request: Request[AnyContent], metadataType: String): Future[List[FormField]] = {
