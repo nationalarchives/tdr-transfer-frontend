@@ -33,7 +33,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements()
 
   def customMetadata(name: String, fullName: String, exportOrdinal: Int = Int.MaxValue, allowExport: Boolean = true): cm.CustomMetadata = {
-    if(name == "DateTimeProperty"){
+    if (name == "DateTimeProperty") {
       cm.CustomMetadata(name, None, Option(fullName), Supplied, None, DateTime, editable = false, multiValue = false, None, 1, Nil, Option(exportOrdinal), allowExport)
     } else {
       cm.CustomMetadata(name, None, Option(fullName), Supplied, None, Text, editable = false, multiValue = false, None, 1, Nil, Option(exportOrdinal), allowExport)
@@ -154,7 +154,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("FileName", "FileName1")
       )
       val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne),
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne)
       )
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
