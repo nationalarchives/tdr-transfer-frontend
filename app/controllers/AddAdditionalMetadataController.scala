@@ -121,7 +121,7 @@ class AddAdditionalMetadataController @Inject() (
   private def getConsignmentFileMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID])(implicit request: Request[AnyContent]): Future[GetConsignment] = {
     val additionalProperties = metadataType match {
       case "closure" => Some(List(clientSideOriginalFilepath, description))
-      case _ => None
+      case _         => None
     }
     consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds), additionalProperties)
   }
