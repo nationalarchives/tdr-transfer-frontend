@@ -434,8 +434,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .futureValue
 
       val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
-      val request: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+      val request: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(AddBulkFileMetadataGraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
       val addInput = request.variables.updateBulkFileMetadataInput
       addInput.consignmentId mustBe consignmentId
@@ -448,8 +448,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       addInput.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
       val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
-      val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
+      val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
       val deleteInput = deleteRequest.variables.deleteFileMetadataInput
       deleteInput.fileIds should be(fileIds)
       deleteInput.propertyNames.get should contain theSameElementsAs List("TitleAlternate", "DescriptionAlternate")
@@ -490,8 +490,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .futureValue
 
       val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
-      val request: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+      val request: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(AddBulkFileMetadataGraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
       val addInput = request.variables.updateBulkFileMetadataInput
       addInput.consignmentId mustBe consignmentId
@@ -505,8 +505,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       addInput.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
       val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
-      val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
+      val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
       val deleteInput = deleteRequest.variables.deleteFileMetadataInput
       deleteInput.fileIds should be(fileIds)
       deleteInput.propertyNames.get should contain theSameElementsAs List("DescriptionAlternate")
@@ -547,8 +547,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .futureValue
 
       val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
-      val request: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+      val request: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(AddBulkFileMetadataGraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
       val addInput = request.variables.updateBulkFileMetadataInput
       addInput.consignmentId mustBe consignmentId
@@ -640,10 +640,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val events = wiremockServer.getAllServeEvents
       val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
       val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
-      val addRequest: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
-      val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(Nil, Some(Nil)))))
+      val addRequest: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(AddBulkFileMetadataGraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+      val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(Nil, Some(Nil)))))
 
       val addInput = addRequest.variables.updateBulkFileMetadataInput
       addInput.fileIds should equal(fileIds)
