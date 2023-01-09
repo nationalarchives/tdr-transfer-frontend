@@ -591,6 +591,53 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  s"save any non-empty metadata values and delete empty metadata values" in {
+    val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+    val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+
+    setConsignmentTypeResponse(wiremockServer, "standard")
+    setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+    setCustomMetadataResponse(wiremockServer)
+    setDisplayPropertiesResponse(wiremockServer)
+    setDeleteFileMetadataResponse(wiremockServer, fileIds = fileIds)
+    setBulkUpdateMetadataResponse(wiremockServer)
+
+    val formToSubmitWithEmptyValue = Seq(
+      ("inputtextarea-description", ""),
+      ("inputmultiselect-Language", "Welsh")
+    )
+
+    addAdditionalMetadataController
+      .addAdditionalMetadataSubmit(consignmentId, descriptiveMetadataType, fileIds)
+      .apply(
+        FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType")
+          .withFormUrlEncodedBody(formToSubmitWithEmptyValue: _*)
+          .withCSRFToken
+      )
+      .futureValue
+
+    case class GraphqlAddRequestData(query: String, variables: abfm.Variables)
+    case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
+    val events = wiremockServer.getAllServeEvents
+    val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
+    val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
+    val addRequest: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
+      .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+    val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+      .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(Nil, Some(Nil)))))
+
+    val addInput = addRequest.variables.updateBulkFileMetadataInput
+    addInput.fileIds should equal(fileIds)
+    addInput.metadataProperties.size shouldBe 1
+    addInput.metadataProperties.head.value should equal("Welsh")
+    addInput.metadataProperties.head.filePropertyName should equal("Language")
+
+    val deleteInput = deleteRequest.variables.deleteFileMetadataInput
+    deleteInput.fileIds should equal(fileIds)
+    deleteInput.propertyNames.get.size shouldBe 1
+    deleteInput.propertyNames.get.head should equal("description")
+  }
+
   private def instantiateAddAdditionalMetadataController(securityComponents: SecurityComponents = getAuthorisedSecurityComponents) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)

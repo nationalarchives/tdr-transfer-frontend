@@ -98,7 +98,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
       val successFunction: ClosureStatusFormData => Future[Result] = { _ =>
         val metadataInput = UpdateFileMetadataInput(filePropertyIsMultiValue = false, closureType.name, closureType.value)
         customMetadataService
-          .updateMetadataHandler(consignmentId, fileIds, request.token.bearerAccessToken, List(metadataInput))
+          .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, List(metadataInput))
           .map { _ =>
             Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds))
           }
