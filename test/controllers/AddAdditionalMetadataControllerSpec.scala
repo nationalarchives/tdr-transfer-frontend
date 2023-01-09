@@ -437,23 +437,22 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val request: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
         .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
-      val input = request.variables.updateBulkFileMetadataInput
-      input.consignmentId mustBe consignmentId
-      input.fileIds mustBe fileIds
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "false"
-      input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
-      input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+      val addInput = request.variables.updateBulkFileMetadataInput
+      addInput.consignmentId mustBe consignmentId
+      addInput.fileIds mustBe fileIds
+      addInput.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
+      addInput.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "false"
+      addInput.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
-      // case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
       val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
       val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
         .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
-      val input2 = deleteRequest.variables.deleteFileMetadataInput
-      input2.fileIds should be(fileIds)
-      input2.propertyNames.get should contain theSameElementsAs List("TitleAlternate", "DescriptionAlternate")
+      val deleteInput = deleteRequest.variables.deleteFileMetadataInput
+      deleteInput.fileIds should be(fileIds)
+      deleteInput.propertyNames.get should contain theSameElementsAs List("TitleAlternate", "DescriptionAlternate")
     }
 
     "send the closure form data to the API with dependencies and do not delete the dependencies if the relevant option is selected by user" in {
@@ -490,30 +489,27 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-//      case class GraphqlRequestData(query: String, variables: abfm.Variables)
-//      val events = wiremockServer.getAllServeEvents
       val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
       val request: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
         .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
-      val input = request.variables.updateBulkFileMetadataInput
-      input.consignmentId mustBe consignmentId
-      input.fileIds mustBe fileIds
-      input.metadataProperties.filter(_.filePropertyName == "FoiExemptionCode").map(_.value) mustBe List("mock code1", "mock code2")
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
-      input.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
-      input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
-      input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+      val addInput = request.variables.updateBulkFileMetadataInput
+      addInput.consignmentId mustBe consignmentId
+      addInput.fileIds mustBe fileIds
+      addInput.metadataProperties.filter(_.filePropertyName == "FoiExemptionCode").map(_.value) mustBe List("mock code1", "mock code2")
+      addInput.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
+      addInput.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
+      addInput.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
-      /// case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
       val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
       val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
         .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
-      val input2 = deleteRequest.variables.deleteFileMetadataInput
-      input2.fileIds should be(fileIds)
-      input2.propertyNames.get should contain theSameElementsAs List("DescriptionAlternate")
+      val deleteInput = deleteRequest.variables.deleteFileMetadataInput
+      deleteInput.fileIds should be(fileIds)
+      deleteInput.propertyNames.get should contain theSameElementsAs List("DescriptionAlternate")
     }
 
     "send the closure form data to the API with dependencies and do not call delete metadata to remove the dependencies if the relevant option is selected by user for all properties" in {
@@ -550,23 +546,21 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-//      case class GraphqlRequestData(query: String, variables: abfm.Variables)
-//      val events = wiremockServer.getAllServeEvents
       val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
       val request: GraphqlAddRequestData = decode[GraphqlAddRequestData](addMetadataEvent.getRequest.getBodyAsString)
         .getOrElse(GraphqlAddRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
-      val input = request.variables.updateBulkFileMetadataInput
-      input.consignmentId mustBe consignmentId
-      input.fileIds mustBe fileIds
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
-      input.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
-      input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "true"
-      input.metadataProperties.find(_.filePropertyName == "DescriptionAlternate").get.value mustBe "text"
-      input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+      val addInput = request.variables.updateBulkFileMetadataInput
+      addInput.consignmentId mustBe consignmentId
+      addInput.fileIds mustBe fileIds
+      addInput.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
+      addInput.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
+      addInput.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
+      addInput.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "true"
+      addInput.metadataProperties.find(_.filePropertyName == "DescriptionAlternate").get.value mustBe "text"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
       getServeEvent("deleteFileMetadata") should be(None)
     }
