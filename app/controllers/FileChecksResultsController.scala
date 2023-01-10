@@ -2,6 +2,7 @@ package controllers
 
 import java.util.UUID
 import auth.TokenSecurity
+import com.typesafe.config.ConfigFactory
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
 
 import javax.inject.{Inject, Singleton}
@@ -27,6 +28,10 @@ class FileChecksResultsController @Inject() (
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val pageTitle = "Results of your checks"
+    val config = ConfigFactory.load()
+    val blockClosureMetadata = config.getBoolean("featureAccessBlock.closureMetadata")
+    val blockDescriptiveMetadata = config.getBoolean("featureAccessBlock.descriptiveMetadata")
+
     for {
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
@@ -37,7 +42,7 @@ class FileChecksResultsController @Inject() (
           fileCheck.totalFiles,
           parentFolder
         )
-        Ok(views.html.standard.fileChecksResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+        Ok(views.html.standard.fileChecksResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name, blockClosureMetadata, blockDescriptiveMetadata))
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
         Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))
