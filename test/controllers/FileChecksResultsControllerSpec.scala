@@ -87,9 +87,9 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           """<h1 class="govuk-heading-l">Results of your checks</h1>""",
           """                    <p class="govuk-body">Your folder 'parentFolder' containing 1 item has been successfully checked and uploaded.</p>
             |                    <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""".stripMargin,
-          s"""            <a href="/consignment/$consignmentId/confirm-transfer" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-            |                Continue
-            |            </a>""".stripMargin,
+          s"""                <a class="govuk-button" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/confirm-transfer" role="button" draggable="false" data-module="govuk-button">
+             |                    Continue
+             |                </a>""".stripMargin,
           """              <p class="govuk-body">
             |    One or more files you uploaded have failed our checks. Contact us at
             |    <a class="govuk-link" href="mailto:tdr@nationalachives.gov.uk?subject=Ref: TEST-TDR-2021-GB - Problem with Results of checks">tdr@nationalachives.gov.uk</a>
