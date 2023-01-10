@@ -4,9 +4,9 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend.backend
 import configuration.GraphQLConfiguration
 import errors.AuthorisationException
-import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
+import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.types.DataType.Text
 import graphql.codegen.types.PropertyType.Defined
 import graphql.codegen.types.{DeleteFileMetadataInput, UpdateBulkFileMetadataInput, UpdateFileMetadataInput}

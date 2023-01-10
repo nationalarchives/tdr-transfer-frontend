@@ -4,6 +4,7 @@ import akka.Done
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent
 import configuration.GraphQLConfiguration
 import controllers.util.MetadataProperty.{clientSideOriginalFilepath, description, descriptionClosed, titleClosed}
 import controllers.util.{FormField, InputNameAndValue, RadioButtonGroupField}
@@ -89,6 +90,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputradio-TitleClosed", "yes")
       )
       verifyConsignmentFileMetadataCall(consignmentId, FileMetadataFilters(Some(true), None, Some(List(clientSideOriginalFilepath, description))).some)
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
 
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
@@ -118,6 +121,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
 
       verifyConsignmentFileMetadataCall(consignmentId, FileMetadataFilters(None, Some(true), None).some)
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
 
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
@@ -139,6 +144,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataPage = addAdditionalMetadataController
         .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
+
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
       val newInputTextValues = Map(
@@ -176,6 +182,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       addAdditionalMetadataPageAsString must include(
         "<li>original/file/path</li>"
       )
+
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
+
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
@@ -201,6 +211,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
       playStatus(addAdditionalMetadataPage) mustBe OK
       contentType(addAdditionalMetadataPage) mustBe Some("text/html")
+
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(descriptiveMetadataType, addAdditionalMetadataPageAsString)
@@ -266,6 +279,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
+
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(
@@ -310,6 +326,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
 
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
+
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(
@@ -350,6 +369,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
             .withCSRFToken
         )
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
+
+      getServeEvent("addBulkFileMetadata") should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
@@ -411,29 +433,26 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-      case class GraphqlRequestData(query: String, variables: abfm.Variables)
-      val events = wiremockServer.getAllServeEvents
-      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
-      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+      val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
+      val request: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(AddBulkFileMetadataGraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
-      val input = request.variables.updateBulkFileMetadataInput
-      input.consignmentId mustBe consignmentId
-      input.fileIds mustBe fileIds
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "false"
-      input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
-      input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+      val addInput = request.variables.updateBulkFileMetadataInput
+      addInput.consignmentId mustBe consignmentId
+      addInput.fileIds mustBe fileIds
+      addInput.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
+      addInput.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "false"
+      addInput.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
-      case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
-      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
-      val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
-      val input2 = deleteRequest.variables.deleteFileMetadataInput
-      input2.fileIds should be(fileIds)
-      input2.propertyNames.get should contain theSameElementsAs List("TitleAlternate", "DescriptionAlternate")
+      val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
+      val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
+      val deleteInput = deleteRequest.variables.deleteFileMetadataInput
+      deleteInput.fileIds should be(fileIds)
+      deleteInput.propertyNames.get should contain theSameElementsAs List("TitleAlternate", "DescriptionAlternate")
     }
 
     "send the closure form data to the API with dependencies and do not delete the dependencies if the relevant option is selected by user" in {
@@ -470,30 +489,27 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-      case class GraphqlRequestData(query: String, variables: abfm.Variables)
-      val events = wiremockServer.getAllServeEvents
-      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
-      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+      val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
+      val request: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(AddBulkFileMetadataGraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
-      val input = request.variables.updateBulkFileMetadataInput
-      input.consignmentId mustBe consignmentId
-      input.fileIds mustBe fileIds
-      input.metadataProperties.filter(_.filePropertyName == "FoiExemptionCode").map(_.value) mustBe List("mock code1", "mock code2")
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
-      input.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
-      input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
-      input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+      val addInput = request.variables.updateBulkFileMetadataInput
+      addInput.consignmentId mustBe consignmentId
+      addInput.fileIds mustBe fileIds
+      addInput.metadataProperties.filter(_.filePropertyName == "FoiExemptionCode").map(_.value) mustBe List("mock code1", "mock code2")
+      addInput.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
+      addInput.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
+      addInput.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "false"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
-      case class GraphqlDeleteRequestData(query: String, variables: dfm.Variables)
-      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
-      val deleteRequest: GraphqlDeleteRequestData = decode[GraphqlDeleteRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlDeleteRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
-      val input2 = deleteRequest.variables.deleteFileMetadataInput
-      input2.fileIds should be(fileIds)
-      input2.propertyNames.get should contain theSameElementsAs List("DescriptionAlternate")
+      val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
+      val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
+      val deleteInput = deleteRequest.variables.deleteFileMetadataInput
+      deleteInput.fileIds should be(fileIds)
+      deleteInput.propertyNames.get should contain theSameElementsAs List("DescriptionAlternate")
     }
 
     "send the closure form data to the API with dependencies and do not call delete metadata to remove the dependencies if the relevant option is selected by user for all properties" in {
@@ -530,26 +546,23 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         .futureValue
 
-      case class GraphqlRequestData(query: String, variables: abfm.Variables)
-      val events = wiremockServer.getAllServeEvents
-      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
-      val request: GraphqlRequestData = decode[GraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+      val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
+      val request: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(AddBulkFileMetadataGraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
 
-      val input = request.variables.updateBulkFileMetadataInput
-      input.consignmentId mustBe consignmentId
-      input.fileIds mustBe fileIds
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
-      input.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
-      input.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
-      input.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
-      input.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "true"
-      input.metadataProperties.find(_.filePropertyName == "DescriptionAlternate").get.value mustBe "text"
-      input.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
+      val addInput = request.variables.updateBulkFileMetadataInput
+      addInput.consignmentId mustBe consignmentId
+      addInput.fileIds mustBe fileIds
+      addInput.metadataProperties.find(_.filePropertyName == "FoiExemptionCode").get.value mustBe "mock code1"
+      addInput.metadataProperties.find(_.filePropertyName == "FoiExemptionAsserted").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosureStartDate").get.value mustBe "1970-01-01 00:00:00.0"
+      addInput.metadataProperties.find(_.filePropertyName == "TitleClosed").get.value mustBe "true"
+      addInput.metadataProperties.find(_.filePropertyName == "TitleAlternate").get.value mustBe "text"
+      addInput.metadataProperties.find(_.filePropertyName == "DescriptionClosed").get.value mustBe "true"
+      addInput.metadataProperties.find(_.filePropertyName == "DescriptionAlternate").get.value mustBe "text"
+      addInput.metadataProperties.find(_.filePropertyName == "ClosurePeriod").get.value mustBe "10"
 
-      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata"))
-      deleteMetadataEvent should be(None)
+      getServeEvent("deleteFileMetadata") should be(None)
     }
 
     s"redirect user to additional summary page if there are no closure fields that need their dependencies filled in" in {
@@ -561,6 +574,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setBulkUpdateMetadataResponse(wiremockServer)
+      setDeleteFileMetadataResponse(wiremockServer)
 
       val formToSubmitDefault = Seq(
         ("inputdate-FoiExemptionAsserted-day", "1"),
@@ -596,6 +610,51 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       propertyNamesWhereUserDoesNotHaveToFillInDeps.foreach { propertyNameWhereUserDoesNotHaveToFillInDeps =>
         redirectLocation must not include (s"$propertyNameWhereUserDoesNotHaveToFillInDeps-True")
       }
+    }
+
+    s"save any non-empty metadata values and delete empty metadata values" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+      setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
+      setDeleteFileMetadataResponse(wiremockServer, fileIds = fileIds)
+      setBulkUpdateMetadataResponse(wiremockServer)
+
+      val formToSubmitWithEmptyValue = Seq(
+        ("inputtextarea-description", ""),
+        ("inputmultiselect-Language", "Welsh")
+      )
+
+      addAdditionalMetadataController
+        .addAdditionalMetadataSubmit(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(
+          FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType")
+            .withFormUrlEncodedBody(formToSubmitWithEmptyValue: _*)
+            .withCSRFToken
+        )
+        .futureValue
+
+      val events = wiremockServer.getAllServeEvents
+      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
+      val deleteMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("deleteFileMetadata")).get
+      val addRequest: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(AddBulkFileMetadataGraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
+      val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(Nil, Some(Nil)))))
+
+      val addInput = addRequest.variables.updateBulkFileMetadataInput
+      addInput.fileIds should equal(fileIds)
+      addInput.metadataProperties.size shouldBe 1
+      addInput.metadataProperties.head.value should equal("Welsh")
+      addInput.metadataProperties.head.filePropertyName should equal("Language")
+
+      val deleteInput = deleteRequest.variables.deleteFileMetadataInput
+      deleteInput.fileIds should equal(fileIds)
+      deleteInput.propertyNames.get.size shouldBe 1
+      deleteInput.propertyNames.get.head should equal("description")
     }
   }
 
@@ -680,6 +739,11 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     val input = request.variables.fileFiltersInput
     input.get.selectedFileIds mustBe fileIds.some
     input.get.metadataFilters mustBe expectedFileMetadataFilters
+  }
+
+  private def getServeEvent(request: String): Option[ServeEvent] = {
+    val events = wiremockServer.getAllServeEvents
+    events.asScala.find(event => event.getRequest.getBodyAsString.contains(request))
   }
 }
 

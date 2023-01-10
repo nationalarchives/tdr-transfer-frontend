@@ -8,7 +8,7 @@ import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.G
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
-import graphql.codegen.types.DataType.Text
+import graphql.codegen.types.DataType.{DateTime, Text}
 import graphql.codegen.types.PropertyType.Supplied
 import io.circe.Printer
 import io.circe.generic.auto._
@@ -22,6 +22,8 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.io.StringReader
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -30,8 +32,13 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements()
 
-  def customMetadata(name: String, fullName: String, exportOrdinal: Int = Int.MaxValue, allowExport: Boolean = true): cm.CustomMetadata =
-    cm.CustomMetadata(name, None, Option(fullName), Supplied, None, Text, editable = false, multiValue = false, None, 1, Nil, Option(exportOrdinal), allowExport)
+  def customMetadata(name: String, fullName: String, exportOrdinal: Int = Int.MaxValue, allowExport: Boolean = true): cm.CustomMetadata = {
+    if (name == "DateTimeProperty") {
+      cm.CustomMetadata(name, None, Option(fullName), Supplied, None, DateTime, editable = false, multiValue = false, None, 1, Nil, Option(exportOrdinal), allowExport)
+    } else {
+      cm.CustomMetadata(name, None, Option(fullName), Supplied, None, Text, editable = false, multiValue = false, None, 1, Nil, Option(exportOrdinal), allowExport)
+    }
+  }
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -44,14 +51,17 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
   "DownloadMetadataController downloadMetadataCsv GET" should {
     "download the csv for a multiple properties and rows" in {
+      val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
       val customProperties = List(
         customMetadata("TestProperty1", "Test Property 1"),
         customMetadata("TestProperty2", "Test Property 2"),
+        customMetadata("DateTimeProperty", "DateTime Property"),
         customMetadata("FileName", "File Name")
       )
       val metadataFileOne = List(
         FileMetadata("TestProperty1", "TestValue1File1"),
         FileMetadata("TestProperty2", "TestValue2File1"),
+        FileMetadata("DateTimeProperty", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
         FileMetadata("FileName", "FileName1")
       )
       val metadataFileTwo = List(
@@ -69,6 +79,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       csvList.size must equal(2)
       csvList.head("Test Property 1") must equal("TestValue1File1")
       csvList.head("Test Property 2") must equal("TestValue2File1")
+      csvList.head("DateTime Property") must equal("2021-02-03T10:33:30")
       csvList.head("File Name") must equal("FileName1")
       csvList.last("Test Property 1") must equal("TestValue1File2")
       csvList.last("Test Property 2") must equal("TestValue2File2")
@@ -110,6 +121,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val customProperties = List(
         customMetadata("TestProperty1", "Test Property 1"),
         customMetadata("TestProperty2", "Test Property 2"),
+        customMetadata("DateTimeProperty", "DateTime Property"),
         customMetadata("FileName", "File Name")
       )
       val metadataFileOne = List(
@@ -127,6 +139,30 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       csvList.size must equal(1)
       csvList.head("Test Property 1") must equal("TestValue1File1")
       csvList.head("Test Property 2") must equal("TestValue2File1|TestValue3File1")
+      csvList.head("File Name") must equal("FileName1")
+    }
+
+    "download the csv for datetime rows to include the seconds to the file when the input seconds are zero" in {
+      val lastModified = LocalDateTime.parse("2021-02-03T10:33:00.0")
+      val customProperties = List(
+        customMetadata("TestProperty1", "Test Property 1"),
+        customMetadata("DateTimeProperty", "DateTime Property"),
+        customMetadata("FileName", "File Name")
+      )
+      val metadataFileOne = List(
+        FileMetadata("TestProperty1", "TestValue1File1"),
+        FileMetadata("DateTimeProperty", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+        FileMetadata("FileName", "FileName1")
+      )
+      val files = List(
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne)
+      )
+
+      val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
+
+      csvList.size must equal(1)
+      csvList.head("Test Property 1") must equal("TestValue1File1")
+      csvList.head("DateTime Property") must equal("2021-02-03T10:33:00")
       csvList.head("File Name") must equal("FileName1")
     }
 

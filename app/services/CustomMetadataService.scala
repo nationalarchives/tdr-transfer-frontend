@@ -2,10 +2,10 @@ package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
-import graphql.codegen.GetCustomMetadata.customMetadata.{CustomMetadata, Variables}
-import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
+import graphql.codegen.GetCustomMetadata.customMetadata.{CustomMetadata, Variables}
+import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.types.{DeleteFileMetadataInput, UpdateBulkFileMetadataInput, UpdateFileMetadataInput}
 import services.ApiErrorHandling._
 import uk.gov.nationalarchives.tdr.GraphQLClient
