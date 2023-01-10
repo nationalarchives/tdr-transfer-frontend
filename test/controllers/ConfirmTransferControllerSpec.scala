@@ -142,7 +142,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       )
 
       confirmTransferPageAsString must include(
-        """<p class="govuk-body">Please confirm you would like to transfer custody of the records to The National Archives.</p>"""
+        """<p class="govuk-body">Please check the box to acknowledge:</p>"""
       )
 
       confirmTransferPageAsString must include(
@@ -202,66 +202,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
       formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, Map(), formStatus = "PartiallySubmitted")
-    }
-
-    "display correct error when only the 'open records' option is selected and the final transfer confirmation form is submitted" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
-      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      mockGraphqlConsignmentSummaryResponse(dataString)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-      val incompleteTransferConfirmationForm = Seq(("openRecords", "true"))
-      val finalTransferConfirmationSubmitResult = controller
-        .finalTransferConfirmationSubmit(consignmentId)
-        .apply(
-          FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-            .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
-            .withCSRFToken
-        )
-
-      val confirmTransferPageAsString = contentAsString(finalTransferConfirmationSubmitResult)
-
-      playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(
-        confirmTransferPageAsString,
-        incompleteTransferConfirmationForm.toMap,
-        formStatus = "PartiallySubmitted"
-      )
-    }
-
-    "display correct error when only the 'transfer legal custody' option is selected and the final transfer confirmation form is submitted" in {
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-      val consignmentSummaryResponse: gcs.GetConsignment = getConsignmentSummaryResponse
-      val data: client.GraphqlData = client.GraphqlData(Some(gcs.Data(Some(consignmentSummaryResponse))), List())
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      mockGraphqlConsignmentSummaryResponse(dataString)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-      val incompleteTransferConfirmationForm = Seq(("transferLegalCustody", "true"))
-      val finalTransferConfirmationSubmitResult = controller
-        .finalTransferConfirmationSubmit(consignmentId)
-        .apply(
-          FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-            .withFormUrlEncodedBody(incompleteTransferConfirmationForm: _*)
-            .withCSRFToken
-        )
-
-      val confirmTransferPageAsString = contentAsString(finalTransferConfirmationSubmitResult)
-
-      playStatus(finalTransferConfirmationSubmitResult) mustBe BAD_REQUEST
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
-      formTester.checkHtmlForOptionAndItsAttributes(
-        confirmTransferPageAsString,
-        incompleteTransferConfirmationForm.toMap,
-        formStatus = "PartiallySubmitted"
-      )
     }
 
     "add a final transfer confirmation when a valid form is submitted and the api response is successful" in {
@@ -714,7 +654,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   private def createFinalTransferConfirmationResponse = new aftc.AddFinalTransferConfirmation(
     consignmentId,
-    finalOpenRecordsConfirmed = true,
     legalCustodyTransferConfirmed = true
   )
 
@@ -731,11 +670,10 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     val query =
       s"""{"query":"mutation addFinalTransferConfirmation($$input:AddFinalTransferConfirmationInput!)
                             {addFinalTransferConfirmation(addFinalTransferConfirmationInput:$$input)
-                            {consignmentId finalOpenRecordsConfirmed legalCustodyTransferConfirmed}}",
+                            {consignmentId legalCustodyTransferConfirmed}}",
            "variables":{
                         "input":{
                                  "consignmentId":"$consignmentId",
-                                 "finalOpenRecordsConfirmed":true,
                                  "legalCustodyTransferConfirmed":true
                                 }
                        }
