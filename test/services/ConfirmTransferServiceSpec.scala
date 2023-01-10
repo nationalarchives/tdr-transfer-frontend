@@ -42,11 +42,10 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
 
   private val token = new BearerAccessToken("some-token")
 
-  private val formData = FinalTransferConfirmationData(openRecords = true, transferLegalCustody = true)
+  private val formData = FinalTransferConfirmationData(transferLegalCustody = true)
 
   val addFinalTransferConfirmationInput: AddFinalTransferConfirmationInput = AddFinalTransferConfirmationInput(
     consignmentId,
-    formData.openRecords,
     formData.transferLegalCustody
   )
 
@@ -59,7 +58,7 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
   }
 
   "addFinalTransferConfirmation" should "return the TransferConfirmation from the API" in {
-    val finalTransferConfirmationResponse = AddFinalTransferConfirmation(consignmentId, finalOpenRecordsConfirmed = true, legalCustodyTransferConfirmed = true)
+    val finalTransferConfirmationResponse = AddFinalTransferConfirmation(consignmentId, legalCustodyTransferConfirmed = true)
 
     val graphQlResponse =
       GraphQlResponse(
@@ -77,7 +76,6 @@ class ConfirmTransferServiceSpec extends AnyFlatSpec with MockitoSugar with Befo
       confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData).futureValue
 
     transferConfirmation.consignmentId should equal(consignmentId)
-    transferConfirmation.finalOpenRecordsConfirmed should equal(formData.openRecords)
     transferConfirmation.legalCustodyTransferConfirmed should equal(formData.transferLegalCustody)
   }
 
