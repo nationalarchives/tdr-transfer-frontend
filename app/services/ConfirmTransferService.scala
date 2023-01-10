@@ -23,7 +23,6 @@ class ConfirmTransferService @Inject() (val graphqlConfiguration: GraphQLConfigu
   def addFinalTransferConfirmation(consignmentId: UUID, token: BearerAccessToken, formData: FinalTransferConfirmationData): Future[aftc.AddFinalTransferConfirmation] = {
     val addFinalTransferConfirmationInput: AddFinalTransferConfirmationInput = AddFinalTransferConfirmationInput(
       consignmentId,
-      formData.openRecords,
       formData.transferLegalCustody
     )
 
