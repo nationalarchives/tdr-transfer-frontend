@@ -121,6 +121,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val customProperties = List(
         customMetadata("TestProperty1", "Test Property 1"),
         customMetadata("TestProperty2", "Test Property 2"),
+        customMetadata("DateTimeProperty", "DateTime Property"),
         customMetadata("FileName", "File Name")
       )
       val metadataFileOne = List(
