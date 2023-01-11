@@ -28,7 +28,6 @@ class FileChecksResultsController @Inject() (
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val pageTitle = "Results of your checks"
-
     val blockClosureMetadata = configuration.getBoolean("featureAccessBlock.closureMetadata")
     val blockDescriptiveMetadata = configuration.getBoolean("featureAccessBlock.descriptiveMetadata")
 
