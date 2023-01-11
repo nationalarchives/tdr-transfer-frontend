@@ -1,7 +1,7 @@
 @import views.html.partials.{progressIndicator, transferReference}
 
 @import java.util.UUID
-@(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+@(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String, blockClosureMetadata: Boolean, blockDescriptiveMetadata: Boolean)(implicit messages: Messages, request: RequestHeader)
 
 @main(title, name = name) {
     <div class="govuk-grid-row">
@@ -18,9 +18,15 @@
                     <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
                 </div>
             </div>
-            <a href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-                Continue
-            </a>
+            @if(blockClosureMetadata || blockDescriptiveMetadata) {
+                <a class="govuk-button" href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" data-module="govuk-button">
+                    Continue
+                </a>
+            } else {
+                <a class="govuk-button" href="@routes.AdditionalMetadataController.start(consignmentId)" role="button" draggable="false" data-module="govuk-button">
+                    Continue
+                </a>
+            }
         </div>
         @transferReference(consignmentRef, isJudgmentUser = false)
     </div>
