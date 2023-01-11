@@ -1,7 +1,7 @@
 @import views.html.helper.CSRF
 @import views.html.helper.form
-@import views.html.partials.viewHistorybtn
-@(name: String, blockViewHistory: Boolean)(implicit messages: Messages, request: RequestHeader)
+@import views.html.partials.viewTransfersBtn
+@(name: String, blockViewTransfers: Boolean)(implicit messages: Messages, request: RequestHeader)
 
 @main("Welcome", name = name, isJudgmentUser = true) {
   <div class="govuk-grid-row">
@@ -24,8 +24,8 @@
             Start transfer
           </button>
         </div>
-        @if(!blockViewHistory){
-          @viewHistorybtn()
+        @if(!blockViewTransfers){
+          @viewTransfersBtn()
         }
       }
     </div>

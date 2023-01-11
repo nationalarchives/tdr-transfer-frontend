@@ -21,7 +21,7 @@ class HomepageController @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
-  val blockViewHistory: Boolean = configuration.getBoolean("featureAccessBlock.viewHistory")
+  val blockViewTransfers: Boolean = configuration.getBoolean("featureAccessBlock.viewTransfers")
 
   def judgmentHomepageSubmit(): Action[AnyContent] = judgmentUserAction { implicit request: Request[AnyContent] =>
     consignmentService.createConsignment(None, request.token).map(consignment => Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentid.get)))
@@ -36,7 +36,7 @@ class HomepageController @Inject() (
       if (request.token.isJudgmentUser) {
         Redirect(routes.HomepageController.judgmentHomepage())
       } else if (request.token.isStandardUser) {
-        Ok(views.html.standard.homepage(request.token.name, blockViewHistory))
+        Ok(views.html.standard.homepage(request.token.name, blockViewTransfers))
       } else {
         Ok(views.html.registrationComplete(request.token.name))
       }
@@ -46,7 +46,7 @@ class HomepageController @Inject() (
   def judgmentHomepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     {
       if (request.token.isJudgmentUser) {
-        Ok(views.html.judgment.judgmentHomepage(request.token.name, blockViewHistory))
+        Ok(views.html.judgment.judgmentHomepage(request.token.name, blockViewTransfers))
       } else if (request.token.isStandardUser) {
         Redirect(routes.HomepageController.homepage())
       } else {

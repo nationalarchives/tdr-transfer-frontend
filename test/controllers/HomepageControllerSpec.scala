@@ -62,7 +62,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     "render the homepage page with an authenticated standard user" in {
       val config: Config = ConfigFactory
         .load()
-        .withValue("featureAccessBlock.viewHistory", ConfigValueFactory.fromAnyRef("false"))
+        .withValue("featureAccessBlock.viewTransfers", ConfigValueFactory.fromAnyRef("false"))
       val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, config)
       val userType = "standard"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
@@ -83,7 +83,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     "render the judgment homepage page with an authenticated judgment user" in {
       val config: Config = ConfigFactory
         .load()
-        .withValue("featureAccessBlock.viewHistory", ConfigValueFactory.fromAnyRef("false"))
+        .withValue("featureAccessBlock.viewTransfers", ConfigValueFactory.fromAnyRef("false"))
       val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, config)
       val userType = "judgment"
       val homepagePage = controller.judgmentHomepage().apply(FakeRequest(GET, s"/$userType/homepage").withCSRFToken)
