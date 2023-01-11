@@ -2,6 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
@@ -30,6 +31,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
   val consignmentId: UUID = UUID.fromString("0a3f617c-04e8-41c2-9f24-99622a779528")
   val wiremockServer = new WireMockServer(9006)
+  val configuration: Config = ConfigFactory.load()
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -87,7 +89,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           """<h1 class="govuk-heading-l">Results of your checks</h1>""",
           """                    <p class="govuk-body">Your folder 'parentFolder' containing 1 item has been successfully checked and uploaded.</p>
             |                    <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""".stripMargin,
-          s"""                <a class="govuk-button" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/confirm-transfer" role="button" draggable="false" data-module="govuk-button">
+          s"""                <a class="govuk-button" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/additional-metadata" role="button" draggable="false" data-module="govuk-button">
              |                    Continue
              |                </a>""".stripMargin,
           """              <p class="govuk-body">
@@ -105,10 +107,81 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         // scalastyle:on line.size.limit
       }
 
+      s"render the $userType fileChecksResults page with the confirmation box and the continue button link to 'confirm-transfer' page if addition metadata features are blocked" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+        setConsignmentStatusResponse(app.configuration, wiremockServer)
+        val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
+
+        val confirmTransferButton =
+          s"""                <a class="govuk-button" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/confirm-transfer" role="button" draggable="false" data-module="govuk-button">
+             |                    Continue
+             |                </a>""".stripMargin
+
+        val fileChecksData = gfcp.Data(
+          Option(
+            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+          )
+        )
+
+        val filePathData = gcf.Data(
+          Option(gcf.GetConsignment(List(Files(UUID.randomUUID(), Option(""), Option(""), Option(UUID.randomUUID()), Metadata(Some("test file.docx"))))))
+        )
+
+        val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables]()
+        val getConsignmentFilesClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables]()
+        val fileStatusResponse: String =
+          getFileChecksProgressClient.GraphqlData(Option(fileChecksData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+        val filePathResponse: String =
+          getConsignmentFilesClient.GraphqlData(Option(filePathData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+        mockGraphqlResponse(userType, fileStatusResponse, filePathResponse)
+        setConsignmentReferenceResponse(wiremockServer)
+
+        val fileCheckResultsController = new FileChecksResultsController(
+          getAuthorisedSecurityComponents,
+          keycloakConfiguration,
+          new GraphQLConfiguration(app.configuration),
+          consignmentService,
+          consignmentStatusService,
+          frontEndInfoConfiguration,
+          configuration
+        )
+
+        val recordCheckResultsPage = {
+          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId) }
+          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
+        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
+        val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+        status(recordCheckResultsPage) mustBe 200
+        contentType(recordCheckResultsPage) mustBe Some("text/html")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
+        resultsPageAsString must include(expectedTitle)
+        resultsPageAsString must include(expectedHeading)
+        if (userType == "standard") {
+          resultsPageAsString must include(expectedSuccessSummaryTitle)
+          resultsPageAsString must include(confirmTransferButton)
+        }
+
+        if (userType == "judgment") {
+          resultsPageAsString must include regex (buttonToProgress)
+        }
+
+        resultsPageAsString must include(expectedSuccessMessage)
+      }
+
       s"render the $userType fileChecksResults page with the confirmation box" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+
+        val config = ConfigFactory
+          .load()
+          .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef("false"))
+          .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef("false"))
         setConsignmentStatusResponse(app.configuration, wiremockServer)
         val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
 
@@ -138,12 +211,16 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration
+          frontEndInfoConfiguration,
+          config
         )
 
         val recordCheckResultsPage = {
-          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId) }
-          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
+          if (userType == "judgment") {
+            fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
+          } else {
+            fileCheckResultsController.fileCheckResultsPage(consignmentId)
+          }
         }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
         val resultsPageAsString = contentAsString(recordCheckResultsPage)
 
@@ -170,7 +247,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration
+          frontEndInfoConfiguration,
+          configuration
         )
         val recordChecksResultsPage = controller
           .fileCheckResultsPage(consignmentId)
@@ -190,7 +268,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration
+          frontEndInfoConfiguration,
+          configuration
         )
         val exampleApiResponse = "{\"fileChecksData\":{" +
           "\"getConsignment\":null}," +
@@ -241,7 +320,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration
+          frontEndInfoConfiguration,
+          configuration
         )
 
         val recordCheckResultsPage = {
@@ -284,7 +364,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration
+          frontEndInfoConfiguration,
+          configuration
         )
 
         val recordCheckResultsPage = {
@@ -335,7 +416,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration
+          frontEndInfoConfiguration,
+          configuration
         )
 
         val recordCheckResultsPage = {
@@ -394,7 +476,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration
+          frontEndInfoConfiguration,
+          configuration
         )
 
         val recordCheckResultsPage = {
@@ -428,7 +511,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         new GraphQLConfiguration(app.configuration),
         consignmentService,
         consignmentStatusService,
-        frontEndInfoConfiguration
+        frontEndInfoConfiguration,
+        configuration
       )
       setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
       setConsignmentTypeResponse(wiremockServer, userType)
@@ -471,7 +555,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration
+          frontEndInfoConfiguration,
+          configuration
         )
 
         val fileCheckResultsPage = url match {
