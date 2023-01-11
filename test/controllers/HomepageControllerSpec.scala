@@ -96,8 +96,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must include("Upload your judgment to start a new transfer")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
-      homepagePageAsString must include(
-        """
+      homepagePageAsString must include("""
           |<a href="/view-history" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
           |    View transfers
           |</a>""".stripMargin)
