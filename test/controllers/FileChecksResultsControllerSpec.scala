@@ -178,7 +178,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
-        val config = ConfigFactory
+        val config: Config = ConfigFactory
           .load()
           .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef("false"))
           .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef("false"))
