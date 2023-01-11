@@ -13,7 +13,7 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext
 
-class ViewHistoryControllerSpec extends FrontEndTestHelper {
+class ViewTransfersControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
 
   override def beforeEach(): Unit = {
@@ -35,10 +35,10 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-history"))
+        .apply(FakeRequest(GET, s"/view-transfers"))
       val viewHistoryPageAsString = contentAsString(response)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewHistoryPageAsString, userType = "standard", consignmentExists = false)
@@ -46,7 +46,7 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      viewHistoryPageAsString must include("<h1 class=\"govuk-heading-l\">Transfer history</h1>")
+      viewHistoryPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
       viewHistoryPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
            |                  <th scope="col" class="govuk-table__header">Status</th>
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
@@ -62,10 +62,10 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-history"))
+        .apply(FakeRequest(GET, s"/view-transfers"))
       val viewHistoryPageAsString = contentAsString(response)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewHistoryPageAsString, userType = "standard", consignmentExists = false)
@@ -73,7 +73,7 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      viewHistoryPageAsString must include("<h1 class=\"govuk-heading-l\">Transfer history</h1>")
+      viewHistoryPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
       viewHistoryPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
            |                  <th scope="col" class="govuk-table__header">Status</th>
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
@@ -89,10 +89,10 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
     "redirect to the login page if the page is accessed by a logged out user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-history"))
+        .apply(FakeRequest(GET, s"/view-transfers"))
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")

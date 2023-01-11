@@ -75,7 +75,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must include("""
-          |<a href="/view-history" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          |<a href="/view-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
           |    View transfers
           |</a>""".stripMargin)
     }
@@ -97,7 +97,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must include("""
-          |<a href="/view-history" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          |<a href="/view-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
           |    View transfers
           |</a>""".stripMargin)
     }
