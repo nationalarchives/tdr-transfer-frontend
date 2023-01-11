@@ -102,7 +102,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
           |</a>""".stripMargin)
     }
 
-    "render the homepage page without the view history button with an authenticated standard user" in {
+    "render the homepage page without the view transfers button with an authenticated standard user" in {
       val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, configuration)
       val userType = "standard"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
@@ -116,12 +116,12 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must not include
         """
-          |<a href="/view-history" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          |<a href="/view-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
           |    View transfers
           |</a>""".stripMargin
     }
 
-    "render the homepage page without the view history button with an authenticated judgment user" in {
+    "render the homepage page without the view transfers button with an authenticated judgment user" in {
       val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, configuration)
       val userType = "standard"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
@@ -135,7 +135,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must not include
         """
-          |<a href="/view-history" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          |<a href="/view-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
           |    View transfers
           |</a>""".stripMargin
     }

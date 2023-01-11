@@ -28,8 +28,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  "ViewHistoryController" should {
-    "render the view history page with list of user's consignments" in {
+  "ViewTransfersController" should {
+    "render the view transfers page with list of user's consignments" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       val consignments = setConsignmentsHistoryResponse(wiremockServer)
 
@@ -39,24 +39,24 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
-      val viewHistoryPageAsString = contentAsString(response)
+      val viewTransfersPageAsString = contentAsString(response)
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewHistoryPageAsString, userType = "standard", consignmentExists = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      viewHistoryPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
-      viewHistoryPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
+      viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
+      viewTransfersPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
            |                  <th scope="col" class="govuk-table__header">Status</th>
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
            |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
-      viewHistoryPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
+      viewTransfersPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
 
-      consignments.foreach(c => verifyConsignmentRow(viewHistoryPageAsString, c.node))
+      consignments.foreach(c => verifyConsignmentRow(viewTransfersPageAsString, c.node))
     }
 
-    "render the view history page with no consignments if the user doesn't have any consignments" in {
+    "render the view transfers page with no consignments if the user doesn't have any consignments" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentsHistoryResponse(wiremockServer, noConsignment = true)
 
@@ -66,20 +66,20 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
-      val viewHistoryPageAsString = contentAsString(response)
+      val viewTransfersPageAsString = contentAsString(response)
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewHistoryPageAsString, userType = "standard", consignmentExists = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      viewHistoryPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
-      viewHistoryPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
+      viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
+      viewTransfersPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
            |                  <th scope="col" class="govuk-table__header">Status</th>
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
            |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
-      viewHistoryPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
-      viewHistoryPageAsString must include(
+      viewTransfersPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
+      viewTransfersPageAsString must include(
         """              <tbody class="govuk-table__body">""" +
           "\n                " +
           "\n              </tbody>"
@@ -99,7 +99,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  def verifyConsignmentRow(viewHistoryPageAsString: String, node: Node): Unit = {
+  def verifyConsignmentRow(viewTransfersPageAsString: String, node: Node): Unit = {
 
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val exportDate = node.exportDatetime.map(_.format(formatter)).get
@@ -133,8 +133,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
          |                    <td class="govuk-table__cell">$exportDate</td>
          |                    <td class="govuk-table__cell"></td>
          |""".stripMargin
-    viewHistoryPageAsString must include(summary)
-    viewHistoryPageAsString must include(details)
-    viewHistoryPageAsString must include(statusAndDate)
+    viewTransfersPageAsString must include(summary)
+    viewTransfersPageAsString must include(details)
+    viewTransfersPageAsString must include(statusAndDate)
   }
 }
