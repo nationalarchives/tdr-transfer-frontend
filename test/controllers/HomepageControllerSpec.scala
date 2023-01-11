@@ -2,6 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, serverError, urlEqualTo}
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import configuration.GraphQLConfiguration
 import graphql.codegen.AddConsignment.addConsignment.{AddConsignment, Data, Variables}
 import play.api.test.CSRFTokenHelper._
@@ -25,6 +26,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
   lazy val consignmentService = new ConsignmentService(graphqlConfig)
 
   val wiremockServer = new WireMockServer(9006)
+  val configuration: Config = ConfigFactory.load()
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -43,7 +45,8 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       val controller = new HomepageController(
         getAuthorisedSecurityComponents,
         getValidKeycloakConfiguration,
-        consignmentService
+        consignmentService,
+        configuration
       )
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage"))
       val homepagePageAsString = contentAsString(homepagePage)
@@ -57,7 +60,10 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     }
 
     "render the homepage page with an authenticated standard user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService)
+      val config: Config = ConfigFactory
+        .load()
+        .withValue("featureAccessBlock.viewHistory", ConfigValueFactory.fromAnyRef("false"))
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, config)
       val userType = "standard"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)
@@ -68,10 +74,17 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must include("Upload your records to start a new transfer")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
+      homepagePageAsString must include("""
+          |<a href="/view-history" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          |    View transfers
+          |</a>""".stripMargin)
     }
 
     "render the judgment homepage page with an authenticated judgment user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService)
+      val config: Config = ConfigFactory
+        .load()
+        .withValue("featureAccessBlock.viewHistory", ConfigValueFactory.fromAnyRef("false"))
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, config)
       val userType = "judgment"
       val homepagePage = controller.judgmentHomepage().apply(FakeRequest(GET, s"/$userType/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)
@@ -83,10 +96,53 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must include("Upload your judgment to start a new transfer")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
+      homepagePageAsString must include(
+        """
+          |<a href="/view-history" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          |    View transfers
+          |</a>""".stripMargin)
+    }
+
+    "render the homepage page without the view history button with an authenticated standard user" in {
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, configuration)
+      val userType = "standard"
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
+      val homepagePageAsString = contentAsString(homepagePage)
+
+      status(homepagePage) mustBe OK
+      contentType(homepagePage) mustBe Some("text/html")
+
+      homepagePageAsString must include("Upload your records to start a new transfer")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
+      checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
+      homepagePageAsString must not include
+        """
+          |<a href="/view-history" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          |    View transfers
+          |</a>""".stripMargin
+    }
+
+    "render the homepage page without the view history button with an authenticated judgment user" in {
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, configuration)
+      val userType = "standard"
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
+      val homepagePageAsString = contentAsString(homepagePage)
+
+      status(homepagePage) mustBe OK
+      contentType(homepagePage) mustBe Some("text/html")
+
+      homepagePageAsString must include("Upload your records to start a new transfer")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
+      checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
+      homepagePageAsString must not include
+        """
+          |<a href="/view-history" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+          |    View transfers
+          |</a>""".stripMargin
     }
 
     "return a redirect to the judgment homepage page with an authenticated judgment user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService)
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, configuration)
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
 
       status(homepagePage) mustBe SEE_OTHER
@@ -94,7 +150,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to the standard homepage page with an authenticated standard user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService)
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, configuration)
       val homepagePage = controller.judgmentHomepage().apply(FakeRequest(GET, "/judgment/homepage").withCSRFToken)
 
       status(homepagePage) mustBe SEE_OTHER
@@ -102,14 +158,14 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect from the standard homepage to the auth server with an unauthenticated user" in {
-      val controller = new HomepageController(getUnauthorisedSecurityComponents, getValidKeycloakConfiguration, consignmentService)
+      val controller = new HomepageController(getUnauthorisedSecurityComponents, getValidKeycloakConfiguration, consignmentService, configuration)
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage"))
       redirectLocation(homepagePage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       status(homepagePage) mustBe FOUND
     }
 
     "return a redirect from the judgment homepage to the auth server with an unauthenticated user" in {
-      val controller = new HomepageController(getUnauthorisedSecurityComponents, getValidKeycloakConfiguration, consignmentService)
+      val controller = new HomepageController(getUnauthorisedSecurityComponents, getValidKeycloakConfiguration, consignmentService, configuration)
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/judgment/homepage"))
       redirectLocation(homepagePage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       status(homepagePage) mustBe FOUND
@@ -118,7 +174,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
   "HomepageController POST" should {
     "create a new consignment for a judgment user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService)
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, configuration)
 
       val consignmentId = UUID.fromString("6c5756a9-dd7a-437c-9396-33b227e53768")
       val addConsignment = AddConsignment(Option(consignmentId), None)
@@ -139,7 +195,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     }
 
     "show an error if the consignment couldn't be created" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService)
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, configuration)
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
           .willReturn(serverError())
@@ -155,14 +211,14 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = new HomepageController(getUnauthorisedSecurityComponents, getValidKeycloakConfiguration, consignmentService)
+      val controller = new HomepageController(getUnauthorisedSecurityComponents, getValidKeycloakConfiguration, consignmentService, configuration)
       val homepagePage = controller.homepage().apply(FakeRequest(POST, "/homepage").withCSRFToken)
       redirectLocation(homepagePage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       status(homepagePage) mustBe SEE_OTHER
     }
 
     "create a new consignment for a standard user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService)
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, configuration)
 
       val consignmentId = UUID.fromString("6c5756a9-dd7a-437c-9396-33b227e53768")
       val addConsignment = AddConsignment(Option(consignmentId), None)
