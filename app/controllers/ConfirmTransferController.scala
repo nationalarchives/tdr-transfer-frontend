@@ -31,8 +31,6 @@ class ConfirmTransferController @Inject() (
   implicit val language: Lang = langs.availables.head
   val finalTransferConfirmationForm: Form[FinalTransferConfirmationData] = Form(
     mapping(
-      "openRecords" -> boolean
-        .verifying("All records must be confirmed as open before proceeding", b => b),
       "transferLegalCustody" -> boolean
         .verifying("Transferral of legal custody of all records must be confirmed before proceeding", b => b)
     )(FinalTransferConfirmationData.apply)(FinalTransferConfirmationData.unapply)
@@ -131,4 +129,4 @@ class ConfirmTransferController @Inject() (
 
 case class ConsignmentSummaryData(seriesCode: String, transferringBody: String, totalFiles: Int, consignmentReference: String)
 
-case class FinalTransferConfirmationData(openRecords: Boolean, transferLegalCustody: Boolean)
+case class FinalTransferConfirmationData(transferLegalCustody: Boolean)

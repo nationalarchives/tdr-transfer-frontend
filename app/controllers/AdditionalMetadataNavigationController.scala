@@ -32,7 +32,7 @@ class AdditionalMetadataNavigationController @Inject() (
       .keys
       .toList
       .filter(_ != "csrfToken")
-      .map(UUID.fromString)
+      .map(p => UUID.fromString(p.substring("radios-list-".length)))
 
     if (fileIds.nonEmpty) {
       submitAndRedirectToNextPage(metadataType, fileIds, consignmentId)

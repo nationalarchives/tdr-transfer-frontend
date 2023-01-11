@@ -84,9 +84,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
           val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
 
-          content must include(getExpectedCheckboxHtml(parentId, "parent"))
-          content must include(getExpectedCheckboxHtml(descendantOneFileId, "descendantOneFile"))
-          content must include(getExpectedCheckboxHtml(descendantTwoFileId, "descendantTwoFile"))
+          content must include(getExpectedFolderHtml(parentId, "parent"))
+          content must include(getExpectedFolderHtml(descendantOneFileId, "descendantOneFile"))
+          content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile"))
         }
       }
 
@@ -122,7 +122,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "closure")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((fileId.toString, "checked")): _*)
+              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
               .withCSRFToken
           )
 
@@ -149,7 +149,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, metadataType(0))
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
+              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
@@ -167,7 +167,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "descriptive")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/")
-              .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
+              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
@@ -223,12 +223,33 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def getExpectedCheckboxHtml(id: UUID, label: String): String = {
+  private def getExpectedFolderHtml(id: UUID, label: String): String = {
     s"""
-        |<input class="govuk-checkboxes__input" name="$id" id="checkbox-$id" tabindex="-1" type="checkbox"/>
-        |        <label class="govuk-label govuk-checkboxes__label" for="checkbox-$id">
+        |<div class="tna-tree__node-item__container">
+        |        <button class="tna-tree__expander js-tree__expander--radios" tabindex="-1" id="radios-expander-$id">
+        |          <span class="govuk-visually-hidden">Expand</span>
+        |        </button>
+        |
+        |        <div class="js-radios-directory tna-radios-directory">
+        |          <span class="govuk-label tna-radios-directory__label">
+        |            <img class="tna-tree__svg-directory" role="img" src="/assets/images/folder.svg" alt="Directory">
+        |            $label
+        |          </span>
+        |        </div>
+        |      </div>
+        |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
+  }
+
+  private def getExpectedFileHtml(id: UUID, label: String): String = {
+    s"""
+        |<li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-$id" aria-level="3" aria-setsize="1" aria-posinset="0" aria-selected="false">
+        |      <div class="tna-tree__node-item__radio govuk-radios__item">
+        |        <span class="govuk-radios__input" aria-hidden="true" id="radio-$id" name="nested-navigation"></span>
+        |        <span class="govuk-label govuk-radios__label">
         |        $label
-        |        </label>
+        |        </span>
+        |      </div>
+        |    </li>
         |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
   }
 

@@ -6,55 +6,35 @@
 @(consignmentId: UUID, name: String, files: File, metadataType: String, displayError: Boolean = false)(implicit messages: Messages, request: RequestHeader)
 
 @display(file: File, level: Int, size: Int, pos: Int) = {
-  @if(file.fileType.contains("File") || file.children.isEmpty) {
-    <li
-    class="govuk-tna-tree__item"
-    role="treeitem"
-    id="@file.id"
-    aria-level="@level"
-    aria-setsize="@size"
-    aria-posinset="@pos"
-    aria-selected="false"
-    >
-      <div class="govuk-checkboxes__item">
-        <input class="govuk-checkboxes__input" name="@file.id" id="checkbox-@file.id" tabindex="-1" type="checkbox" />
-        <label class="govuk-label govuk-checkboxes__label" for="checkbox-@file.id">
-          @file.name
-        </label>
+  @if(file.fileType.contains("File")) {
+    <li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-@file.id" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" aria-selected="false">
+      <div class="tna-tree__node-item__radio govuk-radios__item">
+        <span class="govuk-radios__input" aria-hidden="true" id="radio-@file.id" name="nested-navigation"></span>
+        <span class="govuk-label govuk-radios__label">
+        @file.name
+        </span>
       </div>
     </li>
   } else {
-  <li
-  class="govuk-tna-tree__node-item"
-  role="treeitem"
-  id="@file.id"
-  aria-expanded="true"
-  aria-selected="false"
-  aria-level="@level"
-  aria-setsize="@size"
-  aria-posinset="@pos"
-  >
-    <div class="govuk-tna-tree__node-item__container">
-      <button
-      class="govuk-tna-tree__expander"
-      tabindex="-1"
-      id="expander-@file.id"
-      >
-        <span class="govuk-visually-hidden">Expand</span>
-      </button>
-      <div class="govuk-checkboxes__item">
-        <input class="govuk-checkboxes__input" name="@file.id" id="checkbox-@file.id" tabindex="-1" type="checkbox" />
-        <label class="govuk-label govuk-checkboxes__label" for="checkbox-@file.id">
-          @file.name
-        </label>
+    <li class="tna-tree__node-item-radios" role="treeitem" id="radios-list-@file.id" aria-expanded="true" aria-selected="false" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" tabindex="0">
+      <div class="tna-tree__node-item__container">
+        <button class="tna-tree__expander js-tree__expander--radios" tabindex="-1" id="radios-expander-@file.id">
+          <span class="govuk-visually-hidden">Expand</span>
+        </button>
+
+        <div class="js-radios-directory tna-radios-directory">
+          <span class="govuk-label tna-radios-directory__label">
+            <img class="tna-tree__svg-directory" role="img" src="@routes.Assets.versioned("images/folder.svg")" alt="Directory">
+            @file.name
+          </span>
+        </div>
       </div>
-    </div>
-    <ul class="govuk-tna-tree__nested-item-list" role="group" id="node-group-@file.id">
-      @for((child, idx) <- file.children.zipWithIndex) {
-        @display(child, level + 1, file.children.length, idx)
-      }
-    </ul>
-  </li>
+      <ul class="tna-tree__nested-list tna-tree__nested-list--radios" role="group" id="radios-node-group-@file.id">
+        @for((child, idx) <- file.children.zipWithIndex) {
+          @display(child, level + 1, file.children.length, idx)
+        }
+      </ul>
+    </li>
   }
 }
 @error = {
@@ -85,9 +65,9 @@
           <button class="govuk-button" type="submit" role="button" draggable="false">
             Add or Edit Metadata
           </button>
-          <div class="govuk-tna-tree" id="file-selection">
-            <ul tabindex="0" class="govuk-tna-tree__nested-item-list" role="tree" aria-multiselectable="true">
-            @display(files, 1, files.children.length, 0)
+          <div class="tna-tree" id="file-selection">
+            <ul tabindex="0" class="tna-tree__root-list" id="radio-tree" role="tree">
+              @display(files, 1, files.children.length, 0)
             </ul>
           </div>
         <div class="govuk-button-group">
