@@ -38,6 +38,11 @@ class HomepageControllerSpec extends FrontEndTestHelper {
   }
 
   val checkPageForStaticElements = new CheckPageForStaticElements
+  val viewTransferButton: String =
+    """
+      |<a href="/view-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+      |    View transfers
+      |</a>""".stripMargin
 
   "HomepageController GET" should {
 
@@ -60,10 +65,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     }
 
     "render the homepage page with an authenticated standard user" in {
-      val config: Config = ConfigFactory
-        .load()
-        .withValue("featureAccessBlock.viewTransfers", ConfigValueFactory.fromAnyRef("false"))
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, config)
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, configuration)
       val userType = "standard"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)
@@ -74,17 +76,11 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must include("Upload your records to start a new transfer")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
-      homepagePageAsString must include("""
-          |<a href="/view-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-          |    View transfers
-          |</a>""".stripMargin)
+      homepagePageAsString must include(viewTransferButton)
     }
 
     "render the judgment homepage page with an authenticated judgment user" in {
-      val config: Config = ConfigFactory
-        .load()
-        .withValue("featureAccessBlock.viewTransfers", ConfigValueFactory.fromAnyRef("false"))
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, config)
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, configuration)
       val userType = "judgment"
       val homepagePage = controller.judgmentHomepage().apply(FakeRequest(GET, s"/$userType/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)
@@ -96,14 +92,14 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must include("Upload your judgment to start a new transfer")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
-      homepagePageAsString must include("""
-          |<a href="/view-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-          |    View transfers
-          |</a>""".stripMargin)
+      homepagePageAsString must not include viewTransferButton
     }
 
     "render the homepage page without the view transfers button with an authenticated standard user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, configuration)
+      val config: Config = ConfigFactory
+        .load()
+        .withValue("featureAccessBlock.viewTransfers", ConfigValueFactory.fromAnyRef("true"))
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, config)
       val userType = "standard"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)
@@ -114,15 +110,14 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must include("Upload your records to start a new transfer")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
-      homepagePageAsString must not include
-        """
-          |<a href="/view-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-          |    View transfers
-          |</a>""".stripMargin
+      homepagePageAsString must not include viewTransferButton
     }
 
     "render the homepage page without the view transfers button with an authenticated judgment user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, configuration)
+      val config: Config = ConfigFactory
+        .load()
+        .withValue("featureAccessBlock.viewTransfers", ConfigValueFactory.fromAnyRef("true"))
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, config)
       val userType = "standard"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)
@@ -133,11 +128,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       homepagePageAsString must include("Upload your records to start a new transfer")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
-      homepagePageAsString must not include
-        """
-          |<a href="/view-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-          |    View transfers
-          |</a>""".stripMargin
+      homepagePageAsString must not include viewTransferButton
     }
 
     "return a redirect to the judgment homepage page with an authenticated judgment user" in {

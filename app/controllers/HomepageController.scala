@@ -46,7 +46,7 @@ class HomepageController @Inject() (
   def judgmentHomepage(): Action[AnyContent] = secureAction { implicit request: Request[AnyContent] =>
     {
       if (request.token.isJudgmentUser) {
-        Ok(views.html.judgment.judgmentHomepage(request.token.name, blockViewTransfers))
+        Ok(views.html.judgment.judgmentHomepage(request.token.name, blockViewTransfers = true))
       } else if (request.token.isStandardUser) {
         Redirect(routes.HomepageController.homepage())
       } else {
