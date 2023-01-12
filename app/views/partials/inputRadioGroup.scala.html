@@ -66,7 +66,7 @@
 </div>
 
 @displayText(formId: String, inputValue: String, textField: TextField) = {
-    <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="conditional-@formFieldId-@inputValue">
+    <div class="govuk-radios__conditional" id="conditional-@formFieldId-@inputValue">
         <div class="govuk-form-group">
             <label class="govuk-label" for="@formFieldId-@textField.fieldId-@inputValue">
                 @textField.fieldName
