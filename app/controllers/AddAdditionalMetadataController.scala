@@ -15,6 +15,7 @@ import play.api.cache._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import viewsapi.Caching.preventCaching
 
 import java.sql.Timestamp
 import java.time.{LocalDate, LocalDateTime, LocalTime}
@@ -51,7 +52,7 @@ class AddAdditionalMetadataController @Inject() (
         Ok(
           views.html.standard
             .addAdditionalMetadata(consignmentId, consignment.consignmentReference, metadataType, updatedFormFields, request.token.name, consignment.files.toFiles)
-        )
+        ).uncache()
       }
   }
 
@@ -74,7 +75,7 @@ class AddAdditionalMetadataController @Inject() (
               metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
             } yield {
               val files = consignment.files.toFiles
-              Ok(
+              BadRequest(
                 views.html.standard
                   .addAdditionalMetadata(
                     consignmentId,
@@ -84,7 +85,7 @@ class AddAdditionalMetadataController @Inject() (
                     request.token.name,
                     files
                   )
-              )
+              ).uncache()
             }
           } else {
             updateMetadata(updatedFormFields, consignmentId, fileIds, metadataType).map(_ => {
