@@ -75,7 +75,7 @@ class AddAdditionalMetadataController @Inject() (
               metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
             } yield {
               val files = consignment.files.toFiles
-              Ok(
+              BadRequest(
                 views.html.standard
                   .addAdditionalMetadata(
                     consignmentId,
