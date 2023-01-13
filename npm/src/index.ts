@@ -17,14 +17,25 @@ export interface IFrontEndInfo {
 
 export const hideConditionalElements: () => void = () => {
   // We display all conditional elements by default if JavaScript is disabled; if it's enabled, then we'll hide them.
-  const conditionalElements: NodeListOf<Element> = document.querySelectorAll(
-    ".govuk-radios__conditional"
-  )
-
-  if (conditionalElements) {
-    conditionalElements.forEach((e) =>
-      e.classList.add("govuk-radios__conditional--hidden")
+  const classNameAndConditionalElements: {
+    [className: string]: NodeListOf<Element>
+  } = {
+    "govuk-radios__conditional": document.querySelectorAll(
+      ".govuk-radios__conditional"
+    ),
+    "govuk-checkboxes__conditional": document.querySelectorAll(
+      ".govuk-checkboxes__conditional"
     )
+  }
+
+  for (const [className, conditionalElements] of Object.entries(
+    classNameAndConditionalElements
+  )) {
+    if (conditionalElements) {
+      conditionalElements.forEach((conditionalElement) =>
+        conditionalElement.classList.add(`${className}--hidden`)
+      )
+    }
   }
 }
 
