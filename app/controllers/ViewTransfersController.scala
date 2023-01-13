@@ -13,26 +13,26 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
 
-class ViewHistoryController @Inject() (val consignmentService: ConsignmentService, val keycloakConfiguration: KeycloakConfiguration, val controllerComponents: SecurityComponents)
+class ViewTransfersController @Inject() (val consignmentService: ConsignmentService, val keycloakConfiguration: KeycloakConfiguration, val controllerComponents: SecurityComponents)
     extends TokenSecurity {
   def viewConsignments(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val consignmentFilters = ConsignmentFilters(Some(request.token.userId), None)
     for {
-      consignmentHistory <- consignmentService.getConsignments(consignmentFilters, request.token.bearerAccessToken)
-      consignments = consignmentHistory.edges match {
+      consignmentTransfers <- consignmentService.getConsignments(consignmentFilters, request.token.bearerAccessToken)
+      consignments = consignmentTransfers.edges match {
         case Some(edges) => edges.flatMap(createView)
         case None        => Nil
       }
     } yield {
-      Ok(views.html.viewHistory(consignments, request.token.name, request.token.email))
+      Ok(views.html.viewTransfers(consignments, request.token.name, request.token.email))
     }
   }
 
-  private def createView(edges: Option[Edges]): Option[ConsignmentHistory] = {
+  private def createView(edges: Option[Edges]): Option[ConsignmentTransfers] = {
 
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     edges.map(edges =>
-      ConsignmentHistory(
+      ConsignmentTransfers(
         edges.node.consignmentid,
         edges.node.consignmentReference,
         getConsignmentStatus(edges.node.currentStatus),
@@ -48,4 +48,4 @@ class ViewHistoryController @Inject() (val consignmentService: ConsignmentServic
   }
 }
 
-case class ConsignmentHistory(consignmentId: Option[UUID], reference: String, status: String, dateOfExport: String, dateStarted: String, numberOfFiles: Int)
+case class ConsignmentTransfers(consignmentId: Option[UUID], reference: String, status: String, dateOfExport: String, dateStarted: String, numberOfFiles: Int)
