@@ -1,6 +1,7 @@
 @import views.html.helper.CSRF
 @import views.html.helper.form
-@(name: String)(implicit messages: Messages, request: RequestHeader)
+@import views.html.partials.viewTransfersBtn
+@(name: String, blockViewTransfers: Boolean)(implicit messages: Messages, request: RequestHeader)
 
 @main("Welcome", name = name, isJudgmentUser = true) {
   <div class="govuk-grid-row">
@@ -23,6 +24,9 @@
             Start transfer
           </button>
         </div>
+        @if(!blockViewTransfers){
+          @viewTransfersBtn()
+        }
       }
     </div>
   </div>
