@@ -23,6 +23,7 @@ import graphql.codegen.GetConsignments.{getConsignments => gc}
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
+import graphql.codegen.GetDisplayProperties.{displayProperties => dp}
 import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import io.circe.Printer
@@ -133,7 +134,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         gcfm.GetConsignment.Files.FileMetadata("DescriptionClosed", "true"),
         gcfm.GetConsignment.Files.FileMetadata("TitleAlternate", "inputtext-TitleAlternate-TitleAlternate value"),
         gcfm.GetConsignment.Files.FileMetadata("DescriptionAlternate", "inputtext-DescriptionAlternate-DescriptionAlternate value"),
-        gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path")
+        gcfm.GetConsignment.Files.FileMetadata("ClientSideOriginalFilepath", "original/file/path"),
+        gcfm.GetConsignment.Files.FileMetadata("description", "a previously added description"),
+        gcfm.GetConsignment.Files.FileMetadata("Language", "Welsh")
       )
     } else {
       Nil
@@ -214,8 +217,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  def setDeleteFileMetadataResponse(config: Configuration, wiremockServer: WireMockServer, fileIds: List[UUID] = List(), filePropertyNames: List[String] = List()): StubMapping = {
-    val client = new GraphQLConfiguration(config).getClient[dfm.Data, dfm.Variables]()
+  def setDeleteFileMetadataResponse(wiremockServer: WireMockServer, fileIds: List[UUID] = List(), filePropertyNames: List[String] = List()): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[dfm.Data, dfm.Variables]()
     val deleteFileMetadataResponse = dfm.Data(DeleteFileMetadata(fileIds, filePropertyNames))
     val data: client.GraphqlData = client.GraphqlData(Some(deleteFileMetadataResponse))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
@@ -326,7 +329,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
   def setCustomMetadataResponse(wiremockServer: WireMockServer): Unit = {
     val client: GraphQLClient[cm.Data, cm.Variables] = new GraphQLConfiguration(app.configuration).getClient[cm.Data, cm.Variables]()
-    val customMetadataResponse: cm.Data = getDataObject
+    val customMetadataResponse: cm.Data = getCustomMetadataDataObject
     val data: client.GraphqlData = client.GraphqlData(Some(customMetadataResponse))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
@@ -337,7 +340,133 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  private def getDataObject = {
+  def setDisplayPropertiesResponse(wiremockServer: WireMockServer): Unit = {
+    val client: GraphQLClient[dp.Data, dp.Variables] = new GraphQLConfiguration(app.configuration).getClient[dp.Data, dp.Variables]()
+    val displayPropertiesResponse: dp.Data = getDisplayPropertiesDataObject
+    val data: client.GraphqlData = client.GraphqlData(Some(displayPropertiesResponse))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("displayProperties"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
+  private def getDisplayPropertiesDataObject: dp.Data = {
+    dp.Data(
+      List(
+        dp.DisplayProperties(
+          "description",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("ComponentType", Some("large text"), Text),
+            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("This description will be visible on Discovery and help explain the content of your file(s)."), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Description"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("1"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "Language",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("ComponentType", Some("select"), Text),
+            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("Choose one or more languages used in this record."), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Language"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("1"), Text),
+            dp.DisplayProperties.Attributes("Guidance", Some("Search for languages"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "ClosureType",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "FoiExemptionCode",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+            dp.DisplayProperties.Attributes(
+              "Description",
+              Some(
+                "Add one or more exemption code to this closure. Here is a <a target=\"_blank\" href=\"https://www.legislation.gov.uk/ukpga/2000/36/contents\">full list of FOI codes an\nd their designated exemptions</a>"
+              ),
+              Text
+            ),
+            dp.DisplayProperties.Attributes("Name", Some("FOI exemption code(s)"), Text),
+            dp.DisplayProperties.Attributes("Guidance", Some("Search for FOI Exemption codes"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "ClosurePeriod",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("integer"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("Number of years the record is closed from the closure start date"), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Closure Period"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("15"), Integer),
+            dp.DisplayProperties.Attributes("UnitType", Some("Years"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "ClosureStartDate",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("datetime"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Closure Start Date"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+            dp.DisplayProperties.Attributes("Guidance", Some("dd|mm|yyyy"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          )
+        ),
+        dp.DisplayProperties(
+          "TitleClosed",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("boolean"), Text),
+            dp.DisplayProperties.Attributes("ComponentType", Some("radial"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("Is the title closed?"), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Is the title closed?"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Label", Some("Yes|No, this title can be made public"), Text),
+            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("25"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          )
+        )
+      )
+    )
+  }
+
+  private def getCustomMetadataDataObject: cm.Data = {
     cm.Data(
       List(
         cm.CustomMetadata(
@@ -488,6 +617,21 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           List(Values("mock code1", List(), 1), Values("mock code2", List(), 2)),
           None,
           allowExport = false
+        ),
+        cm.CustomMetadata(
+          "Language",
+          None,
+          Some("Language"),
+          Defined,
+          Some("OptionalMetadata"),
+          Text,
+          editable = false,
+          multiValue = true,
+          Some("English"),
+          2,
+          List(Values("English", List(), 1), Values("Welsh", List(), 2)),
+          None,
+          allowExport = true
         )
       )
     )
@@ -700,3 +844,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     }
   }
 }
+
+case class GetConsignmentFilesMetadataGraphqlRequestData(query: String, variables: gcfm.Variables)
+case class AddBulkFileMetadataGraphqlRequestData(query: String, variables: abfm.Variables)
+case class DeleteFileMetadataGraphqlRequestData(query: String, variables: dfm.Variables)

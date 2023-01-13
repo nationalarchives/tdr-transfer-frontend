@@ -1,6 +1,7 @@
 package controllers.util
 
 import controllers.util.FormField._
+import org.apache.commons.lang3.NotImplementedException
 
 import java.time.{LocalDateTime, Year}
 import scala.util.control.Exception.allCatch
@@ -11,6 +12,7 @@ abstract class FormField {
   val fieldDescription: String
   val multiValue: Boolean
   val isRequired: Boolean
+  val hideInputs: Boolean = false
   val fieldErrors: List[String]
 }
 
@@ -20,10 +22,13 @@ case class RadioButtonGroupField(
     fieldId: String,
     fieldName: String,
     fieldDescription: String,
+    additionalInfo: String,
     multiValue: Boolean,
     options: Seq[InputNameAndValue],
     selectedOption: String,
     isRequired: Boolean,
+    override val hideInputs: Boolean = false,
+    dependencies: Map[String, List[FormField]] = Map.empty,
     fieldErrors: List[String] = Nil
 ) extends FormField
 
@@ -35,7 +40,22 @@ case class TextField(
     nameAndValue: InputNameAndValue,
     inputMode: String,
     isRequired: Boolean,
-    fieldErrors: List[String] = Nil
+    fieldErrors: List[String] = Nil,
+    addSuffixText: Boolean = true,
+    inputType: String = "number"
+) extends FormField
+
+case class TextAreaField(
+    fieldId: String,
+    fieldName: String,
+    fieldDescription: String,
+    multiValue: Boolean,
+    nameAndValue: InputNameAndValue,
+    isRequired: Boolean,
+    fieldErrors: List[String] = Nil,
+    rows: String = "5",
+    wrap: String = "hard",
+    characterLimit: Int = 8000
 ) extends FormField
 
 case class DropdownField(
@@ -45,6 +65,17 @@ case class DropdownField(
     multiValue: Boolean,
     options: Seq[InputNameAndValue],
     selectedOption: Option[InputNameAndValue],
+    isRequired: Boolean,
+    fieldErrors: List[String] = Nil
+) extends FormField
+
+case class MultiSelectField(
+    fieldId: String,
+    fieldName: String,
+    fieldDescription: String,
+    multiValue: Boolean = true,
+    options: Seq[InputNameAndValue],
+    selectedOption: Option[List[InputNameAndValue]],
     isRequired: Boolean,
     fieldErrors: List[String] = Nil
 ) extends FormField
@@ -76,33 +107,77 @@ object FormField {
   val futureDateError = "%s date cannot be a future date."
   val radioOptionNotSelectedError = "There was no value selected for %s."
   val invalidRadioOptionSelectedError = "Option '%s' was not an option provided to the user."
+  val tooLongInputError = "%s must be %s characters or less"
+
+  def inputModeToFieldType(inputMode: String): String = {
+    if (inputMode.equals("numeric")) "number" else "text"
+  }
 }
 
 object RadioButtonGroupField {
 
-  def validate(option: String, radioButtonGroupField: RadioButtonGroupField): Option[String] =
-    option match {
+  def validate(option: String, dependencies: Map[String, String], radioButtonGroupField: RadioButtonGroupField): List[String] = {
+    val optionErrors = option match {
       case ""                                                               => Some(radioOptionNotSelectedError.format(radioButtonGroupField.fieldName))
       case value if !radioButtonGroupField.options.exists(_.value == value) => Some(invalidRadioOptionSelectedError.format(value))
       case _                                                                => None
     }
+    def dependenciesError: Option[String] = radioButtonGroupField.dependencies
+      .get(option)
+      .flatMap(_.flatMap {
+        case textField: TextField => TextField.validate(dependencies(textField.fieldId), textField)
+        case formField: FormField => throw new NotImplementedException(s"Implement for ${formField.fieldId}")
+      }.headOption)
+
+    optionErrors.orElse(dependenciesError).map(List(_)).getOrElse(Nil)
+  }
 
   def update(radioButtonGroupField: RadioButtonGroupField, value: Boolean): RadioButtonGroupField =
     radioButtonGroupField.copy(selectedOption = if (value) "yes" else "no")
+
+  def update(radioButtonGroupField: RadioButtonGroupField, selectedOption: String, dependencies: Map[String, String]): RadioButtonGroupField = {
+
+    if (dependencies.nonEmpty) {
+      val updatedDependencies = radioButtonGroupField
+        .dependencies(selectedOption)
+        .map { case textField: TextField => TextField.update(textField, dependencies(textField.fieldId)) }
+      radioButtonGroupField.copy(
+        selectedOption = selectedOption,
+        dependencies = radioButtonGroupField.dependencies + (selectedOption -> updatedDependencies)
+      )
+    } else {
+      radioButtonGroupField.copy(selectedOption = selectedOption)
+    }
+  }
+}
+
+object MultiSelectField {
+
+  def validate(selectedOptions: Seq[String], multiSelectField: MultiSelectField): Option[String] =
+    selectedOptions match {
+      case Nil                                                                      => Some(dropdownOptionNotSelectedError.format(multiSelectField.fieldName))
+      case values if !values.forall(multiSelectField.options.map(_.value).contains) => Some(invalidDropdownOptionSelectedError.format(values.mkString(", ")))
+      case _                                                                        => None
+    }
+
+  def update(multiSelectField: MultiSelectField, selectedValues: Seq[String]): MultiSelectField = {
+    val selectedOptions: List[InputNameAndValue] = multiSelectField.options.filter(v => selectedValues.contains(v.value)).toList
+    multiSelectField.copy(selectedOption = Some(selectedOptions))
+  }
 }
 
 object DropdownField {
 
-  def validate(option: String, dropdownField: DropdownField): Option[String] =
-    option match {
-      case ""                                                       => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
-      case value if !dropdownField.options.exists(_.value == value) => Some(invalidDropdownOptionSelectedError.format(value))
-      case _                                                        => None
+  def validate(selectedOption: Option[String], dropdownField: DropdownField): Option[String] =
+    selectedOption match {
+      case None                                                           => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
+      case Some(value) if !dropdownField.options.exists(_.value == value) => Some(invalidDropdownOptionSelectedError.format(value))
+      case _                                                              => None
     }
 
-  def update(dropdownField: DropdownField, value: String): DropdownField = {
-    val optionSelected: Option[InputNameAndValue] = if (value.isEmpty) None else Some(InputNameAndValue(value, value))
-    dropdownField.copy(selectedOption = optionSelected)
+  def update(dropdownField: DropdownField, selectedValue: Option[String]): DropdownField = {
+    val selectedOption: Option[InputNameAndValue] = dropdownField.options.find(v => selectedValue.contains(v.value))
+    dropdownField.copy(selectedOption = selectedOption)
   }
 }
 
@@ -110,7 +185,7 @@ object TextField {
 
   def validate(text: String, textField: TextField): Option[String] =
     if (text == "") {
-      val fieldType: String = if (textField.inputMode.equals("numeric")) "number" else "text"
+      val fieldType: String = inputModeToFieldType(textField.inputMode)
       Some(emptyValueError.format(fieldType, textField.fieldName))
     } else if (textField.inputMode.equals("numeric")) {
       val inputName = textField.nameAndValue.name
@@ -124,6 +199,19 @@ object TextField {
     }
 
   def update(textField: TextField, value: String): TextField = textField.copy(nameAndValue = textField.nameAndValue.copy(value = value))
+}
+
+object TextAreaField {
+  def update(textAreaField: TextAreaField, value: String): TextAreaField = textAreaField.copy(nameAndValue = textAreaField.nameAndValue.copy(value = value))
+
+  def validate(text: String, textAreaField: TextAreaField): Option[String] = {
+
+    text match {
+      case t if t == "" && textAreaField.isRequired           => Some(emptyValueError.format("text", textAreaField.fieldName))
+      case t if t.length > textAreaField.characterLimit.toInt => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
+      case _                                                  => None
+    }
+  }
 }
 
 object DateField {

@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import graphql.codegen.types.FileFilters
+import controllers.util.MetadataProperty.fileType
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache.AsyncCacheApi
 import play.api.mvc.{Action, AnyContent, Request, Result}
@@ -32,7 +32,7 @@ class AdditionalMetadataNavigationController @Inject() (
       .keys
       .toList
       .filter(_ != "csrfToken")
-      .map(UUID.fromString)
+      .map(p => UUID.fromString(p.substring("radios-list-".length)))
 
     if (fileIds.nonEmpty) {
       submitAndRedirectToNextPage(metadataType, fileIds, consignmentId)
@@ -45,20 +45,18 @@ class AdditionalMetadataNavigationController @Inject() (
 
   def submitAndRedirectToNextPage(metadataType: String, fileIds: List[UUID], consignmentId: UUID)(implicit request: Request[AnyContent]): Future[Result] = {
     if (metadataType == "closure") {
-      val fileFilters = FileFilters(None, Option(fileIds), None, None)
       consignmentService
-        .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(fileFilters))
+        .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds), Some(List(fileType)))
         .map(consignment => {
           val areAllClosed = consignmentService.areAllFilesClosed(consignment)
           if (areAllClosed) {
-            Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, metadataType, fileIds))
+            Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds))
           } else {
             Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, metadataType, fileIds))
           }
         })
     } else {
-      // This is a placeholder; need to remove it once we have Descriptive metadata
-      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, List(""))))
+      Future(Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)))
     }
   }
 

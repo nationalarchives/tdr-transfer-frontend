@@ -1,13 +1,17 @@
 package controllers
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
+import controllers.util.MetadataProperty.fileType
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
+import graphql.codegen.types.FileMetadataFilters
 import io.circe.Printer
 import io.circe.generic.auto._
+import io.circe.parser.decode
 import io.circe.syntax._
 import org.scalatest.Assertion
 import play.api.Play.materializer
@@ -16,10 +20,11 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, POST, contentAsString, defaultAwaitTimeout, redirectLocation, status => playStatus}
 import services.ConsignmentService
-import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, GetConsignmentFilesMetadataGraphqlRequestData}
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
@@ -51,12 +56,14 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
           val content = contentAsString(result)
 
-          content.contains(s"Add or edit $metadataType metadata on file basis") must be(true)
-          content.contains(s"Folder uploaded: ${parentFile.fileName.get}") must be(true)
-          content.contains("Select at least one file or folder") must be(false)
-          content.contains(s"""<a href="/consignment/$consignmentId/additional-metadata" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+          content must include(s"Add or edit $metadataType metadata on file basis")
+          content must include(s"Folder uploaded: ${parentFile.fileName.get}")
+          content must not include ("Select at least one file or folder")
+          content must include(
+            s"""<a href="/consignment/$consignmentId/additional-metadata" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
             |          Back
-            |          </a>""".stripMargin) must be(true)
+            |          </a>""".stripMargin
+          )
           if (metadataType == "closure") getExpectedClosureHtml(content: String)
         }
 
@@ -77,9 +84,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
           val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
 
-          content.contains(getExpectedCheckboxHtml(parentId, "parent")) must equal(true)
-          content.contains(getExpectedCheckboxHtml(descendantOneFileId, "descendantOneFile")) must equal(true)
-          content.contains(getExpectedCheckboxHtml(descendantTwoFileId, "descendantTwoFile")) must equal(true)
+          content must include(getExpectedFolderHtml(parentId, "parent"))
+          content must include(getExpectedFolderHtml(descendantOneFileId, "descendantOneFile"))
+          content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile"))
         }
       }
 
@@ -108,18 +115,28 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       "redirect to the closure status page with the correct file ids and closure metadata type if the files are not already closed" in {
         val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
         val consignmentService = mockConsignmentService(files, "standard")
-        val fileId = UUID.randomUUID().toString
+        val fileId = UUID.randomUUID()
         val additionalMetadataController =
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
+              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
               .withCSRFToken
           )
+
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}/?fileIds=$fileId")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}?fileIds=$fileId")
+
+        val events = wiremockServer.getAllServeEvents
+        val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
+        val request: GetConsignmentFilesMetadataGraphqlRequestData = decode[GetConsignmentFilesMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+          .getOrElse(GetConsignmentFilesMetadataGraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+
+        val input = request.variables.fileFiltersInput
+        input.get.selectedFileIds mustBe List(fileId).some
+        input.get.metadataFilters mustBe FileMetadataFilters(Some(true), None, Some(List(fileType))).some
       }
 
       "redirect to the closure metadata page with the correct file ids and closure metadata type if the files are already closed" in {
@@ -132,12 +149,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, metadataType(0))
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
+              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
         redirectLocation(result).get must equal(
-          s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}/?propertyNameAndFieldSelected=ClosureType-Closed&fileIds=$fileId"
+          s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}?fileIds=$fileId"
         )
       }
 
@@ -150,11 +167,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "descriptive")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/")
-              .withFormUrlEncodedBody(Seq((fileId, "checked")): _*)
+              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
-        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/descriptive?fileIds=$fileId&metadataTypeAndValueSelected=")
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/add/descriptive?fileIds=$fileId")
       }
 
       "redirect to the file navigation page with an error message if a user submits the page without selecting any files and folders" in {
@@ -164,11 +181,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure").withCSRFToken)
 
         playStatus(result) must equal(BAD_REQUEST)
         val content = contentAsString(result)
-        content.contains(
+        content must include(
           """    <div class="govuk-error-summary govuk-!-margin-bottom-4" data-module="govuk-error-summary">
             |      <div role="alert">
             |        <h2 class="govuk-error-summary__title">There is a problem</h2>
@@ -181,7 +198,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             |        </div>
             |      </div>
             |    </div>""".stripMargin
-        ) must be(true)
+        )
       }
 
       "return forbidden for a judgment user" in {
@@ -190,7 +207,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure/").withCSRFToken)
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure").withCSRFToken)
         playStatus(result) must equal(FORBIDDEN)
       }
 
@@ -206,21 +223,42 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def getExpectedCheckboxHtml(id: UUID, label: String): String = {
+  private def getExpectedFolderHtml(id: UUID, label: String): String = {
     s"""
-        |<input class="govuk-checkboxes__input" name="$id" id="checkbox-$id" tabindex="-1" type="checkbox"/>
-        |        <label class="govuk-label govuk-checkboxes__label" for="checkbox-$id">
+        |<div class="tna-tree__node-item__container">
+        |        <button class="tna-tree__expander js-tree__expander--radios" tabindex="-1" id="radios-expander-$id">
+        |          <span class="govuk-visually-hidden">Expand</span>
+        |        </button>
+        |
+        |        <div class="js-radios-directory tna-radios-directory">
+        |          <span class="govuk-label tna-radios-directory__label">
+        |            <img class="tna-tree__svg-directory" role="img" src="/assets/images/folder.svg" alt="Directory">
+        |            $label
+        |          </span>
+        |        </div>
+        |      </div>
+        |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
+  }
+
+  private def getExpectedFileHtml(id: UUID, label: String): String = {
+    s"""
+        |<li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-$id" aria-level="3" aria-setsize="1" aria-posinset="0" aria-selected="false">
+        |      <div class="tna-tree__node-item__radio govuk-radios__item">
+        |        <span class="govuk-radios__input" aria-hidden="true" id="radio-$id" name="nested-navigation"></span>
+        |        <span class="govuk-label govuk-radios__label">
         |        $label
-        |        </label>
+        |        </span>
+        |      </div>
+        |    </li>
         |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
   }
 
   private def getExpectedClosureHtml(htmlContent: String): Assertion = {
-    htmlContent.contains(s"""
+    htmlContent must include(s"""
        |        <div class="govuk-inset-text govuk-!-margin-top-0">
        |            Once you have added all necessary closure metadata return to the <a href="/consignment/$consignmentId/additional-metadata">previous page</a> to add descriptive metadata or continue with the transfer.
        |        </div>
-       |""".stripMargin) must be(true)
+       |""".stripMargin)
   }
 
   private def mockConsignmentService(files: List[gcf.GetConsignment.Files], consignmentType: String, allClosed: Boolean = false) = {

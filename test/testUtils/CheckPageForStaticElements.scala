@@ -77,7 +77,6 @@ class CheckPageForStaticElements() {
         page must include("TEST-TDR-2021-GB")
 
         if (transferStillInProgress) {
-          page must include("""<span class="govuk-caption-l">progressIndicator.step</span>""")
           page must include("Consignment reference")
         }
       }

@@ -1,5 +1,5 @@
 import { KeycloakInstance } from "keycloak-js"
-import { renderModules } from "../src/index"
+import { hideConditionalElements, renderModules } from "../src/index"
 
 jest.mock("../src/auth")
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
@@ -16,6 +16,25 @@ const getFrontEndInfoHtml: () => string = () => {
     <input type="hidden" class="upload-url"
   `.toString()
 }
+
+test("hideConditionalElements hides elements that have a 'conditional' class", () => {
+  document.body.innerHTML = `
+    <div class="govuk-radios__conditional">element1 with conditional class</div>
+    <div>element2 with no conditional class</div>
+    <div class="govuk-radios__conditional">element3 with conditional class</div>
+  `
+
+  hideConditionalElements()
+
+  const conditionalElements: NodeListOf<Element> = document.querySelectorAll(
+    ".govuk-radios__conditional"
+  )
+
+  expect(conditionalElements.length).toBe(2)
+  conditionalElements.forEach((e) =>
+    expect(e.classList.contains("govuk-radios__conditional--hidden")).toBe(true)
+  )
+})
 
 test("renderModules calls authorisation when upload form present on page", async () => {
   const keycloakInstance = getKeycloakInstance as jest.Mock
@@ -115,4 +134,36 @@ test("renderModules does not call authorisation when dialog box is not present o
   expect(keycloakInstance).toBeCalledTimes(0)
 
   keycloakInstance.mockRestore()
+})
+
+test("renderModules should initialise the multi-select search module if the tna-multi-select-search element is present on the page", async () => {
+  const keycloakInstance = getKeycloakInstance as jest.Mock
+  keycloakInstance.mockImplementation(() => Promise.resolve(mockKeycloak))
+
+  document.body.innerHTML =
+    `
+    <div class="tna-multi-select-search" data-module="multi-select-search">
+        <div class="tna-multi-select-search" data-module="multi-select-search">
+            <div class="tna-multi-select-search__filter">
+                <label for="input-filter" class="govuk-label govuk-visually-hidden">Filter </label>
+                <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="fieldId-filter-count" placeholder="Filter @fieldName">
+            </div>
+            <div class="js-selected-count"></div>
+            <span id="fieldId-filter-count" class="govuk-visually-hidden js-filter-count" aria-live="polite"></span>
+            <div class="tna-multi-select-search__list-container js-container">
+                <ul class="govuk-checkboxes tna-multi-select-search__list"
+                id="fieldId" aria-describedby="fieldId-filter-count">
+                        <li class="govuk-checkboxes__item">
+                            <input class="govuk-checkboxes__input" id="formFieldId-index" name="formFieldId" type="checkbox" value="value">
+                            <label class="govuk-label govuk-checkboxes__label" for="formFieldId-index">name</label>
+                        </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    `
+
+  await renderModules()
+
+  expect(document.body.innerHTML).toContain('<div class="tna-multi-select-search" data-module="multi-select-search" data-module-active="true">')
 })

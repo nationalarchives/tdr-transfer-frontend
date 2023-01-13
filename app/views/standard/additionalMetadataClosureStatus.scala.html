@@ -1,12 +1,8 @@
-@import views.html.partials.{transferReference, progressIndicator}
-@import java.util.UUID
-
-@import views.html.helper.form
-@import views.html.helper.CSRF
-@import views.html.partials.inputSingleCheckbox
-@import views.html.partials.errorMessage
 @import controllers.util.InputNameAndValue
+@import views.html.helper.{CSRF, form}
+@import views.html.partials.{errorMessage, inputSingleCheckbox, progressIndicator, transferReference, fileNameCard}
 
+@import java.util.UUID
 @(consignmentId: UUID, metadataType: String, fileNames: List[String], fileIds: List[UUID], formData: Form[ClosureStatusFormData], inputNameAndValue: InputNameAndValue,
         areAllFilesClosed: Boolean, consignmentRef: String, parentFolderId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
 @fieldErrors = @{formData("closureStatus").errors.headOption match {
@@ -25,9 +21,7 @@
                 </h1>
                 @form(routes.AdditionalMetadataClosureStatusController.submitClosureStatus(consignmentId, metadataType, fileIds), (Symbol("novalidate"), "")) {
                     @CSRF.formField
-                    <p class="govuk-body">You are updating the status for the selected file '@{
-                        fileNames.mkString(", ")
-                    }'</p>
+                    @fileNameCard(fileNames, s"You are adding $metadataType to the following files:")
 
                     <div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
                         <fieldset class="govuk-fieldset">
@@ -81,7 +75,7 @@
 
                     <div class="govuk-button-group">
                         @if(areAllFilesClosed) {
-                            <a class="govuk-button" href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(List("ClosureType-Closed"), consignmentId, metadataType, fileIds)" role="button" draggable="false" data-module="govuk-button">
+                            <a class="govuk-button" href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" data-module="govuk-button">
                                 Continue
                             </a>
                         } else {

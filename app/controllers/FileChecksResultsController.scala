@@ -1,16 +1,16 @@
 package controllers
 
-import java.util.UUID
 import auth.TokenSecurity
+import com.typesafe.config.Config
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
-
-import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, ConsignmentStatusService}
 import viewsapi.Caching.preventCaching
 
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -20,13 +20,17 @@ class FileChecksResultsController @Inject() (
     val graphqlConfiguration: GraphQLConfiguration,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val frontEndInfoConfiguration: FrontEndInfoConfiguration
+    val frontEndInfoConfiguration: FrontEndInfoConfiguration,
+    val configuration: Config
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val pageTitle = "Results of your checks"
+    val blockClosureMetadata = configuration.getBoolean("featureAccessBlock.closureMetadata")
+    val blockDescriptiveMetadata = configuration.getBoolean("featureAccessBlock.descriptiveMetadata")
+
     for {
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
       parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
@@ -37,7 +41,7 @@ class FileChecksResultsController @Inject() (
           fileCheck.totalFiles,
           parentFolder
         )
-        Ok(views.html.standard.fileChecksResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name))
+        Ok(views.html.standard.fileChecksResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name, blockClosureMetadata, blockDescriptiveMetadata))
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
         Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))

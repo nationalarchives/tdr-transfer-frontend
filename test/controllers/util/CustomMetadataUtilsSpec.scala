@@ -11,7 +11,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import testUtils.FormTestData
 
 class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
-  private val formProperties = new FormTestData().setupCustomMetadatas()
+  private val formProperties = new FormTestData().setupCustomMetadata()
   private val customMetadataUtils = CustomMetadataUtils(formProperties)
 
   "getCustomMetadataProperties" should "return the list of properties requested" in {
@@ -34,8 +34,8 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   "getValuesOfProperties" should "return the values for a given property" in {
     val namesOfPropertiesAndTheirExpectedValues = Map(
       "FoiExemptionAsserted" -> List(),
-      "Dropdown" -> List("dropdownValue"),
-      "Radio" -> List("yes", "no")
+      "Dropdown" -> List("dropdownValue", "dropdownValue2"),
+      "Radio" -> List("True", "False")
     )
 
     val actualPropertiesAndTheirValues: Map[String, List[CustomMetadata.Values]] =
@@ -55,11 +55,12 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     thrownException.getMessage should equal("key not found: UnknownProperty")
   }
 
-  "convertPropertiesToFields" should "convert properties to fields for the form, if given correctly formatted properties" in {
+  "convertPropertiesToFields" should "convert properties and its dependencies to fields for the form, if given correctly formatted properties" in {
     val propertiesToConvertToFields: Set[CustomMetadata] = formProperties.toSet
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
 
     propertiesToConvertToFields.foreach { property => checkMetadataToFieldConversion(property, fieldValuesByDataType) }
+
   }
 
   "convertPropertiesToFields" should "convert properties to fields for the form when the given properties don't have default values" in {
@@ -88,8 +89,8 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   "convertPropertiesToFields" should "order the fields in the correct order" in {
     val propertiesToConvertToFields: Set[CustomMetadata] = formProperties.toSet
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
-    fieldValuesByDataType.size should equal(5)
-    fieldValuesByDataType.map(_.fieldId) should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Dropdown", "Radio"))
+    fieldValuesByDataType.size should equal(6)
+    fieldValuesByDataType.map(_.fieldId) should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Dropdown", "Radio", "TestProperty2"))
   }
 
   def verifyDate(field: DateField, isFutureDateAllowed: Boolean = true): Unit = {
@@ -105,7 +106,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     field.selectedOption should equal(defaultValue.map(v => if (v == "True") "yes" else "no").getOrElse("no"))
   }
 
-  def verifyText(field: DropdownField, property: CustomMetadata): Unit = {
+  def verifyText(field: MultiSelectField, property: CustomMetadata): Unit = {
     property.propertyType match {
       case Defined =>
         field.options should equal(property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)))
@@ -119,7 +120,7 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
     }
   }
 
-  private def checkMetadataToFieldConversion(property: CustomMetadata, fieldValuesByDataType: List[FormField]) = {
+  private def checkMetadataToFieldConversion(property: CustomMetadata, fieldValuesByDataType: List[FormField]): Unit = {
     val field = fieldValuesByDataType.find(_.fieldId == property.name).get
 
     property.dataType match {
@@ -131,12 +132,19 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
         verifyDate(field.asInstanceOf[DateField])
       case Boolean =>
         field.isInstanceOf[RadioButtonGroupField] should be(true)
-        verifyBoolean(field.asInstanceOf[RadioButtonGroupField], property.defaultValue)
+        val radioButtonGroupField = field.asInstanceOf[RadioButtonGroupField]
+        verifyBoolean(radioButtonGroupField, property.defaultValue)
+        radioButtonGroupField.dependencies.nonEmpty should be(true)
+        for ((name, fields) <- radioButtonGroupField.dependencies) {
+          val value = if (name == "yes") "True" else "False"
+          fields.size should be(property.values.find(_.value == value).map(_.dependencies.size).getOrElse(0))
+          fields.foreach(fi => checkMetadataToFieldConversion(formProperties.find(_.name == fi.fieldId).get, fields))
+        }
       case Text =>
         property.propertyType match {
           case Defined =>
-            field.isInstanceOf[DropdownField] should be(true)
-            verifyText(field.asInstanceOf[DropdownField], property)
+            field.isInstanceOf[MultiSelectField] should be(true)
+            verifyText(field.asInstanceOf[MultiSelectField], property)
           case Supplied =>
             field.isInstanceOf[TextField] should be(true)
             field.asInstanceOf[TextField].nameAndValue should equal(InputNameAndValue(property.name, property.defaultValue.getOrElse("")))

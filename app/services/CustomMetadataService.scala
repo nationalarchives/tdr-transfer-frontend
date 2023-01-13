@@ -2,10 +2,10 @@ package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
-import graphql.codegen.GetCustomMetadata.customMetadata.{CustomMetadata, Variables}
-import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
+import graphql.codegen.GetCustomMetadata.customMetadata.{CustomMetadata, Variables}
+import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.types.{DeleteFileMetadataInput, UpdateBulkFileMetadataInput, UpdateFileMetadataInput}
 import services.ApiErrorHandling._
 import uk.gov.nationalarchives.tdr.GraphQLClient
@@ -30,8 +30,8 @@ class CustomMetadataService @Inject() (val graphqlConfiguration: GraphQLConfigur
     sendApiRequest(updateBulkMetadataClient, abfm.document, token, variables)
   }
 
-  def deleteMetadata(fileIds: List[UUID], token: BearerAccessToken): Future[dfm.Data] = {
-    val input = DeleteFileMetadataInput(fileIds)
+  def deleteMetadata(fileIds: List[UUID], token: BearerAccessToken, propertyNames: Set[String]): Future[dfm.Data] = {
+    val input = DeleteFileMetadataInput(fileIds, Some(propertyNames.toList))
     val variables = dfm.Variables(input)
     sendApiRequest(deleteFileMetadataClient, dfm.document, token, variables)
   }

@@ -1,5 +1,6 @@
 package controllers.util
 
+import cats.implicits.catsSyntaxOptionId
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
@@ -19,7 +20,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
   "RadioButtonGroupField" should {
     val radioButtonGroupField =
-      RadioButtonGroupField("id", "name", "desc", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "no", isRequired = true)
+      RadioButtonGroupField("id", "name", "desc", "details", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "no", isRequired = true)
 
     "update should set selectedOption as 'yes' for the field" in {
 
@@ -69,27 +70,77 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
   }
 
+  "TextAreaField" should {
+
+    "update should set value for the field" in {
+      val updatedField = TextAreaField("id", "name", "desc", multiValue = false, InputNameAndValue("name", "old inputted value", ""), isRequired = false)
+      TextAreaField.update(updatedField, "new inputted value") shouldBe updatedField.copy(nameAndValue = InputNameAndValue("name", "new inputted value", ""))
+    }
+
+    "validate should return an error if the given value is empty and the field is required" in {
+      val requiredField = TextAreaField("id", "FieldName", "desc", multiValue = false, InputNameAndValue("name", "", ""), isRequired = true)
+      TextAreaField.validate("", requiredField) shouldBe Some("There was no text entered for the FieldName.")
+    }
+
+    "validate should not return an error if the given value is empty and the field is not required" in {
+      val nonRequiredField = TextAreaField("id", "FieldName", "desc", multiValue = false, InputNameAndValue("name", "", ""), isRequired = false)
+      TextAreaField.validate("", nonRequiredField) shouldBe None
+    }
+
+    "validate should return an error if the given value is large than the specific character limit" in {
+      val tooLargeValueField = TextAreaField("id", "FieldName", "desc", multiValue = false, InputNameAndValue("name", "", ""), isRequired = false, characterLimit = 5)
+      TextAreaField.validate("more than character limit", tooLargeValueField) shouldBe Some("FieldName must be 5 characters or less")
+    }
+  }
+
   "DropdownField" should {
     val dropdownField = DropdownField("id", "name", "desc", multiValue = true, Seq(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")), None, isRequired = true)
 
     "update should set value for the field" in {
 
-      DropdownField.update(dropdownField, "34") shouldBe dropdownField.copy(selectedOption = Some(InputNameAndValue("34", "34")))
+      DropdownField.update(dropdownField, "34".some) shouldBe dropdownField.copy(selectedOption = Some(InputNameAndValue("34", "34")))
     }
 
     "validate should not return an error when the given value is valid option" in {
 
-      DropdownField.validate("34", dropdownField) shouldBe None
+      DropdownField.validate("34".some, dropdownField) shouldBe None
     }
 
     "validate should return an error when the given value is empty" in {
 
-      DropdownField.validate("", dropdownField) shouldBe Some("There was no value selected for the name.")
+      DropdownField.validate(None, dropdownField) shouldBe Some("There was no value selected for the name.")
     }
 
     "validate should return an error when the given value is not a valid option" in {
 
-      DropdownField.validate("ABC", dropdownField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
+      DropdownField.validate("ABC".some, dropdownField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
+    }
+  }
+
+  "MultiSelectField" should {
+    val multiSelectField = MultiSelectField("id", "name", "desc", multiValue = true, Seq(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")), None, isRequired = true)
+
+    "update should set value for the field" in {
+
+      MultiSelectField.update(multiSelectField, Seq("34")) shouldBe multiSelectField.copy(selectedOption = Some(List(InputNameAndValue("34", "34"))))
+      MultiSelectField.update(multiSelectField, Seq("Open", "34")) shouldBe multiSelectField.copy(selectedOption =
+        Some(List(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")))
+      )
+    }
+
+    "validate should not return an error when the given value is valid option" in {
+
+      MultiSelectField.validate(Seq("34"), multiSelectField) shouldBe None
+    }
+
+    "validate should return an error when the given value is empty" in {
+
+      MultiSelectField.validate(Nil, multiSelectField) shouldBe Some("There was no value selected for the name.")
+    }
+
+    "validate should return an error when the given value is not a valid option" in {
+
+      MultiSelectField.validate(Seq("ABC"), multiSelectField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
     }
   }
 
