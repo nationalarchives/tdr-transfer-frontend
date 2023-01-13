@@ -13,7 +13,7 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext
 
-class ViewHistoryControllerSpec extends FrontEndTestHelper {
+class ViewTransfersControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
 
   override def beforeEach(): Unit = {
@@ -28,58 +28,58 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  "ViewHistoryController" should {
-    "render the view history page with list of user's consignments" in {
+  "ViewTransfersController" should {
+    "render the view transfers page with list of user's consignments" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       val consignments = setConsignmentsHistoryResponse(wiremockServer)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-history"))
-      val viewHistoryPageAsString = contentAsString(response)
+        .apply(FakeRequest(GET, s"/view-transfers"))
+      val viewTransfersPageAsString = contentAsString(response)
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewHistoryPageAsString, userType = "standard", consignmentExists = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      viewHistoryPageAsString must include("<h1 class=\"govuk-heading-l\">Transfer history</h1>")
-      viewHistoryPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
+      viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
+      viewTransfersPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
            |                  <th scope="col" class="govuk-table__header">Status</th>
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
            |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
-      viewHistoryPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
+      viewTransfersPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
 
-      consignments.foreach(c => verifyConsignmentRow(viewHistoryPageAsString, c.node))
+      consignments.foreach(c => verifyConsignmentRow(viewTransfersPageAsString, c.node))
     }
 
-    "render the view history page with no consignments if the user doesn't have any consignments" in {
+    "render the view transfers page with no consignments if the user doesn't have any consignments" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentsHistoryResponse(wiremockServer, noConsignment = true)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-history"))
-      val viewHistoryPageAsString = contentAsString(response)
+        .apply(FakeRequest(GET, s"/view-transfers"))
+      val viewTransfersPageAsString = contentAsString(response)
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewHistoryPageAsString, userType = "standard", consignmentExists = false)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      viewHistoryPageAsString must include("<h1 class=\"govuk-heading-l\">Transfer history</h1>")
-      viewHistoryPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
+      viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
+      viewTransfersPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
            |                  <th scope="col" class="govuk-table__header">Status</th>
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
            |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
-      viewHistoryPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
-      viewHistoryPageAsString must include(
+      viewTransfersPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
+      viewTransfersPageAsString must include(
         """              <tbody class="govuk-table__body">""" +
           "\n                " +
           "\n              </tbody>"
@@ -89,17 +89,17 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
     "redirect to the login page if the page is accessed by a logged out user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewHistoryController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-history"))
+        .apply(FakeRequest(GET, s"/view-transfers"))
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
   }
 
-  def verifyConsignmentRow(viewHistoryPageAsString: String, node: Node): Unit = {
+  def verifyConsignmentRow(viewTransfersPageAsString: String, node: Node): Unit = {
 
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val exportDate = node.exportDatetime.map(_.format(formatter)).get
@@ -133,8 +133,8 @@ class ViewHistoryControllerSpec extends FrontEndTestHelper {
          |                    <td class="govuk-table__cell">$exportDate</td>
          |                    <td class="govuk-table__cell"></td>
          |""".stripMargin
-    viewHistoryPageAsString must include(summary)
-    viewHistoryPageAsString must include(details)
-    viewHistoryPageAsString must include(statusAndDate)
+    viewTransfersPageAsString must include(summary)
+    viewTransfersPageAsString must include(details)
+    viewTransfersPageAsString must include(statusAndDate)
   }
 }
