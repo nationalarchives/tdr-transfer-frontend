@@ -1,11 +1,11 @@
-@(consignments: List[ConsignmentHistory], name: String, email: String)(implicit messages: Messages, request: RequestHeader)
+@(consignments: List[ConsignmentTransfers], name: String, email: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("View History", name = name) {
+@main("View Transfers", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-width-container ">
         <div class="govuk-grid-row">
           <div class="govuk-grid-column-full">
-            <h1 class="govuk-heading-l">Transfer history</h1>
+            <h1 class="govuk-heading-l">View Transfers</h1>
             <p class="govuk-body">View the history of all the consignments you have uploaded and resume incomplete or failed transfers.</p>
 
             <table class="govuk-table">

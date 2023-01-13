@@ -1,14 +1,17 @@
-@import controllers.util.InputNameAndValue
+@import controllers.util.{FormField, InputNameAndValue, TextField}
 @(fieldId: String,
         fieldName: String,
         fieldDescription: String,
+        additionalInfo: String,
         options: Seq[InputNameAndValue],
         selectedOption: String,
         attributes: Map[Symbol, Any],
+        hideInputs: Boolean,
+        dependencies: Map[String, List[FormField]],
         fieldErrors: List[String])(implicit messages: Messages)
 
-@import viewsapi.FormFunctions._
 @import views.html.partials.errorMessage
+@import viewsapi.FormFunctions._
 
 @isDisabled = {@attributes.get(Symbol("_disabledOption"))}
 @radioOptionsSize = @{if(attributes.get(Symbol("_largeOption")).contains(true)) "" else "govuk-radios--small"}
@@ -21,25 +24,59 @@
         <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
             @fieldName
         </legend>
-        @errorMessage(fieldId, fieldErrors)
-        <div class="govuk-radios" @radioOptionsSize @optionSize id="@formFieldId">
+
+        @if(hideInputs) {
+            <p class="govuk-body"> @Html(fieldDescription)</p>
+            <input id="@formFieldId" name="@formFieldId" type="hidden" value="exclude"/>
+        } else {
+            <div class="govuk-hint"> @Html(fieldDescription) </div>
+            @errorMessage(fieldId, fieldErrors)
+            @displayLargeText(additionalInfo)
+            <div class="govuk-radios" data-module="govuk-radios" @radioOptionsSize @optionSize id="@formFieldId">
             @options.map { input =>
-            <div class="govuk-radios__item">
-                <input
+                <div class="govuk-radios__item">
+                    <input
                         class="govuk-radios__input"
                         id="@formFieldId-@input.name"
                         name="@formFieldId"
                         type="radio"
                         value="@input.value"
+                        data-aria-controls="conditional-@formFieldId-@input.value"
                         @isDisabled
                         @{if(input.value == selectedOption) "checked" else ""}
                         @attributes.requiredInput()
-                />
-                <label class="govuk-label govuk-radios__label" for="@formFieldId-@input.value">
-                    @input.name
-                </label>
-            </div>
+                    />
+                  <label class="govuk-label govuk-radios__label" for="@formFieldId-@input.name">
+                        @input.name
+                  </label>
+                </div>
+                @if(dependencies.nonEmpty) {
+                    @for(formField <- dependencies(input.value)) {
+                        @{
+                            formField match {
+                                case textField: TextField => displayText(formFieldId, input.value, textField)
+                            }
+                        }
+                    }
+                }
             }
-        </div>
+          </div>
+      }
     </fieldset>
 </div>
+
+@displayText(formId: String, inputValue: String, textField: TextField) = {
+    <div class="govuk-radios__conditional" id="conditional-@formFieldId-@inputValue">
+        <div class="govuk-form-group">
+            <label class="govuk-label" for="@formFieldId-@textField.fieldId-@inputValue">
+                @textField.fieldName
+            </label>
+            <input class="govuk-input" id="@formFieldId-@textField.fieldId-@inputValue" name="@formFieldId-@textField.fieldId-@inputValue" type="text" value="@textField.nameAndValue.value" />
+        </div>
+    </div>
+}
+@displayLargeText(text: String) = {
+    @if(text.nonEmpty) {
+        <textarea class="govuk-textarea" id="details" name="details" rows="5" readonly>@text</textarea>
+    }
+}

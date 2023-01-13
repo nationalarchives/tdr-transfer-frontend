@@ -52,6 +52,31 @@ object DefaultMockFormOptions {
     )
   )
 
+  val expectedDescriptiveDefaultOptions: List[MockInputOption] = List(
+    MockInputOption(
+      name = "inputtextarea-description",
+      id = "inputtextarea-description",
+      fieldType = "inputTextArea",
+      rows = "5",
+      wrap = "hard",
+      maxLength = "8000"
+    ),
+    MockInputOption(
+      name = "inputmultiselect-Language",
+      id = "inputmultiselect-Language-0",
+      fieldType = "inputmultiselect",
+      label = "English",
+      value = "English"
+    ),
+    MockInputOption(
+      name = "inputmultiselect-Language",
+      id = "inputmultiselect-Language-1",
+      fieldType = "inputmultiselect",
+      label = "Welsh",
+      value = "Welsh"
+    )
+  )
+
   val expectedClosureDefaultOptions: List[MockInputOption] = List(
     MockInputOption(
       name = "inputdate-ClosureStartDate-day",
@@ -113,19 +138,19 @@ object DefaultMockFormOptions {
       errorMessage = s"There was no number entered for the Closure period."
     ),
     MockInputOption(
-      name = "inputdropdown-FoiExemptionCode",
-      id = "inputdropdown-FoiExemptionCode",
+      name = "inputmultiselect-FoiExemptionCode",
+      id = "inputmultiselect-FoiExemptionCode-0",
       label = "mock code1",
       value = "mock code1",
-      fieldType = "inputDropdown",
+      fieldType = "inputmultiselect",
       errorMessage = "There was no value selected for the FOI exemption code."
     ),
     MockInputOption(
-      name = "inputdropdown-FoiExemptionCode",
-      id = "inputdropdown-FoiExemptionCode",
+      name = "inputmultiselect-FoiExemptionCode",
+      id = "inputmultiselect-FoiExemptionCode-1",
       label = "mock code2",
       value = "mock code2",
-      fieldType = "inputDropdown",
+      fieldType = "inputmultiselect",
       errorMessage = "There was no value selected for the FOI exemption code."
     ),
     MockInputOption(
@@ -179,13 +204,6 @@ object DefaultMockFormOptions {
 
   val expectedConfirmTransferOptions: List[MockInputOption] = List(
     MockInputOption(
-      "openRecords",
-      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-      value = "true",
-      errorMessage = "All records must be confirmed as open before proceeding",
-      fieldType = "inputCheckbox"
-    ),
-    MockInputOption(
       "transferLegalCustody",
       "I confirm that I am transferring legal custody of these records to The National Archives.",
       value = "true",
@@ -220,6 +238,9 @@ object DefaultMockFormOptions {
       placeholder: String = "",
       fieldType: String = "",
       errorMessage: String = "",
-      errorMessageDependency: String = ""
+      errorMessageDependency: String = "",
+      rows: String = "",
+      wrap: String = "",
+      maxLength: String = ""
   ) // some fields (like month) can only display their error if another field (like day) has none
 }

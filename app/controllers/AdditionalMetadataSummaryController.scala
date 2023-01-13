@@ -2,16 +2,12 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import controllers.util.MetadataProperty.closurePeriod
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime}
-import graphql.codegen.types.{FileFilters, FileMetadataFilters}
-import org.apache.commons.lang3.BooleanUtils.toStringYesNo
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, CustomMetadataService}
+import services.{ConsignmentService, DisplayPropertiesService, DisplayProperty}
 
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
@@ -21,22 +17,16 @@ import scala.concurrent.Future
 
 class AdditionalMetadataSummaryController @Inject() (
     val consignmentService: ConsignmentService,
-    val customMetadataService: CustomMetadataService,
+    val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID], metadataTypeAndValueSelected: List[String]): Action[AnyContent] =
+  def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-      val fileMetadataFilters = metadataType match {
-        case "closure"     => FileMetadataFilters(Some(true), None)
-        case "descriptive" => FileMetadataFilters(None, Some(true))
-        case _             => throw new IllegalArgumentException(s"Invalid metadata type: $metadataType")
-      }
-      val filters = Option(FileFilters(None, Option(fileIds), None, Option(fileMetadataFilters)))
       for {
-        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, filters)
-        customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
+        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
+        displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, metadataType)
         response <- consignment.files match {
           case first :: _ =>
             val filePaths = consignment.files.flatMap(_.fileName)
@@ -50,8 +40,7 @@ class AdditionalMetadataSummaryController @Inject() (
                     filePaths,
                     consignment.consignmentReference,
                     request.token.name,
-                    getMetadataForView(first.fileMetadata, customMetadata),
-                    metadataTypeAndValueSelected
+                    getMetadataForView(first.fileMetadata, displayProperties)
                   )
               )
             )
@@ -60,25 +49,31 @@ class AdditionalMetadataSummaryController @Inject() (
       } yield response
     }
 
-  private def getMetadataForView(metaData: List[GetConsignment.Files.FileMetadata], customMetadata: List[CustomMetadata]): List[FileMetadata] = {
+  private def getMetadataForView(metadata: List[GetConsignment.Files.FileMetadata], displayProperties: List[DisplayProperty]): List[FileMetadata] = {
 
     val formatter = new SimpleDateFormat("dd/MM/yyyy")
+    val groupedMetadata = metadata.filter(_.value.nonEmpty).groupBy(_.name).view.mapValues(_.map(_.value).mkString(", ")).toMap
 
-    metaData.map(metaData =>
-      customMetadata
-        .find(_.name == metaData.name)
-        .map(customMetadata =>
-          FileMetadata(
-            customMetadata.fullName.getOrElse(metaData.name),
-            customMetadata.dataType match {
-              case DateTime => formatter.format(Timestamp.valueOf(metaData.value))
-              case Boolean  => toStringYesNo(metaData.value.toBoolean).capitalize
-              case _        => metaData.value + (if (customMetadata.name == closurePeriod) " years" else "")
+    val filteredMetadata = displayProperties
+      .collect {
+        case p if p.active && groupedMetadata.contains(p.propertyName) => (p, groupedMetadata(p.propertyName))
+      }
+      .sortBy(_._1.ordinal)
+
+    filteredMetadata.map { case (displayProperty, metadataValue) =>
+      FileMetadata(
+        displayProperty.displayName,
+        displayProperty.dataType match {
+          case DateTime => formatter.format(Timestamp.valueOf(metadataValue))
+          case Boolean =>
+            metadataValue.toBoolean match {
+              case true => displayProperty.label.split('|').head
+              case _    => displayProperty.label.split('|').last
             }
-          )
-        )
-        .getOrElse(metaData)
-    )
+          case _ => s"$metadataValue ${displayProperty.unitType.toLowerCase}"
+        }
+      )
+    }
   }
 }
 

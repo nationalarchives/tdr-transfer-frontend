@@ -1,0 +1,11 @@
+@(fileNames: List[String], text: String)
+<div class="tdr-card">
+    <div class="tdr-card__content">
+        <p class="govuk-body govuk-!-margin-bottom-2 govuk-!-font-weight-bold">@text</p>
+        <ul class="govuk-list govuk-list--bullet">
+            @for(fileName <- fileNames) {
+                <li>@fileName</li>
+            }
+        </ul>
+    </div>
+</div>

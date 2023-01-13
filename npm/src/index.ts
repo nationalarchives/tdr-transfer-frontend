@@ -1,9 +1,11 @@
 import { initAll } from "govuk-frontend"
-import { NestedNavigation } from "@nationalarchives/tdr-components"
+import { NestedNavigation, InputType } from "@nationalarchives/tdr-components"
+import { MultiSelectSearch } from "@nationalarchives/tdr-components"
 
 window.onload = async function () {
   initAll()
   await renderModules()
+  hideConditionalElements()
 }
 
 export interface IFrontEndInfo {
@@ -11,6 +13,19 @@ export interface IFrontEndInfo {
   uploadUrl: string
   stage: string
   region: string
+}
+
+export const hideConditionalElements: () => void = () => {
+  // We display all conditional elements by default if JavaScript is disabled; if it's enabled, then we'll hide them.
+  const conditionalElements: NodeListOf<Element> = document.querySelectorAll(
+    ".govuk-radios__conditional"
+  )
+
+  if (conditionalElements) {
+    conditionalElements.forEach((e) =>
+      e.classList.add("govuk-radios__conditional--hidden")
+    )
+  }
 }
 
 const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
@@ -39,9 +54,10 @@ export const renderModules = async () => {
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
-  const fileNavigation = document.querySelector(".govuk-tna-tree")
+  const fileNavigation = document.querySelector(".tna-tree")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
+  const multiSelectSearch = document.querySelector(".tna-multi-select-search")
 
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
@@ -115,7 +131,7 @@ export const renderModules = async () => {
     if (tree != null) {
       treeItems.forEach((item) => treeItemList.push(item))
       const nestedNavigation = new NestedNavigation(tree, treeItemList)
-      nestedNavigation.initialiseFormListeners()
+      nestedNavigation.initialiseFormListeners(InputType.radios)
     }
     const form = document.querySelector("form")
     if (form) {
@@ -143,6 +159,15 @@ export const renderModules = async () => {
           window.location.replace(res.url)
         })
       })
+    }
+  }
+  if (multiSelectSearch) {
+    const rootElement: HTMLElement | null = document.querySelector(
+      "[data-module=multi-select-search]"
+    )
+    if (rootElement) {
+      const multiSelectSearch = new MultiSelectSearch(rootElement)
+      multiSelectSearch.initialise()
     }
   }
 }

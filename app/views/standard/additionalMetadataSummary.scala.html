@@ -10,22 +10,21 @@
     fileNames: List[String],
     consignmentRef: String,
     name: String,
-    metadataList: List[FileMetadata],
-    metadataTypeAndValueSelected: List[String])(implicit messages: Messages, request: RequestHeader)
+    metadataList: List[FileMetadata])(implicit messages: Messages, request: RequestHeader)
 @main(title = "Review metadata added", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     @progressIndicator(Messages("additionalMetadataSummary.progress"))
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         <h1 class="govuk-heading-xl">
-          Review closure metadata changes
+          Review @metadataType metadata changes
         </h1>
-        <p class="govuk-body">You can edit, remove or save closure metadata here.</p>
+        <p class="govuk-body">You can edit, remove or save @metadataType metadata here.</p>
         <div class="govuk-button-group">
-          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(metadataTypeAndValueSelected, consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
+          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
             Edit metadata
           </a>
-          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds, metadataTypeAndValueSelected)" role="button" draggable="false" class="govuk-button govuk-button--warning">
+          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--warning">
             Delete metadata
           </a>
         </div>

@@ -3,8 +3,8 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.InputNameAndValue
-import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType}
-import graphql.codegen.types.{FileFilters, UpdateFileMetadataInput}
+import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType, fileType}
+import graphql.codegen.types.UpdateFileMetadataInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache.AsyncCacheApi
 import play.api.data.Form
@@ -34,13 +34,19 @@ class AdditionalMetadataClosureStatusController @Inject() (
 
   val closureStatusField: InputNameAndValue = InputNameAndValue("closureStatus", "Yes, I confirm")
 
+  private val additionalProperties: List[String] = List(clientSideOriginalFilepath, fileType)
+
   def getClosureStatusPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
-      val filters = Option(FileFilters(None, Option(fileIds), None, None))
-
       for {
         details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
-        consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, filters)
+        consignment <- consignmentService.getConsignmentFileMetadata(
+          consignmentId,
+          request.token.bearerAccessToken,
+          Some(metadataType),
+          Some(fileIds),
+          Some(additionalProperties)
+        )
         response <-
           if (consignment.files.nonEmpty) {
             val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
@@ -75,7 +81,13 @@ class AdditionalMetadataClosureStatusController @Inject() (
           (consignmentRef, filePaths, parentFolderId) <- cache.getOrElseUpdate[(String, List[String], UUID)](s"$consignmentId-data", 1.hour)(
             for {
               details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
-              consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Option(FileFilters(None, Option(fileIds), None, None)))
+              consignment <- consignmentService.getConsignmentFileMetadata(
+                consignmentId,
+                request.token.bearerAccessToken,
+                Some(metadataType),
+                Some(fileIds),
+                Some(additionalProperties)
+              )
               filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
             } yield (consignment.consignmentReference, filePaths, details.parentFolderId.get)
           )
@@ -102,8 +114,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
         customMetadataService
           .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, List(metadataInput))
           .map { _ =>
-            val propertyNameAndFieldSelected = List(s"${closureType.name}-${closureType.value}")
-            Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(propertyNameAndFieldSelected, consignmentId, metadataType, fileIds))
+            Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds))
           }
       }
 

@@ -9,6 +9,6 @@ object CsvUtils {
     val bas = new ByteArrayOutputStream()
     val writer = CSVWriter.open(bas)
     writer.writeAll(rows)
-    bas.toByteArray.map(_.toChar).mkString
+    bas.toString("UTF-8")
   }
 }

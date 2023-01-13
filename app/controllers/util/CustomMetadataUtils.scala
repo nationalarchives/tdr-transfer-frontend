@@ -14,6 +14,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     closurePeriod -> "Closure period",
     foiExemptionCode -> "FOI exemption code",
     titleClosed -> "Is the title closed?",
+    descriptionClosed -> "Is the description closed?",
     titleAlternate -> "Alternate Title",
     descriptionAlternate -> "Alternate Description"
   )
@@ -34,17 +35,25 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     val fieldLabel = dbAndFieldLabel.getOrElse(property.name, property.fullName.getOrElse(""))
     val fieldDescription = property.description.getOrElse("")
     val isRequired = property.propertyGroup.exists(_.startsWith("Mandatory"))
+
     property.dataType match {
       case Boolean =>
-        val selectedOption = property.defaultValue.map(v => if (v == "True") "yes" else "no").getOrElse("no")
+        val selectedOption = property.defaultValue.map(v => if (v.toBoolean) "yes" else "no").getOrElse("no")
+        val dependencies = property.values
+          .map(p => {
+            (if (p.value.toBoolean) "yes" else "no") -> getCustomMetadataProperties(p.dependencies.map(_.name).toSet).map(generateFieldOptions).toList
+          })
+          .toMap
         RadioButtonGroupField(
           property.name,
           fieldLabel,
           fieldDescription,
+          additionalInfo = "",
           property.multiValue,
           Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")),
           selectedOption,
-          isRequired
+          isRequired,
+          dependencies = dependencies
         )
       case DateTime =>
         DateField(
@@ -63,15 +72,28 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
       case Text =>
         property.propertyType match {
           case Defined =>
-            DropdownField(
-              property.name,
-              fieldLabel,
-              fieldDescription,
-              property.multiValue,
-              property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
-              property.defaultValue.map(value => InputNameAndValue(value, value)),
-              isRequired
-            )
+            val options = property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value))
+            if (property.multiValue) {
+              MultiSelectField(
+                property.name,
+                fieldLabel,
+                fieldDescription,
+                property.multiValue,
+                options,
+                property.defaultValue.map(value => InputNameAndValue(value, value) :: Nil),
+                isRequired
+              )
+            } else {
+              DropdownField(
+                property.name,
+                fieldLabel,
+                fieldDescription,
+                property.multiValue,
+                options,
+                property.defaultValue.map(value => InputNameAndValue(value, value)),
+                isRequired
+              )
+            }
           case Supplied =>
             TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue(property.name, property.defaultValue.getOrElse("")), "text", isRequired)
           case _ =>
@@ -103,10 +125,13 @@ object MetadataProperty {
   val closurePeriod = "ClosurePeriod"
   val foiExemptionCode = "FoiExemptionCode"
   val titleClosed = "TitleClosed"
+  val descriptionClosed = "DescriptionClosed"
   val clientSideOriginalFilepath = "ClientSideOriginalFilepath"
   val descriptionPublic = "DescriptionPublic"
   val titleAlternate = "TitleAlternate"
   val descriptionAlternate = "DescriptionAlternate"
+  val description = "description"
+  val fileType = "FileType"
   val closureType: StaticMetadata = StaticMetadata("ClosureType", "Closed")
   val descriptiveType: StaticMetadata = StaticMetadata("DescriptiveType", "")
 }

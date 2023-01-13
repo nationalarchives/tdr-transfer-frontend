@@ -54,32 +54,31 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      startPageAsString.contains(s"""        <h1 class="govuk-heading-l">Add, edit or delete metadata</h1>""") mustBe true
+      startPageAsString must include(s"""        <h1 class="govuk-heading-l">Add, edit or delete metadata</h1>""")
 
-      startPageAsString.contains(s"""        <h2 class="govuk-heading-s">Folder uploaded: $parentFolder""") mustBe true
+      startPageAsString must include(s"""        <h2 class="govuk-heading-s">Folder uploaded: $parentFolder""")
       // scalastyle:off line.size.limit
-      startPageAsString.contains(
+      startPageAsString must include(
         s"""        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records. Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>""".stripMargin
-      ) mustBe true
-      startPageAsString.contains(
-        s"""        <p class="tdr-card__description">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>"""
-      ) mustBe true
-      startPageAsString.contains(
-        s"""        <p class="tdr-card__description">If you'd like to add or edit closure metadata to your records, you can do so here.</p>""".stripMargin
-      ) mustBe true
-      startPageAsString.contains(
-        s"""        <a href="/consignment/$consignmentId/additional-metadata/download-metadata/" """ +
+      )
+      startPageAsString must include(
+        s"""        <p class="govuk-body">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>"""
+      )
+      startPageAsString must include(
+        s"""        <p class="govuk-body">If you'd like to add or edit closure metadata to your records, you can do so here.</p>""".stripMargin
+      )
+      startPageAsString must include(
+        s"""        <a href="/consignment/$consignmentId/additional-metadata/download-metadata" """ +
           """role="button" draggable="false" class="govuk-button" data-module="govuk-button">""" + """
                                                                                                      |          Continue
                                                                                                      |        </a>""".stripMargin
-      ) mustBe true
-      // Will change these links when we have the metadata pages to link them to.
-      startPageAsString.contains(
-        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/files/descriptive/">"""
-      ) mustBe true
-      startPageAsString.contains(
-        s"""<a class="tdr-card__link" href="/consignment/$consignmentId/additional-metadata/files/closure/">"""
-      ) mustBe true
+      )
+      startPageAsString must include(
+        s"""<a class="govuk-link govuk-link--no-visited-state" href="/consignment/$consignmentId/additional-metadata/files/descriptive">"""
+      )
+      startPageAsString must include(
+        s"""<a class="govuk-link govuk-link--no-visited-state" href="/consignment/$consignmentId/additional-metadata/files/closure">"""
+      )
       // scalastyle:on line.size.limit
     }
 
