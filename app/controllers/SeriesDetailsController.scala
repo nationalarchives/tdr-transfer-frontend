@@ -16,12 +16,15 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class SeriesDetailsController @Inject()(val controllerComponents: SecurityComponents,
-                                        val keycloakConfiguration: KeycloakConfiguration,
-                                        seriesService: SeriesService,
-                                        val consignmentService: ConsignmentService,
-                                        val consignmentStatusService: ConsignmentStatusService
-                                       )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+class SeriesDetailsController @Inject() (
+    val controllerComponents: SecurityComponents,
+    val keycloakConfiguration: KeycloakConfiguration,
+    seriesService: SeriesService,
+    val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService
+)(implicit val ec: ExecutionContext)
+    extends TokenSecurity
+    with I18nSupport {
 
   val selectedSeriesForm: Form[SelectedSeriesData] = Form(
     mapping(
@@ -46,7 +49,8 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
         seriesStatus = consignmentStatus.flatMap(_.series)
       } yield seriesStatus match {
         case Some("Completed") => Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
-        case _ => consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
+        case _ =>
+          consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
           Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
       }
     }
@@ -57,19 +61,22 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     )
   }
 
-  private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])
-                              (implicit requestHeader: RequestHeader) = {
+  private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken)
       seriesStatus = consignmentStatus.flatMap(_.currentStatus.series)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       result <- seriesStatus match {
         case Some("Completed") =>
-          val seriesOption: InputNameAndValue = consignmentStatus.flatMap(_.series)
-              .map(series => InputNameAndValue(series.code, series.seriesid.toString)).get
+          val seriesOption: InputNameAndValue = consignmentStatus
+            .flatMap(_.series)
+            .map(series => InputNameAndValue(series.code, series.seriesid.toString))
+            .get
 
-          Future(Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, reference,
-            createDropDownField(List(seriesOption), selectedSeriesForm), request.token.name)).uncache())
+          Future(
+            Ok(views.html.standard.seriesDetailsAlreadyConfirmed(consignmentId, reference, createDropDownField(List(seriesOption), selectedSeriesForm), request.token.name))
+              .uncache()
+          )
         case _ =>
           seriesService.getSeriesForUser(request.token).map { series =>
             val options = series.map(series => InputNameAndValue(series.code, series.seriesid.toString))
@@ -84,9 +91,9 @@ class SeriesDetailsController @Inject()(val controllerComponents: SecurityCompon
     val description = "Please choose an existing series reference for the records you would like to transfer."
     val errors = form("series").errors.headOption match {
       case Some(formError) => formError.messages
-      case None => Nil
+      case None            => Nil
     }
-    DropdownField(form("series").id, "", description,  options, None, isRequired = true, errors.toList)
+    DropdownField(form("series").id, "", description, multiValue = false, options, None, isRequired = true, errors.toList)
   }
 }
 

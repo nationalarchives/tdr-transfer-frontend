@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+git secrets --pre_commit_hook -- "$@"
+
+! git rev-parse -q --verify MERGE_HEAD # if commit is being made due to a merge, then script should not run
+exec < /dev/tty
+python3 .husky/git-commit-checks.py $runStyleChecksResponse

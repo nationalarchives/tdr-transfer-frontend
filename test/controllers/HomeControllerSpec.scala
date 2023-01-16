@@ -32,8 +32,8 @@ class HomeControllerSpec extends FrontEndTestHelper {
       checkForContentOnHomePage(pageAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(pageAsString, userType = "", consignmentExists = false)
 
-      pageAsString must include ("/faq")
-      pageAsString must include ("/help")
+      pageAsString must include("/faq")
+      pageAsString must include("/help")
     }
 
     "render the index page from the application" in {
@@ -49,16 +49,16 @@ class HomeControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkForContentOnHomePage(pageAsString: String, signedIn: Boolean = true): Unit = {
-    pageAsString must include ("<title>Introduction</title>")
-    pageAsString must include ("This is a new service – your feedback will help us to improve it. Please")
-    pageAsString must include ("href=\"/contact\">get in touch (opens in new tab).</a>")
-    pageAsString must include ("The National Archives Transfer Digital Records")
-    pageAsString must include ("Use this service to:")
-    pageAsString must include ("transfer digital records to The National Archives")
-    pageAsString must include ("transfer judgments to The National Archives")
-    pageAsString must include ("Start now")
+    pageAsString must include("<title>Introduction</title>")
+    pageAsString must include("This is a new service – your feedback will help us to improve it. Please")
+    pageAsString must include("href=\"/contact\">get in touch (opens in new tab).</a>")
+    pageAsString must include("The National Archives Transfer Digital Records")
+    pageAsString must include("Use this service to:")
+    pageAsString must include("transfer digital records to The National Archives")
+    pageAsString must include("transfer judgments to The National Archives")
+    pageAsString must include("Start now")
 
-    if(!signedIn) {
+    if (!signedIn) {
       pageAsString must not include "/faq"
       pageAsString must not include "/help"
       pageAsString must not include "Sign out"

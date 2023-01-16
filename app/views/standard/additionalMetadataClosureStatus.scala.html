@@ -1,0 +1,93 @@
+@import controllers.util.InputNameAndValue
+@import views.html.helper.{CSRF, form}
+@import views.html.partials.{errorMessage, inputSingleCheckbox, progressIndicator, transferReference, fileNameCard}
+
+@import java.util.UUID
+@(consignmentId: UUID, metadataType: String, fileNames: List[String], fileIds: List[UUID], formData: Form[ClosureStatusFormData], inputNameAndValue: InputNameAndValue,
+        areAllFilesClosed: Boolean, consignmentRef: String, parentFolderId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
+@fieldErrors = @{formData("closureStatus").errors.headOption match {
+    case Some(formError) => formError.messages
+    case None => Nil
+}}
+
+@main(title = "Check closure status", name = name) {
+    @defining(play.core.PlayVersion.current) { version =>
+        @progressIndicator(Messages("additionalMetadataClosureStatus.progress"))
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+
+                <h1 class="govuk-heading-xl">
+                Confirm the closure status of your record
+                </h1>
+                @form(routes.AdditionalMetadataClosureStatusController.submitClosureStatus(consignmentId, metadataType, fileIds), (Symbol("novalidate"), "")) {
+                    @CSRF.formField
+                    @fileNameCard(fileNames, s"You are adding $metadataType to the following files:")
+
+                    <div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+                        <fieldset class="govuk-fieldset">
+                            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                                <h2 class="govuk-fieldset__heading">
+                                    Has this closure been approved by the Advisory Council?
+                                </h2>
+                            </legend>
+
+                            @errorMessage("closure", fieldErrors)
+                            @inputSingleCheckbox(
+                                inputNameAndValue.name,
+                                Map(
+                                    Symbol("_label") -> inputNameAndValue.value,
+                                    Symbol("_value") -> "true",
+                                    Symbol("_smallCheckbox") -> false,
+                                    Symbol("_checkedOption") -> (if(areAllFilesClosed) "checked" else ""),
+                                    Symbol("_requiredOption") -> true,
+                                    Symbol("_disabledOption") -> (if(areAllFilesClosed) "disabled" else "")
+                                ),
+                                Nil
+                            )
+                        </fieldset>
+                    </div>
+                    <details class="govuk-details" data-module="govuk-details">
+                        <summary class="govuk-details__summary">
+                            <span class="govuk-details__summary-text">
+                                You must provide the following information, as they are mandatory for closure.
+                            </span>
+                        </summary>
+                        <div class="govuk-details__text">
+                            <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+                                <li>
+                                    FOI decision asserted, this is the date of the Advisory Council approval
+                                </li>
+                                <li>
+                                    Closure start date, this is the date the record starts
+                                </li>
+                                <li>
+                                    Closure period
+                                </li>
+                                <li>
+                                    FOI exemption code
+                                </li>
+                                <li>
+                                    Title public
+                                </li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <div class="govuk-button-group">
+                        @if(areAllFilesClosed) {
+                            <a class="govuk-button" href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" data-module="govuk-button">
+                                Continue
+                            </a>
+                        } else {
+                            <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+                                Continue
+                            </button>
+                        }
+                        <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, "closure")">Cancel</a>
+                    </div>
+                }
+            </div>
+            @transferReference(consignmentRef, isJudgmentUser = false)
+    </div>
+    }
+}

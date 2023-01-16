@@ -75,10 +75,8 @@ export class TdrFetchHandler implements HttpHandler {
       }
     }
 
-    const { port, method } = request
-    const url = `${request.protocol}//${request.hostname}${
-      port ? `:${port}` : ""
-    }${path}`
+    const { method } = request
+    const url = `${request.protocol}//${path}`
     // Request constructor doesn't allow GET/HEAD request with body
     // ref: https://github.com/whatwg/fetch/issues/551
     const body =

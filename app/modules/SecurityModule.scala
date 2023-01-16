@@ -2,6 +2,7 @@ package modules
 
 import com.google.inject.{AbstractModule, Provides}
 import com.nimbusds.jose.JWSAlgorithm
+import com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod
 import configuration.CustomSavedRequestHandler
 import org.pac4j.core.authorization.authorizer.RequireAnyRoleAuthorizer
 import org.pac4j.core.client.Clients
@@ -15,7 +16,6 @@ import org.pac4j.play.scala.{DefaultSecurityComponents, Pac4jScalaTemplateHelper
 import org.pac4j.play.store.PlayCacheSessionStore
 import org.pac4j.play.{CallbackController, LogoutController}
 import play.api.{Configuration, Environment}
-
 
 class SecurityModule extends AbstractModule {
   override def configure(): Unit = {
@@ -35,9 +35,9 @@ class SecurityModule extends AbstractModule {
     val logoutController = new LogoutController()
     val configuration = Configuration.load(Environment.simple())
     logoutController.setDefaultUrl(configuration.get[String]("logout.url"))
-    //Logs out of the pac4j session. It does this by updating the pac4j class stored in redis
+    // Logs out of the pac4j session. It does this by updating the pac4j class stored in redis
     logoutController.setLocalLogout(true)
-    //Logs out of the keycloak session
+    // Logs out of the keycloak session
     logoutController.setCentralLogout(true)
     bind(classOf[LogoutController]).toInstance(logoutController)
   }
@@ -52,6 +52,7 @@ class SecurityModule extends AbstractModule {
     val secret = configuration.get[String]("auth.secret")
     oidcConfiguration.setSecret(secret)
     oidcConfiguration.setDiscoveryURI(s"$authUrl/realms/tdr/.well-known/openid-configuration")
+    oidcConfiguration.setClientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
     oidcConfiguration.setPreferredJwsAlgorithm(JWSAlgorithm.RS256)
     // Setting this causes pac4j to get a new access token using the refresh token when the original access token expires
     oidcConfiguration.setExpireSessionWithToken(true)

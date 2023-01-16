@@ -14,27 +14,32 @@ import viewsapi.Caching.preventCaching
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class FileChecksController @Inject()(val controllerComponents: SecurityComponents,
-                                     val graphqlConfiguration: GraphQLConfiguration,
-                                     val keycloakConfiguration: KeycloakConfiguration,
-                                     val consignmentService: ConsignmentService,
-                                     val frontEndInfoConfiguration: FrontEndInfoConfiguration
-                                    )(implicit val ec: ExecutionContext) extends TokenSecurity with I18nSupport {
+class FileChecksController @Inject() (
+    val controllerComponents: SecurityComponents,
+    val graphqlConfiguration: GraphQLConfiguration,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val consignmentService: ConsignmentService,
+    val frontEndInfoConfiguration: FrontEndInfoConfiguration
+)(implicit val ec: ExecutionContext)
+    extends TokenSecurity
+    with I18nSupport {
 
-  private def getFileChecksProgress(request: Request[AnyContent], consignmentId: UUID)
-                                         (implicit requestHeader: RequestHeader): Future[FileChecksProgress] = {
-    consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
-      .map {
-        fileCheckProgress =>
-          FileChecksProgress(fileCheckProgress.totalFiles,
-                            fileCheckProgress.fileChecks.antivirusProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
-                            fileCheckProgress.fileChecks.checksumProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
-                            fileCheckProgress.fileChecks.ffidProgress.filesProcessed * 100 / fileCheckProgress.totalFiles)
+  private def getFileChecksProgress(request: Request[AnyContent], consignmentId: UUID)(implicit requestHeader: RequestHeader): Future[FileChecksProgress] = {
+    consignmentService
+      .getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
+      .map { fileCheckProgress =>
+        FileChecksProgress(
+          fileCheckProgress.totalFiles,
+          fileCheckProgress.fileChecks.antivirusProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
+          fileCheckProgress.fileChecks.checksumProgress.filesProcessed * 100 / fileCheckProgress.totalFiles,
+          fileCheckProgress.fileChecks.ffidProgress.filesProcessed * 100 / fileCheckProgress.totalFiles
+        )
       }
   }
 
   def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
-    consignmentService.fileCheckProgress(consignmentId, request.token.bearerAccessToken)
+    consignmentService
+      .fileCheckProgress(consignmentId, request.token.bearerAccessToken)
       .map(_.asJson.noSpaces)
       .map(Ok(_))
   }
@@ -44,10 +49,16 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       fileChecks <- getFileChecksProgress(request, consignmentId)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      if(fileChecks.isComplete) {
-        Ok(views.html.fileChecksProgressAlreadyConfirmed(
-          consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = false
-        )).uncache()
+      if (fileChecks.isComplete) {
+        Ok(
+          views.html.fileChecksProgressAlreadyConfirmed(
+            consignmentId,
+            reference,
+            frontEndInfoConfiguration.frontEndInfo,
+            request.token.name,
+            isJudgmentUser = false
+          )
+        ).uncache()
       } else {
         Ok(views.html.standard.fileChecksProgress(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name))
           .uncache()
@@ -60,13 +71,18 @@ class FileChecksController @Inject()(val controllerComponents: SecurityComponent
       fileChecks <- getFileChecksProgress(request, consignmentId)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      if(fileChecks.isComplete) {
-        Ok(views.html.fileChecksProgressAlreadyConfirmed(
-          consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name, isJudgmentUser = true
-        )).uncache()
+      if (fileChecks.isComplete) {
+        Ok(
+          views.html.fileChecksProgressAlreadyConfirmed(
+            consignmentId,
+            reference,
+            frontEndInfoConfiguration.frontEndInfo,
+            request.token.name,
+            isJudgmentUser = true
+          )
+        ).uncache()
       } else {
-        Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo,
-          request.token.name)).uncache()
+        Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
       }
     }
   }

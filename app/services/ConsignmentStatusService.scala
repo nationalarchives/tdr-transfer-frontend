@@ -10,20 +10,16 @@ import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class ConsignmentStatusService @Inject()(val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
+class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val getConsignmentStatusClient = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
 
   def getConsignmentStatus(consignmentId: UUID, token: BearerAccessToken): Future[Option[GetConsignment.CurrentStatus]] = {
     val variables = new Variables(consignmentId)
-    sendApiRequest(getConsignmentStatusClient, gcs.document, token, variables).map(data =>
-      data.getConsignment.map(_.currentStatus)
-    )
+    sendApiRequest(getConsignmentStatusClient, gcs.document, token, variables).map(data => data.getConsignment.map(_.currentStatus))
   }
 
   def consignmentStatusSeries(consignmentId: UUID, token: BearerAccessToken): Future[Option[GetConsignment]] = {
     val variables = new Variables(consignmentId)
-    sendApiRequest(getConsignmentStatusClient, gcs.document, token, variables).map(data =>
-      data.getConsignment
-    )
+    sendApiRequest(getConsignmentStatusClient, gcs.document, token, variables).map(data => data.getConsignment)
   }
 }

@@ -9,14 +9,14 @@ object FormFunctions {
   class FormDataOptions[T](args: Form[T]) {
 
     def shouldOptionBeSelected(option: String, formAlreadySubmitted: Boolean = false): String = {
-      if(formAlreadySubmitted) {
+      if (formAlreadySubmitted) {
         "checked"
       } else {
         val optionSelected = args.data.get(option)
         optionSelected match {
           case Some("true") | Some("false") => "checked" // we're only using 'true' values for now but might use 'false' in future
-          case None => ""
-          case _ => throw new IllegalStateException(s"Unexpected value: $optionSelected. value must be 'true' or 'false'")
+          case None                         => ""
+          case _                            => throw new IllegalStateException(s"Unexpected value: $optionSelected. value must be 'true' or 'false'")
         }
       }
     }
@@ -36,7 +36,7 @@ object FormFunctions {
   class ErrorHandling(elements: FieldElements) {
 
     def setErrorClass(): String = {
-      if(elements.hasErrors) {
+      if (elements.hasErrors) {
         "govuk-form-group--error"
       } else {
         ""

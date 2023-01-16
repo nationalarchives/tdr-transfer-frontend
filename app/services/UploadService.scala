@@ -18,7 +18,7 @@ import java.time.{Duration, LocalDate, ZoneId}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class UploadService @Inject()(val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
+class UploadService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val startUploadClient = graphqlConfiguration.getClient[su.Data, su.Variables]()
   private val addFilesAndMetadataClient = graphqlConfiguration.getClient[afam.Data, afam.Variables]()
   private val updateConsignmentStatusClient = graphqlConfiguration.getClient[ucs.Data, ucs.Variables]()
@@ -39,22 +39,18 @@ class UploadService @Inject()(val graphqlConfiguration: GraphQLConfiguration)(im
     sendApiRequest(updateConsignmentStatusClient, ucs.document, token, variables).map(data => {
       data.updateConsignmentStatus match {
         case Some(response) => response
-        case None => throw new RuntimeException(s"No data returned when updating the consignment status for ${consignmentStatusInput.consignmentId}")
+        case None           => throw new RuntimeException(s"No data returned when updating the consignment status for ${consignmentStatusInput.consignmentId}")
       }
     })
   }
 
   def startUpload(startUploadInput: StartUploadInput, token: BearerAccessToken): Future[String] = {
     val variables = su.Variables(startUploadInput)
-    sendApiRequest(startUploadClient, su.document, token, variables).map(data =>
-      data.startUpload
-    )
+    sendApiRequest(startUploadClient, su.document, token, variables).map(data => data.startUpload)
   }
 
   def saveClientMetadata(addFileAndMetadataInput: AddFileAndMetadataInput, token: BearerAccessToken): Future[List[afam.AddFilesAndMetadata]] = {
     val variables = afam.Variables(addFileAndMetadataInput)
-    sendApiRequest(addFilesAndMetadataClient, afam.document, token, variables).map(data =>
-      data.addFilesAndMetadata
-    )
+    sendApiRequest(addFilesAndMetadataClient, afam.document, token, variables).map(data => data.addFilesAndMetadata)
   }
 }

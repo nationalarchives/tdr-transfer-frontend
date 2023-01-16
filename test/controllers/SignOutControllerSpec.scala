@@ -4,7 +4,6 @@ import play.api.test.FakeRequest
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import play.api.test.Helpers._
 
-
 class SignOutControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
 
@@ -18,12 +17,12 @@ class SignOutControllerSpec extends FrontEndTestHelper {
       contentType(signOutPage) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(signOutPageAsString, signedIn = false, userType = "")
-      signOutPageAsString must include ("<title>Signed out</title>")
-      signOutPageAsString must include ("""<h1 class="govuk-heading-l">You have successfully signed out</h1>""")
-      signOutPageAsString must include ("""<p class="govuk-body">Thanks for using the Transfer Digital Records service.</p>""")
+      signOutPageAsString must include("<title>Signed out</title>")
+      signOutPageAsString must include("""<h1 class="govuk-heading-l">You have successfully signed out</h1>""")
+      signOutPageAsString must include("""<p class="govuk-body">Thanks for using the Transfer Digital Records service.</p>""")
 
-      contentAsString(signOutPage) must include (
-      """      <a href="/homepage" class="govuk-link">
+      contentAsString(signOutPage) must include(
+        """      <a href="/homepage" class="govuk-link">
         |        Sign in again
         |      </a>""".stripMargin
       )

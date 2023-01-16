@@ -11,29 +11,25 @@
         <h2 class="govuk-heading-s">Folder uploaded: @parentFolder</h2>
         <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records. Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>
 
-        <a class="tdr-card__link" href="@routes.AdditionalMetadataNavigationController.getPaginatedFiles(consignmentId, 1, limit = None, folderId = parentFolderId, "descriptive")">
-          <div class="tdr-card tdr-card--clickable">
-            <div class="tdr-card__content">
-              <h2 class="tdr-card__heading tdr-heading-m">
-                Descriptive metadata
-              </h2>
-              <p class="tdr-card__description">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>
-            </div>
+        <div class="tdr-card tdr-metadata-card">
+          <div class="tdr-card__content">
+            <h2 class="govuk-heading-s">
+              <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, "descriptive")">Descriptive metadata</a>
+            </h2>
+            <p class="govuk-body">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>
           </div>
-        </a>
+        </div>
 
-        <a class="tdr-card__link" href="@routes.AdditionalMetadataNavigationController.getPaginatedFiles(consignmentId, 1, limit = None, folderId = parentFolderId, "closure")">
-          <div class="tdr-card tdr-card--clickable">
-            <div class="tdr-card__content">
-              <h2 class="tdr-card__heading tdr-heading-m">
-                Closure metadata
-              </h2>
-              <p class="tdr-card__description">If you'd like to add or edit closure metadata to your records, you can do so here.</p>
-            </div>
+        <div class="tdr-card tdr-metadata-card">
+          <div class="tdr-card__content">
+            <h2 class="govuk-heading-s">
+              <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, "closure")">Closure metadata</a>
+            </h2>
+            <p class="govuk-body">If you'd like to add or edit closure metadata to your records, you can do so here.</p>
           </div>
-        </a>
+        </div>
 
-        <a href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
           Continue
         </a>
       </div>

@@ -58,13 +58,10 @@ class GoogleDriveService @Inject()(val ws: WSClient,
       }.items.filter(!_.isDir))
   }
 
-  implicit val keycloakDeployment: TdrKeycloakDeployment = keycloakConfiguration.keycloakDeployment()
-
   def getAccountUrl(profileOpt: Option[UserProfile], redirectPath: String): Option[String] = {
     profileOpt.flatMap(profile => {
       val tokenString = profile.getAttribute("access_token").toString
-      val keycloakUtils = KeycloakUtils()
-      keycloakUtils.getAccessToken(tokenString).toOption
+      keycloakConfiguration.token(tokenString)
     }).map(token => {
       val clientId: String = token.getIssuedFor
       val nonce = UUID.randomUUID().toString
@@ -76,7 +73,7 @@ class GoogleDriveService @Inject()(val ws: WSClient,
       val hash = Base64Url.encode(check);
       val realm = "tdr"
       KeycloakUriBuilder.fromUri(s"http://localhost:8081")
-        .path("realms/tdr/broker/google/link")
+        .path("realms/tdr/broker/microsoft/link")
         .queryParam("nonce", nonce)
         .queryParam("hash", hash)
         .queryParam("client_id", clientId)

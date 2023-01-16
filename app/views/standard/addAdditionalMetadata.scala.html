@@ -1,0 +1,132 @@
+@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
+@import helper.{inputRadioGroup => _, _}
+@import java.util.UUID
+
+@import scala.language.postfixOps
+@import views.html.partials.{inputDate, inputText, errorSummary, inputTextArea}
+@import views.html.partials.transferReference
+@import views.html.partials.inputRadioGroup
+@import controllers.util._
+@import views.html.partials.inputMultiSelect
+
+@import controllers.AddAdditionalMetadataController.File
+@import views.html.partials.fileNameCard
+
+@import views.html.partials.inputDropdown
+@(consignmentId: UUID, consignmentRef: String, metadataType: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File])(implicit request: RequestHeader, messages: Messages)
+@main(s"Add or edit $metadataType metadata", name = name) {
+  @defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
+        <h1 class="govuk-heading-l">Add or edit metadata</h1>
+        @fileNameCard(files.map(_.name), s"You are adding/editing $metadataType metadata for the following files:")
+        @errorSummary(
+          fieldsToApplyToFile.collect {
+            case p if p.fieldErrors.nonEmpty => (p.fieldId, p.fieldErrors)
+          }
+        )
+        @form(
+          routes.AddAdditionalMetadataController.addAdditionalMetadataSubmit(consignmentId, metadataType, files.map(_.fileId)),
+          (Symbol("novalidate"), "")
+        ) {
+          @CSRF.formField
+          @for(fieldToApplyToFile <- fieldsToApplyToFile) {
+            @{
+              fieldToApplyToFile match {
+                case RadioButtonGroupField(fieldId, name, description, additionalInfo, _, options, selectedOption, isRequired, hideInputs, dependencies, fieldErrors) => inputRadioGroup(
+                  fieldId,
+                  name,
+                  description,
+                  additionalInfo,
+                  options,
+                  selectedOption,
+                  Map(
+                    Symbol("_label") -> name,
+                    Symbol("_requiredOption") -> isRequired,
+                    Symbol("_largeOption") -> true,
+                    Symbol("_newlineOption") -> true,
+                    Symbol("_disabledOption") -> "",
+                    Symbol("_dynamicForm") -> true
+                  ),
+                  hideInputs,
+                  dependencies,
+                  fieldErrors
+                )
+                case DateField(fieldId, fieldName, fieldDescription, _, day, month, year, _, fieldErrors, _) => inputDate(
+                  fieldId,
+                  fieldName,
+                  fieldDescription,
+                  day,
+                  month,
+                  year,
+                  fieldErrors,
+                  Map(Symbol("_dynamicForm") -> true)
+                )
+                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText, inputType) => inputText(
+                  fieldId,
+                  fieldName,
+                  fieldDescription,
+                  inputNameAndValue,
+                  inputType,
+                  fieldErrors,
+                  Map(Symbol("_dynamicForm") -> true),
+                  inputMode,
+                  addSuffixText
+                )
+                case TextAreaField(fieldId, fieldName, fieldDescription, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit) => inputTextArea(
+                  fieldId,
+                  fieldName,
+                  fieldDescription,
+                  inputNameAndValue,
+                  fieldErrors,
+                  Map(Symbol("_dynamicForm") -> true),
+                  rows,
+                  wrap,
+                  characterLimit
+                )
+                case MultiSelectField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOptions, _, fieldErrors) =>
+                  inputMultiSelect(
+                    fieldId,
+                    fieldName,
+                    fieldDescription,
+                    options,
+                    selectedOptions,
+                    multiValue,
+                    Map(
+                      Symbol("_disabledOption") -> "",
+                      Symbol("_dynamicForm") -> true
+                    ),
+                    fieldErrors
+                  )
+                case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
+                  inputDropdown(
+                    fieldId,
+                    fieldName,
+                    fieldDescription,
+                    options,
+                    selectedOption,
+                    multiValue,
+                    Map(
+                      Symbol("_disabledOption") -> "",
+                      Symbol("_dynamicForm") -> true
+                    ),
+                    fieldErrors
+                  )
+              }
+            }
+          }
+          <div class="govuk-button-group">
+              <!-- Continue -->
+            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+              Continue
+            </button>
+            <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType)">Cancel</a>
+          </div>
+        </div>
+      }
+      @transferReference(consignmentRef, isJudgmentUser = false)
+    </div>
+
+  }
+}

@@ -45,10 +45,11 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
   val checkPageForStaticElements = new CheckPageForStaticElements
 
-  forAll (fileChecks) { userType =>
+  forAll(fileChecks) { userType =>
     "FileChecksController GET" should {
-      val (pathName, keycloakConfiguration, expectedTitle, expectedHeading, expectedInstruction, expectedForm) = if(userType == "judgment") {
-        ("judgment",
+      val (pathName, keycloakConfiguration, expectedTitle, expectedHeading, expectedInstruction, expectedForm) = if (userType == "judgment") {
+        (
+          "judgment",
           getValidJudgmentUserKeycloakConfiguration,
           "<title>Checking your upload</title>",
           """<h1 class="govuk-heading-l">Checking your upload""",
@@ -59,7 +60,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
       } else {
         // scalastyle:off line.size.limit
-        ("consignment",
+        (
+          "consignment",
           getValidStandardUserKeycloakConfiguration,
           "<title>Checking your records</title>",
           """<h1 class="govuk-heading-l">Checking your records</h1>""",
@@ -115,18 +117,18 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         fileChecksPageAsString must include(expectedTitle)
         fileChecksPageAsString must include(expectedHeading)
         fileChecksPageAsString must include(expectedInstruction)
-        if(userType == "judgment") {
+        if (userType == "judgment") {
           fileChecksPageAsString must include("""<input id="consignmentId" type="hidden" value="b5bbe4d6-01a7-4305-99ef-9fce4a67917a">""")
         } else {
           // scalastyle:off line.size.limit
           fileChecksPageAsString must include(
-          """            <p class="govuk-body govuk-!-margin-bottom-7">For more information on these checks, please see our
+            """            <p class="govuk-body govuk-!-margin-bottom-7">For more information on these checks, please see our
             |                <a href="/faq#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> for this service.
             |            </p>""".stripMargin
           )
           // scalastyle:on line.size.limit
           fileChecksPageAsString must include(
-          """                <div class="govuk-notification-banner__header">
+            """                <div class="govuk-notification-banner__header">
             |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
             |                        Important
             |                    </h2>
@@ -143,8 +145,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       s"return a redirect to the auth server with an unauthenticated $userType user" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
-        val controller = new FileChecksController(getUnauthorisedSecurityComponents,
-          graphQLConfiguration, getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
+        val controller =
+          new FileChecksController(getUnauthorisedSecurityComponents, graphQLConfiguration, getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration)
         val fileChecksPage = controller.fileChecksPage(consignmentId).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
 
         playStatus(fileChecksPage) mustBe FOUND
@@ -238,10 +240,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
       mockGraphqlResponse(progressData(1, 1, 1, allChecksSucceeded = true), "standard")
 
-      val fileChecksResults = controller.fileCheckProgress(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress")
-          .withCSRFToken
-        )
+      val fileChecksResults = controller
+        .fileCheckProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress").withCSRFToken)
 
       playStatus(fileChecksResults) mustBe OK
 
@@ -259,14 +260,15 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         frontEndInfoConfiguration
       )
 
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getFileCheckProgress"))
-        .willReturn(serverError()))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getFileCheckProgress"))
+          .willReturn(serverError())
+      )
 
-      val saveMetadataResponse = controller.fileCheckProgress(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress")
-          .withCSRFToken
-        )
+      val saveMetadataResponse = controller
+        .fileCheckProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/file-check-progress").withCSRFToken)
 
       val exception: Throwable = saveMetadataResponse.failed.futureValue
       exception.getMessage must startWith("Unexpected response from GraphQL API")
@@ -275,9 +277,11 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
   private def mockGraphqlResponse(dataString: String, userType: String) = {
     setConsignmentTypeResponse(wiremockServer, userType)
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getFileCheckProgress"))
-      .willReturn(okJson(dataString)))
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getFileCheckProgress"))
+        .willReturn(okJson(dataString))
+    )
   }
 
   forAll(userChecks) { (user, url) =>
@@ -297,20 +301,21 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val fileChecksPage = url match {
           case "judgment" =>
             setConsignmentTypeResponse(wiremockServer, "standard")
-            controller.judgmentFileChecksPage(consignmentId)
-            .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks"))
+            controller
+              .judgmentFileChecksPage(consignmentId)
+              .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks"))
           case "consignment" =>
             setConsignmentTypeResponse(wiremockServer, "judgment")
-            controller.fileChecksPage(consignmentId)
-            .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks"))
+            controller
+              .fileChecksPage(consignmentId)
+              .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks"))
         }
         playStatus(fileChecksPage) mustBe FORBIDDEN
       }
     }
   }
 
-  private def progressData(filesProcessedWithAntivirus: Int, filesProcessedWithChecksum: Int,
-                           filesProcessedWithFFID: Int, allChecksSucceeded: Boolean): String = {
+  private def progressData(filesProcessedWithAntivirus: Int, filesProcessedWithChecksum: Int, filesProcessedWithFFID: Int, allChecksSucceeded: Boolean): String = {
     val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
     val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessedWithAntivirus)
     val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)

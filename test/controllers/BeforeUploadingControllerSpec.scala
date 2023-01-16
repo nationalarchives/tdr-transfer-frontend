@@ -35,7 +35,8 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
 
-      val beforeUploadingPage = beforeUploadingController.beforeUploading(consignmentId)
+      val beforeUploadingPage = beforeUploadingController
+        .beforeUploading(consignmentId)
         .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
       val beforeUploadingPageAsString = contentAsString(beforeUploadingPage)
 
@@ -45,7 +46,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(beforeUploadingPageAsString, userType = "judgment")
       beforeUploadingPageAsString must include("""<h1 class="govuk-heading-l">Check your file before uploading</h1>""")
       beforeUploadingPageAsString must include(
-      """<p class="govuk-body govuk-!-margin-bottom-1">Your upload must contain the following information:</p>"""
+        """<p class="govuk-body govuk-!-margin-bottom-1">Your upload must contain the following information:</p>"""
       )
       beforeUploadingPageAsString must include(
         """<p class="govuk-body govuk-!-margin-bottom-1">neutral citation, name(s) of judge(s), name(s) of parties, court and judgment date.</p>"""
@@ -75,7 +76,8 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
 
       val beforeUploading = {
         setConsignmentTypeResponse(wiremockServer, "standard")
-        beforeUploadingController.beforeUploading(consignmentId)
+        beforeUploadingController
+          .beforeUploading(consignmentId)
           .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
       }
 

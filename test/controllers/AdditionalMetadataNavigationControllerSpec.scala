@@ -1,45 +1,38 @@
 package controllers
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
-import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.GraphQLConfiguration
-import graphql.codegen.GetConsignment.getConsignment
-import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles
-import graphql.codegen.GetConsignmentPaginatedFiles.getConsignmentPaginatedFiles.GetConsignment.PaginatedFiles.{Edges, PageInfo}
-import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFiles => gcpf}
+import controllers.util.MetadataProperty.fileType
+import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
+import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
+import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
+import graphql.codegen.types.FileMetadataFilters
 import io.circe.Printer
 import io.circe.generic.auto._
+import io.circe.parser.decode
 import io.circe.syntax._
-import org.mockito.ArgumentMatchers.any
-import org.mockito.{Mock, Mockito}
-import org.mockito.Mockito.{never, reset, times, when}
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.Assertion
 import play.api.Play.materializer
-import play.api.cache.redis.{CacheApi, RedisMap, RedisSet, SynchronousResult}
-import play.api.http.Status.{FORBIDDEN, OK, SEE_OTHER}
+import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, FOUND, SEE_OTHER}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, POST, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
+import play.api.test.Helpers.{GET, POST, contentAsString, defaultAwaitTimeout, redirectLocation, status => playStatus}
 import services.ConsignmentService
-import testUtils.FrontEndTestHelper
-import uk.gov.nationalarchives.tdr.GraphQLClient.Error
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, GetConsignmentFilesMetadataGraphqlRequestData}
 
 import java.util.UUID
-import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
-// scalastyle:off file.size.limit off
 class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
-  val selectedSet: RedisSet[UUID, SynchronousResult] = mock[RedisSet[UUID, SynchronousResult]]
-  val partSelectedSet: RedisSet[UUID, SynchronousResult] = mock[RedisSet[UUID, SynchronousResult]]
-  val folderMap: RedisMap[List[UUID], SynchronousResult] = mock[RedisMap[List[UUID], SynchronousResult]]
+  val emptyMetadata: Files.Metadata = gcf.GetConsignment.Files.Metadata(None)
+  val checkPageForStaticElements = new CheckPageForStaticElements
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
-    reset(selectedSet)
-    reset(partSelectedSet)
-    reset(folderMap)
   }
 
   override def afterEach(): Unit = {
@@ -47,1029 +40,252 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  implicit val ec: ExecutionContext = ExecutionContext.global
   val consignmentId: UUID = UUID.randomUUID()
 
-  "CacheSetHelper" should {
-
-    val folderId = UUID.randomUUID()
-    val file1Id = UUID.randomUUID()
-    val file2Id = UUID.randomUUID()
-    val file3Id = UUID.randomUUID()
-    val file4Id = UUID.randomUUID()
-    val allFolderFileDescendants = List(file1Id, file2Id, file3Id)
-
-    val cacheApi = mock[CacheApi]
-
-    when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(selectedSet)
-    when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(partSelectedSet)
-    when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(folderMap)
-
-    "add folder to 'folder descendant cache' where folder descendants are not already cached" in {
-      val metadataType = "closure"
-      val selectedNodes = List(file1Id)
-      val allDisplayedNodes = allFolderFileDescendants
-
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(file1Id), List(file2Id, file3Id), allFolderFileDescendants)
-      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants, false)
-
-      when(selectedSet.contains(file1Id)).thenReturn(true)
-
-      val controller = setUpController(cacheApi)
-      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
-
-      Mockito.verify(folderMap).add(folderId.toString, allFolderFileDescendants)
-      Mockito.verify(partSelectedSet).remove(folderId)
-      Mockito.verify(partSelectedSet).add(folderId)
-      Mockito.verify(selectedSet).add(file1Id)
-    }
-
-    "add a single file to the 'selected cache' when single file selected" in {
-      val metadataType = "closure"
-      val selectedNodes = List(file1Id)
-      val allDisplayedNodes = allFolderFileDescendants
-
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(file1Id), List(file2Id, file3Id))
-      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
-
-      when(selectedSet.contains(file1Id)).thenReturn(true)
-
-      val controller = setUpController(cacheApi)
-      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
-
-      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
-      Mockito.verify(partSelectedSet).remove(folderId)
-      Mockito.verify(partSelectedSet).add(folderId)
-      Mockito.verify(selectedSet).add(file1Id)
-    }
-
-    "remove single previously selected file from the 'selected cache' when file deselected" in {
-      val metadataType = "closure"
-      val selectedNodes = List()
-      val allDisplayedNodes = allFolderFileDescendants
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(), allFolderFileDescendants)
-      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
-
-      //initially id will be present, but then removed for subsequent "contains" calls
-      when(selectedSet.contains(file1Id))
-        .thenReturn(true)
-        .thenReturn(false)
-
-      val controller = setUpController(cacheApi)
-      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-      val response = controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken)
-
-      status(response) mustBe SEE_OTHER
-
-      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$folderId/1"))
-
-      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
-      Mockito.verify(partSelectedSet).remove(folderId)
-      Mockito.verify(partSelectedSet, never()).add(any[UUID])
-      Mockito.verify(selectedSet).remove(file1Id)
-    }
-
-    "add and remove multiple files from 'selected cache' depending on selection and de-selection options" in {
-      val metadataType = "closure"
-      val selectedNodes = List(file3Id, file4Id)
-      val allDisplayedNodes = allFolderFileDescendants :+ file4Id
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(file3Id, file4Id), allFolderFileDescendants :+ file4Id)
-      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants :+ file4Id)
-
-      //initially id will not be present, but then added for subsequent "contains" calls
-      selectedNodes.map(id => {
-        when(selectedSet.contains(id))
-          .thenReturn(false)
-          .thenReturn(true)
-      })
-
-      //initially id will be present, but then removed for subsequent "contains" calls
-      List(file1Id, file2Id).map(id => {
-        when(selectedSet.contains(id))
-          .thenReturn(true)
-          .thenReturn(false)
-      })
-
-      val controller = setUpController(cacheApi)
-      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-      val response = controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken)
-
-      status(response) mustBe SEE_OTHER
-
-      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$folderId/1"))
-
-      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
-      Mockito.verify(partSelectedSet).remove(folderId)
-      Mockito.verify(partSelectedSet).add(folderId)
-      Mockito.verify(selectedSet, times(1)).add(file3Id)
-      Mockito.verify(selectedSet, times(1)).add(file4Id)
-      Mockito.verify(selectedSet, times(1)).remove(file1Id)
-      Mockito.verify(selectedSet, times(1)).remove(file2Id)
-    }
-
-    "add all folder descendants to 'selected cache' if folder selected" in {
-      val metadataType = "closure"
-      val selectedNodes = List(folderId)
-      val allDisplayedNodes = List(folderId)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, allFolderFileDescendants, List())
-      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
-
-      allFolderFileDescendants.map(id => when(selectedSet.contains(id)).thenReturn(true))
-
-      val controller = setUpController(cacheApi)
-      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
-
-      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
-      Mockito.verify(partSelectedSet).remove(folderId)
-      Mockito.verify(partSelectedSet, never()).add(folderId)
-      Mockito.verify(selectedSet, times(1)).add(file1Id)
-      Mockito.verify(selectedSet, times(1)).add(file2Id)
-      Mockito.verify(selectedSet, times(1)).add(file3Id)
-    }
-
-    "remove folder from 'part selected cache' if all folder descendants are selected" in {
-      val metadataType = "closure"
-      val selectedNodes = List(file1Id)
-      val allDisplayedNodes = allFolderFileDescendants
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(file1Id, file2Id, file3Id), List())
-      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
-
-      allFolderFileDescendants.map(id => when(selectedSet.contains(id)).thenReturn(true))
-
-      val controller = setUpController(cacheApi)
-      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
-
-      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
-      Mockito.verify(partSelectedSet).remove(folderId)
-      Mockito.verify(partSelectedSet, never()).add(any[UUID])
-      Mockito.verify(selectedSet, times(1)).add(file1Id)
-      Mockito.verify(selectedSet, times(1)).add(file2Id)
-      Mockito.verify(selectedSet, times(1)).add(file3Id)
-    }
-
-    "add folder to 'part selected cache' if some, but not all descendants are selected" in {
-      val metadataType = "closure"
-      val selectedNodes = List(file1Id)
-      val allDisplayedNodes = List(file1Id, file2Id, file3Id)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, allFolderFileDescendants, List())
-      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
-
-      when(selectedSet.contains(file1Id)).thenReturn(true)
-      when(selectedSet.contains(file2Id)).thenReturn(false)
-      when(selectedSet.contains(file3Id)).thenReturn(false)
-
-      val controller = setUpController(cacheApi)
-      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
-
-      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
-      Mockito.verify(partSelectedSet).remove(folderId)
-      Mockito.verify(partSelectedSet).add(folderId)
-      Mockito.verify(selectedSet).add(file1Id)
-    }
-
-    "add folder to 'part selected cache' if some, but not all descendants, are de-selected" in {
-      val metadataType = "closure"
-      val selectedNodes = List(file1Id, file2Id)
-      val allDisplayedNodes = List(file1Id, file2Id, file3Id)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(file1Id, file2Id), List(file3Id))
-      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
-
-      when(selectedSet.contains(file3Id))
-        .thenReturn(true)
-        .thenReturn(false)
-      when(selectedSet.contains(file1Id)).thenReturn(true)
-      when(selectedSet.contains(file2Id)).thenReturn(true)
-
-      val controller = setUpController(cacheApi)
-      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
-
-      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
-      Mockito.verify(partSelectedSet).remove(folderId)
-      Mockito.verify(partSelectedSet).add(folderId)
-      Mockito.verify(selectedSet).remove(file3Id)
-      Mockito.verify(selectedSet, times(1)).add(file1Id)
-      Mockito.verify(selectedSet, times(1)).add(file2Id)
-    }
-
-    "remove all folder descendants from 'selected cache' and remove folder from 'part selected cache' when folder is de-selected" in {
-      val metadataType = "closure"
-      val selectedNodes = List()
-      val allDisplayedNodes = List(folderId)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(), List())
-      folderCacheResponseMocking(folderMap, folderId, allFolderFileDescendants)
-
-      allFolderFileDescendants.map(id => when(selectedSet.contains(id))
-        .thenReturn(true)
-        .thenReturn(true)
-        .thenReturn(false))
-
-      val controller = setUpController(cacheApi)
-      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
-
-      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
-      Mockito.verify(partSelectedSet).remove(folderId)
-      Mockito.verify(partSelectedSet, never()).add(folderId)
-      Mockito.verify(selectedSet, times(1)).remove(file1Id)
-      Mockito.verify(selectedSet, times(1)).remove(file2Id)
-      Mockito.verify(selectedSet, times(1)).remove(file3Id)
-    }
-
-    "not add an empty folder to 'selected cache' or 'part selected cache' if selected" in {
-      val metadataType = "closure"
-      val selectedNodes = List()
-      val allDisplayedNodes = List(folderId)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(), List())
-      folderCacheResponseMocking(folderMap, folderId, List())
-
-      val controller = setUpController(cacheApi)
-      val formPostData = setUpFormPostData(selectedNodes, allDisplayedNodes, folderId)
-
-      controller.submit(consignmentId, limit = None, selectedFolderId = folderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$folderId")
-          .withFormUrlEncodedBody(
-            formPostData: _*)
-          .withCSRFToken).futureValue
-
-      Mockito.verify(folderMap, never()).add(any[String], any[List[UUID]])
-      Mockito.verify(partSelectedSet).remove(folderId)
-      Mockito.verify(partSelectedSet, never()).add(folderId)
-      Mockito.verify(selectedSet, never()).add(any[UUID])
-    }
-  }
-
   "AdditionalMetadataNavigationController" should {
-    "render the additional metadata file selection page" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 1
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder, folderId, fileId)
-      setAllDescendantIdsResponse(wiremockServer, List(), List())
+    "getAllFiles" should {
+      forAll(metadataType) { metadataType =>
+        s"render the correct description for metadata type $metadataType" in {
+          val parentFile = gcf.GetConsignment.Files(UUID.randomUUID(), Option("parent"), Option("Folder"), None, emptyMetadata)
+          val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile), "standard")
 
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
+          val additionalMetadataController =
+            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+          val result = additionalMetadataController
+            .getAllFiles(consignmentId, metadataType)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
+          val content = contentAsString(result)
 
-      val cacheApi = mock[CacheApi]
-      cacheApiMocking(cacheApi, folderId)
+          content must include(s"Add or edit $metadataType metadata on file basis")
+          content must include(s"Folder uploaded: ${parentFile.fileName.get}")
+          content must not include ("Select at least one file or folder")
+          content must include(
+            s"""<a href="/consignment/$consignmentId/additional-metadata" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+            |          Back
+            |          </a>""".stripMargin
+          )
+          if (metadataType == "closure") getExpectedClosureHtml(content: String)
+        }
 
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
+        s"render the file navigation page with nested directories for metadata type $metadataType" in {
+          val parentId = UUID.randomUUID()
+          val descendantOneFileId = UUID.randomUUID()
+          val descendantTwoFileId = UUID.randomUUID()
+          val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("Folder"), None, emptyMetadata)
+          val descendantOneFile = gcf.GetConsignment.Files(descendantOneFileId, Option("descendantOneFile"), Option("Folder"), Option(parentId), emptyMetadata)
+          val descendantTwoFile = gcf.GetConsignment.Files(descendantTwoFileId, Option("descendantTwoFile"), Option("File"), Option(descendantOneFileId), emptyMetadata)
+          val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile, descendantOneFile, descendantTwoFile), "standard")
 
-      status(response) mustBe OK
-      contentType(response) mustBe Some("text/html")
+          val additionalMetadataController =
+            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+          val result = additionalMetadataController
+            .getAllFiles(consignmentId, metadataType)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
 
-      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
+          val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
+
+          content must include(getExpectedFolderHtml(parentId, "parent"))
+          content must include(getExpectedFolderHtml(descendantOneFileId, "descendantOneFile"))
+          content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile"))
+        }
+      }
+
+      "return forbidden for a judgment user" in {
+        val consignmentService = mockConsignmentService(Nil, "judgment")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+        val result = additionalMetadataController
+          .getAllFiles(consignmentId, "closure")
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
+        playStatus(result) must equal(FORBIDDEN)
+      }
+
+      "return a redirect the login page for a logged out user" in {
+        val consignmentService = mockConsignmentService(Nil, "standard")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents, MockAsyncCacheApi())
+        val result = additionalMetadataController
+          .getAllFiles(consignmentId, "closure")
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
+        playStatus(result) must equal(FOUND)
+      }
     }
 
-    "render the additional metadata file selection page, pagination buttons up to the total pages" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 1
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
-      setAllDescendantIdsResponse(wiremockServer, List(), List())
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      cacheApiMocking(cacheApi, folderId)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
-    }
-
-    "not display the 'previous' button if you are on the first page" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 1
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
-      setAllDescendantIdsResponse(wiremockServer, List(), List())
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      cacheApiMocking(cacheApi, folderId)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
-      // scalastyle:off line.size.limit
-      fileSelectionPageAsString.contains(
-        s"""
-           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit data-module="govuk-button" role="button" value="${currentPage + 1}">
-           |                  Previous
-           |                </button>""".stripMargin
-      ) mustBe false
-      // scalastyle:on line.size.limit
-    }
-
-    "display the 'previous' button if you are on a page other than the first page" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 2
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
-      setAllDescendantIdsResponse(wiremockServer, List(), List())
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      cacheApiMocking(cacheApi, folderId)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
-      // scalastyle:off line.size.limit
-      fileSelectionPageAsString.contains(
-        s"""
-           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="${currentPage - 1}">
-           |                                    Previous
-           |                                </button>""".stripMargin
-      ) mustBe true
-      // scalastyle:on line.size.limit
-    }
-
-    "not display the 'next' button if you are on the last page" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 3
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
-      setAllDescendantIdsResponse(wiremockServer, List(), List())
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      cacheApiMocking(cacheApi, folderId)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
-      // scalastyle:off line.size.limit
-      fileSelectionPageAsString.contains(
-        """
-           |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="$currentPage">
-           |                  Next
-           |                </button>""".stripMargin
-      ) mustBe false
-      // scalastyle:on line.size.limit
-    }
-
-    "display the 'next' button if you are not on the last page" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 1
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3))
-      setAllDescendantIdsResponse(wiremockServer, List(), List())
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      cacheApiMocking(cacheApi, folderId)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
-      // scalastyle:off line.size.limit
-      fileSelectionPageAsString.contains(
-        s"""
-           |                                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" value="2">
-           |                                    Next
-           |                                </button>""".stripMargin
-      ) mustBe true
-      // scalastyle:on line.size.limit
-    }
-
-    "redirect to the correct page when submitting a form" in {
-      val selectedFolderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val page = "1"
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(fileId))
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(selectedFolderId.toString)).thenReturn(Some(List()))
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.submit(consignmentId, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
-          .withFormUrlEncodedBody(
-            Seq(
-              ("allNodes[]", fileId.toString),
-              ("selected[]", fileId.toString),
-              ("pageSelected", page),
-              ("folderSelected", selectedFolderId.toString)): _*)
-          .withCSRFToken)
-
-      status(response) mustBe SEE_OTHER
-
-      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$page"))
-    }
-
-    "redirect to the correct page when submitting a form with 'returnToRoot' defined" in {
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val page = "1"
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(fileId))
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.submit(consignmentId, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
-          .withFormUrlEncodedBody(
-            Seq(
-              ("returnToRoot", selectedFolderId.toString),
-              ("allNodes[]", fileId.toString),
-              ("selected[]", fileId.toString),
-              ("pageSelected", page),
-              ("folderSelected", folderId.toString)): _*)
-          .withCSRFToken)
-
-      status(response) mustBe SEE_OTHER
-
-      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$page"))
-    }
-
-    "should correctly store selected file in the cache" in {
-      val selectedFolderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val page = "1"
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisSetPartSelectedMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.getFields(selectedFolderId.toString)).thenReturn(List())
-      when(redisMapMock.get(selectedFolderId.toString)).thenReturn(Some(List()))
-      when(redisMapMock.contains(selectedFolderId.toString)).thenReturn(true)
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetPartSelectedMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.submit(consignmentId, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId")
-          .withFormUrlEncodedBody(
-            Seq(
-              ("allNodes[]", fileId.toString),
-              ("selected[]", fileId.toString),
-              ("pageSelected", page),
-              ("folderSelected", selectedFolderId.toString)): _*)
-          .withCSRFToken)
-
-      status(response) mustBe SEE_OTHER
-
-      redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$page"))
-
-      Mockito.verify(redisSetPartSelectedMock).remove(selectedFolderId)
-      Mockito.verify(redisSetMock, times(1)).add(fileId)
-    }
-
-    "return forbidden if the file selection page is accessed by a judgment user" in {
-      val selectedFolderId = UUID.randomUUID()
-      val page = 1
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "judgment")
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, page, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$selectedFolderId/$page").withCSRFToken)
-
-      status(response) mustBe FORBIDDEN
-    }
-
-    "return an error message if the user does not own the consignment" in {
-      val currentPage = 1
-      val selectedFolderId = UUID.randomUUID()
-      val metadataType = "closure"
-      val errorMessage = s"User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '$consignmentId'"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
-      val errors = Error(errorMessage, Nil, Nil, None) :: Nil
-      val dataString: String = client.GraphqlData(None, errors).asJson.noSpaces
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentPaginatedFiles"))
-        .willReturn(okJson(dataString)))
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage")
-          .withCSRFToken).failed.futureValue
-
-      response.getMessage.contains(errorMessage) mustBe true
-    }
-
-    "redirect to the auth server with an unauthenticated user" in {
-      val selectedFolderId = UUID.randomUUID()
-      val page = 1
-      val metadataType = "closure"
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getUnauthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, page, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$page").withCSRFToken)
-
-      status(response) mustBe SEE_OTHER
-      redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
-    }
-
-    "display the correct file totals with a limit set" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 2
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(3), totalFiles = Some(10))
-      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-      when(redisSetMock.toSet).thenReturn(Set())
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = Option(3), selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
-
-      // scalastyle:off line.size.limit
-      fileSelectionPageAsString.contains(
-        """Showing <span class="govuk-body govuk-!-font-weight-bold">4</span> to <span class="govuk-body govuk-!-font-weight-bold">6</span> of <span class="govuk-body govuk-!-font-weight-bold">10</span> results"""
-      ) mustBe true
-      // scalastyle:on line.size.limit
-    }
-
-    "render the additional metadata file selection page for an empty folder" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 1
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-      setEmptyConsignmentPaginatedFilesResponse(wiremockServer, parentFolder, folderId)
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = Option(3), selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      // scalastyle:off line.size.limit
-      fileSelectionPageAsString.contains(
-        """<button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">
-          |                                1
-          |                                </button>""".stripMargin
-      ) mustBe true
-      fileSelectionPageAsString.contains(
-        """<button name="pageSelected" data-prevent-double-click="true" class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 0" value="0">
-          |                                    0
-          |                                    </button>""".stripMargin
-      ) mustBe false
-      fileSelectionPageAsString.contains(
-        """Showing <span class="govuk-body govuk-!-font-weight-bold">0</span> to <span class="govuk-body govuk-!-font-weight-bold">0</span> of <span class="govuk-body govuk-!-font-weight-bold">0</span> results"""
-      ) mustBe true
-      fileSelectionPageAsString.contains(
-        """
-          |                <button name="pageSelected" data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button" value="$currentPage">
-          |                  Next
-          |                </button>""".stripMargin
-      ) mustBe false
-      // scalastyle:on line.size.limit
-    }
-
-    "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 5
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(9))
-      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-      when(redisSetMock.toSet).thenReturn(Set())
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe false
-      fileSelectionPageAsString.contains(
-        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 6" value="6">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 7" value="7">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 8" value="8">""") mustBe false
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 9" value="9">""") mustBe true
-    }
-
-    "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages when on the first page" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 1
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(5))
-      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-      val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-      when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-      when(redisSetMock.toSet).thenReturn(Set())
-
-      when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-      when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-      when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">""") mustBe false
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">""") mustBe true
-    }
-
-    "render the additional metadata file selection page, pagination buttons up to the total pages for large number of pages when on the last page" in {
-      val parentFolder = "parentFolder"
-      val currentPage = 5
-      val selectedFolderId = UUID.randomUUID()
-      val folderId = UUID.randomUUID()
-      val fileId = UUID.randomUUID()
-      val metadataType = "closure"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-      setConsignmentPaginatedFilesResponse(wiremockServer, parentFolder: String, folderId, fileId, totalPages = Some(5))
-      setAllDescendantIdsResponse(wiremockServer, List(fileId), List())
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val cacheApi = mock[CacheApi]
-      cacheApiMocking(cacheApi, folderId)
-
-      val controller = new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-        getAuthorisedSecurityComponents, cacheApi)
-      val response = controller.getPaginatedFiles(consignmentId, currentPage, limit = None, selectedFolderId = selectedFolderId, metadataType)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/$metadataType/$selectedFolderId/$currentPage").withCSRFToken)
-      val fileSelectionPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      checkCommonFileNavigationElements(fileSelectionPageAsString, parentFolder, folderId, fileId, selectedFolderId)
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 1" value="1">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 2" value="2">""") mustBe false
-      fileSelectionPageAsString.contains(
-        s"""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 3" value="3">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 4" value="4">""") mustBe true
-      fileSelectionPageAsString.contains(
-        s"""class="govuk-button__tna-button-link" type="submit" data-module="govuk-button" role="link" aria-label="Page 5" value="5">""") mustBe true
+    "submitFiles" should {
+      "redirect to the closure status page with the correct file ids and closure metadata type if the files are not already closed" in {
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
+        val consignmentService = mockConsignmentService(files, "standard")
+        val fileId = UUID.randomUUID()
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, "closure")
+          .apply(
+            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
+              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
+              .withCSRFToken
+          )
+
+        playStatus(result) must equal(SEE_OTHER)
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}?fileIds=$fileId")
+
+        val events = wiremockServer.getAllServeEvents
+        val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
+        val request: GetConsignmentFilesMetadataGraphqlRequestData = decode[GetConsignmentFilesMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+          .getOrElse(GetConsignmentFilesMetadataGraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+
+        val input = request.variables.fileFiltersInput
+        input.get.selectedFileIds mustBe List(fileId).some
+        input.get.metadataFilters mustBe FileMetadataFilters(Some(true), None, Some(List(fileType))).some
+      }
+
+      "redirect to the closure metadata page with the correct file ids and closure metadata type if the files are already closed" in {
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
+        val consignmentService = mockConsignmentService(files, "standard", allClosed = true)
+        val fileId = UUID.randomUUID().toString
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, metadataType(0))
+          .apply(
+            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
+              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
+              .withCSRFToken
+          )
+        playStatus(result) must equal(SEE_OTHER)
+        redirectLocation(result).get must equal(
+          s"/consignment/$consignmentId/additional-metadata/add/${metadataType(0)}?fileIds=$fileId"
+        )
+      }
+
+      "redirect to the metadata summary page if the metadata type is descriptive" in {
+        val consignmentService = mockConsignmentService(Nil, "standard")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+        val fileId = UUID.randomUUID().toString
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, "descriptive")
+          .apply(
+            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/")
+              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
+              .withCSRFToken
+          )
+        playStatus(result) must equal(SEE_OTHER)
+        redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/add/descriptive?fileIds=$fileId")
+      }
+
+      "redirect to the file navigation page with an error message if a user submits the page without selecting any files and folders" in {
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
+        val consignmentService = mockConsignmentService(files, "standard")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, "closure")
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure").withCSRFToken)
+
+        playStatus(result) must equal(BAD_REQUEST)
+        val content = contentAsString(result)
+        content must include(
+          """    <div class="govuk-error-summary govuk-!-margin-bottom-4" data-module="govuk-error-summary">
+            |      <div role="alert">
+            |        <h2 class="govuk-error-summary__title">There is a problem</h2>
+            |        <div class="govuk-error-summary__body">
+            |          <ul class="govuk-list govuk-error-summary__list">
+            |            <li>
+            |              <a href="#file-selection">Select at least one file or folder</a>
+            |            </li>
+            |          </ul>
+            |        </div>
+            |      </div>
+            |    </div>""".stripMargin
+        )
+      }
+
+      "return forbidden for a judgment user" in {
+        val consignmentService = mockConsignmentService(Nil, "judgment")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, "closure")
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure").withCSRFToken)
+        playStatus(result) must equal(FORBIDDEN)
+      }
+
+      "return a redirect the login page for a logged out user" in {
+        val consignmentService = mockConsignmentService(Nil, "standard")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents, MockAsyncCacheApi())
+        val result = additionalMetadataController
+          .submitFiles(consignmentId, "descriptive")
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/").withCSRFToken)
+        playStatus(result) must equal(SEE_OTHER)
+      }
     }
   }
 
-  // scalastyle:off line.size.limit
-  private def checkCommonFileNavigationElements(fileSelectionPageAsString: String,
-                                                parentFolder: String,
-                                                folderId: UUID,
-                                                fileId: UUID,
-                                                selectedFolderId: UUID): Unit = {
-    fileSelectionPageAsString.contains(s"Add or edit closure metadata on file basis") mustBe true
-    fileSelectionPageAsString.contains(s"Folder uploaded: $parentFolder") mustBe true
-    fileSelectionPageAsString.contains(s"Add closure properties") mustBe true
-    fileSelectionPageAsString.contains(
-      s"""<button class="govuk-button__tna-button-link" name="folderSelected" data-prevent-double-click="true" type="submit" role="link" value="$folderId">""") mustBe true
-    fileSelectionPageAsString.contains(
-      s"""<label class="govuk-label govuk-checkboxes__label" for="$fileId">""") mustBe true
-    fileSelectionPageAsString.contains(s"""<input type="hidden" id="folderSelected" name="folderSelected" value="$selectedFolderId"/>""") mustBe true
-    fileSelectionPageAsString.contains(s"Back to overview") mustBe true
-  }
-  // scalastyle:on line.size.limit
-
-  private def setConsignmentPaginatedFilesResponse(wiremockServer: WireMockServer,
-                                                   parentFolder: String,
-                                                   folderId: UUID,
-                                                   fileId: UUID,
-                                                   totalPages: Option[Int] = Some(1),
-                                                   totalFiles: Option[Int] = Some(1)
-                                                  ): StubMapping = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[gcpf.Data, gcpf.Variables]()
-    val paginatedFiles: gcpf.GetConsignment.PaginatedFiles =
-      PaginatedFiles(PageInfo(startCursor = None, endCursor = None, hasNextPage = true, hasPreviousPage = true),
-        Some(List(
-          Some(Edges(Edges.Node(fileId = folderId, fileName = Some(parentFolder), fileType = Some("Folder"), parentId = None))),
-          Some(Edges(Edges.Node(fileId = fileId, fileName = Some("FileName"), fileType = Some("File"), parentId = Some(folderId)))))),
-        totalPages = totalPages, totalItems = totalFiles)
-    val graphQlPaginatedData = gcpf.GetConsignment(parentFolder = Some(parentFolder), parentFolderId = Some(folderId),
-      paginatedFiles = paginatedFiles)
-    val response = gcpf.Data(Some(graphQlPaginatedData))
-    val data = client.GraphqlData(Some(response))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentPaginatedFiles"))
-      .willReturn(okJson(dataString)))
+  private def getExpectedFolderHtml(id: UUID, label: String): String = {
+    s"""
+        |<div class="tna-tree__node-item__container">
+        |        <button class="tna-tree__expander js-tree__expander--radios" tabindex="-1" id="radios-expander-$id">
+        |          <span class="govuk-visually-hidden">Expand</span>
+        |        </button>
+        |
+        |        <div class="js-radios-directory tna-radios-directory">
+        |          <span class="govuk-label tna-radios-directory__label">
+        |            <img class="tna-tree__svg-directory" role="img" src="/assets/images/folder.svg" alt="Directory">
+        |            $label
+        |          </span>
+        |        </div>
+        |      </div>
+        |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
   }
 
-  private def setEmptyConsignmentPaginatedFilesResponse(wiremockServer: WireMockServer,
-                                                   parentFolder: String,
-                                                   folderId: UUID
-                                                  ): StubMapping = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[gcpf.Data, gcpf.Variables]()
-    val paginatedFiles: gcpf.GetConsignment.PaginatedFiles =
-      PaginatedFiles(PageInfo(startCursor = None, endCursor = None, hasNextPage = true, hasPreviousPage = true),
-        Some(List.empty),
-        totalPages = Some(0), totalItems = Some(0))
-    val graphQlPaginatedData = gcpf.GetConsignment(parentFolder = Some(parentFolder), parentFolderId = Some(folderId),
-      paginatedFiles = paginatedFiles)
-    val response = gcpf.Data(Some(graphQlPaginatedData))
-    val data = client.GraphqlData(Some(response))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentPaginatedFiles"))
-      .willReturn(okJson(dataString)))
+  private def getExpectedFileHtml(id: UUID, label: String): String = {
+    s"""
+        |<li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-$id" aria-level="3" aria-setsize="1" aria-posinset="0" aria-selected="false">
+        |      <div class="tna-tree__node-item__radio govuk-radios__item">
+        |        <span class="govuk-radios__input" aria-hidden="true" id="radio-$id" name="nested-navigation"></span>
+        |        <span class="govuk-label govuk-radios__label">
+        |        $label
+        |        </span>
+        |      </div>
+        |    </li>
+        |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
   }
 
-  private def setUpController(cacheApi: CacheApi): AdditionalMetadataNavigationController = {
+  private def getExpectedClosureHtml(htmlContent: String): Assertion = {
+    htmlContent must include(s"""
+       |        <div class="govuk-inset-text govuk-!-margin-top-0">
+       |            Once you have added all necessary closure metadata return to the <a href="/consignment/$consignmentId/additional-metadata">previous page</a> to add descriptive metadata or continue with the transfer.
+       |        </div>
+       |""".stripMargin)
+  }
+
+  private def mockConsignmentService(files: List[gcf.GetConsignment.Files], consignmentType: String, allClosed: Boolean = false) = {
+    val consignmentData: gcf.GetConsignment = gcf.GetConsignment(files)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+    val graphqlClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables]()
+    val dataString = graphqlClient.GraphqlData(Option(gcf.Data(Option(consignmentData)))).asJson.printWith(Printer.noSpaces)
+    val metadataClient = graphQLConfiguration.getClient[gcfm.Data, gcfm.Variables]()
+    val getMetadataFiles = files.map(file => {
+      val closureType: String = if (allClosed) "Closed" else "Open"
+      val fileMetadata = List(gcfm.GetConsignment.Files.FileMetadata("FileType", "File"), gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType))
+      gcfm.GetConsignment.Files(file.fileId, Some("FileName"), fileMetadata)
+    })
+
+    val metadataDataString = metadataClient.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(getMetadataFiles, "Reference"))))).asJson.printWith(Printer.noSpaces)
+    setConsignmentTypeResponse(wiremockServer, consignmentType)
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentFilesMetadata"))
+        .willReturn(okJson(metadataDataString))
+    )
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentFiles("))
+        .willReturn(okJson(dataString))
+    )
     val consignmentService = new ConsignmentService(graphQLConfiguration)
-
-    new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration,
-      getAuthorisedSecurityComponents, cacheApi)
-  }
-
-  private def cacheApiMocking(cacheApi: CacheApi, folderId: UUID) = {
-    val redisSetMock = mock[RedisSet[UUID, SynchronousResult]]
-    val redisMapMock = mock[RedisMap[List[UUID], SynchronousResult]]
-
-    when(redisSetMock.toSet).thenReturn(Set())
-    when(redisMapMock.get(folderId.toString)).thenReturn(Some(List()))
-    when(cacheApi.set[UUID](consignmentId.toString)).thenReturn(redisSetMock)
-    when(cacheApi.set[UUID](s"${consignmentId.toString}_partSelected")).thenReturn(redisSetMock)
-    when(cacheApi.map[List[UUID]](s"${consignmentId.toString}_folders")).thenReturn(redisMapMock)
-  }
-
-  private def folderCacheResponseMocking(
-                                          folderMap: RedisMap[List[UUID], SynchronousResult],
-                                          folderId: UUID,
-                                          descendants: List[UUID],
-                                          contains: Boolean = true) = {
-    when(folderMap.getFields(folderId.toString)).thenReturn(Seq(Some(descendants)))
-    when(folderMap.get(folderId.toString)).thenReturn(Some(descendants))
-    when(folderMap.contains(folderId.toString)).thenReturn(contains)
-  }
-
-  private def setUpFormPostData(selectedNodes: List[UUID] = List(), allNodes: List[UUID], selectedFolderId: UUID): Seq[(String, String)] = {
-    val selected: Seq[(String, String)] = selectedNodes.map(n => ("selected[]", n.toString))
-    val all: Seq[(String, String)] = allNodes.map(n => ("allNodes[]", n.toString))
-    val other: Seq[(String, String)] = Seq(
-      ("pageSelected", "1"),
-      ("folderSelected", selectedFolderId.toString))
-
-    all ++ selected ++ other
+    consignmentService
   }
 }

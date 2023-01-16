@@ -41,9 +41,7 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   }
 
   def judgmentTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    consignmentService.getConsignmentType(consignmentId, request.token.bearerAccessToken).flatMap(consignmentType =>
-      createResult(action, request, consignmentType == "judgment")
-    )
+    consignmentService.getConsignmentType(consignmentId, request.token.bearerAccessToken).flatMap(consignmentType => createResult(action, request, consignmentType == "judgment"))
   }
 
   def judgmentUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
@@ -55,9 +53,11 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   }
 
   def standardTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    consignmentService.getConsignmentType(consignmentId, request.token.bearerAccessToken).flatMap(consignmentType => {
-      createResult(action, request, consignmentType == "standard")
-    })
+    consignmentService
+      .getConsignmentType(consignmentId, request.token.bearerAccessToken)
+      .flatMap(consignmentType => {
+        createResult(action, request, consignmentType == "standard")
+      })
   }
 
   private def createResult(action: Request[AnyContent] => Future[Result], request: AuthenticatedRequest[AnyContent], isPermitted: Boolean) = {

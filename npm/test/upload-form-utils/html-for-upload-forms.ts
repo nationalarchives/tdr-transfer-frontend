@@ -5,14 +5,17 @@ export const htmlForFolderUploadForm = `
               <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
                   <div class="govuk-form-group">
                       <div class="drag-and-drop">
-                          <div id="success-message-row" class="govuk-summary-list govuk-file-upload">
+                          <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden="true">
                               <div class="govuk-summary-list__row">
-                                  <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden=""
+                                  <dd class="govuk-summary-list__value drag-and-drop__success"
                                       tabindex="-1" role="alert" aria-describedby="success-message-text">
-                                    <div class="success-message-flexbox-container">
-                                        <p id="success-message-text" class="success-message">The folder "<span id="folder-name"></span>" (containing <span id="folder-size"></span>) has been selected </p>
-                                        <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
-                                    </div>
+                                      <div class="success-message-flexbox-container" id="item-selection-success-container">
+                                          <p id="success-message-text" class="success-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been selected </p>
+                                          <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
+                                      </div>
+                                      <div class="success-message-flexbox-container" id="removed-selection-container" hidden="true">
+                                          <p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been removed. Select a folder.</p>
+                                      </div>
                                  </dd>
                               </div>
                           </div>
@@ -34,7 +37,7 @@ export const htmlForFolderUploadForm = `
                                               <span class="govuk-visually-hidden">Error:</span> You can only drop a single folder.
                                           </p>
                                       </div>
-                                      <div id="nothing-selected-submission-message" class="govuk-form-group govuk-form-group--error error-messages" tabindex="-1" role="alert" aria-describedby="submission-without-anything-selected-text">
+                                      <div id="nothing-selected-submission-message" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="submission-without-anything-selected-text">
                                           <p id="submission-without-anything-selected-text" class="govuk-error-message">
                                               <span class="govuk-visually-hidden">Error:</span> Select a folder to upload.
                                           </p>
@@ -75,21 +78,24 @@ export const htmlForFileUploadForm = `
           <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
               <div class="govuk-form-group">
                   <div class="drag-and-drop">
-                      <div id="success-message-row" class="govuk-summary-list govuk-file-upload">
+                      <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden="true">
                           <div class="govuk-summary-list__row">
-                              <dd id="folder-selection-success" class="govuk-summary-list__value drag-and-drop__success" hidden
+                              <dd class="govuk-summary-list__value drag-and-drop__success"
                                   tabindex="-1" role="alert" aria-describedby="success-message-text">
-                                <div class="success-message-flexbox-container">
-                                    <p id="success-message-text" class="success-message">The file "<span id="file-name"></span>" has been selected </p>
-                                    <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
-                                </div>
+                                  <div class="success-message-flexbox-container" id="item-selection-success-container">
+                                      <p id="success-message-text" class="success-message">The file "<span class="file-name"></span>" has been selected </p>
+                                      <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
+                                  </div>
+                                  <div class="success-message-flexbox-container" id="removed-selection-container" hidden="true">
+                                      <p id="removed-selection-message-text" class="govuk-error-message">The file "<span class="file-name"></span>" has been removed. Select a file.</p>
+                                  </div>
                               </dd>
                           </div>
                       </div>
                       <div>
                           <div class="govuk-form-group">
                               <div id="selection-area">
-                                  <div id="incorrect-file-extension" class="govuk-form-group govuk-form-group--error error-messages" hidden="" tabindex="-1" role="alert" aria-describedby="non-word-doc-selected-message-text">
+                                  <div id="incorrect-file-extension" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="non-word-doc-selected-message-text">
                                       <p id="non-word-doc-selected-message-text" class="govuk-error-message">
                                           <span class="govuk-visually-hidden">Error:</span> You must upload your judgment as a Microsoft Word file (.docx)
                                       </p>
@@ -99,17 +105,17 @@ export const htmlForFileUploadForm = `
                                               <span class="govuk-visually-hidden">Error:</span> You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders.
                                           </p>
                                   </div>
-                                  <div id="multiple-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="" tabindex="-1" role="alert" aria-describedby="multiple-object-type-selected-message-text">
+                                  <div id="multiple-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="multiple-object-type-selected-message-text">
                                       <p id="multiple-object-type-selected-message-text" class="govuk-error-message">
                                         <span class="govuk-visually-hidden">Error:</span> You must upload a single file
                                       </p>
                                   </div>
-                                  <div id="item-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="" tabindex="-1" role="alert" aria-describedby="wrong-object-type-selected-message-text">
+                                  <div id="item-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="wrong-object-type-selected-message-text">
                                       <p id="wrong-object-type-selected-message-text" class="govuk-error-message">
                                           <span class="govuk-visually-hidden">Error:</span> You must upload a file
                                       </p>
                                   </div>
-                                  <div id="nothing-selected-submission-message" class="govuk-form-group govuk-form-group--error error-messages" hidden="" tabindex="-1" role="alert" aria-describedby="submission-without-anything-selected-text">
+                                  <div id="nothing-selected-submission-message" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="submission-without-anything-selected-text">
                                       <p id="submission-without-anything-selected-text" class="govuk-error-message">
                                         <span class="govuk-visually-hidden">Error:</span> You did not select a file for upload.
                                       </p>

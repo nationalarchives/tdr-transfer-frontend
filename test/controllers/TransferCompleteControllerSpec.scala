@@ -3,24 +3,19 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
-import errors.AuthorisationException
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.Metadata
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.http.Status.FORBIDDEN
 import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
 import services.ConsignmentService
-import uk.gov.nationalarchives.tdr.GraphQLClient
-import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.time.{LocalDateTime, ZonedDateTime}
@@ -55,34 +50,33 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       val transferCompletePageAsString = contentAsString(transferCompletePage)
 
       transferCompletePageAsString must include(
-      """                        <div class="govuk-panel__body govuk-!-font-size-27">
+        """                        <div class="govuk-panel__body govuk-!-font-size-27">
         |                        Your records have now been transferred to The National Archives.
         |                        </div>""".stripMargin
       )
       transferCompletePageAsString must include(
-      """                        <div class="govuk-panel__body govuk-!-font-size-27 govuk-!-margin-top-5">
+        """                        <div class="govuk-panel__body govuk-!-font-size-27 govuk-!-margin-top-5">
         |                            Consignment reference: <span class="govuk-!-font-weight-bold">TEST-TDR-2021-GB</span>
         |                        </div>""".stripMargin
       )
-      transferCompletePageAsString must include(
-        s"""                    <p class="govuk-body">Download a printable report of the
-           |                        <a class="govuk-link" href=/consignment/${consignmentId}/download-report?ref=TEST-TDR-2021-GB>
+      transferCompletePageAsString must include(s"""                    <p class="govuk-body">Download a printable report of the
+           |                        <a class="govuk-link" href=/consignment/$consignmentId/additional-metadata/download-metadata/csv>
            |                            records that you have transferred with the metadata included.
            |                        </a>
            |                    </p>""".stripMargin)
       transferCompletePageAsString must include(
         """                    <p class="govuk-body">We have now received your records. Please do not delete the original files you uploaded""" +
-        " until you are notified that your records have been preserved.</p>"
+          " until you are notified that your records have been preserved.</p>"
       )
       transferCompletePageAsString must include(
         """                    <p class="govuk-body">We will contact you via email within 90 days.""" +
-        " If you do not receive an email, please contact us.</p>"
+          " If you do not receive an email, please contact us.</p>"
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(
         transferCompletePageAsString,
         userType = "standard",
-        transferStillInProgress=false
+        transferStillInProgress = false
       )
       checkTransferCompletePageForCommonElements(transferCompletePageAsString)
     }
@@ -113,47 +107,9 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(
         transferCompletePageAsString,
         userType = "judgment",
-        transferStillInProgress=false
+        transferStillInProgress = false
       )
-      checkTransferCompletePageForCommonElements(transferCompletePageAsString, survey="5YDPSA")
-    }
-
-    "downloadReport should have the correct headers and rows" in {
-      val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, "standard")
-      val consignmentId = UUID.randomUUID()
-      val lastModified = LocalDateTime.now()
-      val exportDateTime = ZonedDateTime.now()
-      mockGetConsignmentForExport(Some(lastModified), Some(exportDateTime))
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      val downloadReport = controller.downloadReport(consignmentId, "TEST-TDR-2021-GB")
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
-
-      contentAsString(downloadReport) must include(
-        "Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,ExportDatetime"
-      )
-      contentAsString(downloadReport) must include(
-        s"Filepath/SomeFile,SomeFile,File,1,Crown Copyright,Public Record,TNA,English,Open,$lastModified,$exportDateTime")
-    }
-
-    "throw an authorisation exception when the user does not have permission to download the report" in {
-      val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, "standard")
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      val consignmentId = UUID.randomUUID()
-      val client = new GraphQLConfiguration(app.configuration).getClient[gcfe.Data, gcfe.Variables]()
-      val data: client.GraphqlData = client.GraphqlData(
-        Some(gcfe.Data(None)),
-        List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
-      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-      wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignmentForExport"))
-        .willReturn(okJson(dataString)))
-
-      val downloadReport = controller.downloadReport(consignmentId, "TEST-TDR-2021-GB")
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/download-report").withCSRFToken)
-
-      val failure: Throwable = downloadReport.failed.futureValue
-
-      failure mustBe an[AuthorisationException]
+      checkTransferCompletePageForCommonElements(transferCompletePageAsString, survey = "5YDPSA")
     }
   }
 
@@ -167,11 +123,13 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
         val transferCompleteSubmit = if (url.equals("judgment")) {
           setConsignmentTypeResponse(wiremockServer, "judgment")
-          controller.transferComplete(consignmentId)
+          controller
+            .transferComplete(consignmentId)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-complete").withCSRFToken)
         } else {
           setConsignmentTypeResponse(wiremockServer, "standard")
-          controller.judgmentTransferComplete(consignmentId)
+          controller
+            .judgmentTransferComplete(consignmentId)
             .apply(FakeRequest(GET, s"/judgment/$consignmentId/transfer-complete").withCSRFToken)
         }
         status(transferCompleteSubmit) mustBe FORBIDDEN
@@ -193,33 +151,18 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, path)
     if (path.equals("judgment")) {
       setConsignmentTypeResponse(wiremockServer, "judgment")
-      controller.judgmentTransferComplete(consignmentId)
+      controller
+        .judgmentTransferComplete(consignmentId)
         .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
     } else {
       setConsignmentTypeResponse(wiremockServer, "standard")
-      controller.transferComplete(consignmentId)
+      controller
+        .transferComplete(consignmentId)
         .apply(FakeRequest(GET, s"/$path/$consignmentId/transfer-complete").withCSRFToken)
     }
   }
 
-  private def mockGetConsignmentForExport(clientSideLastModifiedDate: Option[LocalDateTime], exportDateTime: Option[ZonedDateTime]) = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[gcfe.Data, gcfe.Variables]()
-    val consignmentResponse = gcfe.Data(Option(GetConsignment(UUID.randomUUID(), None, None, exportDateTime, "TDR-2022", None, None, None,
-      List(
-        Files(UUID.randomUUID(), Some("File"), Some("SomeFile"), None,
-          Metadata(Some(1L), clientSideLastModifiedDate, Some("Filepath/SomeFile"), Some("Open"), Some("TNA"),
-            Some("English"), Some("Public Record"), Some("Crown Copyright"), None),
-          None, None))))
-    )
-    val data: client.GraphqlData = client.GraphqlData(Some(consignmentResponse))
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-
-    wiremockServer.stubFor(post(urlEqualTo("/graphql"))
-      .withRequestBody(containing("getConsignmentForExport"))
-      .willReturn(okJson(dataString)))
-  }
-
-  private def checkTransferCompletePageForCommonElements(transferCompletePageAsString: String, survey: String="tdr-feedback") = {
+  private def checkTransferCompletePageForCommonElements(transferCompletePageAsString: String, survey: String = "tdr-feedback") = {
     transferCompletePageAsString must include("<title>Transfer complete</title>")
     transferCompletePageAsString must include(
       """                        <h1 class="govuk-panel__title">
@@ -233,7 +176,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       s"""    <a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank">
         |        What did you think of this service? (opens in new tab)""".stripMargin
     )
-    transferCompletePageAsString must include (
+    transferCompletePageAsString must include(
       """                    <a href="/homepage" role="button" draggable="false" class="govuk-button ">
         |    Return to start
         |</a>""".stripMargin

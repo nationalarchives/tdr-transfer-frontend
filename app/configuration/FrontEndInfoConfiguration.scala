@@ -4,7 +4,7 @@ import javax.inject.Inject
 import play.api.Configuration
 import viewsapi.FrontEndInfo
 
-class FrontEndInfoConfiguration @Inject ()(configuration: Configuration) {
+class FrontEndInfoConfiguration @Inject() (configuration: Configuration) {
 
   private def get(location: String) = configuration.get[String](location)
 

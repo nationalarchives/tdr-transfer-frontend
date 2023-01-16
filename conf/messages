@@ -15,7 +15,8 @@ fileChecksResults.description.singular=Your folder ''{0}'' containing {1} item h
 fileChecksResults.description.plural=Your folder ''{0}'' containing {1} items has been successfully checked and uploaded. Click ''Continue'' to proceed with your transfer.
 
 transferComplete.error=There has been an error, contact us.
-
+deleteAdditionalMetadata.closureDeletionMessage=You are deleting closure metadata for the following files and setting them as open:
+deleteAdditionalMetadata.descriptiveDeletionMessage=You are deleting descriptive metadata for the following files:
 
 progressIndicator.step=Step {0} of {1}
 # Progress indicator step numbers
@@ -29,11 +30,15 @@ uploadProgress.progress=3
 judgmentCheckingRecords.progress=3
 judgmentFileChecksResults.progress=3
 checkingRecords.progress=4
+downloadMetadata.progress=6
 fileChecksResults.progress=4
 additionalMetadataStart.progress=5
-additionalMetadataSummary.progress=6
+additionalMetadataClosureStatus.progress=6
+additionalMetadataSummary.progress=7
 confirmTransfer.progress=6
-addClosureMetadata.progress=[StepNumberToBeImplemented]
+additionalMetadataClosure.progress=[StepNumberToBeImplemented]
+additionalMetadataDescriptive.progress=[StepNumberToBeImplemented]
+transferComplete.progress=8
 
-progress.totalSteps=6
+progress.totalSteps=8
 judgmentProgress.totalSteps=3

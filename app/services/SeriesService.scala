@@ -8,7 +8,7 @@ import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SeriesService @Inject()(val graphqlConfiguration: GraphQLConfiguration)(implicit ec: ExecutionContext) {
+class SeriesService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit ec: ExecutionContext) {
 
   private val getSeriesClient = graphqlConfiguration.getClient[getSeries.Data, getSeries.Variables]()
 

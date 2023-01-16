@@ -87,26 +87,30 @@ class FormFunctionSpec extends FrontEndTestHelper {
 
   "shouldOptionBeSelected" should {
     "return checked if the form is already submitted" in {
-      val res = FormFunctions.formDataOptions(form)
+      val res = FormFunctions
+        .formDataOptions(form)
         .shouldOptionBeSelected("id", formAlreadySubmitted = true)
       res should be("checked")
     }
 
     "return checked if the option is selected" in {
       val filledForm = form.fill(TestData("true"))
-      val res = FormFunctions.formDataOptions(filledForm)
+      val res = FormFunctions
+        .formDataOptions(filledForm)
         .shouldOptionBeSelected("id")
       res should be("checked")
     }
 
     "return empty if the option is not selected" in {
-      val res = FormFunctions.formDataOptions(form)
+      val res = FormFunctions
+        .formDataOptions(form)
         .shouldOptionBeSelected("id")
       res should be("")
     }
 
     "return empty if the option does not exist" in {
-      val res = FormFunctions.formDataOptions(form)
+      val res = FormFunctions
+        .formDataOptions(form)
         .shouldOptionBeSelected("invalid")
       res should be("")
     }
@@ -116,7 +120,7 @@ class FormFunctionSpec extends FrontEndTestHelper {
       val thrownException =
         the[IllegalStateException] thrownBy FormFunctions.formDataOptions(filledForm).shouldOptionBeSelected("id")
 
-      thrownException.getMessage should equal ("Unexpected value: Some(invalid). value must be 'true' or 'false'")
+      thrownException.getMessage should equal("Unexpected value: Some(invalid). value must be 'true' or 'false'")
     }
   }
 }

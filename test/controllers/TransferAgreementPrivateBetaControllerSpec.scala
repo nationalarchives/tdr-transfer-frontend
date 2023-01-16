@@ -34,7 +34,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   val formOptions: FormTester = taHelper.checkHtmlOfPrivateBetaFormOptions
   val optionsToSelectToGenerateFormErrors: Seq[Seq[(String, String)]] =
-    formOptions.generateWaysToIncorrectlySubmitAForm()
+    formOptions.generateOptionsToSelectToGenerateFormErrors()
 
   "TransferAgreementPrivateBetaController GET" should {
 
@@ -51,7 +51,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, taHelper.userType)
       setConsignmentReferenceResponse(wiremockServer)
 
-      val transferAgreementPage = controller.transferAgreement(consignmentId)
+      val transferAgreementPage = controller
+        .transferAgreement(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
 
       playStatus(transferAgreementPage) mustBe SEE_OTHER
@@ -71,7 +72,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, taHelper.userType)
       setConsignmentReferenceResponse(wiremockServer)
 
-      val transferAgreementPage = controller.transferAgreement(consignmentId)
+      val transferAgreementPage = controller
+        .transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
       val transferAgreementPageAsString = contentAsString(transferAgreementPage)
 
@@ -79,7 +81,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=taHelper.userType)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType = taHelper.userType)
       taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
       checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
       formOptions.checkHtmlForOptionAndItsAttributes(transferAgreementPageAsString, Map())
@@ -109,7 +111,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
           getValidStandardUserKeycloakConfiguration
         )
 
-      val transferAgreementPage = controller.transferAgreement(consignmentId)
+      val transferAgreementPage = controller
+        .transferAgreement(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
 
       val failure: Throwable = transferAgreementPage.failed.futureValue
@@ -137,8 +140,9 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
           getValidStandardUserKeycloakConfiguration
         )
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.privateBeta)
-      val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest().withFormUrlEncodedBody(completedTransferAgreementForm:_*).withCSRFToken)
+      val transferAgreementSubmit = controller
+        .transferAgreementSubmit(consignmentId)
+        .apply(FakeRequest().withFormUrlEncodedBody(completedTransferAgreementForm: _*).withCSRFToken)
       playStatus(transferAgreementSubmit) mustBe SEE_OTHER
       redirectLocation(transferAgreementSubmit) must be(Some("/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued"))
     }
@@ -154,10 +158,13 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
           getValidStandardUserKeycloakConfiguration
         )
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.privateBeta)
-      val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
-          .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
-          .withCSRFToken)
+      val transferAgreementSubmit = controller
+        .transferAgreementSubmit(consignmentId)
+        .apply(
+          FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
+            .withFormUrlEncodedBody(completedTransferAgreementForm: _*)
+            .withCSRFToken
+        )
 
       val failure: Throwable = transferAgreementSubmit.failed.futureValue
       failure mustBe an[Exception]
@@ -176,10 +183,13 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
           getValidStandardUserKeycloakConfiguration
         )
       val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.privateBeta)
-      val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
-          .withFormUrlEncodedBody(completedTransferAgreementForm:_*)
-          .withCSRFToken)
+      val transferAgreementSubmit = controller
+        .transferAgreementSubmit(consignmentId)
+        .apply(
+          FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
+            .withFormUrlEncodedBody(completedTransferAgreementForm: _*)
+            .withCSRFToken
+        )
 
       val failure: Throwable = transferAgreementSubmit.failed.futureValue
 
@@ -200,10 +210,13 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
 
       val incompleteTransferAgreementForm: Seq[(String, String)] = Seq()
 
-      val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
-          .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
-          .withCSRFToken)
+      val transferAgreementSubmit = controller
+        .transferAgreementSubmit(consignmentId)
+        .apply(
+          FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
+            .withFormUrlEncodedBody(incompleteTransferAgreementForm: _*)
+            .withCSRFToken
+        )
       val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
 
       playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
@@ -215,47 +228,49 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       transferAgreementPageAsString must include("govuk-error-message")
       transferAgreementPageAsString must include("error")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=taHelper.userType)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType = taHelper.userType)
       taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
       checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
     }
 
-    optionsToSelectToGenerateFormErrors.foreach {
-      optionsToSelect =>
-        val optionsAsString: String = optionsToSelect.map(optionAndValue => optionAndValue._1).mkString(", ")
-        s"display errors when a partially complete private beta form (only these options: $optionsAsString selected) is submitted" in {
-          val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-          val controller: TransferAgreementPrivateBetaController =
-            taHelper.instantiateTransferAgreementPrivateBetaController(
-              getAuthorisedSecurityComponents,
-              app.configuration,
-              getValidStandardUserKeycloakConfiguration
-            )
-          setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"))
-          setConsignmentTypeResponse(wiremockServer, taHelper.userType)
-          setConsignmentReferenceResponse(wiremockServer)
-
-          val incompleteTransferAgreementForm: Seq[(String, String)] = optionsToSelect
-
-          val transferAgreementSubmit = controller.transferAgreementSubmit(consignmentId)
-            .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
-              .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
-              .withCSRFToken)
-          val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
-
-          playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
-          formOptions.checkHtmlForOptionAndItsAttributes(
-            transferAgreementPageAsString,
-            incompleteTransferAgreementForm.toMap,
-            "PartiallySubmitted"
+    optionsToSelectToGenerateFormErrors.foreach { optionsToSelect =>
+      val optionsAsString: String = optionsToSelect.map(optionAndValue => optionAndValue._1).mkString(", ")
+      s"display errors when a partially complete private beta form (only these options: $optionsAsString selected) is submitted" in {
+        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+        val controller: TransferAgreementPrivateBetaController =
+          taHelper.instantiateTransferAgreementPrivateBetaController(
+            getAuthorisedSecurityComponents,
+            app.configuration,
+            getValidStandardUserKeycloakConfiguration
           )
-          transferAgreementPageAsString must include("govuk-error-message")
-          transferAgreementPageAsString must include("error")
+        setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"))
+        setConsignmentTypeResponse(wiremockServer, taHelper.userType)
+        setConsignmentReferenceResponse(wiremockServer)
 
-          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=taHelper.userType)
-          taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
-          checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
-        }
+        val incompleteTransferAgreementForm: Seq[(String, String)] = optionsToSelect
+
+        val transferAgreementSubmit = controller
+          .transferAgreementSubmit(consignmentId)
+          .apply(
+            FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
+              .withFormUrlEncodedBody(incompleteTransferAgreementForm: _*)
+              .withCSRFToken
+          )
+        val transferAgreementPageAsString = contentAsString(transferAgreementSubmit)
+
+        playStatus(transferAgreementSubmit) mustBe BAD_REQUEST
+        formOptions.checkHtmlForOptionAndItsAttributes(
+          transferAgreementPageAsString,
+          incompleteTransferAgreementForm.toMap,
+          "PartiallySubmitted"
+        )
+        transferAgreementPageAsString must include("govuk-error-message")
+        transferAgreementPageAsString must include("error")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType = taHelper.userType)
+        taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+        checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+      }
     }
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if consignment status is 'InProgress'" in {
@@ -270,7 +285,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, taHelper.userType)
       setConsignmentReferenceResponse(wiremockServer)
 
-      val transferAgreementPage = controller.transferAgreement(consignmentId)
+      val transferAgreementPage = controller
+        .transferAgreement(consignmentId)
         .apply(FakeRequest(GET, "/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement").withCSRFToken)
       val transferAgreementPageAsString = contentAsString(transferAgreementPage)
 
@@ -278,7 +294,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=taHelper.userType)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType = taHelper.userType)
       formOptions.checkHtmlForOptionAndItsAttributes(transferAgreementPageAsString, Map(), formStatus = "Submitted")
       taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString)
       checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString)
@@ -296,7 +312,8 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, taHelper.userType)
       setConsignmentReferenceResponse(wiremockServer)
 
-      val transferAgreementPage = controller.transferAgreement(consignmentId)
+      val transferAgreementPage = controller
+        .transferAgreement(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
       val transferAgreementPageAsString = contentAsString(transferAgreementPage)
 
@@ -304,7 +321,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       contentType(transferAgreementPage) mustBe Some("text/html")
       headers(transferAgreementPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType=taHelper.userType)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType = taHelper.userType)
       formOptions.checkHtmlForOptionAndItsAttributes(transferAgreementPageAsString, Map(), formStatus = "Submitted")
       taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString)
       checkForExpectedTAPrivateBetaPageContent(transferAgreementPageAsString)
@@ -312,35 +329,35 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
 
     "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page " +
       "after successfully submitting transfer agreement form having previously submitted an empty form" in {
-      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller =
-        taHelper.instantiateTransferAgreementPrivateBetaController(
-          getAuthorisedSecurityComponents,
-          app.configuration,
-          getValidStandardUserKeycloakConfiguration
-        )
-      setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
-      setConsignmentTypeResponse(wiremockServer, taHelper.userType)
-      setConsignmentReferenceResponse(wiremockServer)
+        val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+        val controller =
+          taHelper.instantiateTransferAgreementPrivateBetaController(
+            getAuthorisedSecurityComponents,
+            app.configuration,
+            getValidStandardUserKeycloakConfiguration
+          )
+        setConsignmentStatusResponse(app.configuration, wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
+        setConsignmentTypeResponse(wiremockServer, taHelper.userType)
+        setConsignmentReferenceResponse(wiremockServer)
 
-      val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
-        .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
-      val taAlreadyConfirmedPageAsString = contentAsString(taAlreadyConfirmedPage)
+        val taAlreadyConfirmedPage = controller
+          .transferAgreementSubmit(consignmentId)
+          .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
+        val taAlreadyConfirmedPageAsString = contentAsString(taAlreadyConfirmedPage)
 
-      playStatus(taAlreadyConfirmedPage) mustBe OK
-      contentType(taAlreadyConfirmedPage) mustBe Some("text/html")
-      headers(taAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+        playStatus(taAlreadyConfirmedPage) mustBe OK
+        contentType(taAlreadyConfirmedPage) mustBe Some("text/html")
+        headers(taAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType=taHelper.userType)
-      taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
-      checkForExpectedTAPrivateBetaPageContent(taAlreadyConfirmedPageAsString)
-      formOptions.checkHtmlForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, Map(), formStatus = "Submitted")
-    }
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType = taHelper.userType)
+        taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
+        checkForExpectedTAPrivateBetaPageContent(taAlreadyConfirmedPageAsString)
+        formOptions.checkHtmlForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, Map(), formStatus = "Submitted")
+      }
 
-    optionsToSelectToGenerateFormErrors.foreach {
-      optionsToSelect =>
-        val optionsAsString: String = optionsToSelect.map(optionAndValue => optionAndValue._1).mkString(", ")
-        "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page " +
+    optionsToSelectToGenerateFormErrors.foreach { optionsToSelect =>
+      val optionsAsString: String = optionsToSelect.map(optionAndValue => optionAndValue._1).mkString(", ")
+      "render the transfer agreement 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page " +
         "after successfully submitting transfer agreement form having previously submitted a partially complete form " +
         s"(only these options: $optionsAsString selected)" in {
           val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
@@ -356,17 +373,20 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
 
           val incompleteTransferAgreementForm: Seq[(String, String)] = optionsToSelect
 
-          val taAlreadyConfirmedPage = controller.transferAgreementSubmit(consignmentId)
-            .apply(FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
-              .withFormUrlEncodedBody(incompleteTransferAgreementForm:_*)
-              .withCSRFToken)
+          val taAlreadyConfirmedPage = controller
+            .transferAgreementSubmit(consignmentId)
+            .apply(
+              FakeRequest(POST, f"/consignment/$consignmentId/transfer-agreement")
+                .withFormUrlEncodedBody(incompleteTransferAgreementForm: _*)
+                .withCSRFToken
+            )
           val taAlreadyConfirmedPageAsString = contentAsString(taAlreadyConfirmedPage)
 
           playStatus(taAlreadyConfirmedPage) mustBe OK
           contentType(taAlreadyConfirmedPage) mustBe Some("text/html")
           headers(taAlreadyConfirmedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType=taHelper.userType)
+          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType = taHelper.userType)
           taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
           checkForExpectedTAPrivateBetaPageContent(taAlreadyConfirmedPageAsString)
           formOptions.checkHtmlForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, Map(), formStatus = "Submitted")
@@ -386,24 +406,25 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
 
       val transferAgreement = {
         setConsignmentTypeResponse(wiremockServer, consignmentType = "judgment")
-        transferAgreementPrivateBetaController.transferAgreement(consignmentId)
+        transferAgreementPrivateBetaController
+          .transferAgreement(consignmentId)
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
       }
       playStatus(transferAgreement) mustBe FORBIDDEN
     }
   }
 
-  private def checkForExpectedTAPrivateBetaPageContent(pageAsString: String, taAlreadyConfirmed: Boolean=true): Unit = {
-    pageAsString must include ("<title>Transfer agreement</title>")
-    pageAsString must include ("""<h1 class="govuk-heading-l">Transfer agreement</h1>""")
-    pageAsString must include (
+  private def checkForExpectedTAPrivateBetaPageContent(pageAsString: String, taAlreadyConfirmed: Boolean = true): Unit = {
+    pageAsString must include("<title>Transfer agreement</title>")
+    pageAsString must include("""<h1 class="govuk-heading-l">Transfer agreement</h1>""")
+    pageAsString must include(
       """|    <strong class="govuk-warning-text__text">
          |      <span class="govuk-warning-text__assistive">Warning</span>
          |      transferAgreement.warning
          |    </strong>""".stripMargin
     )
 
-    if(taAlreadyConfirmed) {
+    if (taAlreadyConfirmed) {
       pageAsString must include(
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/transfer-agreement-continued">
            |                Continue""".stripMargin

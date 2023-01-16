@@ -10,10 +10,11 @@ import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class AdditionalMetadataController @Inject () (val consignmentService: ConsignmentService,
-                                               val keycloakConfiguration: KeycloakConfiguration,
-                                               val controllerComponents: SecurityComponents
-                                              ) extends TokenSecurity {
+class AdditionalMetadataController @Inject() (
+    val consignmentService: ConsignmentService,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val controllerComponents: SecurityComponents
+) extends TokenSecurity {
 
   def start(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {

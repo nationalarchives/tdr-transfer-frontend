@@ -13,7 +13,10 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     closureStartDate -> "Closure start date",
     closurePeriod -> "Closure period",
     foiExemptionCode -> "FOI exemption code",
-    titlePublic -> "Is the title closed?"
+    titleClosed -> "Is the title closed?",
+    descriptionClosed -> "Is the description closed?",
+    titleAlternate -> "Alternate Title",
+    descriptionAlternate -> "Alternate Description"
   )
 
   def getCustomMetadataProperties(propertiesToGet: Set[String]): Set[CustomMetadata] =
@@ -32,39 +35,76 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
     val fieldLabel = dbAndFieldLabel.getOrElse(property.name, property.fullName.getOrElse(""))
     val fieldDescription = property.description.getOrElse("")
     val isRequired = property.propertyGroup.exists(_.startsWith("Mandatory"))
+
     property.dataType match {
       case Boolean =>
-        val selectedOption = property.defaultValue.map(v => if (v == "True") "yes" else "no").getOrElse("no")
-        RadioButtonGroupField(property.name, fieldLabel, fieldDescription,
+        val selectedOption = property.defaultValue.map(v => if (v.toBoolean) "yes" else "no").getOrElse("no")
+        val dependencies = property.values
+          .map(p => {
+            (if (p.value.toBoolean) "yes" else "no") -> getCustomMetadataProperties(p.dependencies.map(_.name).toSet).map(generateFieldOptions).toList
+          })
+          .toMap
+        RadioButtonGroupField(
+          property.name,
+          fieldLabel,
+          fieldDescription,
+          additionalInfo = "",
+          property.multiValue,
           Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")),
-          selectedOption, isRequired
+          selectedOption,
+          isRequired,
+          dependencies = dependencies
         )
       case DateTime =>
-        DateField(property.name, fieldLabel, fieldDescription,
-          InputNameAndValue("Day", "", "DD"), InputNameAndValue("Month", "", "MM"), InputNameAndValue("Year", "", "YYYY"),
-          isRequired, isFutureDateAllowed = property.name != foiExemptionAsserted
+        DateField(
+          property.name,
+          fieldLabel,
+          fieldDescription,
+          property.multiValue,
+          InputNameAndValue("Day", "", "DD"),
+          InputNameAndValue("Month", "", "MM"),
+          InputNameAndValue("Year", "", "YYYY"),
+          isRequired,
+          isFutureDateAllowed = property.name != foiExemptionAsserted
         )
       case Integer =>
-        TextField(property.name, fieldLabel, fieldDescription,
-          InputNameAndValue("years", property.defaultValue.getOrElse("")),
-          "numeric", isRequired
-        )
+        TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue("years", property.defaultValue.getOrElse("")), "numeric", isRequired)
       case Text =>
         property.propertyType match {
           case Defined =>
-            DropdownField(property.name, fieldLabel, fieldDescription,
-              property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value)),
-              property.defaultValue.map(value => InputNameAndValue(value, value)), isRequired
-            )
+            val options = property.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value))
+            if (property.multiValue) {
+              MultiSelectField(
+                property.name,
+                fieldLabel,
+                fieldDescription,
+                property.multiValue,
+                options,
+                property.defaultValue.map(value => InputNameAndValue(value, value) :: Nil),
+                isRequired
+              )
+            } else {
+              DropdownField(
+                property.name,
+                fieldLabel,
+                fieldDescription,
+                property.multiValue,
+                options,
+                property.defaultValue.map(value => InputNameAndValue(value, value)),
+                isRequired
+              )
+            }
           case Supplied =>
-            DropdownField(property.name, fieldLabel, fieldDescription,
-              Seq(),
-              property.defaultValue.map(value => InputNameAndValue(value, value)), isRequired
-            )
+            TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue(property.name, property.defaultValue.getOrElse("")), "text", isRequired)
           case _ =>
-            DropdownField(property.name, fieldLabel, fieldDescription,
+            DropdownField(
+              property.name,
+              fieldLabel,
+              fieldDescription,
+              property.multiValue,
               Seq(InputNameAndValue(property.name, property.fullName.getOrElse(""))),
-              None, isRequired
+              None,
+              isRequired
             )
         }
       // We don't have any examples of Decimal yet, so this is in the case Decimal or something else gets used
@@ -77,10 +117,21 @@ object CustomMetadataUtils {
   def apply(allCustomMetadataProperties: List[CustomMetadata]): CustomMetadataUtils = new CustomMetadataUtils(allCustomMetadataProperties)
 }
 
+case class StaticMetadata(name: String, value: String)
+
 object MetadataProperty {
   val foiExemptionAsserted = "FoiExemptionAsserted"
   val closureStartDate = "ClosureStartDate"
   val closurePeriod = "ClosurePeriod"
   val foiExemptionCode = "FoiExemptionCode"
-  val titlePublic = "TitlePublic"
+  val titleClosed = "TitleClosed"
+  val descriptionClosed = "DescriptionClosed"
+  val clientSideOriginalFilepath = "ClientSideOriginalFilepath"
+  val descriptionPublic = "DescriptionPublic"
+  val titleAlternate = "TitleAlternate"
+  val descriptionAlternate = "DescriptionAlternate"
+  val description = "description"
+  val fileType = "FileType"
+  val closureType: StaticMetadata = StaticMetadata("ClosureType", "Closed")
+  val descriptiveType: StaticMetadata = StaticMetadata("DescriptiveType", "")
 }

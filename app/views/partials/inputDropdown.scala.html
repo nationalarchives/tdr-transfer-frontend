@@ -5,6 +5,7 @@ fieldName: String,
 fieldDescription: String,
 options: Seq[InputNameAndValue],
 selectedOption: Option[InputNameAndValue],
+multiValue: Boolean=false,
 attributes: Map[Symbol, Any],
 fieldErrors: List[String] = Nil
 )(implicit messages: Messages)
@@ -24,7 +25,13 @@ fieldErrors: List[String] = Nil
             </label>
         </h2>
         <div id="@formFieldId-hint" class="govuk-hint">
-            @fieldDescription
+            @if(fieldId == "FoiExemptionCode") {
+                @* hard coding the description as the database cannot contain html*@
+                Add one or more exemption code to this closure. Here is a
+                <a target="_blank" href="https://www.legislation.gov.uk/ukpga/2000/36/contents">full list of FOI codes and their designated exemptions</a>.
+            } else {
+                @fieldDescription
+            }
         </div>
     } else {
         <label class="govuk-label" for="@formFieldId">

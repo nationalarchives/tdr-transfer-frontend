@@ -15,82 +15,34 @@ import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.Configuration
 import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
+import testUtils.DefaultMockFormOptions.{expectedComplianceOptions, expectedPrivateBetaOptions}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 
 import scala.concurrent.ExecutionContext
 
-class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontEndTestHelper{
+class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  lazy val privateBetaOptions: List[MockInputOption] = List(
-    MockInputOption(
-      "publicRecord",
-      "I confirm that the records are Public Records.",
-      value="true",
-      errorMessage="All records must be confirmed as public before proceeding",
-      fieldType="inputCheckbox"
-    ),
-    MockInputOption(
-      "crownCopyright",
-      "I confirm that the records are all Crown Copyright.",
-      value="true",
-      errorMessage="All records must be confirmed Crown Copyright before proceeding",
-      fieldType="inputCheckbox"
-    ),
-    MockInputOption(
-      "english",
-      "I confirm that the records are all in English.",
-      value="true",
-      errorMessage="All records must be confirmed as English language before proceeding",
-      fieldType="inputCheckbox"
-    )
-  )
-
-  lazy val complianceOptions: List[MockInputOption] = List(
-    MockInputOption(
-      "droAppraisalSelection",
-      "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
-      value="true",
-      errorMessage="Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records",
-      fieldType="inputCheckbox"
-    ),
-    MockInputOption(
-      "droSensitivity",
-      "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
-      value="true",
-      errorMessage="Departmental Records Officer (DRO) must have signed off sensitivity review",
-      fieldType="inputCheckbox"
-    ),
-    MockInputOption(
-      "openRecords",
-      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-      value="true",
-      errorMessage="All records must be open",
-      fieldType="inputCheckbox"
-    )
-  )
-
-  lazy val checkHtmlOfPrivateBetaFormOptions = new FormTester(privateBetaOptions, "")
-  lazy val checkHtmlOfComplianceFormOptions = new FormTester(complianceOptions, "")
+  lazy val checkHtmlOfPrivateBetaFormOptions = new FormTester(expectedPrivateBetaOptions, "")
+  lazy val checkHtmlOfComplianceFormOptions = new FormTester(expectedComplianceOptions, "")
 
   val privateBeta = "privateBeta"
   val compliance = "compliance"
   val userType = "standard"
 
-  def mockGetConsignmentGraphqlResponse(config: Configuration,
-                                        consignmentType: String = "standard"): StubMapping = {
+  def mockGetConsignmentGraphqlResponse(config: Configuration, consignmentType: String = "standard"): StubMapping = {
 
     val client = new GraphQLConfiguration(config).getClient[gc.Data, gc.Variables]()
-    val data: client.GraphqlData = client.GraphqlData(
-      Some(gc.Data(None)),
-      List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
+    val data: client.GraphqlData = client.GraphqlData(Some(gc.Data(None)), List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
 
-    if(dataString.nonEmpty) {
-      wireMockServer.stubFor(post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("getConsignment"))
-        .willReturn(okJson(dataString)))
+    if (dataString.nonEmpty) {
+      wireMockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getConsignment"))
+          .willReturn(okJson(dataString))
+      )
     }
 
     setConsignmentTypeResponse(wireMockServer, consignmentType)
@@ -117,71 +69,85 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     options(optionsType)
   }
 
-  def instantiateTransferAgreementPrivateBetaController(securityComponents: SecurityComponents,
-                                                        config: Configuration,
-                                                        keycloakConfiguration: KeycloakConfiguration =
-                                                        getValidKeycloakConfiguration): TransferAgreementPrivateBetaController = {
+  def instantiateTransferAgreementPrivateBetaController(
+      securityComponents: SecurityComponents,
+      config: Configuration,
+      keycloakConfiguration: KeycloakConfiguration = getValidKeycloakConfiguration
+  ): TransferAgreementPrivateBetaController = {
 
     val graphQLConfiguration = new GraphQLConfiguration(config)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
-    new TransferAgreementPrivateBetaController(securityComponents, new GraphQLConfiguration(config),
-      transferAgreementService, keycloakConfiguration, consignmentService, consignmentStatusService)
+    new TransferAgreementPrivateBetaController(
+      securityComponents,
+      new GraphQLConfiguration(config),
+      transferAgreementService,
+      keycloakConfiguration,
+      consignmentService,
+      consignmentStatusService
+    )
   }
 
-  def instantiateTransferAgreementComplianceController(securityComponents: SecurityComponents,
-                                                       config: Configuration,
-                                                       keycloakConfiguration: KeycloakConfiguration =
-                                                       getValidKeycloakConfiguration): TransferAgreementComplianceController = {
+  def instantiateTransferAgreementComplianceController(
+      securityComponents: SecurityComponents,
+      config: Configuration,
+      keycloakConfiguration: KeycloakConfiguration = getValidKeycloakConfiguration
+  ): TransferAgreementComplianceController = {
     val graphQLConfiguration = new GraphQLConfiguration(config)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
-    new TransferAgreementComplianceController(securityComponents, new GraphQLConfiguration(config),
-      transferAgreementService, keycloakConfiguration, consignmentService, consignmentStatusService)
+    new TransferAgreementComplianceController(
+      securityComponents,
+      new GraphQLConfiguration(config),
+      transferAgreementService,
+      keycloakConfiguration,
+      consignmentService,
+      consignmentStatusService
+    )
   }
 
-  def stubTAPrivateBetaResponse(transferAgreement: Option[atapb.AddTransferAgreementPrivateBeta] = None,
-                                  config: Configuration,
-                                  errors: List[GraphQLClient.Error] = Nil): Unit = {
+  def stubTAPrivateBetaResponse(transferAgreement: Option[atapb.AddTransferAgreementPrivateBeta] = None, config: Configuration, errors: List[GraphQLClient.Error] = Nil): Unit = {
     val client = new GraphQLConfiguration(config).getClient[atapb.Data, atapb.Variables]()
 
     val data: client.GraphqlData =
       client.GraphqlData(
-        transferAgreement.map(ta => atapb.Data(ta)),  // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
+        transferAgreement.map(ta => atapb.Data(ta)), // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
         errors
       )
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-    wireMockServer.stubFor(post(urlEqualTo("/graphql"))
-      .willReturn(okJson(dataString)))
+    wireMockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString))
+    )
   }
 
-  def stubTAComplianceResponse(transferAgreement: Option[atac.AddTransferAgreementCompliance] = None,
-                               config: Configuration,
-                               errors: List[GraphQLClient.Error] = Nil): Unit = {
+  def stubTAComplianceResponse(transferAgreement: Option[atac.AddTransferAgreementCompliance] = None, config: Configuration, errors: List[GraphQLClient.Error] = Nil): Unit = {
     val client = new GraphQLConfiguration(config).getClient[atac.Data, atac.Variables]()
 
     val data: client.GraphqlData =
       client.GraphqlData(
-        transferAgreement.map(ta => atac.Data(ta)),  // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
+        transferAgreement.map(ta => atac.Data(ta)), // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
         errors
       )
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-    wireMockServer.stubFor(post(urlEqualTo("/graphql"))
-      .willReturn(okJson(dataString)))
+    wireMockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .willReturn(okJson(dataString))
+    )
   }
 
-  def checkForExpectedTAPageContent(pageAsString: String, taAlreadyConfirmed: Boolean=true): Unit = {
-    if(taAlreadyConfirmed) {
+  def checkForExpectedTAPageContent(pageAsString: String, taAlreadyConfirmed: Boolean = true): Unit = {
+    if (taAlreadyConfirmed) {
       pageAsString must include("""            <h2 class="success-summary__title">You have already confirmed all statements</h2>""")
       pageAsString must include("""            <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""")
     } else {
-      pageAsString must include (
+      pageAsString must include(
         """        <p class="govuk-body">You must confirm all statements before proceeding. """ +
-        """If you cannot, please close your browser and contact your transfer advisor.</p>"""
+          """If you cannot, please close your browser and contact your transfer advisor.</p>"""
       )
     }
   }

@@ -1,8 +1,11 @@
 import { initAll } from "govuk-frontend"
+import { NestedNavigation, InputType } from "@nationalarchives/tdr-components"
+import { MultiSelectSearch } from "@nationalarchives/tdr-components"
 
 window.onload = async function () {
   initAll()
   await renderModules()
+  hideConditionalElements()
 }
 
 export interface IFrontEndInfo {
@@ -10,6 +13,19 @@ export interface IFrontEndInfo {
   uploadUrl: string
   stage: string
   region: string
+}
+
+export const hideConditionalElements: () => void = () => {
+  // We display all conditional elements by default if JavaScript is disabled; if it's enabled, then we'll hide them.
+  const conditionalElements: NodeListOf<Element> = document.querySelectorAll(
+    ".govuk-radios__conditional"
+  )
+
+  if (conditionalElements) {
+    conditionalElements.forEach((e) =>
+      e.classList.add("govuk-radios__conditional--hidden")
+    )
+  }
 }
 
 const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
@@ -38,8 +54,11 @@ export const renderModules = async () => {
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
+  const fileNavigation = document.querySelector(".tna-tree")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
+  const multiSelectSearch = document.querySelector(".tna-multi-select-search")
+
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
@@ -103,5 +122,52 @@ export const renderModules = async () => {
   } else if (timeoutDialog) {
     const sessionTimeoutModule = await import("./auth/session-timeout")
     await sessionTimeoutModule.initialiseSessionTimeout()
+  }
+  if (fileNavigation) {
+    const treeItems: NodeListOf<HTMLUListElement> =
+      document.querySelectorAll("[role=tree]")
+    const tree: HTMLUListElement | null = document.querySelector("[role=tree]")
+    const treeItemList: HTMLUListElement[] = []
+    if (tree != null) {
+      treeItems.forEach((item) => treeItemList.push(item))
+      const nestedNavigation = new NestedNavigation(tree, treeItemList)
+      nestedNavigation.initialiseFormListeners(InputType.radios)
+    }
+    const form = document.querySelector("form")
+    if (form) {
+      form.addEventListener("submit", async (ev) => {
+        ev.preventDefault()
+        const body = new URLSearchParams()
+        document
+          .querySelectorAll("li[aria-checked=true]")
+          .forEach((el, _, __) => {
+            body.set(el.id, "on")
+          })
+        const csrfInput: HTMLInputElement | null = document.querySelector(
+          "input[name='csrfToken']"
+        )
+        fetch(form.action, {
+          body,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Csrf-Token": csrfInput!.value,
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          redirect: "follow"
+        }).then((res) => {
+          window.location.replace(res.url)
+        })
+      })
+    }
+  }
+  if (multiSelectSearch) {
+    const rootElement: HTMLElement | null = document.querySelector(
+      "[data-module=multi-select-search]"
+    )
+    if (rootElement) {
+      const multiSelectSearch = new MultiSelectSearch(rootElement)
+      multiSelectSearch.initialise()
+    }
   }
 }

@@ -1,21 +1,31 @@
 @import views.html.partials.{transferReference, progressIndicator}
+@import java.util.UUID
 
-@(fileName: String, consignmentRef: String, metadata: Metadata, name: String)(implicit messages: Messages, request: RequestHeader)
+@import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
+
+@(
+    consignmentId: UUID,
+    metadataType: String,
+    fileIds: List[UUID],
+    fileNames: List[String],
+    consignmentRef: String,
+    name: String,
+    metadataList: List[FileMetadata])(implicit messages: Messages, request: RequestHeader)
 @main(title = "Review metadata added", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     @progressIndicator(Messages("additionalMetadataSummary.progress"))
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         <h1 class="govuk-heading-xl">
-          Review closure metadata changes
+          Review @metadataType metadata changes
         </h1>
-        <p class="govuk-body">You can edit, save or abandon any changes to closure metadata here.</p>
+        <p class="govuk-body">You can edit, remove or save @metadataType metadata here.</p>
         <div class="govuk-button-group">
-          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-            Edit properties
+          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
+            Edit metadata
           </a>
-          <a href="#" role="button" draggable="false" class="govuk-button govuk-button--warning">
-            Abandon changes
+          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--warning">
+            Delete metadata
           </a>
         </div>
         <dl class="govuk-summary-list">
@@ -23,46 +33,25 @@
             <dt class="govuk-summary-list__key">
               Name
             </dt>
-            <dd class="govuk-summary-list__value">
-              @fileName
-            </dd>
+            @for(fileName <- fileNames) {
+              <dd class="govuk-summary-list__value">
+                @fileName
+              </dd>
+            }
           </div>
 
-            <!-- closure stuff here -->
-          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
-            <dt class="govuk-summary-list__key">
-              FOI decision asserted
-            </dt>
-            <dd class="govuk-summary-list__value">
-              @metadata.foiExemptionAsserted
-            </dd>
-          </div>
-          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
-            <dt class="govuk-summary-list__key">
-              Closure start date
-            </dt>
-            <dd class="govuk-summary-list__value">
-              @metadata.closureStartDate
-            </dd>
-          </div>
-          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
-            <dt class="govuk-summary-list__key">
-              Closure period
-            </dt>
-            <dd class="govuk-summary-list__value">
-              @metadata.closurePeriod years
-            </dd>
-          </div>
-          <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
-            <dt class="govuk-summary-list__key">
-              FOI example code
-            </dt>
-            <dd class="govuk-summary-list__value">
-              @metadata.foiExemptionCode
-            </dd>
-          </div>
+          @for(metadata <- metadataList) {
+            <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+              <dt class="govuk-summary-list__key">
+              @metadata.name
+              </dt>
+              <dd class="govuk-summary-list__value">
+              @metadata.value
+              </dd>
+            </div>
+          }
         </dl>
-        <a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        <a href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
           Save and return to all files
         </a>
       </div>

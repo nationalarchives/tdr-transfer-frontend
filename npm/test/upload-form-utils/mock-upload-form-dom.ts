@@ -167,7 +167,7 @@ export class MockUploadFormDom {
     return new MockSubmitEvent()
   }
 
-  selectFolderViaButton: () => void = () => {
+  selectItemViaButton: () => void = () => {
     return this.triggerInputEvent(this.itemRetriever!, "change")
   }
 
@@ -216,14 +216,10 @@ export class MockUploadFormDom {
   itemRetriever: HTMLInputElement | null =
     document.querySelector("#file-selection")
 
-  itemRetrievalSuccessMessage: HTMLElement | null = document.querySelector(
-    ".drag-and-drop__success"
-  )
+  fileNameElement: HTMLElement | null = document.querySelector(".file-name")
 
-  fileNameElement: HTMLElement | null = document.querySelector("#file-name")
-
-  folderNameElement: HTMLElement | null = document.querySelector("#folder-name")
-  folderSizeElement: HTMLElement | null = document.querySelector("#folder-size")
+  folderNameElement: HTMLElement | null = document.querySelector(".folder-name")
+  folderSizeElement: HTMLElement | null = document.querySelector(".folder-size")
 
   warningMessages: {
     [warningName: string]: { [s: string]: HTMLElement | null }
@@ -253,6 +249,14 @@ export class MockUploadFormDom {
       messageElementText: document.querySelector(
         "#submission-without-anything-selected-text"
       )
+    },
+    removedSelectionMessage: {
+      messageElement: document.querySelector(
+        "#removed-selection-container"
+      ),
+      messageElementText: document.querySelector(
+        "#removed-selection-message-text"
+      )
     }
   }
 
@@ -268,8 +272,12 @@ export class MockUploadFormDom {
 
   uploadingRecordsSection = document.querySelector("#upload-progress")
 
-  successMessageRow: HTMLElement | null = document.querySelector(
-    "#success-message-row"
+  successAndRemovalMessageContainer: HTMLElement | null = document.querySelector(
+    "#success-and-removal-message-container"
+  )
+
+  successMessageContainer: HTMLElement | null = document.querySelector(
+    "#item-selection-success-container"
   )
 
   removeButton: HTMLElement | null = document.querySelector("#remove-file-btn")

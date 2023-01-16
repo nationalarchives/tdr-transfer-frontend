@@ -47,9 +47,9 @@ export class FileUploader {
         accessKeyId: "placeholder-id",
         secretAccessKey: "placeholder-secret"
       },
-      bucketEndpoint: true,
       requestHandler: new TdrFetchHandler({ requestTimeoutMs })
     }
+
     const client = new S3Client(config)
     this.clientFileProcessing = new ClientFileProcessing(
       clientFileMetadataUpload,
@@ -89,7 +89,7 @@ export class FileUploader {
         this.keycloak.tokenParsed?.sub
       )
       const statusUpdate =
-        await this.updateConsignmentStatus.markUploadStatusAsCompleted(
+        await this.updateConsignmentStatus.setUploadStatusBasedOnFileStatuses(
           uploadFilesInfo
         )
       if (isError(processResult)) {
