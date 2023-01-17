@@ -14,6 +14,7 @@ import {
   IReader,
   IWebkitEntry
 } from "../../src/upload/form/get-files-from-drag-event"
+import { TriggerBackendChecks } from "../../src/triggerbackendchecks"
 
 interface SubmitEvent extends Event {
   submitter: HTMLElement
@@ -83,9 +84,10 @@ export class MockUploadFormDom {
     type: "pdf", // overwrite default "type" value "" as files must have a non-empty value
     isFile: true,
     isDirectory: false,
-    webkitGetAsEntry: () => ({
-      isFile: true
-    }) as FileSystemEntry
+    webkitGetAsEntry: () =>
+      ({
+        isFile: true
+      } as FileSystemEntry)
   }
 
   directoryEntry: IWebkitEntry = {
@@ -172,7 +174,7 @@ export class MockUploadFormDom {
   }
 
   setUpFileUploader(isJudgmentUser: boolean): FileUploader {
-    const mockUpdateToken = jest.fn().mockImplementation((number:number) => {
+    const mockUpdateToken = jest.fn().mockImplementation((number: number) => {
       return new Promise((res, _) => res(true))
     })
     const isTokenExpired = true
@@ -195,12 +197,14 @@ export class MockUploadFormDom {
     }
     const uploadMetadata = new ClientFileMetadataUpload()
     const updateConsignmentStatus = new UpdateConsignmentStatus()
+    const triggerBackendChecks = new TriggerBackendChecks()
     return new FileUploader(
       uploadMetadata,
       updateConsignmentStatus,
       frontendInfo,
       jest.fn(),
-      mockKeycloakInstance
+      mockKeycloakInstance,
+      triggerBackendChecks
     )
   }
 
@@ -237,7 +241,9 @@ export class MockUploadFormDom {
       )
     },
     multipleFolderSelectedMessage: {
-      messageElement: document.querySelector("#multiple-folder-selection-failure"),
+      messageElement: document.querySelector(
+        "#multiple-folder-selection-failure"
+      ),
       messageElementText: document.querySelector(
         "#multiple-folder-selected-message-text"
       )
@@ -251,9 +257,7 @@ export class MockUploadFormDom {
       )
     },
     removedSelectionMessage: {
-      messageElement: document.querySelector(
-        "#removed-selection-container"
-      ),
+      messageElement: document.querySelector("#removed-selection-container"),
       messageElementText: document.querySelector(
         "#removed-selection-message-text"
       )
@@ -272,9 +276,8 @@ export class MockUploadFormDom {
 
   uploadingRecordsSection = document.querySelector("#upload-progress")
 
-  successAndRemovalMessageContainer: HTMLElement | null = document.querySelector(
-    "#success-and-removal-message-container"
-  )
+  successAndRemovalMessageContainer: HTMLElement | null =
+    document.querySelector("#success-and-removal-message-container")
 
   successMessageContainer: HTMLElement | null = document.querySelector(
     "#item-selection-success-container"

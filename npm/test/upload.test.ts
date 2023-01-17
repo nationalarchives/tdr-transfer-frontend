@@ -11,11 +11,13 @@ import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
 import { UpdateConsignmentStatus } from "../src/updateconsignmentstatus"
 import { KeycloakInstance } from "keycloak-js"
+import { TriggerBackendChecks } from "../src/triggerbackendchecks"
 jest.mock("../src/clientfileprocessing")
-jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
+jest.mock("../src/triggerbackendchecks")
+jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")
 
 beforeEach(() => {
-  document.body.innerHTML='<input name="csrfToken" value="abcde">'
+  document.body.innerHTML = '<input name="csrfToken" value="abcde">'
   fetchMock.resetMocks()
   jest.clearAllMocks()
 })
@@ -24,6 +26,23 @@ const dummyFile = {
   file: new File([], ""),
   path: "relativePath"
 } as IFileWithPath
+
+class TriggerBackendChecksSuccess {
+  triggerBackendChecks: (consignmentId: string) => Promise<Response | Error> =
+    async (consignmentId) => {
+      const response = new Response(null, { status: 200 })
+      return Promise.resolve(response)
+    }
+}
+
+class TriggerBackendChecksFailure {
+  triggerBackendChecks: (consignmentId: string) => Promise<Response | Error> =
+    async (_) => {
+      return Promise.resolve(
+        new Error("An error occurred triggering the backend checks")
+      )
+    }
+}
 
 class ClientFileProcessingSuccess {
   processClientFiles: (
@@ -62,6 +81,20 @@ const mockUploadSuccess: () => void = () => {
   })
 }
 
+const mockTriggerBackendChecksSuccess: () => void = () => {
+  const mock = TriggerBackendChecks as jest.Mock
+  mock.mockImplementation(() => {
+    return new TriggerBackendChecksSuccess()
+  })
+}
+
+const mockTriggerBackendChecksFailure: () => void = () => {
+  const mock = TriggerBackendChecks as jest.Mock
+  mock.mockImplementation(() => {
+    return new TriggerBackendChecksFailure()
+  })
+}
+
 const mockUploadFailure: () => void = () => {
   const mock = ClientFileProcessing as jest.Mock
   mock.mockImplementation(() => {
@@ -73,7 +106,7 @@ const mockGoToNextPage = jest.fn()
 
 test("upload function submits redirect form on upload files success", async () => {
   mockUploadSuccess()
-  fetchMock.mockResponse(JSON.stringify({updateConsignmentStatus: 1}))
+  fetchMock.mockResponse(JSON.stringify({ updateConsignmentStatus: 1 }))
 
   const uploadFiles = setUpFileUploader()
   const consoleErrorSpy = jest
@@ -109,9 +142,43 @@ test("upload function throws an error when upload fails", async () => {
   mockGoToNextPage.mockRestore()
 })
 
+test("upload function will not redirect to the next page if the backend checks trigger fails", async () => {
+  fetchMock.mockResponse(JSON.stringify({ updateConsignmentStatus: 1 }))
+  mockUploadSuccess()
+  mockTriggerBackendChecksFailure()
+
+  const uploadFiles = setUpFileUploader()
+
+  await uploadFiles.uploadFiles([dummyFile], {
+    consignmentId: "12345",
+    parentFolder: "TEST PARENT FOLDER NAME"
+  })
+
+  expect(mockGoToNextPage).not.toHaveBeenCalled()
+
+  mockGoToNextPage.mockRestore()
+})
+
+test("upload function redirects to the next page when backend checks trigger succeeds", async () => {
+  fetchMock.mockResponse(JSON.stringify({ updateConsignmentStatus: 1 }))
+  mockUploadSuccess()
+  mockTriggerBackendChecksSuccess()
+
+  const uploadFiles = setUpFileUploader()
+
+  await uploadFiles.uploadFiles([dummyFile], {
+    consignmentId: "12345",
+    parentFolder: "TEST PARENT FOLDER NAME"
+  })
+
+  expect(mockGoToNextPage).toHaveBeenCalled()
+
+  mockGoToNextPage.mockRestore()
+})
+
 test("upload function refreshes idle session", async () => {
   mockUploadSuccess()
-  fetchMock.mockResponse(JSON.stringify({updateConsignmentStatus: 1}))
+  fetchMock.mockResponse(JSON.stringify({ updateConsignmentStatus: 1 }))
 
   const mockUpdateToken = jest.fn().mockImplementation((_: number) => {
     return new Promise((res, _) => res(true))
@@ -159,11 +226,13 @@ function setUpFileUploader(mockKeycloak?: KeycloakInstance): FileUploader {
     uploadUrl: "https://example.com"
   }
   const updateConsignmentStatus = new UpdateConsignmentStatus()
+  const triggerBackendChecks = new TriggerBackendChecks()
   return new FileUploader(
     uploadMetadata,
     updateConsignmentStatus,
     frontendInfo,
     mockGoToNextPage,
-    keycloakInstance
+    keycloakInstance,
+    triggerBackendChecks
   )
 }
