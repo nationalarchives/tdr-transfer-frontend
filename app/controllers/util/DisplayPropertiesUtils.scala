@@ -42,7 +42,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
         generateFormField(dp, metadata)
       })
   }
-
+  // scalastyle:off method.length
   private def generateFormField(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
     val required: Boolean = customMetadata.requiredField
     property.componentType match {
@@ -54,6 +54,56 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           property.multiValue,
           InputNameAndValue(property.propertyName, customMetadata.defaultValue),
           required
+        )
+      case "small text" =>
+        TextField(
+          property.propertyName,
+          property.displayName,
+          property.description,
+          property.multiValue,
+          InputNameAndValue(property.propertyName, customMetadata.defaultValue),
+          "text",
+          required)
+      case "date" =>
+        DateField(
+          property.propertyName,
+          property.displayName,
+          property.description,
+          property.multiValue,
+          InputNameAndValue("Day", "", "DD"),
+          InputNameAndValue("Month", "", "MM"),
+          InputNameAndValue("Year", "", "YYYY"),
+          required
+        )
+      case "integer" =>
+        TextField(
+          property.propertyName,
+          property.displayName,
+          property.description,
+          property.multiValue,
+          InputNameAndValue("years", customMetadata.defaultValue),
+          "numeric",
+          required
+        )
+      case "radial" =>
+        val selectedOption = if(customMetadata.defaultValue.toBoolean) "yes" else "no"
+//        val dependencies: Map[String, List[FormField]] = customMetadata.get.values
+//          .map(p => {
+//            (if (p.value.toBoolean) "yes" else "no") -> getCustomMetadataProperties(p.dependencies.map(_.name).toSet).map(generateFieldOptions).toList
+//          })
+//          .toMap
+        //Hardcoding the expected dependencies here, refer to customMetadataUtils for how it currently gets the dependency
+        val dependencies: Map[String, List[FormField]] = Map("no" -> List(), "yes" -> List(TextField("TitleAlternate", "Alternate Title", "", false, InputNameAndValue("TitleAlternate",""),"text", false, List(),true,"number")))
+        RadioButtonGroupField(
+          property.propertyName,
+          property.displayName,
+          property.description,
+          additionalInfo = "",
+          property.multiValue,
+          Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")),
+          selectedOption,
+          required,
+          dependencies = dependencies
         )
       case "select" =>
         if (property.multiValue) {

@@ -151,9 +151,12 @@ class AddAdditionalMetadataController @Inject() (
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       formFields =
         if (closure) {
-          val customMetadataUtils = new CustomMetadataUtils(customMetadata)
-          val dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
-          customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
+          val customMetadata2 = getDependenciesForValue2(customMetadata, closureType.name, closureType.value)
+          new DisplayPropertiesUtils(displayProperties, customMetadata2).convertPropertiesToFormFields.toList
+//          OLD METHODS
+//          val customMetadataUtils = new CustomMetadataUtils(customMetadata)
+//          val dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
+//          customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
         } else {
           new DisplayPropertiesUtils(displayProperties, customMetadata).convertPropertiesToFormFields.toList
         }
@@ -163,9 +166,20 @@ class AddAdditionalMetadataController @Inject() (
     }
   }
 
+  private def getDependenciesForValue2(customMetadatas: List[CustomMetadata], propertyName: String, valueToGetDependenciesFrom: String): List[CustomMetadata] = {
+    val groupedCustomMetadata: Map[String, List[CustomMetadata]] = customMetadatas.groupBy(_.name)
+    val customMetadataValue: List[CustomMetadata.Values] = groupedCustomMetadata(propertyName).flatMap(_.values)
+    val values: Seq[CustomMetadata.Values] = customMetadataValue.filter(_.value == valueToGetDependenciesFrom)
+    val dependencyNames: Set[String] = values.flatMap(_.dependencies.map(_.name)).toSet
+    dependencyNames.flatMap(property => groupedCustomMetadata(property)).toList
+  }
+
   private def getDependenciesForValue(customMetadataUtils: CustomMetadataUtils, propertyName: String, valueToGetDependenciesFrom: String): Set[CustomMetadata] = {
+    //customMetadata grouped by name
     val propertyToValues: Map[String, List[CustomMetadata.Values]] = customMetadataUtils.getValuesOfProperties(Set(propertyName))
+    //Get values for that particular property
     val allValuesForProperty: Seq[CustomMetadata.Values] = propertyToValues(propertyName)
+    //Filter and only get the properties whose value is "Closed"
     val values: Seq[CustomMetadata.Values] = allValuesForProperty.filter(_.value == valueToGetDependenciesFrom)
     val dependencyNames: Seq[String] = values.flatMap(_.dependencies.map(_.name))
     customMetadataUtils.getCustomMetadataProperties(dependencyNames.toSet)
