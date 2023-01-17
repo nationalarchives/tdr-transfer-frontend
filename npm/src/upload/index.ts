@@ -11,6 +11,7 @@ import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
 import { TdrFetchHandler } from "../s3upload/tdr-fetch-handler"
 import { S3Client } from "@aws-sdk/client-s3"
 import { IEntryWithPath } from "./form/get-files-from-drag-event"
+import { TriggerBackendChecks } from "../triggerbackendchecks"
 
 export interface IKeycloakInstance extends KeycloakInstance {
   tokenParsed: IKeycloakTokenParsed
@@ -33,12 +34,15 @@ export class FileUploader {
   keycloak: IKeycloakInstance
   uploadUrl: string
 
+  triggerBackendChecks: TriggerBackendChecks
+
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
     updateConsignmentStatus: UpdateConsignmentStatus,
     frontendInfo: IFrontEndInfo,
     goToNextPage: (formId: string) => void,
-    keycloak: KeycloakInstance
+    keycloak: KeycloakInstance,
+    triggerBackendChecks: TriggerBackendChecks
   ) {
     const requestTimeoutMs = 20 * 60 * 1000
     const config: S3ClientConfig = {
@@ -60,6 +64,7 @@ export class FileUploader {
     this.goToNextPage = goToNextPage
     this.keycloak = keycloak as IKeycloakInstance
     this.uploadUrl = frontendInfo.uploadUrl
+    this.triggerBackendChecks = triggerBackendChecks
   }
 
   uploadFiles: (
@@ -92,6 +97,15 @@ export class FileUploader {
         await this.updateConsignmentStatus.setUploadStatusBasedOnFileStatuses(
           uploadFilesInfo
         )
+
+      const backendChecks =
+        await this.triggerBackendChecks.triggerBackendChecks(
+          uploadFilesInfo.consignmentId
+        )
+
+      if (isError(backendChecks)) {
+        errors.push(backendChecks)
+      }
       if (isError(processResult)) {
         errors.push(processResult)
       }
