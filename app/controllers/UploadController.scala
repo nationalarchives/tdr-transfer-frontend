@@ -97,7 +97,7 @@ class UploadController @Inject() (
 
   def drivePage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      consignmentReference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      consignmentReference <- Future("REF")//consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       googleToken <- googleDriveService.getGoogleToken(request.token.bearerAccessToken.getValue)
     } yield {
       val files = googleDriveService

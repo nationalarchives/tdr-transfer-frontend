@@ -66,7 +66,7 @@ class GoogleDriveService @Inject()(val ws: WSClient,
       val clientId: String = token.getIssuedFor
       val nonce = UUID.randomUUID().toString
       val md: MessageDigest = MessageDigest.getInstance("SHA-256")
-      val provider = "google"
+      val provider = "microsoft"
 
       val input = nonce + token.getSessionState + clientId + provider;
       val check = md.digest(input.getBytes(StandardCharsets.UTF_8));
@@ -88,10 +88,11 @@ class GoogleDriveService @Inject()(val ws: WSClient,
     ws.url("http://localhost:8081/realms/tdr/protocol/openid-connect/token")
       .post(Map(
         "client_id" -> Seq("tdr"),
-        "client_secret" -> Seq(config.getString("auth.secret")),
+        "client_secret" -> Seq("2df2841d-36ff-4e40-bc58-9c40c3010065"),
         "subject_token" -> Seq(accessToken),
-        "audience" -> Seq("https://www.googleapis.com/auth/drive"),
-        "requested_issuer" -> Seq("google"),
+//        "subject_issuer" -> Seq("https://auth.tdr-integration.nationalarchives.gov.uk/realms/tdr"),
+        "audience" -> Seq("1db8f6f5-d52c-44c9-9cb5-2c13061c9cb6"),
+        "requested_issuer" -> Seq("microsoft"),
         "grant_type" -> Seq("urn:ietf:params:oauth:grant-type:token-exchange")
       )).map(res => {
       //Check for errors and redirect to the upload page if link has expired
