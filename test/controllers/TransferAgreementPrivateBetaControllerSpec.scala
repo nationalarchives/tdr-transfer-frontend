@@ -127,7 +127,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         consignmentId,
         true,
         true,
-        true
+        Option(true)
       )
       taHelper.stubTAPrivateBetaResponse(Some(addTransferAgreementResponse), app.configuration)
 

@@ -86,7 +86,8 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       transferAgreementService,
       keycloakConfiguration,
       consignmentService,
-      consignmentStatusService
+      consignmentStatusService,
+      app.configuration
     )
   }
 
@@ -106,7 +107,8 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       transferAgreementService,
       keycloakConfiguration,
       consignmentService,
-      consignmentStatusService
+      consignmentStatusService,
+      app.configuration
     )
   }
 
