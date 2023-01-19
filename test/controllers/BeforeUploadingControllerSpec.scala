@@ -53,7 +53,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       )
       // scalastyle:off line.size.limit
       beforeUploadingPageAsString must include(
-        """<h2 class="govuk-heading-s">Select <a href="mailto:judgments@nationalarchives.gov.uk?subject=Ref: TEST-TDR-2021-GB">judgments@nationalarchives.gov.uk</a>"""
+        """<h2 class="govuk-heading-s">Select <a href="mailto:nationalArchives.judgmentEmailForHtmlTemplates?subject=Ref: TEST-TDR-2021-GB">nationalArchives.judgmentEmailForHtmlTemplates</a>"""
       )
       // scalastyle:on line.size.limit
       beforeUploadingPageAsString must include(
