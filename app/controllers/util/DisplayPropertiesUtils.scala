@@ -34,7 +34,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
     }
   }
 
-  def convertPropertiesToFormFields: Seq[FormField] = {
+  def convertPropertiesToFormFields(displayProperties: List[DisplayProperty]): Seq[FormField] = {
     displayProperties
       .sortBy(_.ordinal)
       .map(dp => {
@@ -87,13 +87,12 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
         )
       case "radial" =>
         val selectedOption = if(customMetadata.defaultValue.toBoolean) "yes" else "no"
-//        val dependencies: Map[String, List[FormField]] = customMetadata.get.values
-//          .map(p => {
-//            (if (p.value.toBoolean) "yes" else "no") -> getCustomMetadataProperties(p.dependencies.map(_.name).toSet).map(generateFieldOptions).toList
-//          })
-//          .toMap
-        //Hardcoding the expected dependencies here, refer to customMetadataUtils for how it currently gets the dependency
-        val dependencies: Map[String, List[FormField]] = Map("no" -> List(), "yes" -> List(TextField("TitleAlternate", "Alternate Title", "", false, InputNameAndValue("TitleAlternate",""),"text", false, List(),true,"number")))
+        val dependencies = customMetadata.get.values
+          .map(p => {
+            val dependencies = p.dependencies.map(_.name).toSet
+            (if (p.value.toBoolean) "yes" else "no") -> convertPropertiesToFormFields(displayProperties.filter(p => dependencies.contains(p.propertyName))).toList
+          })
+          .toMap
         RadioButtonGroupField(
           property.propertyName,
           property.displayName,
