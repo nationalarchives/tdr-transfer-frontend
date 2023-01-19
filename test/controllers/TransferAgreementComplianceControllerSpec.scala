@@ -131,7 +131,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
         consignmentId,
         true,
         true,
-        true
+        Option(true)
       )
       taHelper.stubTAComplianceResponse(Some(addTransferAgreementResponse), app.configuration)
 

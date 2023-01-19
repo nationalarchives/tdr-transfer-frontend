@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
+import play.api.Configuration
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Messages}
@@ -21,11 +22,15 @@ class TransferAgreementPrivateBetaController @Inject() (
     val transferAgreementService: TransferAgreementService,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val consignmentStatusService: ConsignmentStatusService
+    val consignmentStatusService: ConsignmentStatusService,
+    val configuration: Configuration
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
-  val transferAgreementForm: Form[TransferAgreementData] = Form(
+
+  val blockClosureMetadata: Boolean = configuration.get[Boolean]("featureAccessBlock.closureMetadata")
+
+  private val transferAgreementFormWithEnglish: Form[TransferAgreementData] = Form(
     mapping(
       "publicRecord" -> boolean
         .verifying("All records must be confirmed as public before proceeding", b => b),
@@ -33,16 +38,26 @@ class TransferAgreementPrivateBetaController @Inject() (
         .verifying("All records must be confirmed Crown Copyright before proceeding", b => b),
       "english" -> boolean
         .verifying("All records must be confirmed as English language before proceeding", b => b)
-    )(TransferAgreementData.apply)(TransferAgreementData.unapply)
+    )((publicRecord, crownCopyright, english) => TransferAgreementData(publicRecord, crownCopyright, Option(english)))(data => Option(data.publicRecord, data.crownCopyright, data.english.getOrElse(false)))
   )
 
-  val transferAgreementFormNameAndLabel = Seq(
+  val transferAgreementForm: Form[TransferAgreementData] = Form(
+    mapping(
+      "publicRecord" -> boolean
+        .verifying("All records must be confirmed as public before proceeding", b => b),
+      "crownCopyright" -> boolean
+        .verifying("All records must be confirmed Crown Copyright before proceeding", b => b),
+    )((publicRecord, crownCopyright) => TransferAgreementData(publicRecord, crownCopyright, None))(data => Option(data.publicRecord, data.crownCopyright))
+  )
+
+  private val transferAgreementFormNameAndLabel: Seq[(String, String)] = Seq(
     ("publicRecord", "I confirm that the records are Public Records."),
     ("crownCopyright", "I confirm that the records are all Crown Copyright."),
     ("english", "I confirm that the records are all in English.")
   )
 
-  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData] = transferAgreementForm)(implicit
+
+  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData])(implicit
       request: Request[AnyContent]
   ): Future[Result] = {
     for {
@@ -51,6 +66,7 @@ class TransferAgreementPrivateBetaController @Inject() (
       seriesStatus: Option[String] = consignmentStatus.flatMap(_.series)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
+      val formAndLabel = transferAgreementFormNameAndLabel.filter(f => taForm.formats.keys.toList.contains(f._1))
       val warningMessage = Messages("transferAgreement.warning")
       seriesStatus match {
         case Some("Completed") =>
@@ -60,15 +76,15 @@ class TransferAgreementPrivateBetaController @Inject() (
                 views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(
                   consignmentId,
                   reference,
-                  transferAgreementForm,
-                  transferAgreementFormNameAndLabel,
+                  taForm,
+                  formAndLabel,
                   warningMessage,
                   request.token.name
                 )
               )
                 .uncache()
             case None =>
-              httpStatus(views.html.standard.transferAgreementPrivateBeta(consignmentId, reference, taForm, transferAgreementFormNameAndLabel, warningMessage, request.token.name))
+              httpStatus(views.html.standard.transferAgreementPrivateBeta(consignmentId, reference, taForm, formAndLabel, warningMessage, request.token.name))
                 .uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
@@ -79,7 +95,12 @@ class TransferAgreementPrivateBetaController @Inject() (
   }
 
   def transferAgreement(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    loadStandardPageBasedOnTaStatus(consignmentId, Ok)
+    val form = if(blockClosureMetadata) {
+      transferAgreementFormWithEnglish
+    } else {
+      transferAgreementForm
+    }
+    loadStandardPageBasedOnTaStatus(consignmentId, Ok, form)
   }
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
@@ -105,7 +126,7 @@ class TransferAgreementPrivateBetaController @Inject() (
       } yield result
     }
 
-    val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest()
+    val formValidationResult: Form[TransferAgreementData] = transferAgreementFormWithEnglish.bindFromRequest()
 
     formValidationResult.fold(
       errorFunction,
@@ -114,4 +135,4 @@ class TransferAgreementPrivateBetaController @Inject() (
   }
 }
 
-case class TransferAgreementData(publicRecord: Boolean, crownCopyright: Boolean, english: Boolean)
+case class TransferAgreementData(publicRecord: Boolean, crownCopyright: Boolean, english: Option[Boolean])
