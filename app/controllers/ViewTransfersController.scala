@@ -57,12 +57,11 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
         transferStatus,
         statusColours(transferStatus),
         userActions,
-        edge.node.exportDatetime.map(_.format(formatter)).getOrElse(""),
+        edge.node.exportDatetime.map(_.format(formatter)).getOrElse("N/A"),
         edge.node.createdDatetime.map(_.format(formatter)).getOrElse(""),
         edge.node.totalFiles
       )
     }
-  }
 
   private def getConsignmentStatus(currentStatus: CurrentStatus, consignmentType: String): MostRecentConsignmentStatus = {
     val currentStatusTypes: List[String] = currentStatus.productElementNames.toList

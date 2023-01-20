@@ -93,10 +93,13 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
   def checkForExpectedViewTransfersPageContent(viewTransfersPageAsString: String): Unit = {
     viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
-    viewTransfersPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
-         |                  <th scope="col" class="govuk-table__header">Status</th>
-         |                  <th scope="col" class="govuk-table__header">Date of export</th>
-         |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
+    viewTransfersPageAsString must include(
+      s"""                    <th scope="col" class="govuk-table__header">Reference</th>
+          |                    <th scope="col" class="govuk-table__header">Date started</th>
+          |                    <th scope="col" class="govuk-table__header">Date transferred</th>
+          |                    <th scope="col" class="govuk-table__header">Status</th>
+          |                    <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin
+    )
     viewTransfersPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
     viewTransfersPageAsString must include(
       """        <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
@@ -116,9 +119,9 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     val actionUrl = actionUrlWithNoConsignmentId.format(node.consignmentid.getOrElse("NO CONSIGNMENT RETURNED"))
     val summary =
       s"""
-         |                          <span class="govuk-details__summary-text">
-         |                          ${node.consignmentReference}
-         |                          </span>
+         |                          <strong class="consignmentRefCell">
+         |                            ${node.consignmentReference}
+         |                          </strong>
          |""".stripMargin
     val details =
       s"""
@@ -134,12 +137,13 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
          |""".stripMargin
     val statusAndDate =
       s"""
+         |                    <td class="govuk-table__cell">$createdDate</td>
+         |                    <td class="govuk-table__cell ${if (exportDate == "N/A") "not-applicable" else ""}">$exportDate</td>
          |                    <td class="govuk-table__cell">
          |                      <strong class="govuk-tag govuk-tag--$transferStatusColour">
-         |                      $transferStatus
+         |                        $transferStatus
          |                      </strong>
          |                    </td>
-         |                    <td class="govuk-table__cell">$exportDate</td>
          |                    <td class="govuk-table__cell">$actionUrl</td>
          |""".stripMargin
 
