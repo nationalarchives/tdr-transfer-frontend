@@ -42,22 +42,11 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/view-transfers"))
       val viewTransfersPageAsString = contentAsString(response)
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
-
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
-      viewTransfersPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
-           |                  <th scope="col" class="govuk-table__header">Status</th>
-           |                  <th scope="col" class="govuk-table__header">Date of export</th>
-           |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
-      viewTransfersPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
-      viewTransfersPageAsString must include(
-        """        <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
-          |            Back to homepage
-          |        </a>""".stripMargin
-      )
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
+      checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
 
       consignmentsWithAllPossibleCurrentStatusStates.zipWithIndex.foreach { case (consignmentEdge, index) =>
         verifyConsignmentRow(viewTransfersPageAsString, "standard", consignmentEdge.node, index)
@@ -76,26 +65,16 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/view-transfers"))
       val viewTransfersPageAsString = contentAsString(response)
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
-
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
-      viewTransfersPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
-           |                  <th scope="col" class="govuk-table__header">Status</th>
-           |                  <th scope="col" class="govuk-table__header">Date of export</th>
-           |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
-      viewTransfersPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
+      checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
+
       viewTransfersPageAsString must include(
         """              <tbody class="govuk-table__body">""" +
           "\n                " +
           "\n              </tbody>"
-      )
-      viewTransfersPageAsString must include(
-        """        <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
-          |            Back to homepage
-          |        </a>""".stripMargin
       )
     }
 
@@ -110,6 +89,20 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
+  }
+
+  def checkForExpectedViewTransfersPageContent(viewTransfersPageAsString: String): Unit = {
+    viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
+    viewTransfersPageAsString must include(s"""<th scope="col" class="govuk-table__header">Consignment reference</th>
+         |                  <th scope="col" class="govuk-table__header">Status</th>
+         |                  <th scope="col" class="govuk-table__header">Date of export</th>
+         |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
+    viewTransfersPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
+    viewTransfersPageAsString must include(
+      """        <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
+        |            Back to homepage
+        |        </a>""".stripMargin
+    )
   }
 
   def verifyConsignmentRow(viewTransfersPageAsString: String, consignmentType: String, node: Node, index: Int): Unit = {
@@ -149,6 +142,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
          |                    <td class="govuk-table__cell">$exportDate</td>
          |                    <td class="govuk-table__cell">$actionUrl</td>
          |""".stripMargin
+
     viewTransfersPageAsString must include(summary)
     viewTransfersPageAsString must include(details)
     viewTransfersPageAsString must include(statusAndDate)
