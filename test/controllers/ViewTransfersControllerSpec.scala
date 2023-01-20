@@ -2,6 +2,7 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.GraphQLConfiguration
+import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import play.api.Play.materializer
 import play.api.http.Status.{FOUND, OK}
@@ -31,7 +32,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   "ViewTransfersController" should {
     "render the view transfers page with list of user's consignments" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
-      val consignments = setConsignmentsHistoryResponse(wiremockServer)
+      val consignmentsWithAllPossibleCurrentStatusStates: List[Consignments.Edges] = setConsignmentsHistoryResponse(wiremockServer)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -58,7 +59,9 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
           |        </a>""".stripMargin
       )
 
-      consignments.foreach(c => verifyConsignmentRow(viewTransfersPageAsString, c.node))
+      consignmentsWithAllPossibleCurrentStatusStates.zipWithIndex.foreach { case (consignmentEdge, index) =>
+        verifyConsignmentRow(viewTransfersPageAsString, "standard", consignmentEdge.node, index)
+      }
     }
 
     "render the view transfers page with no consignments if the user doesn't have any consignments" in {
@@ -109,12 +112,15 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  def verifyConsignmentRow(viewTransfersPageAsString: String, node: Node): Unit = {
+  def verifyConsignmentRow(viewTransfersPageAsString: String, consignmentType: String, node: Node, index: Int): Unit = {
 
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val exportDate = node.exportDatetime.map(_.format(formatter)).get
     val createdDate = node.createdDatetime.map(_.format(formatter)).get
-    val status = if (node.currentStatus.`export`.contains("Completed")) "Exported" else "InProgress"
+    val (transferStatus, actionUrlWithNoConsignmentId): (String, String) =
+      if (consignmentType == "judgment") ("", "") else allPossibleStatusesAndActionUrlsForStandardUsers(index) // need to implement one for judgments
+    val transferStatusColour = getStatusColour(transferStatus)
+    val actionUrl = actionUrlWithNoConsignmentId.format(node.consignmentid.getOrElse("NO CONSIGNMENT RETURNED"))
     val summary =
       s"""
          |                          <span class="govuk-details__summary-text">
@@ -136,15 +142,38 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     val statusAndDate =
       s"""
          |                    <td class="govuk-table__cell">
-         |                      <strong class="govuk-tag govuk-tag--green">
-         |                      $status
+         |                      <strong class="govuk-tag govuk-tag--$transferStatusColour">
+         |                      $transferStatus
          |                      </strong>
          |                    </td>
          |                    <td class="govuk-table__cell">$exportDate</td>
-         |                    <td class="govuk-table__cell"></td>
+         |                    <td class="govuk-table__cell">$actionUrl</td>
          |""".stripMargin
     viewTransfersPageAsString must include(summary)
     viewTransfersPageAsString must include(details)
     viewTransfersPageAsString must include(statusAndDate)
   }
+
+  private val getStatusColour = Map(
+    "In Progress" -> "yellow",
+    "Failed" -> "red",
+    "Transferred" -> "green"
+  )
+
+  private val allPossibleStatusesAndActionUrlsForStandardUsers: List[(String, String)] = List(
+    ("In Progress", """<a href="/consignment/%s/series">Resume transfer</a>"""),
+    ("In Progress", """<a href="/consignment/%s/transfer-agreement">Resume transfer</a>"""),
+    ("In Progress", """<a href="/consignment/%s/transfer-agreement-continued">Resume transfer</a>"""),
+    ("In Progress", """<a href="/consignment/%s/upload">Resume transfer</a>"""),
+    ("In Progress", """<a href="/consignment/%s/upload">Resume transfer</a>"""),
+    ("Failed", """<a href="/consignment/%s/upload">View errors</a>"""),
+    ("In Progress", """<a href="/consignment/%s/file-check-progress">Resume transfer</a>"""),
+    ("In Progress", """<a href="/consignment/%s/file-checks-results">Resume transfer</a>"""),
+    ("Failed", """<a href="/consignment/%s/file-checks-results">View errors</a>"""),
+    ("Failed", """<a href="/consignment/%s/file-checks-results">View errors</a>"""),
+    ("In Progress", """<a href="/consignment/%s/file-checks-results">Resume transfer</a>"""),
+    ("In Progress", """<a href="/consignment/%s/additional-metadata/download-metadata/csv">Download report</a>"""),
+    ("Transferred", """<a href="/consignment/%s/additional-metadata/download-metadata/csv">Download report</a>"""),
+    ("Failed", """<a href="mailto:nationalArchives.email?subject=Ref: TEST-TDR-2022-GB6 - export failure">Contact us</a>""")
+  )
 }
