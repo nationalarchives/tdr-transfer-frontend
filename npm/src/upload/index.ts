@@ -1,7 +1,6 @@
 import { ClientFileProcessing } from "../clientfileprocessing"
 import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
-import { UpdateConsignmentStatus } from "../updateconsignmentstatus"
 import { FileUploadInfo, UploadForm } from "./form/upload-form"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError, isError } from "../errorhandling"
@@ -28,7 +27,6 @@ export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
 
 export class FileUploader {
   clientFileProcessing: ClientFileProcessing
-  updateConsignmentStatus: UpdateConsignmentStatus
   stage: string
   goToNextPage: (formId: string) => void
   keycloak: IKeycloakInstance
@@ -38,7 +36,6 @@ export class FileUploader {
 
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
-    updateConsignmentStatus: UpdateConsignmentStatus,
     frontendInfo: IFrontEndInfo,
     goToNextPage: (formId: string) => void,
     keycloak: KeycloakInstance,
@@ -59,7 +56,6 @@ export class FileUploader {
       clientFileMetadataUpload,
       new S3Upload(client, frontendInfo.uploadUrl)
     )
-    this.updateConsignmentStatus = updateConsignmentStatus
     this.stage = frontendInfo.stage
     this.goToNextPage = goToNextPage
     this.keycloak = keycloak as IKeycloakInstance
@@ -93,10 +89,6 @@ export class FileUploader {
         this.stage,
         this.keycloak.tokenParsed?.sub
       )
-      const statusUpdate =
-        await this.updateConsignmentStatus.setUploadStatusBasedOnFileStatuses(
-          uploadFilesInfo
-        )
 
       const backendChecks =
         await this.triggerBackendChecks.triggerBackendChecks(
@@ -108,9 +100,6 @@ export class FileUploader {
       }
       if (isError(processResult)) {
         errors.push(processResult)
-      }
-      if (isError(statusUpdate)) {
-        errors.push(statusUpdate)
       }
     } else {
       errors.push(cookiesResponse)

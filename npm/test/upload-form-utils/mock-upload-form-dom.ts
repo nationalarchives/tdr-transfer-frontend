@@ -9,7 +9,6 @@ import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
 import { createMockKeycloakInstance } from "../utils"
 import { IFrontEndInfo } from "../../src"
 import { ClientFileMetadataUpload } from "../../src/clientfilemetadataupload"
-import { UpdateConsignmentStatus } from "../../src/updateconsignmentstatus"
 import {
   IReader,
   IWebkitEntry
@@ -196,11 +195,9 @@ export class MockUploadFormDom {
       uploadUrl: ""
     }
     const uploadMetadata = new ClientFileMetadataUpload()
-    const updateConsignmentStatus = new UpdateConsignmentStatus()
     const triggerBackendChecks = new TriggerBackendChecks()
     return new FileUploader(
       uploadMetadata,
-      updateConsignmentStatus,
       frontendInfo,
       jest.fn(),
       mockKeycloakInstance,

@@ -70,9 +70,6 @@ export const renderModules = async () => {
         const metadataUploadModule = await import("./clientfilemetadataupload")
         const clientFileProcessing =
           new metadataUploadModule.ClientFileMetadataUpload()
-        const consignmentStatusModule = await import(
-          "./updateconsignmentstatus"
-        )
         const nextPageModule = await import(
           "./nextpageredirect/next-page-redirect"
         )
@@ -80,13 +77,10 @@ export const renderModules = async () => {
           "./triggerbackendchecks"
         )
         const uploadModule = await import("./upload")
-        const updateConsignmentStatus =
-          new consignmentStatusModule.UpdateConsignmentStatus()
         const triggerBackendChecks =
           new triggerBackendChecksModule.TriggerBackendChecks()
         new uploadModule.FileUploader(
           clientFileProcessing,
-          updateConsignmentStatus,
           frontEndInfo,
           nextPageModule.goToNextPage,
           keycloak,

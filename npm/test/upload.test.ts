@@ -9,7 +9,6 @@ import { FileUploader } from "../src/upload"
 import { createMockKeycloakInstance, mockKeycloakInstance } from "./utils"
 import { ClientFileMetadataUpload } from "../src/clientfilemetadataupload"
 import { IFrontEndInfo } from "../src"
-import { UpdateConsignmentStatus } from "../src/updateconsignmentstatus"
 import { KeycloakInstance } from "keycloak-js"
 import { TriggerBackendChecks } from "../src/triggerbackendchecks"
 jest.mock("../src/clientfileprocessing")
@@ -225,11 +224,9 @@ function setUpFileUploader(mockKeycloak?: KeycloakInstance): FileUploader {
     stage: "test",
     uploadUrl: "https://example.com"
   }
-  const updateConsignmentStatus = new UpdateConsignmentStatus()
   const triggerBackendChecks = new TriggerBackendChecks()
   return new FileUploader(
     uploadMetadata,
-    updateConsignmentStatus,
     frontendInfo,
     mockGoToNextPage,
     keycloakInstance,
