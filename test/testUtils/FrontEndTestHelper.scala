@@ -2,7 +2,7 @@ package testUtils
 
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, status, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
@@ -19,6 +19,8 @@ import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.{getConsignments => gc}
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
@@ -68,6 +70,7 @@ import java.net.URI
 import java.sql.Timestamp
 import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.{Date, UUID}
+import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -278,37 +281,36 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  def setConsignmentsHistoryResponse(wiremockServer: WireMockServer, noConsignment: Boolean = false): List[Consignments.Edges] = {
-
+  def setConsignmentsHistoryResponse(wiremockServer: WireMockServer, consignmentType: String = "standard", noConsignment: Boolean = false): List[Edges] = {
+    val consignmentStatusValuesThatGenerateActionLinks =
+      if (consignmentType == "judgment") judgmentConsignmentStatusValuesThatGenerateActionLinks else standardConsignmentStatusValuesThatGenerateActionLinks
     val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-    val edges = List(
-      Consignments
-        .Edges(
-          gc.Consignments.Edges.Node(
-            consignmentid = UUID.randomUUID().some,
-            consignmentReference = "TEST-TDR-2021-GB",
-            exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 20, 0, 0), ZoneId.systemDefault())),
-            createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 15, 0, 0), ZoneId.systemDefault())),
-            currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some),
-            totalFiles = 5
-          ),
-          "Cursor"
-        )
-        .some,
-      Consignments
-        .Edges(
-          gc.Consignments.Edges.Node(
-            consignmentid = UUID.randomUUID().some,
-            consignmentReference = "TEST-TDR-2022-GB",
-            exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 15, 0, 0), ZoneId.systemDefault())),
-            createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 10, 0, 0), ZoneId.systemDefault())),
-            currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some),
-            totalFiles = 6
-          ),
-          "Cursor"
-        )
-        .some
-    )
+    val edges = consignmentStatusValuesThatGenerateActionLinks
+      .zip(LazyList.from(1))
+      .flatMap { case ((consignmentStatusType, nonCompleteStates), orderNumber) =>
+        nonCompleteStates.map { nonCompleteState =>
+          val leftSideStatuses: List[Some[String]] = List.fill(orderNumber - 1)(Some("Completed"))
+          val inProgressStatus: List[Option[String]] = List(nonCompleteState)
+          val rightSideStatuses: List[None.type] = List.fill(consignmentStatusValuesThatGenerateActionLinks.size - orderNumber)(None)
+          val statuses: List[Option[String]] = leftSideStatuses ++ inProgressStatus ++ rightSideStatuses
+          Some(
+            Edges(
+              Node(
+                consignmentid = Some(UUID.randomUUID()),
+                consignmentReference = s"TEST-TDR-2022-GB$orderNumber",
+                consignmentType = Some("standard"),
+                exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
+                createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
+                currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), statuses(4), statuses(5)),
+                totalFiles = orderNumber
+              ),
+              "Cursor"
+            )
+          )
+        }
+      }
+      .toList
+      .distinct
 
     val consignments = gc.Data(
       gc.Consignments(
@@ -662,6 +664,35 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     "Completed",
     "Failed"
   )
+
+  val standardConsignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] =
+    ListMap(
+      // None = user has not started transfer (go to series page)
+      "series" -> List(None), // there is currently no "InProgress" state
+      // None = user has not submitted first TA form (private beta page), InProgress = user has submitted first Ta form (compliance page)
+      "transferAgreement" -> List(None, Some("InProgress")),
+      // None = user has not uploaded files (upload page), InProgress/CompletedWithIssues = (still go to upload page)
+      "upload" -> List(None, Some("InProgress"), Some("CompletedWithIssues")),
+      // InProgress = go to FC page, Completed = go to FC completed page, CompletedWithIssues/Failed = go to FC completed page
+      "clientChecks" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
+      // None = user has not submitted confirmTransfer form - link would be generated due to preceding metadata pages
+      "confirmTransfer" -> List(None), // List(None) will cause the Actions link to revert to the link of the last statusType in the chain with a "Completed" value
+      // InProgress = show download metadata link, Completed = show download metadata link), Failed = show "contact us",
+      "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
+    )
+
+  val judgmentConsignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] =
+    ListMap(
+      "series" -> List(None), // None because series does not exist for judgments
+      "transferAgreement" -> List(None), // None because transferAgreement does not exist for judgments
+      // None = user has not uploaded files (upload page), InProgress/CompletedWithIssues = (still go to upload page)
+      "upload" -> List(None, Some("InProgress"), Some("CompletedWithIssues")),
+      // InProgress = go to FC page, Completed = go to FC completed page, CompletedWithIssues/Failed = go to FC completed page
+      "clientChecks" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
+      "confirmTransfer" -> List(None), // None because confirmTransfer does not exist for judgments
+      // InProgress = show download metadata link, Completed = show download metadata link), Failed = show "contact us",
+      "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
+    )
 
   def frontEndInfoConfiguration: FrontEndInfoConfiguration = {
     val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
