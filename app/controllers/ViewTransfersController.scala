@@ -37,8 +37,7 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
     }
   }
 
-  private def createView(edges: Option[Edges]): Option[ConsignmentTransfers] = {
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+  private def createView(edges: Option[Edges]): Option[ConsignmentTransfers] =
     edges.map { edge =>
       val mostRecentStatus: MostRecentConsignmentStatus = getConsignmentStatus(edge.node.currentStatus, edge.node.consignmentType.getOrElse("standard"))
       val mostRecentStatusValue = (if (mostRecentStatus.statusType == "export") "Export" else "") + mostRecentStatus.statusValue
@@ -91,6 +90,8 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
       }.get
     mostRecentStatus
   }
+
+  private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
 
   // scalastyle:off cyclomatic.complexity
   private def getActionUrl(mostRecentStatus: MostRecentConsignmentStatus, consignmentId: UUID, consignmentRef: String, consignmentType: String): String = {

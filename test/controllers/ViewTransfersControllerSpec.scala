@@ -27,6 +27,9 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   }
 
   val checkPageForStaticElements = new CheckPageForStaticElements
+
+  private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   "ViewTransfersController" should {
@@ -109,8 +112,6 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   }
 
   def verifyConsignmentRow(viewTransfersPageAsString: String, consignmentType: String, node: Node, index: Int): Unit = {
-
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val exportDate = node.exportDatetime.map(_.format(formatter)).get
     val createdDate = node.createdDatetime.map(_.format(formatter)).get
     val (transferStatus, actionUrlWithNoConsignmentId): (String, String) =
