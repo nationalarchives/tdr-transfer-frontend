@@ -1,5 +1,6 @@
 @import views.html.partials.fileCheckGenericErrorMessage
-@(fileStatuses: List[String] = Nil, consignmentRef: String)
+
+@(fileStatuses: List[String] = Nil, consignmentRef: String)(implicit messages: Messages)
 @{
     val isPasswordProtected = fileStatuses.contains("PasswordProtected")
     val isZip = fileStatuses.contains("Zip")
