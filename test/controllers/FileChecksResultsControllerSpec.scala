@@ -75,8 +75,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |                    </button>
             |                </form>""".stripMargin,
           """              <p class="govuk-body">Your file has failed our checks. Please try again. If this continues, contact us at
-            |                <a class="govuk-link" href="mailto:nationalArchives.emailForHtmlTemplates" data-hsupport="email">
-            |                  nationalArchives.emailForHtmlTemplates
+            |                <a class="govuk-link" href="mailto:nationalArchives.email" data-hsupport="email">
+            |                  nationalArchives.email
             |                </a>
             |              </p>""".stripMargin
         )
@@ -94,7 +94,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
              |                </a>""".stripMargin,
           """              <p class="govuk-body">
             |    One or more files you uploaded have failed our checks. Contact us at
-            |    <a class="govuk-link" href="mailto:nationalArchives.emailForHtmlTemplates?subject=Ref: TEST-TDR-2021-GB - Problem with Results of checks">nationalArchives.emailForHtmlTemplates</a>
+            |    <a class="govuk-link" href="mailto:nationalArchives.email?subject=Ref: TEST-TDR-2021-GB - Problem with Results of checks">nationalArchives.email</a>
             |    if the problem persists.
             |</p>
             |<p class="govuk-body">Possible failure causes:</p>
