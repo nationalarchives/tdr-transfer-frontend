@@ -120,7 +120,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     val actionUrl = actionUrlWithNoConsignmentId.format(node.consignmentid.getOrElse("NO CONSIGNMENT RETURNED"))
     val summary =
       s"""
-         |                          <strong class="consignmentRefCell">
+         |                          <strong class="consignment-ref-cell">
          |                            ${node.consignmentReference}
          |                          </strong>
          |""".stripMargin
