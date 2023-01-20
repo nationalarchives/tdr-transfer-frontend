@@ -195,6 +195,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       seriesStatus: Option[String] = None,
       transferAgreementStatus: Option[String] = None,
       uploadStatus: Option[String] = None,
+      clientChecks: Option[String] = None,
       confirmTransferStatus: Option[String] = None,
       exportStatus: Option[String] = None
   ): StubMapping = {
@@ -203,7 +204,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       Option(
         GetConsignment(
           Some(Series(seriesId.getOrElse(UUID.randomUUID()), "MOCK1")),
-          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, confirmTransferStatus, exportStatus)
+          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, clientChecks, confirmTransferStatus, exportStatus)
         )
       )
     )
