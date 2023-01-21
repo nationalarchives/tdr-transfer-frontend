@@ -34,7 +34,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
     }
   }
 
-  def convertPropertiesToFormFields(displayProperties: List[DisplayProperty]): Seq[FormField] = {
+  def convertPropertiesToFormFields(displayProperties: List[DisplayProperty] = displayProperties): Seq[FormField] = {
     displayProperties
       .sortBy(_.ordinal)
       .map(dp => {
@@ -55,15 +55,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           InputNameAndValue(property.propertyName, customMetadata.defaultValue),
           required
         )
-      case "small text" =>
-        TextField(
-          property.propertyName,
-          property.displayName,
-          property.description,
-          property.multiValue,
-          InputNameAndValue(property.propertyName, customMetadata.defaultValue),
-          "text",
-          required)
+      case "small text" => generateTextField(property, customMetadata)
       case "date" =>
         DateField(
           property.propertyName,
@@ -75,18 +67,9 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           InputNameAndValue("Year", "", "YYYY"),
           required
         )
-      case "integer" =>
-        TextField(
-          property.propertyName,
-          property.displayName,
-          property.description,
-          property.multiValue,
-          InputNameAndValue("years", customMetadata.defaultValue),
-          "numeric",
-          required
-        )
       case "radial" =>
-        val selectedOption = if(customMetadata.defaultValue.toBoolean) "yes" else "no"
+        val defaultOption = if(customMetadata.defaultValue.toBoolean) "yes" else "no"
+        val List(yesLabel, noLabel) = property.label.split('|').toList
         val dependencies = customMetadata.get.values
           .map(p => {
             val dependencies = p.dependencies.map(_.name).toSet
@@ -99,8 +82,8 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           property.description,
           additionalInfo = "",
           property.multiValue,
-          Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")),
-          selectedOption,
+          Seq(InputNameAndValue(yesLabel, "yes"), InputNameAndValue(noLabel, "no")),
+          defaultOption,
           required,
           dependencies = dependencies
         )
@@ -129,4 +112,19 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
       case _ => throw new IllegalArgumentException(s"${property.componentType} is not a supported component type")
     }
   }
+
+  private def generateTextField(property: DisplayProperty, customMetadata: Option[CustomMetadata]) = {
+    val required: Boolean = customMetadata.requiredField
+    val dataType: String = if(property.dataType == DataType.Integer) "numeric" else "text"
+    val inputName: String = if(property.propertyName == "ClosurePeriod") "years" else property.propertyName
+    TextField(
+      property.propertyName,
+      property.displayName,
+      property.description,
+      property.multiValue,
+      InputNameAndValue(inputName, customMetadata.defaultValue),
+      dataType,
+      required)
+  }
+
 }

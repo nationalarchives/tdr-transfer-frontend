@@ -153,28 +153,12 @@ class AddAdditionalMetadataController @Inject() (
         if (closure) {
           new DisplayPropertiesUtils(displayProperties, customMetadata).convertPropertiesToFormFields(displayProperties.filter(_.group == "2")).toList
         } else {
-          new DisplayPropertiesUtils(displayProperties, customMetadata).convertPropertiesToFormFields(displayProperties).toList
+          new DisplayPropertiesUtils(displayProperties, customMetadata).convertPropertiesToFormFields().toList
         }
     } yield {
       cache.set("formFields", formFields, 1.hour)
       formFields
     }
-  }
-
-  private def getDependenciesForValue2(customMetadatas: List[CustomMetadata], propertyName: String, valueToGetDependenciesFrom: String): List[CustomMetadata] = {
-    val groupedCustomMetadata: Map[String, List[CustomMetadata]] = customMetadatas.groupBy(_.name)
-    val customMetadataValue: List[CustomMetadata.Values] = groupedCustomMetadata(propertyName).flatMap(_.values)
-    val values: Seq[CustomMetadata.Values] = customMetadataValue.filter(_.value == valueToGetDependenciesFrom)
-    val dependencyNames: Set[String] = values.flatMap(_.dependencies.map(_.name)).toSet
-    dependencyNames.flatMap(property => groupedCustomMetadata(property)).toList
-  }
-
-  private def getDependenciesForValue(customMetadataUtils: CustomMetadataUtils, propertyName: String, valueToGetDependenciesFrom: String): Set[CustomMetadata] = {
-    val propertyToValues: Map[String, List[CustomMetadata.Values]] = customMetadataUtils.getValuesOfProperties(Set(propertyName))
-    val allValuesForProperty: Seq[CustomMetadata.Values] = propertyToValues(propertyName)
-    val values: Seq[CustomMetadata.Values] = allValuesForProperty.filter(_.value == valueToGetDependenciesFrom)
-    val dependencyNames: Seq[String] = values.flatMap(_.dependencies.map(_.name))
-    customMetadataUtils.getCustomMetadataProperties(dependencyNames.toSet)
   }
 
   private def stringToBoolean(value: String): Boolean = {
