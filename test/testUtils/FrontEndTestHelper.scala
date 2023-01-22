@@ -357,6 +357,22 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     dp.Data(
       List(
         dp.DisplayProperties(
+          "FoiExemptionAsserted",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("datetime"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("Date of the Advisory Council approval"), Text),
+            dp.DisplayProperties.Attributes("Name", Some("FOI decision asserted"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+            dp.DisplayProperties.Attributes("Guidance", Some("dd|mm|yyyy"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("5"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+            dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
+          )
+        ),
+        dp.DisplayProperties(
           "description",
           List(
             dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
@@ -413,7 +429,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
             dp.DisplayProperties.Attributes("Group", Some("2"), Text),
             dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
             dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+            dp.DisplayProperties.Attributes("ComponentType", Some("select"), DateTime)
           )
         ),
         dp.DisplayProperties(
@@ -428,7 +445,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
             dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
             dp.DisplayProperties.Attributes("Ordinal", Some("15"), Integer),
             dp.DisplayProperties.Attributes("UnitType", Some("Years"), Integer),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+            dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime)
           )
         ),
         dp.DisplayProperties(
@@ -443,7 +461,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
             dp.DisplayProperties.Attributes("Guidance", Some("dd|mm|yyyy"), Text),
             dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
             dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+            dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
           )
         ),
         dp.DisplayProperties(
@@ -459,7 +478,25 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
             dp.DisplayProperties.Attributes("Group", Some("2"), Text),
             dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
             dp.DisplayProperties.Attributes("Ordinal", Some("25"), Integer),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+            dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
+          )
+        ),
+        dp.DisplayProperties(
+          "DescriptionClosed",
+          List(
+            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Datatype", Some("boolean"), Text),
+            dp.DisplayProperties.Attributes("ComponentType", Some("radial"), Text),
+            dp.DisplayProperties.Attributes("Description", Some("Is the description closed?"), Text),
+            dp.DisplayProperties.Attributes("Name", Some("Is the description closed?"), Text),
+            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+            dp.DisplayProperties.Attributes("Label", Some("Yes|No, this description can be made public"), Text),
+            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+            dp.DisplayProperties.Attributes("Ordinal", Some("30"), Integer),
+            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+            dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
           )
         )
       )

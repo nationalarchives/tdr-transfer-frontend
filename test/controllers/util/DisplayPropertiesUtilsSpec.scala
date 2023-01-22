@@ -17,7 +17,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
   private val displayPropertiesUtils = new DisplayPropertiesUtils(displayProperties, customMetadata)
 
   "convertPropertiesToFormFields" should "return the list of properties requested in ordinal order" in {
-    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(displayProperties)
 
     fields.size should equal(3)
     fields.head.fieldId should equal("Dropdown1")
@@ -44,7 +44,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     val displayProperty = DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown1", "propertyType", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
-    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(displayProperties)
 
     val dropdownField: DropdownField = fields.head.asInstanceOf[DropdownField]
     dropdownField.fieldId should equal("Dropdown1")
@@ -77,7 +77,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     val displayProperty = DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", true, 3, "Dropdown1", "propertyType", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
-    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
 
     val multiSelectField: MultiSelectField = fields.head.asInstanceOf[MultiSelectField]
     multiSelectField.fieldId should equal("Dropdown1")
@@ -110,7 +110,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       DisplayProperty(true, "large text", Text, "description", "TextField Display", true, "group", "guidance", "label", false, 3, "TextField", "propertyType", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
-    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
 
     val textAreaField: TextAreaField = fields.head.asInstanceOf[TextAreaField]
     textAreaField.fieldId should equal("TextField")
@@ -132,7 +132,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List())
 
     val thrownException = intercept[Exception] {
-      displayPropertiesUtils.convertPropertiesToFormFields
+      displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
     }
 
     thrownException.getMessage should equal("unsupportedComponentType is not a supported component type")
