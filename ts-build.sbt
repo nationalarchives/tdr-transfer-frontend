@@ -5,20 +5,18 @@ PlayKeys.playRunHooks += baseDirectory.map(NpmRunHook.apply).value
 val Success = 0
 val Error = 1
 
-def runOnCommandline(script: String)(implicit dir: File): Int = Process(script, dir)!
+def runOnCommandline(script: String)(implicit dir: File): Int = Process(script, dir) !
 
 def runNpmInstall(implicit dir: File): Int =
   runOnCommandline(NpmCommands.dependencyInstall)
 
 // Execute task if node modules are installed, else return Error status.
 def ifNodeModulesInstalled(task: => Int)(implicit dir: File): Int =
-  if (runNpmInstall == Success){
+  if (runNpmInstall == Success) {
     task
-  }
-  else {
+  } else {
     Error
   }
-
 
 def executeProdBuild(implicit dir: File): Int = ifNodeModulesInstalled(runOnCommandline(NpmCommands.build))
 
