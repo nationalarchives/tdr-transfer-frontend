@@ -13,30 +13,30 @@ class CheckFormPageElements() {
       |                FOI decision asserted
       |            </h2>""",
     """        <div id="date-input-FoiExemptionAsserted-hint" class="govuk-hint">
-      |            Date of the Advisory Council approval (or SIRO approval if appropriate)
+      |            Date of the Advisory Council approval
       |        </div>""",
     """            <h2 class="govuk-label govuk-label--m">
-      |                Closure start date
+      |                Closure Start Date
       |            </h2>""",
     """        <div id="date-input-ClosureStartDate-hint" class="govuk-hint">
       |            This has been defaulted to the last date modified. If this is not correct, amend the field below.
       |        </div>""",
     """        <label class="govuk-label govuk-label--m" for=years>
-      |            Closure period
+      |           Closure Period
       |        </label>""",
     """    <div id="numeric-input-hint" class="govuk-hint">
       |        Number of years the record is closed from the closure start date
       |    </div>""",
-    """            <label class="govuk-label govuk-label--m" for="inputmultiselect-FoiExemptionCode">
-      |                FOI exemption code
-      |            </label>""",
+    """        <label class="govuk-label govuk-label--m" for="inputmultiselect-FoiExemptionCode">
+      |           FOI exemption code(s)
+      |         </label>""",
     """        <div id="inputmultiselect-FoiExemptionCode-hint" class="govuk-hint">
       |            Add one or more exemption code to this closure. Here is a<a target="_blank" href="https://www.legislation.gov.uk/ukpga/2000/36/contents">full list of FOI codes and their designated exemptions</a>.
       |        </div>""",
-    """        <div class="tna-multi-select-search__filter">
-      |            <label for="input-filter" class="govuk-label govuk-visually-hidden">Filter </label>
-      |            <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="FoiExemptionCode-filter-count" placeholder="Filter FOI exemption code">
-      |        </div>""".stripMargin,
+"""            <div class="tna-multi-select-search__filter">
+      |             <label for="input-filter" class="govuk-label govuk-visually-hidden">Filter </label>
+      |             <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="FoiExemptionCode-filter-count" placeholder="Filter FOI exemption code(s)">
+|              </div>""",
     """<span id="FoiExemptionCode-filter-count" class="govuk-visually-hidden js-filter-count" aria-live="polite"></span>""",
     """<ul class="govuk-checkboxes tna-multi-select-search__list"
       |            id="FoiExemptionCode" aria-describedby="FoiExemptionCode-filter-count">""".stripMargin,
