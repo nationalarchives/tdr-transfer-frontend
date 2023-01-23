@@ -33,7 +33,7 @@ class CheckFormPageElements() {
     """        <div id="inputmultiselect-FoiExemptionCode-hint" class="govuk-hint">
       |            Add one or more exemption code to this closure. Here is a<a target="_blank" href="https://www.legislation.gov.uk/ukpga/2000/36/contents">full list of FOI codes and their designated exemptions</a>.
       |        </div>""",
-"""            <div class="tna-multi-select-search__filter">
+    """            <div class="tna-multi-select-search__filter">
       |             <label for="input-filter" class="govuk-label govuk-visually-hidden">Filter </label>
       |             <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="FoiExemptionCode-filter-count" placeholder="Filter FOI exemption code(s)">
 |              </div>""",

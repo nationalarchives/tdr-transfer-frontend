@@ -68,7 +68,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           required
         )
       case "radial" =>
-        val defaultOption = if(customMetadata.defaultValue.toBoolean) "yes" else "no"
+        val defaultOption = if (customMetadata.defaultValue.toBoolean) "yes" else "no"
         val List(yesLabel, noLabel) = property.label.split('|').toList
         val dependencies = customMetadata.get.values
           .map(p => {
@@ -115,8 +115,8 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
 
   private def generateTextField(property: DisplayProperty, customMetadata: Option[CustomMetadata]) = {
     val required: Boolean = customMetadata.requiredField
-    val dataType: String = if(property.dataType == DataType.Integer) "numeric" else "text"
-    val inputName: String = if(property.propertyName == "ClosurePeriod") "years" else property.propertyName
+    val dataType: String = if (property.dataType == DataType.Integer) "numeric" else "text"
+    val inputName: String = if (property.propertyName == "ClosurePeriod") "years" else property.propertyName
     TextField(
       property.propertyName,
       property.displayName,
@@ -124,7 +124,8 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
       property.multiValue,
       InputNameAndValue(inputName, customMetadata.defaultValue),
       dataType,
-      required)
+      required
+    )
   }
 
 }
