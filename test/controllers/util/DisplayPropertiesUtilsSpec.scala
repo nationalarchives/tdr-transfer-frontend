@@ -128,7 +128,22 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
 
   "convertPropertiesToFormFields" should "generate 'radio' field for componentType value 'radial'" in {
     val displayProperty =
-      DisplayProperty(active = true, "radial", Boolean, "description", "Radial Display", editable = true, "group", "guidance", "yes|no", multiValue = false, 3, "Radio", "propertyType", "")
+      DisplayProperty(
+        active = true,
+        "radial",
+        Boolean,
+        "description",
+        "Radial Display",
+        editable = true,
+        "group",
+        "guidance",
+        "yes|no",
+        multiValue = false,
+        3,
+        "Radio",
+        "propertyType",
+        ""
+      )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
@@ -141,13 +156,28 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     radioButtonGroupField.isRequired should equal(true)
     radioButtonGroupField.multiValue should equal(false)
     radioButtonGroupField.selectedOption should equal("no")
-    radioButtonGroupField.options should contain theSameElementsAs List(InputNameAndValue("yes", "yes"), InputNameAndValue("no","no"))
+    radioButtonGroupField.options should contain theSameElementsAs List(InputNameAndValue("yes", "yes"), InputNameAndValue("no", "no"))
     radioButtonGroupField.dependencies.size should equal(2)
   }
 
   "convertPropertiesToFormFields" should "generate 'date' field for componentType value 'date'" in {
     val displayProperty =
-    DisplayProperty(active = true, "date", Boolean, "description", "Date Display", editable = true, "group", "guidance", "label", multiValue = false, 3, "ClosureStartDate", "propertyType", "")
+      DisplayProperty(
+        active = true,
+        "date",
+        Boolean,
+        "description",
+        "Date Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = false,
+        3,
+        "ClosureStartDate",
+        "propertyType",
+        ""
+      )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
@@ -159,14 +189,29 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     dateField.fieldErrors should equal(Nil)
     dateField.isRequired should equal(false)
     dateField.multiValue should equal(false)
-    dateField.day should equal(InputNameAndValue("Day","","DD"))
-    dateField.month should equal(InputNameAndValue("Month","","MM"))
-    dateField.year should equal(InputNameAndValue("Year","","YYYY"))
+    dateField.day should equal(InputNameAndValue("Day", "", "DD"))
+    dateField.month should equal(InputNameAndValue("Month", "", "MM"))
+    dateField.year should equal(InputNameAndValue("Year", "", "YYYY"))
   }
 
   "convertPropertiesToFormFields" should "generate 'text' field for componentType value 'small text'" in {
     val displayProperty =
-      DisplayProperty(active = true, "small text", Boolean, "description", "Text Display", editable = true, "group", "guidance", "label", multiValue = false, 3, "ClosurePeriod", "propertyType", "")
+      DisplayProperty(
+        active = true,
+        "small text",
+        Boolean,
+        "description",
+        "Text Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = false,
+        3,
+        "ClosurePeriod",
+        "propertyType",
+        ""
+      )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))

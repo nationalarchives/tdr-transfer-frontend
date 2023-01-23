@@ -494,7 +494,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Group", Some("3"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
-          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -525,7 +525,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Group", Some("3"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
-          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
         )
       )
     )
