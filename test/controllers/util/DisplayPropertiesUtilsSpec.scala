@@ -2,7 +2,7 @@ package controllers.util
 
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
-import graphql.codegen.types.DataType.{DateTime, Text}
+import graphql.codegen.types.DataType.{Boolean, DateTime, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -124,6 +124,61 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     textAreaField.characterLimit should equal(8000)
     textAreaField.nameAndValue.name should equal("TextField")
     textAreaField.nameAndValue.value should equal("defaultValue")
+  }
+
+  "convertPropertiesToFormFields" should "generate 'radio' field for componentType value 'radial'" in {
+    val displayProperty =
+      DisplayProperty(active = true, "radial", Boolean, "description", "Radial Display", editable = true, "group", "guidance", "yes|no", multiValue = false, 3, "Radio", "propertyType", "")
+
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
+
+    val radioButtonGroupField: RadioButtonGroupField = fields.head.asInstanceOf[RadioButtonGroupField]
+    radioButtonGroupField.fieldId should equal("Radio")
+    radioButtonGroupField.fieldName should equal("Radial Display")
+    radioButtonGroupField.fieldDescription should equal("description")
+    radioButtonGroupField.fieldErrors should equal(Nil)
+    radioButtonGroupField.isRequired should equal(true)
+    radioButtonGroupField.multiValue should equal(false)
+    radioButtonGroupField.selectedOption should equal("no")
+    radioButtonGroupField.options should contain theSameElementsAs List(InputNameAndValue("yes", "yes"), InputNameAndValue("no","no"))
+    radioButtonGroupField.dependencies.size should equal(2)
+  }
+
+  "convertPropertiesToFormFields" should "generate 'date' field for componentType value 'date'" in {
+    val displayProperty =
+    DisplayProperty(active = true, "date", Boolean, "description", "Date Display", editable = true, "group", "guidance", "label", multiValue = false, 3, "ClosureStartDate", "propertyType", "")
+
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
+
+    val dateField: DateField = fields.head.asInstanceOf[DateField]
+    dateField.fieldId should equal("ClosureStartDate")
+    dateField.fieldName should equal("Date Display")
+    dateField.fieldDescription should equal("description")
+    dateField.fieldErrors should equal(Nil)
+    dateField.isRequired should equal(false)
+    dateField.multiValue should equal(false)
+    dateField.day should equal(InputNameAndValue("Day","","DD"))
+    dateField.month should equal(InputNameAndValue("Month","","MM"))
+    dateField.year should equal(InputNameAndValue("Year","","YYYY"))
+  }
+
+  "convertPropertiesToFormFields" should "generate 'text' field for componentType value 'small text'" in {
+    val displayProperty =
+      DisplayProperty(active = true, "small text", Boolean, "description", "Text Display", editable = true, "group", "guidance", "label", multiValue = false, 3, "ClosurePeriod", "propertyType", "")
+
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
+
+    val textField: TextField = fields.head.asInstanceOf[TextField]
+    textField.fieldId should equal("ClosurePeriod")
+    textField.fieldName should equal("Text Display")
+    textField.fieldDescription should equal("description")
+    textField.fieldErrors should equal(Nil)
+    textField.inputMode should equal("text")
+    textField.isRequired should equal(true)
+    textField.multiValue should equal(false)
   }
 
   "convertPropertiesToFormFields" should "throw an error for an unsupported component type" in {

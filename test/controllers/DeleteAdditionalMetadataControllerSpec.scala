@@ -331,7 +331,9 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe SEE_OTHER
       fileIdsArg.getValue mustEqual fileIds
-      propertiesToDeleteArg.getValue mustEqual Set("FoiExemptionCode", "ClosureStartDate", "ClosurePeriod", "TitleClosed", "ClosureType")
+      propertiesToDeleteArg.getValue mustEqual Set(
+        "DescriptionClosed", "FoiExemptionCode", "FoiExemptionAsserted", "DescriptionAlternate", "ClosureStartDate", "ClosurePeriod", "TitleAlternate", "TitleClosed", "ClosureType"
+      )
 
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/$closureMetadataType"))
     }

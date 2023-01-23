@@ -83,7 +83,7 @@ class FormTestData() {
       Boolean,
       editable = true,
       multiValue = false,
-      defaultValue = None,
+      defaultValue = Some("false"),
       5,
       List(
         Values("True", List(Dependencies("TestProperty2")), 1),
