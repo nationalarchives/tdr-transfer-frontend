@@ -1,39 +1,64 @@
-@import views.html.partials.{transferReference, progressIndicator}
+@import views.html.partials.{notificationBanner, progressIndicator, transferReference, warningMessage}
+
 @import java.util.UUID
-
-@(parentFolder: String, parentFolderId: UUID, consignmentRef: String, consignmentId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
+@(parentFolder: String, parentFolderId: UUID, consignmentRef: String, consignmentId: UUID, name: String, properties: Map[String, List[String]])(implicit messages: Messages, request: RequestHeader)
 @main(title = "Add, edit or delete metadata", name = name) {
-  @defining(play.core.PlayVersion.current) { version =>
-    @progressIndicator(Messages("additionalMetadataStart.progress"))
-    <div class="govuk-grid-row additional-metadata-start">
-      <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">Add, edit or delete metadata</h1>
-        <h2 class="govuk-heading-s">Folder uploaded: @parentFolder</h2>
-        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records. Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>
+    @defining(play.core.PlayVersion.current) { version =>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds-from-desktop">
+                @progressIndicator(Messages("additionalMetadataStart.progress"))
+                <h1 class="govuk-heading-l">Descriptive & closure metadata</h1>
 
-        <div class="tdr-card tdr-metadata-card">
-          <div class="tdr-card__content">
-            <h2 class="govuk-heading-s">
-              <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, "descriptive")">Descriptive metadata</a>
-            </h2>
-            <p class="govuk-body">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>
-          </div>
+                @notificationBanner(Messages("notification.title"), Messages("notification.heading"), Messages("notification.metadataInfo", routes.ViewTransfersController.viewConsignments(), "View Transfers"))
+                <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records.</p>
+
+                @displayCard(
+                    "Descriptive metadata",
+                    "descriptive",
+                    "Not entered",
+                    "Add descriptive metadata to your files",
+                    "You do not need to add descriptive metadata but it can enhance your record.",
+                    properties("descriptive")
+                )
+                @displayCard(
+                    "Closure metadata",
+                    "closure",
+                    "Not entered",
+                    "Add closure and associated metadata to your files",
+                    "You must add closure metadata to closed files and folders.",
+                    properties("closure")
+                )
+                @warningMessage(Messages("additionalMetadata.warningMessage"))
+                <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Next</a>
+            </div>
+            @transferReference(consignmentRef, isJudgmentUser = false)
         </div>
+    }
+}
 
-        <div class="tdr-card tdr-metadata-card">
-          <div class="tdr-card__content">
-            <h2 class="govuk-heading-s">
-              <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, "closure")">Closure metadata</a>
-            </h2>
-            <p class="govuk-body">If you'd like to add or edit closure metadata to your records, you can do so here.</p>
-          </div>
+@displayCard(name: String, metadataType: String, progress: String, title: String, description: String, properties: List[String]) = {
+  <div class="tdr-card tdr-metadata-card">
+    <div class="tdr-card__content">
+      <h2 class="govuk-heading-s">
+        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType)">@name</a>
+      </h2>
+      <strong class="tdr-metadata-card__state govuk-tag govuk-tag--grey">
+        @progress
+      </strong>
+      <p class="govuk-body">@title</p>
+      <p class="govuk-inset-text govuk-!-margin-top-0">@description</p>
+      <details class="govuk-details" data-module="govuk-details">
+        <summary class="govuk-details__summary">
+          <span class="govuk-details__summary-text">What @{name.toLowerCase} you can provide</span>
+        </summary>
+        <div class="govuk-details__text">
+          <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+            @for(property <- properties) {
+              <li>@property</li>
+            }
+          </ul>
         </div>
-
-        <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-          Continue
-        </a>
-      </div>
-      @transferReference(consignmentRef, isJudgmentUser = false)
+      </details>
     </div>
-  }
+  </div>
 }

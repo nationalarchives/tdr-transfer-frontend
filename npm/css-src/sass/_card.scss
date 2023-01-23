@@ -10,6 +10,16 @@
   position: relative;
 }
 
-.tdr-metadata-card__content > *:last-child {
+.tdr-card__content > *:last-child {
   margin: 0;
+}
+
+.tdr-metadata-card__state {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.tdr-metadata-card .govuk-inset-text {
+  color: $govuk-secondary-text-colour
 }
