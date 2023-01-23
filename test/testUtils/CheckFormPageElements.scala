@@ -37,6 +37,10 @@ class CheckFormPageElements() {
       |             <label for="input-filter" class="govuk-label govuk-visually-hidden">Filter </label>
       |             <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="FoiExemptionCode-filter-count" placeholder="Filter FOI exemption code(s)">
 |              </div>""",
+    """        <div class="tna-multi-select-search__filter">
+      |            <label for="input-filter" class="govuk-label govuk-visually-hidden">Filter </label>
+      |            <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="FoiExemptionCode-filter-count" placeholder="Search by typing a foi exemption code">
+      |        </div>""".stripMargin,
     """<span id="FoiExemptionCode-filter-count" class="govuk-visually-hidden js-filter-count" aria-live="polite"></span>""",
     """<ul class="govuk-checkboxes tna-multi-select-search__list"
       |            id="FoiExemptionCode" aria-describedby="FoiExemptionCode-filter-count">""".stripMargin,

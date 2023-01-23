@@ -449,10 +449,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
       val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, Nil))))
       val deleteInput = deleteRequest.variables.deleteFileMetadataInput
       deleteInput.fileIds should be(fileIds)
-      deleteInput.propertyNames.get should contain theSameElementsAs List("TitleAlternate", "DescriptionAlternate")
+      deleteInput.propertyNames should contain theSameElementsAs List("TitleAlternate", "DescriptionAlternate")
     }
 
     "send the closure form data to the API with dependencies and do not delete the dependencies if the relevant option is selected by user" in {
@@ -506,10 +506,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
       val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, None))))
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, Nil))))
       val deleteInput = deleteRequest.variables.deleteFileMetadataInput
       deleteInput.fileIds should be(fileIds)
-      deleteInput.propertyNames.get should contain theSameElementsAs List("DescriptionAlternate")
+      deleteInput.propertyNames should contain theSameElementsAs List("DescriptionAlternate")
     }
 
     "send the closure form data to the API with dependencies and do not call delete metadata to remove the dependencies if the relevant option is selected by user for all properties" in {
@@ -643,7 +643,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addRequest: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
         .getOrElse(AddBulkFileMetadataGraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
       val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(Nil, Some(Nil)))))
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(Nil, Nil))))
 
       val addInput = addRequest.variables.updateBulkFileMetadataInput
       addInput.fileIds should equal(fileIds)
@@ -653,8 +653,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val deleteInput = deleteRequest.variables.deleteFileMetadataInput
       deleteInput.fileIds should equal(fileIds)
-      deleteInput.propertyNames.get.size shouldBe 1
-      deleteInput.propertyNames.get.head should equal("description")
+      deleteInput.propertyNames.size shouldBe 1
+      deleteInput.propertyNames.head should equal("description")
     }
   }
 
