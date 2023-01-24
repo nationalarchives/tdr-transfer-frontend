@@ -16,6 +16,8 @@ import scala.collection.immutable.ListMap
 class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
 
   private val testData = new FormTestData()
+  private val customMetadata = new FormTestData().setupCustomMetadata()
+  private val displayProperties = new FormTestData().setupDisplayProperties()
 
   "formAnswersWithValidInputNames" should "returns all values passed into the request except restricted values" in {
     val rawFormWithCsrfToken = ListMap(
@@ -213,8 +215,8 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         .apply(POST, s"/consignment/12345/additional-metadata/add")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadata().find(_.name == "Radio").toList
-    val allMetadataAsFields: List[FormField] = new CustomMetadataUtils(testData.setupCustomMetadata()).convertPropertiesToFormFields(mockProperties.toSet)
+    val allMetadataAsFields: List[FormField] =
+      new DisplayPropertiesUtils(displayProperties.filter(_.propertyName == "Radio"), customMetadata).convertPropertiesToFormFields().toList
 
     val dynamicFormUtils = new DynamicFormUtils(mockRequest, allMetadataAsFields)
 
@@ -294,9 +296,8 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         .apply(POST, s"/consignment/12345/additional-metadata/add")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadata().find(_.name == "FoiExemptionAsserted").toList
-    val allMetadataAsFields: List[FormField] = new CustomMetadataUtils(mockProperties).convertPropertiesToFormFields(mockProperties.toSet)
-    val metaDataField = allMetadataAsFields.head match {
+    val allMetadataAsFields: List[FormField] = new DisplayPropertiesUtils(displayProperties, customMetadata).convertPropertiesToFormFields(displayProperties).toList
+    val metaDataField = allMetadataAsFields.find(_.fieldId == "FoiExemptionAsserted").head match {
       case e: DateField => e.copy(isFutureDateAllowed = false)
     }
 
@@ -304,7 +305,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
     val dateField = validatedForm.find(_.isInstanceOf[DateField]).get
-    dateField.fieldErrors should equal(List(s"FOI decision asserted date cannot be a future date."))
+    dateField.fieldErrors should equal(List(s"Date Display date cannot be a future date."))
   }
 
   "convertSubmittedValuesToFormFields" should "return a 'whole number'-related error for the numeric fields that are missing values" in {
@@ -390,11 +391,9 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         .apply(POST, s"/consignment/12345/additional-metadata/add")
         .withBody(AnyContentAsFormUrlEncoded(rawFormToMakeRequestWith))
 
-    val mockProperties: List[GetCustomMetadata.customMetadata.CustomMetadata] = testData.setupCustomMetadata()
-
-    val customMetadataUtils: CustomMetadataUtils = new CustomMetadataUtils(mockProperties)
-
-    val allMetadataAsFields: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(mockProperties.filterNot(p => testData.dependencies().contains(p.name)).toSet)
+    val allMetadataAsFields: List[FormField] = new DisplayPropertiesUtils(displayProperties, customMetadata)
+      .convertPropertiesToFormFields(displayProperties.filterNot(p => testData.dependencies().contains(p.propertyName)))
+      .toList
 
     if (passInFieldsForAllMetadata) {
       new DynamicFormUtils(mockRequest, allMetadataAsFields)

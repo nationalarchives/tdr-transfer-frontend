@@ -1,5 +1,9 @@
 # https://www.playframework.com/documentation/latest/ScalaI18N
 
+nationalArchives.email=tdr@nationalarchives.gov.uk
+nationalArchives.judgmentsEmail=judgments@nationalarchives.gov.uk
+judiciary.email=Judgments@judiciary.uk
+
 transferAgreement.warning=This service is in private beta. During this time, the Transfer Digital Records service can only accept records that are in English, are Public Records and are Crown Copyright. For more information, please see our <a href="/faq" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> if you need to transfer records that this service cannot currently handle.
 
 upload.dragAndDropFolderErrorMessage=You can only drop a single folder.

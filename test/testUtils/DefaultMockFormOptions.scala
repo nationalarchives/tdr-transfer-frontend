@@ -135,7 +135,7 @@ object DefaultMockFormOptions {
       label = "years",
       id = "years",
       fieldType = "inputNumeric",
-      errorMessage = s"There was no number entered for the Closure period."
+      errorMessage = s"There was no number entered for the Closure Period."
     ),
     MockInputOption(
       name = "inputmultiselect-FoiExemptionCode",
@@ -143,7 +143,7 @@ object DefaultMockFormOptions {
       label = "mock code1",
       value = "mock code1",
       fieldType = "inputmultiselect",
-      errorMessage = "There was no value selected for the FOI exemption code."
+      errorMessage = "There was no value selected for the FOI exemption code(s)."
     ),
     MockInputOption(
       name = "inputmultiselect-FoiExemptionCode",
@@ -151,7 +151,7 @@ object DefaultMockFormOptions {
       label = "mock code2",
       value = "mock code2",
       fieldType = "inputmultiselect",
-      errorMessage = "There was no value selected for the FOI exemption code."
+      errorMessage = "There was no value selected for the FOI exemption code(s)."
     ),
     MockInputOption(
       name = "inputradio-TitleClosed",
@@ -164,7 +164,7 @@ object DefaultMockFormOptions {
     MockInputOption(
       name = "inputradio-TitleClosed",
       label = "No",
-      id = "inputradio-TitleClosed-No",
+      id = "inputradio-TitleClosed-No, this title can be made public",
       value = "no",
       errorMessage = s"There was no value selected for Is the title closed?.",
       fieldType = "inputRadio"
