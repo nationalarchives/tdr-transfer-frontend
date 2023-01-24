@@ -2,6 +2,7 @@ package controllers.util
 
 import controllers.util.MetadataProperty._
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
+import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.types.DataType._
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 
@@ -22,7 +23,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   def getCustomMetadataProperties(propertiesToGet: Set[String]): Set[CustomMetadata] =
     propertiesToGet.flatMap(property => allCustomMetadataPropertiesByName(property))
 
-  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: Set[String]): Map[String, List[CustomMetadata.Values]] = {
+  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: Set[String]): Map[String, List[Values]] = {
     val propertiesToGetValuesFrom: Set[CustomMetadata] = getCustomMetadataProperties(namesOfPropertiesToGetValuesFrom)
     propertiesToGetValuesFrom.map(property => property.name -> property.values).toMap
   }
@@ -32,6 +33,9 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   }
 
   private def generateFieldOptions(property: CustomMetadata): FormField = {
+    def getDependencies(values: List[Values]): Map[String, List[FormField]] =
+      values.map(value => value.value -> getCustomMetadataProperties(value.dependencies.map(_.name).toSet).map(generateFieldOptions).toList).toMap
+
     val fieldLabel = dbAndFieldLabel.getOrElse(property.name, property.fullName.getOrElse(""))
     val fieldDescription = property.description.getOrElse("")
     val isRequired = property.propertyGroup.exists(_.startsWith("Mandatory"))
@@ -65,10 +69,20 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
           InputNameAndValue("Month", "", "MM"),
           InputNameAndValue("Year", "", "YYYY"),
           isRequired,
-          isFutureDateAllowed = property.name != foiExemptionAsserted
+          isFutureDateAllowed = property.name != foiExemptionAsserted,
+          dependencies = getDependencies(property.values)
         )
       case Integer =>
-        TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue("years", property.defaultValue.getOrElse("")), "numeric", isRequired)
+        TextField(
+          property.name,
+          fieldLabel,
+          fieldDescription,
+          property.multiValue,
+          InputNameAndValue("years", property.defaultValue.getOrElse("")),
+          "numeric",
+          isRequired,
+          dependencies = getDependencies(property.values)
+        )
       case Text =>
         property.propertyType match {
           case Defined =>
@@ -81,7 +95,8 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
                 property.multiValue,
                 options,
                 property.defaultValue.map(value => InputNameAndValue(value, value) :: Nil),
-                isRequired
+                isRequired,
+                dependencies = getDependencies(property.values)
               )
             } else {
               DropdownField(
@@ -91,11 +106,21 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
                 property.multiValue,
                 options,
                 property.defaultValue.map(value => InputNameAndValue(value, value)),
-                isRequired
+                isRequired,
+                dependencies = getDependencies(property.values)
               )
             }
           case Supplied =>
-            TextField(property.name, fieldLabel, fieldDescription, property.multiValue, InputNameAndValue(property.name, property.defaultValue.getOrElse("")), "text", isRequired)
+            TextField(
+              property.name,
+              fieldLabel,
+              fieldDescription,
+              property.multiValue,
+              InputNameAndValue(property.name, property.defaultValue.getOrElse("")),
+              "text",
+              isRequired,
+              dependencies = getDependencies(property.values)
+            )
           case _ =>
             DropdownField(
               property.name,
@@ -104,7 +129,8 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
               property.multiValue,
               Seq(InputNameAndValue(property.name, property.fullName.getOrElse(""))),
               None,
-              isRequired
+              isRequired,
+              dependencies = getDependencies(property.values)
             )
         }
       // We don't have any examples of Decimal yet, so this is in the case Decimal or something else gets used

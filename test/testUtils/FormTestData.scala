@@ -68,8 +68,8 @@ class FormTestData() {
       defaultValue = None,
       4,
       List(
-        Values("dropdownValue", List(Dependencies("TestDropdownProperty")), 1),
-        Values("dropdownValue2", List(Dependencies("TestDropdownProperty")), 2)
+        Values("dropdownValue", List(Dependencies("TextArea")), 1),
+        Values("dropdownValue2", Nil, 2)
       ),
       None,
       allowExport = false
@@ -92,7 +92,22 @@ class FormTestData() {
       None,
       allowExport = false
     )
-    val dependency = CustomMetadata(
+    val dependencyProperty1 = CustomMetadata(
+      "TextArea",
+      Some("A TextArea "),
+      Some("TextArea"),
+      Supplied,
+      Some("MandatoryMetadata"),
+      Text,
+      editable = true,
+      multiValue = false,
+      defaultValue = None,
+      6,
+      Nil,
+      None,
+      allowExport = false
+    )
+    val dependencyProperty2 = CustomMetadata(
       "TestProperty2",
       Some("A TestProperty2 "),
       Some("TestProperty2"),
@@ -102,13 +117,13 @@ class FormTestData() {
       editable = true,
       multiValue = false,
       defaultValue = None,
-      5,
+      7,
       Nil,
       None,
       allowExport = false
     )
 
-    List(foiExemptionAsserted, closureStartDate, closurePeriod, dropdown, radio, dependency)
+    List(foiExemptionAsserted, closureStartDate, closurePeriod, dropdown, radio, dependencyProperty1, dependencyProperty2)
   }
   // scalastyle:on method.length
 

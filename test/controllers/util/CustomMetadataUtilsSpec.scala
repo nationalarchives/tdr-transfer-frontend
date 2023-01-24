@@ -89,8 +89,8 @@ class CustomMetadataUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeA
   "convertPropertiesToFields" should "order the fields in the correct order" in {
     val propertiesToConvertToFields: Set[CustomMetadata] = formProperties.toSet
     val fieldValuesByDataType: List[FormField] = customMetadataUtils.convertPropertiesToFormFields(propertiesToConvertToFields)
-    fieldValuesByDataType.size should equal(6)
-    fieldValuesByDataType.map(_.fieldId) should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Dropdown", "Radio", "TestProperty2"))
+    fieldValuesByDataType.size should equal(7)
+    fieldValuesByDataType.map(_.fieldId) should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Dropdown", "Radio", "TextArea", "TestProperty2"))
   }
 
   def verifyDate(field: DateField, isFutureDateAllowed: Boolean = true): Unit = {
