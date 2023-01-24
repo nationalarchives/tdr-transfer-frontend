@@ -1,6 +1,7 @@
 import { ClientFileProcessing } from "../clientfileprocessing"
 import { ClientFileMetadataUpload } from "../clientfilemetadataupload"
 import { S3Upload } from "../s3upload"
+import { UpdateConsignmentStatus } from "../updateconsignmentstatus"
 import { FileUploadInfo, UploadForm } from "./form/upload-form"
 import { IFrontEndInfo } from "../index"
 import { handleUploadError, isError } from "../errorhandling"
@@ -27,6 +28,7 @@ export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
 
 export class FileUploader {
   clientFileProcessing: ClientFileProcessing
+  updateConsignmentStatus: UpdateConsignmentStatus
   stage: string
   goToNextPage: (formId: string) => void
   keycloak: IKeycloakInstance
@@ -36,6 +38,7 @@ export class FileUploader {
 
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
+    updateConsignmentStatus: UpdateConsignmentStatus,
     frontendInfo: IFrontEndInfo,
     goToNextPage: (formId: string) => void,
     keycloak: KeycloakInstance,
@@ -56,6 +59,7 @@ export class FileUploader {
       clientFileMetadataUpload,
       new S3Upload(client, frontendInfo.uploadUrl)
     )
+    this.updateConsignmentStatus = updateConsignmentStatus
     this.stage = frontendInfo.stage
     this.goToNextPage = goToNextPage
     this.keycloak = keycloak as IKeycloakInstance
@@ -107,7 +111,17 @@ export class FileUploader {
     if (errors.length == 0) {
       window.removeEventListener("beforeunload", pageUnloadAction)
       this.goToNextPage("#upload-data-form")
+      await this.updateConsignmentStatus.updateConsignmentStatus(
+        uploadFilesInfo,
+        "Upload",
+        "Completed"
+      )
     } else {
+      await this.updateConsignmentStatus.updateConsignmentStatus(
+        uploadFilesInfo,
+        "Upload",
+        "CompletedWithIssues"
+      )
       errors.forEach((err) => handleUploadError(err))
     }
   }
