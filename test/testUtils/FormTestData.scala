@@ -97,12 +97,12 @@ class FormTestData() {
       Some("A TestProperty2 "),
       Some("TestProperty2"),
       Supplied,
-      Some("MandatoryMetadata"),
+      Some("OptionalClosure"),
       Text,
       editable = true,
       multiValue = false,
       defaultValue = None,
-      5,
+      6,
       Nil,
       None,
       allowExport = false
@@ -116,9 +116,12 @@ class FormTestData() {
 
   def setupDisplayProperties(): List[DisplayProperty] = {
     List(
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown3", "propertyType", "unitType"),
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 1, "Dropdown1", "propertyType", "unitType"),
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 2, "Dropdown2", "propertyType", "unitType")
+      DisplayProperty(true, "date", DateTime, "description", "Date Display", editable = true, "group", "guidance", "label", multiValue = false, ordinal = 1, "FoiExemptionAsserted", "propertyType", "unitType"),
+      DisplayProperty(true, "date", DateTime, "description", "Date Display", editable = true, "group", "guidance", "label", multiValue = false, ordinal = 2, "ClosureStartDate", "propertyType", "unitType"),
+      DisplayProperty(true, "small text", Text, "description", "Small text Display", editable = true, "group", "guidance", "label", multiValue = false, ordinal = 3, "ClosurePeriod", "propertyType", "unitType"),
+      DisplayProperty(true, "radial", Boolean, "description", "Radial Display", editable = true, "group", "guidance", "yes|no", multiValue = false, ordinal = 4, "Radio", "propertyType", "unitType"),
+      DisplayProperty(true, "small text", Text, "description", "TestProperty2", editable = true, "group", "guidance", "label", multiValue = false, ordinal = 4, "TestProperty2", "propertyType", "unitType"),
+      DisplayProperty(true, "select", Text, "description", "Dropdown Display", editable = true, "group", "guidance", "label", multiValue = true, 5, "Dropdown", "propertyType", "unitType")
     )
   }
 }

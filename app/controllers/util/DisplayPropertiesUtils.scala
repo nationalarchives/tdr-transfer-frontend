@@ -115,7 +115,10 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
 
   private def generateTextField(property: DisplayProperty, customMetadata: Option[CustomMetadata]) = {
     val required: Boolean = customMetadata.requiredField
-    val dataType: String = if (property.dataType == DataType.Integer) "numeric" else "text"
+    val dataType = customMetadata match {
+      case Some(datatype) => if (datatype.dataType == DataType.Integer) "numeric" else "text"
+      case _              => "text"
+    }
     val inputName: String = if (property.propertyName == "ClosurePeriod") "years" else property.propertyName
     TextField(
       property.propertyName,
