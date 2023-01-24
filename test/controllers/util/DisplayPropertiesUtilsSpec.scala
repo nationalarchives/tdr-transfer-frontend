@@ -82,6 +82,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     multiSelectField.multiValue should equal(true)
     multiSelectField.fieldName should equal("Dropdown Display")
     multiSelectField.fieldDescription should equal("description")
+    multiSelectField.fieldGuidance should equal("guidance")
     multiSelectField.isRequired should equal(false)
     multiSelectField.fieldErrors should equal(Nil)
     multiSelectField.selectedOption.get should equal(List(InputNameAndValue("dropdownValue1", "dropdownValue1")))

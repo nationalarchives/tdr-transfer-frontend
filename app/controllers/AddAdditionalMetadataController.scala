@@ -138,7 +138,7 @@ class AddAdditionalMetadataController @Inject() (
       case RadioButtonGroupField(fieldId, _, _, _, multiValue, _, selectedOption, _, _, dependencies, _) =>
         val fileMetadataInputs = dependencies.get(selectedOption).map(buildUpdateMetadataInput).getOrElse(Nil)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString) :: fileMetadataInputs
-      case MultiSelectField(fieldId, _, _, multiValue, _, selectedOptions, _, _) if selectedOptions.isDefined =>
+      case MultiSelectField(fieldId, _, _, _, multiValue, _, selectedOptions, _, _) if selectedOptions.isDefined =>
         selectedOptions.getOrElse(Nil).map(p => UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, p.value))
     }.flatten
   }

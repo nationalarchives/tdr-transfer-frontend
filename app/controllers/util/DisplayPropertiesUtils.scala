@@ -2,6 +2,7 @@ package controllers.util
 
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType
+import org.apache.commons.lang3.BooleanUtils.{YES, NO}
 import services.DisplayProperty
 
 class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMetadata: List[CustomMetadata]) {
@@ -42,7 +43,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
         generateFormField(dp, metadata)
       })
   }
-  // scalastyle:off method.length
+
   private def generateFormField(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
     val required: Boolean = customMetadata.requiredField
     property.componentType match {
@@ -74,6 +75,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
             property.propertyName,
             property.displayName,
             property.description,
+            property.guidance,
             property.multiValue,
             customMetadata.definedInputs,
             customMetadata.defaultInput.map(List(_)),
@@ -114,12 +116,12 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
 
   private def generateRadioField(property: DisplayProperty, customMetadata: Option[CustomMetadata]) = {
     val required: Boolean = customMetadata.requiredField
-    val defaultOption = if (customMetadata.defaultValue.toBoolean) "yes" else "no"
+    val defaultOption = if (customMetadata.defaultValue.toBoolean) YES else NO
     val List(yesLabel, noLabel) = property.label.split('|').toList
     val dependencies = customMetadata.get.values
       .map(p => {
         val dependencies = p.dependencies.map(_.name).toSet
-        (if (p.value.toBoolean) "yes" else "no") -> convertPropertiesToFormFields(displayProperties.filter(p => dependencies.contains(p.propertyName))).toList
+        (if (p.value.toBoolean) YES else NO) -> convertPropertiesToFormFields(displayProperties.filter(p => dependencies.contains(p.propertyName))).toList
       })
       .toMap
     RadioButtonGroupField(
@@ -128,7 +130,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
       property.description,
       additionalInfo = "",
       property.multiValue,
-      Seq(InputNameAndValue(yesLabel, "yes"), InputNameAndValue(noLabel, "no")),
+      Seq(InputNameAndValue(yesLabel, YES), InputNameAndValue(noLabel, NO)),
       defaultOption,
       required,
       dependencies = dependencies
