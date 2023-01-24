@@ -17,12 +17,10 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
   private val displayPropertiesUtils = new DisplayPropertiesUtils(displayProperties, customMetadata)
 
   "convertPropertiesToFormFields" should "return the list of properties requested in ordinal order" in {
-    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(displayProperties)
+    val fields: Seq[String] = displayPropertiesUtils.convertPropertiesToFormFields(displayProperties).map(_.fieldId)
 
     fields.size should equal(6)
-    fields.head.fieldId should equal("FoiExemptionAsserted")
-    fields.tail.head.fieldId should equal("ClosureStartDate")
-    fields.last.fieldId should equal("Dropdown")
+    fields should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Radio", "TestProperty2", "Dropdown"))
   }
 
   "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select' where the property is not mult-value" in {

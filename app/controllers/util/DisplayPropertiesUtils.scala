@@ -67,26 +67,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           InputNameAndValue("Year", "", "YYYY"),
           required
         )
-      case "radial" =>
-        val defaultOption = if (customMetadata.defaultValue.toBoolean) "yes" else "no"
-        val List(yesLabel, noLabel) = property.label.split('|').toList
-        val dependencies = customMetadata.get.values
-          .map(p => {
-            val dependencies = p.dependencies.map(_.name).toSet
-            (if (p.value.toBoolean) "yes" else "no") -> convertPropertiesToFormFields(displayProperties.filter(p => dependencies.contains(p.propertyName))).toList
-          })
-          .toMap
-        RadioButtonGroupField(
-          property.propertyName,
-          property.displayName,
-          property.description,
-          additionalInfo = "",
-          property.multiValue,
-          Seq(InputNameAndValue(yesLabel, "yes"), InputNameAndValue(noLabel, "no")),
-          defaultOption,
-          required,
-          dependencies = dependencies
-        )
+      case "radial" => generateRadioField(property, customMetadata)
       case "select" =>
         if (property.multiValue) {
           MultiSelectField(
@@ -131,4 +112,26 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
     )
   }
 
+  private def generateRadioField(property: DisplayProperty, customMetadata: Option[CustomMetadata]) = {
+    val required: Boolean = customMetadata.requiredField
+    val defaultOption = if (customMetadata.defaultValue.toBoolean) "yes" else "no"
+    val List(yesLabel, noLabel) = property.label.split('|').toList
+    val dependencies = customMetadata.get.values
+      .map(p => {
+        val dependencies = p.dependencies.map(_.name).toSet
+        (if (p.value.toBoolean) "yes" else "no") -> convertPropertiesToFormFields(displayProperties.filter(p => dependencies.contains(p.propertyName))).toList
+      })
+      .toMap
+    RadioButtonGroupField(
+      property.propertyName,
+      property.displayName,
+      property.description,
+      additionalInfo = "",
+      property.multiValue,
+      Seq(InputNameAndValue(yesLabel, "yes"), InputNameAndValue(noLabel, "no")),
+      defaultOption,
+      required,
+      dependencies = dependencies
+    )
+  }
 }
