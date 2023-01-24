@@ -116,12 +116,102 @@ class FormTestData() {
 
   def setupDisplayProperties(): List[DisplayProperty] = {
     List(
-      DisplayProperty(true, "date", DateTime, "description", "Date Display", editable = true, "group", "guidance", "label", multiValue = false, ordinal = 1, "FoiExemptionAsserted", "propertyType", "unitType"),
-      DisplayProperty(true, "date", DateTime, "description", "Date Display", editable = true, "group", "guidance", "label", multiValue = false, ordinal = 2, "ClosureStartDate", "propertyType", "unitType"),
-      DisplayProperty(true, "small text", Text, "description", "Small text Display", editable = true, "group", "guidance", "label", multiValue = false, ordinal = 3, "ClosurePeriod", "propertyType", "unitType"),
-      DisplayProperty(true, "radial", Boolean, "description", "Radial Display", editable = true, "group", "guidance", "yes|no", multiValue = false, ordinal = 4, "Radio", "propertyType", "unitType"),
-      DisplayProperty(true, "small text", Text, "description", "TestProperty2", editable = true, "group", "guidance", "label", multiValue = false, ordinal = 4, "TestProperty2", "propertyType", "unitType"),
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", editable = true, "group", "guidance", "label", multiValue = true, 5, "Dropdown", "propertyType", "unitType")
+      DisplayProperty(
+        active = true,
+        "date",
+        DateTime,
+        "description",
+        "Date Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = false,
+        ordinal = 1,
+        "FoiExemptionAsserted",
+        "propertyType",
+        "unitType"
+      ),
+      DisplayProperty(
+        active = true,
+        "date",
+        DateTime,
+        "description",
+        "Date Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = false,
+        ordinal = 2,
+        "ClosureStartDate",
+        "propertyType",
+        "unitType"
+      ),
+      DisplayProperty(
+        active = true,
+        "small text",
+        Text,
+        "description",
+        "Small text Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = false,
+        ordinal = 3,
+        "ClosurePeriod",
+        "propertyType",
+        "unitType"
+      ),
+      DisplayProperty(
+        active = true,
+        "radial",
+        Boolean,
+        "description",
+        "Radial Display",
+        editable = true,
+        "group",
+        "guidance",
+        "yes|no",
+        multiValue = false,
+        ordinal = 4,
+        "Radio",
+        "propertyType",
+        "unitType"
+      ),
+      DisplayProperty(
+        active = true,
+        "small text",
+        Text,
+        "description",
+        "TestProperty2",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = false,
+        ordinal = 4,
+        "TestProperty2",
+        "propertyType",
+        "unitType"
+      ),
+      DisplayProperty(
+        active = true,
+        "select",
+        Text,
+        "description",
+        "Dropdown Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = true,
+        5,
+        "Dropdown",
+        "propertyType",
+        "unitType"
+      )
     )
   }
 }
