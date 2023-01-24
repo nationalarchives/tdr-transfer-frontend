@@ -9,6 +9,7 @@ import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
 import { createMockKeycloakInstance } from "../utils"
 import { IFrontEndInfo } from "../../src"
 import { ClientFileMetadataUpload } from "../../src/clientfilemetadataupload"
+import { UpdateConsignmentStatus } from "../../src/updateconsignmentstatus"
 import {
   IReader,
   IWebkitEntry
@@ -83,10 +84,9 @@ export class MockUploadFormDom {
     type: "pdf", // overwrite default "type" value "" as files must have a non-empty value
     isFile: true,
     isDirectory: false,
-    webkitGetAsEntry: () =>
-      ({
+    webkitGetAsEntry: () => ({
         isFile: true
-      } as FileSystemEntry)
+    }) as FileSystemEntry
   }
 
   directoryEntry: IWebkitEntry = {
@@ -196,8 +196,10 @@ export class MockUploadFormDom {
     }
     const uploadMetadata = new ClientFileMetadataUpload()
     const triggerBackendChecks = new TriggerBackendChecks()
+    const updateConsignmentStatus = new UpdateConsignmentStatus()
     return new FileUploader(
       uploadMetadata,
+      updateConsignmentStatus,
       frontendInfo,
       jest.fn(),
       mockKeycloakInstance,
@@ -238,9 +240,7 @@ export class MockUploadFormDom {
       )
     },
     multipleFolderSelectedMessage: {
-      messageElement: document.querySelector(
-        "#multiple-folder-selection-failure"
-      ),
+      messageElement: document.querySelector("#multiple-folder-selection-failure"),
       messageElementText: document.querySelector(
         "#multiple-folder-selected-message-text"
       )
@@ -254,7 +254,9 @@ export class MockUploadFormDom {
       )
     },
     removedSelectionMessage: {
-      messageElement: document.querySelector("#removed-selection-container"),
+      messageElement: document.querySelector(
+        "#removed-selection-container"
+      ),
       messageElementText: document.querySelector(
         "#removed-selection-message-text"
       )
@@ -273,8 +275,9 @@ export class MockUploadFormDom {
 
   uploadingRecordsSection = document.querySelector("#upload-progress")
 
-  successAndRemovalMessageContainer: HTMLElement | null =
-    document.querySelector("#success-and-removal-message-container")
+  successAndRemovalMessageContainer: HTMLElement | null = document.querySelector(
+    "#success-and-removal-message-container"
+  )
 
   successMessageContainer: HTMLElement | null = document.querySelector(
     "#item-selection-success-container"
