@@ -442,7 +442,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Ordinal", Some("15"), Integer),
           dp.DisplayProperties.Attributes("UnitType", Some("Years"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime),
+          dp.DisplayProperties.Attributes("Guidance", Some("years"), Text)
         )
       ),
       dp.DisplayProperties(

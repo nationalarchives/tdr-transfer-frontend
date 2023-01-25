@@ -208,9 +208,9 @@ object TextAreaField {
   def validate(text: String, textAreaField: TextAreaField): Option[String] = {
 
     text match {
-      case t if t == "" && textAreaField.isRequired           => Some(emptyValueError.format("text", textAreaField.fieldName))
+      case t if t == "" && textAreaField.isRequired     => Some(emptyValueError.format("text", textAreaField.fieldName))
       case t if t.length > textAreaField.characterLimit => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
-      case _                                                  => None
+      case _                                            => None
     }
   }
 }
