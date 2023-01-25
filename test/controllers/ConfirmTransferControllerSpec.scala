@@ -613,6 +613,12 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  s"completedConfirmTransferForm length" should {
+    s"equal the arity of the FinalTransferConfirmationData case class " in {
+      completedConfirmTransferForm.length should equal(FinalTransferConfirmationData(true).productArity)
+    }
+  }
+
   private def mockGraphqlConsignmentSummaryResponse(dataString: String = "", consignmentType: String = "standard") = {
     if (dataString.nonEmpty) {
       wiremockServer.stubFor(
