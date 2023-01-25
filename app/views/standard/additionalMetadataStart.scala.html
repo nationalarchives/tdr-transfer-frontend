@@ -1,7 +1,7 @@
 @import views.html.partials.{notificationBanner, progressIndicator, transferReference, warningMessage}
 
 @import java.util.UUID
-@(parentFolder: String, parentFolderId: UUID, consignmentRef: String, consignmentId: UUID, name: String, properties: Map[String, List[String]])(implicit messages: Messages, request: RequestHeader)
+@(consignmentRef: String, consignmentId: UUID, name: String, closure: List[String], descriptive: List[String])(implicit messages: Messages, request: RequestHeader)
 @main(title = "Add, edit or delete metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
@@ -18,7 +18,7 @@
                     "Not entered",
                     "Add descriptive metadata to your files",
                     "You do not need to add descriptive metadata but it can enhance your record.",
-                    properties("descriptive")
+                    descriptive
                 )
                 @displayCard(
                     "Closure metadata",
@@ -26,7 +26,7 @@
                     "Not entered",
                     "Add closure and associated metadata to your files",
                     "You must add closure metadata to closed files and folders.",
-                    properties("closure")
+                    closure
                 )
                 @warningMessage(Messages("additionalMetadata.warningMessage"))
                 <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Next</a>
@@ -53,7 +53,7 @@
         </summary>
         <div class="govuk-details__text">
           <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
-            @for(property <- properties) {
+            @for(property <- properties.filter(_.nonEmpty)) {
               <li>@property</li>
             }
           </ul>
