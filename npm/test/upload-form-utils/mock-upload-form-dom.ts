@@ -14,6 +14,7 @@ import {
   IReader,
   IWebkitEntry
 } from "../../src/upload/form/get-files-from-drag-event"
+import { TriggerBackendChecks } from "../../src/triggerbackendchecks"
 
 interface SubmitEvent extends Event {
   submitter: HTMLElement
@@ -84,7 +85,7 @@ export class MockUploadFormDom {
     isFile: true,
     isDirectory: false,
     webkitGetAsEntry: () => ({
-      isFile: true
+        isFile: true
     }) as FileSystemEntry
   }
 
@@ -172,7 +173,7 @@ export class MockUploadFormDom {
   }
 
   setUpFileUploader(isJudgmentUser: boolean): FileUploader {
-    const mockUpdateToken = jest.fn().mockImplementation((number:number) => {
+    const mockUpdateToken = jest.fn().mockImplementation((number: number) => {
       return new Promise((res, _) => res(true))
     })
     const isTokenExpired = true
@@ -194,13 +195,15 @@ export class MockUploadFormDom {
       uploadUrl: ""
     }
     const uploadMetadata = new ClientFileMetadataUpload()
+    const triggerBackendChecks = new TriggerBackendChecks()
     const updateConsignmentStatus = new UpdateConsignmentStatus()
     return new FileUploader(
       uploadMetadata,
       updateConsignmentStatus,
       frontendInfo,
       jest.fn(),
-      mockKeycloakInstance
+      mockKeycloakInstance,
+      triggerBackendChecks
     )
   }
 
