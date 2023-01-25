@@ -12,6 +12,7 @@ import services.ConsignmentService
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.time.format.DateTimeFormatter
+import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext
 
 class ViewTransfersControllerSpec extends FrontEndTestHelper {
@@ -55,6 +56,41 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         verifyConsignmentRow(viewTransfersPageAsString, "standard", consignmentEdge.node, index)
       }
     }
+
+    "render the view transfers page with list of user's consignments and have 'Contact us' as an Action for consignments" +
+      " where the status value were invalid/not recognised" in {
+        setConsignmentTypeResponse(wiremockServer, "standard")
+        val invalidConsignmentStatusTypesOrValues: Map[String, List[Option[String]]] =
+          ListMap(
+            "series" -> List(Some("InvalidStatusValue")),
+            "statusType1" -> List(None),
+            "statusType2" -> List(None),
+            "statusType3" -> List(None),
+            "statusType4" -> List(None),
+            "statusType5" -> List(None)
+          )
+
+        val consignmentsWithAllPossibleCurrentStatusStates: List[Consignments.Edges] = setConsignmentsHistoryResponse(wiremockServer, invalidConsignmentStatusTypesOrValues)
+
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val response = controller
+          .viewConsignments()
+          .apply(FakeRequest(GET, s"/view-transfers"))
+        val viewTransfersPageAsString = contentAsString(response)
+
+        status(response) mustBe OK
+        contentType(response) mustBe Some("text/html")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
+        checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
+
+        val consignmentEdgeForSeries = consignmentsWithAllPossibleCurrentStatusStates.head
+        val contactUsStatusAndActionUrls: List[(String, String)] =
+          List(("Contact us", """<a href="mailto:nationalArchives.email?subject=Ref: TEST-TDR-2022-GB1 - Consignment Failure (Status value is not valid)">Contact us</a>"""))
+        verifyConsignmentRow(viewTransfersPageAsString, "standard", consignmentEdgeForSeries.node, 0, contactUsStatusAndActionUrls)
+      }
 
     "render the view transfers page with no consignments if the user doesn't have any consignments" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -111,11 +147,17 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     )
   }
 
-  def verifyConsignmentRow(viewTransfersPageAsString: String, consignmentType: String, node: Node, index: Int): Unit = {
+  def verifyConsignmentRow(
+      viewTransfersPageAsString: String,
+      consignmentType: String,
+      node: Node,
+      index: Int,
+      statusesAndActionUrls: List[(String, String)] = allPossibleStatusesAndActionUrlsForStandardUsers
+  ): Unit = {
     val exportDate = node.exportDatetime.map(_.format(formatter)).get
     val createdDate = node.createdDatetime.map(_.format(formatter)).get
     val (transferStatus, actionUrlWithNoConsignmentId): (String, String) =
-      if (consignmentType == "judgment") ("", "") else allPossibleStatusesAndActionUrlsForStandardUsers(index) // need to implement one for judgments
+      if (consignmentType == "judgment") ("", "") else statusesAndActionUrls(index) // need to implement one for judgments
     val transferStatusColour = getStatusColour(transferStatus)
     val actionUrl = actionUrlWithNoConsignmentId.format(node.consignmentid.getOrElse("NO CONSIGNMENT RETURNED"))
     val summary =
@@ -156,7 +198,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   private val getStatusColour = Map(
     "In Progress" -> "yellow",
     "Failed" -> "red",
-    "Transferred" -> "green"
+    "Transferred" -> "green",
+    "Contact us" -> "red"
   )
 
   private val allPossibleStatusesAndActionUrlsForStandardUsers: List[(String, String)] = List(
@@ -166,13 +209,13 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     ("In Progress", """<a href="/consignment/%s/upload">Resume transfer</a>"""),
     ("In Progress", """<a href="/consignment/%s/upload">Resume transfer</a>"""),
     ("Failed", """<a href="/consignment/%s/upload">View errors</a>"""),
-    ("In Progress", """<a href="/consignment/%s/file-check-progress">Resume transfer</a>"""),
+    ("In Progress", """<a href="/consignment/%s/file-checks">Resume transfer</a>"""),
     ("In Progress", """<a href="/consignment/%s/file-checks-results">Resume transfer</a>"""),
     ("Failed", """<a href="/consignment/%s/file-checks-results">View errors</a>"""),
     ("Failed", """<a href="/consignment/%s/file-checks-results">View errors</a>"""),
     ("In Progress", """<a href="/consignment/%s/file-checks-results">Resume transfer</a>"""),
     ("In Progress", """<a href="/consignment/%s/additional-metadata/download-metadata/csv">Download report</a>"""),
     ("Transferred", """<a href="/consignment/%s/additional-metadata/download-metadata/csv">Download report</a>"""),
-    ("Failed", """<a href="mailto:nationalArchives.email?subject=Ref: TEST-TDR-2022-GB6 - export failure">Contact us</a>""")
+    ("Failed", """<a href="mailto:nationalArchives.email?subject=Ref: TEST-TDR-2022-GB6 - Export failure">Contact us</a>""")
   )
 }
