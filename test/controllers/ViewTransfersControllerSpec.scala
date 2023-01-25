@@ -52,6 +52,11 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
            |                  <th scope="col" class="govuk-table__header">Date of export</th>
            |                  <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin)
       viewTransfersPageAsString must include(s"""View the history of all the consignments you have uploaded and resume incomplete or failed transfers.""")
+      viewTransfersPageAsString must include(
+        """        <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
+          |            Back to homepage
+          |        </a>""".stripMargin
+      )
 
       consignments.foreach(c => verifyConsignmentRow(viewTransfersPageAsString, c.node))
     }
@@ -83,6 +88,11 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         """              <tbody class="govuk-table__body">""" +
           "\n                " +
           "\n              </tbody>"
+      )
+      viewTransfersPageAsString must include(
+        """        <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
+          |            Back to homepage
+          |        </a>""".stripMargin
       )
     }
 

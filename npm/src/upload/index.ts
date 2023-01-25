@@ -11,6 +11,7 @@ import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
 import { TdrFetchHandler } from "../s3upload/tdr-fetch-handler"
 import { S3Client } from "@aws-sdk/client-s3"
 import { IEntryWithPath } from "./form/get-files-from-drag-event"
+import { TriggerBackendChecks } from "../triggerbackendchecks"
 
 export interface IKeycloakInstance extends KeycloakInstance {
   tokenParsed: IKeycloakTokenParsed
@@ -33,12 +34,15 @@ export class FileUploader {
   keycloak: IKeycloakInstance
   uploadUrl: string
 
+  triggerBackendChecks: TriggerBackendChecks
+
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
     updateConsignmentStatus: UpdateConsignmentStatus,
     frontendInfo: IFrontEndInfo,
     goToNextPage: (formId: string) => void,
-    keycloak: KeycloakInstance
+    keycloak: KeycloakInstance,
+    triggerBackendChecks: TriggerBackendChecks
   ) {
     const requestTimeoutMs = 20 * 60 * 1000
     const config: S3ClientConfig = {
@@ -60,6 +64,7 @@ export class FileUploader {
     this.goToNextPage = goToNextPage
     this.keycloak = keycloak as IKeycloakInstance
     this.uploadUrl = frontendInfo.uploadUrl
+    this.triggerBackendChecks = triggerBackendChecks
   }
 
   uploadFiles: (
@@ -88,15 +93,17 @@ export class FileUploader {
         this.stage,
         this.keycloak.tokenParsed?.sub
       )
-      const statusUpdate =
-        await this.updateConsignmentStatus.setUploadStatusBasedOnFileStatuses(
-          uploadFilesInfo
+
+      const backendChecks =
+        await this.triggerBackendChecks.triggerBackendChecks(
+          uploadFilesInfo.consignmentId
         )
+
+      if (isError(backendChecks)) {
+        errors.push(backendChecks)
+      }
       if (isError(processResult)) {
         errors.push(processResult)
-      }
-      if (isError(statusUpdate)) {
-        errors.push(statusUpdate)
       }
     } else {
       errors.push(cookiesResponse)
@@ -104,7 +111,17 @@ export class FileUploader {
     if (errors.length == 0) {
       window.removeEventListener("beforeunload", pageUnloadAction)
       this.goToNextPage("#upload-data-form")
+      await this.updateConsignmentStatus.updateConsignmentStatus(
+        uploadFilesInfo,
+        "Upload",
+        "Completed"
+      )
     } else {
+      await this.updateConsignmentStatus.updateConsignmentStatus(
+        uploadFilesInfo,
+        "Upload",
+        "CompletedWithIssues"
+      )
       errors.forEach((err) => handleUploadError(err))
     }
   }
