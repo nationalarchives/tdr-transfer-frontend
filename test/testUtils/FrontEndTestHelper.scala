@@ -281,9 +281,11 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  def setConsignmentsHistoryResponse(wiremockServer: WireMockServer, consignmentType: String = "standard", noConsignment: Boolean = false): List[Edges] = {
-    val consignmentStatusValuesThatGenerateActionLinks =
-      if (consignmentType == "judgment") judgmentConsignmentStatusValuesThatGenerateActionLinks else standardConsignmentStatusValuesThatGenerateActionLinks
+  def setConsignmentsHistoryResponse(
+      wiremockServer: WireMockServer,
+      consignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] = standardConsignmentStatusValuesThatGenerateActionLinks,
+      noConsignment: Boolean = false
+  ): List[Edges] = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
     val edges = consignmentStatusValuesThatGenerateActionLinks
       .zip(LazyList.from(1))

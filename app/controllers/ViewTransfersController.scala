@@ -17,11 +17,31 @@ import javax.inject.Inject
 class ViewTransfersController @Inject() (val consignmentService: ConsignmentService, val keycloakConfiguration: KeycloakConfiguration, val controllerComponents: SecurityComponents)
     extends TokenSecurity {
 
-  // ConsignmentStatusTypes in the order they were updated
-  val validStandardConsignmentStatusTypes: List[String] = List("series", "transferAgreement", "upload", "clientChecks", "confirmTransfer", "export")
-  val validJudgmentConsignmentStatusTypes: List[String] = List("upload", "clientChecks", "export")
+  private val inProgressStepStatus = "InProgress"
+  private val failedStepStatus = "Failed"
+  private val completedWithIssuesStepStatus = "CompletedWithIssues"
+  private val completedStepStatus = "Completed"
 
-  val statusColours: Map[String, String] = Map("In Progress" -> "yellow", "Failed" -> "red", "Transferred" -> "green")
+  private val inProgressConsignment = "In Progress"
+  private val failedConsignment = "Failed"
+  private val transferredConsignment = "Transferred"
+
+  private val resumeTransfer = "Resume transfer"
+  private val viewErrors = "View errors"
+  private val contactUs = "Contact us"
+  private val downloadReport = "Download report"
+
+  private def pageNameToUrl(consignmentId: UUID) = Map(
+    "series" -> routes.SeriesDetailsController.seriesDetails(consignmentId).url,
+    "taPrivateBeta" -> routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId).url,
+    "taCompliance" -> routes.TransferAgreementComplianceController.transferAgreement(consignmentId).url,
+    "upload" -> routes.UploadController.uploadPage(consignmentId).url,
+    "fileChecks" -> routes.FileChecksController.fileChecksPage(consignmentId).url,
+    "fileChecksResults" -> routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url,
+    "export" -> routes.DownloadMetadataController.downloadMetadataCsv(consignmentId).url
+  )
+
+  val statusColours: Map[String, String] = Map(inProgressConsignment -> "yellow", failedConsignment -> "red", contactUs -> "red", transferredConsignment -> "green")
 
   def viewConsignments(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val consignmentFilters = ConsignmentFilters(Some(request.token.userId), None)
@@ -39,22 +59,13 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
 
   private def createView(edges: Option[Edges]): Option[ConsignmentTransfers] =
     edges.map { edge =>
-      val mostRecentStatus: MostRecentConsignmentStatus = getConsignmentStatus(edge.node.currentStatus, edge.node.consignmentType.getOrElse("standard"))
-      val mostRecentStatusValue = (if (mostRecentStatus.statusType == "export") "Export" else "") + mostRecentStatus.statusValue
-      val actionUrl: String =
-        getActionUrl(mostRecentStatus, edge.node.consignmentid.get, edge.node.consignmentReference, edge.node.consignmentType.getOrElse("standard"))
-      val actionUrlTitle = actionUrlText(
-        mostRecentStatus.statusType,
-        mostRecentStatusValue
-      )
-      val userActions = UserAction(actionUrl, actionUrlTitle)
-      val transferStatus = convertConsignmentStatusValuesToTransferStatuses(mostRecentStatusValue)
+      val userActions = convertStandardStatusesToUserActions(edge.node.currentStatus, edge.node.consignmentid.get, edge.node.consignmentReference)
 
       ConsignmentTransfers(
         edge.node.consignmentid,
         edge.node.consignmentReference,
-        transferStatus,
-        statusColours(transferStatus),
+        userActions.transferStatus,
+        statusColours(userActions.transferStatus),
         userActions,
         edge.node.exportDatetime.map(_.format(formatter)).getOrElse("N/A"),
         edge.node.createdDatetime.map(_.format(formatter)).getOrElse(""),
@@ -62,94 +73,42 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
       )
     }
 
-  private def getConsignmentStatus(currentStatus: CurrentStatus, consignmentType: String): MostRecentConsignmentStatus = {
-    val currentStatusTypes: List[String] = currentStatus.productElementNames.toList
-    val currentStatusValues: List[Option[String]] = currentStatus.productIterator.toList.asInstanceOf[List[Option[String]]]
-    val consignmentStatusTypesAndValsInDb: Map[String, Option[String]] = currentStatusTypes.zip(currentStatusValues).toMap
-
-    val consignmentStatusTypes: List[String] = if (consignmentType == "judgment") validJudgmentConsignmentStatusTypes else validStandardConsignmentStatusTypes
-
-    val indexOfConsignmentStatusAfterClientChecks: Int = consignmentStatusTypes.indexOf("clientChecks") + 1
-    val statusTypeOfStatusAfterClientChecks: String = consignmentStatusTypes(indexOfConsignmentStatusAfterClientChecks)
-    val statusValueOfStatusAfterClientChecks: Option[String] = consignmentStatusTypesAndValsInDb(statusTypeOfStatusAfterClientChecks)
-
-    val mostRecentStatus: MostRecentConsignmentStatus =
-      consignmentStatusTypes.collectFirst {
-        case consignmentStatusType
-            if !consignmentStatusTypesAndValsInDb(consignmentStatusType).contains("Completed") // if value in DB for statusType is not "Completed", display a link to page
-            // if statusType is clientChecks but value of statusType, AFTER clientChecks, ISN'T "Completed" then take user to clientChecks (file checks) page
-              || consignmentStatusType == "clientChecks" && !statusValueOfStatusAfterClientChecks.contains("Completed")
-              || "export" == consignmentStatusType => // no matter the value of "export", always display an action
-          val consignmentStatusValue = consignmentStatusTypesAndValsInDb(consignmentStatusType).getOrElse("")
-
-          if (consignmentType == "judgment" && consignmentStatusType == "upload" && consignmentStatusValue == "") {
-            MostRecentConsignmentStatus("beforeYouUpload", consignmentStatusValue)
-          } else {
-            MostRecentConsignmentStatus(consignmentStatusType, consignmentStatusValue)
-          }
-      }.get
-    mostRecentStatus
-  }
-
   private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
 
   // scalastyle:off cyclomatic.complexity
-  private def getActionUrl(mostRecentStatus: MostRecentConsignmentStatus, consignmentId: UUID, consignmentRef: String, consignmentType: String): String = {
-    if (mostRecentStatus.statusValue == "Failed" && mostRecentStatus.statusType != "clientChecks") {
-      // We expect only Export and Client Checks to have a Failed value but there are weird edge cases.
-      s"""mailto:%s?subject=Ref: $consignmentRef - ${mostRecentStatus.statusType} failure"""
-    } else {
-      mostRecentStatus.statusType match {
-        case "beforeYouUpload" if consignmentType == "judgment" => routes.BeforeUploadingController.beforeUploading(consignmentId).url
-        case "series"                                           => routes.SeriesDetailsController.seriesDetails(consignmentId).url
-        case "transferAgreement" =>
-          mostRecentStatus.statusValue match {
-            case ""           => routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId).url
-            case "InProgress" => routes.TransferAgreementComplianceController.transferAgreement(consignmentId).url
-          }
-        case "upload" =>
-          consignmentType match {
-            case "judgment" => routes.UploadController.judgmentUploadPage(consignmentId).url
-            case _          => routes.UploadController.uploadPage(consignmentId).url
-          }
-        case "clientChecks" =>
-          mostRecentStatus.statusValue match {
-            case "" | "InProgress" =>
-              consignmentType match {
-                case "judgment" => routes.FileChecksController.judgmentFileChecksPage(consignmentId).url
-                case _          => routes.FileChecksController.fileCheckProgress(consignmentId).url
-              }
-            case "Completed" | "CompletedWithIssues" | "Failed" =>
-              consignmentType match {
-                case "judgment" => routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId).url
-                case _          => routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url
-              }
-          }
-        case "confirmTransfer" => routes.ConfirmTransferController.confirmTransfer(consignmentId).url
-        case "export" =>
-          mostRecentStatus.statusValue match {
-            case "InProgress" | "Completed" => routes.DownloadMetadataController.downloadMetadataCsv(consignmentId).url
-          }
-      }
+  private def convertStandardStatusesToUserActions(statuses: CurrentStatus, consignmentId: UUID, consignmentRef: String) = {
+    val pageNameToUrlMap: Map[String, String] = pageNameToUrl(consignmentId)
+
+    statuses match {
+      case s if s.series.isEmpty => UserAction(inProgressConsignment, pageNameToUrlMap("series"), resumeTransfer)
+      case s if s.series.contains(completedStepStatus) && s.transferAgreement.isEmpty =>
+        UserAction(inProgressConsignment, pageNameToUrlMap("taPrivateBeta"), resumeTransfer)
+
+      case s if s.transferAgreement.contains(inProgressStepStatus)                    => UserAction(inProgressConsignment, pageNameToUrlMap("taCompliance"), resumeTransfer)
+      case s if s.transferAgreement.contains(completedStepStatus) && s.upload.isEmpty => UserAction(inProgressConsignment, pageNameToUrlMap("upload"), resumeTransfer)
+
+      case s if s.upload.contains(inProgressStepStatus) || (s.upload.contains(completedStepStatus) && s.clientChecks.isEmpty) =>
+        UserAction(inProgressConsignment, pageNameToUrlMap("upload"), resumeTransfer)
+      case s if s.upload.contains(completedWithIssuesStepStatus) || s.upload.contains(failedStepStatus) =>
+        UserAction(failedConsignment, pageNameToUrlMap("upload"), viewErrors)
+      case s if s.upload.contains(completedStepStatus) && s.clientChecks.isEmpty => UserAction(inProgressConsignment, pageNameToUrlMap("fileChecks"), resumeTransfer)
+
+      case s if s.clientChecks.contains(inProgressStepStatus) => UserAction(inProgressConsignment, pageNameToUrlMap("fileChecks"), resumeTransfer)
+      case s if s.clientChecks.contains(completedWithIssuesStepStatus) || s.clientChecks.contains(failedStepStatus) =>
+        UserAction(failedConsignment, pageNameToUrlMap("fileChecksResults"), viewErrors)
+      case s if s.clientChecks.contains(completedStepStatus) && s.confirmTransfer.isEmpty =>
+        UserAction(inProgressConsignment, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
+
+      case s if s.confirmTransfer.contains(completedStepStatus) && s.`export`.isEmpty => UserAction(inProgressConsignment, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
+
+      case s if s.`export`.contains(inProgressStepStatus) => UserAction(inProgressConsignment, pageNameToUrlMap("export"), downloadReport)
+      case s if s.`export`.contains(completedStepStatus)  => UserAction(transferredConsignment, pageNameToUrlMap("export"), downloadReport)
+      case s if s.`export`.contains(failedStepStatus)     => UserAction(failedConsignment, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", "Contact us")
+
+      case _ => UserAction(contactUs, s"""mailto:%s?subject=Ref: $consignmentRef - Consignment Failure (Status value is not valid)""", contactUs)
     }
   }
-
-  private def convertConsignmentStatusValuesToTransferStatuses(consignmentStatusValue: String): String = consignmentStatusValue match {
-    case "ExportCompleted"                                                               => "Transferred"
-    case "CompletedWithIssues" | "Failed" | "ExportCompletedWithIssues" | "ExportFailed" => "Failed"
-    case _                                                                               => s"In Progress"
-  }
-
-  private def actionUrlText(consignmentStatusType: String, consignmentStatusValue: String): String = {
-    val errorsThatUsersCanView = List("upload", "clientChecks")
-    consignmentStatusValue match {
-      case "" | "InProgress"                                                                          => "Resume transfer"
-      case "Completed" if consignmentStatusType == "clientChecks"                                     => "Resume transfer"
-      case "ExportCompleted" | "ExportInProgress"                                                     => "Download report"
-      case "CompletedWithIssues" | "Failed" if errorsThatUsersCanView.contains(consignmentStatusType) => "View errors"
-      case "CompletedWithIssues" | "Failed" | "ExportFailed"                                          => "Contact us"
-    }
-  }
+  // scalastyle:on cyclomatic.complexity
 }
 
 case class ConsignmentTransfers(
@@ -162,5 +121,5 @@ case class ConsignmentTransfers(
     dateStarted: String,
     numberOfFiles: Int
 )
-case class MostRecentConsignmentStatus(statusType: String, statusValue: String)
-case class UserAction(actionUrl: String, actionText: String)
+
+case class UserAction(transferStatus: String, actionUrl: String, actionText: String)
