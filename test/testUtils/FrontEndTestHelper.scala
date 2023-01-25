@@ -367,7 +367,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Group", Some("1"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
-          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
+          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text),
+          dp.DisplayProperties.Attributes("Summary", Some("Descriptive"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -383,7 +384,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Guidance", Some("Search for languages"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
-          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
+          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text),
+          dp.DisplayProperties.Attributes("Summary", Some("Language"), Text)
         )
       )
     )
@@ -410,7 +412,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("5"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("FOI decision asserted, this is the date of the Advisory Council approval"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -426,7 +429,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("Closure start date"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -442,7 +446,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Ordinal", Some("15"), Integer),
           dp.DisplayProperties.Attributes("UnitType", Some("Years"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("Closure period"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -464,7 +469,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("select"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("select"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("FOI exemption code"), Text)
         )
       ),
       dp.DisplayProperties(
