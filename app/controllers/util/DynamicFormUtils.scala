@@ -36,6 +36,8 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
   }
 
   private def validateFormFields(formField: FormField, fieldValue: List[SubmittedValue]): FormField = {
+    val optionsSelected: Seq[InputName] = fieldValue.head.optionsSelected
+
     formField match {
       case dateField: DateField =>
         val (day, month, year) = fieldValue.toDate
@@ -54,25 +56,25 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
           .copy(fieldErrors = RadioButtonGroupField.validate(selectedOption, dependencies, radioButtonGroupField))
 
       case textField: TextField =>
-        val text = fieldValue.head.optionsSelected.head
+        val text = optionsSelected.head
         TextField
           .update(textField, text)
           .copy(fieldErrors = TextField.validate(text, textField).map(List(_)).getOrElse(Nil))
 
       case textAreaField: TextAreaField =>
-        val text = fieldValue.head.optionsSelected.head
+        val text = optionsSelected.head
         TextAreaField
           .update(textAreaField, text)
           .copy(fieldErrors = TextAreaField.validate(text, textAreaField).map(List(_)).getOrElse(Nil))
 
       case dropdownField: DropdownField =>
-        val selectedValue = fieldValue.head.optionsSelected.headOption
+        val selectedValue = optionsSelected.headOption
         DropdownField
           .update(dropdownField, selectedValue)
           .copy(fieldErrors = DropdownField.validate(selectedValue, dropdownField).map(List(_)).getOrElse(Nil))
 
       case multiSelectField: MultiSelectField =>
-        val selectedValues = fieldValue.head.optionsSelected
+        val selectedValues = optionsSelected
         MultiSelectField
           .update(multiSelectField, selectedValues)
           .copy(fieldErrors = MultiSelectField.validate(selectedValues, multiSelectField).map(List(_)).getOrElse(Nil))
