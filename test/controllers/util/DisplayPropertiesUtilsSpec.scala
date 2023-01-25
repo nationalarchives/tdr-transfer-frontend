@@ -2,7 +2,7 @@ package controllers.util
 
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
-import graphql.codegen.types.DataType.{DateTime, Text}
+import graphql.codegen.types.DataType.{Boolean, DateTime, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -17,17 +17,15 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
   private val displayPropertiesUtils = new DisplayPropertiesUtils(displayProperties, customMetadata)
 
   "convertPropertiesToFormFields" should "return the list of properties requested in ordinal order" in {
-    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+    val fields: Seq[String] = displayPropertiesUtils.convertPropertiesToFormFields(displayProperties).map(_.fieldId)
 
-    fields.size should equal(3)
-    fields.head.fieldId should equal("Dropdown1")
-    fields.tail.head.fieldId should equal("Dropdown2")
-    fields.last.fieldId should equal("Dropdown3")
+    fields.size should equal(6)
+    fields should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Radio", "TestProperty2", "Dropdown"))
   }
 
   "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select' where the property is not mult-value" in {
     val customMetadata = CustomMetadata(
-      "Dropdown1",
+      "Dropdown",
       None,
       None,
       Defined,
@@ -41,13 +39,13 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       None,
       allowExport = false
     )
-    val displayProperty = DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown1", "propertyType", "")
+    val displayProperty = DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown", "propertyType", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
-    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
 
     val dropdownField: DropdownField = fields.head.asInstanceOf[DropdownField]
-    dropdownField.fieldId should equal("Dropdown1")
+    dropdownField.fieldId should equal("Dropdown")
     dropdownField.multiValue should equal(false)
     dropdownField.fieldName should equal("Dropdown Display")
     dropdownField.fieldDescription should equal("description")
@@ -77,7 +75,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     val displayProperty = DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", true, 3, "Dropdown1", "propertyType", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
-    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
 
     val multiSelectField: MultiSelectField = fields.head.asInstanceOf[MultiSelectField]
     multiSelectField.fieldId should equal("Dropdown1")
@@ -110,7 +108,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       DisplayProperty(true, "large text", Text, "description", "TextField Display", true, "group", "guidance", "label", false, 3, "TextField", "propertyType", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
-    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
 
     val textAreaField: TextAreaField = fields.head.asInstanceOf[TextAreaField]
     textAreaField.fieldId should equal("TextField")
@@ -126,13 +124,113 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     textAreaField.nameAndValue.value should equal("defaultValue")
   }
 
+  "convertPropertiesToFormFields" should "generate 'radio' field for componentType value 'radial'" in {
+    val displayProperty =
+      DisplayProperty(
+        active = true,
+        "radial",
+        Boolean,
+        "description",
+        "Radial Display",
+        editable = true,
+        "group",
+        "guidance",
+        "yes|no",
+        multiValue = false,
+        3,
+        "Radio",
+        "propertyType",
+        ""
+      )
+
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
+
+    val radioButtonGroupField: RadioButtonGroupField = fields.head.asInstanceOf[RadioButtonGroupField]
+    radioButtonGroupField.fieldId should equal("Radio")
+    radioButtonGroupField.fieldName should equal("Radial Display")
+    radioButtonGroupField.fieldDescription should equal("description")
+    radioButtonGroupField.fieldErrors should equal(Nil)
+    radioButtonGroupField.isRequired should equal(true)
+    radioButtonGroupField.multiValue should equal(false)
+    radioButtonGroupField.selectedOption should equal("no")
+    radioButtonGroupField.options should contain theSameElementsAs List(InputNameAndValue("yes", "yes"), InputNameAndValue("no", "no"))
+    radioButtonGroupField.dependencies.size should equal(2)
+  }
+
+  "convertPropertiesToFormFields" should "generate 'date' field for componentType value 'date'" in {
+    val displayProperty =
+      DisplayProperty(
+        active = true,
+        "date",
+        Boolean,
+        "description",
+        "Date Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = false,
+        3,
+        "ClosureStartDate",
+        "propertyType",
+        ""
+      )
+
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
+
+    val dateField: DateField = fields.head.asInstanceOf[DateField]
+    dateField.fieldId should equal("ClosureStartDate")
+    dateField.fieldName should equal("Date Display")
+    dateField.fieldDescription should equal("description")
+    dateField.fieldErrors should equal(Nil)
+    dateField.isRequired should equal(false)
+    dateField.multiValue should equal(false)
+    dateField.day should equal(InputNameAndValue("Day", "", "DD"))
+    dateField.month should equal(InputNameAndValue("Month", "", "MM"))
+    dateField.year should equal(InputNameAndValue("Year", "", "YYYY"))
+  }
+
+  "convertPropertiesToFormFields" should "generate 'text' field for componentType value 'small text'" in {
+    val displayProperty =
+      DisplayProperty(
+        active = true,
+        "small text",
+        Text,
+        "description",
+        "Text Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = false,
+        3,
+        "TestProperty2",
+        "propertyType",
+        ""
+      )
+
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
+
+    val textField: TextField = fields.head.asInstanceOf[TextField]
+    textField.fieldId should equal("TestProperty2")
+    textField.fieldName should equal("Text Display")
+    textField.fieldDescription should equal("description")
+    textField.fieldErrors should equal(Nil)
+    textField.inputMode should equal("text")
+    textField.isRequired should equal(false)
+    textField.multiValue should equal(false)
+  }
+
   "convertPropertiesToFormFields" should "throw an error for an unsupported component type" in {
     val displayProperty =
       DisplayProperty(true, "unsupportedComponentType", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown1", "propertyType", "")
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List())
 
     val thrownException = intercept[Exception] {
-      displayPropertiesUtils.convertPropertiesToFormFields
+      displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
     }
 
     thrownException.getMessage should equal("unsupportedComponentType is not a supported component type")
