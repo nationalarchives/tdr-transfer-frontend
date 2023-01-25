@@ -34,7 +34,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
     }
   }
 
-  def convertPropertiesToFormFields: Seq[FormField] = {
+  def convertPropertiesToFormFields(displayProperties: List[DisplayProperty] = displayProperties): Seq[FormField] = {
     displayProperties
       .sortBy(_.ordinal)
       .map(dp => {
@@ -42,7 +42,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
         generateFormField(dp, metadata)
       })
   }
-
+  // scalastyle:off method.length
   private def generateFormField(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
     val required: Boolean = customMetadata.requiredField
     property.componentType match {
@@ -55,6 +55,19 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           InputNameAndValue(property.propertyName, customMetadata.defaultValue),
           required
         )
+      case "small text" => generateTextField(property, customMetadata)
+      case "date" =>
+        DateField(
+          property.propertyName,
+          property.displayName,
+          property.description,
+          property.multiValue,
+          InputNameAndValue("Day", "", "DD"),
+          InputNameAndValue("Month", "", "MM"),
+          InputNameAndValue("Year", "", "YYYY"),
+          required
+        )
+      case "radial" => generateRadioField(property, customMetadata)
       case "select" =>
         if (property.multiValue) {
           MultiSelectField(
@@ -79,5 +92,46 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
         }
       case _ => throw new IllegalArgumentException(s"${property.componentType} is not a supported component type")
     }
+  }
+
+  private def generateTextField(property: DisplayProperty, customMetadata: Option[CustomMetadata]) = {
+    val required: Boolean = customMetadata.requiredField
+    val dataType = customMetadata match {
+      case Some(datatype) => if (datatype.dataType == DataType.Integer) "numeric" else "text"
+      case _              => "text"
+    }
+    val inputName: String = if (property.propertyName == "ClosurePeriod") "years" else property.propertyName
+    TextField(
+      property.propertyName,
+      property.displayName,
+      property.description,
+      property.multiValue,
+      InputNameAndValue(inputName, customMetadata.defaultValue),
+      dataType,
+      required
+    )
+  }
+
+  private def generateRadioField(property: DisplayProperty, customMetadata: Option[CustomMetadata]) = {
+    val required: Boolean = customMetadata.requiredField
+    val defaultOption = if (customMetadata.defaultValue.toBoolean) "yes" else "no"
+    val List(yesLabel, noLabel) = property.label.split('|').toList
+    val dependencies = customMetadata.get.values
+      .map(p => {
+        val dependencies = p.dependencies.map(_.name).toSet
+        (if (p.value.toBoolean) "yes" else "no") -> convertPropertiesToFormFields(displayProperties.filter(p => dependencies.contains(p.propertyName))).toList
+      })
+      .toMap
+    RadioButtonGroupField(
+      property.propertyName,
+      property.displayName,
+      property.description,
+      additionalInfo = "",
+      property.multiValue,
+      Seq(InputNameAndValue(yesLabel, "yes"), InputNameAndValue(noLabel, "no")),
+      defaultOption,
+      required,
+      dependencies = dependencies
+    )
   }
 }
