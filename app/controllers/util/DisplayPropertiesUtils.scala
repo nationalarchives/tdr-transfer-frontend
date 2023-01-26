@@ -36,7 +36,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
 
   def convertPropertiesToFormFields(displayProperties: List[DisplayProperty] = displayProperties): Seq[FormField] = {
     displayProperties
-        .map(dp => {
+      .map(dp => {
         val metadata: Option[CustomMetadata] = customMetadata.find(_.name == dp.propertyName)
         generateFormField(dp, metadata)
       })
