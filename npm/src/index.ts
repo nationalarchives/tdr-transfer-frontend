@@ -17,14 +17,25 @@ export interface IFrontEndInfo {
 
 export const hideConditionalElements: () => void = () => {
   // We display all conditional elements by default if JavaScript is disabled; if it's enabled, then we'll hide them.
-  const conditionalElements: NodeListOf<Element> = document.querySelectorAll(
-    ".govuk-radios__conditional"
-  )
-
-  if (conditionalElements) {
-    conditionalElements.forEach((e) =>
-      e.classList.add("govuk-radios__conditional--hidden")
+  const classNameAndConditionalElements: {
+    [className: string]: NodeListOf<Element>
+  } = {
+    "govuk-radios__conditional": document.querySelectorAll(
+      ".govuk-radios__conditional"
+    ),
+    "govuk-checkboxes__conditional": document.querySelectorAll(
+      ".govuk-checkboxes__conditional"
     )
+  }
+
+  for (const [className, conditionalElements] of Object.entries(
+    classNameAndConditionalElements
+  )) {
+    if (conditionalElements) {
+      conditionalElements.forEach((conditionalElement) =>
+        conditionalElement.classList.add(`${className}--hidden`)
+      )
+    }
   }
 }
 
@@ -76,15 +87,21 @@ export const renderModules = async () => {
         const nextPageModule = await import(
           "./nextpageredirect/next-page-redirect"
         )
+        const triggerBackendChecksModule = await import(
+          "./triggerbackendchecks"
+        )
         const uploadModule = await import("./upload")
         const updateConsignmentStatus =
           new consignmentStatusModule.UpdateConsignmentStatus()
+        const triggerBackendChecks =
+          new triggerBackendChecksModule.TriggerBackendChecks()
         new uploadModule.FileUploader(
           clientFileProcessing,
           updateConsignmentStatus,
           frontEndInfo,
           nextPageModule.goToNextPage,
-          keycloak
+          keycloak,
+          triggerBackendChecks
         ).initialiseFormListeners()
       } else {
         errorHandlingModule.handleUploadError(keycloak)

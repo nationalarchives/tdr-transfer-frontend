@@ -1,6 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
+import com.typesafe.config.{Config, ConfigFactory}
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, ConsignmentStatusInput, StartUploadInput}
 import io.circe.parser.decode
@@ -8,7 +9,7 @@ import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, ConsignmentStatusService, FileStatusService, UploadService}
+import services.{BackendChecksService, ConsignmentService, ConsignmentStatusService, FileStatusService, UploadService}
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -23,10 +24,17 @@ class UploadController @Inject() (
     val frontEndInfoConfiguration: FrontEndInfoConfiguration,
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
-    val fileStatusService: FileStatusService
+    val fileStatusService: FileStatusService,
+    val backendChecksService: BackendChecksService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
+
+  def triggerBackendChecks(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
+    backendChecksService
+      .triggerBackendChecks(consignmentId, request.token.bearerAccessToken.getValue)
+      .map(res => Ok(res.toString))
+  }
 
   def updateConsignmentStatus(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {
