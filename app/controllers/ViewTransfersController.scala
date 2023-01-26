@@ -58,7 +58,7 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
 
   private def createView(edges: Option[Edges]): Option[ConsignmentTransfers] =
     edges.map { edge =>
-      val userActions = convertStandardStatusesToUserActions(edge.node.currentStatus, edge.node.consignmentid.get, edge.node.consignmentReference)
+      val userActions: UserAction = convertStandardStatusesToUserActions(edge.node.currentStatus, edge.node.consignmentid.get, edge.node.consignmentReference)
 
       ConsignmentTransfers(
         edge.node.consignmentid,
@@ -75,7 +75,7 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
   private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
 
   // scalastyle:off cyclomatic.complexity
-  private def convertStandardStatusesToUserActions(statuses: CurrentStatus, consignmentId: UUID, consignmentRef: String) = {
+  private def convertStandardStatusesToUserActions(statuses: CurrentStatus, consignmentId: UUID, consignmentRef: String): UserAction = {
     val pageNameToUrlMap: Map[String, String] = pageNameToUrl(consignmentId)
 
     statuses match {
