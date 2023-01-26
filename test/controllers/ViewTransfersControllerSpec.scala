@@ -36,7 +36,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   "ViewTransfersController" should {
     "render the view transfers page with list of user's consignments" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
-      val consignmentsWithAllPossibleCurrentStatusStates: List[Consignments.Edges] = setConsignmentsHistoryResponse(wiremockServer)
+      val consignmentsWithAllStatusStates: List[Consignments.Edges] = setConsignmentsHistoryResponse(wiremockServer)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -52,7 +52,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
       checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
 
-      consignmentsWithAllPossibleCurrentStatusStates.zipWithIndex.foreach { case (consignmentEdge, index) =>
+      consignmentsWithAllStatusStates.zipWithIndex.foreach { case (consignmentEdge, index) =>
         verifyConsignmentRow(viewTransfersPageAsString, "standard", consignmentEdge.node, index)
       }
     }
@@ -70,7 +70,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
             "statusType5" -> List(None)
           )
 
-        val consignmentsWithAllPossibleCurrentStatusStates: List[Consignments.Edges] = setConsignmentsHistoryResponse(wiremockServer, invalidConsignmentStatusTypesOrValues)
+        val consignmentsWithAllStatusStates: List[Consignments.Edges] = setConsignmentsHistoryResponse(wiremockServer, invalidConsignmentStatusTypesOrValues)
 
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -86,7 +86,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
         checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
 
-        val consignmentEdgeForSeries = consignmentsWithAllPossibleCurrentStatusStates.head
+        val consignmentEdgeForSeries = consignmentsWithAllStatusStates.head
         val contactUsStatusAndActionUrls: List[(String, String)] =
           List(("Contact us", """<a href="mailto:nationalArchives.email?subject=Ref: TEST-TDR-2022-GB1 - Consignment Failure (Status value is not valid)">Contact us</a>"""))
         verifyConsignmentRow(viewTransfersPageAsString, "standard", consignmentEdgeForSeries.node, 0, contactUsStatusAndActionUrls)
