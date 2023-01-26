@@ -152,7 +152,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       consignmentType: String,
       node: Node,
       index: Int,
-      statusesAndActionUrls: List[(String, String)] = allPossibleStatusesAndActionUrlsForStandardUsers
+      statusesAndActionUrls: List[(String, String)] = standardStatusesAndActionUrls
   ): Unit = {
     val exportDate = node.exportDatetime.map(_.format(formatter)).get
     val createdDate = node.createdDatetime.map(_.format(formatter)).get
@@ -202,7 +202,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     "Contact us" -> "red"
   )
 
-  private val allPossibleStatusesAndActionUrlsForStandardUsers: List[(String, String)] = List(
+  private val standardStatusesAndActionUrls: List[(String, String)] = List(
     ("In Progress", """<a href="/consignment/%s/series">Resume transfer</a>"""),
     ("In Progress", """<a href="/consignment/%s/transfer-agreement">Resume transfer</a>"""),
     ("In Progress", """<a href="/consignment/%s/transfer-agreement-continued">Resume transfer</a>"""),

@@ -16,14 +16,14 @@ import javax.inject.Inject
 class ViewTransfersController @Inject() (val consignmentService: ConsignmentService, val keycloakConfiguration: KeycloakConfiguration, val controllerComponents: SecurityComponents)
     extends TokenSecurity {
 
-  private val inProgressStepStatus = "InProgress"
-  private val failedStepStatus = "Failed"
-  private val completedWithIssuesStepStatus = "CompletedWithIssues"
-  private val completedStepStatus = "Completed"
+  private val inProgressStep = "InProgress"
+  private val failedStep = "Failed"
+  private val completedWithIssuesStep = "CompletedWithIssues"
+  private val completedStep = "Completed"
 
-  private val inProgressConsignment = "In Progress"
-  private val failedConsignment = "Failed"
-  private val transferredConsignment = "Transferred"
+  private val transferStatusInProgress = "In Progress"
+  private val transferStatusFailed = "Failed"
+  private val transferStatusTransferred = "Transferred"
 
   private val resumeTransfer = "Resume transfer"
   private val viewErrors = "View errors"
@@ -40,7 +40,7 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
     "export" -> routes.DownloadMetadataController.downloadMetadataCsv(consignmentId).url
   )
 
-  val statusColours: Map[String, String] = Map(inProgressConsignment -> "yellow", failedConsignment -> "red", contactUs -> "red", transferredConsignment -> "green")
+  val statusColours: Map[String, String] = Map(transferStatusInProgress -> "yellow", transferStatusFailed -> "red", contactUs -> "red", transferStatusTransferred -> "green")
 
   def viewConsignments(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val consignmentFilters = ConsignmentFilters(Some(request.token.userId), None)
@@ -79,30 +79,30 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
     val pageNameToUrlMap: Map[String, String] = pageNameToUrl(consignmentId)
 
     statuses match {
-      case s if s.series.isEmpty => UserAction(inProgressConsignment, pageNameToUrlMap("series"), resumeTransfer)
-      case s if s.series.contains(completedStepStatus) && s.transferAgreement.isEmpty =>
-        UserAction(inProgressConsignment, pageNameToUrlMap("taPrivateBeta"), resumeTransfer)
+      case s if s.series.isEmpty => UserAction(transferStatusInProgress, pageNameToUrlMap("series"), resumeTransfer)
+      case s if s.series.contains(completedStep) && s.transferAgreement.isEmpty =>
+        UserAction(transferStatusInProgress, pageNameToUrlMap("taPrivateBeta"), resumeTransfer)
 
-      case s if s.transferAgreement.contains(inProgressStepStatus)                    => UserAction(inProgressConsignment, pageNameToUrlMap("taCompliance"), resumeTransfer)
-      case s if s.transferAgreement.contains(completedStepStatus) && s.upload.isEmpty => UserAction(inProgressConsignment, pageNameToUrlMap("upload"), resumeTransfer)
+      case s if s.transferAgreement.contains(inProgressStep)                    => UserAction(transferStatusInProgress, pageNameToUrlMap("taCompliance"), resumeTransfer)
+      case s if s.transferAgreement.contains(completedStep) && s.upload.isEmpty => UserAction(transferStatusInProgress, pageNameToUrlMap("upload"), resumeTransfer)
 
-      case s if s.upload.contains(inProgressStepStatus) || (s.upload.contains(completedStepStatus) && s.clientChecks.isEmpty) =>
-        UserAction(inProgressConsignment, pageNameToUrlMap("upload"), resumeTransfer)
-      case s if s.upload.contains(completedWithIssuesStepStatus) || s.upload.contains(failedStepStatus) =>
-        UserAction(failedConsignment, pageNameToUrlMap("upload"), viewErrors)
-      case s if s.upload.contains(completedStepStatus) && s.clientChecks.isEmpty => UserAction(inProgressConsignment, pageNameToUrlMap("fileChecks"), resumeTransfer)
+      case s if s.upload.contains(inProgressStep) || (s.upload.contains(completedStep) && s.clientChecks.isEmpty) =>
+        UserAction(transferStatusInProgress, pageNameToUrlMap("upload"), resumeTransfer)
+      case s if s.upload.contains(completedWithIssuesStep) || s.upload.contains(failedStep) =>
+        UserAction(transferStatusFailed, pageNameToUrlMap("upload"), viewErrors)
+      case s if s.upload.contains(completedStep) && s.clientChecks.isEmpty => UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecks"), resumeTransfer)
 
-      case s if s.clientChecks.contains(inProgressStepStatus) => UserAction(inProgressConsignment, pageNameToUrlMap("fileChecks"), resumeTransfer)
-      case s if s.clientChecks.contains(completedWithIssuesStepStatus) || s.clientChecks.contains(failedStepStatus) =>
-        UserAction(failedConsignment, pageNameToUrlMap("fileChecksResults"), viewErrors)
-      case s if s.clientChecks.contains(completedStepStatus) && s.confirmTransfer.isEmpty =>
-        UserAction(inProgressConsignment, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
+      case s if s.clientChecks.contains(inProgressStep) => UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecks"), resumeTransfer)
+      case s if s.clientChecks.contains(completedWithIssuesStep) || s.clientChecks.contains(failedStep) =>
+        UserAction(transferStatusFailed, pageNameToUrlMap("fileChecksResults"), viewErrors)
+      case s if s.clientChecks.contains(completedStep) && s.confirmTransfer.isEmpty =>
+        UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
 
-      case s if s.confirmTransfer.contains(completedStepStatus) && s.`export`.isEmpty => UserAction(inProgressConsignment, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
+      case s if s.confirmTransfer.contains(completedStep) && s.`export`.isEmpty => UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
 
-      case s if s.`export`.contains(inProgressStepStatus) => UserAction(inProgressConsignment, pageNameToUrlMap("export"), downloadReport)
-      case s if s.`export`.contains(completedStepStatus)  => UserAction(transferredConsignment, pageNameToUrlMap("export"), downloadReport)
-      case s if s.`export`.contains(failedStepStatus)     => UserAction(failedConsignment, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", "Contact us")
+      case s if s.`export`.contains(inProgressStep) => UserAction(transferStatusInProgress, pageNameToUrlMap("export"), downloadReport)
+      case s if s.`export`.contains(completedStep)  => UserAction(transferStatusTransferred, pageNameToUrlMap("export"), downloadReport)
+      case s if s.`export`.contains(failedStep)     => UserAction(transferStatusFailed, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", "Contact us")
 
       case _ => UserAction(contactUs, s"""mailto:%s?subject=Ref: $consignmentRef - Consignment Failure (Status value is not valid)""", contactUs)
     }
