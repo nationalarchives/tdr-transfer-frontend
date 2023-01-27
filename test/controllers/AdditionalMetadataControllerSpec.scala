@@ -61,14 +61,14 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
            |<div class="govuk-notification-banner govuk-!-margin-bottom-4" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
            |    <div class="govuk-notification-banner__header">
            |        <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-           |            notification.title
+           |            notification.savedProgress.title
            |        </h2>
            |    </div>
            |    <div class="govuk-notification-banner__content">
            |        <h3 class="govuk-notification-banner__heading">
-           |            notification.heading
+           |            notification.savedProgress.heading
            |        </h3>
-           |        <p class="govuk-body">notification.metadataInfo</p>
+           |        <p class="govuk-body">notification.savedProgress.metadataInfo</p>
            |    </div>
            |</div>
            |""".stripMargin)
