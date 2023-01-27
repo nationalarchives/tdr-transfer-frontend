@@ -358,17 +358,17 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     )
     closureStatusPage must include("""
         |                            <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
-        |XX
+        |<Spaces>
         |                                    <li>FOI decision asserted, this is the date of the Advisory Council approval</li>
-        |XX
+        |<Spaces>
         |                                    <li>Closure start date</li>
-        |XX
+        |<Spaces>
         |                                    <li>Closure period</li>
-        |XX
+        |<Spaces>
         |                                    <li>FOI exemption code</li>
-        |XX
+        |<Spaces>
         |                            </ul>
-        |""".stripMargin.replace("XX", "                                "))
+        |""".stripMargin.replace("<Spaces>", "                                "))
 
     val cancelHref = s"/consignment/$consignmentId/additional-metadata/files/closure"
     val continueHref = s"/consignment/$consignmentId/additional-metadata/add/closure?fileIds=${fileIds.mkString("&")}"

@@ -178,26 +178,26 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
     if (metadataType.equals("closure")) {
       page must include(
         """          <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
-          |XX
+          |<Spaces>
           |              <li>FOI decision asserted, this is the date of the Advisory Council approval</li>
-          |XX
+          |<Spaces>
           |              <li>Closure start date</li>
-          |XX
+          |<Spaces>
           |              <li>Closure period</li>
-          |XX
+          |<Spaces>
           |              <li>FOI exemption code</li>
-          |XX
-          |          </ul>""".stripMargin.replace("XX", "            ")
+          |<Spaces>
+          |          </ul>""".stripMargin.replace("<Spaces>", "            ")
       )
     } else {
       page must include(
         """          <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
-          |XX
+          |<Spaces>
           |              <li>Descriptive</li>
-          |XX
+          |<Spaces>
           |              <li>Language</li>
-          |XX
-          |          </ul>""".stripMargin.replace("XX", "            ")
+          |<Spaces>
+          |          </ul>""".stripMargin.replace("<Spaces>", "            ")
       )
     }
   }
