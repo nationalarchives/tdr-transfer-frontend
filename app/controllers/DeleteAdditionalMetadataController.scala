@@ -47,7 +47,7 @@ class DeleteAdditionalMetadataController @Inject() (
         Future.failed(new IllegalArgumentException("fileIds are empty"))
       } else {
         for {
-          displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, metadataType)
+          displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some(metadataType))
           propertiesToDelete: Set[String] = displayProperties.map(_.propertyName).toSet
           _ <- customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, propertiesToDelete)
           response <-

@@ -4,16 +4,15 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignment.getConsignment
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import io.circe.generic.auto._
+import io.circe.syntax._
 import play.api.Play.materializer
 import play.api.http.Status.{FORBIDDEN, FOUND, OK}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
-import services.ConsignmentService
-import uk.gov.nationalarchives.tdr.GraphQLClient.Error
+import services.{ConsignmentService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
-import io.circe.syntax._
-import io.circe.generic.auto._
+import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -40,10 +39,12 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = Option(parentFolderId))
+      setDisplayPropertiesResponse(wiremockServer)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .start(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
@@ -54,32 +55,53 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      startPageAsString must include(s"""        <h1 class="govuk-heading-l">Add, edit or delete metadata</h1>""")
+      startPageAsString must include(s"""<h1 class="govuk-heading-l">Descriptive & closure metadata</h1>""")
 
-      startPageAsString must include(s"""        <h2 class="govuk-heading-s">Folder uploaded: $parentFolder""")
-      // scalastyle:off line.size.limit
+      startPageAsString must include(s"""
+           |<div class="govuk-notification-banner govuk-!-margin-bottom-4" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+           |    <div class="govuk-notification-banner__header">
+           |        <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+           |            notification.savedProgress.title
+           |        </h2>
+           |    </div>
+           |    <div class="govuk-notification-banner__content">
+           |        <h3 class="govuk-notification-banner__heading">
+           |            notification.savedProgress.heading
+           |        </h3>
+           |        <p class="govuk-body">notification.savedProgress.metadataInfo</p>
+           |    </div>
+           |</div>
+           |""".stripMargin)
+
       startPageAsString must include(
-        s"""        <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records. Or you can proceed without by clicking ‘Continue’ at the bottom of this page.</p>""".stripMargin
+        s"""<p class="govuk-body">You can now add or edit closure and descriptive metadata to your records.</p>""".stripMargin
       )
       startPageAsString must include(
-        s"""        <p class="govuk-body">If you'd like to add or edit descriptive metadata to your records, you can do so here.</p>"""
+        s"""<div class="govuk-warning-text">
+           |    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+           |    <strong class="govuk-warning-text__text">
+           |        <span class="govuk-warning-text__assistive">Warning</span>
+           |        additionalMetadata.warningMessage
+           |    </strong>
+           |</div>""".stripMargin
       )
-      startPageAsString must include(
-        s"""        <p class="govuk-body">If you'd like to add or edit closure metadata to your records, you can do so here.</p>""".stripMargin
+
+      verifyCard(
+        startPageAsString,
+        consignmentId.toString,
+        "Descriptive metadata",
+        "descriptive",
+        "Add descriptive metadata to your files",
+        "You do not need to add descriptive metadata but it can enhance your record."
       )
-      startPageAsString must include(
-        s"""        <a href="/consignment/$consignmentId/additional-metadata/download-metadata" """ +
-          """role="button" draggable="false" class="govuk-button" data-module="govuk-button">""" + """
-                                                                                                     |          Continue
-                                                                                                     |        </a>""".stripMargin
+      verifyCard(
+        startPageAsString,
+        consignmentId.toString,
+        "Closure metadata",
+        "closure",
+        "Add closure and associated metadata to your files",
+        "You must add closure metadata to closed files and folders."
       )
-      startPageAsString must include(
-        s"""<a class="govuk-link govuk-link--no-visited-state" href="/consignment/$consignmentId/additional-metadata/files/descriptive">"""
-      )
-      startPageAsString must include(
-        s"""<a class="govuk-link govuk-link--no-visited-state" href="/consignment/$consignmentId/additional-metadata/files/closure">"""
-      )
-      // scalastyle:on line.size.limit
     }
 
     "return forbidden if the pages are accessed by a judgment user" in {
@@ -87,7 +109,8 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .start(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
@@ -109,7 +132,8 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .start(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
@@ -121,7 +145,8 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
         .start(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
@@ -129,58 +154,51 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
+  }
 
-    "return an error if the parent folder name and id are missing" in {
-      val consignmentId = UUID.randomUUID()
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = None)
+  def verifyCard(page: String, consignmentId: String, name: String, metadataType: String, title: String, description: String): Unit = {
 
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller
-        .start(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
-        .failed
-        .futureValue
+    page must include(s"""<div class="tdr-card tdr-metadata-card">
+                         |    <div class="tdr-card__content">
+                         |      <h2 class="govuk-heading-s">
+                         |        <a class="govuk-link govuk-link--no-visited-state" href="/consignment/$consignmentId/additional-metadata/files/$metadataType">$name</a>
+                         |      </h2>
+                         |      <strong class="tdr-metadata-card__state govuk-tag govuk-tag--grey">
+                         |        Not entered
+                         |      </strong>
+                         |      <p class="govuk-body">$title</p>
+                         |      <p class="govuk-inset-text govuk-!-margin-top-0">$description</p>
+                         |      <details class="govuk-details" data-module="govuk-details">
+                         |        <summary class="govuk-details__summary">
+                         |          <span class="govuk-details__summary-text">What ${name.toLowerCase} you can provide</span>
+                         |        </summary>
+                         |        <div class="govuk-details__text">
+                         |          <ul class="govuk-list govuk-list--bullet govuk-list--spaced">""".stripMargin)
 
-      response.getMessage mustBe "Parent folder not found"
-    }
-
-    "return an error if the parent folder name is missing" in {
-      val consignmentId = UUID.randomUUID()
-      val parentFolderId = UUID.randomUUID()
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, None, parentFolderId = Option(parentFolderId))
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller
-        .start(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
-        .failed
-        .futureValue
-
-      response.getMessage mustBe "Parent folder not found"
-    }
-
-    "return an error if the parent folder id is missing" in {
-      val consignmentId = UUID.randomUUID()
-      val parentFolder = "parentFolder"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = None)
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new AdditionalMetadataController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller
-        .start(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
-        .failed
-        .futureValue
-
-      response.getMessage mustBe "Parent folder not found"
+    if (metadataType.equals("closure")) {
+      page must include(
+        """          <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+          |<Spaces>
+          |              <li>FOI decision asserted, this is the date of the Advisory Council approval</li>
+          |<Spaces>
+          |              <li>Closure start date</li>
+          |<Spaces>
+          |              <li>Closure period</li>
+          |<Spaces>
+          |              <li>FOI exemption code</li>
+          |<Spaces>
+          |          </ul>""".stripMargin.replace("<Spaces>", "            ")
+      )
+    } else {
+      page must include(
+        """          <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+          |<Spaces>
+          |              <li>Descriptive</li>
+          |<Spaces>
+          |              <li>Language</li>
+          |<Spaces>
+          |          </ul>""".stripMargin.replace("<Spaces>", "            ")
+      )
     }
   }
 }
