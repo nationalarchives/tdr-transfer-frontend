@@ -5,6 +5,7 @@
 
 @import views.html.partials.pageNavigation
 
+@import views.html.partials.notificationBanner
 @(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData], name: String)(implicit request: RequestHeader, messages: Messages)
 
 @main("Confirm transfer", name = name) {
@@ -14,6 +15,11 @@
             @progressIndicator(Messages("confirmTransfer.progress"))
 
             <h1 class="govuk-heading-l">Confirm transfer</h1>
+            @notificationBanner(
+                Messages("notification.savedProgress.title"),
+                Messages("notification.savedProgress.heading"),
+                Messages("notification.savedProgress.metadataInfo", routes.ViewTransfersController.viewConsignments(), "View Transfers")
+            )
             <p class="govuk-body">Here is a summary of the records you have uploaded.</p>
             @errorSummary(
               List(

@@ -84,6 +84,23 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       contentType(confirmTransferPage) mustBe Some("text/html")
       confirmTransferPageAsString must include("<title>Confirm transfer</title>")
       confirmTransferPageAsString must include("""<h1 class="govuk-heading-l">Confirm transfer</h1>""")
+
+      confirmTransferPageAsString must include(
+        """<div class="govuk-notification-banner govuk-!-margin-bottom-4" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+          |    <div class="govuk-notification-banner__header">
+          |        <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+          |            notification.savedProgress.title
+          |        </h2>
+          |    </div>
+          |    <div class="govuk-notification-banner__content">
+          |        <h3 class="govuk-notification-banner__heading">
+          |            notification.savedProgress.heading
+          |        </h3>
+          |        <p class="govuk-body">notification.savedProgress.metadataInfo</p>
+          |    </div>
+          |</div>""".stripMargin
+      )
+
       confirmTransferPageAsString must include("""<p class="govuk-body">Here is a summary of the records you have uploaded.</p>""")
 
       confirmTransferPageAsString must include(
