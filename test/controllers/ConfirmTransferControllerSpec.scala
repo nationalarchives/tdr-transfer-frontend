@@ -143,10 +143,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       )
 
       confirmTransferPageAsString must include(
-        """<p class="govuk-body">Please check the box to acknowledge:</p>"""
-      )
-
-      confirmTransferPageAsString must include(
         """                    <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
           |                        Transfer your records
           |                    </button>""".stripMargin

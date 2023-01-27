@@ -53,7 +53,6 @@
                 </div>
             </dl>
 
-        <p class="govuk-body">Please check the box to acknowledge:</p>
         <div class="govuk-form-group ">
             @form(
             routes.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId),
@@ -64,7 +63,7 @@
                     @inputSingleCheckbox(
                         finalTransferConfirmationForm("transferLegalCustody").id,
                         Map(
-                            Symbol("_label") -> "I confirm that I am transferring legal custody of these records to The National Archives.",
+                            Symbol("_label") -> "By proceeding with this transfer, I confirm that I am agreeing to transfer legal custody of these records to The National Archives.",
                             Symbol("_value") -> "true",
                             Symbol("_smallCheckbox") -> true,
                             Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
