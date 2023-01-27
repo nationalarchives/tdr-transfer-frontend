@@ -736,17 +736,11 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
   val standardConsignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] =
     ListMap(
-      // None = user has not started transfer (go to series page)
-      "series" -> List(None), // there is currently no "InProgress" state
-      // None = user has not submitted first TA form (private beta page), InProgress = user has submitted first Ta form (compliance page)
+      "series" -> List(None),
       "transferAgreement" -> List(None, Some("InProgress")),
-      // None = user has not uploaded files (upload page), InProgress/CompletedWithIssues = (still go to upload page)
       "upload" -> List(None, Some("InProgress"), Some("CompletedWithIssues")),
-      // InProgress = go to FC page, Completed = go to FC completed page, CompletedWithIssues/Failed = go to FC completed page
       "clientChecks" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
-      // None = user has not submitted confirmTransfer form - link would be generated due to preceding metadata pages
-      "confirmTransfer" -> List(None), // List(None) will cause the Actions link to revert to the link of the last statusType in the chain with a "Completed" value
-      // InProgress = show download metadata link, Completed = show download metadata link), Failed = show "contact us",
+      "confirmTransfer" -> List(None),
       "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
     )
 
@@ -754,12 +748,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     ListMap(
       "series" -> List(None), // None because series does not exist for judgments
       "transferAgreement" -> List(None), // None because transferAgreement does not exist for judgments
-      // None = user has not uploaded files (upload page), InProgress/CompletedWithIssues = (still go to upload page)
       "upload" -> List(None, Some("InProgress"), Some("CompletedWithIssues")),
-      // InProgress = go to FC page, Completed = go to FC completed page, CompletedWithIssues/Failed = go to FC completed page
       "clientChecks" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
       "confirmTransfer" -> List(None), // None because confirmTransfer does not exist for judgments
-      // InProgress = show download metadata link, Completed = show download metadata link), Failed = show "contact us",
       "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
     )
 
