@@ -148,6 +148,15 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
           |                    </button>""".stripMargin
       )
 
+      confirmTransferPageAsString must include(
+        """            <span class="govuk-pagination__link-title">Previous</span><span class="govuk-visually-hidden">:</span>
+          |            <span class="govuk-pagination__link-label">Step downloadMetadata.progress: Download and review metadata</span>""".stripMargin
+      )
+
+      confirmTransferPageAsString must not include (
+        """            <span class="govuk-pagination__link-title">Next</span><span class="govuk-visually-hidden">:</span>""".stripMargin
+      )
+
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
       formTester.checkHtmlForOptionAndItsAttributes(confirmTransferPageAsString, Map())
     }
