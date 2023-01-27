@@ -21,10 +21,12 @@ class AdditionalMetadataController @Inject() (
   def start(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       consignment <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
-      (closure, descriptive) <- displayPropertiesService
+      (closurePropertiesSummaries, descriptivePropertiesSummaries) <- displayPropertiesService
         .getDisplayProperties(consignmentId, request.token.bearerAccessToken, None)
         .map(_.partition(byClosureType))
         .map(m => (m._1.map(_.summary), m._2.map(_.summary)))
-    } yield Ok(views.html.standard.additionalMetadataStart(consignment.consignmentReference, consignmentId, request.token.name, closure, descriptive))
+    } yield Ok(
+      views.html.standard.additionalMetadataStart(consignment.consignmentReference, consignmentId, request.token.name, closurePropertiesSummaries, descriptivePropertiesSummaries)
+    )
   }
 }

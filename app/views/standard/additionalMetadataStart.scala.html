@@ -1,7 +1,7 @@
 @import views.html.partials.{notificationBanner, progressIndicator, transferReference, warningMessage}
 
 @import java.util.UUID
-@(consignmentRef: String, consignmentId: UUID, name: String, closure: List[String], descriptive: List[String])(implicit messages: Messages, request: RequestHeader)
+@(consignmentRef: String, consignmentId: UUID, name: String, closurePropertiesSummaries: List[String], descriptivePropertiesSummaries: List[String])(implicit messages: Messages, request: RequestHeader)
 @main(title = "Add, edit or delete metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
@@ -9,7 +9,11 @@
                 @progressIndicator(Messages("additionalMetadataStart.progress"))
                 <h1 class="govuk-heading-l">Descriptive & closure metadata</h1>
 
-                @notificationBanner(Messages("notification.title"), Messages("notification.heading"), Messages("notification.metadataInfo", routes.ViewTransfersController.viewConsignments(), "View Transfers"))
+                @notificationBanner(
+                    Messages("notification.savedProgress.title"),
+                    Messages("notification.savedProgress.heading"),
+                    Messages("notification.savedProgress.metadataInfo", routes.ViewTransfersController.viewConsignments(), "View Transfers")
+                )
                 <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records.</p>
 
                 @displayCard(
@@ -18,7 +22,7 @@
                     "Not entered",
                     "Add descriptive metadata to your files",
                     "You do not need to add descriptive metadata but it can enhance your record.",
-                    descriptive
+                    descriptivePropertiesSummaries
                 )
                 @displayCard(
                     "Closure metadata",
@@ -26,7 +30,7 @@
                     "Not entered",
                     "Add closure and associated metadata to your files",
                     "You must add closure metadata to closed files and folders.",
-                    closure
+                    closurePropertiesSummaries
                 )
                 @warningMessage(Messages("additionalMetadata.warningMessage"))
                 <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Next</a>
