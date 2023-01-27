@@ -72,6 +72,8 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
     val displayName: String = attributes.find(_.attribute == "Name").getStringValue
 
+    val summary: String = attributes.find(_.attribute == "Summary").getStringValue
+
     val ordinal: Int = {
       attributes.find(_.attribute == "Ordinal") match {
         case Some(o) => o.value.get.toInt
@@ -81,16 +83,37 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
     val propertyType: String = attributes.find(_.attribute == "PropertyType").getStringValue
 
-    DisplayProperty(active, componentType, dataType, description, displayName, editable, group, guidance, label, multiValue, ordinal, p.propertyName, propertyType, unitType)
+    DisplayProperty(
+      active,
+      componentType,
+      dataType,
+      description,
+      displayName,
+      editable,
+      group,
+      guidance,
+      label,
+      multiValue,
+      ordinal,
+      p.propertyName,
+      propertyType,
+      unitType,
+      summary
+    )
   }
 
-  private def displayPropertyFilter(dp: DisplayProperty, metadataType: String): Boolean = {
-    dp.active && dp.propertyType.toLowerCase == metadataType.toLowerCase
+  private def displayPropertyFilter(dp: DisplayProperty, metadataType: Option[String]): Boolean = {
+    dp.active && metadataType.forall(`type` => dp.propertyType.equalsIgnoreCase(`type`))
   }
 
-  def getDisplayProperties(consignmentId: UUID, token: BearerAccessToken, metadataType: String): Future[List[DisplayProperty]] = {
+  def getDisplayProperties(consignmentId: UUID, token: BearerAccessToken, metadataType: Option[String]): Future[List[DisplayProperty]] = {
     val variables = new Variables(consignmentId)
-    sendApiRequest(displayPropertiesClient, dp.document, token, variables).map(data => data.displayProperties.map(toDisplayProperty).filter(displayPropertyFilter(_, metadataType)))
+    sendApiRequest(displayPropertiesClient, dp.document, token, variables).map(data =>
+      data.displayProperties
+        .map(toDisplayProperty)
+        .filter(displayPropertyFilter(_, metadataType))
+        .sortBy(_.ordinal)
+    )
   }
 }
 
@@ -108,5 +131,6 @@ case class DisplayProperty(
     ordinal: Int,
     propertyName: String,
     propertyType: String,
-    unitType: String
+    unitType: String,
+    summary: String
 )
