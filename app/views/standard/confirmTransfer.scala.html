@@ -3,6 +3,8 @@
 @import helper.{inputRadioGroup => _, _}
 @import views.html.partials.{errorSummary, inputSingleCheckbox, progressIndicator}
 
+@import views.html.partials.pageNavigation
+
 @(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData], name: String)(implicit request: RequestHeader, messages: Messages)
 
 @main("Confirm transfer", name = name) {
@@ -83,6 +85,7 @@
                     </button>
                 </div>
             }
+            @pageNavigation(s"Step ${Messages("downloadMetadata.progress")}: Download and review metadata", routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url)
         </div>
     </div>
 }
