@@ -2,6 +2,7 @@
 @(fieldId: String,
 fieldName: String,
 fieldDescription: String,
+fieldGuidance: String,
 options: Seq[InputNameAndValue],
 selectedOptions: Option[List[InputNameAndValue]],
 multiValue: Boolean=false,
@@ -24,13 +25,7 @@ fieldErrors: List[String] = Nil
             </label>
         </h2>
         <div id="@formFieldId-hint" class="govuk-hint">
-            @if(fieldId == "FoiExemptionCode") {
-                @* hard coding the description as the database cannot contain html*@
-                Add one or more exemption code to this closure. Here is a
-                <a target="_blank" href="https://www.legislation.gov.uk/ukpga/2000/36/contents">full list of FOI codes and their designated exemptions</a>.
-            } else {
-                @fieldDescription
-            }
+              @Html(fieldDescription)
         </div>
     } else {
         <label class="govuk-label" for="@formFieldId">
@@ -44,7 +39,7 @@ fieldErrors: List[String] = Nil
 
         <div class="tna-multi-select-search__filter">
             <label for="input-filter" class="govuk-label govuk-visually-hidden">Filter </label>
-            <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="@fieldId-filter-count" placeholder="Search by typing a @{fieldName.toLowerCase}">
+            <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="@fieldId-filter-count" placeholder="@fieldGuidance">
         </div>
 
         <div class="js-selected-count"></div>

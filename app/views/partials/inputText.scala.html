@@ -38,7 +38,7 @@ addSuffixText: Boolean)(implicit messages: Messages)
             inputmode="@inputTextDataType"
         >
         @if(addSuffixText) {
-            <div class="govuk-input__suffix">@input.name</div>
+            <div class="govuk-input__suffix">@input.name.toLowerCase</div>
         }
     </div>
 </div>

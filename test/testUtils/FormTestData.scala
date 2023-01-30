@@ -130,7 +130,8 @@ class FormTestData() {
         ordinal = 1,
         "FoiExemptionAsserted",
         "propertyType",
-        "unitType"
+        "unitType",
+        "summary"
       ),
       DisplayProperty(
         active = true,
@@ -146,7 +147,8 @@ class FormTestData() {
         ordinal = 2,
         "ClosureStartDate",
         "propertyType",
-        "unitType"
+        "unitType",
+        "summary"
       ),
       DisplayProperty(
         active = true,
@@ -156,13 +158,14 @@ class FormTestData() {
         "Small text Display",
         editable = true,
         "group",
-        "guidance",
+        "years",
         "label",
         multiValue = false,
         ordinal = 3,
         "ClosurePeriod",
         "propertyType",
-        "unitType"
+        "unitType",
+        "summary"
       ),
       DisplayProperty(
         active = true,
@@ -178,7 +181,8 @@ class FormTestData() {
         ordinal = 4,
         "Radio",
         "propertyType",
-        "unitType"
+        "unitType",
+        "summary"
       ),
       DisplayProperty(
         active = true,
@@ -194,7 +198,8 @@ class FormTestData() {
         ordinal = 4,
         "TestProperty2",
         "propertyType",
-        "unitType"
+        "unitType",
+        "summary"
       ),
       DisplayProperty(
         active = true,
@@ -210,7 +215,8 @@ class FormTestData() {
         5,
         "Dropdown",
         "propertyType",
-        "unitType"
+        "unitType",
+        "summary"
       )
     )
   }
