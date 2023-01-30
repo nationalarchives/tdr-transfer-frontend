@@ -70,7 +70,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
             "statusType5" -> List(None)
           )
 
-        val consignmentsWithAllStatusStates: List[Consignments.Edges] = setConsignmentsHistoryResponse(wiremockServer, invalidConsignmentStatusTypesOrValues)
+        val consignmentsWithAllStatusStates: List[Consignments.Edges] = setConsignmentsHistoryResponse(wiremockServer, customStatusValues = invalidConsignmentStatusTypesOrValues)
 
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -108,6 +108,54 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       contentType(response) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "standard", consignmentExists = false)
+      checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
+
+      viewTransfersPageAsString must include(
+        """              <tbody class="govuk-table__body">""" +
+          "\n                " +
+          "\n              </tbody>"
+      )
+    }
+
+    "render the view transfers page with list of judgment user's consignments" in {
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      val consignmentsWithAllStatusStates: List[Consignments.Edges] = setConsignmentsHistoryResponse(wiremockServer, "judgment")
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val controller = new ViewTransfersController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val response = controller
+        .viewConsignments()
+        .apply(FakeRequest(GET, s"/view-transfers"))
+      val viewTransfersPageAsString = contentAsString(response)
+
+      status(response) mustBe OK
+      contentType(response) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "judgment", consignmentExists = false)
+      checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
+
+      consignmentsWithAllStatusStates.zipWithIndex.foreach { case (consignmentEdge, index) =>
+        verifyConsignmentRow(viewTransfersPageAsString, "judgment", consignmentEdge.node, index, judgmentStatusesAndActionUrls)
+      }
+    }
+
+    "render the view transfers page with no consignments if the judgment user doesn't have any consignments" in {
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentsHistoryResponse(wiremockServer, "judgment", noConsignment = true)
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val controller = new ViewTransfersController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val response = controller
+        .viewConsignments()
+        .apply(FakeRequest(GET, s"/view-transfers"))
+      val viewTransfersPageAsString = contentAsString(response)
+
+      status(response) mustBe OK
+      contentType(response) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = "judgment", consignmentExists = false)
       checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
 
       viewTransfersPageAsString must include(
@@ -156,8 +204,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   ): Unit = {
     val exportDate = node.exportDatetime.map(_.format(formatter)).get
     val createdDate = node.createdDatetime.map(_.format(formatter)).get
-    val (transferStatus, actionUrlWithNoConsignmentId): (String, String) =
-      if (consignmentType == "judgment") ("", "") else statusesAndActionUrls(index) // need to implement one for judgments
+    val (transferStatus, actionUrlWithNoConsignmentId): (String, String) = statusesAndActionUrls(index)
     val transferStatusColour = getStatusColour(transferStatus)
     val actionUrl = actionUrlWithNoConsignmentId.format(node.consignmentid.getOrElse("NO CONSIGNMENT RETURNED"))
     val summary =
@@ -217,5 +264,18 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     ("In Progress", """<a href="/consignment/%s/additional-metadata/download-metadata/csv">Download report</a>"""),
     ("Transferred", """<a href="/consignment/%s/additional-metadata/download-metadata/csv">Download report</a>"""),
     ("Failed", """<a href="mailto:nationalArchives.email?subject=Ref: TEST-TDR-2022-GB6 - Export failure">Contact us</a>""")
+  )
+
+  private val judgmentStatusesAndActionUrls: List[(String, String)] = List(
+    ("In Progress", """<a href="/judgment/%s/before-uploading">Resume transfer</a>"""),
+    ("In Progress", """<a href="/judgment/%s/upload">Resume transfer</a>"""),
+    ("Failed", """<a href="/judgment/%s/upload">View errors</a>"""),
+    ("In Progress", """<a href="/judgment/%s/file-checks">Resume transfer</a>"""),
+    ("In Progress", """<a href="/judgment/%s/file-checks-results">Resume transfer</a>"""),
+    ("Failed", """<a href="/judgment/%s/file-checks-results">View errors</a>"""),
+    ("Failed", """<a href="/judgment/%s/file-checks-results">View errors</a>"""),
+    ("In Progress", """<a href="/judgment/%s/transfer-complete">View</a>"""),
+    ("Transferred", """<a href="/judgment/%s/transfer-complete">View</a>"""),
+    ("Failed", """<a href="mailto:nationalArchives.judgmentsEmail?subject=Ref: TEST-TDR-2022-GB6 - Export failure">Contact us</a>""")
   )
 }

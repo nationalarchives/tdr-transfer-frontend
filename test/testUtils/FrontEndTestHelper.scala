@@ -283,36 +283,17 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
   def setConsignmentsHistoryResponse(
       wiremockServer: WireMockServer,
-      consignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] = standardConsignmentStatusValuesThatGenerateActionLinks,
+      consignmentType: String = "standard",
+      customStatusValues: Map[String, List[Option[String]]] = Map(),
       noConsignment: Boolean = false
   ): List[Edges] = {
+    val consignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] =
+      if (customStatusValues.isEmpty) {
+        if (consignmentType == "judgment") judgmentConsignmentStatusValuesThatGenerateActionLinks else standardConsignmentStatusValuesThatGenerateActionLinks
+      } else { customStatusValues }
+
     val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-    val edges = consignmentStatusValuesThatGenerateActionLinks
-      .zip(LazyList.from(1))
-      .flatMap { case ((consignmentStatusType, nonCompleteStates), orderNumber) =>
-        nonCompleteStates.map { nonCompleteState =>
-          val leftSideStatuses: List[Some[String]] = List.fill(orderNumber - 1)(Some("Completed"))
-          val inProgressStatus: List[Option[String]] = List(nonCompleteState)
-          val rightSideStatuses: List[None.type] = List.fill(consignmentStatusValuesThatGenerateActionLinks.size - orderNumber)(None)
-          val statuses: List[Option[String]] = leftSideStatuses ++ inProgressStatus ++ rightSideStatuses
-          Some(
-            Edges(
-              Node(
-                consignmentid = Some(UUID.randomUUID()),
-                consignmentReference = s"TEST-TDR-2022-GB$orderNumber",
-                consignmentType = Some("standard"),
-                exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
-                createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
-                currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), statuses(4), statuses(5)),
-                totalFiles = orderNumber
-              ),
-              "Cursor"
-            )
-          )
-        }
-      }
-      .toList
-      .distinct
+    val edges: List[Some[Edges]] = generateConsignmentEdges(consignmentStatusValuesThatGenerateActionLinks, consignmentType)
 
     val consignments = gc.Data(
       gc.Consignments(
@@ -356,6 +337,44 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         .withRequestBody(containing("displayProperties"))
         .willReturn(okJson(dataString))
     )
+  }
+
+  private def generateConsignmentEdges(consignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]], consignmentType: String) = {
+    val irrelevantStatusTypes = if (consignmentType == "judgment") List("series", "transferAgreement", "confirmTransfer") else Nil
+    val ultimateStatusValuesForEachType: List[Option[String]] = consignmentStatusValuesThatGenerateActionLinks.keys.map { consignmentStatusType =>
+      if (irrelevantStatusTypes.contains(consignmentStatusType)) None else Some("Completed")
+    }.toList
+
+    consignmentStatusValuesThatGenerateActionLinks
+      .zip(LazyList.from(1))
+      .flatMap { case ((consignmentStatusType, nonCompleteStates), orderNumber) =>
+        if (irrelevantStatusTypes.contains(consignmentStatusType)) {
+          None
+        } else {
+          nonCompleteStates.map { nonCompleteState =>
+            val leftSideStatuses: List[Option[String]] = ultimateStatusValuesForEachType.slice(0, orderNumber - 1)
+            val inProgressStatus: List[Option[String]] = List(nonCompleteState)
+            val rightSideStatuses: List[None.type] = List.fill(consignmentStatusValuesThatGenerateActionLinks.size - orderNumber)(None)
+            val statuses: List[Option[String]] = leftSideStatuses ++ inProgressStatus ++ rightSideStatuses
+            Some(
+              Edges(
+                Node(
+                  consignmentid = Some(UUID.randomUUID()),
+                  consignmentReference = s"TEST-TDR-2022-GB$orderNumber",
+                  consignmentType = Some(consignmentType),
+                  exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
+                  createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
+                  currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), statuses(4), statuses(5)),
+                  totalFiles = orderNumber
+                ),
+                "Cursor"
+              )
+            )
+          }
+        }
+      }
+      .toList
+      .distinct
   }
 
   private def getDisplayPropertiesDataObject: dp.Data = {
@@ -805,6 +824,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     accessToken.setOtherClaims("judgment_user", "true")
     accessToken.setName("Judgment Username")
+    accessToken.setEmail("test@example.com")
     val token = Token(accessToken, new BearerAccessToken)
     doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
     keycloakMock
