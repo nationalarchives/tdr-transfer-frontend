@@ -23,7 +23,7 @@
         @fileNameCard(files.map(_.name), s"You are adding or editing $metadataType metadata for the following file:")
         @errorSummary(
           fieldsToApplyToFile.collect {
-            case p if p.fieldErrors.nonEmpty => (p.fieldId, p.fieldErrors)
+            case field if field.fieldErrors.nonEmpty => (field.fieldId, field.fieldErrors)
           }
         )
         @form(
@@ -34,7 +34,7 @@
           @for(fieldToApplyToFile <- fieldsToApplyToFile) {
             @{
               fieldToApplyToFile match {
-                case RadioButtonGroupField(fieldId, name, description, additionalInfo, _, options, selectedOption, isRequired, hideInputs, dependencies, fieldErrors) => inputRadioGroup(
+                case RadioButtonGroupField(fieldId, name, description, additionalInfo, _, options, selectedOption, isRequired, hideInputs, fieldErrors, dependencies) => inputRadioGroup(
                   fieldId,
                   name,
                   description,
@@ -50,10 +50,10 @@
                     Symbol("_dynamicForm") -> true
                   ),
                   hideInputs,
-                  dependencies,
-                  fieldErrors
+                  fieldErrors,
+                  dependencies
                 )
-                case DateField(fieldId, fieldName, fieldDescription, _, day, month, year, _, fieldErrors, _) => inputDate(
+                case DateField(fieldId, fieldName, fieldDescription, _, day, month, year, _, fieldErrors, _, _) => inputDate(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -63,7 +63,7 @@
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true)
                 )
-                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText, inputType) => inputText(
+                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText, inputType, _) => inputText(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -74,7 +74,7 @@
                   inputMode,
                   addSuffixText
                 )
-                case TextAreaField(fieldId, fieldName, fieldDescription, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit) => inputTextArea(
+                case TextAreaField(fieldId, fieldName, fieldDescription, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit, _) => inputTextArea(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -85,7 +85,7 @@
                   wrap,
                   characterLimit
                 )
-                case MultiSelectField(fieldId, fieldName, fieldDescription, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors) =>
+                case MultiSelectField(fieldId, fieldName, fieldDescription, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors, _) =>
                   inputMultiSelect(
                     fieldId,
                     fieldName,
@@ -100,7 +100,7 @@
                     ),
                     fieldErrors
                   )
-                case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors) =>
+                case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors, _) =>
                   inputDropdown(
                     fieldId,
                     fieldName,
