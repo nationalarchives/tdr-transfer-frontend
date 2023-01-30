@@ -29,6 +29,7 @@ class TransferAgreementPrivateBetaController @Inject() (
     with I18nSupport {
 
   val blockClosureMetadata: Boolean = configuration.get[Boolean]("featureAccessBlock.closureMetadata")
+  val blockDescriptiveMetadata: Boolean = configuration.get[Boolean]("featureAccessBlock.descriptiveMetadata")
 
   private val transferAgreementFormWithEnglish: Form[TransferAgreementData] = Form(
     mapping(
@@ -38,7 +39,9 @@ class TransferAgreementPrivateBetaController @Inject() (
         .verifying("All records must be confirmed Crown Copyright before proceeding", b => b),
       "english" -> boolean
         .verifying("All records must be confirmed as English language before proceeding", b => b)
-    )((publicRecord, crownCopyright, english) => TransferAgreementData(publicRecord, crownCopyright, Option(english)))(data => Option(data.publicRecord, data.crownCopyright, data.english.getOrElse(false)))
+    )((publicRecord, crownCopyright, english) => TransferAgreementData(publicRecord, crownCopyright, Option(english)))(data =>
+      Option(data.publicRecord, data.crownCopyright, data.english.getOrElse(false))
+    )
   )
 
   val transferAgreementForm: Form[TransferAgreementData] = Form(
@@ -46,7 +49,7 @@ class TransferAgreementPrivateBetaController @Inject() (
       "publicRecord" -> boolean
         .verifying("All records must be confirmed as public before proceeding", b => b),
       "crownCopyright" -> boolean
-        .verifying("All records must be confirmed Crown Copyright before proceeding", b => b),
+        .verifying("All records must be confirmed Crown Copyright before proceeding", b => b)
     )((publicRecord, crownCopyright) => TransferAgreementData(publicRecord, crownCopyright, None))(data => Option(data.publicRecord, data.crownCopyright))
   )
 
@@ -55,7 +58,6 @@ class TransferAgreementPrivateBetaController @Inject() (
     ("crownCopyright", "I confirm that the records are all Crown Copyright."),
     ("english", "I confirm that the records are all in English.")
   )
-
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData])(implicit
       request: Request[AnyContent]
@@ -76,7 +78,7 @@ class TransferAgreementPrivateBetaController @Inject() (
                 views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(
                   consignmentId,
                   reference,
-                  taForm,
+                  form,
                   formAndLabel,
                   warningMessage,
                   request.token.name
@@ -95,11 +97,6 @@ class TransferAgreementPrivateBetaController @Inject() (
   }
 
   def transferAgreement(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val form = if(blockClosureMetadata) {
-      transferAgreementFormWithEnglish
-    } else {
-      transferAgreementForm
-    }
     loadStandardPageBasedOnTaStatus(consignmentId, Ok, form)
   }
 
@@ -126,13 +123,20 @@ class TransferAgreementPrivateBetaController @Inject() (
       } yield result
     }
 
-    val formValidationResult: Form[TransferAgreementData] = transferAgreementFormWithEnglish.bindFromRequest()
+    val formValidationResult: Form[TransferAgreementData] = form.bindFromRequest()
 
     formValidationResult.fold(
       errorFunction,
       successFunction
     )
   }
+
+  private def form: Form[TransferAgreementData] =
+    if (blockClosureMetadata && blockDescriptiveMetadata) {
+      transferAgreementFormWithEnglish
+    } else {
+      transferAgreementForm
+    }
 }
 
 case class TransferAgreementData(publicRecord: Boolean, crownCopyright: Boolean, english: Option[Boolean])

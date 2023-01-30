@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
+import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
 import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddBulkFileMetadata.addBulkFileMetadata.UpdateBulkFileMetadata
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
@@ -72,6 +73,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.existentials
+import scala.jdk.CollectionConverters._
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach with TableDrivenPropertyChecks {
 
@@ -81,6 +83,15 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     def await(timeout: Duration = 2.seconds): T = {
       Await.result(future, timeout)
     }
+  }
+
+  def getConfig(blockAdditionalMetadata: Boolean): Configuration = {
+    val config: Map[String, ConfigValue] = ConfigFactory
+      .load()
+      .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef(blockAdditionalMetadata.toString))
+      .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef(blockAdditionalMetadata.toString))
+      .entrySet().asScala.map(e => e.getKey -> e.getValue).toMap
+    Configuration.from(config)
   }
 
   def setConsignmentTypeResponse(wiremockServer: WireMockServer, consignmentType: String): StubMapping = {
@@ -196,14 +207,15 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       transferAgreementStatus: Option[String] = None,
       uploadStatus: Option[String] = None,
       confirmTransferStatus: Option[String] = None,
-      exportStatus: Option[String] = None
+      exportStatus: Option[String] = None,
+      clientChecksStatus: Option[String] = None
   ): StubMapping = {
     val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
     val consignmentResponse = gcs.Data(
       Option(
         GetConsignment(
           Some(Series(seriesId.getOrElse(UUID.randomUUID()), "MOCK1")),
-          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, confirmTransferStatus, exportStatus)
+          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, clientChecksStatus, confirmTransferStatus, exportStatus)
         )
       )
     )
@@ -286,9 +298,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           gc.Consignments.Edges.Node(
             consignmentid = UUID.randomUUID().some,
             consignmentReference = "TEST-TDR-2021-GB",
+            "standard".some,
             exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 20, 0, 0), ZoneId.systemDefault())),
             createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 15, 0, 0), ZoneId.systemDefault())),
-            currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some),
+            currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some, None, None, None, None, None),
             totalFiles = 5
           ),
           "Cursor"
@@ -299,9 +312,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           gc.Consignments.Edges.Node(
             consignmentid = UUID.randomUUID().some,
             consignmentReference = "TEST-TDR-2022-GB",
+            "standard".some,
             exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 15, 0, 0), ZoneId.systemDefault())),
             createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 10, 0, 0), ZoneId.systemDefault())),
-            currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some),
+            currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some, None, None, None, None, None),
             totalFiles = 6
           ),
           "Cursor"

@@ -3,6 +3,7 @@ package testUtils
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.{TransferAgreementComplianceController, TransferAgreementPrivateBetaController}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
@@ -23,9 +24,6 @@ import scala.concurrent.ExecutionContext
 
 class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
-
-  lazy val checkHtmlOfPrivateBetaFormOptions = new FormTester(expectedPrivateBetaOptions, "")
-  lazy val checkHtmlOfComplianceFormOptions = new FormTester(expectedComplianceOptions, "")
 
   val privateBeta = "privateBeta"
   val compliance = "compliance"
@@ -87,7 +85,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       keycloakConfiguration,
       consignmentService,
       consignmentStatusService,
-      app.configuration
+      config
     )
   }
 
@@ -108,7 +106,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       keycloakConfiguration,
       consignmentService,
       consignmentStatusService,
-      app.configuration
+      config
     )
   }
 
