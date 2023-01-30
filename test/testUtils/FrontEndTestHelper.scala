@@ -304,7 +304,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
             "standard".some,
             exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 20, 0, 0), ZoneId.systemDefault())),
             createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 15, 0, 0), ZoneId.systemDefault())),
-            currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some, None, None, None, None, None),
+            currentStatus = gc.Consignments.Edges.Node.CurrentStatus(None, None, None, None, None, "Completed".some),
             totalFiles = 5
           ),
           "Cursor"
@@ -318,7 +318,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
             "standard".some,
             exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 15, 0, 0), ZoneId.systemDefault())),
             createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 10, 0, 0), ZoneId.systemDefault())),
-            currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some, None, None, None, None, None),
+            currentStatus = gc.Consignments.Edges.Node.CurrentStatus(None, None, None, None, None, "Completed".some),
             totalFiles = 6
           ),
           "Cursor"
