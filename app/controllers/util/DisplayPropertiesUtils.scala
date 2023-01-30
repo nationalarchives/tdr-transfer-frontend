@@ -2,6 +2,7 @@ package controllers.util
 
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType
+import org.apache.commons.lang3.BooleanUtils.{YES, NO}
 import services.DisplayProperty
 
 class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMetadata: List[CustomMetadata]) {
@@ -34,9 +35,8 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
     }
   }
 
-  def convertPropertiesToFormFields: Seq[FormField] = {
+  def convertPropertiesToFormFields(displayProperties: List[DisplayProperty] = displayProperties): Seq[FormField] = {
     displayProperties
-      .sortBy(_.ordinal)
       .map(dp => {
         val metadata: Option[CustomMetadata] = customMetadata.find(_.name == dp.propertyName)
         generateFormField(dp, metadata)
@@ -55,12 +55,26 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           InputNameAndValue(property.propertyName, customMetadata.defaultValue),
           required
         )
+      case "small text" => generateTextField(property, customMetadata)
+      case "date" =>
+        DateField(
+          property.propertyName,
+          property.displayName,
+          property.description,
+          property.multiValue,
+          InputNameAndValue("Day", "", "DD"),
+          InputNameAndValue("Month", "", "MM"),
+          InputNameAndValue("Year", "", "YYYY"),
+          required
+        )
+      case "radial" => generateRadioField(property, customMetadata)
       case "select" =>
         if (property.multiValue) {
           MultiSelectField(
             property.propertyName,
             property.displayName,
             property.description,
+            property.guidance,
             property.multiValue,
             customMetadata.definedInputs,
             customMetadata.defaultInput.map(List(_)),
@@ -79,5 +93,46 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
         }
       case _ => throw new IllegalArgumentException(s"${property.componentType} is not a supported component type")
     }
+  }
+
+  private def generateTextField(property: DisplayProperty, customMetadata: Option[CustomMetadata]) = {
+    val required: Boolean = customMetadata.requiredField
+    val dataType = customMetadata match {
+      case Some(datatype) => if (datatype.dataType == DataType.Integer) "numeric" else "text"
+      case _              => "text"
+    }
+    val inputName: String = property.guidance
+    TextField(
+      property.propertyName,
+      property.displayName,
+      property.description,
+      property.multiValue,
+      InputNameAndValue(inputName, customMetadata.defaultValue),
+      dataType,
+      required
+    )
+  }
+
+  private def generateRadioField(property: DisplayProperty, customMetadata: Option[CustomMetadata]) = {
+    val required: Boolean = customMetadata.requiredField
+    val defaultOption = if (customMetadata.defaultValue.toBoolean) YES else NO
+    val List(yesLabel, noLabel) = property.label.split('|').toList
+    val dependencies = customMetadata.get.values
+      .map(p => {
+        val dependencies = p.dependencies.map(_.name).toSet
+        (if (p.value.toBoolean) YES else NO) -> convertPropertiesToFormFields(displayProperties.filter(p => dependencies.contains(p.propertyName))).toList
+      })
+      .toMap
+    RadioButtonGroupField(
+      property.propertyName,
+      property.displayName,
+      property.description,
+      additionalInfo = "",
+      property.multiValue,
+      Seq(InputNameAndValue(yesLabel, YES), InputNameAndValue(noLabel, NO)),
+      defaultOption,
+      required,
+      dependencies = dependencies
+    )
   }
 }

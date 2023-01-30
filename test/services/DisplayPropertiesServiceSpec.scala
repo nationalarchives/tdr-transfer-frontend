@@ -1,5 +1,6 @@
 package services
 
+import cats.implicits.catsSyntaxOptionId
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend.backend
 import configuration.GraphQLConfiguration
@@ -66,7 +67,8 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     requiredAttributes() ++
       List(
         dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
-        dp.DisplayProperties.Attributes("PropertyType", Some("differentPropertyType"), Text)
+        dp.DisplayProperties.Attributes("PropertyType", Some("differentPropertyType"), Text),
+        dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer)
       )
   )
 
@@ -93,9 +95,25 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(displayPropertiesClient.getResult(token, dp.document, Some(dp.Variables(consignmentId))))
       .thenReturn(Future.successful(response))
 
-    val properties: List[DisplayProperty] = displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType").futureValue
+    val properties: List[DisplayProperty] = displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType".some).futureValue
     properties.size should equal(1)
     properties.head.propertyName should equal("activeProperty")
+  }
+
+  "getDisplayProperties" should "not filter by 'metadata type' and return all the sorted display properties by 'ordinal' when 'metadata type' is not passed" in {
+    val data: Option[dp.Data] = Some(
+      dp.Data(
+        List(activeProperty, inactiveProperty, differentPropertyTypeActiveProperty, differentPropertyTypeInactiveProperty)
+      )
+    )
+    val response = GraphQlResponse(data, Nil)
+    when(displayPropertiesClient.getResult(token, dp.document, Some(dp.Variables(consignmentId))))
+      .thenReturn(Future.successful(response))
+
+    val properties: List[DisplayProperty] = displayPropertiesService.getDisplayProperties(consignmentId, token, None).futureValue
+    properties.size should equal(2)
+    properties.head.propertyName should equal("differentPropertyTypeProperty")
+    properties.last.propertyName should equal("activeProperty")
   }
 
   "getDisplayProperties" should "not return any properties if none are active or are different property type to the given 'metadata type'" in {
@@ -108,7 +126,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(displayPropertiesClient.getResult(token, dp.document, Some(dp.Variables(consignmentId))))
       .thenReturn(Future.successful(response))
 
-    val properties: List[DisplayProperty] = displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType").futureValue
+    val properties: List[DisplayProperty] = displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType".some).futureValue
     properties.size should equal(0)
   }
 
@@ -128,7 +146,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
       .thenReturn(Future.successful(response))
 
     val thrownException = intercept[Exception] {
-      displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType").futureValue
+      displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType".some).futureValue
     }
 
     thrownException.getMessage should equal("The future returned an exception of type: java.lang.Exception, with message: No datatype.")
@@ -150,7 +168,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
       .thenReturn(Future.successful(response))
 
     val thrownException = intercept[Exception] {
-      displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType").futureValue
+      displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType".some).futureValue
     }
 
     thrownException.getMessage should equal("The future returned an exception of type: java.lang.Exception, with message: Invalid data type Some(InvalidDataType).")
@@ -173,7 +191,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
       .thenReturn(Future.successful(response))
 
     val thrownException = intercept[Exception] {
-      displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType").futureValue
+      displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType".some).futureValue
     }
 
     thrownException.getMessage should equal("The future returned an exception of type: java.lang.NumberFormatException, with message: For input string: \"nonIntString\".")
@@ -183,7 +201,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(displayPropertiesClient.getResult(token, dp.document, Some(dp.Variables(consignmentId))))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-    displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType").failed.futureValue shouldBe a[HttpError]
+    displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType".some).failed.futureValue shouldBe a[HttpError]
   }
 
   "getDisplayProperties" should "throw an AuthorisationException if the API returns an auth error" in {
@@ -191,7 +209,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     when(displayPropertiesClient.getResult(token, dp.document, Some(dp.Variables(consignmentId))))
       .thenReturn(Future.successful(response))
 
-    val results = displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType").failed.futureValue.asInstanceOf[AuthorisationException]
+    val results = displayPropertiesService.getDisplayProperties(consignmentId, token, "propertyType".some).failed.futureValue.asInstanceOf[AuthorisationException]
 
     results shouldBe a[AuthorisationException]
   }

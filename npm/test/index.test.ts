@@ -1,5 +1,5 @@
 import { KeycloakInstance } from "keycloak-js"
-import { hideConditionalElements, renderModules } from "../src/index"
+import { renderModules } from "../src/index"
 
 jest.mock("../src/auth")
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
@@ -16,25 +16,6 @@ const getFrontEndInfoHtml: () => string = () => {
     <input type="hidden" class="upload-url"
   `.toString()
 }
-
-test("hideConditionalElements hides elements that have a 'conditional' class", () => {
-  document.body.innerHTML = `
-    <div class="govuk-radios__conditional">element1 with conditional class</div>
-    <div>element2 with no conditional class</div>
-    <div class="govuk-radios__conditional">element3 with conditional class</div>
-  `
-
-  hideConditionalElements()
-
-  const conditionalElements: NodeListOf<Element> = document.querySelectorAll(
-    ".govuk-radios__conditional"
-  )
-
-  expect(conditionalElements.length).toBe(2)
-  conditionalElements.forEach((e) =>
-    expect(e.classList.contains("govuk-radios__conditional--hidden")).toBe(true)
-  )
-})
 
 test("renderModules calls authorisation when upload form present on page", async () => {
   const keycloakInstance = getKeycloakInstance as jest.Mock
