@@ -225,9 +225,9 @@ object AddAdditionalMetadataController {
       // Hide DescriptionClosed field if the Description property value is empty
       val value = fileMetadata.get(description).map(_.head.value).getOrElse("")
       val (fieldDescription, hideInputs, info) = if (value.isEmpty) {
-        ("There is no description associated with this record. You can add a description in the <strong>Descriptive metadata</strong> section.", true, "")
+        ("If you need to add a description, you can do so in the Descriptive metadata step.", true, "")
       } else {
-        ("This field cannot be edited here. You can edit the description in the <strong>Descriptive metadata</strong> step.", false, value)
+        ("The current description of your record is below. You can edit it in the Descriptive metadata step.", false, value)
       }
       formField.asInstanceOf[RadioButtonGroupField].copy(fieldDescription = fieldDescription, hideInputs = hideInputs, additionalInfo = info)
     } else {
