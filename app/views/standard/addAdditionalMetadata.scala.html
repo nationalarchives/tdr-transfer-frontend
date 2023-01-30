@@ -85,11 +85,12 @@
                   wrap,
                   characterLimit
                 )
-                case MultiSelectField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOptions, _, fieldErrors) =>
+                case MultiSelectField(fieldId, fieldName, fieldDescription, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors) =>
                   inputMultiSelect(
                     fieldId,
                     fieldName,
                     fieldDescription,
+                    fieldGuidance,
                     options,
                     selectedOptions,
                     multiValue,
