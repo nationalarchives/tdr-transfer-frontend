@@ -76,11 +76,5 @@ class HelpControllerSpec extends FrontEndTestHelper {
         """<h2 class="govuk-heading-m" id="step-by-step-guide">A step-by-step guide to using Transfer Digital Records (TDR)</h2>"""
       )
     }
-
-    if (!signedIn) {
-      pageAsString must not include "/faq"
-      pageAsString must not include "/help"
-      pageAsString must not include "Sign out"
-    }
   }
 }

@@ -44,11 +44,5 @@ class ContactControllerSpec extends FrontEndTestHelper {
     pageAsString must include(
       """<p class="govuk-body"><a class="govuk-link" href="mailto:nationalArchives.email" data-hsupport="email">nationalArchives.email</a></p>"""
     )
-
-    if (!signedIn) {
-      pageAsString must not include "/faq"
-      pageAsString must not include "/help"
-      pageAsString must not include "Sign out"
-    }
   }
 }

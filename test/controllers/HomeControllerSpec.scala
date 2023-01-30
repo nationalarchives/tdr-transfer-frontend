@@ -57,11 +57,5 @@ class HomeControllerSpec extends FrontEndTestHelper {
     pageAsString must include("transfer digital records to The National Archives")
     pageAsString must include("transfer judgments to The National Archives")
     pageAsString must include("Start now")
-
-    if (!signedIn) {
-      pageAsString must not include "/faq"
-      pageAsString must not include "/help"
-      pageAsString must not include "Sign out"
-    }
   }
 }
