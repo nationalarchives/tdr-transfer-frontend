@@ -59,39 +59,39 @@
                 </div>
             </dl>
 
-        <div class="govuk-form-group ">
-            @form(
-            routes.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId),
-            (Symbol("novalidate"), "")
-            ) {
-                @CSRF.formField
-                <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
-                    @inputSingleCheckbox(
-                        finalTransferConfirmationForm("transferLegalCustody").id,
-                        Map(
-                            Symbol("_label") -> "By proceeding with this transfer, I confirm that I am agreeing to transfer legal custody of these records to The National Archives.",
-                            Symbol("_value") -> "true",
-                            Symbol("_smallCheckbox") -> true,
-                            Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
-                            Symbol("_requiredOption") -> true
-                        ),
-                        finalTransferConfirmationForm("transferLegalCustody").errors.headOption match {
-                            case Some(formError) => formError.messages
-                            case None => Nil
-                        }
-                    )
-                </fieldset>
+            <div class="govuk-form-group ">
+                @form(
+                routes.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId),
+                (Symbol("novalidate"), "")
+                ) {
+                    @CSRF.formField
+                    <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
+                        @inputSingleCheckbox(
+                            finalTransferConfirmationForm("transferLegalCustody").id,
+                            Map(
+                                Symbol("_label") -> "By proceeding with this transfer, I confirm that I am agreeing to transfer legal custody of these records to The National Archives.",
+                                Symbol("_value") -> "true",
+                                Symbol("_smallCheckbox") -> true,
+                                Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
+                                Symbol("_requiredOption") -> true
+                            ),
+                            finalTransferConfirmationForm("transferLegalCustody").errors.headOption match {
+                                case Some(formError) => formError.messages
+                                case None => Nil
+                            }
+                        )
+                    </fieldset>
+                }
             </div>
-                <div class="govuk-button-group">
-                    <!-- Transfer -->
-                    <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                        Back
-                    </a>
-                    <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                        Transfer your records
-                    </button>
-                </div>
-            }
+            <div class="govuk-button-group">
+                <!-- Transfer -->
+                <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                    Back
+                </a>
+                <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                    Transfer your records
+                </button>
+            </div>
         </div>
     </div>
 }
