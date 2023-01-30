@@ -3,8 +3,6 @@
 @import helper.{inputRadioGroup => _, _}
 @import views.html.partials.{errorSummary, inputSingleCheckbox, progressIndicator}
 
-@import views.html.partials.pageNavigation
-
 @import views.html.partials.notificationBanner
 @(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData], name: String)(implicit request: RequestHeader, messages: Messages)
 
@@ -84,14 +82,16 @@
                     )
                 </fieldset>
             </div>
-                <div>
+                <div class="govuk-button-group">
                     <!-- Transfer -->
+                    <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                        Back
+                    </a>
                     <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
                         Transfer your records
                     </button>
                 </div>
             }
-            @pageNavigation(s"Step ${Messages("downloadMetadata.progress")}: Download and review metadata", routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url)
         </div>
     </div>
 }
