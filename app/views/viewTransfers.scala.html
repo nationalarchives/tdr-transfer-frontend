@@ -1,7 +1,7 @@
-@(consignments: List[ConsignmentTransfers], name: String, email: String, consignmentType: String)(implicit messages: Messages, request: RequestHeader)
-@nationalArchivesEmailAddress = @{if(consignmentType == "judgment") Messages("nationalArchives.judgmentsEmail") else Messages("nationalArchives.email")}
+@(consignments: List[ConsignmentTransfers], name: String, email: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
+@nationalArchivesEmailAddress = @{if(isJudgmentUser) Messages("nationalArchives.judgmentsEmail") else Messages("nationalArchives.email")}
 
-@main("View Transfers", name = name) {
+@main("View Transfers", name = name, isJudgmentUser = isJudgmentUser) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-width-container ">
         <div class="govuk-grid-row">
