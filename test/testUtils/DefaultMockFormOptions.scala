@@ -18,13 +18,6 @@ object DefaultMockFormOptions {
       value = "true",
       errorMessage = "All records must be confirmed Crown Copyright before proceeding",
       fieldType = "inputCheckbox"
-    ),
-    MockInputOption(
-      "english",
-      "I confirm that the records are all in English.",
-      value = "true",
-      errorMessage = "All records must be confirmed as English language before proceeding",
-      fieldType = "inputCheckbox"
     )
   )
 
@@ -41,13 +34,6 @@ object DefaultMockFormOptions {
       "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
       value = "true",
       errorMessage = "Departmental Records Officer (DRO) must have signed off sensitivity review",
-      fieldType = "inputCheckbox"
-    ),
-    MockInputOption(
-      "openRecords",
-      "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
-      value = "true",
-      errorMessage = "All records must be open",
       fieldType = "inputCheckbox"
     )
   )
