@@ -90,7 +90,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       .load()
       .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef(blockAdditionalMetadata.toString))
       .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef(blockAdditionalMetadata.toString))
-      .entrySet().asScala.map(e => e.getKey -> e.getValue).toMap
+      .entrySet()
+      .asScala
+      .map(e => e.getKey -> e.getValue)
+      .toMap
     Configuration.from(config)
   }
 
