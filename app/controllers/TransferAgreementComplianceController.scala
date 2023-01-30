@@ -67,8 +67,8 @@ class TransferAgreementComplianceController @Inject() (
     ("openRecords", "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
   )
 
-  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementComplianceData])(
-      implicit request: Request[AnyContent]
+  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementComplianceData])(implicit
+      request: Request[AnyContent]
   ): Future[Result] = {
     for {
       consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
