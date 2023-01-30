@@ -10,7 +10,7 @@ import play.api.cache.AsyncCacheApi
 import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.{ConsignmentService, CustomMetadataService}
+import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 
 import java.util.UUID
 import javax.inject.Inject
@@ -20,6 +20,7 @@ import scala.concurrent.duration.DurationInt
 class AdditionalMetadataClosureStatusController @Inject() (
     val consignmentService: ConsignmentService,
     val customMetadataService: CustomMetadataService,
+    val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents,
     val cache: AsyncCacheApi
@@ -39,7 +40,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
   def getClosureStatusPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
-        details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
+        closureProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some(metadataType)).map(_.map(_.summary))
         consignment <- consignmentService.getConsignmentFileMetadata(
           consignmentId,
           request.token.bearerAccessToken,
@@ -51,7 +52,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
           if (consignment.files.nonEmpty) {
             val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
             val areAllFilesClosed = consignmentService.areAllFilesClosed(consignment)
-            cache.set(s"$consignmentId-data", (consignment.consignmentReference, filePaths, details.parentFolderId.get), 1.hour)
+            cache.set(s"$consignmentId-data", (consignment.consignmentReference, filePaths, closureProperties), 1.hour)
             Future(
               Ok(
                 views.html.standard.additionalMetadataClosureStatus(
@@ -63,7 +64,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
                   closureStatusField,
                   areAllFilesClosed,
                   consignment.consignmentReference,
-                  details.parentFolderId.get,
+                  closureProperties,
                   request.token.name
                 )
               )
@@ -78,9 +79,9 @@ class AdditionalMetadataClosureStatusController @Inject() (
     implicit request: Request[AnyContent] =>
       val errorFunction: Form[ClosureStatusFormData] => Future[Result] = { formWithErrors: Form[ClosureStatusFormData] =>
         for {
-          (consignmentRef, filePaths, parentFolderId) <- cache.getOrElseUpdate[(String, List[String], UUID)](s"$consignmentId-data", 1.hour)(
+          (consignmentRef, filePaths, closureProperties) <- cache.getOrElseUpdate(s"$consignmentId-data", 1.hour)(
             for {
-              details <- consignmentService.getConsignmentDetails(consignmentId, request.token.bearerAccessToken)
+              closureProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some(metadataType)).map(_.map(_.summary))
               consignment <- consignmentService.getConsignmentFileMetadata(
                 consignmentId,
                 request.token.bearerAccessToken,
@@ -89,7 +90,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
                 Some(additionalProperties)
               )
               filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
-            } yield (consignment.consignmentReference, filePaths, details.parentFolderId.get)
+            } yield (consignment.consignmentReference, filePaths, closureProperties)
           )
         } yield {
           BadRequest(
@@ -102,7 +103,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
               closureStatusField,
               areAllFilesClosed = false,
               consignmentRef,
-              parentFolderId,
+              closureProperties,
               request.token.name
             )
           )

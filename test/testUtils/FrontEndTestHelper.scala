@@ -367,7 +367,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Group", Some("1"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
-          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
+          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text),
+          dp.DisplayProperties.Attributes("Summary", Some("Descriptive"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -383,7 +384,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Guidance", Some("Search for languages"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
-          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
+          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text),
+          dp.DisplayProperties.Attributes("Summary", Some("Language"), Text)
         )
       )
     )
@@ -410,7 +412,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("5"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("FOI decision asserted, this is the date of the Advisory Council approval"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -426,7 +429,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("Closure start date"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -442,7 +446,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Ordinal", Some("15"), Integer),
           dp.DisplayProperties.Attributes("UnitType", Some("Years"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("Closure period"), Text),
+          dp.DisplayProperties.Attributes("Guidance", Some("years"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -453,18 +459,19 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes(
             "Description",
             Some(
-              "Add one or more exemption code to this closure. Here is a <a target=\"_blank\" href=\"https://www.legislation.gov.uk/ukpga/2000/36/contents\">full list of FOI codes an\nd their designated exemptions</a>"
+              "Add one or more exemption code to this closure. Here is a <a target=\"_blank\" href=\"https://www.legislation.gov.uk/ukpga/2000/36/contents\">full list of FOI codes and their designated exemptions</a>"
             ),
             Text
           ),
           dp.DisplayProperties.Attributes("Name", Some("FOI exemption code(s)"), Text),
-          dp.DisplayProperties.Attributes("Guidance", Some("Search for FOI Exemption codes"), Text),
+          dp.DisplayProperties.Attributes("Guidance", Some("Search by typing an FOI Exemption code"), Text),
           dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Group", Some("2"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("select"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("select"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("FOI exemption code"), Text)
         )
       ),
       dp.DisplayProperties(
