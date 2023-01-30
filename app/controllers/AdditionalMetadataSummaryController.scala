@@ -26,7 +26,7 @@ class AdditionalMetadataSummaryController @Inject() (
     standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       for {
         consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
-        displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, metadataType)
+        displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some(metadataType))
         response <- consignment.files match {
           case first :: _ =>
             val filePaths = consignment.files.flatMap(_.fileName)

@@ -3,12 +3,11 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddAdditionalMetadataController.{File, formFieldOverrides}
-import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType, description, descriptionClosed}
+import controllers.util.MetadataProperty.{clientSideOriginalFilepath, description, descriptionClosed}
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.UpdateFileMetadataInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
@@ -139,7 +138,7 @@ class AddAdditionalMetadataController @Inject() (
       case RadioButtonGroupField(fieldId, _, _, _, multiValue, _, selectedOption, _, _, dependencies, _) =>
         val fileMetadataInputs = dependencies.get(selectedOption).map(buildUpdateMetadataInput).getOrElse(Nil)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString) :: fileMetadataInputs
-      case MultiSelectField(fieldId, _, _, multiValue, _, selectedOptions, _, _) if selectedOptions.isDefined =>
+      case MultiSelectField(fieldId, _, _, _, multiValue, _, selectedOptions, _, _) if selectedOptions.isDefined =>
         selectedOptions.getOrElse(Nil).map(p => UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, p.value))
     }.flatten
   }
@@ -147,28 +146,18 @@ class AddAdditionalMetadataController @Inject() (
   private def getFormFields(consignmentId: UUID, request: Request[AnyContent], metadataType: String): Future[List[FormField]] = {
     val closure: Boolean = metadataType == "closure"
     for {
-      displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, metadataType)
+      displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some(metadataType))
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       formFields =
         if (closure) {
-          val customMetadataUtils = new CustomMetadataUtils(customMetadata)
-          val dependencyProperties: Set[CustomMetadata] = getDependenciesForValue(customMetadataUtils, closureType.name, closureType.value)
-          customMetadataUtils.convertPropertiesToFormFields(dependencyProperties)
+          new DisplayPropertiesUtils(displayProperties, customMetadata).convertPropertiesToFormFields(displayProperties.filter(_.group == "2")).toList
         } else {
-          new DisplayPropertiesUtils(displayProperties, customMetadata).convertPropertiesToFormFields.toList
+          new DisplayPropertiesUtils(displayProperties, customMetadata).convertPropertiesToFormFields().toList
         }
     } yield {
       cache.set("formFields", formFields, 1.hour)
       formFields
     }
-  }
-
-  private def getDependenciesForValue(customMetadataUtils: CustomMetadataUtils, propertyName: String, valueToGetDependenciesFrom: String): Set[CustomMetadata] = {
-    val propertyToValues: Map[String, List[CustomMetadata.Values]] = customMetadataUtils.getValuesOfProperties(Set(propertyName))
-    val allValuesForProperty: Seq[CustomMetadata.Values] = propertyToValues(propertyName)
-    val values: Seq[CustomMetadata.Values] = allValuesForProperty.filter(_.value == valueToGetDependenciesFrom)
-    val dependencyNames: Seq[String] = values.flatMap(_.dependencies.map(_.name))
-    customMetadataUtils.getCustomMetadataProperties(dependencyNames.toSet)
   }
 
   private def stringToBoolean(value: String): Boolean = {

@@ -20,7 +20,7 @@
       <div class="govuk-grid-column-two-thirds">
         <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
         <h1 class="govuk-heading-l">Add or edit metadata</h1>
-        @fileNameCard(files.map(_.name), s"You are adding/editing $metadataType metadata for the following files:")
+        @fileNameCard(files.map(_.name), s"You are adding or editing $metadataType metadata for the following file:")
         @errorSummary(
           fieldsToApplyToFile.collect {
             case p if p.fieldErrors.nonEmpty => (p.fieldId, p.fieldErrors)
@@ -85,11 +85,12 @@
                   wrap,
                   characterLimit
                 )
-                case MultiSelectField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOptions, _, fieldErrors) =>
+                case MultiSelectField(fieldId, fieldName, fieldDescription, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors) =>
                   inputMultiSelect(
                     fieldId,
                     fieldName,
                     fieldDescription,
+                    fieldGuidance,
                     options,
                     selectedOptions,
                     multiValue,
@@ -119,7 +120,7 @@
           <div class="govuk-button-group">
               <!-- Continue -->
             <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-              Continue
+              Save and Review
             </button>
             <a class="govuk-link" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType)">Cancel</a>
           </div>

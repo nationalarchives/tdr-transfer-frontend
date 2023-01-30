@@ -354,116 +354,190 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   }
 
   private def getDisplayPropertiesDataObject: dp.Data = {
-    dp.Data(
-      List(
-        dp.DisplayProperties(
-          "description",
-          List(
-            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("ComponentType", Some("large text"), Text),
-            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
-            dp.DisplayProperties.Attributes("Description", Some("This description will be visible on Discovery and help explain the content of your file(s)."), Text),
-            dp.DisplayProperties.Attributes("Name", Some("Description"), Text),
-            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Group", Some("1"), Text),
-            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
-            dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
-          )
-        ),
-        dp.DisplayProperties(
-          "Language",
-          List(
-            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("ComponentType", Some("select"), Text),
-            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
-            dp.DisplayProperties.Attributes("Description", Some("Choose one or more languages used in this record."), Text),
-            dp.DisplayProperties.Attributes("Name", Some("Language"), Text),
-            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Group", Some("1"), Text),
-            dp.DisplayProperties.Attributes("Guidance", Some("Search for languages"), Text),
-            dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
-          )
-        ),
-        dp.DisplayProperties(
-          "ClosureType",
-          List(
-            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
-          )
-        ),
-        dp.DisplayProperties(
-          "FoiExemptionCode",
-          List(
-            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
-            dp.DisplayProperties.Attributes(
-              "Description",
-              Some(
-                "Add one or more exemption code to this closure. Here is a <a target=\"_blank\" href=\"https://www.legislation.gov.uk/ukpga/2000/36/contents\">full list of FOI codes an\nd their designated exemptions</a>"
-              ),
-              Text
-            ),
-            dp.DisplayProperties.Attributes("Name", Some("FOI exemption code(s)"), Text),
-            dp.DisplayProperties.Attributes("Guidance", Some("Search for FOI Exemption codes"), Text),
-            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
-            dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
-          )
-        ),
-        dp.DisplayProperties(
-          "ClosurePeriod",
-          List(
-            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Datatype", Some("integer"), Text),
-            dp.DisplayProperties.Attributes("Description", Some("Number of years the record is closed from the closure start date"), Text),
-            dp.DisplayProperties.Attributes("Name", Some("Closure Period"), Text),
-            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
-            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
-            dp.DisplayProperties.Attributes("Ordinal", Some("15"), Integer),
-            dp.DisplayProperties.Attributes("UnitType", Some("Years"), Integer),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
-          )
-        ),
-        dp.DisplayProperties(
-          "ClosureStartDate",
-          List(
-            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Datatype", Some("datetime"), Text),
-            dp.DisplayProperties.Attributes("Description", Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."), Text),
-            dp.DisplayProperties.Attributes("Name", Some("Closure Start Date"), Text),
-            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
-            dp.DisplayProperties.Attributes("Guidance", Some("dd|mm|yyyy"), Text),
-            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
-            dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
-          )
-        ),
-        dp.DisplayProperties(
-          "TitleClosed",
-          List(
-            dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Datatype", Some("boolean"), Text),
-            dp.DisplayProperties.Attributes("ComponentType", Some("radial"), Text),
-            dp.DisplayProperties.Attributes("Description", Some("Is the title closed?"), Text),
-            dp.DisplayProperties.Attributes("Name", Some("Is the title closed?"), Text),
-            dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
-            dp.DisplayProperties.Attributes("Label", Some("Yes|No, this title can be made public"), Text),
-            dp.DisplayProperties.Attributes("Group", Some("2"), Text),
-            dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
-            dp.DisplayProperties.Attributes("Ordinal", Some("25"), Integer),
-            dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
-          )
+    val descriptiveDisplayProperties = List(
+      dp.DisplayProperties(
+        "description",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("ComponentType", Some("large text"), Text),
+          dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+          dp.DisplayProperties.Attributes("Description", Some("This description will be visible on Discovery and help explain the content of your file(s)."), Text),
+          dp.DisplayProperties.Attributes("Name", Some("Description"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Group", Some("1"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+          dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text),
+          dp.DisplayProperties.Attributes("Summary", Some("Descriptive"), Text)
+        )
+      ),
+      dp.DisplayProperties(
+        "Language",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("ComponentType", Some("select"), Text),
+          dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+          dp.DisplayProperties.Attributes("Description", Some("Choose one or more languages used in this record."), Text),
+          dp.DisplayProperties.Attributes("Name", Some("Language"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Group", Some("1"), Text),
+          dp.DisplayProperties.Attributes("Guidance", Some("Search for languages"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text),
+          dp.DisplayProperties.Attributes("Summary", Some("Language"), Text)
         )
       )
     )
+
+    val closureDisplayProperties = List(
+      dp.DisplayProperties(
+        "ClosureType",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+        )
+      ),
+      dp.DisplayProperties(
+        "FoiExemptionAsserted",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Datatype", Some("datetime"), Text),
+          dp.DisplayProperties.Attributes("Description", Some("Date of the Advisory Council approval"), Text),
+          dp.DisplayProperties.Attributes("Name", Some("FOI decision asserted"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+          dp.DisplayProperties.Attributes("Guidance", Some("dd|mm|yyyy"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+          dp.DisplayProperties.Attributes("Ordinal", Some("5"), Integer),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("FOI decision asserted, this is the date of the Advisory Council approval"), Text)
+        )
+      ),
+      dp.DisplayProperties(
+        "ClosureStartDate",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Datatype", Some("datetime"), Text),
+          dp.DisplayProperties.Attributes("Description", Some("This has been defaulted to the last date modified. If this is not correct, amend the field below."), Text),
+          dp.DisplayProperties.Attributes("Name", Some("Closure Start Date"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+          dp.DisplayProperties.Attributes("Guidance", Some("dd|mm|yyyy"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+          dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("Closure start date"), Text)
+        )
+      ),
+      dp.DisplayProperties(
+        "ClosurePeriod",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Datatype", Some("integer"), Text),
+          dp.DisplayProperties.Attributes("Description", Some("Number of years the record is closed from the closure start date"), Text),
+          dp.DisplayProperties.Attributes("Name", Some("Closure Period"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+          dp.DisplayProperties.Attributes("Ordinal", Some("15"), Integer),
+          dp.DisplayProperties.Attributes("UnitType", Some("Years"), Integer),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("Closure period"), Text),
+          dp.DisplayProperties.Attributes("Guidance", Some("years"), Text)
+        )
+      ),
+      dp.DisplayProperties(
+        "FoiExemptionCode",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+          dp.DisplayProperties.Attributes(
+            "Description",
+            Some(
+              "Add one or more exemption code to this closure. Here is a <a target=\"_blank\" href=\"https://www.legislation.gov.uk/ukpga/2000/36/contents\">full list of FOI codes and their designated exemptions</a>"
+            ),
+            Text
+          ),
+          dp.DisplayProperties.Attributes("Name", Some("FOI exemption code(s)"), Text),
+          dp.DisplayProperties.Attributes("Guidance", Some("Search by typing an FOI Exemption code"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("select"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("FOI exemption code"), Text)
+        )
+      ),
+      dp.DisplayProperties(
+        "TitleClosed",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Datatype", Some("boolean"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("radial"), Text),
+          dp.DisplayProperties.Attributes("Description", Some("Is the title closed?"), Text),
+          dp.DisplayProperties.Attributes("Name", Some("Is the title closed?"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Label", Some("Yes|No, this title can be made public"), Text),
+          dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+          dp.DisplayProperties.Attributes("Ordinal", Some("25"), Integer),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+        )
+      ),
+      dp.DisplayProperties(
+        "TitleAlternate",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), Text),
+          dp.DisplayProperties.Attributes("Description", Some("Alternative Title"), Text),
+          dp.DisplayProperties.Attributes("Name", Some("Alternative Title"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Group", Some("3"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+        )
+      ),
+      dp.DisplayProperties(
+        "DescriptionClosed",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Datatype", Some("boolean"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("radial"), Text),
+          dp.DisplayProperties.Attributes("Description", Some("Is the description closed?"), Text),
+          dp.DisplayProperties.Attributes("Name", Some("Is the description closed?"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Label", Some("Yes|No, this description can be made public"), Text),
+          dp.DisplayProperties.Attributes("Group", Some("2"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+          dp.DisplayProperties.Attributes("Ordinal", Some("30"), Integer),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
+        )
+      ),
+      dp.DisplayProperties(
+        "DescriptionAlternate",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), Text),
+          dp.DisplayProperties.Attributes("Description", Some("Description Alternate"), Text),
+          dp.DisplayProperties.Attributes("Name", Some("Description Alternate"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Group", Some("3"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+        )
+      )
+    )
+
+    dp.Data(descriptiveDisplayProperties ++ closureDisplayProperties)
   }
 
   private def getCustomMetadataDataObject: cm.Data = {
