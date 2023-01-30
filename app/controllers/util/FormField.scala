@@ -14,6 +14,7 @@ abstract class FormField {
   val isRequired: Boolean
   val hideInputs: Boolean = false
   val fieldErrors: List[String]
+  val dependencies: Map[String, List[FormField]] = Map.empty
 }
 
 case class InputNameAndValue(name: String, value: String, placeHolder: String = "")
@@ -28,8 +29,8 @@ case class RadioButtonGroupField(
     selectedOption: String,
     isRequired: Boolean,
     override val hideInputs: Boolean = false,
-    dependencies: Map[String, List[FormField]] = Map.empty,
-    fieldErrors: List[String] = Nil
+    fieldErrors: List[String] = Nil,
+    override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField
 
 case class TextField(
@@ -42,7 +43,8 @@ case class TextField(
     isRequired: Boolean,
     fieldErrors: List[String] = Nil,
     addSuffixText: Boolean = true,
-    inputType: String = "number"
+    inputType: String = "number",
+    override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField
 
 case class TextAreaField(
@@ -55,7 +57,8 @@ case class TextAreaField(
     fieldErrors: List[String] = Nil,
     rows: String = "5",
     wrap: String = "hard",
-    characterLimit: Int = 8000
+    characterLimit: Int = 8000,
+    override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField
 
 case class DropdownField(
@@ -66,7 +69,8 @@ case class DropdownField(
     options: Seq[InputNameAndValue],
     selectedOption: Option[InputNameAndValue],
     isRequired: Boolean,
-    fieldErrors: List[String] = Nil
+    fieldErrors: List[String] = Nil,
+    override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField
 
 case class MultiSelectField(
@@ -78,7 +82,8 @@ case class MultiSelectField(
     options: Seq[InputNameAndValue],
     selectedOption: Option[List[InputNameAndValue]],
     isRequired: Boolean,
-    fieldErrors: List[String] = Nil
+    fieldErrors: List[String] = Nil,
+    override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField
 
 case class DateField(
@@ -91,7 +96,8 @@ case class DateField(
     year: InputNameAndValue,
     isRequired: Boolean,
     fieldErrors: List[String] = Nil,
-    isFutureDateAllowed: Boolean = true
+    isFutureDateAllowed: Boolean = true,
+    override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField
 
 object FormField {

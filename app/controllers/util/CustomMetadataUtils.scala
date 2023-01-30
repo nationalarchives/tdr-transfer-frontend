@@ -1,6 +1,7 @@
 package controllers.util
 
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
+import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 
 class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   private val allCustomMetadataPropertiesByName: Map[String, List[CustomMetadata]] = allCustomMetadataProperties.groupBy(_.name)
@@ -8,7 +9,7 @@ class CustomMetadataUtils(allCustomMetadataProperties: List[CustomMetadata]) {
   def getCustomMetadataProperties(propertiesToGet: Set[String]): Set[CustomMetadata] =
     propertiesToGet.flatMap(property => allCustomMetadataPropertiesByName(property))
 
-  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: Set[String]): Map[String, List[CustomMetadata.Values]] = {
+  def getValuesOfProperties(namesOfPropertiesToGetValuesFrom: Set[String]): Map[String, List[Values]] = {
     val propertiesToGetValuesFrom: Set[CustomMetadata] = getCustomMetadataProperties(namesOfPropertiesToGetValuesFrom)
     propertiesToGetValuesFrom.map(property => property.name -> property.values).toMap
   }

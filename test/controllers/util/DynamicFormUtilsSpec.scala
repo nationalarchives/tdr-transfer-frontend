@@ -140,6 +140,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         "inputdate-ClosureStartDate-month" -> mockFormValues.month2,
         "inputdate-ClosureStartDate-year" -> mockFormValues.year2,
         "inputnumeric-ClosurePeriod" -> mockFormValues.numericTextBoxValue,
+        "inputtextarea-TextArea" -> mockFormValues.textAreaValue,
         "inputradio-Radio" -> mockFormValues.radioValue,
         "inputtext-Radio-TestProperty2-yes" -> List("title"),
         "csrfToken" -> mockFormValues.csrfToken
