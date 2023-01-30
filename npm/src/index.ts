@@ -5,7 +5,6 @@ import { MultiSelectSearch } from "@nationalarchives/tdr-components"
 window.onload = async function () {
   initAll()
   await renderModules()
-  hideConditionalElements()
 }
 
 export interface IFrontEndInfo {
@@ -13,30 +12,6 @@ export interface IFrontEndInfo {
   uploadUrl: string
   stage: string
   region: string
-}
-
-export const hideConditionalElements: () => void = () => {
-  // We display all conditional elements by default if JavaScript is disabled; if it's enabled, then we'll hide them.
-  const classNameAndConditionalElements: {
-    [className: string]: NodeListOf<Element>
-  } = {
-    "govuk-radios__conditional": document.querySelectorAll(
-      ".govuk-radios__conditional"
-    ),
-    "govuk-checkboxes__conditional": document.querySelectorAll(
-      ".govuk-checkboxes__conditional"
-    )
-  }
-
-  for (const [className, conditionalElements] of Object.entries(
-    classNameAndConditionalElements
-  )) {
-    if (conditionalElements) {
-      conditionalElements.forEach((conditionalElement) =>
-        conditionalElement.classList.add(`${className}--hidden`)
-      )
-    }
-  }
 }
 
 const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
