@@ -802,12 +802,14 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   }
 
   def getAuthorisedSecurityComponents: SecurityComponents = {
+    // This is the dummy token generated with jwt.io
     val standardUserJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlN0YW5kYXJkIFVzZXJuYW1lIn0" +
       ".PvFaiOxzQ2xSybRHnJTSMtms0erV-SIxHIomUmu-aoE"
     getAuthorisedSecurityComponents(standardUserJwtToken)
   }
 
   def getAuthorisedSecurityComponentsForJudgmentUser: SecurityComponents = {
+    // This is the dummy token generated with jwt.io
     val judgmentUserJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikp1ZGdtZW50IFVzZXJuYW1lIn0" +
       ".U57U5JIR4mkeIPJGd_m-bGZF5AyeulMUGdbTxyFeVdg"
     getAuthorisedSecurityComponents(judgmentUserJwtToken)
@@ -818,7 +820,6 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     // Create the profile and add to the map
     val profile: OidcProfile = new OidcProfile()
-    // This is the example token from jwt.io
 
     profile.setAccessToken(new BearerAccessToken(jwtToken))
     profile.addAttribute(OidcProfileDefinition.EXPIRATION, Date.from(LocalDateTime.now().plusDays(10).toInstant(ZoneOffset.UTC)))
