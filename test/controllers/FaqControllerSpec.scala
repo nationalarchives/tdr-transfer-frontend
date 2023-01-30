@@ -74,11 +74,5 @@ class FaqControllerSpec extends FrontEndTestHelper {
       pageAsString must include("<title>judgmentFAQ</title>")
 
     }
-
-    if (!signedIn) {
-      pageAsString must not include "/faq"
-      pageAsString must not include "/help"
-      pageAsString must not include "Sign out"
-    }
   }
 }

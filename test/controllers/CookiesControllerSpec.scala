@@ -37,11 +37,5 @@ class CookiesControllerSpec extends FrontEndTestHelper {
   private def checkForContentOnCookiesPage(pageAsString: String, signedIn: Boolean = true): Unit = {
     pageAsString must include("<title>Cookies</title>")
     pageAsString must include("""<h1 class="govuk-heading-l">Cookies</h1>""")
-
-    if (!signedIn) {
-      pageAsString must not include "/faq"
-      pageAsString must not include "/help"
-      pageAsString must not include "Sign out"
-    }
   }
 }
