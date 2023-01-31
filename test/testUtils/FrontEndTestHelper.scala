@@ -391,7 +391,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Group", Some("1"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
-          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
+          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text),
+          dp.DisplayProperties.Attributes("Summary", Some("Descriptive"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -407,7 +408,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Guidance", Some("Search for languages"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
-          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text)
+          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text),
+          dp.DisplayProperties.Attributes("Summary", Some("Language"), Text)
         )
       )
     )
@@ -434,7 +436,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("5"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("FOI decision asserted, this is the date of the Advisory Council approval"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -450,7 +453,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("Closure start date"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -466,7 +470,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Ordinal", Some("15"), Integer),
           dp.DisplayProperties.Attributes("UnitType", Some("Years"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("Closure period"), Text),
+          dp.DisplayProperties.Attributes("Guidance", Some("years"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -477,18 +483,19 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes(
             "Description",
             Some(
-              "Add one or more exemption code to this closure. Here is a <a target=\"_blank\" href=\"https://www.legislation.gov.uk/ukpga/2000/36/contents\">full list of FOI codes an\nd their designated exemptions</a>"
+              "Add one or more exemption code to this closure. Here is a <a target=\"_blank\" href=\"https://www.legislation.gov.uk/ukpga/2000/36/contents\">full list of FOI codes and their designated exemptions</a>"
             ),
             Text
           ),
           dp.DisplayProperties.Attributes("Name", Some("FOI exemption code(s)"), Text),
-          dp.DisplayProperties.Attributes("Guidance", Some("Search for FOI Exemption codes"), Text),
+          dp.DisplayProperties.Attributes("Guidance", Some("Search by typing an FOI Exemption code"), Text),
           dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Group", Some("2"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("select"), DateTime)
+          dp.DisplayProperties.Attributes("ComponentType", Some("select"), DateTime),
+          dp.DisplayProperties.Attributes("Summary", Some("FOI exemption code"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -847,13 +854,25 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   }
 
   def getAuthorisedSecurityComponents: SecurityComponents = {
+    // This is the dummy token generated with jwt.io
+    val standardUserJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlN0YW5kYXJkIFVzZXJuYW1lIn0" +
+      ".PvFaiOxzQ2xSybRHnJTSMtms0erV-SIxHIomUmu-aoE"
+    getAuthorisedSecurityComponents(standardUserJwtToken)
+  }
+
+  def getAuthorisedSecurityComponentsForJudgmentUser: SecurityComponents = {
+    // This is the dummy token generated with jwt.io
+    val judgmentUserJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikp1ZGdtZW50IFVzZXJuYW1lIn0" +
+      ".U57U5JIR4mkeIPJGd_m-bGZF5AyeulMUGdbTxyFeVdg"
+    getAuthorisedSecurityComponents(judgmentUserJwtToken)
+  }
+
+  def getAuthorisedSecurityComponents(jwtToken: String): SecurityComponents = {
     // Pac4j checks the session to see if there any profiles stored there. If there are, the request is authenticated.
 
     // Create the profile and add to the map
     val profile: OidcProfile = new OidcProfile()
-    // This is the example token from jwt.io
-    val jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibm" +
-      "FtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
     profile.setAccessToken(new BearerAccessToken(jwtToken))
     profile.addAttribute(OidcProfileDefinition.EXPIRATION, Date.from(LocalDateTime.now().plusDays(10).toInstant(ZoneOffset.UTC)))
 
