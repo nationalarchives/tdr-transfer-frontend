@@ -9,10 +9,10 @@ import play.api.mvc.{Action, AnyContent, Request}
 @Singleton
 class HelpController @Inject() (securityComponents: SecurityComponents) extends UnprotectedPageController(securityComponents) with I18nSupport {
   def help(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.help(request.isLoggedIn, request.isJudgmentUser))
+    Ok(views.html.help(request.isLoggedIn, request.name, request.isJudgmentUser))
   }
 
   def judgmentHelp(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.judgment.judgmentHelp(request.isLoggedIn))
+    Ok(views.html.judgment.judgmentHelp(request.isLoggedIn, request.name))
   }
 }
