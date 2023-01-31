@@ -187,7 +187,8 @@ object TextField {
   def validate(text: String, textField: TextField): Option[String] =
     if (text == "") {
       val fieldType: String = inputModeToFieldType(textField.inputMode)
-      Some(emptyValueError.format(fieldType, textField.fieldName))
+      val fieldName = if (textField.fieldId == "TitleAlternate") "alternative title" else textField.fieldName
+      Some(emptyValueError.format(fieldType, fieldName))
     } else if (textField.inputMode.equals("numeric")) {
       val inputName = textField.nameAndValue.name
       text match {
