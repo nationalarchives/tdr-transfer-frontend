@@ -30,6 +30,10 @@ class CheckPageForStaticElements() {
     page must include("© Crown copyright")
     if (signedIn) {
       checkContentOfSignedInPagesThatUseMainScala(page, userType, consignmentExists, transferStillInProgress, pageRequiresAwsServices)
+    } else {
+      page must not include "/faq"
+      page must not include "/help"
+      page must not include "Sign out"
     }
   }
 
