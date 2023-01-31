@@ -1,6 +1,6 @@
-@(isLoggedIn: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(isLoggedIn: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
 
-  @main("Help", isLoggedIn = isLoggedIn, isJudgmentUser = true) {
+  @main("Help", isLoggedIn = isLoggedIn, name = name, isJudgmentUser = true) {
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         <h1 class="govuk-heading-l" id="transferring-judgments">Transferring Judgments to The National Archives</h1>
