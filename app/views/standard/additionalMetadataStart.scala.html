@@ -2,7 +2,7 @@
 
 @import java.util.UUID
 @(consignmentRef: String, consignmentId: UUID, name: String, closurePropertiesSummaries: List[String], descriptivePropertiesSummaries: List[String])(implicit messages: Messages, request: RequestHeader)
-@main(title = "Add, edit or delete metadata", name = name) {
+@main(title = "Descriptive and closure metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds-from-desktop">
