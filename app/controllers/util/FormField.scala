@@ -126,8 +126,9 @@ object RadioButtonGroupField {
     def dependenciesError: Option[String] = radioButtonGroupField.dependencies
       .get(option)
       .flatMap(_.flatMap {
-        case textField: TextField => TextField.validate(dependencies(textField.fieldId), textField)
-        case formField: FormField => throw new NotImplementedException(s"Implement for ${formField.fieldId}")
+        case textField: TextField         => TextField.validate(dependencies(textField.fieldId), textField)
+        case textAreaField: TextAreaField => TextAreaField.validate(dependencies(textAreaField.fieldId), textAreaField)
+        case formField: FormField         => throw new NotImplementedException(s"Implement for ${formField.fieldId}")
       }.headOption)
 
     optionErrors.orElse(dependenciesError).map(List(_)).getOrElse(Nil)
@@ -141,7 +142,10 @@ object RadioButtonGroupField {
     if (dependencies.nonEmpty) {
       val updatedDependencies = radioButtonGroupField
         .dependencies(selectedOption)
-        .map { case textField: TextField => TextField.update(textField, dependencies(textField.fieldId)) }
+        .map {
+          case textField: TextField         => TextField.update(textField, dependencies(textField.fieldId))
+          case textAreaField: TextAreaField => TextAreaField.update(textAreaField, dependencies(textAreaField.fieldId))
+        }
       radioButtonGroupField.copy(
         selectedOption = selectedOption,
         dependencies = radioButtonGroupField.dependencies + (selectedOption -> updatedDependencies)
@@ -207,11 +211,12 @@ object TextAreaField {
   def update(textAreaField: TextAreaField, value: String): TextAreaField = textAreaField.copy(nameAndValue = textAreaField.nameAndValue.copy(value = value))
 
   def validate(text: String, textAreaField: TextAreaField): Option[String] = {
-
+    // DescriptionAlternate is Optional in the database but it cannot be empty if descriptionClosed is set to 'yes'
+    val isDescriptionAlternate = textAreaField.fieldId == "DescriptionAlternate"
     text match {
-      case t if t == "" && textAreaField.isRequired     => Some(emptyValueError.format("text", textAreaField.fieldName))
-      case t if t.length > textAreaField.characterLimit => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
-      case _                                            => None
+      case t if t == "" && textAreaField.isRequired | t == "" && isDescriptionAlternate => Some(emptyValueError.format("text", textAreaField.fieldName))
+      case t if t.length > textAreaField.characterLimit                                 => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
+      case _                                                                            => None
     }
   }
 }

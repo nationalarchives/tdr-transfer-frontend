@@ -86,16 +86,16 @@ class FormTestData() {
       defaultValue = Some("false"),
       5,
       List(
-        Values("True", List(Dependencies("TestProperty2")), 1),
+        Values("True", List(Dependencies("DescriptionAlternate")), 1),
         Values("False", Nil, 2)
       ),
       None,
       allowExport = false
     )
     val dependency = CustomMetadata(
-      "TestProperty2",
-      Some("A TestProperty2 "),
-      Some("TestProperty2"),
+      "DescriptionAlternate",
+      Some("Alternative Description"),
+      Some("Alternative Description"),
       Supplied,
       Some("OptionalClosure"),
       Text,
@@ -112,7 +112,7 @@ class FormTestData() {
   }
   // scalastyle:on method.length
 
-  def dependencies(): List[String] = List("TestProperty2")
+  def dependencies(): List[String] = List("DescriptionAlternate")
 
   def setupDisplayProperties(): List[DisplayProperty] = {
     List(
@@ -186,17 +186,17 @@ class FormTestData() {
       ),
       DisplayProperty(
         active = true,
-        "small text",
+        "large text",
         Text,
         "description",
-        "TestProperty2",
+        "alternative description",
         editable = true,
         "group",
         "guidance",
         "label",
         multiValue = false,
         ordinal = 4,
-        "TestProperty2",
+        "DescriptionAlternate",
         "propertyType",
         "unitType",
         "summary"

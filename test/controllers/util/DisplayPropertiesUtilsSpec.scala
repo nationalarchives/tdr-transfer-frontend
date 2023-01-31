@@ -20,7 +20,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     val fields: Seq[String] = displayPropertiesUtils.convertPropertiesToFormFields(displayProperties).map(_.fieldId)
 
     fields.size should equal(6)
-    fields should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Radio", "TestProperty2", "Dropdown"))
+    fields should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Radio", "DescriptionAlternate", "Dropdown"))
   }
 
   "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select' where the property is not mult-value" in {

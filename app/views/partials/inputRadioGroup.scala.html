@@ -1,4 +1,5 @@
 @import controllers.util.{FormField, InputNameAndValue, TextField}
+@import controllers.util.TextAreaField
 @(fieldId: String,
         fieldName: String,
         fieldDescription: String,
@@ -31,7 +32,7 @@
         } else {
             <div class="govuk-hint"> @Html(fieldDescription) </div>
             @errorMessage(fieldId, fieldErrors)
-            @displayLargeText(additionalInfo)
+            @displayReadOnlyLargeText(additionalInfo)
             <div class="govuk-radios" data-module="govuk-radios" @radioOptionsSize @optionSize id="@formFieldId">
             @options.map { input =>
                 <div class="govuk-radios__item">
@@ -55,6 +56,7 @@
                         @{
                             formField match {
                                 case textField: TextField => displayText(formFieldId, input.value, textField)
+                                case textAreaField: TextAreaField => displayLargeText(formFieldId, input.value, textAreaField)
                             }
                         }
                     }
@@ -75,8 +77,16 @@
         </div>
     </div>
 }
-@displayLargeText(text: String) = {
+@displayReadOnlyLargeText(text: String) = {
     @if(text.nonEmpty) {
         <textarea class="govuk-textarea" id="details" name="details" rows="5" readonly>@text</textarea>
     }
+}
+@displayLargeText(formId: String, inputValue: String, textAreaField: TextAreaField) = {
+    <div class="govuk-radios__conditional" id="conditional-@formFieldId-@inputValue">
+        <label class="govuk-label" for="@formFieldId-@textAreaField.fieldId-@inputValue">
+            @textAreaField.fieldName
+        </label>
+        <textarea class="govuk-textarea" id="@formFieldId-@textAreaField.fieldId-@inputValue" name="@formFieldId-@textAreaField.fieldId-@inputValue" rows="5">@textAreaField.nameAndValue.value</textarea>
+    </div>
 }

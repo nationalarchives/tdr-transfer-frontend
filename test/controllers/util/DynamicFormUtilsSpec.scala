@@ -237,7 +237,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         "inputdate-ClosureStartDate-year" -> mockFormValues.year2,
         "inputnumeric-ClosurePeriod" -> mockFormValues.numericTextBoxValue,
         "inputradio-Radio" -> mockFormValues.radioValue,
-        "inputtext-Radio-TestProperty2-yes" -> List(dependencyFormValue),
+        "inputtext-Radio-DescriptionAlternate-yes" -> List(dependencyFormValue),
         "inputmultiselect-Dropdown" -> mockFormValues.multiSelectField,
         "inputtextarea-TextArea" -> mockFormValues.textAreaValue,
         "csrfToken" -> mockFormValues.csrfToken
@@ -250,7 +250,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     verifyUpdatedFormFields(mockFormValues, validatedForm)
 
     val radioButtonGroupField = validatedForm.find(_.fieldId == "Radio").map(_.asInstanceOf[RadioButtonGroupField]).get
-    val textDependency = radioButtonGroupField.dependencies("yes").head.asInstanceOf[TextField]
+    val textDependency = radioButtonGroupField.dependencies("yes").head.asInstanceOf[TextAreaField]
     textDependency.nameAndValue.value should be(dependencyFormValue)
   }
 
@@ -278,7 +278,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
     validatedForm.exists(_.fieldErrors.nonEmpty) should be(true)
     val field = validatedForm.find(_.isInstanceOf[RadioButtonGroupField]).get
-    field.fieldErrors should equal(List("There was no text entered for the TestProperty2."))
+    field.fieldErrors should equal(List("There was no text entered for the alternative description."))
   }
 
   "convertSubmittedValuesToFormFields" should "return an error when future date is not allowed" in {
