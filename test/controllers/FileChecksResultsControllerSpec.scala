@@ -1,9 +1,9 @@
 package controllers
-
+import scala.jdk.CollectionConverters._
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
-import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
-import configuration.GraphQLConfiguration
+import com.typesafe.config.{Config, ConfigFactory, ConfigValue, ConfigValueFactory}
+import configuration.{ApplicationConfig, GraphQLConfiguration}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
@@ -15,6 +15,7 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import play.api.Configuration
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
@@ -31,7 +32,17 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
   val consignmentId: UUID = UUID.fromString("0a3f617c-04e8-41c2-9f24-99622a779528")
   val wiremockServer = new WireMockServer(9006)
-  val configuration: Config = ConfigFactory.load()
+  val configuration: ApplicationConfig = {
+    val config: Map[String, ConfigValue] = ConfigFactory
+      .load()
+      .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef("false"))
+      .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef("false"))
+      .entrySet()
+      .asScala
+      .map(e => e.getKey -> e.getValue)
+      .toMap
+    new ApplicationConfig(Configuration.from(config))
+  }
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -138,6 +149,13 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         mockGraphqlResponse(userType, fileStatusResponse, filePathResponse)
         setConsignmentReferenceResponse(wiremockServer)
+        val config: Map[String, ConfigValue] = ConfigFactory
+          .load()
+          .entrySet()
+          .asScala
+          .map(e => e.getKey -> e.getValue)
+          .toMap
+        val applicationConfig = new ApplicationConfig(Configuration.from(config))
 
         val fileCheckResultsController = new FileChecksResultsController(
           getAuthorisedSecurityComponents,
@@ -146,7 +164,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           consignmentService,
           consignmentStatusService,
           frontEndInfoConfiguration,
-          configuration
+          applicationConfig
         )
 
         val recordCheckResultsPage = {
@@ -178,10 +196,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
-        val config: Config = ConfigFactory
-          .load()
-          .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef("false"))
-          .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef("false"))
         setConsignmentStatusResponse(app.configuration, wiremockServer)
         val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
 
@@ -212,7 +226,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           consignmentService,
           consignmentStatusService,
           frontEndInfoConfiguration,
-          config
+          configuration
         )
 
         val recordCheckResultsPage = {

@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import errors.AuthorisationException
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import org.scalatest.concurrent.ScalaFutures._
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor2}
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -17,7 +18,7 @@ import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 
-class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
+class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper with TableDrivenPropertyChecks {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val wiremockServer = new WireMockServer(9006)
@@ -34,11 +35,17 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
   val taHelper = new TransferAgreementTestHelper(wiremockServer)
   val checkPageForStaticElements = new CheckPageForStaticElements
 
-  val blockAdditionalMetadataOptions: List[Boolean] = List(true, false)
+  val additionalMetadataBlocks: TableFor2[Boolean, Boolean] = Table(
+    ("blockClosureMetadata", "blockDescriptiveMetadata"),
+    (true, true),
+    (false, true),
+    (true, false),
+    (false, false)
+  )
 
-  blockAdditionalMetadataOptions.foreach { blockAdditionalMetadata =>
-    s"TransferAgreementPrivateBetaController GET with blockAdditionalMetadata $blockAdditionalMetadata" should {
-      val inputOptions = if (blockAdditionalMetadata) {
+  forAll(additionalMetadataBlocks) { (blockClosureMetadata, blockDescriptiveMetadata) =>
+    s"TransferAgreementPrivateBetaController GET with blockAdditionalMetadata $blockClosureMetadata $blockDescriptiveMetadata" should {
+      val inputOptions = if (blockClosureMetadata && blockDescriptiveMetadata) {
         MockInputOption(
           "english",
           "I confirm that the records are all in English.",
@@ -58,10 +65,10 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         val controller: TransferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer)
+        setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer)
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -79,10 +86,10 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         val controller: TransferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"))
+        setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer, seriesStatus = Some("Completed"))
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -106,7 +113,7 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         val controller: TransferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getUnauthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata)
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata)
           )
         val transferAgreementPage = controller.transferAgreement(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-agreement"))
 
@@ -115,13 +122,13 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       }
 
       "throw an authorisation exception when the user does not have permission to see a consignment's private beta transfer agreement" in {
-        taHelper.mockGetConsignmentGraphqlResponse(getConfig(blockAdditionalMetadata))
+        taHelper.mockGetConsignmentGraphqlResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata))
 
         val consignmentId = UUID.randomUUID()
         val controller: TransferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
 
@@ -143,14 +150,14 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
           true,
           Option(true)
         )
-        taHelper.stubTAPrivateBetaResponse(Some(addTransferAgreementResponse), getConfig(blockAdditionalMetadata))
+        taHelper.stubTAPrivateBetaResponse(Some(addTransferAgreementResponse), getConfig(blockClosureMetadata, blockDescriptiveMetadata))
 
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
 
         val controller: TransferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
         val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.privateBeta)
@@ -163,12 +170,12 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
 
       "render an error when a valid (private beta) form is submitted but there is an error from the api" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-        taHelper.stubTAPrivateBetaResponse(config = getConfig(blockAdditionalMetadata), errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
+        taHelper.stubTAPrivateBetaResponse(config = getConfig(blockClosureMetadata, blockDescriptiveMetadata), errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
 
         val controller: TransferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
         val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.privateBeta)
@@ -187,13 +194,13 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       "throw an authorisation exception when the user does not have permission to save the private beta transfer agreement" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         taHelper.stubTAPrivateBetaResponse(
-          config = getConfig(blockAdditionalMetadata),
+          config = getConfig(blockClosureMetadata, blockDescriptiveMetadata),
           errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED")))))
         )
         val controller: TransferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
         val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.privateBeta)
@@ -215,10 +222,10 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         val controller: TransferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"))
+        setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer, seriesStatus = Some("Completed"))
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -254,10 +261,10 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
           val controller: TransferAgreementPrivateBetaController =
             taHelper.instantiateTransferAgreementPrivateBetaController(
               getAuthorisedSecurityComponents,
-              getConfig(blockAdditionalMetadata),
+              getConfig(blockClosureMetadata, blockDescriptiveMetadata),
               getValidStandardUserKeycloakConfiguration
             )
-          setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"))
+          setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer, seriesStatus = Some("Completed"))
           setConsignmentTypeResponse(wiremockServer, taHelper.userType)
           setConsignmentReferenceResponse(wiremockServer)
 
@@ -292,10 +299,15 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         val controller: TransferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("InProgress"))
+        setConsignmentStatusResponse(
+          getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+          wiremockServer,
+          seriesStatus = Some("Completed"),
+          transferAgreementStatus = Some("InProgress")
+        )
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -319,10 +331,15 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
         val controller: TransferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
+        setConsignmentStatusResponse(
+          getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+          wiremockServer,
+          seriesStatus = Some("Completed"),
+          transferAgreementStatus = Some("Completed")
+        )
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -347,10 +364,15 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
           val controller =
             taHelper.instantiateTransferAgreementPrivateBetaController(
               getAuthorisedSecurityComponents,
-              getConfig(blockAdditionalMetadata),
+              getConfig(blockClosureMetadata, blockDescriptiveMetadata),
               getValidStandardUserKeycloakConfiguration
             )
-          setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
+          setConsignmentStatusResponse(
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+            wiremockServer,
+            seriesStatus = Some("Completed"),
+            transferAgreementStatus = Some("Completed")
+          )
           setConsignmentTypeResponse(wiremockServer, taHelper.userType)
           setConsignmentReferenceResponse(wiremockServer)
 
@@ -378,10 +400,15 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
             val controller =
               taHelper.instantiateTransferAgreementPrivateBetaController(
                 getAuthorisedSecurityComponents,
-                getConfig(blockAdditionalMetadata),
+                getConfig(blockClosureMetadata, blockDescriptiveMetadata),
                 getValidStandardUserKeycloakConfiguration
               )
-            setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
+            setConsignmentStatusResponse(
+              getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+              wiremockServer,
+              seriesStatus = Some("Completed"),
+              transferAgreementStatus = Some("Completed")
+            )
             setConsignmentTypeResponse(wiremockServer, taHelper.userType)
             setConsignmentReferenceResponse(wiremockServer)
 
@@ -408,13 +435,13 @@ class TransferAgreementPrivateBetaControllerSpec extends FrontEndTestHelper {
       }
     }
 
-    s"The consignment transfer agreement page with blockAdditionalMetadata $blockAdditionalMetadata" should {
+    s"The consignment transfer agreement page with blockAdditionalMetadata $blockClosureMetadata $blockDescriptiveMetadata" should {
       s"return 403 if the GET is accessed by a non-standard user" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val transferAgreementPrivateBetaController =
           taHelper.instantiateTransferAgreementPrivateBetaController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
 

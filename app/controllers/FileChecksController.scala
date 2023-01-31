@@ -2,7 +2,7 @@ package controllers
 
 import java.util.UUID
 import auth.TokenSecurity
-import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
@@ -19,7 +19,7 @@ class FileChecksController @Inject() (
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val frontEndInfoConfiguration: FrontEndInfoConfiguration
+    val frontEndInfoConfiguration: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {

@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import com.typesafe.config.{Config, ConfigFactory}
-import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, ConsignmentStatusInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
@@ -21,7 +21,7 @@ class UploadController @Inject() (
     val controllerComponents: SecurityComponents,
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
-    val frontEndInfoConfiguration: FrontEndInfoConfiguration,
+    val frontEndInfoConfiguration: ApplicationConfig,
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
     val fileStatusService: FileStatusService,

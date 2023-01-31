@@ -1,9 +1,8 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
-import play.api.Configuration
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
@@ -23,7 +22,7 @@ class TransferAgreementComplianceController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val configuration: Configuration
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -52,14 +51,11 @@ class TransferAgreementComplianceController @Inject() (
   )
 
   private def form: Form[TransferAgreementComplianceData] =
-    if (blockClosureMetadata && blockDescriptiveMetadata) {
+    if (applicationConfig.blockClosureMetadata && applicationConfig.blockDescriptiveMetadata) {
       transferAgreementFormWithOpenRecords
     } else {
       transferAgreementForm
     }
-
-  val blockClosureMetadata: Boolean = configuration.get[Boolean]("featureAccessBlock.closureMetadata")
-  val blockDescriptiveMetadata: Boolean = configuration.get[Boolean]("featureAccessBlock.descriptiveMetadata")
 
   val taFormNamesAndLabels: Seq[(String, String)] = Seq(
     ("droAppraisalSelection", "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection decision."),
