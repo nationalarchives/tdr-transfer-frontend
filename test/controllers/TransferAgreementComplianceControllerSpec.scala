@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import errors.AuthorisationException
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import org.scalatest.concurrent.ScalaFutures._
+import org.scalatest.prop.TableFor2
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -34,9 +35,16 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
   val taHelper = new TransferAgreementTestHelper(wiremockServer)
   val checkPageForStaticElements = new CheckPageForStaticElements
 
-  val blockAdditionalMetadataOptions: List[Boolean] = List(true, false)
-  blockAdditionalMetadataOptions.foreach { blockAdditionalMetadata =>
-    val inputOptions = if (blockAdditionalMetadata) {
+  val additionalMetadataBlocks: TableFor2[Boolean, Boolean] = Table(
+    ("blockClosureMetadata", "blockDescriptiveMetadata"),
+    (true, true),
+    (false, true),
+    (true, false),
+    (false, false)
+  )
+
+  forAll(additionalMetadataBlocks) { (blockClosureMetadata, blockDescriptiveMetadata) =>
+    val inputOptions = if (blockClosureMetadata && blockDescriptiveMetadata) {
       MockInputOption(
         "openRecords",
         "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.",
@@ -52,14 +60,18 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
     val optionsToSelectToGenerateFormErrors: Seq[Seq[(String, String)]] =
       formOptions.generateOptionsToSelectToGenerateFormErrors()
 
-    s"TransferAgreementComplianceController GET with blockAdditionalMetadata $blockAdditionalMetadata" should {
+    s"TransferAgreementComplianceController GET with blockAdditionalMetadata $blockClosureMetadata $blockDescriptiveMetadata" should {
 
       "render the series page with an authenticated user if series status is not 'Completed'" in {
         val consignmentId = UUID.randomUUID()
 
         val controller: TransferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockAdditionalMetadata), getValidStandardUserKeycloakConfiguration)
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer)
+          taHelper.instantiateTransferAgreementComplianceController(
+            getAuthorisedSecurityComponents,
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+            getValidStandardUserKeycloakConfiguration
+          )
+        setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer)
         setConsignmentTypeResponse(wiremockServer, "standard")
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -74,8 +86,12 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       "redirect to the transfer agreement page with an authenticated user if consignment status is 'None'" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller: TransferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockAdditionalMetadata), getValidStandardUserKeycloakConfiguration)
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"))
+          taHelper.instantiateTransferAgreementComplianceController(
+            getAuthorisedSecurityComponents,
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+            getValidStandardUserKeycloakConfiguration
+          )
+        setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer, seriesStatus = Some("Completed"))
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -94,8 +110,17 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       "render the transfer agreement (continued) page with an authenticated user if consignment status is 'InProgress'" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller: TransferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockAdditionalMetadata), getValidStandardUserKeycloakConfiguration)
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("InProgress"))
+          taHelper.instantiateTransferAgreementComplianceController(
+            getAuthorisedSecurityComponents,
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+            getValidStandardUserKeycloakConfiguration
+          )
+        setConsignmentStatusResponse(
+          getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+          wiremockServer,
+          seriesStatus = Some("Completed"),
+          transferAgreementStatus = Some("InProgress")
+        )
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -117,7 +142,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       "return a redirect to the auth server with an unauthenticated user" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller: TransferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getUnauthorisedSecurityComponents, getConfig(blockAdditionalMetadata))
+          taHelper.instantiateTransferAgreementComplianceController(getUnauthorisedSecurityComponents, getConfig(blockClosureMetadata, blockDescriptiveMetadata))
         val transferAgreementPage = controller.transferAgreement(consignmentId).apply(FakeRequest(GET, "/consignment/123/transfer-agreement-continued"))
 
         redirectLocation(transferAgreementPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -125,11 +150,11 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       }
 
       "throw an authorisation exception when the user does not have permission to see a consignment's compliance transfer agreement" in {
-        taHelper.mockGetConsignmentGraphqlResponse(getConfig(blockAdditionalMetadata))
+        taHelper.mockGetConsignmentGraphqlResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata))
 
         val consignmentId = UUID.randomUUID()
         val controller: TransferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockAdditionalMetadata))
+          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockClosureMetadata, blockDescriptiveMetadata))
 
         val transferAgreementPage = controller
           .transferAgreement(consignmentId)
@@ -149,13 +174,17 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
           true,
           Option(true)
         )
-        taHelper.stubTAComplianceResponse(Some(addTransferAgreementResponse), getConfig(blockAdditionalMetadata))
+        taHelper.stubTAComplianceResponse(Some(addTransferAgreementResponse), getConfig(blockClosureMetadata, blockDescriptiveMetadata))
 
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, transferAgreementStatus = Some("InProgress"))
+        setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer, transferAgreementStatus = Some("InProgress"))
 
         val controller: TransferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockAdditionalMetadata), getValidStandardUserKeycloakConfiguration)
+          taHelper.instantiateTransferAgreementComplianceController(
+            getAuthorisedSecurityComponents,
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+            getValidStandardUserKeycloakConfiguration
+          )
         val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.compliance)
         val transferAgreementSubmit = controller
           .transferAgreementSubmit(consignmentId)
@@ -166,10 +195,14 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
 
       "render an error when a valid (compliance) form is submitted but there is an error from the api" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-        taHelper.stubTAComplianceResponse(config = getConfig(blockAdditionalMetadata), errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
+        taHelper.stubTAComplianceResponse(config = getConfig(blockClosureMetadata, blockDescriptiveMetadata), errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
 
         val controller: TransferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockAdditionalMetadata), getValidStandardUserKeycloakConfiguration)
+          taHelper.instantiateTransferAgreementComplianceController(
+            getAuthorisedSecurityComponents,
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+            getValidStandardUserKeycloakConfiguration
+          )
         val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.compliance)
         val transferAgreementSubmit = controller
           .transferAgreementSubmit(consignmentId)
@@ -186,12 +219,12 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       "throw an authorisation exception when the user does not have permission to save the compliance transfer agreement" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         taHelper.stubTAComplianceResponse(
-          config = getConfig(blockAdditionalMetadata),
+          config = getConfig(blockClosureMetadata, blockDescriptiveMetadata),
           errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED")))))
         )
 
         val controller: TransferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockAdditionalMetadata))
+          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockClosureMetadata, blockDescriptiveMetadata))
         val completedTransferAgreementForm: Seq[(String, String)] = taHelper.getTransferAgreementForm(taHelper.compliance)
         val transferAgreementSubmit = controller
           .transferAgreementSubmit(consignmentId)
@@ -209,8 +242,17 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       "display errors when an empty compliance form is submitted" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller: TransferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockAdditionalMetadata), getValidStandardUserKeycloakConfiguration)
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("InProgress"))
+          taHelper.instantiateTransferAgreementComplianceController(
+            getAuthorisedSecurityComponents,
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+            getValidStandardUserKeycloakConfiguration
+          )
+        setConsignmentStatusResponse(
+          getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+          wiremockServer,
+          seriesStatus = Some("Completed"),
+          transferAgreementStatus = Some("InProgress")
+        )
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -245,10 +287,15 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
           val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
           val controller = taHelper.instantiateTransferAgreementComplianceController(
             getAuthorisedSecurityComponents,
-            getConfig(blockAdditionalMetadata),
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
-          setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("InProgress"))
+          setConsignmentStatusResponse(
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+            wiremockServer,
+            seriesStatus = Some("Completed"),
+            transferAgreementStatus = Some("InProgress")
+          )
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentReferenceResponse(wiremockServer)
 
@@ -281,8 +328,17 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       "render the transfer agreement (continued) 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller: TransferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockAdditionalMetadata), getValidStandardUserKeycloakConfiguration)
-        setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
+          taHelper.instantiateTransferAgreementComplianceController(
+            getAuthorisedSecurityComponents,
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+            getValidStandardUserKeycloakConfiguration
+          )
+        setConsignmentStatusResponse(
+          getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+          wiremockServer,
+          seriesStatus = Some("Completed"),
+          transferAgreementStatus = Some("Completed")
+        )
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -307,10 +363,15 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
           val controller =
             taHelper.instantiateTransferAgreementComplianceController(
               getAuthorisedSecurityComponents,
-              getConfig(blockAdditionalMetadata),
+              getConfig(blockClosureMetadata, blockDescriptiveMetadata),
               getValidStandardUserKeycloakConfiguration
             )
-          setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
+          setConsignmentStatusResponse(
+            getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+            wiremockServer,
+            seriesStatus = Some("Completed"),
+            transferAgreementStatus = Some("Completed")
+          )
           setConsignmentTypeResponse(wiremockServer, taHelper.userType)
           setConsignmentReferenceResponse(wiremockServer)
 
@@ -337,10 +398,15 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
             val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
             val controller = taHelper.instantiateTransferAgreementComplianceController(
               getAuthorisedSecurityComponents,
-              getConfig(blockAdditionalMetadata),
+              getConfig(blockClosureMetadata, blockDescriptiveMetadata),
               getValidStandardUserKeycloakConfiguration
             )
-            setConsignmentStatusResponse(getConfig(blockAdditionalMetadata), wiremockServer, seriesStatus = Some("Completed"), transferAgreementStatus = Some("Completed"))
+            setConsignmentStatusResponse(
+              getConfig(blockClosureMetadata, blockDescriptiveMetadata),
+              wiremockServer,
+              seriesStatus = Some("Completed"),
+              transferAgreementStatus = Some("Completed")
+            )
             setConsignmentTypeResponse(wiremockServer, taHelper.userType)
             setConsignmentReferenceResponse(wiremockServer)
 
@@ -367,11 +433,11 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
       }
     }
 
-    s"The consignment transfer agreement continued page with blockAdditionalMetadata $blockAdditionalMetadata" should {
+    s"The consignment transfer agreement continued page with blockAdditionalMetadata $blockClosureMetadata $blockDescriptiveMetadata" should {
       s"return 403 if the GET is accessed by a non-standard user" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val transferAgreementComplianceController =
-          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockAdditionalMetadata))
+          taHelper.instantiateTransferAgreementComplianceController(getAuthorisedSecurityComponents, getConfig(blockClosureMetadata, blockDescriptiveMetadata))
 
         val transferAgreement = {
           setConsignmentTypeResponse(wiremockServer, consignmentType = "judgment")

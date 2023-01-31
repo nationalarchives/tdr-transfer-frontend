@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import controllers.{TransferAgreementComplianceController, TransferAgreementPrivateBetaController}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
@@ -77,6 +77,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val applicationConfig = new ApplicationConfig(config)
 
     new TransferAgreementPrivateBetaController(
       securityComponents,
@@ -85,7 +86,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       keycloakConfiguration,
       consignmentService,
       consignmentStatusService,
-      config
+      applicationConfig
     )
   }
 
@@ -98,6 +99,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val applicationConfig = new ApplicationConfig(config)
 
     new TransferAgreementComplianceController(
       securityComponents,
@@ -106,7 +108,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       keycloakConfiguration,
       consignmentService,
       consignmentStatusService,
-      config
+      applicationConfig
     )
   }
 

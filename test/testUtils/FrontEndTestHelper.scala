@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
 import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
-import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddBulkFileMetadata.addBulkFileMetadata.UpdateBulkFileMetadata
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.DeleteFileMetadata.deleteFileMetadata.DeleteFileMetadata
@@ -85,11 +85,11 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     }
   }
 
-  def getConfig(blockAdditionalMetadata: Boolean): Configuration = {
+  def getConfig(blockClosureMetadata: Boolean, blockDescriptiveMetadata: Boolean): Configuration = {
     val config: Map[String, ConfigValue] = ConfigFactory
       .load()
-      .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef(blockAdditionalMetadata.toString))
-      .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef(blockAdditionalMetadata.toString))
+      .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef(blockClosureMetadata.toString))
+      .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef(blockDescriptiveMetadata.toString))
       .entrySet()
       .asScala
       .map(e => e.getKey -> e.getValue)
@@ -753,8 +753,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     "Failed"
   )
 
-  def frontEndInfoConfiguration: FrontEndInfoConfiguration = {
-    val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
+  def frontEndInfoConfiguration: ApplicationConfig = {
+    val frontEndInfoConfiguration: ApplicationConfig = mock[ApplicationConfig]
     when(frontEndInfoConfiguration.frontEndInfo).thenReturn(
       FrontEndInfo(
         "https://mock-api-url.com/graphql",

@@ -1,9 +1,8 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
-import play.api.Configuration
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Messages}
@@ -23,13 +22,10 @@ class TransferAgreementPrivateBetaController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val configuration: Configuration
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
-
-  val blockClosureMetadata: Boolean = configuration.get[Boolean]("featureAccessBlock.closureMetadata")
-  val blockDescriptiveMetadata: Boolean = configuration.get[Boolean]("featureAccessBlock.descriptiveMetadata")
 
   private val transferAgreementFormWithEnglish: Form[TransferAgreementData] = Form(
     mapping(
@@ -132,7 +128,7 @@ class TransferAgreementPrivateBetaController @Inject() (
   }
 
   private def form: Form[TransferAgreementData] =
-    if (blockClosureMetadata && blockDescriptiveMetadata) {
+    if (applicationConfig.blockClosureMetadata && applicationConfig.blockDescriptiveMetadata) {
       transferAgreementFormWithEnglish
     } else {
       transferAgreementForm
