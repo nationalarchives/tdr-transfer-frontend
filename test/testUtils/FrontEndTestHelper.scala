@@ -2,7 +2,7 @@ package testUtils
 
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, status, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
@@ -19,6 +19,8 @@ import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.{getConsignments => gc}
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
@@ -68,6 +70,7 @@ import java.net.URI
 import java.sql.Timestamp
 import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.{Date, UUID}
+import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -195,6 +198,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       seriesStatus: Option[String] = None,
       transferAgreementStatus: Option[String] = None,
       uploadStatus: Option[String] = None,
+      clientChecks: Option[String] = None,
       confirmTransferStatus: Option[String] = None,
       exportStatus: Option[String] = None
   ): StubMapping = {
@@ -203,7 +207,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       Option(
         GetConsignment(
           Some(Series(seriesId.getOrElse(UUID.randomUUID()), "MOCK1")),
-          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, confirmTransferStatus, exportStatus)
+          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, clientChecks, confirmTransferStatus, exportStatus)
         )
       )
     )
@@ -277,37 +281,19 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  def setConsignmentsHistoryResponse(wiremockServer: WireMockServer, noConsignment: Boolean = false): List[Consignments.Edges] = {
+  def setConsignmentsHistoryResponse(
+      wiremockServer: WireMockServer,
+      consignmentType: String = "standard",
+      customStatusValues: Map[String, List[Option[String]]] = Map(),
+      noConsignment: Boolean = false
+  ): List[Edges] = {
+    val consignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] =
+      if (customStatusValues.isEmpty) {
+        if (consignmentType == "judgment") judgmentConsignmentStatusValuesThatGenerateActionLinks else standardConsignmentStatusValuesThatGenerateActionLinks
+      } else { customStatusValues }
 
     val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-    val edges = List(
-      Consignments
-        .Edges(
-          gc.Consignments.Edges.Node(
-            consignmentid = UUID.randomUUID().some,
-            consignmentReference = "TEST-TDR-2021-GB",
-            exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 20, 0, 0), ZoneId.systemDefault())),
-            createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 15, 0, 0), ZoneId.systemDefault())),
-            currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some),
-            totalFiles = 5
-          ),
-          "Cursor"
-        )
-        .some,
-      Consignments
-        .Edges(
-          gc.Consignments.Edges.Node(
-            consignmentid = UUID.randomUUID().some,
-            consignmentReference = "TEST-TDR-2022-GB",
-            exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 15, 0, 0), ZoneId.systemDefault())),
-            createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2012, 5, 10, 0, 0), ZoneId.systemDefault())),
-            currentStatus = gc.Consignments.Edges.Node.CurrentStatus("Completed".some),
-            totalFiles = 6
-          ),
-          "Cursor"
-        )
-        .some
-    )
+    val edges: List[Some[Edges]] = generateConsignmentEdges(consignmentStatusValuesThatGenerateActionLinks, consignmentType)
 
     val consignments = gc.Data(
       gc.Consignments(
@@ -351,6 +337,44 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         .withRequestBody(containing("displayProperties"))
         .willReturn(okJson(dataString))
     )
+  }
+
+  private def generateConsignmentEdges(consignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]], consignmentType: String) = {
+    val irrelevantStatusTypes = if (consignmentType == "judgment") List("series", "transferAgreement", "confirmTransfer") else Nil
+    val ultimateStatusValuesForEachType: List[Option[String]] = consignmentStatusValuesThatGenerateActionLinks.keys.map { consignmentStatusType =>
+      if (irrelevantStatusTypes.contains(consignmentStatusType)) None else Some("Completed")
+    }.toList
+
+    consignmentStatusValuesThatGenerateActionLinks
+      .zip(LazyList.from(1))
+      .flatMap { case ((consignmentStatusType, nonCompleteStates), orderNumber) =>
+        if (irrelevantStatusTypes.contains(consignmentStatusType)) {
+          None
+        } else {
+          nonCompleteStates.map { nonCompleteState =>
+            val leftSideStatuses: List[Option[String]] = ultimateStatusValuesForEachType.slice(0, orderNumber - 1)
+            val inProgressStatus: List[Option[String]] = List(nonCompleteState)
+            val rightSideStatuses: List[None.type] = List.fill(consignmentStatusValuesThatGenerateActionLinks.size - orderNumber)(None)
+            val statuses: List[Option[String]] = leftSideStatuses ++ inProgressStatus ++ rightSideStatuses
+            Some(
+              Edges(
+                Node(
+                  consignmentid = Some(UUID.randomUUID()),
+                  consignmentReference = s"TEST-TDR-2022-GB$orderNumber",
+                  consignmentType = Some(consignmentType),
+                  exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
+                  createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
+                  currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), statuses(4), statuses(5)),
+                  totalFiles = orderNumber
+                ),
+                "Cursor"
+              )
+            )
+          }
+        }
+      }
+      .toList
+      .distinct
   }
 
   private def getDisplayPropertiesDataObject: dp.Data = {
@@ -736,6 +760,26 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     "Failed"
   )
 
+  val standardConsignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] =
+    ListMap(
+      "series" -> List(None),
+      "transferAgreement" -> List(None, Some("InProgress")),
+      "upload" -> List(None, Some("InProgress"), Some("CompletedWithIssues")),
+      "clientChecks" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
+      "confirmTransfer" -> List(None),
+      "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
+    )
+
+  val judgmentConsignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] =
+    ListMap(
+      "series" -> List(None), // None because series does not exist for judgments
+      "transferAgreement" -> List(None), // None because transferAgreement does not exist for judgments
+      "upload" -> List(None, Some("InProgress"), Some("CompletedWithIssues")),
+      "clientChecks" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
+      "confirmTransfer" -> List(None), // None because confirmTransfer does not exist for judgments
+      "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
+    )
+
   def frontEndInfoConfiguration: FrontEndInfoConfiguration = {
     val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
     when(frontEndInfoConfiguration.frontEndInfo).thenReturn(
@@ -787,6 +831,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     accessToken.setOtherClaims("judgment_user", "true")
     accessToken.setName("Judgment Username")
+    accessToken.setEmail("test@example.com")
     val token = Token(accessToken, new BearerAccessToken)
     doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
     keycloakMock

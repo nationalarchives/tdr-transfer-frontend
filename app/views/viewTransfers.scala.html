@@ -1,6 +1,7 @@
-@(consignments: List[ConsignmentTransfers], name: String, email: String)(implicit messages: Messages, request: RequestHeader)
+@(consignments: List[ConsignmentTransfers], name: String, email: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
+@nationalArchivesEmailAddress = @{if(isJudgmentUser) Messages("nationalArchives.judgmentsEmail") else Messages("nationalArchives.email")}
 
-@main("View Transfers", name = name) {
+@main("View Transfers", name = name, isJudgmentUser = isJudgmentUser) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-width-container ">
         <div class="govuk-grid-row">
@@ -11,10 +12,11 @@
             <table class="govuk-table">
               <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
-                  <th scope="col" class="govuk-table__header">Consignment reference</th>
-                  <th scope="col" class="govuk-table__header">Status</th>
-                  <th scope="col" class="govuk-table__header">Date of export</th>
-                  <th scope="col" class="govuk-table__header">Actions</th>
+                    <th scope="col" class="govuk-table__header">Reference</th>
+                    <th scope="col" class="govuk-table__header">Date started</th>
+                    <th scope="col" class="govuk-table__header">Date transferred</th>
+                    <th scope="col" class="govuk-table__header">Status</th>
+                    <th scope="col" class="govuk-table__header">Actions</th>
                 </tr>
               </thead>
               <tbody class="govuk-table__body">
@@ -23,9 +25,9 @@
                     <th scope="row" class="govuk-table__header">
                       <details class="govuk-details" data-module="govuk-details">
                         <summary class="govuk-details__summary">
-                          <span class="govuk-details__summary-text">
-                          @{consignment.reference}
-                          </span>
+                          <strong class="consignment-ref-cell">
+                            @consignment.reference
+                          </strong>
                         </summary>
                         <div class="govuk-details__text">
                           <p class="govuk-body">Please do not delete the original files you exported until you are notified that your records have been preserved.</p>
@@ -38,13 +40,14 @@
                         </div>
                       </details>
                     </th>
+                    <td class="govuk-table__cell">@consignment.dateStarted</td>
+                    <td class="govuk-table__cell @{if(consignment.dateOfExport == "N/A") "not-applicable"}">@consignment.dateOfExport</td>
                     <td class="govuk-table__cell">
-                      <strong class="govuk-tag @if(consignment.status.equals("Exported")){govuk-tag--green} else {govuk-tag--yellow}">
-                      @consignment.status
+                      <strong class="govuk-tag govuk-tag--@consignment.statusColour">
+                        @consignment.status
                       </strong>
                     </td>
-                    <td class="govuk-table__cell">@{consignment.dateOfExport}</td>
-                    <td class="govuk-table__cell"></td>
+                    <td class="govuk-table__cell"><a href="@{consignment.userAction.actionUrl.format(nationalArchivesEmailAddress)}">@consignment.userAction.actionText</a></td>
                   </tr>
                 }
               </tbody>
