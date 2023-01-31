@@ -3,6 +3,7 @@
 @import views.html.partials.{errorMessage, inputSingleCheckbox, progressIndicator, transferReference, fileNameCard}
 
 @import java.util.UUID
+@import views.html.partials.warningMessage
 @(consignmentId: UUID, metadataType: String, fileNames: List[String], fileIds: List[UUID], formData: Form[ClosureStatusFormData], inputNameAndValue: InputNameAndValue,
         areAllFilesClosed: Boolean, consignmentRef: String, closureProperties: List[String], name: String)(implicit messages: Messages, request: RequestHeader)
 @fieldErrors = @{formData("closureStatus").errors.headOption match {
@@ -19,6 +20,14 @@
                 <h1 class="govuk-heading-xl">
                 Confirm the closure status of your record
                 </h1>
+                @if(areAllFilesClosed) {
+                    @warningMessage(Messages(
+                        "closureStatus.warningMessage",
+                        routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds),
+                        "Summary page"
+                    ))
+                }
+
                 @form(routes.AdditionalMetadataClosureStatusController.submitClosureStatus(consignmentId, metadataType, fileIds), (Symbol("novalidate"), "")) {
                     @CSRF.formField
                     @fileNameCard(fileNames, s"You are adding $metadataType to the following files:")
