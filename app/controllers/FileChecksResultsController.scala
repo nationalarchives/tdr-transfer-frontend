@@ -19,7 +19,6 @@ class FileChecksResultsController @Inject() (
     val graphqlConfiguration: GraphQLConfiguration,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val frontEndInfoConfiguration: ApplicationConfig,
     val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity

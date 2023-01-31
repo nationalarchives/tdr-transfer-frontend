@@ -163,7 +163,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration,
           applicationConfig
         )
 
@@ -225,7 +224,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration,
           configuration
         )
 
@@ -261,7 +259,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration,
           configuration
         )
         val recordChecksResultsPage = controller
@@ -282,7 +279,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration,
           configuration
         )
         val exampleApiResponse = "{\"fileChecksData\":{" +
@@ -334,7 +330,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration,
           configuration
         )
 
@@ -378,7 +373,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration,
           configuration
         )
 
@@ -430,7 +424,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration,
           configuration
         )
 
@@ -490,7 +483,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration,
           configuration
         )
 
@@ -525,7 +517,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         new GraphQLConfiguration(app.configuration),
         consignmentService,
         consignmentStatusService,
-        frontEndInfoConfiguration,
         configuration
       )
       setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
@@ -569,7 +560,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
           new GraphQLConfiguration(app.configuration),
           consignmentService,
           consignmentStatusService,
-          frontEndInfoConfiguration,
           configuration
         )
 
