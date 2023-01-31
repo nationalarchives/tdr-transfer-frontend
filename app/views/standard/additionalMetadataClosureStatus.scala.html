@@ -3,8 +3,9 @@
 @import views.html.partials.{errorMessage, inputSingleCheckbox, progressIndicator, transferReference, fileNameCard}
 
 @import java.util.UUID
+@import views.html.partials.warningMessage
 @(consignmentId: UUID, metadataType: String, fileNames: List[String], fileIds: List[UUID], formData: Form[ClosureStatusFormData], inputNameAndValue: InputNameAndValue,
-        areAllFilesClosed: Boolean, consignmentRef: String, parentFolderId: UUID, name: String)(implicit messages: Messages, request: RequestHeader)
+        areAllFilesClosed: Boolean, consignmentRef: String, closureProperties: List[String], name: String)(implicit messages: Messages, request: RequestHeader)
 @fieldErrors = @{formData("closureStatus").errors.headOption match {
     case Some(formError) => formError.messages
     case None => Nil
@@ -19,6 +20,14 @@
                 <h1 class="govuk-heading-xl">
                 Confirm the closure status of your record
                 </h1>
+                @if(areAllFilesClosed) {
+                    @warningMessage(Messages(
+                        "closureStatus.warningMessage",
+                        routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds),
+                        "Summary page"
+                    ))
+                }
+
                 @form(routes.AdditionalMetadataClosureStatusController.submitClosureStatus(consignmentId, metadataType, fileIds), (Symbol("novalidate"), "")) {
                     @CSRF.formField
                     @fileNameCard(fileNames, s"You are adding $metadataType to the following files:")
@@ -54,21 +63,9 @@
                         </summary>
                         <div class="govuk-details__text">
                             <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
-                                <li>
-                                    FOI decision asserted, this is the date of the Advisory Council approval
-                                </li>
-                                <li>
-                                    Closure start date, this is the date the record starts
-                                </li>
-                                <li>
-                                    Closure period
-                                </li>
-                                <li>
-                                    FOI exemption code
-                                </li>
-                                <li>
-                                    Title public
-                                </li>
+                                @for(property <- closureProperties.filter(_.nonEmpty)) {
+                                    <li>@property</li>
+                                }
                             </ul>
                         </div>
                     </details>
