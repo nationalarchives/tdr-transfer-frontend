@@ -378,12 +378,14 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
            |                                Continue
            |                            </a>""".stripMargin
       )
+      closureStatusPage must include("closureStatus.warningMessage")
     } else {
       closureStatusPage must include(
         s"""                            <button type= "submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
            |                                Continue
            |                            </button>""".stripMargin
       )
+      closureStatusPage must not include ("closureStatus.warningMessage")
     }
     closureStatusPage must include(s"""<a class="govuk-link" href="$cancelHref">Cancel</a>""".stripMargin)
   }
