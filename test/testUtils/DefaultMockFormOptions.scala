@@ -191,7 +191,7 @@ object DefaultMockFormOptions {
   val expectedConfirmTransferOptions: List[MockInputOption] = List(
     MockInputOption(
       "transferLegalCustody",
-      "I confirm that I am transferring legal custody of these records to The National Archives.",
+      "By proceeding with this transfer, I confirm that I am agreeing to transfer legal custody of these records to The National Archives.",
       value = "true",
       errorMessage = "Transferral of legal custody of all records must be confirmed before proceeding",
       fieldType = "inputCheckbox"

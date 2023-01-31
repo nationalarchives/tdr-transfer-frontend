@@ -466,10 +466,10 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
             Node(
               UUID.randomUUID().some,
               "TEST-TDR-2021-GB",
-              "standard".some,
+              Some("standard"),
               Some(ZonedDateTime.now()),
               Some(ZonedDateTime.now()),
-              CurrentStatus("Completed".some, None, None, None, None, None),
+              CurrentStatus(Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed")),
               5
             ),
             "Cursor"
