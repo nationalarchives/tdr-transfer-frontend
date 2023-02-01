@@ -128,12 +128,10 @@ class AddAdditionalMetadataController @Inject() (
       .flatten
       .toSet
 
-    if (deleteMetadataNames.nonEmpty) {
-      customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, deleteMetadataNames)
-    }
-    customMetadataService
-      .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, updateMetadataInputs)
-      .map(_ => Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)))
+    for {
+      _ <- if (deleteMetadataNames.nonEmpty) customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, deleteMetadataNames) else Future.successful(())
+      _ <- customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, updateMetadataInputs)
+    } yield Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds))
   }
 
   private def getConsignmentFileMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID])(implicit request: Request[AnyContent]): Future[GetConsignment] = {
