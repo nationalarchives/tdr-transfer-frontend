@@ -11,7 +11,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
       optionsToSelect <- possibleOptions.combinations(numberRangeOfOptionsToSelect)
     } yield optionsToSelect.map(option => (option, if (combineOptionNameWithValue) s"$option $value" else value))
   }
-  // scalastyle:off cyclomatic.complexity
+
   def checkHtmlForOptionAndItsAttributes(htmlAsString: String, optionsSelected: Map[String, String], formStatus: String = "NotSubmitted"): Unit = {
 
     assert(
@@ -63,7 +63,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
       }
     }
   }
-  // scalastyle:on cyclomatic.complexity
+
   private def generateOptionStatus(option: MockInputOption, selectedValue: String): OptionStatus = {
     val optionWasSubmittedAndValueWasEnteredOrSelected = selectedValue != "OptionNotSubmitted" && selectedValue.nonEmpty
     val valueHasBeenEntered: Boolean = optionWasSubmittedAndValueWasEnteredOrSelected && option.value == ""
