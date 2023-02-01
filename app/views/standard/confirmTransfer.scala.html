@@ -3,6 +3,7 @@
 @import helper.{inputRadioGroup => _, _}
 @import views.html.partials.{errorSummary, inputSingleCheckbox, progressIndicator}
 
+@import views.html.partials.notificationBanner
 @(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData], name: String)(implicit request: RequestHeader, messages: Messages)
 
 @main("Confirm transfer", name = name) {
@@ -12,6 +13,11 @@
             @progressIndicator(Messages("confirmTransfer.progress"))
 
             <h1 class="govuk-heading-l">Confirm transfer</h1>
+            @notificationBanner(
+                Messages("notification.savedProgress.title"),
+                Messages("notification.savedProgress.heading"),
+                Messages("notification.savedProgress.metadataInfo", routes.ViewTransfersController.viewConsignments(), "View Transfers")
+            )
             <p class="govuk-body">Here is a summary of the records you have uploaded.</p>
             @errorSummary(
               List(
@@ -52,36 +58,37 @@
                     </dd>
                 </div>
             </dl>
-
-        <p class="govuk-body">Please check the box to acknowledge:</p>
-        <div class="govuk-form-group ">
             @form(
-            routes.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId),
-            (Symbol("novalidate"), "")
+                routes.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId),
+                (Symbol("novalidate"), "")
             ) {
-                @CSRF.formField
-                <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
-                    @inputSingleCheckbox(
-                        finalTransferConfirmationForm("transferLegalCustody").id,
-                        Map(
-                            Symbol("_label") -> "I confirm that I am transferring legal custody of these records to The National Archives.",
-                            Symbol("_value") -> "true",
-                            Symbol("_smallCheckbox") -> true,
-                            Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
-                            Symbol("_requiredOption") -> true
-                        ),
-                        finalTransferConfirmationForm("transferLegalCustody").errors.headOption match {
-                            case Some(formError) => formError.messages
-                            case None => Nil
-                        }
-                    )
-                </fieldset>
-            </div>
-                <div>
-                    <!-- Transfer -->
-                    <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                        Transfer your records
-                    </button>
+                <div class="govuk-form-group ">
+                    @CSRF.formField
+                    <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
+                        @inputSingleCheckbox(
+                            finalTransferConfirmationForm("transferLegalCustody").id,
+                            Map(
+                                Symbol("_label") -> "By proceeding with this transfer, I confirm that I am agreeing to transfer legal custody of these records to The National Archives.",
+                                Symbol("_value") -> "true",
+                                Symbol("_smallCheckbox") -> true,
+                                Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
+                                Symbol("_requiredOption") -> true
+                            ),
+                            finalTransferConfirmationForm("transferLegalCustody").errors.headOption match {
+                                case Some(formError) => formError.messages
+                                case None => Nil
+                            }
+                        )
+                    </fieldset>
+                    <div class="govuk-button-group">
+                            <!-- Transfer -->
+                        <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                            Back
+                        </a>
+                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                            Transfer your records
+                        </button>
+                    </div>
                 </div>
             }
         </div>
