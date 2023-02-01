@@ -103,29 +103,12 @@ class AddAdditionalMetadataController @Inject() (
   ): Future[Unit] = {
     val updateMetadataInputs: List[UpdateFileMetadataInput] = buildUpdateMetadataInput(updatedFormFields)
 
-    val deleteMetadataNames: Set[String] = updatedFormFields
-      .collect {
-        case p if !updateMetadataInputs.exists(_.filePropertyName == p.fieldId) => p.fieldId :: Nil
-        case RadioButtonGroupField(_, _, _, _, _, _, selectedOption, _, _, _, dependencies) if dependencies.nonEmpty =>
-          val nameOfOptionSelected: List[String] = List(selectedOption)
-          getDependenciesOfNonSelectedOptions(dependencies, nameOfOptionSelected)
-        case TextField(_, _, _, _, nameAndValue, _, _, _, _, _, dependencies) if dependencies.nonEmpty =>
-          val nameOfOptionSelected: List[String] = List(nameAndValue.name)
-          getDependenciesOfNonSelectedOptions(dependencies, nameOfOptionSelected)
-        case TextAreaField(_, _, _, _, nameAndValue, _, _, _, _, _, dependencies) if dependencies.nonEmpty =>
-          val nameOfOptionSelected: List[String] = List(nameAndValue.name)
-          getDependenciesOfNonSelectedOptions(dependencies, nameOfOptionSelected)
-        case DropdownField(_, _, _, _, _, selectedOption, _, _, dependencies) if dependencies.nonEmpty && selectedOption.nonEmpty =>
-          val nameOfOptionSelected: List[String] = selectedOption.map(_.name).toList
-          getDependenciesOfNonSelectedOptions(dependencies, nameOfOptionSelected)
-        case MultiSelectField(_, _, _, _, _, _, selectedOptions, _, _, dependencies) if dependencies.nonEmpty && selectedOptions.nonEmpty =>
-          val namesOfOptionsSelected: List[String] = selectedOptions.getOrElse(Nil).map(_.name)
-          getDependenciesOfNonSelectedOptions(dependencies, namesOfOptionsSelected)
-        case _ @fieldTypeWithNoImplementation if fieldTypeWithNoImplementation.dependencies.nonEmpty =>
-          throw new Exception(s"Dependencies exist for ${fieldTypeWithNoImplementation.fieldId} but there is no implementation to extract them for deletion.")
-      }
-      .flatten
-      .toSet
+    val deleteMetadataNames: Set[String] = updatedFormFields.flatMap {
+      case p if !updateMetadataInputs.exists(_.filePropertyName == p.fieldId) => p.fieldId :: Nil
+      case f: FormField                                                       => getDependenciesOfNonSelectedOptions(f.dependencies, f.selectedOptionNames())
+      case _ @fieldTypeWithNoImplementation if fieldTypeWithNoImplementation.dependencies.nonEmpty =>
+        throw new Exception(s"Dependencies exist for ${fieldTypeWithNoImplementation.fieldId} but there is no implementation to extract them for deletion.")
+    }.toSet
 
     for {
       _ <- if (deleteMetadataNames.nonEmpty) customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, deleteMetadataNames) else Future.successful(())
