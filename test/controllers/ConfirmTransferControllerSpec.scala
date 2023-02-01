@@ -160,15 +160,15 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       )
 
       confirmTransferPageAsString must include(
-        s"""            <div class="govuk-button-group">
-           |                <!-- Transfer -->
-           |                <a href="/consignment/$consignmentId/additional-metadata/download-metadata" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-           |                    Back
-           |                </a>
-           |                <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-           |                    Transfer your records
-           |                </button>
-           |            </div>""".stripMargin
+        s"""                    <div class="govuk-button-group">
+           |                            <!-- Transfer -->
+           |                        <a href="/consignment/$consignmentId/additional-metadata/download-metadata" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+           |                            Back
+           |                        </a>
+           |                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+           |                            Transfer your records
+           |                        </button>
+           |                    </div>""".stripMargin
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(confirmTransferPageAsString, userType = "standard")
