@@ -87,9 +87,9 @@ class AddAdditionalMetadataController @Inject() (
               ).uncache()
             }
           } else {
-            updateMetadata(updatedFormFields, consignmentId, fileIds, metadataType).map(_ => {
+            updateMetadata(updatedFormFields, consignmentId, fileIds).map { _ =>
               Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds))
-            })
+            }
           }
         }
       } yield result
@@ -98,10 +98,9 @@ class AddAdditionalMetadataController @Inject() (
   private def getDependenciesOfNonSelectedOptions(dependencies: Map[String, List[FormField]], nameOfOptionSelected: List[String]) =
     dependencies.filterNot { case (name, _) => nameOfOptionSelected.contains(name) }.flatMap { case (_, fields) => fields.map(_.fieldId) }
 
-  private def updateMetadata(updatedFormFields: List[FormField], consignmentId: UUID, fileIds: List[UUID], metadataType: String)(implicit
+  private def updateMetadata(updatedFormFields: List[FormField], consignmentId: UUID, fileIds: List[UUID])(implicit
       request: Request[AnyContent]
-  ): Future[Result] = {
-
+  ): Future[Unit] = {
     val updateMetadataInputs: List[UpdateFileMetadataInput] = buildUpdateMetadataInput(updatedFormFields)
 
     val deleteMetadataNames: Set[String] = updatedFormFields
@@ -131,7 +130,7 @@ class AddAdditionalMetadataController @Inject() (
     for {
       _ <- if (deleteMetadataNames.nonEmpty) customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, deleteMetadataNames) else Future.successful(())
       _ <- customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, updateMetadataInputs)
-    } yield Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds))
+    } yield ()
   }
 
   private def getConsignmentFileMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID])(implicit request: Request[AnyContent]): Future[GetConsignment] = {
