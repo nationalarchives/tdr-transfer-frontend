@@ -74,6 +74,8 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
     val summary: String = attributes.find(_.attribute == "Summary").getStringValue
 
+    val futureDateAllowed: Boolean = attributes.find(_.attribute == "FutureDateAllowed").getBoolean
+
     val ordinal: Int = {
       attributes.find(_.attribute == "Ordinal") match {
         case Some(o) => o.value.get.toInt
@@ -98,7 +100,8 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
       p.propertyName,
       propertyType,
       unitType,
-      summary
+      summary,
+      futureDateAllowed
     )
   }
 
@@ -132,5 +135,6 @@ case class DisplayProperty(
     propertyName: String,
     propertyType: String,
     unitType: String,
-    summary: String
+    summary: String,
+    futureDateAllowed: Boolean = true
 )

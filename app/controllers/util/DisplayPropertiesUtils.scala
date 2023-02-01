@@ -66,7 +66,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           InputNameAndValue("Month", "", "MM"),
           InputNameAndValue("Year", "", "YYYY"),
           required,
-          isFutureDateAllowed = property.propertyName != "FoiExemptionAsserted"
+          isFutureDateAllowed = property.futureDateAllowed
         )
       case "radial" => generateRadioField(property, customMetadata)
       case "select" =>

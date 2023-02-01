@@ -9,7 +9,6 @@ import services.DisplayProperty
 
 class FormTestData() {
 
-  // scalastyle:off method.length
   def setupCustomMetadata(): List[CustomMetadata] = {
     val foiExemptionAsserted = CustomMetadata(
       "FoiExemptionAsserted",
@@ -110,7 +109,6 @@ class FormTestData() {
 
     List(foiExemptionAsserted, closureStartDate, closurePeriod, dropdown, radio, dependency)
   }
-  // scalastyle:on method.length
 
   def dependencies(): List[String] = List("DescriptionAlternate")
 
@@ -131,7 +129,8 @@ class FormTestData() {
         "FoiExemptionAsserted",
         "propertyType",
         "unitType",
-        "summary"
+        "summary",
+        futureDateAllowed = false
       ),
       DisplayProperty(
         active = true,
