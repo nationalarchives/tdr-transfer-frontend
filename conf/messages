@@ -22,6 +22,7 @@ transferComplete.error=There has been an error, contact us.
 deleteAdditionalMetadata.closureDeletionMessage=You are deleting closure metadata for the following files and setting them as open:
 deleteAdditionalMetadata.descriptiveDeletionMessage=You are deleting descriptive metadata for the following files:
 additionalMetadata.warningMessage=Check you have entered any additional metadata that is required before proceeding with the transfer.
+closureStatus.warningMessage=You have now added closure status to the selected files. You can remove the status by deleting the closure metadata. To do this, visit the <a href="{0}">{1}</a>.
 
 progressIndicator.step=Step {0} of {1}
 # Progress indicator step numbers

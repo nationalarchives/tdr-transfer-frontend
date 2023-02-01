@@ -1,6 +1,6 @@
-@(isLoggedIn: Boolean, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(isLoggedIn: Boolean, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
 
-@main("Help", isLoggedIn = isLoggedIn, isJudgmentUser = isJudgmentUser) {
+@main("Help", isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             <h1 class="govuk-heading-l">User Help Guide</h1>
