@@ -127,7 +127,7 @@ object RadioButtonGroupField {
       .get(option)
       .flatMap(_.flatMap {
         case textField: TextField         => TextField.validate(dependencies(textField.fieldId), textField)
-        case textAreaField: TextAreaField => TextAreaField.validate(dependencies(textAreaField.fieldId), textAreaField)
+        case textAreaField: TextAreaField => TextAreaField.validate(dependencies(textAreaField.fieldId), textAreaField.copy(isRequired = true))
         case formField: FormField         => throw new NotImplementedException(s"Implement for ${formField.fieldId}")
       }.headOption)
 
@@ -211,12 +211,10 @@ object TextAreaField {
   def update(textAreaField: TextAreaField, value: String): TextAreaField = textAreaField.copy(nameAndValue = textAreaField.nameAndValue.copy(value = value))
 
   def validate(text: String, textAreaField: TextAreaField): Option[String] = {
-    // DescriptionAlternate is Optional in the database but it cannot be empty if descriptionClosed is set to 'yes'
-    val isDescriptionAlternate = textAreaField.fieldId == "DescriptionAlternate"
     text match {
-      case t if t == "" && textAreaField.isRequired | t == "" && isDescriptionAlternate => Some(emptyValueError.format("text", textAreaField.fieldName))
-      case t if t.length > textAreaField.characterLimit                                 => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
-      case _                                                                            => None
+      case t if t == "" && textAreaField.isRequired     => Some(emptyValueError.format("text", textAreaField.fieldName))
+      case t if t.length > textAreaField.characterLimit => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
+      case _                                            => None
     }
   }
 }
