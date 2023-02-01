@@ -58,12 +58,11 @@
                     </dd>
                 </div>
             </dl>
-
-            <div class="govuk-form-group ">
-                @form(
+            @form(
                 routes.ConfirmTransferController.finalTransferConfirmationSubmit(consignmentId),
                 (Symbol("novalidate"), "")
-                ) {
+            ) {
+                <div class="govuk-form-group ">
                     @CSRF.formField
                     <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
                         @inputSingleCheckbox(
@@ -81,17 +80,17 @@
                             }
                         )
                     </fieldset>
-                }
-            </div>
-            <div class="govuk-button-group">
-                <!-- Transfer -->
-                <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-                    Back
-                </a>
-                <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                    Transfer your records
-                </button>
-            </div>
+                    <div class="govuk-button-group">
+                            <!-- Transfer -->
+                        <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+                            Back
+                        </a>
+                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                            Transfer your records
+                        </button>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 }
