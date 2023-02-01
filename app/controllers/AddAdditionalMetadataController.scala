@@ -98,7 +98,6 @@ class AddAdditionalMetadataController @Inject() (
   private def getDependenciesOfNonSelectedOptions(dependencies: Map[String, List[FormField]], nameOfOptionSelected: List[String]) =
     dependencies.filterNot { case (name, _) => nameOfOptionSelected.contains(name) }.flatMap { case (_, fields) => fields.map(_.fieldId) }
 
-  // scalastyle:off cyclomatic.complexity
   private def updateMetadata(updatedFormFields: List[FormField], consignmentId: UUID, fileIds: List[UUID], metadataType: String)(implicit
       request: Request[AnyContent]
   ): Future[Result] = {
@@ -136,7 +135,6 @@ class AddAdditionalMetadataController @Inject() (
       .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, updateMetadataInputs)
       .map(_ => Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)))
   }
-  // scalastyle:on cyclomatic.complexity
 
   private def getConsignmentFileMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID])(implicit request: Request[AnyContent]): Future[GetConsignment] = {
     val additionalProperties = metadataType match {
