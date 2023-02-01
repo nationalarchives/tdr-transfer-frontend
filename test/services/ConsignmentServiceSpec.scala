@@ -461,7 +461,18 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val userId = UUID.randomUUID()
       val edges = List(
         Consignments
-          .Edges(Node(UUID.randomUUID().some, "TEST-TDR-2021-GB", Some(ZonedDateTime.now()), Some(ZonedDateTime.now()), CurrentStatus("Completed".some), 5), "Cursor")
+          .Edges(
+            Node(
+              UUID.randomUUID().some,
+              "TEST-TDR-2021-GB",
+              Some("standard"),
+              Some(ZonedDateTime.now()),
+              Some(ZonedDateTime.now()),
+              CurrentStatus(Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed")),
+              5
+            ),
+            "Cursor"
+          )
           .some
       )
 
