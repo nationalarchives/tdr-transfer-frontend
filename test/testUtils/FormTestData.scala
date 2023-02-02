@@ -106,7 +106,7 @@ class FormTestData() {
       None,
       allowExport = false
     )
-    val dependency = CustomMetadata(
+    val dependencyProperty2 = CustomMetadata(
       "DescriptionAlternate",
       Some("Alternative Description"),
       Some("Alternative Description"),
@@ -122,7 +122,7 @@ class FormTestData() {
       allowExport = false
     )
 
-    List(foiExemptionAsserted, closureStartDate, closurePeriod, dropdown, radio, dependencyProperty1, dependency)
+    List(foiExemptionAsserted, closureStartDate, closurePeriod, dropdown, radio, dependencyProperty1, dependencyProperty2)
   }
 
   def dependencies(): List[String] = List("DescriptionAlternate")
