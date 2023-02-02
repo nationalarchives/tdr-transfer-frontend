@@ -14,6 +14,8 @@ abstract class FormField {
   val isRequired: Boolean
   val hideInputs: Boolean = false
   val fieldErrors: List[String]
+  val dependencies: Map[String, List[FormField]] = Map.empty
+  def selectedOptionNames(): List[String]
 }
 
 case class InputNameAndValue(name: String, value: String, placeHolder: String = "")
@@ -28,9 +30,12 @@ case class RadioButtonGroupField(
     selectedOption: String,
     isRequired: Boolean,
     override val hideInputs: Boolean = false,
-    dependencies: Map[String, List[FormField]] = Map.empty,
-    fieldErrors: List[String] = Nil
-) extends FormField
+    fieldErrors: List[String] = Nil,
+    override val dependencies: Map[String, List[FormField]] = Map.empty
+) extends FormField {
+  override def selectedOptionNames(): List[String] =
+    List(selectedOption)
+}
 
 case class TextField(
     fieldId: String,
@@ -42,8 +47,11 @@ case class TextField(
     isRequired: Boolean,
     fieldErrors: List[String] = Nil,
     addSuffixText: Boolean = true,
-    inputType: String = "number"
-) extends FormField
+    inputType: String = "number",
+    override val dependencies: Map[String, List[FormField]] = Map.empty
+) extends FormField {
+  override def selectedOptionNames(): List[String] = List(nameAndValue.name)
+}
 
 case class TextAreaField(
     fieldId: String,
@@ -55,8 +63,11 @@ case class TextAreaField(
     fieldErrors: List[String] = Nil,
     rows: String = "5",
     wrap: String = "hard",
-    characterLimit: Int = 8000
-) extends FormField
+    characterLimit: Int = 8000,
+    override val dependencies: Map[String, List[FormField]] = Map.empty
+) extends FormField {
+  override def selectedOptionNames(): List[String] = List(nameAndValue.name)
+}
 
 case class DropdownField(
     fieldId: String,
@@ -66,8 +77,11 @@ case class DropdownField(
     options: Seq[InputNameAndValue],
     selectedOption: Option[InputNameAndValue],
     isRequired: Boolean,
-    fieldErrors: List[String] = Nil
-) extends FormField
+    fieldErrors: List[String] = Nil,
+    override val dependencies: Map[String, List[FormField]] = Map.empty
+) extends FormField {
+  override def selectedOptionNames(): List[String] = selectedOption.map(_.name).toList
+}
 
 case class MultiSelectField(
     fieldId: String,
@@ -78,8 +92,11 @@ case class MultiSelectField(
     options: Seq[InputNameAndValue],
     selectedOption: Option[List[InputNameAndValue]],
     isRequired: Boolean,
-    fieldErrors: List[String] = Nil
-) extends FormField
+    fieldErrors: List[String] = Nil,
+    override val dependencies: Map[String, List[FormField]] = Map.empty
+) extends FormField {
+  override def selectedOptionNames(): List[String] = selectedOption.getOrElse(Nil).map(_.name)
+}
 
 case class DateField(
     fieldId: String,
@@ -91,8 +108,11 @@ case class DateField(
     year: InputNameAndValue,
     isRequired: Boolean,
     fieldErrors: List[String] = Nil,
-    isFutureDateAllowed: Boolean = false
-) extends FormField
+    isFutureDateAllowed: Boolean = false,
+    override val dependencies: Map[String, List[FormField]] = Map.empty
+) extends FormField {
+  override def selectedOptionNames(): List[String] = List(fieldName)
+}
 
 object FormField {
 

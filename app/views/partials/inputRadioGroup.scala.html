@@ -8,8 +8,8 @@
         selectedOption: String,
         attributes: Map[Symbol, Any],
         hideInputs: Boolean,
-        dependencies: Map[String, List[FormField]],
-        fieldErrors: List[String])(implicit messages: Messages)
+        fieldErrors: List[String],
+        dependencies: Map[String, List[FormField]])(implicit messages: Messages)
 
 @import views.html.partials.errorMessage
 @import viewsapi.FormFunctions._

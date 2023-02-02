@@ -87,35 +87,33 @@ class AddAdditionalMetadataController @Inject() (
               ).uncache()
             }
           } else {
-            updateMetadata(updatedFormFields, consignmentId, fileIds, metadataType).map(_ => {
+            updateMetadata(updatedFormFields, consignmentId, fileIds).map { _ =>
               Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds))
-            })
+            }
           }
         }
       } yield result
   }
 
-  private def updateMetadata(updatedFormFields: List[FormField], consignmentId: UUID, fileIds: List[UUID], metadataType: String)(implicit
+  private def getDependenciesOfNonSelectedOptions(dependencies: Map[String, List[FormField]], nameOfOptionSelected: List[String]) =
+    dependencies.filterNot { case (name, _) => nameOfOptionSelected.contains(name) }.flatMap { case (_, fields) => fields.map(_.fieldId) }
+
+  private def updateMetadata(updatedFormFields: List[FormField], consignmentId: UUID, fileIds: List[UUID])(implicit
       request: Request[AnyContent]
-  ): Future[Result] = {
+  ): Future[Unit] = {
+    val updateMetadataInputs: List[UpdateFileMetadataInput] = buildUpdateMetadataInput(updatedFormFields)
 
-    val updateMetadataInputs = buildUpdateMetadataInput(updatedFormFields)
+    val deleteMetadataNames: Set[String] = updatedFormFields.flatMap {
+      case p if !updateMetadataInputs.exists(_.filePropertyName == p.fieldId) => p.fieldId :: Nil
+      case f: FormField                                                       => getDependenciesOfNonSelectedOptions(f.dependencies, f.selectedOptionNames())
+      case _ @fieldTypeWithNoImplementation if fieldTypeWithNoImplementation.dependencies.nonEmpty =>
+        throw new Exception(s"Dependencies exist for ${fieldTypeWithNoImplementation.fieldId} but there is no implementation to extract them for deletion.")
+    }.toSet
 
-    val deleteMetadataNames = updatedFormFields
-      .collect {
-        case p if !updateMetadataInputs.exists(_.filePropertyName == p.fieldId) => p.fieldId :: Nil
-        case RadioButtonGroupField(_, _, _, _, _, _, selectedOption, _, _, dependencies, _) =>
-          dependencies.removed(selectedOption).flatMap { case (_, fields) => fields.map(_.fieldId) }
-      }
-      .flatten
-      .toSet
-
-    if (deleteMetadataNames.nonEmpty) {
-      customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, deleteMetadataNames)
-    }
-    customMetadataService
-      .saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, updateMetadataInputs)
-      .map(_ => Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)))
+    for {
+      _ <- if (deleteMetadataNames.nonEmpty) customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, deleteMetadataNames) else Future.successful(())
+      _ <- customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, updateMetadataInputs)
+    } yield ()
   }
 
   private def getConsignmentFileMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID])(implicit request: Request[AnyContent]): Future[GetConsignment] = {
@@ -128,17 +126,17 @@ class AddAdditionalMetadataController @Inject() (
 
   private def buildUpdateMetadataInput(updatedFormFields: List[FormField]): List[UpdateFileMetadataInput] = {
     updatedFormFields.collect {
-      case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
+      case TextField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
-      case TextAreaField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
+      case TextAreaField(fieldId, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
-      case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _) if day.value.nonEmpty =>
+      case DateField(fieldId, _, _, multiValue, day, month, year, _, _, _, _) if day.value.nonEmpty =>
         val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, Timestamp.valueOf(dateTime).toString) :: Nil
-      case RadioButtonGroupField(fieldId, _, _, _, multiValue, _, selectedOption, _, _, dependencies, _) =>
+      case RadioButtonGroupField(fieldId, _, _, _, multiValue, _, selectedOption, _, _, _, dependencies) =>
         val fileMetadataInputs = dependencies.get(selectedOption).map(buildUpdateMetadataInput).getOrElse(Nil)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString) :: fileMetadataInputs
-      case MultiSelectField(fieldId, _, _, _, multiValue, _, selectedOptions, _, _) if selectedOptions.isDefined =>
+      case MultiSelectField(fieldId, _, _, _, multiValue, _, selectedOptions, _, _, _) if selectedOptions.isDefined =>
         selectedOptions.getOrElse(Nil).map(p => UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, p.value))
     }.flatten
   }

@@ -3,7 +3,8 @@ package testUtils
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import controllers.{TransferAgreementComplianceController, TransferAgreementPrivateBetaController}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
@@ -23,9 +24,6 @@ import scala.concurrent.ExecutionContext
 
 class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
-
-  lazy val checkHtmlOfPrivateBetaFormOptions = new FormTester(expectedPrivateBetaOptions, "")
-  lazy val checkHtmlOfComplianceFormOptions = new FormTester(expectedComplianceOptions, "")
 
   val privateBeta = "privateBeta"
   val compliance = "compliance"
@@ -79,6 +77,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val applicationConfig = new ApplicationConfig(config)
 
     new TransferAgreementPrivateBetaController(
       securityComponents,
@@ -86,7 +85,8 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       transferAgreementService,
       keycloakConfiguration,
       consignmentService,
-      consignmentStatusService
+      consignmentStatusService,
+      applicationConfig
     )
   }
 
@@ -99,6 +99,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val applicationConfig = new ApplicationConfig(config)
 
     new TransferAgreementComplianceController(
       securityComponents,
@@ -106,7 +107,8 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       transferAgreementService,
       keycloakConfiguration,
       consignmentService,
-      consignmentStatusService
+      consignmentStatusService,
+      applicationConfig
     )
   }
 
