@@ -43,9 +43,9 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
 
   private val token = new BearerAccessToken("some-token")
 
-  private val taPrivateBetaFormData = TransferAgreementData(publicRecord = true, crownCopyright = true, english = true)
+  private val taPrivateBetaFormData = TransferAgreementData(publicRecord = true, crownCopyright = true, english = Option(true))
 
-  private val taComplianceFormData = TransferAgreementComplianceData(droAppraisalSelection = true, droSensitivity = true, openRecords = true)
+  private val taComplianceFormData = TransferAgreementComplianceData(droAppraisalSelection = true, droSensitivity = true, openRecords = Option(true))
 
   private val transferAgreementPrivateBetaInput = AddTransferAgreementPrivateBetaInput(
     consignmentId,
@@ -66,7 +66,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
   }
 
   "addTransferAgreementPrivateBeta" should "return the TransferAgreement from the API" in {
-    val transferAgreementPrivateBetaResponse = AddTransferAgreementPrivateBeta(consignmentId, allPublicRecords = true, allCrownCopyright = true, allEnglish = true)
+    val transferAgreementPrivateBetaResponse = AddTransferAgreementPrivateBeta(consignmentId, allPublicRecords = true, allCrownCopyright = true, allEnglish = Option(true))
 
     val graphQlResponse =
       GraphQlResponse(
@@ -110,7 +110,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
 
   "addTransferAgreementCompliance" should "return the TransferAgreement from the API" in {
     val transferAgreementComplianceResponse =
-      AddTransferAgreementCompliance(consignmentId, appraisalSelectionSignedOff = true, sensitivityReviewSignedOff = true, initialOpenRecords = true)
+      AddTransferAgreementCompliance(consignmentId, appraisalSelectionSignedOff = true, sensitivityReviewSignedOff = true, Option(true))
 
     val graphQlResponse =
       GraphQlResponse(

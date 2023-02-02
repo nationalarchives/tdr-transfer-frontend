@@ -14,12 +14,11 @@
     <div class="govuk-grid-column-two-thirds">
         @transferAgreementHeader(" continued")
         <p class="govuk-body">You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor.</p>
+
         @errorSummary(
-            List(
-                transferAgreementFormData("droAppraisalSelection").id -> transferAgreementFormData("droAppraisalSelection").errors.headOption,
-                transferAgreementFormData("droSensitivity").id -> transferAgreementFormData("droSensitivity").errors.headOption,
-                transferAgreementFormData("openRecords").id -> transferAgreementFormData("openRecords").errors.headOption
-            ).collect {case (id, Some(formError)) => id -> formError.messages}
+            transferAgreementFormData.formats.keys.toList
+                    .map(key => transferAgreementFormData(key).id -> transferAgreementFormData(key).errors.headOption)
+                    .collect { case (id, Some(formError)) => id -> formError.messages}
         )
         @form(
             routes.TransferAgreementComplianceController.transferAgreementSubmit(consignmentId),

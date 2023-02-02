@@ -6,7 +6,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
-import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddBulkFileMetadata.addBulkFileMetadata.UpdateBulkFileMetadata
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.DeleteFileMetadata.deleteFileMetadata.DeleteFileMetadata
@@ -75,6 +76,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.existentials
+import scala.jdk.CollectionConverters._
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach with TableDrivenPropertyChecks {
 
@@ -84,6 +86,18 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     def await(timeout: Duration = 2.seconds): T = {
       Await.result(future, timeout)
     }
+  }
+
+  def getConfig(blockClosureMetadata: Boolean, blockDescriptiveMetadata: Boolean): Configuration = {
+    val config: Map[String, ConfigValue] = ConfigFactory
+      .load()
+      .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef(blockClosureMetadata.toString))
+      .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef(blockDescriptiveMetadata.toString))
+      .entrySet()
+      .asScala
+      .map(e => e.getKey -> e.getValue)
+      .toMap
+    Configuration.from(config)
   }
 
   def setConsignmentTypeResponse(wiremockServer: WireMockServer, consignmentType: String): StubMapping = {
@@ -200,14 +214,15 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       uploadStatus: Option[String] = None,
       clientChecks: Option[String] = None,
       confirmTransferStatus: Option[String] = None,
-      exportStatus: Option[String] = None
+      exportStatus: Option[String] = None,
+      clientChecksStatus: Option[String] = None
   ): StubMapping = {
     val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
     val consignmentResponse = gcs.Data(
       Option(
         GetConsignment(
           Some(Series(seriesId.getOrElse(UUID.randomUUID()), "MOCK1")),
-          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, clientChecks, confirmTransferStatus, exportStatus)
+          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, clientChecksStatus, confirmTransferStatus, exportStatus)
         )
       )
     )
@@ -780,8 +795,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
     )
 
-  def frontEndInfoConfiguration: FrontEndInfoConfiguration = {
-    val frontEndInfoConfiguration: FrontEndInfoConfiguration = mock[FrontEndInfoConfiguration]
+  def frontEndInfoConfiguration: ApplicationConfig = {
+    val frontEndInfoConfiguration: ApplicationConfig = mock[ApplicationConfig]
     when(frontEndInfoConfiguration.frontEndInfo).thenReturn(
       FrontEndInfo(
         "https://mock-api-url.com/graphql",
