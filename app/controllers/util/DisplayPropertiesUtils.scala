@@ -65,8 +65,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           InputNameAndValue("Day", "", "DD"),
           InputNameAndValue("Month", "", "MM"),
           InputNameAndValue("Year", "", "YYYY"),
-          required,
-          isFutureDateAllowed = property.allowFutureDate
+          required
         )
       case "radial" => generateRadioField(property, customMetadata)
       case "select" =>

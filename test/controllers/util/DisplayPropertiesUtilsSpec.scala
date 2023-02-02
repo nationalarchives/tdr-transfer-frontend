@@ -40,7 +40,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       allowExport = false
     )
     val displayProperty =
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown", "propertyType", "", "", false)
+      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown", "propertyType", "", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
@@ -74,7 +74,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       allowExport = false
     )
     val displayProperty =
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", true, 3, "Dropdown1", "propertyType", "", "", false)
+      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", true, 3, "Dropdown1", "propertyType", "", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
@@ -108,7 +108,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       allowExport = false
     )
     val displayProperty =
-      DisplayProperty(true, "large text", Text, "description", "TextField Display", true, "group", "guidance", "label", false, 3, "TextField", "propertyType", "", "", false)
+      DisplayProperty(true, "large text", Text, "description", "TextField Display", true, "group", "guidance", "label", false, 3, "TextField", "propertyType", "", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
@@ -144,8 +144,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "Radio",
         "propertyType",
         "",
-        "",
-        allowFutureDate = false
+        ""
       )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
@@ -180,8 +179,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "ClosureStartDate",
         "propertyType",
         "",
-        "",
-        allowFutureDate = false
+        ""
       )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
@@ -216,8 +214,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "TestProperty2",
         "propertyType",
         "",
-        "",
-        allowFutureDate = false
+        ""
       )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
@@ -250,8 +247,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "Dropdown1",
         "propertyType",
         "",
-        "",
-        allowFutureDate = false
+        ""
       )
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List())
 

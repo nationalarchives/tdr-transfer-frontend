@@ -91,7 +91,7 @@ case class DateField(
     year: InputNameAndValue,
     isRequired: Boolean,
     fieldErrors: List[String] = Nil,
-    isFutureDateAllowed: Boolean = true
+    isFutureDateAllowed: Boolean = false
 ) extends FormField
 
 object FormField {
