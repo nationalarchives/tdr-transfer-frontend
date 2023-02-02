@@ -1,8 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import com.typesafe.config.Config
-import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
@@ -20,16 +19,13 @@ class FileChecksResultsController @Inject() (
     val graphqlConfiguration: GraphQLConfiguration,
     val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
-    val frontEndInfoConfiguration: FrontEndInfoConfiguration,
-    val configuration: Config
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
 
   def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val pageTitle = "Results of your checks"
-    val blockClosureMetadata = configuration.getBoolean("featureAccessBlock.closureMetadata")
-    val blockDescriptiveMetadata = configuration.getBoolean("featureAccessBlock.descriptiveMetadata")
 
     for {
       fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
@@ -41,7 +37,17 @@ class FileChecksResultsController @Inject() (
           fileCheck.totalFiles,
           parentFolder
         )
-        Ok(views.html.standard.fileChecksResults(consignmentInfo, pageTitle, consignmentId, reference, request.token.name, blockClosureMetadata, blockDescriptiveMetadata))
+        Ok(
+          views.html.standard.fileChecksResults(
+            consignmentInfo,
+            pageTitle,
+            consignmentId,
+            reference,
+            request.token.name,
+            applicationConfig.blockClosureMetadata,
+            applicationConfig.blockDescriptiveMetadata
+          )
+        )
       } else {
         val fileStatusList = fileCheck.files.flatMap(_.fileStatus)
         Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = false, fileStatusList))

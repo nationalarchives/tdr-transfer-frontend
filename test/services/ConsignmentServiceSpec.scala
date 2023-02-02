@@ -459,6 +459,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
   "getConsignments" should {
     "return a list of the user's consignments" in {
       val userId = UUID.randomUUID()
+
       val edges = List(
         Consignments
           .Edges(
