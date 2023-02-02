@@ -2,7 +2,7 @@ package controllers
 
 import java.util.UUID
 import auth.TokenSecurity
-import configuration.{FrontEndInfoConfiguration, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import io.circe.syntax._
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
@@ -19,7 +19,7 @@ class FileChecksController @Inject() (
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val frontEndInfoConfiguration: FrontEndInfoConfiguration
+    val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -54,13 +54,13 @@ class FileChecksController @Inject() (
           views.html.fileChecksProgressAlreadyConfirmed(
             consignmentId,
             reference,
-            frontEndInfoConfiguration.frontEndInfo,
+            applicationConfig.frontEndInfo,
             request.token.name,
             isJudgmentUser = false
           )
         ).uncache()
       } else {
-        Ok(views.html.standard.fileChecksProgress(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name))
+        Ok(views.html.standard.fileChecksProgress(consignmentId, reference, applicationConfig.frontEndInfo, request.token.name))
           .uncache()
       }
     }
@@ -76,13 +76,13 @@ class FileChecksController @Inject() (
           views.html.fileChecksProgressAlreadyConfirmed(
             consignmentId,
             reference,
-            frontEndInfoConfiguration.frontEndInfo,
+            applicationConfig.frontEndInfo,
             request.token.name,
             isJudgmentUser = true
           )
         ).uncache()
       } else {
-        Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.name)).uncache()
+        Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference, applicationConfig.frontEndInfo, request.token.name)).uncache()
       }
     }
   }
