@@ -20,7 +20,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     val fields: Seq[String] = displayPropertiesUtils.convertPropertiesToFormFields(displayProperties).map(_.fieldId)
 
     fields.size should equal(6)
-    fields should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Radio", "TestProperty2", "Dropdown"))
+    fields should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Radio", "DescriptionAlternate", "Dropdown"))
   }
 
   "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select' where the property is not mult-value" in {
@@ -39,7 +39,8 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       None,
       allowExport = false
     )
-    val displayProperty = DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown", "propertyType", "", "")
+    val displayProperty =
+      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown", "propertyType", "", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
@@ -72,7 +73,8 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       None,
       allowExport = false
     )
-    val displayProperty = DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", true, 3, "Dropdown1", "propertyType", "", "")
+    val displayProperty =
+      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", true, 3, "Dropdown1", "propertyType", "", "")
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
@@ -230,7 +232,23 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
 
   "convertPropertiesToFormFields" should "throw an error for an unsupported component type" in {
     val displayProperty =
-      DisplayProperty(true, "unsupportedComponentType", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown1", "propertyType", "", "")
+      DisplayProperty(
+        active = true,
+        "unsupportedComponentType",
+        Text,
+        "description",
+        "Dropdown Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = false,
+        3,
+        "Dropdown1",
+        "propertyType",
+        "",
+        ""
+      )
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List())
 
     val thrownException = intercept[Exception] {

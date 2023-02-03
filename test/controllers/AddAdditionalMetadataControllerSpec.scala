@@ -670,7 +670,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val expectedField = RadioButtonGroupField(
         descriptionClosed,
         "name",
-        "This field cannot be edited here. You can edit the description in the <strong>Descriptive metadata</strong> step.",
+        "The current description of your record is below. You can edit it in the Descriptive metadata step.",
         "some value",
         false,
         Seq(InputNameAndValue("Yes", "Yes")),
@@ -691,7 +691,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val expectedField = RadioButtonGroupField(
         descriptionClosed,
         "name",
-        "There is no description associated with this record. You can add a description in the <strong>Descriptive metadata</strong> section.",
+        "If you need to add a description, you can do so in the Descriptive metadata step.",
         "",
         false,
         Seq(InputNameAndValue("Yes", "Yes")),

@@ -183,7 +183,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       DateField.validate("12", "2", "1990", dateField) shouldBe None
       DateField.validate("30", "4", "1990", dateField) shouldBe None
       DateField.validate("29", "2", "2000", dateField) shouldBe None
-      DateField.validate("1", "10", "2025", dateField) shouldBe None
+      DateField.validate("1", "10", "2022", dateField) shouldBe None
     }
 
     "validate should return an error when the given day, month or year is empty" in {
@@ -212,7 +212,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "validate should not return an error when the given year is 4 digits long" in {
 
-      List("1000", "2022", "9999").foreach { fourDigitYear =>
+      List("1000", "2022").foreach { fourDigitYear =>
         DateField.validate("1", "2", fourDigitYear, dateField) shouldBe None
       }
     }
@@ -265,7 +265,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "validate should return no errors if February does have 29 days that year (leap year)" in {
 
-      List("2024", "2028", "2032", "2036", "2040", "2044", "2048", "2052").foreach { leapYear =>
+      List("2000", "2008", "2012", "2016", "2020").foreach { leapYear =>
         DateField.validate("29", "02", leapYear, dateField) shouldBe None
       }
     }
