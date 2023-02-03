@@ -34,14 +34,14 @@
                           <ul class="govuk-list govuk-list--bullet">
                             <li>Consignment uploaded by: @email</li>
                             <li>Date started: @consignment.dateStarted</li>
-                            <li>Date of export: @consignment.dateOfExport</li>
+                            <li>Date of transfer: @consignment.dateOfTransfer</li>
                             <li>Number of files: @consignment.numberOfFiles records</li>
                           </ul>
                         </div>
                       </details>
                     </th>
                     <td class="govuk-table__cell">@consignment.dateStarted</td>
-                    <td class="govuk-table__cell @{if(consignment.dateOfExport == "N/A") "not-applicable"}">@consignment.dateOfExport</td>
+                    <td class="govuk-table__cell @{if(consignment.dateOfTransfer == "N/A") "not-applicable"}">@consignment.dateOfTransfer</td>
                     <td class="govuk-table__cell">
                       <strong class="govuk-tag govuk-tag--@consignment.statusColour">
                         @consignment.status
