@@ -108,7 +108,7 @@ case class DateField(
     year: InputNameAndValue,
     isRequired: Boolean,
     fieldErrors: List[String] = Nil,
-    isFutureDateAllowed: Boolean = true,
+    isFutureDateAllowed: Boolean = false,
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = List(fieldName)
@@ -146,8 +146,9 @@ object RadioButtonGroupField {
     def dependenciesError: Option[String] = radioButtonGroupField.dependencies
       .get(option)
       .flatMap(_.flatMap {
-        case textField: TextField => TextField.validate(dependencies(textField.fieldId), textField)
-        case formField: FormField => throw new NotImplementedException(s"Implement for ${formField.fieldId}")
+        case textField: TextField         => TextField.validate(dependencies(textField.fieldId), textField)
+        case textAreaField: TextAreaField => TextAreaField.validate(dependencies(textAreaField.fieldId), textAreaField.copy(isRequired = true))
+        case formField: FormField         => throw new NotImplementedException(s"Implement for ${formField.fieldId}")
       }.headOption)
 
     optionErrors.orElse(dependenciesError).map(List(_)).getOrElse(Nil)
@@ -161,7 +162,10 @@ object RadioButtonGroupField {
     if (dependencies.nonEmpty) {
       val updatedDependencies = radioButtonGroupField
         .dependencies(selectedOption)
-        .map { case textField: TextField => TextField.update(textField, dependencies(textField.fieldId)) }
+        .map {
+          case textField: TextField         => TextField.update(textField, dependencies(textField.fieldId))
+          case textAreaField: TextAreaField => TextAreaField.update(textAreaField, dependencies(textAreaField.fieldId))
+        }
       radioButtonGroupField.copy(
         selectedOption = selectedOption,
         dependencies = radioButtonGroupField.dependencies + (selectedOption -> updatedDependencies)
@@ -207,7 +211,8 @@ object TextField {
   def validate(text: String, textField: TextField): Option[String] =
     if (text == "") {
       val fieldType: String = inputModeToFieldType(textField.inputMode)
-      Some(emptyValueError.format(fieldType, textField.fieldName))
+      val fieldName = if (textField.fieldId == "TitleAlternate") "alternative title" else textField.fieldName
+      Some(emptyValueError.format(fieldType, fieldName))
     } else if (textField.inputMode.equals("numeric")) {
       val inputName = textField.nameAndValue.name
       text match {
@@ -226,7 +231,6 @@ object TextAreaField {
   def update(textAreaField: TextAreaField, value: String): TextAreaField = textAreaField.copy(nameAndValue = textAreaField.nameAndValue.copy(value = value))
 
   def validate(text: String, textAreaField: TextAreaField): Option[String] = {
-
     text match {
       case t if t == "" && textAreaField.isRequired     => Some(emptyValueError.format("text", textAreaField.fieldName))
       case t if t.length > textAreaField.characterLimit => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
