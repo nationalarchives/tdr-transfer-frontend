@@ -469,7 +469,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
               Some("standard"),
               Some(ZonedDateTime.now()),
               Some(ZonedDateTime.now()),
-              CurrentStatus(Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed")),
+              CurrentStatus(Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed")),
               5
             ),
             "Cursor"
