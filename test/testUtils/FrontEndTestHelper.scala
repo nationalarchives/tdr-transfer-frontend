@@ -222,7 +222,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       Option(
         GetConsignment(
           Some(Series(seriesId.getOrElse(UUID.randomUUID()), "MOCK1")),
-          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, clientChecksStatus, confirmTransferStatus, exportStatus)
+          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, clientChecksStatus, None, None, None, confirmTransferStatus, exportStatus)
         )
       )
     )

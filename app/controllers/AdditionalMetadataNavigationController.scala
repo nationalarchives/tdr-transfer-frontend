@@ -4,26 +4,25 @@ import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.MetadataProperty.fileType
 import org.pac4j.play.scala.SecurityComponents
-import play.api.cache.AsyncCacheApi
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ConsignmentService
 
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.Future
-import scala.concurrent.duration.DurationInt
 
 class AdditionalMetadataNavigationController @Inject() (
     val consignmentService: ConsignmentService,
     val keycloakConfiguration: KeycloakConfiguration,
-    val controllerComponents: SecurityComponents,
-    val cache: AsyncCacheApi
+    val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
   def getAllFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    getCachedFiles(consignmentId, metadataType, request).map(allFiles => {
+    for {
+      allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken)
+    } yield {
       Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType))
-    })
+    }
   }
 
   def submitFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
@@ -37,9 +36,11 @@ class AdditionalMetadataNavigationController @Inject() (
     if (fileIds.nonEmpty) {
       submitAndRedirectToNextPage(metadataType, fileIds, consignmentId)
     } else {
-      getCachedFiles(consignmentId, metadataType, request).map(allFiles => {
+      for {
+        allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken)
+      } yield {
         BadRequest(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, displayError = true))
-      })
+      }
     }
   }
 
@@ -59,11 +60,4 @@ class AdditionalMetadataNavigationController @Inject() (
       Future(Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)))
     }
   }
-
-  private def getCachedFiles(consignmentId: UUID, metadataType: String, request: Request[AnyContent]): Future[ConsignmentService.File] = {
-    cache.getOrElseUpdate(s"$consignmentId-$metadataType-allFiles", 1.hour)(
-      consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken)
-    )
-  }
-
 }

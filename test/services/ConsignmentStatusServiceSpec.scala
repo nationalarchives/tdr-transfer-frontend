@@ -1,18 +1,18 @@
 package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
+import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.CurrentStatus
-import org.mockito.Mockito
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.matchers.should.Matchers._
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
+import org.mockito.Mockito
 import org.mockito.Mockito.when
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
-import configuration.GraphQLBackend._
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-import org.scalatest.wordspec.AnyWordSpec
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
@@ -45,7 +45,10 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
                 Option("TestStatus3"),
                 Option("TestStatus4"),
                 Option("TestStatus5"),
-                Option("TestStatus6")
+                Option("TestStatus6"),
+                None,
+                None,
+                None
               )
             )
           )
@@ -63,7 +66,10 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
             Option("TestStatus3"),
             Option("TestStatus4"),
             Option("TestStatus5"),
-            Option("TestStatus6")
+            Option("TestStatus6"),
+            None,
+            None,
+            None
           )
         )
       )
