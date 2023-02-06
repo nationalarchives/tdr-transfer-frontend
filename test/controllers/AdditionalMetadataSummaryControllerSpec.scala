@@ -260,7 +260,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
            |              ${field._1}
            |              </dt>
            |              <dd class="govuk-summary-list__value">
-           |              ${field._2}
+           |              <pre>${field._2}</pre>
            |              </dd>
            |            </div>
            |""".stripMargin
