@@ -116,10 +116,11 @@ export const renderModules = async () => {
     await sessionTimeoutModule.initialiseSessionTimeout()
   }
   if (fileNavigation) {
-    const trees: NodeListOf<HTMLUListElement> = document.querySelectorAll("[role=tree]")
+    const trees: NodeListOf<HTMLUListElement> =
+      document.querySelectorAll("[role=tree]")
     trees.forEach((tree) => {
-      const nestedNavigation = new NestedNavigation(tree);
-      nestedNavigation.initialiseFormListeners(InputType.radios);
+      const nestedNavigation = new NestedNavigation(tree)
+      nestedNavigation.initialiseFormListeners(InputType.radios)
     })
     const form = document.querySelector("form")
     if (form) {

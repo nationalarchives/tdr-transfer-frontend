@@ -26,66 +26,66 @@
 
 
 .tdr-tag {
-  display: inline-block;
   // When a user customises their colours often the background is removed,
   // by adding a outline we ensure that the tag component still keeps it's meaning.
   // https://accessibility.blog.gov.uk/2017/03/27/how-users-change-colours-on-websites/
+  background-color: govuk-colour('blue');
+  color: govuk-colour('white');
+  display: inline-block;
+  font-size: 12px;
+  letter-spacing: 1px;
   outline: 2px solid transparent;
   outline-offset: -2px;
-  color: govuk-colour("white");
-  background-color: govuk-colour("blue");
-  letter-spacing: 1px;
-  text-decoration: none;
-  text-transform: uppercase;
-  font-size: 12px;
-  padding-top: 3px;
-  padding-right: 8px;
   padding-bottom: 2px;
   padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 3px;
+  text-decoration: none;
+  text-transform: uppercase;
 }
 
 
 .tdr-tag--grey {
-  color: govuk-shade(govuk-colour("dark-grey", $legacy: "grey-1"), 30);
-  background: govuk-tint(govuk-colour("dark-grey", $legacy: "grey-1"), 90);
+  background: govuk-tint(govuk-colour('dark-grey', $legacy: 'grey-1'), 90);
+  color: govuk-shade(govuk-colour('dark-grey', $legacy: 'grey-1'), 30);
 }
 
 .tdr-tag--purple {
-  color: govuk-shade(govuk-colour("purple"), 20);
-  background: govuk-tint(govuk-colour("purple"), 80);
+  background: govuk-tint(govuk-colour('purple'), 80);
+  color: govuk-shade(govuk-colour('purple'), 20);
 }
 
 .tdr-tag--turquoise {
-  color: govuk-shade(govuk-colour("turquoise"), 60);
-  background: govuk-tint(govuk-colour("turquoise"), 70);
+  background: govuk-tint(govuk-colour('turquoise'), 70);
+  color: govuk-shade(govuk-colour('turquoise'), 60);
 }
 
 .tdr-tag--blue {
-  color: govuk-shade(govuk-colour("blue"), 30);
-  background: govuk-tint(govuk-colour("blue"), 80);
+  background: govuk-tint(govuk-colour('blue'), 80);
+  color: govuk-shade(govuk-colour('blue'), 30);
 }
 
 .tdr-tag--yellow {
-  color: govuk-shade(govuk-colour("yellow"), 65);
-  background: govuk-tint(govuk-colour("yellow"), 75);
+  background: govuk-tint(govuk-colour('yellow'), 75);
+  color: govuk-shade(govuk-colour('yellow'), 65);
 }
 
 .govuk-tag--orange {
-  color: govuk-shade(govuk-colour("orange"), 55);
-  background: govuk-tint(govuk-colour("orange"), 70);
+  background: govuk-tint(govuk-colour('orange'), 70);
+  color: govuk-shade(govuk-colour('orange'), 55);
 }
 
 .tdr-tag--red {
-  color: govuk-shade(govuk-colour("red"), 30);
-  background: govuk-tint(govuk-colour("red"), 80);
+  background: govuk-tint(govuk-colour('red'), 80);
+  color: govuk-shade(govuk-colour('red'), 30);
 }
 
 .tdr-tag--pink {
-  color: govuk-shade(govuk-colour("pink"), 40);
-  background: govuk-tint(govuk-colour("pink"), 80);
+  background: govuk-tint(govuk-colour('pink'), 80);
+  color: govuk-shade(govuk-colour('pink'), 40);
 }
 
 .tdr-tag--green {
-  color: govuk-shade(govuk-colour("green"), 20);
-  background: govuk-tint(govuk-colour("green"), 80);
+  background: govuk-tint(govuk-colour('green'), 80);
+  color: govuk-shade(govuk-colour('green'), 20);
 }
