@@ -163,21 +163,22 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
         files =>
           val grouped = files.groupBy(_.parentId)
           val parent = files.find(_.parentId.isEmpty).getOrElse(throw new Exception(s"Parent ID not found for consignment $consignmentId"))
-
           def getChildren(parentId: UUID): List[File] = {
             val files: List[Files] = grouped.getOrElse(Option(parentId), Nil)
             files.map(file => {
+              val statuses = file.fileStatuses.groupBy(_.statusType).map(p => p._1 -> p._2.head.statusValue)
+
               if (grouped.contains(Option(file.fileId))) {
                 val children = getChildren(file.fileId)
-
-                File(file.fileId, file.fileName.getOrElse(""), file.fileType, children.sortWith(sortByName))
+                File(file.fileId, file.fileName.getOrElse(""), file.fileType, children.sortWith(sortByName), statuses)
               } else {
-                File(file.fileId, file.fileName.getOrElse(""), file.fileType, Nil)
+                File(file.fileId, file.fileName.getOrElse(""), file.fileType, Nil, statuses)
               }
             })
           }
           val children = getChildren(parent.fileId).sortWith(sortByName)
-          File(parent.fileId, parent.fileName.getOrElse(""), parent.fileType, children)
+          val statuses = parent.fileStatuses.groupBy(_.statusType).map(p => p._1 -> p._2.head.statusValue)
+          File(parent.fileId, parent.fileName.getOrElse(""), parent.fileType, children, statuses)
       }
   }
 
@@ -205,5 +206,5 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   }
 }
 object ConsignmentService {
-  case class File(id: UUID, name: String, fileType: Option[String], children: List[File])
+  case class File(id: UUID, name: String, fileType: Option[String], children: List[File], statuses: Map[String, String] = Map.empty)
 }
