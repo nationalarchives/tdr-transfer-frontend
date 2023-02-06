@@ -62,7 +62,7 @@ case class TextAreaField(
     isRequired: Boolean,
     fieldErrors: List[String] = Nil,
     rows: String = "5",
-    wrap: String = "hard",
+    wrap: String = "soft",
     characterLimit: Int = 8000,
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {

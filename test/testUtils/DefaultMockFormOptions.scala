@@ -44,7 +44,7 @@ object DefaultMockFormOptions {
       id = "inputtextarea-description",
       fieldType = "inputTextArea",
       rows = "5",
-      wrap = "hard",
+      wrap = "soft",
       maxLength = "8000"
     ),
     MockInputOption(
