@@ -53,7 +53,7 @@
                   fieldErrors,
                   dependencies
                 )
-                case DateField(fieldId, fieldName, fieldDescription, _, day, month, year, _, fieldErrors, _, _) => inputDate(
+                case DateField(fieldId, fieldName, _, fieldDescription, _, day, month, year, _, fieldErrors, _, _) => inputDate(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -63,7 +63,7 @@
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true)
                 )
-                case TextField(fieldId, fieldName, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText, inputType, _) => inputText(
+                case TextField(fieldId, fieldName, _, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText, inputType, _) => inputText(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -74,7 +74,7 @@
                   inputMode,
                   addSuffixText
                 )
-                case TextAreaField(fieldId, fieldName, fieldDescription, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit, _) => inputTextArea(
+                case TextAreaField(fieldId, fieldName, _, fieldDescription, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit, _) => inputTextArea(
                   fieldId,
                   fieldName,
                   fieldDescription,
