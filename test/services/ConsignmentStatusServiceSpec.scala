@@ -45,7 +45,10 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
                 Option("TestStatus3"),
                 Option("TestStatus4"),
                 Option("TestStatus5"),
-                Option("TestStatus6")
+                Option("TestStatus6"),
+                Option("TestStatus7"),
+                Option("TestStatus8"),
+                Option("TestStatus9")
               )
             )
           )
@@ -63,7 +66,10 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
             Option("TestStatus3"),
             Option("TestStatus4"),
             Option("TestStatus5"),
-            Option("TestStatus6")
+            Option("TestStatus6"),
+            Option("TestStatus7"),
+            Option("TestStatus8"),
+            Option("TestStatus9")
           )
         )
       )
