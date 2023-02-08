@@ -67,7 +67,10 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
             "statusType2" -> List(None),
             "statusType3" -> List(None),
             "statusType4" -> List(None),
-            "statusType5" -> List(None)
+            "statusType5" -> List(None),
+            "statusType6" -> List(None),
+            "statusType7" -> List(None),
+            "statusType8" -> List(None)
           )
 
         val consignmentsWithAllStatusStates: List[Consignments.Edges] = setConsignmentsHistoryResponse(wiremockServer, customStatusValues = invalidConsignmentStatusTypesOrValues)

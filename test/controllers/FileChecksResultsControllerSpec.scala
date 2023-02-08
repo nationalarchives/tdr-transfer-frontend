@@ -137,7 +137,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         )
 
         val filePathData = gcf.Data(
-          Option(gcf.GetConsignment(List(Files(UUID.randomUUID(), Option(""), Option(""), Option(UUID.randomUUID()), Metadata(Some("test file.docx"))))))
+          Option(gcf.GetConsignment(List(Files(UUID.randomUUID(), Option(""), Option(""), Option(UUID.randomUUID()), Metadata(Some("test file.docx")), List()))))
         )
 
         val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables]()
@@ -205,7 +205,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         )
 
         val filePathData = gcf.Data(
-          Option(gcf.GetConsignment(List(Files(UUID.randomUUID(), Option(""), Option(""), Option(UUID.randomUUID()), Metadata(Some("test file.docx"))))))
+          Option(gcf.GetConsignment(List(Files(UUID.randomUUID(), Option(""), Option(""), Option(UUID.randomUUID()), Metadata(Some("test file.docx")), List()))))
         )
 
         val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables]()

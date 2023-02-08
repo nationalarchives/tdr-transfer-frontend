@@ -99,13 +99,45 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
     }
   }
 
+  private def fileChecksProgress(statuses: CurrentStatus, consignmentRef: String): String = {
+    // println(s"Consignment Ref: $consignmentRef")
+    // println(s"Statuses: ${statuses.toString}")
+    val fileChecksStatuses = List(statuses.clientChecks, statuses.serverAntivirus, statuses.serverChecksum, statuses.serverFFID)
+    // println(s"File statuses: ${fileChecksStatuses.toString()}")
+    val x = fileChecksStatuses match {
+      case fcs if fcs.forall(_.isEmpty)                                    => "BeforeFileChecks"
+      case fcs if fcs.contains(Some(failedStep))                           => failedStep
+      case fcs if fcs.contains(Some(completedWithIssuesStep))              => completedWithIssuesStep
+      case fcs if fcs.contains(Some(inProgressStep)) || fcs.contains(None) => inProgressStep
+      case fcs if fcs.forall(_.contains(completedStep))                    => completedStep
+      case _                                                               => "XXXX"
+    }
+//    println(s"File checks: $x")
+    x
+  }
+
+//  private def clientChecks(statuses: CurrentStatus): String ={
+//    val clientChecks = statuses.clientChecks
+//  }
+
+  private def backendChecksStatus(statuses: CurrentStatus): String = {
+    val backendChecksStatuses = List(statuses.serverAntivirus, statuses.serverChecksum, statuses.serverFFID)
+    backendChecksStatuses match {
+      // case bcs if bcs.forall(_.isEmpty) => "BeforeChecks"
+      case bcs if bcs.forall(_.contains(completedStep)) => completedStep
+      case bcs if bcs.contains(failedStep)              => failedStep
+      case bcs if bcs.contains(completedWithIssuesStep) => completedWithIssuesStep
+      case _                                            => inProgressStep
+    }
+  }
+
   private def convertUploadAndFileCheckStatusesToUserActions(
       statuses: CurrentStatus,
       pageNameToUrlMap: Map[String, String],
       consignmentRef: String,
       consignmentType: String
   ): UserAction = {
-    statuses match {
+    val userAction = statuses match {
       case s if s.upload.contains(inProgressStep) || (s.upload.contains(completedStep) && s.clientChecks.isEmpty) =>
         UserAction(transferStatusInProgress, pageNameToUrlMap("upload"), resumeTransfer)
       case s if s.upload.contains(completedWithIssuesStep) || s.upload.contains(failedStep) =>
@@ -119,6 +151,15 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
         UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
       case _ => contactUsAction(consignmentRef, consignmentType)
     }
+
+    if (consignmentRef == "TEST-TDR-2022-GB4") {
+      println(s"Consignment Ref: $consignmentRef")
+      println(s"Current status: ${statuses.toString}")
+      println(s"Backend checks: ${backendChecksStatus(statuses)}")
+      println(s"User Action: ${userAction.toString}")
+    }
+
+    userAction
   }
 
   private def convertExportStatusesToUserActions(statuses: CurrentStatus, pageNameToUrlMap: Map[String, String], consignmentRef: String, consignmentType: String): UserAction = {

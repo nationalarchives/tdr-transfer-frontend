@@ -215,14 +215,27 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       clientChecks: Option[String] = None,
       confirmTransferStatus: Option[String] = None,
       exportStatus: Option[String] = None,
-      clientChecksStatus: Option[String] = None
+      clientChecksStatus: Option[String] = None,
+      serverAntivirusStatus: Option[String] = None,
+      serverChecksumStatus: Option[String] = None,
+      serverFFIDStatus: Option[String] = None
   ): StubMapping = {
     val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
     val consignmentResponse = gcs.Data(
       Option(
         GetConsignment(
           Some(Series(seriesId.getOrElse(UUID.randomUUID()), "MOCK1")),
-          CurrentStatus(seriesStatus, transferAgreementStatus, uploadStatus, clientChecksStatus, confirmTransferStatus, exportStatus)
+          CurrentStatus(
+            seriesStatus,
+            transferAgreementStatus,
+            uploadStatus,
+            clientChecksStatus,
+            serverAntivirusStatus,
+            serverChecksumStatus,
+            serverFFIDStatus,
+            confirmTransferStatus,
+            exportStatus
+          )
         )
       )
     )
@@ -379,7 +392,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
                   consignmentType = Some(consignmentType),
                   exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
                   createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
-                  currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), None, None, None, statuses(4), statuses(5)),
+                  currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), statuses(4), statuses(5), statuses(6), statuses(7), statuses(8)),
                   totalFiles = orderNumber
                 ),
                 "Cursor"
@@ -781,6 +794,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       "transferAgreement" -> List(None, Some("InProgress")),
       "upload" -> List(None, Some("InProgress"), Some("CompletedWithIssues")),
       "clientChecks" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
+      "serverAntivirus" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
+      "serverChecksum" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
+      "serverFFID" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
       "confirmTransfer" -> List(None),
       "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
     )
@@ -791,6 +807,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       "transferAgreement" -> List(None), // None because transferAgreement does not exist for judgments
       "upload" -> List(None, Some("InProgress"), Some("CompletedWithIssues")),
       "clientChecks" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
+      "serverAntivirus" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
+      "serverChecksum" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
+      "serverFFID" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
       "confirmTransfer" -> List(None), // None because confirmTransfer does not exist for judgments
       "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
     )

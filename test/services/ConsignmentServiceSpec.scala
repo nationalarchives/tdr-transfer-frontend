@@ -418,9 +418,10 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val parentId = UUID.randomUUID()
       val descendantOneId = UUID.randomUUID()
       val descendantTwoId = UUID.randomUUID()
-      val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("File"), None, gcf.GetConsignment.Files.Metadata(None))
-      val descendantOne = gcf.GetConsignment.Files(descendantOneId, Option("descendantOne"), Option("File"), Option(parentId), gcf.GetConsignment.Files.Metadata(None))
-      val descendantTwo = gcf.GetConsignment.Files(descendantTwoId, Option("descendantTwo"), Option("File"), Option(descendantOneId), gcf.GetConsignment.Files.Metadata(None))
+      val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("File"), None, gcf.GetConsignment.Files.Metadata(None), List())
+      val descendantOne = gcf.GetConsignment.Files(descendantOneId, Option("descendantOne"), Option("File"), Option(parentId), gcf.GetConsignment.Files.Metadata(None), List())
+      val descendantTwo =
+        gcf.GetConsignment.Files(descendantTwoId, Option("descendantTwo"), Option("File"), Option(descendantOneId), gcf.GetConsignment.Files.Metadata(None), List())
       val files = gcf.GetConsignment(List(parentFile, descendantOne, descendantTwo))
       val response = GraphQlResponse(Some(gcf.Data(Some(files))), Nil)
       when(
@@ -442,7 +443,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
 
     "throw an error if the parent folder is missing" in {
       val parentId = UUID.randomUUID()
-      val descendantOne = gcf.GetConsignment.Files(UUID.randomUUID(), Option("descendantOne"), Option("File"), Option(parentId), gcf.GetConsignment.Files.Metadata(None))
+      val descendantOne = gcf.GetConsignment.Files(UUID.randomUUID(), Option("descendantOne"), Option("File"), Option(parentId), gcf.GetConsignment.Files.Metadata(None), List())
       val files = gcf.GetConsignment(List(descendantOne))
       val response = GraphQlResponse(Some(gcf.Data(Some(files))), Nil)
       when(
@@ -469,7 +470,17 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
               Some("standard"),
               Some(ZonedDateTime.now()),
               Some(ZonedDateTime.now()),
-              CurrentStatus(Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed"), Some("Completed")),
+              CurrentStatus(
+                Some("Completed"),
+                Some("Completed"),
+                Some("Completed"),
+                Some("Completed"),
+                Some("Completed"),
+                Some("Completed"),
+                Some("Completed"),
+                Some("Completed"),
+                Some("Completed")
+              ),
               5
             ),
             "Cursor"

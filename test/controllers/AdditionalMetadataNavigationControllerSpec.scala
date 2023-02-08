@@ -46,7 +46,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     "getAllFiles" should {
       forAll(metadataType) { metadataType =>
         s"render the correct description for metadata type $metadataType" in {
-          val parentFile = gcf.GetConsignment.Files(UUID.randomUUID(), Option("parent"), Option("Folder"), None, emptyMetadata)
+          val parentFile = gcf.GetConsignment.Files(UUID.randomUUID(), Option("parent"), Option("Folder"), None, emptyMetadata, List())
           val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile), "standard")
 
           val additionalMetadataController =
@@ -71,9 +71,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           val parentId = UUID.randomUUID()
           val descendantOneFileId = UUID.randomUUID()
           val descendantTwoFileId = UUID.randomUUID()
-          val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("Folder"), None, emptyMetadata)
-          val descendantOneFile = gcf.GetConsignment.Files(descendantOneFileId, Option("descendantOneFile"), Option("Folder"), Option(parentId), emptyMetadata)
-          val descendantTwoFile = gcf.GetConsignment.Files(descendantTwoFileId, Option("descendantTwoFile"), Option("File"), Option(descendantOneFileId), emptyMetadata)
+          val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("Folder"), None, emptyMetadata, List())
+          val descendantOneFile = gcf.GetConsignment.Files(descendantOneFileId, Option("descendantOneFile"), Option("Folder"), Option(parentId), emptyMetadata, List())
+          val descendantTwoFile = gcf.GetConsignment.Files(descendantTwoFileId, Option("descendantTwoFile"), Option("File"), Option(descendantOneFileId), emptyMetadata, List())
           val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile, descendantOneFile, descendantTwoFile), "standard")
 
           val additionalMetadataController =
@@ -113,7 +113,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
     "submitFiles" should {
       "redirect to the closure status page with the correct file ids and closure metadata type if the files are not already closed" in {
-        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option("")), List()) :: Nil
         val consignmentService = mockConsignmentService(files, "standard")
         val fileId = UUID.randomUUID()
         val additionalMetadataController =
@@ -140,7 +140,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       }
 
       "redirect to the closure metadata page with the correct file ids and closure metadata type if the files are already closed" in {
-        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option("")), List()) :: Nil
         val consignmentService = mockConsignmentService(files, "standard", allClosed = true)
         val fileId = UUID.randomUUID().toString
         val additionalMetadataController =
@@ -175,7 +175,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       }
 
       "redirect to the file navigation page with an error message if a user submits the page without selecting any files and folders" in {
-        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option(""))) :: Nil
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option("")), List()) :: Nil
         val consignmentService = mockConsignmentService(files, "standard")
         val additionalMetadataController =
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
