@@ -19,7 +19,7 @@ class AdditionalMetadataNavigationController @Inject() (
 
   def getAllFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken)
+      allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken, metadataType)
     } yield {
       Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType))
     }
@@ -37,7 +37,7 @@ class AdditionalMetadataNavigationController @Inject() (
       submitAndRedirectToNextPage(metadataType, fileIds, consignmentId)
     } else {
       for {
-        allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken)
+        allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken, metadataType)
       } yield {
         BadRequest(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, displayError = true))
       }

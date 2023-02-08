@@ -8,6 +8,7 @@ import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
+import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.FileStatuses
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
@@ -21,7 +22,7 @@ import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types._
 import graphql.codegen.{AddConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
 import services.ApiErrorHandling._
-import services.ConsignmentService.File
+import services.ConsignmentService.{File, StatusTag}
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.util.UUID
@@ -152,7 +153,7 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
       .map(data => data.getConsignment.get)
   }
 
-  def getAllConsignmentFiles(consignmentId: UUID, token: BearerAccessToken): Future[File] = {
+  def getAllConsignmentFiles(consignmentId: UUID, token: BearerAccessToken, metadataType: String): Future[File] = {
     val variables: getConsignmentFiles.Variables = new getConsignmentFiles.Variables(consignmentId)
 
     sendApiRequest(getConsignmentFilesClient, getConsignmentFiles.document, token, variables)
@@ -166,19 +167,18 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
           def getChildren(parentId: UUID): List[File] = {
             val files: List[Files] = grouped.getOrElse(Option(parentId), Nil)
             files.map(file => {
-              val statuses = file.fileStatuses.groupBy(_.statusType).map(p => p._1 -> p._2.head.statusValue)
-
+              val statusTag = getStatusTag(metadataType, file.fileStatuses)
               if (grouped.contains(Option(file.fileId))) {
                 val children = getChildren(file.fileId)
-                File(file.fileId, file.fileName.getOrElse(""), file.fileType, children.sortWith(sortByName), statuses)
+                File(file.fileId, file.fileName.getOrElse(""), file.fileType, children.sortWith(sortByName), statusTag)
               } else {
-                File(file.fileId, file.fileName.getOrElse(""), file.fileType, Nil, statuses)
+                File(file.fileId, file.fileName.getOrElse(""), file.fileType, Nil, statusTag)
               }
             })
           }
           val children = getChildren(parent.fileId).sortWith(sortByName)
-          val statuses = parent.fileStatuses.groupBy(_.statusType).map(p => p._1 -> p._2.head.statusValue)
-          File(parent.fileId, parent.fileName.getOrElse(""), parent.fileType, children, statuses)
+          val statusTag = getStatusTag(metadataType, parent.fileStatuses)
+          File(parent.fileId, parent.fileName.getOrElse(""), parent.fileType, children, statusTag)
       }
   }
 
@@ -204,7 +204,23 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
     }
     Option(FileFilters(Option("File"), fileIds, None, metadataTypeFilter))
   }
+
+  private def getStatusTag(metadataType: String, fileStatuses: List[FileStatuses]): Option[StatusTag] = {
+
+    if (metadataType == "closure") {
+      fileStatuses.collectFirst {
+        case FileStatuses("ClosureMetadata", "Completed") => StatusTag("closed", "blue")
+        case FileStatuses("ClosureMetadata", "Incomplete") => StatusTag("incomplete", "red")
+      }
+    } else {
+      fileStatuses.collectFirst {
+        case FileStatuses("DescriptiveMetadata", "Completed") => StatusTag("entered", "blue")
+      }
+    }
+  }
 }
 object ConsignmentService {
-  case class File(id: UUID, name: String, fileType: Option[String], children: List[File], statuses: Map[String, String] = Map.empty)
+
+  case class StatusTag(text: String, colour: String)
+  case class File(id: UUID, name: String, fileType: Option[String], children: List[File], statusTag: Option[StatusTag] = None)
 }

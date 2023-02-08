@@ -3,6 +3,7 @@
 @import views.html.helper.CSRF
 @import views.html.partials.fileNavigationContent
 
+@import services.ConsignmentService.StatusTag
 @(consignmentId: UUID, name: String, files: File, metadataType: String, displayError: Boolean = false)(implicit messages: Messages, request: RequestHeader)
 
 @display(file: File, level: Int, size: Int, pos: Int) = {
@@ -11,7 +12,7 @@
       <div class="tna-tree__node-item__radio govuk-radios__item">
         <span class="govuk-radios__input" aria-hidden="true" id="radio-@file.id" name="nested-navigation"></span>
         <span class="govuk-label govuk-radios__label">
-          @file.name @displayFileStatus(file, metadataType)
+          @file.name @displayStatusTag(file.statusTag)
         </span>
       </div>
     </li>
@@ -53,20 +54,10 @@
     </div>
   }
 }
-@displayFileStatus(file: File, metadataType: String) = {
-  @{
-    if(metadataType == "closure") {
-      file.statuses.get("ClosureMetadata") match {
-        case Some("Completed") => <strong class="tdr-tag tdr-tag--blue">closed</strong>
-        case Some("Incomplete") => <strong class="tdr-tag tdr-tag--red">incomplete</strong>
-        case _ => ""
-      }
-    } else {
-      file.statuses.get("DescriptiveMetadata") match {
-        case Some("Completed") => <strong class="tdr-tag tdr-tag--blue">entered</strong>
-        case _ => ""
-      }
-    }
+
+@displayStatusTag(statusTag: Option[StatusTag]) = {
+  @if(statusTag.isDefined) {
+    <strong class="tdr-tag tdr-tag--@statusTag.get.colour">@statusTag.get.text</strong>
   }
 }
 
