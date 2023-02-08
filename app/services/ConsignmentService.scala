@@ -209,12 +209,12 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
 
     if (metadataType == "closure") {
       fileStatuses.collectFirst {
-        case FileStatuses("ClosureMetadata", "Completed") => StatusTag("closed", "blue")
+        case FileStatuses("ClosureMetadata", "Completed")  => StatusTag("closed", "blue")
         case FileStatuses("ClosureMetadata", "Incomplete") => StatusTag("incomplete", "red")
       }
     } else {
-      fileStatuses.collectFirst {
-        case FileStatuses("DescriptiveMetadata", "Completed") => StatusTag("entered", "blue")
+      fileStatuses.collectFirst { case FileStatuses("DescriptiveMetadata", "Completed") =>
+        StatusTag("entered", "blue")
       }
     }
   }
