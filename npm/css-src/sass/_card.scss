@@ -23,3 +23,33 @@
 .tdr-metadata-card .govuk-inset-text {
   color: $govuk-secondary-text-colour;
 }
+
+
+.tdr-tag {
+  // When a user customises their colours often the background is removed,
+  // by adding a outline we ensure that the tag component still keeps it's meaning.
+  // https://accessibility.blog.gov.uk/2017/03/27/how-users-change-colours-on-websites/
+  background-color: govuk-colour('blue');
+  color: govuk-colour('white');
+  display: inline-block;
+  font-size: 12px;
+  letter-spacing: 1px;
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  padding-bottom: 2px;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 3px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.tdr-tag--blue {
+  background: govuk-tint(govuk-colour('blue'), 80);
+  color: govuk-shade(govuk-colour('blue'), 30);
+}
+
+.tdr-tag--red {
+  background: govuk-tint(govuk-colour('red'), 80);
+  color: govuk-shade(govuk-colour('red'), 30);
+}

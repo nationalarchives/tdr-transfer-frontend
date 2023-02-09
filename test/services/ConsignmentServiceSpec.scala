@@ -8,6 +8,7 @@ import errors.AuthorisationException
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.{getConsignment => gc}
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gcfe}
+import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.FileStatuses
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentFolderDetails.getConsignmentFolderDetails
@@ -26,8 +27,12 @@ import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.prop.TableDrivenPropertyChecks.forAll
+import org.scalatest.prop.TableFor1
+import org.scalatest.prop.Tables.Table
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
+import services.ConsignmentService.StatusTag
 import sttp.client.HttpError
 import sttp.model.StatusCode
 import uk.gov.nationalarchives.tdr.error.NotAuthorisedError
@@ -413,36 +418,63 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
     }
   }
 
-  "getAllConsignmentFiles" should {
-    "return nested files correctly" in {
-      val parentId = UUID.randomUUID()
-      val descendantOneId = UUID.randomUUID()
-      val descendantTwoId = UUID.randomUUID()
-      val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("File"), None, gcf.GetConsignment.Files.Metadata(None))
-      val descendantOne = gcf.GetConsignment.Files(descendantOneId, Option("descendantOne"), Option("File"), Option(parentId), gcf.GetConsignment.Files.Metadata(None))
-      val descendantTwo = gcf.GetConsignment.Files(descendantTwoId, Option("descendantTwo"), Option("File"), Option(descendantOneId), gcf.GetConsignment.Files.Metadata(None))
-      val files = gcf.GetConsignment(List(parentFile, descendantOne, descendantTwo))
-      val response = GraphQlResponse(Some(gcf.Data(Some(files))), Nil)
-      when(
-        getConsignmentFilesClient
-          .getResult(bearerAccessToken, gcf.document, Some(gcf.Variables(consignmentId)))
-      )
-        .thenReturn(Future.successful(response))
-      val result: ConsignmentService.File = consignmentService.getAllConsignmentFiles(consignmentId, bearerAccessToken).futureValue
+  val metadataType: TableFor1[String] = Table(
+    "Metadata Type",
+    "closure",
+    "descriptive"
+  )
 
-      result.id should equal(parentId)
-      result.children.length should equal(1)
-      val firstDescendant = result.children.head
-      firstDescendant.id should equal(descendantOneId)
-      firstDescendant.children.length should equal(1)
-      val secondDescendant = firstDescendant.children.head
-      secondDescendant.id should equal(descendantTwoId)
-      secondDescendant.children.length should equal(0)
+  "getAllConsignmentFiles" should {
+    forAll(metadataType) { metadataType =>
+      s"return nested files correctly for $metadataType" in {
+        val parentId = UUID.randomUUID()
+        val descendantOneId = UUID.randomUUID()
+        val descendantTwoId = UUID.randomUUID()
+        val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("File"), None, gcf.GetConsignment.Files.Metadata(None), Nil)
+        val descendantOne = gcf.GetConsignment.Files(
+          descendantOneId,
+          Option("descendantOne"),
+          Option("File"),
+          Option(parentId),
+          gcf.GetConsignment.Files.Metadata(None),
+          List(FileStatuses("ClosureMetadata", "Incomplete"), FileStatuses("DescriptiveMetadata", "NotEntered"))
+        )
+        val descendantTwo = gcf.GetConsignment.Files(
+          descendantTwoId,
+          Option("descendantTwo"),
+          Option("File"),
+          Option(descendantOneId),
+          gcf.GetConsignment.Files.Metadata(None),
+          List(FileStatuses("ClosureMetadata", "Completed"), FileStatuses("DescriptiveMetadata", "Completed"))
+        )
+        val files = gcf.GetConsignment(List(parentFile, descendantOne, descendantTwo))
+        val response = GraphQlResponse(Some(gcf.Data(Some(files))), Nil)
+        when(
+          getConsignmentFilesClient
+            .getResult(bearerAccessToken, gcf.document, Some(gcf.Variables(consignmentId)))
+        )
+          .thenReturn(Future.successful(response))
+        val result: ConsignmentService.File = consignmentService.getAllConsignmentFiles(consignmentId, bearerAccessToken, metadataType).futureValue
+
+        val expectedStatusTagForFirst = Map("closure" -> StatusTag("incomplete", "red").some, "descriptive" -> None)
+        val expectedStatusTagForSecond = Map("closure" -> StatusTag("closed", "blue").some, "descriptive" -> StatusTag("entered", "blue").some)
+        result.id should equal(parentId)
+        result.children.length should equal(1)
+        val firstDescendant = result.children.head
+        firstDescendant.id should equal(descendantOneId)
+        firstDescendant.statusTag should equal(expectedStatusTagForFirst(metadataType))
+        firstDescendant.children.length should equal(1)
+
+        val secondDescendant = firstDescendant.children.head
+        secondDescendant.id should equal(descendantTwoId)
+        secondDescendant.statusTag should equal(expectedStatusTagForSecond(metadataType))
+        secondDescendant.children.length should equal(0)
+      }
     }
 
     "throw an error if the parent folder is missing" in {
       val parentId = UUID.randomUUID()
-      val descendantOne = gcf.GetConsignment.Files(UUID.randomUUID(), Option("descendantOne"), Option("File"), Option(parentId), gcf.GetConsignment.Files.Metadata(None))
+      val descendantOne = gcf.GetConsignment.Files(UUID.randomUUID(), Option("descendantOne"), Option("File"), Option(parentId), gcf.GetConsignment.Files.Metadata(None), Nil)
       val files = gcf.GetConsignment(List(descendantOne))
       val response = GraphQlResponse(Some(gcf.Data(Some(files))), Nil)
       when(
@@ -451,7 +483,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       )
         .thenReturn(Future.successful(response))
 
-      val error = consignmentService.getAllConsignmentFiles(consignmentId, bearerAccessToken).failed.futureValue
+      val error = consignmentService.getAllConsignmentFiles(consignmentId, bearerAccessToken, metadataType(1)).failed.futureValue
       error.getMessage should equal(s"Parent ID not found for consignment $consignmentId")
     }
   }
