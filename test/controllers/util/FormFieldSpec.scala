@@ -36,7 +36,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
   }
 
   "TextField" should {
-    val textField = TextField("id", "name", "desc", multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true)
+    val textField = TextField("id", "name", "alternativeName", "desc", multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true)
 
     "update should set value for the field" in {
 
@@ -73,22 +73,23 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
   "TextAreaField" should {
 
     "update should set value for the field" in {
-      val updatedField = TextAreaField("id", "name", "desc", multiValue = false, InputNameAndValue("name", "old inputted value"), isRequired = false)
+      val updatedField = TextAreaField("id", "name", "alternativeName", "desc", multiValue = false, InputNameAndValue("name", "old inputted value"), isRequired = false)
       TextAreaField.update(updatedField, "new inputted value") shouldBe updatedField.copy(nameAndValue = InputNameAndValue("name", "new inputted value", ""))
     }
 
     "validate should return an error if the given value is empty and the field is required" in {
-      val requiredField = TextAreaField("id", "FieldName", "desc", multiValue = false, InputNameAndValue("name", ""), isRequired = true)
+      val requiredField = TextAreaField("id", "FieldName", "alternativeName", "desc", multiValue = false, InputNameAndValue("name", ""), isRequired = true)
       TextAreaField.validate("", requiredField) shouldBe Some("There was no text entered for the FieldName.")
     }
 
     "validate should not return an error if the given value is empty and the field is not required" in {
-      val nonRequiredField = TextAreaField("id", "FieldName", "desc", multiValue = false, InputNameAndValue("name", ""), isRequired = false)
+      val nonRequiredField = TextAreaField("id", "FieldName", "alternativeName", "desc", multiValue = false, InputNameAndValue("name", ""), isRequired = false)
       TextAreaField.validate("", nonRequiredField) shouldBe None
     }
 
     "validate should return an error if the given value is large than the specific character limit" in {
-      val tooLargeValueField = TextAreaField("id", "FieldName", "desc", multiValue = false, InputNameAndValue("name", ""), isRequired = false, characterLimit = 5)
+      val tooLargeValueField =
+        TextAreaField("id", "FieldName", "alternativeName", "desc", multiValue = false, InputNameAndValue("name", ""), isRequired = false, characterLimit = 5)
       TextAreaField.validate("more than character limit", tooLargeValueField) shouldBe Some("FieldName must be 5 characters or less")
     }
   }
@@ -149,6 +150,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     val dateField = DateField(
       "id",
       "name",
+      "alternativeName",
       "desc",
       multiValue = false,
       InputNameAndValue("Day", "1", "DD"),
