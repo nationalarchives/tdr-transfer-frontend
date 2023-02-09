@@ -255,12 +255,15 @@ object DateField {
 
   def validate(day: String, month: String, year: String, dateField: DateField): Option[String] = {
     val fieldName = if (dateField.fieldAlternativeName.isEmpty) dateField.fieldName.toLowerCase else dateField.fieldAlternativeName
-    var error = validateValue(day, "Day", invalidDayValidation, "3, 15, 21", "31", fieldName)
-    error = if (error.isEmpty) validateValue(month, "Month", invalidMonthValidation, "3, 9, 12", "12", fieldName) else error
-    error = if (error.isEmpty) validateValue(year, "Year", invalidYearValidation, "1994, 2000, 2023", "", fieldName) else error
-    error = if (error.isEmpty) checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt, fieldName) else error
-    if (error.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField) else error
-
+    if (day.isEmpty && month.isEmpty && year.isEmpty) {
+      Some(dateNotEnteredError.format(fieldName))
+    } else {
+      var error = validateValue(day, "Day", invalidDayValidation, "3, 15, 21", "31", fieldName)
+      error = if (error.isEmpty) validateValue(month, "Month", invalidMonthValidation, "3, 9, 12", "12", fieldName) else error
+      error = if (error.isEmpty) validateValue(year, "Year", invalidYearValidation, "1994, 2000, 2023", "", fieldName) else error
+      error = if (error.isEmpty) checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt, fieldName) else error
+      if (error.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField) else error
+    }
   }
 
   def update(dateField: DateField, localDateTime: LocalDateTime): DateField =

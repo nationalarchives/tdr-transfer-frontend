@@ -37,6 +37,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
   "TextField" should {
     val textField = TextField("id", "name", "alternativeName", "desc", multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true)
+    val closureTextField = TextField("ClosurePeriod", "name", "alternativeName", "desc", multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true)
 
     "update should set value for the field" in {
 
@@ -53,6 +54,11 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     "validate should return an error when the given value is empty" in {
 
       TextField.validate("", textField) shouldBe Some("Add an alternativeName for this record")
+    }
+
+    "validate should return an error when the given value is empty for closurePeriod" in {
+
+      TextField.validate("", closureTextField) shouldBe Some("Enter the number of years the record is closed from the closure start date")
     }
 
     "validate should return an error when the given value is not a numeric value" in {
@@ -181,11 +187,14 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "validate should not return any error when the given date is valid" in {
-
       DateField.validate("12", "2", "1990", dateField) shouldBe None
       DateField.validate("30", "4", "1990", dateField) shouldBe None
       DateField.validate("29", "2", "2000", dateField) shouldBe None
       DateField.validate("1", "10", "2022", dateField) shouldBe None
+    }
+
+    "validate should return an error when the given day, month and year is empty" in {
+      DateField.validate("", "", "", dateField) shouldBe Some("Enter the alternativeName for this record")
     }
 
     "validate should return an error when the given day, month or year is empty" in {
