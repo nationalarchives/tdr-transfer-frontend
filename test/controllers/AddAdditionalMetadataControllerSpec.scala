@@ -294,7 +294,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
       val formTester =
-        new FormTester(expectedClosureDefaultOptions.filterNot(formOptionMocks => formOptionMocks.name.contains("DescriptionClosed") || formOptionMocks.name.contains("ClosureStartDate")))
+        new FormTester(
+          expectedClosureDefaultOptions.filterNot(formOptionMocks => formOptionMocks.name.contains("DescriptionClosed") || formOptionMocks.name.contains("ClosureStartDate"))
+        )
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
@@ -335,7 +337,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
       val formTester =
-        new FormTester(expectedClosureDefaultOptions.filterNot(formOptionMocks => formOptionMocks.name.contains("DescriptionClosed") || formOptionMocks.name.contains("FoiExemptionAsserted")))
+        new FormTester(
+          expectedClosureDefaultOptions.filterNot(formOptionMocks => formOptionMocks.name.contains("DescriptionClosed") || formOptionMocks.name.contains("FoiExemptionAsserted"))
+        )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
