@@ -23,15 +23,25 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       RadioButtonGroupField("id", "name", "desc", "details", multiValue = false, Seq(InputNameAndValue("Yes", "yes"), InputNameAndValue("No", "no")), "no", isRequired = true)
 
     "update should set selectedOption as 'yes' for the field" in {
-
       val updatedField = RadioButtonGroupField.update(radioButtonGroupField, value = true)
       updatedField shouldBe radioButtonGroupField.copy(selectedOption = "yes")
     }
 
     "update should set selectedOption as 'no' for the field" in {
-
       val updatedField = RadioButtonGroupField.update(radioButtonGroupField, value = false)
       updatedField shouldBe radioButtonGroupField.copy(selectedOption = "no")
+    }
+
+    "validate should not return any error when the given value is valid" in {
+      List("yes", "no").foreach { validValue =>
+        RadioButtonGroupField.validate(validValue, Map.empty, radioButtonGroupField) shouldBe List()
+      }
+    }
+
+    "validate should an error when the given value is invalid" in {
+      List("agreed", "disagree").foreach { validValue =>
+        RadioButtonGroupField.validate(validValue, Map.empty, radioButtonGroupField) shouldBe List(s"Option '$validValue' was not an option provided to the user.")
+      }
     }
   }
 

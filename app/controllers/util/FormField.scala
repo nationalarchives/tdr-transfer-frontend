@@ -128,7 +128,7 @@ object FormField {
   val futureDateError = "The date of the %s must be in the past"
   val invalidDateError = "The %s of the %s must be between 1 and %s"
   val invalidDayError = "%s does not have %d days in it. Enter the day for the %s between 1 and %d"
-  val radioOptionNotSelectedError = "There was no value selected for %s."
+  val radioOptionNotSelectedError = "Select if the %s is sensitive to the public"
   val invalidRadioOptionSelectedError = "Option '%s' was not an option provided to the user."
   val tooLongInputError = "%s must be %s characters or less"
   val closurePeriodNotEnteredError = "Enter the number of years the record is closed from the closure start date"
