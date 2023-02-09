@@ -287,7 +287,7 @@ object DateField {
     day match {
       case ""                                 => Some(emptyValueError.format(fieldName, unitType.toLowerCase))
       case d if allCatch.opt(d.toInt).isEmpty => Some(wholeNumberError2.format(unitType.toLowerCase, fieldName, wholeNumberError))
-      case d if d.toInt < 0                   => Some(negativeNumberError.format(unitType))
+      case d if d.toInt < 0                   => Some(negativeNumberError.format(unitType.toLowerCase))
       case d if isInvalidDate(d.toInt) =>
         if (unitType.equals("Year")) {
           Some(invalidYearError.format(fieldName))
