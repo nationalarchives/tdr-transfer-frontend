@@ -70,7 +70,7 @@ object DefaultMockFormOptions {
       id = "date-input-ClosureStartDate-day",
       placeholder = "dd",
       fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Day."
+      errorMessage = s"The closure start date must contain a day"
     ),
     MockInputOption(
       name = "inputdate-ClosureStartDate-month",
@@ -78,7 +78,7 @@ object DefaultMockFormOptions {
       id = "date-input-ClosureStartDate-month",
       placeholder = "mm",
       fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Month.",
+      errorMessage = s"The closure start date must contain a month",
       errorMessageDependency = "inputdate-ClosureStartDate-day"
     ),
     MockInputOption(
@@ -96,7 +96,7 @@ object DefaultMockFormOptions {
       id = "date-input-FoiExemptionAsserted-day",
       placeholder = "dd",
       fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Day."
+      errorMessage = s"The foi decision asserted must contain a day"
     ),
     MockInputOption(
       name = "inputdate-FoiExemptionAsserted-month",
@@ -104,7 +104,7 @@ object DefaultMockFormOptions {
       id = "date-input-FoiExemptionAsserted-month",
       placeholder = "mm",
       fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Month.",
+      errorMessage = s"The foi decision asserted must contain a month",
       errorMessageDependency = "inputdate-FoiExemptionAsserted-day"
     ),
     MockInputOption(
@@ -113,7 +113,7 @@ object DefaultMockFormOptions {
       id = "date-input-FoiExemptionAsserted-year",
       placeholder = "yyyy",
       fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Year.",
+      errorMessage = s"The foi decision asserted must contain a year",
       errorMessageDependency = "inputdate-FoiExemptionAsserted-month"
     ),
     MockInputOption(
@@ -121,7 +121,7 @@ object DefaultMockFormOptions {
       label = "years",
       id = "years",
       fieldType = "inputNumeric",
-      errorMessage = s"There was no number entered for the Closure Period."
+      errorMessage = s"Enter the number of years the record is closed from the closure start date"
     ),
     MockInputOption(
       name = "inputmultiselect-FoiExemptionCode",
@@ -129,7 +129,7 @@ object DefaultMockFormOptions {
       label = "mock code1",
       value = "mock code1",
       fieldType = "inputmultiselect",
-      errorMessage = "There was no value selected for the FOI exemption code(s)."
+      errorMessage = "Search for and select at least one FOI exemption code(s)"
     ),
     MockInputOption(
       name = "inputmultiselect-FoiExemptionCode",
@@ -137,7 +137,7 @@ object DefaultMockFormOptions {
       label = "mock code2",
       value = "mock code2",
       fieldType = "inputmultiselect",
-      errorMessage = "There was no value selected for the FOI exemption code(s)."
+      errorMessage = "Search for and select at least one FOI exemption code(s)"
     ),
     MockInputOption(
       name = "inputradio-TitleClosed",

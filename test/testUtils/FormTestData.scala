@@ -144,7 +144,8 @@ class FormTestData() {
         "FoiExemptionAsserted",
         "propertyType",
         "unitType",
-        "summary"
+        "summary",
+        "alternativeName"
       ),
       DisplayProperty(
         active = true,
@@ -161,7 +162,8 @@ class FormTestData() {
         "ClosureStartDate",
         "propertyType",
         "unitType",
-        "summary"
+        "summary",
+        "alternativeName"
       ),
       DisplayProperty(
         active = true,
@@ -178,7 +180,8 @@ class FormTestData() {
         "ClosurePeriod",
         "propertyType",
         "unitType",
-        "summary"
+        "summary",
+        "alternativeName"
       ),
       DisplayProperty(
         active = true,
@@ -195,7 +198,8 @@ class FormTestData() {
         "Radio",
         "propertyType",
         "unitType",
-        "summary"
+        "summary",
+        "alternativeName"
       ),
       DisplayProperty(
         active = true,
@@ -212,7 +216,8 @@ class FormTestData() {
         "DescriptionAlternate",
         "propertyType",
         "unitType",
-        "summary"
+        "summary",
+        "alternativeName"
       ),
       DisplayProperty(
         active = true,
@@ -229,7 +234,8 @@ class FormTestData() {
         "Dropdown",
         "propertyType",
         "unitType",
-        "summary"
+        "summary",
+        "alternativeName"
       )
     )
   }
