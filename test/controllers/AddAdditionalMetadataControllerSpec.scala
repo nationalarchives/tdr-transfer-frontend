@@ -252,19 +252,14 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     "rerender form with errors for each closure field if empty form is submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
-      val formTester = new FormTester(expectedClosureDefaultOptions.filterNot(_.name.contains("DescriptionClosed")))
+      val formTester =
+        new FormTester(expectedClosureDefaultOptions.filterNot(formOptionMocks => formOptionMocks.name.contains("DescriptionClosed") || formOptionMocks.name.contains("inputdate")))
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
-        ("inputdate-FoiExemptionAsserted-day", ""),
-        ("inputdate-FoiExemptionAsserted-month", ""),
-        ("inputdate-FoiExemptionAsserted-year", ""),
-        ("inputdate-ClosureStartDate-day", ""),
-        ("inputdate-ClosureStartDate-month", ""),
-        ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputradio-TitleClosed", "no"),
         ("inputradio-DescriptionClosed", "exclude")
@@ -291,14 +286,17 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
       addAdditionalMetadataPageAsString should include("""    <p class="govuk-error-message" id="error-FoiExemptionCode">
           |        <span class="govuk-visually-hidden">Error:</span>
-          |        There was no value selected for the FOI exemption code(s).
+          |        Search for and select at least one FOI exemption code(s)
           |    </p>""".stripMargin)
     }
 
     "rerender closure form with user's data if form is partially submitted" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
-      val formTester = new FormTester(expectedClosureDefaultOptions.filterNot(_.name.contains("DescriptionClosed")))
+      val formTester =
+        new FormTester(
+          expectedClosureDefaultOptions.filterNot(formOptionMocks => formOptionMocks.name.contains("DescriptionClosed") || formOptionMocks.name.contains("ClosureStartDate"))
+        )
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer)
@@ -308,9 +306,6 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputdate-FoiExemptionAsserted-day", "5"),
         ("inputdate-FoiExemptionAsserted-month", "11"),
         ("inputdate-FoiExemptionAsserted-year", "2021"),
-        ("inputdate-ClosureStartDate-day", ""),
-        ("inputdate-ClosureStartDate-month", ""),
-        ("inputdate-ClosureStartDate-year", ""),
         ("inputnumeric-ClosurePeriod-years", ""),
         ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes"),
@@ -341,7 +336,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     "display the most immediate date error if more than one date input (per date field) has an mistake in it" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
-      val formTester = new FormTester(expectedClosureDefaultOptions.filterNot(_.name.contains("DescriptionClosed")))
+      val formTester =
+        new FormTester(
+          expectedClosureDefaultOptions.filterNot(formOptionMocks => formOptionMocks.name.contains("DescriptionClosed") || formOptionMocks.name.contains("FoiExemptionAsserted"))
+        )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
@@ -349,9 +347,6 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
-        ("inputdate-FoiExemptionAsserted-day", ""),
-        ("inputdate-FoiExemptionAsserted-month", ""),
-        ("inputdate-FoiExemptionAsserted-year", ""),
         ("inputdate-ClosureStartDate-day", "5"),
         ("inputdate-ClosureStartDate-month", ""),
         ("inputdate-ClosureStartDate-year", ""),
@@ -664,12 +659,13 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         descriptionClosed -> List(FileMetadata(descriptionClosed, "true")),
         description -> List(FileMetadata(description, "some value"))
       )
-      val formField: FormField = RadioButtonGroupField(descriptionClosed, "name", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+      val formField: FormField = RadioButtonGroupField(descriptionClosed, "name", "alternativeName", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
       val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
 
       val expectedField = RadioButtonGroupField(
         descriptionClosed,
         "name",
+        "alternativeName",
         "The current description of your record is below. You can edit it in the Descriptive metadata step.",
         "some value",
         false,
@@ -685,12 +681,13 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val fileMetadata: Map[String, List[FileMetadata]] = Map(
         descriptionClosed -> List(FileMetadata(descriptionClosed, "true"))
       )
-      val formField: FormField = RadioButtonGroupField(descriptionClosed, "name", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+      val formField: FormField = RadioButtonGroupField(descriptionClosed, "name", "alternativeName", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
       val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
 
       val expectedField = RadioButtonGroupField(
         descriptionClosed,
         "name",
+        "alternativeName",
         "If you need to add a description, you can do so in the Descriptive metadata step.",
         "",
         false,
@@ -707,7 +704,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         titleClosed -> List(FileMetadata(titleClosed, "true")),
         description -> List(FileMetadata(description, "some value"))
       )
-      val formField: FormField = RadioButtonGroupField(titleClosed, "name", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+      val formField: FormField = RadioButtonGroupField(titleClosed, "name", "alternativeName", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
       val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
       actualFormField should equal(formField)
     }
