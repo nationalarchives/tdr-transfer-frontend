@@ -34,7 +34,7 @@
           @for(fieldToApplyToFile <- fieldsToApplyToFile) {
             @{
               fieldToApplyToFile match {
-                case RadioButtonGroupField(fieldId, name, description, additionalInfo, _, options, selectedOption, isRequired, hideInputs, fieldErrors, dependencies) => inputRadioGroup(
+                case RadioButtonGroupField(fieldId, name, _, description, additionalInfo, _, options, selectedOption, isRequired, hideInputs, fieldErrors, dependencies) => inputRadioGroup(
                   fieldId,
                   name,
                   description,
@@ -85,7 +85,7 @@
                   wrap,
                   characterLimit
                 )
-                case MultiSelectField(fieldId, fieldName, fieldDescription, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors, _) =>
+                case MultiSelectField(fieldId, fieldName, _, fieldDescription, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors, _) =>
                   inputMultiSelect(
                     fieldId,
                     fieldName,
@@ -100,7 +100,7 @@
                     ),
                     fieldErrors
                   )
-                case DropdownField(fieldId, fieldName, fieldDescription, multiValue, options, selectedOption, _, fieldErrors, _) =>
+                case DropdownField(fieldId, fieldName, _, fieldDescription, multiValue, options, selectedOption, _, fieldErrors, _) =>
                   inputDropdown(
                     fieldId,
                     fieldName,

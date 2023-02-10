@@ -75,6 +75,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           MultiSelectField(
             property.propertyName,
             property.displayName,
+            property.alternativeName,
             property.description,
             property.guidance,
             property.multiValue,
@@ -86,6 +87,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           DropdownField(
             property.propertyName,
             property.displayName,
+            property.alternativeName,
             property.description,
             property.multiValue,
             customMetadata.definedInputs,
@@ -129,6 +131,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
     RadioButtonGroupField(
       property.propertyName,
       property.displayName,
+      property.alternativeName,
       property.description,
       additionalInfo = "",
       property.multiValue,

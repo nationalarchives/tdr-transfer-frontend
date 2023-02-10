@@ -133,10 +133,10 @@ class AddAdditionalMetadataController @Inject() (
       case DateField(fieldId, _, _, _, multiValue, day, month, year, _, _, _, _) if day.value.nonEmpty =>
         val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, Timestamp.valueOf(dateTime).toString) :: Nil
-      case RadioButtonGroupField(fieldId, _, _, _, multiValue, _, selectedOption, _, _, _, dependencies) =>
+      case RadioButtonGroupField(fieldId, _, _, _, _, multiValue, _, selectedOption, _, _, _, dependencies) =>
         val fileMetadataInputs = dependencies.get(selectedOption).map(buildUpdateMetadataInput).getOrElse(Nil)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString) :: fileMetadataInputs
-      case MultiSelectField(fieldId, _, _, _, multiValue, _, selectedOptions, _, _, _) if selectedOptions.isDefined =>
+      case MultiSelectField(fieldId, _, _, _, _, multiValue, _, selectedOptions, _, _, _) if selectedOptions.isDefined =>
         selectedOptions.getOrElse(Nil).map(p => UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, p.value))
     }.flatten
   }
