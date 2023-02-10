@@ -392,7 +392,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
                   consignmentType = Some(consignmentType),
                   exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
                   createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
-                  currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), statuses(4), statuses(5)),
+                  currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), statuses(4), statuses(5), statuses(6), statuses(7), statuses(8)),
                   totalFiles = orderNumber
                 ),
                 "Cursor"
