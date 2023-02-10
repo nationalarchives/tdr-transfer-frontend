@@ -101,6 +101,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
         DateField(
           "fieldidcontainsdaymonthyearoryears",
           "fieldId contains day month and year",
+          "fieldAlternativeName",
           "We were previously using '.contains('day')' which meant that this type of form (above) would have showed the user the wrong error",
           multiValue = false,
           InputNameAndValue("Day", "", "DD"),
@@ -108,10 +109,11 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
           InputNameAndValue("Year", "", "YYYY"),
           isRequired = true
         ),
-        TextField("fieldidcontainsdaymonthoryear", "", "", multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true),
-        MultiSelectField("fieldidendswithday", "", "", "", multiValue = true, Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, isRequired = true),
+        TextField("fieldidcontainsdaymonthoryear", "", "", "", multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true),
+        MultiSelectField("fieldidendswithday", "", "", "", "", multiValue = true, Seq(InputNameAndValue("TestValue 3", "TestValue 3")), None, isRequired = true),
         RadioButtonGroupField(
           "fieldidendswithmonth",
+          "",
           "",
           "",
           "",
@@ -120,7 +122,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
           "yes",
           isRequired = true
         ),
-        TextField("fieldidendswithyear", "", "", multiValue = false, InputNameAndValue("text", ""), "text", isRequired = true)
+        TextField("fieldidendswithyear", "", "", "", multiValue = false, InputNameAndValue("text", ""), "text", isRequired = true)
       )
 
       val dynamicFormUtils = new DynamicFormUtils(mockRequest, metadataUsedForFormAsFields)
@@ -151,7 +153,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
     validatedForm.foreach {
       case multiSelectField: MultiSelectField =>
-        multiSelectField.fieldErrors should equal(List(s"There was no value selected for the ${multiSelectField.fieldName}."))
+        multiSelectField.fieldErrors should equal(List(s"Search for and select at least one ${multiSelectField.fieldName}"))
       case _ =>
     }
   }
@@ -201,7 +203,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
     val dateField = validatedForm.find(_.isInstanceOf[DateField]).get
-    dateField.fieldErrors should equal(List(s"There was no number entered for the Day."))
+    dateField.fieldErrors should equal(List(s"The alternativename must contain a day"))
   }
 
   "convertSubmittedValuesToFormFields" should "not validate the field if it is hidden" in {
@@ -279,7 +281,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
     validatedForm.exists(_.fieldErrors.nonEmpty) should be(true)
     val field = validatedForm.find(_.isInstanceOf[RadioButtonGroupField]).get
-    field.fieldErrors should equal(List("There was no text entered for the alternative description."))
+    field.fieldErrors should equal(List("Add an alternativename for this record"))
   }
 
   "convertSubmittedValuesToFormFields" should "return an error when future date is not allowed" in {
@@ -305,7 +307,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
     val dateField = validatedForm.find(_.isInstanceOf[DateField]).get
-    dateField.fieldErrors should equal(List(s"Date Display date cannot be a future date."))
+    dateField.fieldErrors should equal(List(s"The date of the alternativename must be in the past"))
   }
 
   "convertSubmittedValuesToFormFields" should "return a 'whole number'-related error for the numeric fields that are missing values" in {
@@ -316,11 +318,11 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
 
     val dateField = validatedForm.filter(_.isInstanceOf[DateField])
-    dateField.head.fieldErrors should equal(List(s"Month entered must be a whole number."))
-    dateField(1).fieldErrors should equal(List(s"000 is an invalid Day number."))
+    dateField.head.fieldErrors should equal(List(s"The month of the alternativename must be a whole number, like 3, 9, 12"))
+    dateField(1).fieldErrors should equal(List(s"The day of the alternativename must be between 1 and 31"))
 
     val textField = validatedForm.find(_.isInstanceOf[TextField]).get
-    textField.fieldErrors should equal(List(s"years entered must be a whole number."))
+    textField.fieldErrors should equal(List(s"The small text display must be a whole number, like 3, 15, 21"))
   }
 
   "convertSubmittedValuesToFormFields" should "return all values, with any value submitted with whitespace " +

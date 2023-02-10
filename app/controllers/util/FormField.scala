@@ -9,6 +9,7 @@ import scala.util.control.Exception.allCatch
 abstract class FormField {
   val fieldId: String
   val fieldName: String
+  val fieldAlternativeName: String
   val fieldDescription: String
   val multiValue: Boolean
   val isRequired: Boolean
@@ -16,6 +17,10 @@ abstract class FormField {
   val fieldErrors: List[String]
   val dependencies: Map[String, List[FormField]] = Map.empty
   def selectedOptionNames(): List[String]
+
+  def getAlternativeName: String = {
+    if (fieldAlternativeName.nonEmpty) fieldAlternativeName else fieldName
+  }
 }
 
 case class InputNameAndValue(name: String, value: String, placeHolder: String = "")
@@ -23,6 +28,7 @@ case class InputNameAndValue(name: String, value: String, placeHolder: String = 
 case class RadioButtonGroupField(
     fieldId: String,
     fieldName: String,
+    fieldAlternativeName: String,
     fieldDescription: String,
     additionalInfo: String,
     multiValue: Boolean,
@@ -40,6 +46,7 @@ case class RadioButtonGroupField(
 case class TextField(
     fieldId: String,
     fieldName: String,
+    fieldAlternativeName: String,
     fieldDescription: String,
     multiValue: Boolean,
     nameAndValue: InputNameAndValue,
@@ -56,6 +63,7 @@ case class TextField(
 case class TextAreaField(
     fieldId: String,
     fieldName: String,
+    fieldAlternativeName: String,
     fieldDescription: String,
     multiValue: Boolean,
     nameAndValue: InputNameAndValue,
@@ -72,6 +80,7 @@ case class TextAreaField(
 case class DropdownField(
     fieldId: String,
     fieldName: String,
+    fieldAlternativeName: String,
     fieldDescription: String,
     multiValue: Boolean,
     options: Seq[InputNameAndValue],
@@ -86,6 +95,7 @@ case class DropdownField(
 case class MultiSelectField(
     fieldId: String,
     fieldName: String,
+    fieldAlternativeName: String,
     fieldDescription: String,
     fieldGuidance: String,
     multiValue: Boolean = true,
@@ -101,6 +111,7 @@ case class MultiSelectField(
 case class DateField(
     fieldId: String,
     fieldName: String,
+    fieldAlternativeName: String,
     fieldDescription: String,
     multiValue: Boolean,
     day: InputNameAndValue,
@@ -115,24 +126,23 @@ case class DateField(
 }
 
 object FormField {
-
-  val dropdownOptionNotSelectedError = "There was no value selected for the %s."
+  val dropdownOptionNotSelectedError = "Search for and select at least one %s"
   val invalidDropdownOptionSelectedError = "Option '%s' was not an option provided to the user."
-  val emptyValueError = "There was no %s entered for the %s."
-  val numberError = "%s entered must be a whole number."
-  val negativeNumberError = "%s must not be a negative number."
-  val invalidYearError = "The year should be 4 digits in length."
-  val invalidDateError = "%s is an invalid %s number."
-  val invalidDayError = "%s does not have %d days."
-  val invalidDayForLeapYearError = "%s %d does not have %d days in it."
-  val futureDateError = "%s date cannot be a future date."
-  val radioOptionNotSelectedError = "There was no value selected for %s."
+  val emptyValueError = "The %s must contain a %s"
+  val wholeNumberError = "The %s must be a whole number, like %s"
+  val wholeNumberError2 = "The %s of the %s must be a whole number, like %s"
+  val negativeNumberError = "The %s cannot be a negative number"
+  val invalidYearError = "The year of the %s must contain 4 digits"
+  val futureDateError = "The date of the %s must be in the past"
+  val invalidDateError = "The %s of the %s must be between 1 and %s"
+  val invalidDayError = "%s does not have %d days in it. Enter the day for the %s between 1 and %d"
+  val radioOptionNotSelectedError = "Select if the %s is sensitive to the public"
   val invalidRadioOptionSelectedError = "Option '%s' was not an option provided to the user."
   val tooLongInputError = "%s must be %s characters or less"
-
-  def inputModeToFieldType(inputMode: String): String = {
-    if (inputMode.equals("numeric")) "number" else "text"
-  }
+  val closurePeriodNotEnteredError = "Enter the number of years the record is closed from the closure start date"
+  val dependencyNotEntered = "Add an %s for this record"
+  val dateNotEnteredError = "Enter the %s for this record"
+  val wholeNumberExample = "3, 15, 21"
 }
 
 object RadioButtonGroupField {
@@ -210,14 +220,12 @@ object TextField {
 
   def validate(text: String, textField: TextField): Option[String] =
     if (text == "") {
-      val fieldType: String = inputModeToFieldType(textField.inputMode)
-      val fieldName = if (textField.fieldId == "TitleAlternate") "alternative title" else textField.fieldName
-      Some(emptyValueError.format(fieldType, fieldName))
+      val fieldName = textField.getAlternativeName.toLowerCase
+      if (textField.fieldId == "ClosurePeriod") Some(closurePeriodNotEnteredError.format(textField)) else Some(dependencyNotEntered.format(fieldName))
     } else if (textField.inputMode.equals("numeric")) {
-      val inputName = textField.nameAndValue.name
       text match {
-        case t if allCatch.opt(t.toInt).isEmpty => Some(numberError.format(inputName))
-        case t if t.toInt < 0                   => Some(negativeNumberError.format(inputName))
+        case t if allCatch.opt(t.toInt).isEmpty => Some(wholeNumberError.format(textField.fieldName.toLowerCase, wholeNumberExample))
+        case t if t.toInt < 0                   => Some(negativeNumberError.format(textField.fieldName.toLowerCase))
         case _                                  => None
       }
     } else {
@@ -229,10 +237,10 @@ object TextField {
 
 object TextAreaField {
   def update(textAreaField: TextAreaField, value: String): TextAreaField = textAreaField.copy(nameAndValue = textAreaField.nameAndValue.copy(value = value))
-
   def validate(text: String, textAreaField: TextAreaField): Option[String] = {
+    val fieldName = textAreaField.getAlternativeName
     text match {
-      case t if t == "" && textAreaField.isRequired     => Some(emptyValueError.format("text", textAreaField.fieldName))
+      case t if t == "" && textAreaField.isRequired     => Some(dependencyNotEntered.format(fieldName.toLowerCase))
       case t if t.length > textAreaField.characterLimit => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
       case _                                            => None
     }
@@ -255,12 +263,16 @@ object DateField {
   )
 
   def validate(day: String, month: String, year: String, dateField: DateField): Option[String] = {
-
-    var error = validateValue(day, "Day", invalidDayValidation)
-    error = if (error.isEmpty) validateValue(month, "Month", invalidMonthValidation) else error
-    error = if (error.isEmpty) validateValue(year, "Year", invalidYearValidation) else error
-    error = if (error.isEmpty) checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt) else error
-    if (error.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField) else error
+    val fieldName = if (dateField.getAlternativeName == "Advisory Council Approval") dateField.fieldAlternativeName else dateField.getAlternativeName.toLowerCase
+    if (day.isEmpty && month.isEmpty && year.isEmpty) {
+      Some(dateNotEnteredError.format(fieldName))
+    } else {
+      val dayError = validateValue(day, "Day", invalidDayValidation, wholeNumberExample, "31", fieldName)
+      val monthError = if (dayError.isEmpty) validateValue(month, "Month", invalidMonthValidation, "3, 9, 12", "12", fieldName) else dayError
+      val yearError = if (monthError.isEmpty) validateValue(year, "Year", invalidYearValidation, "1994, 2000, 2023", "", fieldName) else monthError
+      val dayForMonthAndYearError = if (yearError.isEmpty) checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt, fieldName) else yearError
+      if (dayForMonthAndYearError.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField, fieldName) else dayForMonthAndYearError
+    }
   }
 
   def update(dateField: DateField, localDateTime: LocalDateTime): DateField =
@@ -273,36 +285,43 @@ object DateField {
   def update(dateField: DateField, day: String, month: String, year: String): DateField =
     dateField.copy(day = dateField.day.copy(value = day), month = dateField.month.copy(value = month), year = dateField.year.copy(value = year))
 
-  private def validateValue(day: String, unitType: String, isInvalidDate: Int => Boolean): Option[String] =
+  private def validateValue(
+      day: String,
+      unitType: String,
+      isInvalidDate: Int => Boolean,
+      wholeNumberError: String,
+      incorrectDateError: String,
+      fieldName: String
+  ): Option[String] = {
     day match {
-      case ""                                 => Some(emptyValueError.format("number", unitType))
-      case d if allCatch.opt(d.toInt).isEmpty => Some(numberError.format(unitType))
-      case d if d.toInt < 0                   => Some(negativeNumberError.format(unitType))
+      case ""                                 => Some(emptyValueError.format(fieldName, unitType.toLowerCase))
+      case d if allCatch.opt(d.toInt).isEmpty => Some(wholeNumberError2.format(unitType.toLowerCase, fieldName, wholeNumberError))
+      case d if d.toInt < 0                   => Some(negativeNumberError.format(unitType.toLowerCase))
       case d if isInvalidDate(d.toInt) =>
         if (unitType.equals("Year")) {
-          Some(invalidYearError)
+          Some(invalidYearError.format(fieldName))
         } else {
-          Some(invalidDateError.format(d, unitType))
+          Some(invalidDateError.format(unitType.toLowerCase, fieldName, incorrectDateError))
         }
       case _ => None
     }
+  }
 
-  private def checkDayForTheMonthAndYear(dayNumber: Int, monthNumber: Int, yearNumber: Int): Option[String] = {
-
+  private def checkDayForTheMonthAndYear(dayNumber: Int, monthNumber: Int, yearNumber: Int, fieldName: String): Option[String] = {
     val monthHasLessThan31Days = monthsWithLessThan31Days.contains(monthNumber)
 
     if (dayNumber > 30 && monthHasLessThan31Days || dayNumber == 30 && monthNumber == 2) {
-      Some(invalidDayError.format(monthsWithLessThan31Days(monthNumber), dayNumber))
+      Some(invalidDayError.format(monthsWithLessThan31Days(monthNumber), dayNumber, fieldName, 30))
     } else if (dayNumber == 29 && monthNumber == 2 && !isALeapYear(yearNumber)) {
-      Some(invalidDayForLeapYearError.format(monthsWithLessThan31Days(monthNumber), yearNumber, dayNumber))
+      Some(invalidDayError.format(monthsWithLessThan31Days(monthNumber), dayNumber, fieldName, 28))
     } else {
       None
     }
   }
 
-  private def checkIfFutureDateIsAllowed(day: Int, month: Int, year: Int, dateField: DateField): Option[String] =
+  private def checkIfFutureDateIsAllowed(day: Int, month: Int, year: Int, dateField: DateField, fieldName: String): Option[String] =
     if (!dateField.isFutureDateAllowed && LocalDateTime.now().isBefore(LocalDateTime.of(year, month, day, 0, 0))) {
-      Some(futureDateError.format(dateField.fieldName))
+      Some(futureDateError.format(fieldName))
     } else {
       None
     }

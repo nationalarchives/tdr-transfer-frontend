@@ -50,6 +50,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
         TextAreaField(
           property.propertyName,
           property.displayName,
+          property.alternativeName,
           property.description,
           property.multiValue,
           InputNameAndValue(property.propertyName, customMetadata.defaultValue),
@@ -60,6 +61,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
         DateField(
           property.propertyName,
           property.displayName,
+          property.alternativeName,
           property.description,
           property.multiValue,
           InputNameAndValue("Day", "", "DD"),
@@ -73,6 +75,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           MultiSelectField(
             property.propertyName,
             property.displayName,
+            property.alternativeName,
             property.description,
             property.guidance,
             property.multiValue,
@@ -84,6 +87,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           DropdownField(
             property.propertyName,
             property.displayName,
+            property.alternativeName,
             property.description,
             property.multiValue,
             customMetadata.definedInputs,
@@ -105,6 +109,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
     TextField(
       property.propertyName,
       property.displayName,
+      property.alternativeName,
       property.description,
       property.multiValue,
       InputNameAndValue(inputName, customMetadata.defaultValue),
@@ -126,6 +131,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
     RadioButtonGroupField(
       property.propertyName,
       property.displayName,
+      property.alternativeName,
       property.description,
       additionalInfo = "",
       property.multiValue,
