@@ -113,6 +113,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |    <li>Password protected files</li>
             |    <li>Zip files</li>
             |    <li>Corrupted files</li>
+            |    <li>Ambiguous naming of redacted files</li>
             |</ul>""".stripMargin
         )
         // scalastyle:on line.size.limit
