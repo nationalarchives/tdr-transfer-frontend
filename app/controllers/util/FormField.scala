@@ -134,6 +134,7 @@ object FormField {
   val closurePeriodNotEnteredError = "Enter the number of years the record is closed from the closure start date"
   val dependencyNotEntered = "Add an %s for this record"
   val dateNotEnteredError = "Enter the %s for this record"
+  val wholeNumberExample = "3, 15, 21"
 }
 
 object RadioButtonGroupField {
@@ -211,11 +212,11 @@ object TextField {
 
   def validate(text: String, textField: TextField): Option[String] =
     if (text == "") {
-      val fieldName = if (textField.fieldAlternativeName.isEmpty) textField.fieldName.toLowerCase else textField.fieldAlternativeName
+      val fieldName = if (textField.fieldAlternativeName.isEmpty) textField.fieldName.toLowerCase else textField.fieldAlternativeName.toLowerCase
       if (textField.fieldId == "ClosurePeriod") Some(closurePeriodNotEnteredError.format(fieldName)) else Some(dependencyNotEntered.format(fieldName))
     } else if (textField.inputMode.equals("numeric")) {
       text match {
-        case t if allCatch.opt(t.toInt).isEmpty => Some(wholeNumberError.format(textField.fieldName.toLowerCase, "3, 15, 21"))
+        case t if allCatch.opt(t.toInt).isEmpty => Some(wholeNumberError.format(textField.fieldName.toLowerCase, wholeNumberExample))
         case t if t.toInt < 0                   => Some(negativeNumberError.format(textField.fieldName.toLowerCase))
         case _                                  => None
       }
@@ -229,9 +230,9 @@ object TextField {
 object TextAreaField {
   def update(textAreaField: TextAreaField, value: String): TextAreaField = textAreaField.copy(nameAndValue = textAreaField.nameAndValue.copy(value = value))
   def validate(text: String, textAreaField: TextAreaField): Option[String] = {
-    val fieldName = if (textAreaField.fieldAlternativeName.isEmpty) textAreaField.fieldName.toLowerCase else textAreaField.fieldAlternativeName
+    val fieldName = if (textAreaField.fieldAlternativeName.isEmpty) textAreaField.fieldName else textAreaField.fieldAlternativeName
     text match {
-      case t if t == "" && textAreaField.isRequired     => Some(dependencyNotEntered.format(fieldName))
+      case t if t == "" && textAreaField.isRequired     => Some(dependencyNotEntered.format(fieldName.toLowerCase))
       case t if t.length > textAreaField.characterLimit => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
       case _                                            => None
     }
@@ -258,11 +259,11 @@ object DateField {
     if (day.isEmpty && month.isEmpty && year.isEmpty) {
       Some(dateNotEnteredError.format(fieldName))
     } else {
-      var error = validateValue(day, "Day", invalidDayValidation, "3, 15, 21", "31", fieldName)
-      error = if (error.isEmpty) validateValue(month, "Month", invalidMonthValidation, "3, 9, 12", "12", fieldName) else error
-      error = if (error.isEmpty) validateValue(year, "Year", invalidYearValidation, "1994, 2000, 2023", "", fieldName) else error
-      error = if (error.isEmpty) checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt, fieldName) else error
-      if (error.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField) else error
+      val dayError = validateValue(day, "Day", invalidDayValidation, wholeNumberExample, "31", fieldName)
+      val monthError = if (dayError.isEmpty) validateValue(month, "Month", invalidMonthValidation, "3, 9, 12", "12", fieldName) else dayError
+      val yearError = if (monthError.isEmpty) validateValue(year, "Year", invalidYearValidation, "1994, 2000, 2023", "", fieldName) else monthError
+      val dayForMonthAndYearError = if (yearError.isEmpty) checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt, fieldName) else yearError
+      if (dayForMonthAndYearError.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField) else dayForMonthAndYearError
     }
   }
 

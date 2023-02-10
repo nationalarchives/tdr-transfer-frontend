@@ -280,7 +280,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
     validatedForm.exists(_.fieldErrors.nonEmpty) should be(true)
     val field = validatedForm.find(_.isInstanceOf[RadioButtonGroupField]).get
-    field.fieldErrors should equal(List("Add an alternativeName for this record"))
+    field.fieldErrors should equal(List("Add an alternativename for this record"))
   }
 
   "convertSubmittedValuesToFormFields" should "return an error when future date is not allowed" in {

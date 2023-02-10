@@ -38,7 +38,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       }
     }
 
-    "validate should an error when the given value is invalid" in {
+    "validate should return an error when the given value is invalid" in {
       List("agreed", "disagree").foreach { validValue =>
         RadioButtonGroupField.validate(validValue, Map.empty, radioButtonGroupField) shouldBe List(s"Option '$validValue' was not an option provided to the user.")
       }
@@ -63,7 +63,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "validate should return an error when the given value is empty" in {
 
-      TextField.validate("", textField) shouldBe Some("Add an alternativeName for this record")
+      TextField.validate("", textField) shouldBe Some("Add an alternativename for this record")
     }
 
     "validate should return an error when the given value is empty for closurePeriod" in {
@@ -95,7 +95,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "validate should return an error if the given value is empty and the field is required" in {
       val requiredField = TextAreaField("id", "FieldName", "alternativeName", "desc", multiValue = false, InputNameAndValue("name", ""), isRequired = true)
-      TextAreaField.validate("", requiredField) shouldBe Some("Add an alternativeName for this record")
+      TextAreaField.validate("", requiredField) shouldBe Some("Add an alternativename for this record")
     }
 
     "validate should not return an error if the given value is empty and the field is not required" in {
