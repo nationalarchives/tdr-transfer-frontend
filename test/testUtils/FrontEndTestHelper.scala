@@ -216,9 +216,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       confirmTransferStatus: Option[String] = None,
       exportStatus: Option[String] = None,
       clientChecksStatus: Option[String] = None,
-      serverAntivirusStatus: Option[String] = None,
+      serverFFIDStatus: Option[String] = None,
       serverChecksumStatus: Option[String] = None,
-      serverFFIDStatus: Option[String] = None
+      serverAntivirusStatus: Option[String] = None
   ): StubMapping = {
     val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
     val consignmentResponse = gcs.Data(

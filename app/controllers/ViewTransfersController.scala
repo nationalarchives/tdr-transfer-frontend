@@ -203,7 +203,7 @@ case class ConsignmentTransfers(
     status: String,
     statusColour: String,
     userAction: UserAction,
-    dateOfExport: String,
+    dateOfTransfer: String,
     dateStarted: String,
     numberOfFiles: Int
 )

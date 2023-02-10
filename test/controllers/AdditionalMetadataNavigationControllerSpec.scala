@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post
 import configuration.GraphQLConfiguration
 import controllers.util.MetadataProperty.fileType
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
+import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.FileStatuses
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.types.FileMetadataFilters
@@ -46,11 +47,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     "getAllFiles" should {
       forAll(metadataType) { metadataType =>
         s"render the correct description for metadata type $metadataType" in {
-          val parentFile = gcf.GetConsignment.Files(UUID.randomUUID(), Option("parent"), Option("Folder"), None, emptyMetadata, List())
+          val parentFile = gcf.GetConsignment.Files(UUID.randomUUID(), Option("parent"), Option("Folder"), None, emptyMetadata, Nil)
           val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile), "standard")
 
           val additionalMetadataController =
-            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val result = additionalMetadataController
             .getAllFiles(consignmentId, metadataType)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
@@ -71,29 +72,66 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           val parentId = UUID.randomUUID()
           val descendantOneFileId = UUID.randomUUID()
           val descendantTwoFileId = UUID.randomUUID()
-          val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("Folder"), None, emptyMetadata, List())
-          val descendantOneFile = gcf.GetConsignment.Files(descendantOneFileId, Option("descendantOneFile"), Option("Folder"), Option(parentId), emptyMetadata, List())
-          val descendantTwoFile = gcf.GetConsignment.Files(descendantTwoFileId, Option("descendantTwoFile"), Option("File"), Option(descendantOneFileId), emptyMetadata, List())
-          val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile, descendantOneFile, descendantTwoFile), "standard")
+          val descendantThreeFileId = UUID.randomUUID()
+          val descendantFourFileId = UUID.randomUUID()
+          val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("Folder"), None, emptyMetadata, Nil)
+          val descendantOneFile = gcf.GetConsignment.Files(descendantOneFileId, Option("descendantOneFile"), Option("Folder"), Option(parentId), emptyMetadata, Nil)
+          val descendantTwoFile = gcf.GetConsignment.Files(
+            descendantTwoFileId,
+            Option("descendantTwoFile"),
+            Option("File"),
+            Option(descendantOneFileId),
+            emptyMetadata,
+            List(FileStatuses("ClosureMetadata", "Completed"), FileStatuses("DescriptiveMetadata", "Completed"))
+          )
+          val descendantThreeFile = gcf.GetConsignment.Files(
+            descendantThreeFileId,
+            Option("descendantThreeFile"),
+            Option("File"),
+            Option(descendantOneFileId),
+            emptyMetadata,
+            List(FileStatuses("ClosureMetadata", "NotEntered"), FileStatuses("DescriptiveMetadata", "NotEntered"))
+          )
+          val descendantFourFile = gcf.GetConsignment.Files(
+            descendantFourFileId,
+            Option("descendantFourFile"),
+            Option("File"),
+            Option(descendantOneFileId),
+            emptyMetadata,
+            List(FileStatuses("ClosureMetadata", "Incomplete"), FileStatuses("DescriptiveMetadata", "NotEntered"))
+          )
+          val consignmentService: ConsignmentService =
+            mockConsignmentService(List(parentFile, descendantOneFile, descendantTwoFile, descendantThreeFile, descendantFourFile), "standard")
 
           val additionalMetadataController =
-            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val result = additionalMetadataController
             .getAllFiles(consignmentId, metadataType)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
 
           val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
 
+          val closedTag = """<strong class="tdr-tag tdr-tag--blue">closed</strong>"""
+          val enteredTag = """<strong class="tdr-tag tdr-tag--blue">entered</strong>"""
+          val incompleteTag = """<strong class="tdr-tag tdr-tag--red">incomplete</strong>"""
           content must include(getExpectedFolderHtml(parentId, "parent"))
           content must include(getExpectedFolderHtml(descendantOneFileId, "descendantOneFile"))
-          content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile"))
+          if (metadataType == "closure") {
+            content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile", 2, closedTag))
+            content must include(getExpectedFileHtml(descendantThreeFileId, "descendantThreeFile", 1))
+            content must include(getExpectedFileHtml(descendantFourFileId, "descendantFourFile", 0, incompleteTag))
+          } else {
+            content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile", 2, enteredTag))
+            content must include(getExpectedFileHtml(descendantThreeFileId, "descendantThreeFile", 1))
+            content must include(getExpectedFileHtml(descendantFourFileId, "descendantFourFile", 0))
+          }
         }
       }
 
       "return forbidden for a judgment user" in {
         val consignmentService = mockConsignmentService(Nil, "judgment")
         val additionalMetadataController =
-          new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+          new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
           .getAllFiles(consignmentId, "closure")
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
@@ -103,7 +141,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       "return a redirect the login page for a logged out user" in {
         val consignmentService = mockConsignmentService(Nil, "standard")
         val additionalMetadataController =
-          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents, MockAsyncCacheApi())
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
         val result = additionalMetadataController
           .getAllFiles(consignmentId, "closure")
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
@@ -113,11 +151,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
     "submitFiles" should {
       "redirect to the closure status page with the correct file ids and closure metadata type if the files are not already closed" in {
-        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option("")), List()) :: Nil
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option("")), Nil) :: Nil
         val consignmentService = mockConsignmentService(files, "standard")
         val fileId = UUID.randomUUID()
         val additionalMetadataController =
-          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
           .apply(
@@ -140,11 +178,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       }
 
       "redirect to the closure metadata page with the correct file ids and closure metadata type if the files are already closed" in {
-        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option("")), List()) :: Nil
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option("")), Nil) :: Nil
         val consignmentService = mockConsignmentService(files, "standard", allClosed = true)
         val fileId = UUID.randomUUID().toString
         val additionalMetadataController =
-          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
           .submitFiles(consignmentId, metadataType(0))
           .apply(
@@ -161,7 +199,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       "redirect to the metadata summary page if the metadata type is descriptive" in {
         val consignmentService = mockConsignmentService(Nil, "standard")
         val additionalMetadataController =
-          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val fileId = UUID.randomUUID().toString
         val result = additionalMetadataController
           .submitFiles(consignmentId, "descriptive")
@@ -175,10 +213,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       }
 
       "redirect to the file navigation page with an error message if a user submits the page without selecting any files and folders" in {
-        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option("")), List()) :: Nil
+        val files = gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(Option("")), Nil) :: Nil
         val consignmentService = mockConsignmentService(files, "standard")
         val additionalMetadataController =
-          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure").withCSRFToken)
@@ -204,7 +242,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       "return forbidden for a judgment user" in {
         val consignmentService = mockConsignmentService(Nil, "judgment")
         val additionalMetadataController =
-          new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents, MockAsyncCacheApi())
+          new AdditionalMetadataNavigationController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure").withCSRFToken)
@@ -214,7 +252,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
       "return a redirect the login page for a logged out user" in {
         val consignmentService = mockConsignmentService(Nil, "standard")
         val additionalMetadataController =
-          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents, MockAsyncCacheApi())
+          new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
         val result = additionalMetadataController
           .submitFiles(consignmentId, "descriptive")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/").withCSRFToken)
@@ -240,13 +278,13 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
   }
 
-  private def getExpectedFileHtml(id: UUID, label: String): String = {
+  private def getExpectedFileHtml(id: UUID, label: String, ariaPosinset: Int, tag: String = ""): String = {
     s"""
-        |<li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-$id" aria-level="3" aria-setsize="1" aria-posinset="0" aria-selected="false">
+        |<li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-$id" aria-level="3" aria-setsize="3" aria-posinset="$ariaPosinset" aria-selected="false">
         |      <div class="tna-tree__node-item__radio govuk-radios__item">
         |        <span class="govuk-radios__input" aria-hidden="true" id="radio-$id" name="nested-navigation"></span>
         |        <span class="govuk-label govuk-radios__label">
-        |        $label
+        |        $label$tag
         |        </span>
         |      </div>
         |    </li>

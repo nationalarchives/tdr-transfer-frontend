@@ -205,7 +205,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       index: Int,
       statusesAndActionUrls: List[(String, String)] = standardStatusesAndActionUrls
   ): Unit = {
-    val exportDate = node.exportDatetime.map(_.format(formatter)).get
+    val dateOfTransfer = node.exportDatetime.map(_.format(formatter)).get
     val createdDate = node.createdDatetime.map(_.format(formatter)).get
     val (transferStatus, actionUrlWithNoConsignmentId): (String, String) = statusesAndActionUrls(index)
     val transferStatusColour = getStatusColour(transferStatus)
@@ -223,7 +223,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
          |                          <ul class="govuk-list govuk-list--bullet">
          |                            <li>Consignment uploaded by: test@example.com</li>
          |                            <li>Date started: $createdDate</li>
-         |                            <li>Date of export: $exportDate</li>
+         |                            <li>Date of transfer: $dateOfTransfer</li>
          |                            <li>Number of files: ${node.totalFiles} records</li>
          |                          </ul>
          |                        </div>
@@ -231,7 +231,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     val statusAndDate =
       s"""
          |                    <td class="govuk-table__cell">$createdDate</td>
-         |                    <td class="govuk-table__cell ${if (exportDate == "N/A") "not-applicable" else ""}">$exportDate</td>
+         |                    <td class="govuk-table__cell ${if (dateOfTransfer == "N/A") "not-applicable" else ""}">$dateOfTransfer</td>
          |                    <td class="govuk-table__cell">
          |                      <strong class="govuk-tag govuk-tag--$transferStatusColour">
          |                        $transferStatus

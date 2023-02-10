@@ -3,6 +3,7 @@
 @import views.html.helper.CSRF
 @import views.html.partials.fileNavigationContent
 
+@import services.ConsignmentService.StatusTag
 @(consignmentId: UUID, name: String, files: File, metadataType: String, displayError: Boolean = false)(implicit messages: Messages, request: RequestHeader)
 
 @display(file: File, level: Int, size: Int, pos: Int) = {
@@ -11,7 +12,7 @@
       <div class="tna-tree__node-item__radio govuk-radios__item">
         <span class="govuk-radios__input" aria-hidden="true" id="radio-@file.id" name="nested-navigation"></span>
         <span class="govuk-label govuk-radios__label">
-        @file.name
+          @file.name @displayStatusTag(file.statusTag)
         </span>
       </div>
     </li>
@@ -25,7 +26,7 @@
         <div class="js-radios-directory tna-radios-directory">
           <span class="govuk-label tna-radios-directory__label">
             <img class="tna-tree__svg-directory" role="img" src="@routes.Assets.versioned("images/folder.svg")" alt="Directory">
-            @file.name
+              @file.name
           </span>
         </div>
       </div>
@@ -51,6 +52,12 @@
         </div>
       </div>
     </div>
+  }
+}
+
+@displayStatusTag(statusTag: Option[StatusTag]) = {
+  @if(statusTag.isDefined) {
+    <strong class="tdr-tag tdr-tag--@statusTag.get.colour">@statusTag.get.text</strong>
   }
 }
 
