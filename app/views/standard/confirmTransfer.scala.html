@@ -65,20 +65,22 @@
                 <div class="govuk-form-group ">
                     @CSRF.formField
                     <fieldset class="govuk-fieldset" aria-label="final transfer confirmation">
-                        @inputSingleCheckbox(
-                            finalTransferConfirmationForm("transferLegalCustody").id,
-                            Map(
-                                Symbol("_label") -> "By proceeding with this transfer, I confirm that I am agreeing to transfer legal custody of these records to The National Archives.",
-                                Symbol("_value") -> "true",
-                                Symbol("_smallCheckbox") -> true,
-                                Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
-                                Symbol("_requiredOption") -> true
-                            ),
-                            finalTransferConfirmationForm("transferLegalCustody").errors.headOption match {
-                                case Some(formError) => formError.messages
-                                case None => Nil
-                            }
-                        )
+                        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                            @inputSingleCheckbox(
+                                finalTransferConfirmationForm("transferLegalCustody").id,
+                                Map(
+                                    Symbol("_label") -> "By proceeding with this transfer, I confirm that I am agreeing to transfer legal custody of these records to The National Archives.",
+                                    Symbol("_value") -> "true",
+                                    Symbol("_smallCheckbox") -> true,
+                                    Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
+                                    Symbol("_requiredOption") -> true
+                                ),
+                                finalTransferConfirmationForm("transferLegalCustody").errors.headOption match {
+                                    case Some(formError) => formError.messages
+                                    case None => Nil
+                                }
+                            )
+                        </legend>
                     </fieldset>
                     <div class="govuk-button-group">
                             <!-- Transfer -->
