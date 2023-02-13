@@ -13,12 +13,12 @@
 
 @main(title = "Check closure status", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
-        @progressIndicator(Messages("additionalMetadataClosureStatus.progress"))
+        <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
 
-                <h1 class="govuk-heading-xl">
-                Confirm the closure status of your record
+                <h1 class="govuk-heading-l">
+                Confirm closure status
                 </h1>
                 @if(areAllFilesClosed) {
                     @warningMessage(Messages(
@@ -30,13 +30,13 @@
 
                 @form(routes.AdditionalMetadataClosureStatusController.submitClosureStatus(consignmentId, metadataType, fileIds), (Symbol("novalidate"), "")) {
                     @CSRF.formField
-                    @fileNameCard(fileNames, s"You are adding $metadataType to the following files:")
+                    @fileNameCard(fileNames, s"You are adding $metadataType status to the following files:")
 
                     <div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
                         <fieldset class="govuk-fieldset">
                             <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
                                 <h2 class="govuk-fieldset__heading">
-                                    Has this closure been approved by the Advisory Council?
+                                    Has this closure status been approved by the Advisory Council?
                                 </h2>
                             </legend>
 
@@ -58,7 +58,7 @@
                     <details class="govuk-details" data-module="govuk-details">
                         <summary class="govuk-details__summary">
                             <span class="govuk-details__summary-text">
-                                You must provide the following information, as they are mandatory for closure.
+                                When you click continue, you will be asked to provide the following mandatory information for closed records.
                             </span>
                         </summary>
                         <div class="govuk-details__text">

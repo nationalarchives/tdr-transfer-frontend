@@ -327,12 +327,12 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       )
     }
 
-    closureStatusPage must include("Confirm the closure status of your record")
-    closureStatusPage must include("<p class=\"govuk-body govuk-!-margin-bottom-2 govuk-!-font-weight-bold\">You are adding closure to the following files:</p>")
+    closureStatusPage must include("Confirm closure status")
+    closureStatusPage must include("<p class=\"govuk-body govuk-!-margin-bottom-2 govuk-!-font-weight-bold\">You are adding closure status to the following files:</p>")
     closureStatusPage must include("<li>original/file/path</li>")
     closureStatusPage must include(
       """<h2 class="govuk-fieldset__heading">
-        |                                    Has this closure been approved by the Advisory Council?
+        |                                    Has this closure status been approved by the Advisory Council?
         |                                </h2>""".stripMargin
     )
     val href = s"/consignment/$consignmentId/additional-metadata/status/closure?fileIds=${fileIds.mkString("&")}"
@@ -353,7 +353,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
     closureStatusPage must include(
       """<span class="govuk-details__summary-text">
-        |                                You must provide the following information, as they are mandatory for closure.
+        |                                When you click continue, you will be asked to provide the following mandatory information for closed records.
         |                            </span>""".stripMargin
     )
     closureStatusPage must include("""
