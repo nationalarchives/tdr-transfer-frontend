@@ -15,7 +15,7 @@
                             Delete @metadataType metadata
                         </h1>
                         @fileNameCard(fileNames, Messages(s"deleteAdditionalMetadata.${metadataType}DeletionMessage"))
-                        @warningMessage(s"Once $metadataType metadata is deleted, it cannot be recovered. The selected file will be set to open.")
+                        @warningMessage(Messages(s"deleteAdditionalMetadata.${metadataType}DeletionWarningMessage"))
                         <p class="govuk-body">Confirm you wish to proceed.</p>
 
                         <div class="govuk-button-group">

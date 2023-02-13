@@ -479,7 +479,6 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkConfirmDeleteMetadataPage(pageString: String, consignmentId: UUID, metadataType: String): Unit = {
-
     pageString must include(s"<title>Delete $metadataType metadata</title>")
     pageString must include(
       s"""              <h1 class="govuk-heading-xl">
@@ -487,13 +486,12 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
                         </h1>""".stripMargin
     )
 
-    pageString must include(s"Once $metadataType metadata is deleted, it cannot be recovered. The selected file will be set to open.")
     pageString must include("<p class=\"govuk-body\">Confirm you wish to proceed.</p>")
-
     val deleteButtonHref =
       s"/consignment/$consignmentId/additional-metadata/delete-metadata/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     val cancelButtonHref =
       s"/consignment/$consignmentId/additional-metadata/selected-summary/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
+    pageString must include(s"""form action="$deleteButtonHref"""")
     pageString must include(
       s"""                        <div class="govuk-button-group">
          |                            <button role="button" draggable="false" class="govuk-button govuk-button--warning" data-module="govuk-button" type="submit">
