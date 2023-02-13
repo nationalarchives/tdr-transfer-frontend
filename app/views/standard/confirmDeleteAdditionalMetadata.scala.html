@@ -1,27 +1,32 @@
 @import views.html.partials.{fileNameCard, warningMessage}
 
 @import java.util.UUID
+@import views.html.helper.CSRF
+@import views.html.helper.form
 @(consignmentId: UUID, metadataType: String, fileIds: List[UUID], fileNames: List[String], name: String)(implicit messages: Messages, request: RequestHeader)
     @main(title = s"Delete $metadataType metadata", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
 
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-two-thirds">
-                    <h1 class="govuk-heading-xl">
-                        Delete @metadataType metadata
-                    </h1>
-                    @fileNameCard(fileNames, Messages(s"deleteAdditionalMetadata.${metadataType}DeletionMessage"))
-                    @warningMessage(s"Once deleted $metadataType metadata cannot be recovered.")
-                    <p class="govuk-body">Are you sure you would like to proceed?</p>
+                    @form(routes.DeleteAdditionalMetadataController.deleteAdditionalMetadata(consignmentId, metadataType, fileIds), (Symbol("novalidate"), "")) {
+                        @CSRF.formField
+                        <h1 class="govuk-heading-xl">
+                            Delete @metadataType metadata
+                        </h1>
+                        @fileNameCard(fileNames, Messages(s"deleteAdditionalMetadata.${metadataType}DeletionMessage"))
+                        @warningMessage(s"Once $metadataType metadata is deleted, it cannot be recovered. The selected file will be set to open.")
+                        <p class="govuk-body">Confirm you wish to proceed.</p>
 
-                    <div class="govuk-button-group">
-                        <a href="@routes.DeleteAdditionalMetadataController.deleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button">
-                            Delete and return to all files
-                        </a>
-                        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)">
-                            Cancel
-                        </a>
-                    </div>
+                        <div class="govuk-button-group">
+                            <button role="button" draggable="false" class="govuk-button govuk-button--warning" data-module="govuk-button" type="submit">
+                                Delete and return to files
+                            </button>
+                            <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds)">
+                                Cancel
+                            </a>
+                        </div>
+                    }
                 </div>
             </div>
         }
