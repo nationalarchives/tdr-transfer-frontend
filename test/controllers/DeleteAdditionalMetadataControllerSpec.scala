@@ -17,8 +17,9 @@ import org.mockito.Mockito.when
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
+import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
+import play.api.test.Helpers.{GET, POST, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, GetConsignmentFilesMetadataGraphqlRequestData}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
@@ -68,7 +69,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
       val response = controller
         .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType"))
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType").withCSRFToken)
       val deleteMetadataPage = contentAsString(response)
 
       val events = wiremockServer.getAllServeEvents
@@ -109,7 +110,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
       val response = controller
         .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType"))
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType").withCSRFToken)
       val deleteMetadataPage = contentAsString(response)
 
       status(response) mustBe OK
@@ -478,30 +479,28 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkConfirmDeleteMetadataPage(pageString: String, consignmentId: UUID, metadataType: String): Unit = {
-
     pageString must include(s"<title>Delete $metadataType metadata</title>")
     pageString must include(
-      s"""                    <h1 class="govuk-heading-xl">
-        |                        Delete $metadataType metadata
-        |                    </h1>""".stripMargin
+      s"""              <h1 class="govuk-heading-xl">
+                            Delete $metadataType metadata
+                        </h1>""".stripMargin
     )
 
-    pageString must include(s"Once deleted $metadataType metadata cannot be recovered.")
-    pageString must include("<p class=\"govuk-body\">Are you sure you would like to proceed?</p>")
-
+    pageString must include("<p class=\"govuk-body\">Confirm you wish to proceed.</p>")
     val deleteButtonHref =
       s"/consignment/$consignmentId/additional-metadata/delete-metadata/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     val cancelButtonHref =
       s"/consignment/$consignmentId/additional-metadata/selected-summary/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
+    pageString must include(s"""form action="$deleteButtonHref"""")
     pageString must include(
-      s"""                    <div class="govuk-button-group">
-         |                        <a href="$deleteButtonHref" role="button" draggable="false" class="govuk-button">
-         |                            Delete and return to all files
-         |                        </a>
-         |                        <a class="govuk-link govuk-link--no-visited-state" href="$cancelButtonHref">
-         |                            Cancel
-         |                        </a>
-         |                    </div>""".stripMargin
+      s"""                        <div class="govuk-button-group">
+         |                            <button role="button" draggable="false" class="govuk-button govuk-button--warning" data-module="govuk-button" type="submit">
+         |                                Delete and return to files
+         |                            </button>
+         |                            <a class="govuk-link govuk-link--no-visited-state" href="$cancelButtonHref">
+         |                                Cancel
+         |                            </a>
+         |                        </div>""".stripMargin
     )
   }
 }
