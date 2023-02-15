@@ -36,4 +36,5 @@ object MetadataProperty {
   val fileType = "FileType"
   val closureType: StaticMetadata = StaticMetadata("ClosureType", "Closed")
   val descriptiveType: StaticMetadata = StaticMetadata("DescriptiveType", "")
+  val end_date = "end_date"
 }

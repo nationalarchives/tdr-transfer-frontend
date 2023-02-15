@@ -34,7 +34,7 @@
           @for(fieldToApplyToFile <- fieldsToApplyToFile) {
             @{
               fieldToApplyToFile match {
-                case RadioButtonGroupField(fieldId, name, _, description, additionalInfo, _, options, selectedOption, isRequired, hideInputs, fieldErrors, dependencies) => inputRadioGroup(
+                case RadioButtonGroupField(fieldId, name, _, description, fieldInsetTexts, additionalInfo, _, options, selectedOption, isRequired, hideInputs, fieldErrors, dependencies) => inputRadioGroup(
                   fieldId,
                   name,
                   description,
@@ -53,17 +53,18 @@
                   fieldErrors,
                   dependencies
                 )
-                case DateField(fieldId, fieldName, _, fieldDescription, _, day, month, year, _, fieldErrors, _, _) => inputDate(
+                case DateField(fieldId, fieldName, _, fieldDescription, fieldInsetTexts, _, day, month, year, _, fieldErrors, _, _) => inputDate(
                   fieldId,
                   fieldName,
                   fieldDescription,
+                  fieldInsetTexts,
                   day,
                   month,
                   year,
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true)
                 )
-                case TextField(fieldId, fieldName, _, fieldDescription, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText, inputType, _) => inputText(
+                case TextField(fieldId, fieldName, _, fieldDescription, fieldInsetTexts, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText, inputType, _) => inputText(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -74,7 +75,7 @@
                   inputMode,
                   addSuffixText
                 )
-                case TextAreaField(fieldId, fieldName, _, fieldDescription, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit, _) => inputTextArea(
+                case TextAreaField(fieldId, fieldName, _, fieldDescription, fieldInsetTexts, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit, _) => inputTextArea(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -85,7 +86,7 @@
                   wrap,
                   characterLimit
                 )
-                case MultiSelectField(fieldId, fieldName, _, fieldDescription, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors, _) =>
+                case MultiSelectField(fieldId, fieldName, _, fieldDescription, fieldInsetTexts, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors, _) =>
                   inputMultiSelect(
                     fieldId,
                     fieldName,
@@ -100,7 +101,7 @@
                     ),
                     fieldErrors
                   )
-                case DropdownField(fieldId, fieldName, _, fieldDescription, multiValue, options, selectedOption, _, fieldErrors, _) =>
+                case DropdownField(fieldId, fieldName, _, fieldDescription, fieldInsetTexts, multiValue, options, selectedOption, _, fieldErrors, _) =>
                   inputDropdown(
                     fieldId,
                     fieldName,

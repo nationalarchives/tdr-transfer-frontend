@@ -3,7 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddAdditionalMetadataController.{File, formFieldOverrides}
-import controllers.util.MetadataProperty.{clientSideOriginalFilepath, description, descriptionClosed}
+import controllers.util.MetadataProperty.{clientSideOriginalFilepath, description, descriptionClosed, end_date}
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
@@ -45,6 +45,8 @@ class AddAdditionalMetadataController @Inject() (
           cache.set(s"$consignmentId-consignment", consignment, 1.hour)
           // Set the values to those of the first file's metadata until we decide what to do with multiple files.
           val metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
+          // lastModified
+          val temp = consignment.files.flatMap(_.fileMetadata.find(_.name == "ClientSideFileLastModifiedDate"))
           Future.successful(updateFormFields(formFields, metadataMap))
         }
       } yield {
@@ -126,17 +128,17 @@ class AddAdditionalMetadataController @Inject() (
 
   private def buildUpdateMetadataInput(updatedFormFields: List[FormField]): List[UpdateFileMetadataInput] = {
     updatedFormFields.collect {
-      case TextField(fieldId, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
+      case TextField(fieldId, _, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
-      case TextAreaField(fieldId, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
+      case TextAreaField(fieldId, _, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
-      case DateField(fieldId, _, _, _, multiValue, day, month, year, _, _, _, _) if day.value.nonEmpty =>
+      case DateField(fieldId, _, _, _, _, multiValue, day, month, year, _, _, _, _) if day.value.nonEmpty =>
         val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, Timestamp.valueOf(dateTime).toString) :: Nil
-      case RadioButtonGroupField(fieldId, _, _, _, _, multiValue, _, selectedOption, _, _, _, dependencies) =>
+      case RadioButtonGroupField(fieldId, _, _, _, _, _, multiValue, _, selectedOption, _, _, _, dependencies) =>
         val fileMetadataInputs = dependencies.get(selectedOption).map(buildUpdateMetadataInput).getOrElse(Nil)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString) :: fileMetadataInputs
-      case MultiSelectField(fieldId, _, _, _, _, multiValue, _, selectedOptions, _, _, _) if selectedOptions.isDefined =>
+      case MultiSelectField(fieldId, _, _, _, _, _, multiValue, _, selectedOptions, _, _, _) if selectedOptions.isDefined =>
         selectedOptions.getOrElse(Nil).map(p => UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, p.value))
     }.flatten
   }
@@ -228,6 +230,9 @@ object AddAdditionalMetadataController {
         ("The current description of your record is below. You can edit it in the Descriptive metadata step.", false, value)
       }
       formField.asInstanceOf[RadioButtonGroupField].copy(fieldDescription = fieldDescription, hideInputs = hideInputs, additionalInfo = info)
+    } else if (formField.fieldId == end_date) {
+      val clientSideFileLastModifiedDate = fileMetadata.get("ClientSideFileLastModifiedDate").map(_.head.value.split(" ").head).getOrElse("")
+      formField.asInstanceOf[DateField].copy(fieldInsetTexts = List(s"The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>$clientSideFileLastModifiedDate</strong>"))
     } else {
       formField
     }
