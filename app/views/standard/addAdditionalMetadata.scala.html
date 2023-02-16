@@ -75,7 +75,7 @@
                   inputMode,
                   addSuffixText
                 )
-                case TextAreaField(fieldId, fieldName, _, fieldDescription, fieldInsetTexts, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit, _) => inputTextArea(
+                case TextAreaField(fieldId, fieldName, _, fieldDescription, _, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit, _) => inputTextArea(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -86,7 +86,7 @@
                   wrap,
                   characterLimit
                 )
-                case MultiSelectField(fieldId, fieldName, _, fieldDescription, fieldInsetTexts, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors, _) =>
+                case MultiSelectField(fieldId, fieldName, _, fieldDescription, _, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors, _) =>
                   inputMultiSelect(
                     fieldId,
                     fieldName,
@@ -101,7 +101,7 @@
                     ),
                     fieldErrors
                   )
-                case DropdownField(fieldId, fieldName, _, fieldDescription, fieldInsetTexts, multiValue, options, selectedOption, _, fieldErrors, _) =>
+                case DropdownField(fieldId, fieldName, _, fieldDescription, _, multiValue, options, selectedOption, _, fieldErrors, _) =>
                   inputDropdown(
                     fieldId,
                     fieldName,
