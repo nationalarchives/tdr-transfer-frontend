@@ -280,9 +280,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   private def getExpectedFolderHtml(id: UUID, label: String): String = {
     s"""
         |<div class="tna-tree__node-item__container">
-        |        <button class="tna-tree__expander js-tree__expander--radios" tabindex="-1" id="radios-expander-$id">
+        |        <span class="tna-tree__expander js-tree__expander--radios" tabindex="-1" id="radios-expander-$id">
         |          <span class="govuk-visually-hidden">Expand</span>
-        |        </button>
+        |        </span>
         |
         |        <div class="js-radios-directory tna-radios-directory">
         |          <span class="govuk-label tna-radios-directory__label">
