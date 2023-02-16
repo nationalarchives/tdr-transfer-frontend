@@ -221,9 +221,9 @@ object AddAdditionalMetadataController {
   def formFieldOverrides(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
     formField.fieldId match {
       case x if x == descriptionClosed => overrideDescriptionClosed(formField, fileMetadata)
-      case y if y == end_date => overrideEndDate(formField, fileMetadata)
-      case z if z == closureStartDate => overrideClosureStartDate(formField, fileMetadata)
-      case _ => formField
+      case y if y == end_date          => overrideEndDate(formField, fileMetadata)
+      case z if z == closureStartDate  => overrideClosureStartDate(formField, fileMetadata)
+      case _                           => formField
     }
   }
   private def overrideDescriptionClosed(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
@@ -252,9 +252,8 @@ object AddAdditionalMetadataController {
   private def overrideClosureStartDate(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]) = {
     val formatter = new SimpleDateFormat("dd/MM/yyyy")
     val lastModifiedDate = fileMetadata.get(clientSideFileLastModifiedDate).map(_.head.value).getOrElse("")
-    val formattedLastModifiedDate = formatter.format(Timestamp.valueOf(lastModifiedDate))
+    val formattedLastModifiedDate = if (lastModifiedDate.nonEmpty) formatter.format(Timestamp.valueOf(lastModifiedDate)) else ""
     val value = fileMetadata.get(end_date).map(_.head.value).getOrElse("")
-
     val insetTexts: List[String] = if (value.isEmpty) {
       List(dateModifiedInsetText.format(formattedLastModifiedDate))
     } else {
