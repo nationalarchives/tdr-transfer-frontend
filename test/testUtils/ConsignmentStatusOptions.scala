@@ -53,7 +53,6 @@ object ConsignmentStatusesOptions {
     ("before upload", CurrentStatus(None, None, None, None, None, None), "/before-uploading", "In Progress", "Resume transfer"),
     ("upload in progress", CurrentStatus(None, None, inProgress, None, None, None), "/upload", "In Progress", "Resume transfer"),
     ("upload failed", CurrentStatus(None, None, failed, None, None, None), "/upload", "Failed", "View errors"),
-    // ("upload completed with issues", CurrentStatus(None, None, completedWithIssues, None, None, None), "/upload", "Failed", "Resume transfer"),
     ("upload completed", CurrentStatus(None, None, completed, None, None, None), "/upload", "In Progress", "Resume transfer"),
     ("client checks in progress", CurrentStatus(None, None, completed, inProgress, None, None), "/file-checks", "In Progress", "Resume transfer"),
     ("client checks failed", CurrentStatus(None, None, completed, failed, None, None), "/file-checks-results", "Failed", "View errors"),
