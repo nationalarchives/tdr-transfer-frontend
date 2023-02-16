@@ -378,7 +378,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe SEE_OTHER
       fileIdsArg.getValue mustEqual fileIds
-      propertiesToDeleteArg.getValue mustEqual Set("description", "Language")
+      propertiesToDeleteArg.getValue mustEqual Set("DateOfTheRecord", "description", "Language")
 
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/$descriptiveMetadataType"))
     }
