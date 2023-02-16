@@ -2,14 +2,16 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.GraphQLConfiguration
+import controllers.util.TransferProgressUtils
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
+import org.scalatest.prop.TableDrivenPropertyChecks
 import play.api.Play.materializer
 import play.api.http.Status.{FOUND, OK}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.ConsignmentService
-import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
+import testUtils.{CheckPageForStaticElements, ConsignmentStatusesOptions, FrontEndTestHelper}
 
 import java.time.format.DateTimeFormatter
 import scala.collection.immutable.ListMap
@@ -33,6 +35,30 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 
+  forAll(ConsignmentStatusesOptions.expectedStandardStatesAndStatuses) { (expectedState, currentStatus, actionUrl, transferState, actionText) => {
+    s"ViewTransfersController ${currentStatus.toString}" should {
+      "render the correct view action for the given 'consignment status'" in {
+        setConsignmentTypeResponse(wiremockServer, "standard")
+        val consignment: List[Consignments.Edges] = setConsignmentViewTransfersResponse(wiremockServer, customStatusValues = List(currentStatus))
+
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val transferProgressUtils = new TransferProgressUtils()
+        val controller = new ViewTransfersController(consignmentService, transferProgressUtils, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val response = controller
+          .viewConsignments()
+          .apply(FakeRequest(GET, s"/view-transfers"))
+        val viewTransfersPageAsString = contentAsString(response)
+
+        status(response) mustBe OK
+        contentType(response) mustBe Some("text/html")
+        consignment.map(c => {
+          verifyTransferStatus(viewTransfersPageAsString, c.node, actionUrl, transferState, actionText)
+        })
+      }
+    }
+  }}
+
   "ViewTransfersController" should {
     "render the view transfers page with list of user's consignments" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
@@ -40,7 +66,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val transferProgressUtils = new TransferProgressUtils()
+      val controller = new ViewTransfersController(consignmentService, transferProgressUtils, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
@@ -74,7 +101,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
-        val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val transferProgressUtils = new TransferProgressUtils()
+        val controller = new ViewTransfersController(consignmentService, transferProgressUtils, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val response = controller
           .viewConsignments()
           .apply(FakeRequest(GET, s"/view-transfers"))
@@ -98,7 +126,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val transferProgressUtils = new TransferProgressUtils()
+      val controller = new ViewTransfersController(consignmentService, transferProgressUtils, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
@@ -123,7 +152,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewTransfersController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val transferProgressUtils = new TransferProgressUtils()
+      val controller = new ViewTransfersController(consignmentService, transferProgressUtils, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
@@ -146,7 +176,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewTransfersController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val transferProgressUtils = new TransferProgressUtils()
+      val controller = new ViewTransfersController(consignmentService, transferProgressUtils, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
@@ -168,7 +199,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     "redirect to the login page if the page is accessed by a logged out user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+      val transferProgressUtils = new TransferProgressUtils()
+      val controller = new ViewTransfersController(consignmentService, transferProgressUtils, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
@@ -195,6 +227,38 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     )
   }
 
+  def verifyTransferStatus(
+           viewTransferPageString: String,
+           node: Node,
+           actionPage: String,
+           transferStatus: String,
+           action: String
+           ): Unit = {
+    val dateOfTransfer = node.exportDatetime.map(_.format(formatter)).get
+    val createdDate = node.createdDatetime.map(_.format(formatter)).get
+    val consignmentId = node.consignmentid.getOrElse("no consignment id")
+    val transferStatusColour = expectedStatusColour(transferStatus)
+    val expectedActionUrl = if (action == "Contact us") {
+      s"""<a href="$actionPage">$action</a>"""
+    } else {
+      s"""<a href="/consignment/$consignmentId$actionPage">$action</a>"""
+    }
+
+    val expectedStatusAndDate =
+      s"""
+         |                    <td class="govuk-table__cell">$createdDate</td>
+         |                    <td class="govuk-table__cell ${if (dateOfTransfer == "N/A") "not-applicable" else ""}">$dateOfTransfer</td>
+         |                    <td class="govuk-table__cell">
+         |                      <strong class="govuk-tag govuk-tag--$transferStatusColour">
+         |                        $transferStatus
+         |                      </strong>
+         |                    </td>
+         |                    <td class="govuk-table__cell">$expectedActionUrl</td>
+         |""".stripMargin
+
+    viewTransferPageString must include(expectedStatusAndDate)
+  }
+
   def verifyConsignmentRow(
       viewTransfersPageAsString: String,
       consignmentType: String,
@@ -205,15 +269,15 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     val dateOfTransfer = node.exportDatetime.map(_.format(formatter)).get
     val createdDate = node.createdDatetime.map(_.format(formatter)).get
     val (transferStatus, actionUrlWithNoConsignmentId): (String, String) = statusesAndActionUrls(index)
-    val transferStatusColour = getStatusColour(transferStatus)
+    val transferStatusColour = expectedStatusColour(transferStatus)
     val actionUrl = actionUrlWithNoConsignmentId.format(node.consignmentid.getOrElse("NO CONSIGNMENT RETURNED"))
-    val summary =
+    val expectedSummary =
       s"""
          |                          <strong class="consignment-ref-cell">
          |                            ${node.consignmentReference}
          |                          </strong>
          |""".stripMargin
-    val details =
+    val expectedDetails =
       s"""
          |                        <div class="govuk-details__text">
          |                          <p class="govuk-body">Please do not delete the original files you exported until you are notified that your records have been preserved.</p>
@@ -225,7 +289,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
          |                          </ul>
          |                        </div>
          |""".stripMargin
-    val statusAndDate =
+    val expectedStatusAndDate =
       s"""
          |                    <td class="govuk-table__cell">$createdDate</td>
          |                    <td class="govuk-table__cell ${if (dateOfTransfer == "N/A") "not-applicable" else ""}">$dateOfTransfer</td>
@@ -237,12 +301,12 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
          |                    <td class="govuk-table__cell">$actionUrl</td>
          |""".stripMargin
 
-    viewTransfersPageAsString must include(summary)
-    viewTransfersPageAsString must include(details)
-    viewTransfersPageAsString must include(statusAndDate)
+    viewTransfersPageAsString must include(expectedSummary)
+    viewTransfersPageAsString must include(expectedDetails)
+    viewTransfersPageAsString must include(expectedStatusAndDate)
   }
 
-  private val getStatusColour = Map(
+  private val expectedStatusColour = Map(
     "In Progress" -> "yellow",
     "Failed" -> "red",
     "Transferred" -> "green",

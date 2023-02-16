@@ -22,7 +22,6 @@ class TransferProgressUtils() {
   private val downloadReport = "Download report"
   private val view = "View"
 
-
   private def fileChecksProgress(statuses: CurrentStatus): String = {
     val fileChecksStatuses = Set(statuses.serverAntivirus, statuses.serverChecksum, statuses.serverFFID)
     fileChecksStatuses match {
@@ -33,8 +32,8 @@ class TransferProgressUtils() {
     }
   }
 
-  def toTransferState(statuses: CurrentStatus, consignmentType: String = "Standard"): TransferState = {
-    val isStandard: Boolean = consignmentType == "Standard"
+  def toTransferState(statuses: CurrentStatus, consignmentType: String): TransferState = {
+    val isStandard: Boolean = consignmentType == "standard"
     statuses match {
       case s if s.series.isEmpty && isStandard                                                                                      => SeriesInProgress
       case s if s.series.contains(completed) && s.transferAgreement.isEmpty && isStandard                                           => SeriesCompleted
@@ -65,33 +64,39 @@ class TransferProgressUtils() {
 
   def transferStateToStandardAction(state: TransferState, consignmentId: UUID, consignmentRef: String, consignmentType: String): UserAction = {
     val isJudgment = consignmentType == "judgment"
-    lazy val uploadUrl = if (isJudgment) { routes.UploadController.judgmentUploadPage(consignmentId).url } else { routes.UploadController.uploadPage(consignmentId).url }
-    lazy val fileChecksUrl = if (isJudgment) {routes.FileChecksController.judgmentFileChecksPage(consignmentId).url} else { routes.FileChecksController.fileChecksPage(consignmentId).url }
+    lazy val uploadUrl = if (isJudgment) { routes.UploadController.judgmentUploadPage(consignmentId).url }
+    else { routes.UploadController.uploadPage(consignmentId).url }
+    lazy val fileChecksUrl = if (isJudgment) { routes.FileChecksController.judgmentFileChecksPage(consignmentId).url }
+    else { routes.FileChecksController.fileChecksPage(consignmentId).url }
     lazy val fileChecksResultsUrl = if (isJudgment) {
       routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId).url
     } else {
       routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url
     }
-    lazy val exportUrl = if (isJudgment) { routes.TransferCompleteController.judgmentTransferComplete(consignmentId).url } else { routes.DownloadMetadataController.downloadMetadataCsv(consignmentId).url }
+    lazy val exportUrl = if (isJudgment) { routes.TransferCompleteController.judgmentTransferComplete(consignmentId).url }
+    else { routes.DownloadMetadataController.downloadMetadataCsv(consignmentId).url }
     lazy val exportActionText = if (isJudgment) view else downloadReport
 
     state match {
-      case SeriesInProgress => UserAction(transferStatusInProgress, routes.SeriesDetailsController.seriesDetails(consignmentId).url, resumeTransfer)
-      case SeriesCompleted => UserAction(transferStatusInProgress, routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId).url, resumeTransfer)
+      case SeriesInProgress            => UserAction(transferStatusInProgress, routes.SeriesDetailsController.seriesDetails(consignmentId).url, resumeTransfer)
+      case SeriesCompleted             => UserAction(transferStatusInProgress, routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId).url, resumeTransfer)
       case TransferAgreementInProgress => UserAction(transferStatusInProgress, routes.TransferAgreementComplianceController.transferAgreement(consignmentId).url, resumeTransfer)
-      case TransferAgreementCompleted => UserAction(transferStatusInProgress, routes.UploadController.uploadPage(consignmentId).url, resumeTransfer)
-      case BeforeUpload => UserAction(transferStatusInProgress, routes.BeforeUploadingController.beforeUploading(consignmentId).url, resumeTransfer)
-      case UploadInProgress | UploadCompleted => UserAction(transferStatusInProgress, uploadUrl, resumeTransfer)
-      case UploadFailed =>  UserAction(transferStatusFailed, uploadUrl, resumeTransfer)
+      case TransferAgreementCompleted  => UserAction(transferStatusInProgress, routes.UploadController.uploadPage(consignmentId).url, resumeTransfer)
+      case BeforeUpload                => UserAction(transferStatusInProgress, routes.BeforeUploadingController.beforeUploading(consignmentId).url, resumeTransfer)
+      case UploadInProgress | UploadCompleted                                    => UserAction(transferStatusInProgress, uploadUrl, resumeTransfer)
+      case UploadFailed                                                          => UserAction(transferStatusFailed, uploadUrl, resumeTransfer)
       case ClientChecksInProgress | ClientChecksCompleted | FileChecksInProgress => UserAction(transferStatusInProgress, fileChecksUrl, resumeTransfer)
-      case ClientChecksFailed => UserAction(transferStatusFailed, fileChecksUrl, viewErrors)
-      case FileChecksCompleted => UserAction(transferStatusFailed, fileChecksResultsUrl, viewErrors)
-      case FileChecksFailed => UserAction(transferStatusFailed, fileChecksResultsUrl, viewErrors)
-      case ConfirmTransferCompleted => UserAction(transferStatusInProgress, fileChecksResultsUrl, resumeTransfer)
-      case ExportInProgress => UserAction(transferStatusInProgress, exportUrl, exportActionText)
-      case ExportCompleted => UserAction(transferStatusTransferred, exportUrl, downloadReport)
-      case ExportFailed => UserAction(transferStatusFailed, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", "Contact us")
-      case _ => contactUsAction(consignmentRef, consignmentType)
+      case ClientChecksFailed                                                    => UserAction(transferStatusFailed, fileChecksUrl, viewErrors)
+      case FileChecksCompleted                                                   => UserAction(transferStatusInProgress, fileChecksResultsUrl, resumeTransfer)
+      case FileChecksFailed                                                      => UserAction(transferStatusFailed, fileChecksResultsUrl, viewErrors)
+      case ConfirmTransferCompleted                                              => UserAction(transferStatusInProgress, fileChecksResultsUrl, resumeTransfer)
+      case ExportInProgress =>
+        val transferStatus = if (isJudgment) { transferStatusTransferred }
+        else { transferStatusInProgress }
+        UserAction(transferStatus, exportUrl, exportActionText)
+      case ExportCompleted => UserAction(transferStatusTransferred, exportUrl, exportActionText)
+      case ExportFailed    => UserAction(transferStatusFailed, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", "Contact us")
+      case _               => contactUsAction(consignmentRef, consignmentType)
     }
   }
 }

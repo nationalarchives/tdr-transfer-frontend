@@ -2,7 +2,7 @@ package testUtils
 
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, status, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
@@ -17,11 +17,12 @@ import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{Series, CurrentStatus}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.{CurrentStatus => encs}
 import graphql.codegen.GetConsignments.{getConsignments => gc}
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
@@ -75,8 +76,8 @@ import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.language.existentials
 import scala.jdk.CollectionConverters._
+import scala.language.existentials
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach with TableDrivenPropertyChecks {
 
@@ -309,6 +310,33 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
+  def setConsignmentViewTransfersResponse(wiremockServer: WireMockServer,
+                                          consignmentType: String = "standard",
+                                          customStatusValues: List[encs] = List(),
+                                          noConsignment: Boolean = false): List[Edges] = {
+
+    val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
+    val consignmentId = UUID.randomUUID()
+    val edges = ConsignmentStatusesOptions.generateConsignmentEdges(customStatusValues, consignmentId, consignmentType)
+
+    val consignments = gc.Data(
+      gc.Consignments(
+        if (noConsignment) None else edges.some,
+        Consignments.PageInfo(hasNextPage = false, None)
+      )
+    )
+
+    val data: client.GraphqlData = client.GraphqlData(Some(consignments))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignments"))
+        .willReturn(okJson(dataString))
+    )
+    edges.map(_.get)
+  }
+
   def setConsignmentsHistoryResponse(
       wiremockServer: WireMockServer,
       consignmentType: String = "standard",
@@ -392,7 +420,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
                   consignmentType = Some(consignmentType),
                   exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
                   createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
-                  currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), statuses(4), statuses(5), statuses(6), statuses(7), statuses(8)),
+                  currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), None, None, None, statuses(4), statuses(5)),
                   totalFiles = orderNumber
                 ),
                 "Cursor"

@@ -2,6 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+import controllers.util.TransferProgressUtils
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.CurrentStatus
 import graphql.codegen.types.ConsignmentFilters
@@ -13,7 +14,7 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
 
-class ViewTransfersController @Inject() (val consignmentService: ConsignmentService, val keycloakConfiguration: KeycloakConfiguration, val controllerComponents: SecurityComponents)
+class ViewTransfersController @Inject() (val consignmentService: ConsignmentService, val transferProgressUtils: TransferProgressUtils, val keycloakConfiguration: KeycloakConfiguration, val controllerComponents: SecurityComponents)
     extends TokenSecurity {
 
   private val inProgressStep = "InProgress"
@@ -83,7 +84,9 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
       case s if s.confirmTransfer.contains(completedStep) && s.`export`.isEmpty => UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
       case s if s.`export`.nonEmpty                                             => convertExportStatusesToUserActions(s, pageNameToUrlMap, consignmentRef, consignmentType)
 
-      case _ => contactUsAction(consignmentRef)
+      case _ =>
+        println("YYYYY!!!!HERE!!!YYYYY")
+        contactUsAction(consignmentRef)
     }
   }
 
@@ -95,7 +98,9 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
       case s if s.`export`.isEmpty  => convertUploadAndFileCheckStatusesToUserActions(s, pageNameToUrlMap, consignmentRef, consignmentType)
       case s if s.`export`.nonEmpty => convertExportStatusesToUserActions(s, pageNameToUrlMap, consignmentRef, consignmentType)
 
-      case _ => contactUsAction(consignmentRef, consignmentType)
+      case _ =>
+        println("YYYYYY!!!!HERE!!!YYYYY")
+        contactUsAction(consignmentRef, consignmentType)
     }
   }
 
@@ -117,7 +122,9 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
         UserAction(transferStatusFailed, pageNameToUrlMap("fileChecksResults"), viewErrors)
       case s if s.clientChecks.contains(completedStep) && s.confirmTransfer.isEmpty =>
         UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
-      case _ => contactUsAction(consignmentRef, consignmentType)
+      case _ =>
+        println("XXXXX!!!!HERE!!!XXXXX")
+        contactUsAction(consignmentRef, consignmentType)
     }
   }
 
@@ -128,7 +135,9 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
       case s if s.`export`.contains(inProgressStep) => UserAction(transferStatusInProgress, pageNameToUrlMap("export"), completeLink)
       case s if s.`export`.contains(completedStep)  => UserAction(transferStatusTransferred, pageNameToUrlMap("export"), completeLink)
       case s if s.`export`.contains(failedStep)     => UserAction(transferStatusFailed, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", "Contact us")
-      case _                                        => contactUsAction(consignmentRef, consignmentType)
+      case _                                        =>
+        println("ZZZZZ!!!!HERE!!!ZZZZZ")
+        contactUsAction(consignmentRef, consignmentType)
     }
   }
   // scalastyle:on cyclomatic.complexity
