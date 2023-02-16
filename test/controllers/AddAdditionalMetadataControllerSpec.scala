@@ -724,7 +724,44 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       actualFormField should equal(formField)
     }
 
-    "override the 'closureStartDate' field when the end_date and lastModifiedDate is not empty" in {
+    "override the 'end_date' insetTextfields with the date last modified" in {
+      val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
+      val fileMetadata: Map[String, List[FileMetadata]] = Map(
+        clientSideFileLastModifiedDate -> List(FileMetadata(clientSideFileLastModifiedDate, Timestamp.valueOf(clientSideFileLastModifiedDateValue).toString))
+      )
+      val formField: FormField =
+        DateField(
+          end_date,
+          "name",
+          "alternativename",
+          "desc",
+          Nil,
+          multiValue = false,
+          InputNameAndValue("Day", "1", "DD"),
+          InputNameAndValue("Month", "12", "MM"),
+          InputNameAndValue("Year", "1990", "YYYY"),
+          isRequired = true
+        )
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+
+      val expectedField = DateField(
+        end_date,
+        "name",
+        "alternativename",
+        "desc",
+        List(
+          "The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>22/02/2000</strong>"
+        ),
+        multiValue = false,
+        InputNameAndValue("Day", "1", "DD"),
+        InputNameAndValue("Month", "12", "MM"),
+        InputNameAndValue("Year", "1990", "YYYY"),
+        isRequired = true
+      )
+      actualFormField should equal(expectedField)
+    }
+
+    "override the 'closureStartDate' insetTextfields when the end_date and lastModifiedDate is not empty" in {
       val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
       val endDateValue = LocalDateTime.of(2023, 1, 15, 0, 0)
       val closureStartDateValue = LocalDateTime.of(1990, 12, 1, 10, 0)
@@ -766,7 +803,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       actualFormField should equal(expectedField)
     }
 
-    "override the 'closureStartDate' field when the end_date is empty but the lastModifiedDate is not empty" in {
+    "override the 'closureStartDate' insetTextfields when the end_date is empty but the lastModifiedDate is not empty" in {
       val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
       val closureStartDateValue = LocalDateTime.of(1990, 12, 1, 10, 0)
       val fileMetadata: Map[String, List[FileMetadata]] = Map(

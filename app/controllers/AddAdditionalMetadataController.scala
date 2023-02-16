@@ -220,10 +220,10 @@ object AddAdditionalMetadataController {
 
   def formFieldOverrides(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
     formField.fieldId match {
-      case x if x == descriptionClosed => overrideDescriptionClosed(formField, fileMetadata)
-      case y if y == end_date          => overrideEndDate(formField, fileMetadata)
-      case z if z == closureStartDate  => overrideClosureStartDate(formField, fileMetadata)
-      case _                           => formField
+      case fieldId if fieldId == descriptionClosed => overrideDescriptionClosed(formField, fileMetadata)
+      case fieldId if fieldId == end_date          => overrideEndDate(formField, fileMetadata)
+      case fieldId if fieldId == closureStartDate  => overrideClosureStartDate(formField, fileMetadata)
+      case _                                       => formField
     }
   }
   private def overrideDescriptionClosed(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
@@ -239,31 +239,35 @@ object AddAdditionalMetadataController {
   }
 
   private def overrideEndDate(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]) = {
-    val clientSideFileLastModifiedDate = fileMetadata.get("ClientSideFileLastModifiedDate").map(_.head.value.split(" ").head).getOrElse("")
+    val lastModifiedDate = fileMetadata.get(clientSideFileLastModifiedDate).map(_.head.value).getOrElse("")
+    val formattedLastModifiedDate = dateFormatter(lastModifiedDate)
     formField
       .asInstanceOf[DateField]
       .copy(fieldInsetTexts =
         List(
-          s"The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>$clientSideFileLastModifiedDate</strong>"
+          s"The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>$formattedLastModifiedDate</strong>"
         )
       )
   }
 
   private def overrideClosureStartDate(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]) = {
-    val formatter = new SimpleDateFormat("dd/MM/yyyy")
     val lastModifiedDate = fileMetadata.get(clientSideFileLastModifiedDate).map(_.head.value).getOrElse("")
-    val formattedLastModifiedDate = if (lastModifiedDate.nonEmpty) formatter.format(Timestamp.valueOf(lastModifiedDate)) else ""
+    val formattedLastModifiedDate = dateFormatter(lastModifiedDate)
     val value = fileMetadata.get(end_date).map(_.head.value).getOrElse("")
     val insetTexts: List[String] = if (value.isEmpty) {
       List(dateModifiedInsetText.format(formattedLastModifiedDate))
     } else {
       val endDateLastModified = fileMetadata.get(end_date).map(_.head.value).getOrElse("")
-      val formattedEndDateLastModified = formatter.format(Timestamp.valueOf(endDateLastModified))
+      val formattedEndDateLastModified = dateFormatter(endDateLastModified)
       List(
         dateModifiedInsetText.format(formattedLastModifiedDate),
         s"The date of the last change to this record entered as descriptive metadata is <strong>$formattedEndDateLastModified</strong>"
       )
     }
     formField.asInstanceOf[DateField].copy(fieldInsetTexts = insetTexts)
+  }
+  private def dateFormatter(currentDateFormat: String, newDateFormat: String = "dd/MM/yyyy") = {
+    val formatter = new SimpleDateFormat(newDateFormat)
+    if (currentDateFormat.nonEmpty) formatter.format(Timestamp.valueOf(currentDateFormat)) else ""
   }
 }
