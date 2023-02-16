@@ -1,9 +1,9 @@
 @import java.util.UUID
 @import services.ConsignmentService.File
 @import views.html.helper.CSRF
-@import views.html.partials.fileNavigationContent
 
 @import services.ConsignmentService.StatusTag
+@import views.html.partials.backLink
 @(consignmentId: UUID, name: String, files: File, metadataType: String, displayError: Boolean = false)(implicit messages: Messages, request: RequestHeader)
 
 @display(file: File, level: Int, size: Int, pos: Int) = {
@@ -46,7 +46,7 @@
         <div class="govuk-error-summary__body">
           <ul class="govuk-list govuk-error-summary__list">
             <li>
-              <a href="#file-selection">Select at least one file or folder</a>
+              <a href="#file-selection">Select a file to proceed</a>
             </li>
           </ul>
         </div>
@@ -61,31 +61,50 @@
   }
 }
 
-@main("Additional Metadata", name = name) {
+@main("Additional Metadata", name = name, backLink = Some(backLink(routes.AdditionalMetadataController.start(consignmentId).url, "additionalMetadataStart.progress", "Descriptive and closure metadata"))) {
+
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        @fileNavigationContent(consignmentId, metadataType, files.name)
+        <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
+        <h1 class="govuk-heading-l">Choose a file</h1>
+        <p class="govuk-body">Select a file you wish to add or edit @metadataType metadata.</p>
+      </div>
+    </div>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
         @error
+      </div>
+    </div>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full">
         <form method="post" action="@routes.AdditionalMetadataNavigationController.submitFiles(consignmentId, metadataType)">
           @CSRF.formField
-          <button class="govuk-button" type="submit" role="button" draggable="false">
-            Add or Edit Metadata
-          </button>
           <div class="tna-tree" id="file-selection">
             <ul tabindex="0" class="tna-tree__root-list" id="radio-tree" role="tree">
               @display(files, 1, files.children.length, 0)
             </ul>
+            <label for="test">hello</label><input class="govuk-textarea" type="text" id="test" value="test2"/>
           </div>
-        <div class="govuk-button-group">
-          <button draggable="false" class="govuk-button" data-module="govuk-button">
-          Add or Edit metadata
-          </button>
-          <a href="@routes.AdditionalMetadataController.start(consignmentId)" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-          Back
-          </a>
-        </div>
+          <div class="govuk-button-group">
+            <button class="govuk-button" type="submit" value="edit" data-module="govuk-button" draggable="false">
+              Add or Edit metadata
+            </button>
+            <button class="govuk-button govuk-button--secondary" type="submit" value="view" data-module="govuk-button" draggable="false">
+              View metadata
+            </button>
+          </div>
         </form>
+      </div>
+    </div>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+        <h2 class="govuk-heading-m">Have you finished editing @metadataType metadata?</h2>
+        <p class="govuk-body">Once you have finished adding @metadataType metadata, return to the
+          <a href="@routes.AdditionalMetadataController.start(consignmentId)" class="govuk-!-font-weight-bold" draggable="false" data-module="govuk-button">Descriptive and closure metadata page</a>.
+        </p>
+        <p class="govuk-body">You will be given the chance to download a single .csv file to review any metadata you added before completing the transfer.</p>
       </div>
     </div>
   }
