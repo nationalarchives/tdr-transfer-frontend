@@ -14,7 +14,6 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
-import org.scalatest.Assertion
 import play.api.Play.materializer
 import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, FOUND, SEE_OTHER}
 import play.api.test.CSRFTokenHelper.CSRFRequest
@@ -57,15 +56,32 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
           val content = contentAsString(result)
 
-          content must include(s"Add or edit $metadataType metadata on file basis")
-          content must include(s"Folder uploaded: ${parentFile.fileName.get}")
-          content must not include ("Select at least one file or folder")
+          content must include(s"${metadataType.capitalize} metadata")
+          content must include("""<h1 class="govuk-heading-l">Choose a file</h1>""")
+          content must include(s"Select a file you wish to add or edit $metadataType metadata.")
+          content must not include ("Select a file to proceed")
           content must include(
-            s"""<a href="/consignment/$consignmentId/additional-metadata" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-            |          Back
-            |          </a>""".stripMargin
+            s"""<a href="/consignment/$consignmentId/additional-metadata" class="govuk-back-link">Step additionalMetadataStart.progress: Descriptive and closure metadata</a>"""
           )
-          if (metadataType == "closure") getExpectedClosureHtml(content: String)
+
+          content must include(
+            s"""          <div class="govuk-button-group">
+               |            <button class="govuk-button" type="submit" value="edit" data-module="govuk-button" draggable="false">
+               |              Add or Edit metadata
+               |            </button>
+               |            <button class="govuk-button govuk-button--secondary" type="submit" value="view" data-module="govuk-button" draggable="false">
+               |              View metadata
+               |            </button>
+               |          </div>""".stripMargin
+          )
+          content must include(
+            s"""        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+               |        <h2 class="govuk-heading-m">Have you finished editing $metadataType metadata?</h2>
+               |        <p class="govuk-body">Once you have finished adding $metadataType metadata, return to the
+               |          <a href="/consignment/$consignmentId/additional-metadata" class="govuk-!-font-weight-bold" draggable="false" data-module="govuk-button">Descriptive and closure metadata page</a>.
+               |        </p>
+               |        <p class="govuk-body">You will be given the chance to download a single .csv file to review any metadata you added before completing the transfer.</p>""".stripMargin
+          )
         }
 
         s"render the file navigation page with nested directories for metadata type $metadataType" in {
@@ -230,7 +246,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             |        <div class="govuk-error-summary__body">
             |          <ul class="govuk-list govuk-error-summary__list">
             |            <li>
-            |              <a href="#file-selection">Select at least one file or folder</a>
+            |              <a href="#file-selection">Select a file to proceed</a>
             |            </li>
             |          </ul>
             |        </div>
@@ -289,14 +305,6 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         |      </div>
         |    </li>
         |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
-  }
-
-  private def getExpectedClosureHtml(htmlContent: String): Assertion = {
-    htmlContent must include(s"""
-       |        <div class="govuk-inset-text govuk-!-margin-top-0">
-       |            Once you have added all necessary closure metadata return to the <a href="/consignment/$consignmentId/additional-metadata">previous page</a> to add descriptive metadata or continue with the transfer.
-       |        </div>
-       |""".stripMargin)
   }
 
   private def mockConsignmentService(files: List[gcf.GetConsignment.Files], consignmentType: String, allClosed: Boolean = false) = {
