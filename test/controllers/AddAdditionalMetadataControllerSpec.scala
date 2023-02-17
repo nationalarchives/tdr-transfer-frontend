@@ -6,8 +6,8 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent
 import configuration.GraphQLConfiguration
-import controllers.util.MetadataProperty.{clientSideOriginalFilepath, description, descriptionClosed, titleClosed}
-import controllers.util.{FormField, InputNameAndValue, RadioButtonGroupField}
+import controllers.util.MetadataProperty.{clientSideFileLastModifiedDate, clientSideOriginalFilepath, closureStartDate, description, descriptionClosed, end_date, titleClosed}
+import controllers.util.{DateField, FormField, InputNameAndValue, RadioButtonGroupField}
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
@@ -33,6 +33,8 @@ import testUtils._
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import org.scalatest.concurrent.ScalaFutures._
 
+import java.sql.Timestamp
+import java.time.LocalDateTime
 import java.util.UUID
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
@@ -89,7 +91,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputmultiselect-FoiExemptionCode", "mock code1"),
         ("inputradio-TitleClosed", "yes")
       )
-      verifyConsignmentFileMetadataCall(consignmentId, FileMetadataFilters(Some(true), None, Some(List(clientSideOriginalFilepath, description))).some)
+      verifyConsignmentFileMetadataCall(
+        consignmentId,
+        FileMetadataFilters(Some(true), None, Some(List(clientSideOriginalFilepath, description, clientSideFileLastModifiedDate, end_date))).some
+      )
       getServeEvent("addBulkFileMetadata") should be(None)
       getServeEvent("deleteFileMetadata") should be(None)
 
@@ -116,6 +121,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType").withCSRFToken)
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
       val expectedDefaultForm = Seq(
+        ("inputdate-end_date-day", ""),
+        ("inputdate-end_date-month", ""),
+        ("inputdate-end_date-year", ""),
         ("inputtextarea-description", ""),
         ("inputmultiselect-Language", "English")
       )
@@ -619,6 +627,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setBulkUpdateMetadataResponse(wiremockServer)
 
       val formToSubmitWithEmptyValue = Seq(
+        ("inputdate-end_date-day", "12"),
+        ("inputdate-end_date-month", "1"),
+        ("inputdate-end_date-year", "1995"),
         ("inputtextarea-description", ""),
         ("inputmultiselect-Language", "Welsh")
       )
@@ -642,9 +653,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val addInput = addRequest.variables.updateBulkFileMetadataInput
       addInput.fileIds should equal(fileIds)
-      addInput.metadataProperties.size shouldBe 1
-      addInput.metadataProperties.head.value should equal("Welsh")
-      addInput.metadataProperties.head.filePropertyName should equal("Language")
+      addInput.metadataProperties.size shouldBe 2
+      addInput.metadataProperties.map(_.value) should equal(List("1995-01-12 00:00:00.0", "Welsh"))
+      addInput.metadataProperties.map(_.filePropertyName) should equal(List("end_date", "Language"))
 
       val deleteInput = deleteRequest.variables.deleteFileMetadataInput
       deleteInput.fileIds should equal(fileIds)
@@ -659,7 +670,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         descriptionClosed -> List(FileMetadata(descriptionClosed, "true")),
         description -> List(FileMetadata(description, "some value"))
       )
-      val formField: FormField = RadioButtonGroupField(descriptionClosed, "name", "alternativeName", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+      val formField: FormField =
+        RadioButtonGroupField(descriptionClosed, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
       val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
 
       val expectedField = RadioButtonGroupField(
@@ -667,6 +679,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         "name",
         "alternativeName",
         "The current description of your record is below. You can edit it in the Descriptive metadata step.",
+        Nil,
         "some value",
         false,
         Seq(InputNameAndValue("Yes", "Yes")),
@@ -681,7 +694,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val fileMetadata: Map[String, List[FileMetadata]] = Map(
         descriptionClosed -> List(FileMetadata(descriptionClosed, "true"))
       )
-      val formField: FormField = RadioButtonGroupField(descriptionClosed, "name", "alternativeName", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+      val formField: FormField =
+        RadioButtonGroupField(descriptionClosed, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
       val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
 
       val expectedField = RadioButtonGroupField(
@@ -689,6 +703,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         "name",
         "alternativeName",
         "If you need to add a description, you can do so in the Descriptive metadata step.",
+        Nil,
         "",
         false,
         Seq(InputNameAndValue("Yes", "Yes")),
@@ -704,9 +719,127 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         titleClosed -> List(FileMetadata(titleClosed, "true")),
         description -> List(FileMetadata(description, "some value"))
       )
-      val formField: FormField = RadioButtonGroupField(titleClosed, "name", "alternativeName", "description", "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+      val formField: FormField = RadioButtonGroupField(titleClosed, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
       val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
       actualFormField should equal(formField)
+    }
+
+    "add the date last modified to 'end_date' field as inset text" in {
+      val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
+      val fileMetadata: Map[String, List[FileMetadata]] = Map(
+        clientSideFileLastModifiedDate -> List(FileMetadata(clientSideFileLastModifiedDate, Timestamp.valueOf(clientSideFileLastModifiedDateValue).toString))
+      )
+      val formField: FormField =
+        DateField(
+          end_date,
+          "name",
+          "alternativename",
+          "desc",
+          Nil,
+          multiValue = false,
+          InputNameAndValue("Day", "1", "DD"),
+          InputNameAndValue("Month", "12", "MM"),
+          InputNameAndValue("Year", "1990", "YYYY"),
+          isRequired = true
+        )
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+
+      val expectedField = DateField(
+        end_date,
+        "name",
+        "alternativename",
+        "desc",
+        List(
+          "The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>22/02/2000</strong>"
+        ),
+        multiValue = false,
+        InputNameAndValue("Day", "1", "DD"),
+        InputNameAndValue("Month", "12", "MM"),
+        InputNameAndValue("Year", "1990", "YYYY"),
+        isRequired = true
+      )
+      actualFormField should equal(expectedField)
+    }
+
+    "add the 'end_date' and 'lastModifiedDate' when present to the 'closureStartDate' field" in {
+      val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
+      val endDateValue = LocalDateTime.of(2023, 1, 15, 0, 0)
+      val closureStartDateValue = LocalDateTime.of(1990, 12, 1, 10, 0)
+      val fileMetadata: Map[String, List[FileMetadata]] = Map(
+        clientSideFileLastModifiedDate -> List(FileMetadata(clientSideFileLastModifiedDate, Timestamp.valueOf(clientSideFileLastModifiedDateValue).toString)),
+        end_date -> List(FileMetadata(end_date, Timestamp.valueOf(endDateValue).toString)),
+        closureStartDate -> List(FileMetadata(closureStartDate, Timestamp.valueOf(closureStartDateValue).toString))
+      )
+      val formField: FormField =
+        DateField(
+          closureStartDate,
+          "name",
+          "alternativename",
+          "desc",
+          Nil,
+          multiValue = false,
+          InputNameAndValue("Day", "1", "DD"),
+          InputNameAndValue("Month", "12", "MM"),
+          InputNameAndValue("Year", "1990", "YYYY"),
+          isRequired = true
+        )
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+
+      val expectedField = DateField(
+        closureStartDate,
+        "name",
+        "alternativename",
+        "desc",
+        List(
+          "The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>22/02/2000</strong>",
+          "The date of the last change to this record entered as descriptive metadata is <strong>15/01/2023</strong>"
+        ),
+        multiValue = false,
+        InputNameAndValue("Day", "1", "DD"),
+        InputNameAndValue("Month", "12", "MM"),
+        InputNameAndValue("Year", "1990", "YYYY"),
+        isRequired = true
+      )
+      actualFormField should equal(expectedField)
+    }
+
+    "add 'lastModifiedDate' when present to the 'closureStartDate' field" in {
+      val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
+      val closureStartDateValue = LocalDateTime.of(1990, 12, 1, 10, 0)
+      val fileMetadata: Map[String, List[FileMetadata]] = Map(
+        clientSideFileLastModifiedDate -> List(FileMetadata(clientSideFileLastModifiedDate, Timestamp.valueOf(clientSideFileLastModifiedDateValue).toString)),
+        closureStartDate -> List(FileMetadata(closureStartDate, Timestamp.valueOf(closureStartDateValue).toString))
+      )
+      val formField: FormField =
+        DateField(
+          closureStartDate,
+          "name",
+          "alternativename",
+          "desc",
+          Nil,
+          multiValue = false,
+          InputNameAndValue("Day", "1", "DD"),
+          InputNameAndValue("Month", "12", "MM"),
+          InputNameAndValue("Year", "1990", "YYYY"),
+          isRequired = true
+        )
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+
+      val expectedField = DateField(
+        closureStartDate,
+        "name",
+        "alternativename",
+        "desc",
+        List(
+          "The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>22/02/2000</strong>"
+        ),
+        multiValue = false,
+        InputNameAndValue("Day", "1", "DD"),
+        InputNameAndValue("Month", "12", "MM"),
+        InputNameAndValue("Year", "1990", "YYYY"),
+        isRequired = true
+      )
+      actualFormField should equal(expectedField)
     }
   }
 

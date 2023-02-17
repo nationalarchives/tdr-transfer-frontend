@@ -3,7 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddAdditionalMetadataController.{File, formFieldOverrides}
-import controllers.util.MetadataProperty.{clientSideOriginalFilepath, description, descriptionClosed}
+import controllers.util.MetadataProperty._
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
@@ -17,6 +17,7 @@ import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesSer
 import viewsapi.Caching.preventCaching
 
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
 import java.time.{LocalDate, LocalDateTime, LocalTime}
 import java.util.UUID
 import javax.inject.Inject
@@ -118,7 +119,7 @@ class AddAdditionalMetadataController @Inject() (
 
   private def getConsignmentFileMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID])(implicit request: Request[AnyContent]): Future[GetConsignment] = {
     val additionalProperties = metadataType match {
-      case "closure" => Some(List(clientSideOriginalFilepath, description))
+      case "closure" => Some(List(clientSideOriginalFilepath, description, clientSideFileLastModifiedDate, end_date))
       case _         => None
     }
     consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds), additionalProperties)
@@ -126,17 +127,17 @@ class AddAdditionalMetadataController @Inject() (
 
   private def buildUpdateMetadataInput(updatedFormFields: List[FormField]): List[UpdateFileMetadataInput] = {
     updatedFormFields.collect {
-      case TextField(fieldId, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
+      case TextField(fieldId, _, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
-      case TextAreaField(fieldId, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
+      case TextAreaField(fieldId, _, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
-      case DateField(fieldId, _, _, _, multiValue, day, month, year, _, _, _, _) if day.value.nonEmpty =>
+      case DateField(fieldId, _, _, _, _, multiValue, day, month, year, _, _, _, _) if day.value.nonEmpty =>
         val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, Timestamp.valueOf(dateTime).toString) :: Nil
-      case RadioButtonGroupField(fieldId, _, _, _, _, multiValue, _, selectedOption, _, _, _, dependencies) =>
+      case RadioButtonGroupField(fieldId, _, _, _, _, _, multiValue, _, selectedOption, _, _, _, dependencies) =>
         val fileMetadataInputs = dependencies.get(selectedOption).map(buildUpdateMetadataInput).getOrElse(Nil)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString) :: fileMetadataInputs
-      case MultiSelectField(fieldId, _, _, _, _, multiValue, _, selectedOptions, _, _, _) if selectedOptions.isDefined =>
+      case MultiSelectField(fieldId, _, _, _, _, _, multiValue, _, selectedOptions, _, _, _) if selectedOptions.isDefined =>
         selectedOptions.getOrElse(Nil).map(p => UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, p.value))
     }.flatten
   }
@@ -215,21 +216,59 @@ class AddAdditionalMetadataController @Inject() (
 
 object AddAdditionalMetadataController {
   case class File(fileId: UUID, name: String)
+  private val dateModifiedInsetText =
+    "The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>%s</strong>"
 
   def formFieldOverrides(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
-
-    // We have hard code this logic here as we are still not sure how to make it data-driven.
-    if (formField.fieldId == descriptionClosed) {
-      // Hide DescriptionClosed field if the Description property value is empty
-      val value = fileMetadata.get(description).map(_.head.value).getOrElse("")
-      val (fieldDescription, hideInputs, info) = if (value.isEmpty) {
-        ("If you need to add a description, you can do so in the Descriptive metadata step.", true, "")
-      } else {
-        ("The current description of your record is below. You can edit it in the Descriptive metadata step.", false, value)
-      }
-      formField.asInstanceOf[RadioButtonGroupField].copy(fieldDescription = fieldDescription, hideInputs = hideInputs, additionalInfo = info)
-    } else {
-      formField
+    formField.fieldId match {
+      case fieldId if fieldId == descriptionClosed => overrideDescriptionClosed(formField, fileMetadata)
+      case fieldId if fieldId == end_date          => overrideEndDate(formField, fileMetadata)
+      case fieldId if fieldId == closureStartDate  => overrideClosureStartDate(formField, fileMetadata)
+      case _                                       => formField
     }
+  }
+  private def overrideDescriptionClosed(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
+    // We have hard code this logic here as we are still not sure how to make it data-driven.
+    // Hide DescriptionClosed field if the Description property value is empty
+    val descriptionValue = fileMetadata.get(description).map(_.head.value).getOrElse("")
+    val (fieldDescription, hideInputs, info) = if (descriptionValue.isEmpty) {
+      ("If you need to add a description, you can do so in the Descriptive metadata step.", true, "")
+    } else {
+      ("The current description of your record is below. You can edit it in the Descriptive metadata step.", false, descriptionValue)
+    }
+    formField.asInstanceOf[RadioButtonGroupField].copy(fieldDescription = fieldDescription, hideInputs = hideInputs, additionalInfo = info)
+  }
+
+  private def overrideEndDate(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]) = {
+    val lastModifiedDate = fileMetadata.get(clientSideFileLastModifiedDate).map(_.head.value).getOrElse("")
+    val formattedLastModifiedDate = dateFormatter(lastModifiedDate)
+    formField
+      .asInstanceOf[DateField]
+      .copy(fieldInsetTexts =
+        List(
+          s"The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>$formattedLastModifiedDate</strong>"
+        )
+      )
+  }
+
+  private def overrideClosureStartDate(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]) = {
+    val lastModifiedDate = fileMetadata.get(clientSideFileLastModifiedDate).map(_.head.value).getOrElse("")
+    val formattedLastModifiedDate = dateFormatter(lastModifiedDate)
+    val endDate = fileMetadata.get(end_date).map(_.head.value).getOrElse("")
+    val insetTexts: List[String] = if (endDate.isEmpty) {
+      List(dateModifiedInsetText.format(formattedLastModifiedDate))
+    } else {
+      val formattedEndDate = dateFormatter(endDate)
+      List(
+        dateModifiedInsetText.format(formattedLastModifiedDate),
+        s"The date of the last change to this record entered as descriptive metadata is <strong>$formattedEndDate</strong>"
+      )
+    }
+    formField.asInstanceOf[DateField].copy(fieldInsetTexts = insetTexts)
+  }
+
+  private def dateFormatter(currentDateFormat: String, newDateFormat: String = "dd/MM/yyyy") = {
+    val formatter = new SimpleDateFormat(newDateFormat)
+    if (currentDateFormat.nonEmpty) formatter.format(Timestamp.valueOf(currentDateFormat)) else ""
   }
 }
