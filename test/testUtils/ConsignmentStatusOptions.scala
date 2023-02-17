@@ -26,12 +26,12 @@ object ConsignmentStatusesOptions {
     ("upload failed", CurrentStatus(completed, completed, failed, None, None, None, None, None, None), "/upload", "Failed", "View errors"),
     ("upload completed with issues", CurrentStatus(completed, completed, completedWithIssues, None, None, None, None, None, None), "/upload", "Failed", "View errors"),
     ("upload completed", CurrentStatus(completed, completed, completed, None, None, None, None, None, None), "/upload", "In Progress", "Resume transfer"),
-    ("client checks in progress", CurrentStatus(completed, completed, completed, inProgress, None, None, None, None, None), "/file-checks", "In Progress", "Resume transfer"),
-    ("client checks failed", CurrentStatus(completed, completed, completed, failed, None, None, None, None, None), "/file-checks-results", "Failed", "View errors"),
+    ("client checks in progress", CurrentStatus(completed, completed, completed, inProgress, None, None, None, None, None), "/upload", "In Progress", "Resume transfer"),
+    ("client checks failed", CurrentStatus(completed, completed, completed, failed, None, None, None, None, None), "/upload", "Failed", "View errors"),
     (
       "client checks completed with issues",
       CurrentStatus(completed, completed, completed, completedWithIssues, None, None, None, None, None),
-      "/file-checks-results",
+      "/upload",
       "Failed",
       "View errors"
     ),
@@ -132,12 +132,12 @@ object ConsignmentStatusesOptions {
     ("upload in progress", CurrentStatus(None, None, inProgress, None, None, None, None, None, None), "/upload", "In Progress", "Resume transfer"),
     ("upload failed", CurrentStatus(None, None, failed, None, None, None, None, None, None), "/upload", "Failed", "View errors"),
     ("upload completed", CurrentStatus(None, None, completed, None, None, None, None, None, None), "/upload", "In Progress", "Resume transfer"),
-    ("client checks in progress", CurrentStatus(None, None, completed, inProgress, None, None, None, None, None), "/file-checks", "In Progress", "Resume transfer"),
-    ("client checks failed", CurrentStatus(None, None, completed, failed, None, None, None, None, None), "/file-checks-results", "Failed", "View errors"),
+    ("client checks in progress", CurrentStatus(None, None, completed, inProgress, None, None, None, None, None), "/upload", "In Progress", "Resume transfer"),
+    ("client checks failed", CurrentStatus(None, None, completed, failed, None, None, None, None, None), "/upload", "Failed", "View errors"),
     (
       "client checks completed with issues",
       CurrentStatus(None, None, completed, completedWithIssues, None, None, None, None, None),
-      "/file-checks-results",
+      "/upload",
       "Failed",
       "View errors"
     ),
