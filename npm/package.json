@@ -44,7 +44,7 @@
     "@aws-sdk/client-s3": "^3.272.0",
     "@aws-sdk/lib-storage": "^3.85.0",
     "@nationalarchives/file-information": "^1.0.433",
-    "@nationalarchives/tdr-components": "1.0.23",
+    "@nationalarchives/tdr-components": "1.0.24",
     "@nationalarchives/tdr-generated-graphql": "1.0.355",
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
