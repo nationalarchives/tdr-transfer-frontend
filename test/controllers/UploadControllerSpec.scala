@@ -197,7 +197,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |                                    class="govuk-file-upload drag-and-drop__input" webkitdirectory""".stripMargin
       )
       uploadPageAsString must include(
-        """|                                    accept="*" aria-hidden="true"
+        """|                                    accept="*"
            |                                    >
            |                                    <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single folder here or</p>
            |                                    <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
@@ -209,7 +209,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       )
       uploadPageAsString must include("""<h1 class="govuk-heading-l">Uploading records</h1>""")
       uploadPageAsString must include(
-        """|                <h2 class="govuk-error-summary__title" id="error-summary-title">
+        """|                <h2 class="govuk-error-summary__title" id="progress-error-summary-title">
            |                    There is a problem
            |                </h2>
            |                <div class="govuk-error-summary__body">
@@ -348,7 +348,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |                                    class="govuk-file-upload drag-and-drop__input"""".stripMargin
       )
       uploadPageAsString must include(
-        """|                                    accept=".docx" aria-hidden="true"
+        """|                                    accept=".docx"
            |                                    >
            |                                    <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single file here or</p>
            |                                    <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
@@ -356,7 +356,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       )
       uploadPageAsString must include("""<h1 class="govuk-heading-l">Uploading judgment</h1>""")
       uploadPageAsString must include(
-        """|                <h2 class="govuk-error-summary__title" id="error-summary-title">
+        """|                <h2 class="govuk-error-summary__title" id="progress-error-summary-title">
            |                    There is a problem
            |                </h2>
            |                <div class="govuk-error-summary__body">
