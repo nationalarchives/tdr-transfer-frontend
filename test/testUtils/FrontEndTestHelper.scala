@@ -408,7 +408,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   private def getDisplayPropertiesDataObject: dp.Data = {
     val descriptiveDisplayProperties = List(
       dp.DisplayProperties(
-        "DateOfTheRecord",
+        "end_date",
         List(
           dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Datatype", Some("datetime"), Text),

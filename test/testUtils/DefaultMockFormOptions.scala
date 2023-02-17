@@ -40,30 +40,30 @@ object DefaultMockFormOptions {
 
   val expectedDescriptiveDefaultOptions: List[MockInputOption] = List(
     MockInputOption(
-      name = "inputdate-DateOfTheRecord-day",
+      name = "inputdate-end_date-day",
       label = "Day",
-      id = "date-input-DateOfTheRecord-day",
+      id = "date-input-end_date-day",
       placeholder = "dd",
       fieldType = "inputDate",
       errorMessage = s"The date of the record must contain a day"
     ),
     MockInputOption(
-      name = "inputdate-DateOfTheRecord-month",
+      name = "inputdate-end_date-month",
       label = "Month",
-      id = "date-input-DateOfTheRecord-month",
+      id = "date-input-end_date-month",
       placeholder = "mm",
       fieldType = "inputDate",
       errorMessage = s"The date of the record must contain a month",
-      errorMessageDependency = "inputdate-DateOfTheRecord-day"
+      errorMessageDependency = "inputdate-end_date-day"
     ),
     MockInputOption(
-      name = "inputdate-DateOfTheRecord-year",
+      name = "inputdate-end_date-year",
       label = "Year",
-      id = "date-input-DateOfTheRecord-year",
+      id = "date-input-end_date-year",
       placeholder = "yyyy",
       fieldType = "inputDate",
       errorMessage = s"The date of the record must contain a year",
-      errorMessageDependency = "inputdate-DateOfTheRecord-month"
+      errorMessageDependency = "inputdate-end_date-month"
     ),
     MockInputOption(
       name = "inputtextarea-description",

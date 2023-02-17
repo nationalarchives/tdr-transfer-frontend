@@ -3,7 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddAdditionalMetadataController.{File, formFieldOverrides}
-import controllers.util.MetadataProperty.{clientSideFileLastModifiedDate, clientSideOriginalFilepath, closurePeriod, closureStartDate, description, descriptionClosed, end_date}
+import controllers.util.MetadataProperty._
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
@@ -216,7 +216,8 @@ class AddAdditionalMetadataController @Inject() (
 
 object AddAdditionalMetadataController {
   case class File(fileId: UUID, name: String)
-  val dateModifiedInsetText = "The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>%s</strong>"
+  private val dateModifiedInsetText =
+    "The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>%s</strong>"
 
   def formFieldOverrides(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
     formField.fieldId match {
@@ -229,11 +230,11 @@ object AddAdditionalMetadataController {
   private def overrideDescriptionClosed(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
     // We have hard code this logic here as we are still not sure how to make it data-driven.
     // Hide DescriptionClosed field if the Description property value is empty
-    val value = fileMetadata.get(description).map(_.head.value).getOrElse("")
-    val (fieldDescription, hideInputs, info) = if (value.isEmpty) {
+    val descriptionValue = fileMetadata.get(description).map(_.head.value).getOrElse("")
+    val (fieldDescription, hideInputs, info) = if (descriptionValue.isEmpty) {
       ("If you need to add a description, you can do so in the Descriptive metadata step.", true, "")
     } else {
-      ("The current description of your record is below. You can edit it in the Descriptive metadata step.", false, value)
+      ("The current description of your record is below. You can edit it in the Descriptive metadata step.", false, descriptionValue)
     }
     formField.asInstanceOf[RadioButtonGroupField].copy(fieldDescription = fieldDescription, hideInputs = hideInputs, additionalInfo = info)
   }
@@ -253,19 +254,19 @@ object AddAdditionalMetadataController {
   private def overrideClosureStartDate(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]) = {
     val lastModifiedDate = fileMetadata.get(clientSideFileLastModifiedDate).map(_.head.value).getOrElse("")
     val formattedLastModifiedDate = dateFormatter(lastModifiedDate)
-    val value = fileMetadata.get(end_date).map(_.head.value).getOrElse("")
-    val insetTexts: List[String] = if (value.isEmpty) {
+    val endDate = fileMetadata.get(end_date).map(_.head.value).getOrElse("")
+    val insetTexts: List[String] = if (endDate.isEmpty) {
       List(dateModifiedInsetText.format(formattedLastModifiedDate))
     } else {
-      val endDateLastModified = fileMetadata.get(end_date).map(_.head.value).getOrElse("")
-      val formattedEndDateLastModified = dateFormatter(endDateLastModified)
+      val formattedEndDate = dateFormatter(endDate)
       List(
         dateModifiedInsetText.format(formattedLastModifiedDate),
-        s"The date of the last change to this record entered as descriptive metadata is <strong>$formattedEndDateLastModified</strong>"
+        s"The date of the last change to this record entered as descriptive metadata is <strong>$formattedEndDate</strong>"
       )
     }
     formField.asInstanceOf[DateField].copy(fieldInsetTexts = insetTexts)
   }
+
   private def dateFormatter(currentDateFormat: String, newDateFormat: String = "dd/MM/yyyy") = {
     val formatter = new SimpleDateFormat(newDateFormat)
     if (currentDateFormat.nonEmpty) formatter.format(Timestamp.valueOf(currentDateFormat)) else ""

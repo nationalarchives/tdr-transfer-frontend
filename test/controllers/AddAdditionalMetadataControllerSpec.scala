@@ -121,9 +121,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType").withCSRFToken)
       val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
       val expectedDefaultForm = Seq(
-        ("inputdate-DateOfTheRecord-day", ""),
-        ("inputdate-DateOfTheRecord-month", ""),
-        ("inputdate-DateOfTheRecord-year", ""),
+        ("inputdate-end_date-day", ""),
+        ("inputdate-end_date-month", ""),
+        ("inputdate-end_date-year", ""),
         ("inputtextarea-description", ""),
         ("inputmultiselect-Language", "English")
       )
@@ -627,9 +627,9 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setBulkUpdateMetadataResponse(wiremockServer)
 
       val formToSubmitWithEmptyValue = Seq(
-        ("inputdate-DateOfTheRecord-day", "12"),
-        ("inputdate-DateOfTheRecord-month", "1"),
-        ("inputdate-DateOfTheRecord-year", "1995"),
+        ("inputdate-end_date-day", "12"),
+        ("inputdate-end_date-month", "1"),
+        ("inputdate-end_date-year", "1995"),
         ("inputtextarea-description", ""),
         ("inputmultiselect-Language", "Welsh")
       )
@@ -655,7 +655,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       addInput.fileIds should equal(fileIds)
       addInput.metadataProperties.size shouldBe 2
       addInput.metadataProperties.map(_.value) should equal(List("1995-01-12 00:00:00.0", "Welsh"))
-      addInput.metadataProperties.map(_.filePropertyName) should equal(List("DateOfTheRecord", "Language"))
+      addInput.metadataProperties.map(_.filePropertyName) should equal(List("end_date", "Language"))
 
       val deleteInput = deleteRequest.variables.deleteFileMetadataInput
       deleteInput.fileIds should equal(fileIds)
@@ -724,7 +724,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       actualFormField should equal(formField)
     }
 
-    "override the 'end_date' insetTextfields with the date last modified" in {
+    "add the date last modified to 'end_date' field as inset text" in {
       val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
       val fileMetadata: Map[String, List[FileMetadata]] = Map(
         clientSideFileLastModifiedDate -> List(FileMetadata(clientSideFileLastModifiedDate, Timestamp.valueOf(clientSideFileLastModifiedDateValue).toString))
@@ -761,7 +761,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       actualFormField should equal(expectedField)
     }
 
-    "override the 'closureStartDate' insetTextfields when the end_date and lastModifiedDate is not empty" in {
+    "add the 'end_date' and 'lastModifiedDate' when present to the 'closureStartDate' field" in {
       val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
       val endDateValue = LocalDateTime.of(2023, 1, 15, 0, 0)
       val closureStartDateValue = LocalDateTime.of(1990, 12, 1, 10, 0)
@@ -803,7 +803,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       actualFormField should equal(expectedField)
     }
 
-    "override the 'closureStartDate' insetTextfields when the end_date is empty but the lastModifiedDate is not empty" in {
+    "add 'lastModifiedDate' when present to the 'closureStartDate' field" in {
       val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
       val closureStartDateValue = LocalDateTime.of(1990, 12, 1, 10, 0)
       val fileMetadata: Map[String, List[FileMetadata]] = Map(
