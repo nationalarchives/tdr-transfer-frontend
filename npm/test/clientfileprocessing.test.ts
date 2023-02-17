@@ -424,9 +424,9 @@ const showUploadingRecordsPage = () => {
 function setupUploadPageHTML() {
   document.body.innerHTML =
     `<div id="file-upload" class="govuk-grid-row">
-        <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
+        <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="progress-error-summary-title"
             role="alert" tabindex="-1" data-module="govuk-error-summary">
-            <h2 class="govuk-error-summary__title" id="error-summary-title"></h2>
+            <h2 class="govuk-error-summary__title" id="progress-error-summary-title"></h2>
         </div>
         <div id="logged-out-error" class="govuk-error-summary logged-out-error" hidden aria-labelledby="logged-out-error-title"
             role="alert" tabindex="-1" data-module="govuk-error-summary">
@@ -457,9 +457,9 @@ function setupUploadPageHTML() {
 function setupUploadPageHTMLWithoutProgressBar() {
   document.body.innerHTML =
     `<div id="file-upload" class="govuk-grid-row"></div>
-    <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title
+    <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="progress-error-summary-title
         role="alert" tabindex="-1" data-module="govuk-error-summary">
-        <h2 class="govuk-error-summary__title" id="error-summary-title"></h2>
+        <h2 class="govuk-error-summary__title" id="progress-error-summary-title"></h2>
     </div>`
 
   showUploadingRecordsPage()
