@@ -115,7 +115,6 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         val invalidCurrentStatusValue = CurrentStatus(Some("InvalidStatusValue"), None, None, None, None, None)
         val consignmentsWithAllStatusStates: List[Consignments.Edges] =
           setConsignmentViewTransfersResponse(wiremockServer, standardType, customStatusValues = List(invalidCurrentStatusValue))
-
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
@@ -139,7 +138,6 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     "render the view transfers page with no consignments if the user doesn't have any consignments" in {
       setConsignmentTypeResponse(wiremockServer, standardType)
       setConsignmentViewTransfersResponse(wiremockServer, standardType, noConsignment = true)
-
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
@@ -164,7 +162,6 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     "render the view transfers page with a list of all a judgment user's consignments" in {
       setConsignmentTypeResponse(wiremockServer, judgmentType)
       val consignments = setConsignmentViewTransfersResponse(wiremockServer, judgmentType, List(defaultCurrentStatus, defaultCurrentStatus))
-
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new ViewTransfersController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
