@@ -11,6 +11,7 @@ abstract class FormField {
   val fieldName: String
   val fieldAlternativeName: String
   val fieldDescription: String
+  val fieldInsetTexts: List[String]
   val multiValue: Boolean
   val isRequired: Boolean
   val hideInputs: Boolean = false
@@ -30,6 +31,7 @@ case class RadioButtonGroupField(
     fieldName: String,
     fieldAlternativeName: String,
     fieldDescription: String,
+    fieldInsetTexts: List[String],
     additionalInfo: String,
     multiValue: Boolean,
     options: Seq[InputNameAndValue],
@@ -48,6 +50,7 @@ case class TextField(
     fieldName: String,
     fieldAlternativeName: String,
     fieldDescription: String,
+    fieldInsetTexts: List[String],
     multiValue: Boolean,
     nameAndValue: InputNameAndValue,
     inputMode: String,
@@ -65,6 +68,7 @@ case class TextAreaField(
     fieldName: String,
     fieldAlternativeName: String,
     fieldDescription: String,
+    fieldInsetTexts: List[String],
     multiValue: Boolean,
     nameAndValue: InputNameAndValue,
     isRequired: Boolean,
@@ -82,6 +86,7 @@ case class DropdownField(
     fieldName: String,
     fieldAlternativeName: String,
     fieldDescription: String,
+    fieldInsetTexts: List[String],
     multiValue: Boolean,
     options: Seq[InputNameAndValue],
     selectedOption: Option[InputNameAndValue],
@@ -97,6 +102,7 @@ case class MultiSelectField(
     fieldName: String,
     fieldAlternativeName: String,
     fieldDescription: String,
+    fieldInsetTexts: List[String],
     fieldGuidance: String,
     multiValue: Boolean = true,
     options: Seq[InputNameAndValue],
@@ -113,6 +119,7 @@ case class DateField(
     fieldName: String,
     fieldAlternativeName: String,
     fieldDescription: String,
+    fieldInsetTexts: List[String],
     multiValue: Boolean,
     day: InputNameAndValue,
     month: InputNameAndValue,

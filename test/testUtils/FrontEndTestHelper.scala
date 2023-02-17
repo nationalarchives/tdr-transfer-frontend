@@ -22,6 +22,7 @@ import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.{CurrentStatus => encs}
 import graphql.codegen.GetConsignments.{getConsignments => gc}
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
@@ -309,19 +310,16 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  def setConsignmentsHistoryResponse(
+  def setConsignmentViewTransfersResponse(
       wiremockServer: WireMockServer,
-      consignmentType: String = "standard",
-      customStatusValues: Map[String, List[Option[String]]] = Map(),
+      consignmentType: String,
+      customStatusValues: List[encs] = List(),
       noConsignment: Boolean = false
   ): List[Edges] = {
-    val consignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] =
-      if (customStatusValues.isEmpty) {
-        if (consignmentType == "judgment") judgmentConsignmentStatusValuesThatGenerateActionLinks else standardConsignmentStatusValuesThatGenerateActionLinks
-      } else { customStatusValues }
 
     val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
-    val edges: List[Some[Edges]] = generateConsignmentEdges(consignmentStatusValuesThatGenerateActionLinks, consignmentType)
+    val consignmentId = UUID.randomUUID()
+    val edges = generateConsignmentEdges(customStatusValues, consignmentId, consignmentType)
 
     val consignments = gc.Data(
       gc.Consignments(
@@ -367,46 +365,47 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  private def generateConsignmentEdges(consignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]], consignmentType: String) = {
-    val irrelevantStatusTypes = if (consignmentType == "judgment") List("series", "transferAgreement", "confirmTransfer") else Nil
-    val ultimateStatusValuesForEachType: List[Option[String]] = consignmentStatusValuesThatGenerateActionLinks.keys.map { consignmentStatusType =>
-      if (irrelevantStatusTypes.contains(consignmentStatusType)) None else Some("Completed")
-    }.toList
-
-    consignmentStatusValuesThatGenerateActionLinks
+  def generateConsignmentEdges(statuses: List[encs], consignmentId: UUID, consignmentType: String): List[Some[Edges]] = {
+    statuses
       .zip(LazyList.from(1))
-      .flatMap { case ((consignmentStatusType, nonCompleteStates), orderNumber) =>
-        if (irrelevantStatusTypes.contains(consignmentStatusType)) {
-          None
-        } else {
-          nonCompleteStates.map { nonCompleteState =>
-            val leftSideStatuses: List[Option[String]] = ultimateStatusValuesForEachType.slice(0, orderNumber - 1)
-            val inProgressStatus: List[Option[String]] = List(nonCompleteState)
-            val rightSideStatuses: List[None.type] = List.fill(consignmentStatusValuesThatGenerateActionLinks.size - orderNumber)(None)
-            val statuses: List[Option[String]] = leftSideStatuses ++ inProgressStatus ++ rightSideStatuses
-            Some(
-              Edges(
-                Node(
-                  consignmentid = Some(UUID.randomUUID()),
-                  consignmentReference = s"TEST-TDR-2022-GB$orderNumber",
-                  consignmentType = Some(consignmentType),
-                  exportDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
-                  createdDatetime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10 + orderNumber, orderNumber, 0), ZoneId.systemDefault())),
-                  currentStatus = Node.CurrentStatus(statuses.head, statuses(1), statuses(2), statuses(3), statuses(4), statuses(5)),
-                  totalFiles = orderNumber
-                ),
-                "Cursor"
-              )
-            )
-          }
-        }
-      }
-      .toList
-      .distinct
+      .map(e => {
+        val orderNumber = e._2
+        val someDateTime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault()))
+        Some(
+          Edges(
+            Node(
+              consignmentid = Some(consignmentId),
+              consignmentReference = s"consignment-ref-$orderNumber",
+              consignmentType = Some(consignmentType),
+              exportDatetime = someDateTime,
+              createdDatetime = someDateTime,
+              currentStatus = e._1,
+              totalFiles = orderNumber
+            ),
+            "Cursor"
+          )
+        )
+      })
   }
 
   private def getDisplayPropertiesDataObject: dp.Data = {
     val descriptiveDisplayProperties = List(
+      dp.DisplayProperties(
+        "end_date",
+        List(
+          dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Datatype", Some("datetime"), Text),
+          dp.DisplayProperties.Attributes("Description", Some("The date the most recent change was made to the record"), Text),
+          dp.DisplayProperties.Attributes("Name", Some("Date of the record"), Text),
+          dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
+          dp.DisplayProperties.Attributes("Group", Some("1"), Text),
+          dp.DisplayProperties.Attributes("Guidance", Some("dd|mm|yyyy"), Text),
+          dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
+          dp.DisplayProperties.Attributes("Ordinal", Some("1"), Integer),
+          dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
+        )
+      ),
       dp.DisplayProperties(
         "description",
         List(
@@ -787,26 +786,6 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     "Completed",
     "Failed"
   )
-
-  val standardConsignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] =
-    ListMap(
-      "series" -> List(None),
-      "transferAgreement" -> List(None, Some("InProgress")),
-      "upload" -> List(None, Some("InProgress"), Some("CompletedWithIssues")),
-      "clientChecks" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
-      "confirmTransfer" -> List(None),
-      "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
-    )
-
-  val judgmentConsignmentStatusValuesThatGenerateActionLinks: Map[String, List[Option[String]]] =
-    ListMap(
-      "series" -> List(None), // None because series does not exist for judgments
-      "transferAgreement" -> List(None), // None because transferAgreement does not exist for judgments
-      "upload" -> List(None, Some("InProgress"), Some("CompletedWithIssues")),
-      "clientChecks" -> List(Some("InProgress"), Some("Completed"), Some("CompletedWithIssues"), Some("Failed")),
-      "confirmTransfer" -> List(None), // None because confirmTransfer does not exist for judgments
-      "export" -> List(Some("InProgress"), Some("Completed"), Some("Failed"))
-    )
 
   def frontEndInfoConfiguration: ApplicationConfig = {
     val frontEndInfoConfiguration: ApplicationConfig = mock[ApplicationConfig]

@@ -1,7 +1,7 @@
-@()
-<div id="logged-out-error" class="govuk-error-summary logged-out-error" hidden aria-labelledby="logged-out-error-title"
+@(idSuffix: String = "")
+<div id="logged-out-error@idSuffix" class="govuk-error-summary logged-out-error" hidden aria-labelledby="logged-out-error-title@idSuffix"
 role="alert" tabindex="-1" data-module="govuk-error-summary">
-  <h2 class="govuk-error-summary__title logged-out-title" id="logged-out-error-title">
+  <h2 class="govuk-error-summary__title logged-out-title" id="logged-out-error-title@idSuffix">
     Your session has timed out
   </h2>
   <div class="govuk-error-summary__body logged-out-body">
