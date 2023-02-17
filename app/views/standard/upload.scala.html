@@ -37,7 +37,7 @@
                 <p class="upload-error__message"></p>
             </div>
         </div>
-        @loggedOutErrorMessage()
+        @loggedOutErrorMessage("file-upload")
         <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <div class="drag-and-drop">
@@ -69,7 +69,7 @@
                                     Safari 14.0.1, which does not let the user browse for files if the 'accept'
                                     attribute is missing. The actual value of the attribute is ignored because
                                     'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
-                                    accept="*" aria-hidden="true"
+                                    accept="*"
                                     >
                                     <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single folder here or</p>
                                     <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
@@ -101,9 +101,9 @@
         @progressIndicator(Messages("upload.progress"))
         <h1 class="govuk-heading-l">@pageHeading2ndHalf</h1>
         <div id="upload-progress-error" hidden>
-            <div class="govuk-error-summary upload-error" aria-labelledby="error-summary-title"
+            <div class="govuk-error-summary upload-error" aria-labelledby="progress-error-summary-title"
                 role="alert" tabindex="-1" data-module="govuk-error-summary">
-                <h2 class="govuk-error-summary__title" id="error-summary-title">
+                <h2 class="govuk-error-summary__title" id="progress-error-summary-title">
                     There is a problem
                 </h2>
                 <div class="govuk-error-summary__body">
@@ -117,7 +117,7 @@
                 Return to start
             </a>
         </div>
-        @loggedOutErrorMessage()
+        @loggedOutErrorMessage("upload-progress")
         <div id="progress-bar-and-message">
             <p class="govuk-body">Do not close your browser window while your files are being uploaded. This could take a few minutes.</p>
             <div>
