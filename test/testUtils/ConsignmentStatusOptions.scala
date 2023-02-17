@@ -58,7 +58,6 @@ object ConsignmentStatusesOptions {
     ("client checks failed", CurrentStatus(None, None, completed, failed, None, None), "/file-checks-results", "Failed", "View errors"),
     ("client checks completed with issues", CurrentStatus(None, None, completed, completedWithIssues, None, None), "/file-checks-results", "Failed", "View errors"),
     ("client checks completed", CurrentStatus(None, None, completed, completed, None, None), "/file-checks-results", "In Progress", "Resume transfer"),
-    ("confirm transfer completed", CurrentStatus(None, None, completed, completed, None, None), "/file-checks-results", "In Progress", "Resume transfer"),
     ("export in progress", CurrentStatus(None, None, completed, completed, completed, inProgress), "/transfer-complete", "In Progress", "View"),
     (
       "export failed",

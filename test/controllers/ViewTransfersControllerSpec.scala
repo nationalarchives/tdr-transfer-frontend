@@ -30,7 +30,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
 
   private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
-  private val defaultCurrentStatus = CurrentStatus(None, None, None, None, None, None)
+  private val defaultCurrentStatus = CurrentStatus(series = None, transferAgreement = None, upload = None, clientChecks = None, confirmTransfer = None, export = None)
   private val standardType = "standard"
   private val judgmentType = "judgment"
 
@@ -42,7 +42,6 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         s"render the '$expectedTransferState' action for the given 'consignment status'" in {
           setConsignmentTypeResponse(wiremockServer, "standard")
           val consignment: List[Consignments.Edges] = setConsignmentViewTransfersResponse(wiremockServer, standardType, customStatusValues = List(currentStatus))
-
           val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
           val consignmentService = new ConsignmentService(graphQLConfiguration)
           val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
