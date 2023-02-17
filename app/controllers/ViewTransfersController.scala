@@ -63,9 +63,8 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
   }
 
   // scalastyle:off cyclomatic.complexity
-  private def contactUsAction(consignmentRef: String, consignmentType: String = "standard"): UserAction = {
-    val emailTitle = if (consignmentType == "judgment") "Judgment Transfer Failure (Status value is not valid)" else "Consignment Failure (Status value is not valid)"
-    UserAction(contactUs, s"mailto:%s?subject=Ref: $consignmentRef - $emailTitle", contactUs)
+  private def contactUsAction(consignmentRef: String): UserAction = {
+    UserAction(contactUs, s"mailto:%s?subject=Ref: $consignmentRef - Issue With Transfer", contactUs)
   }
 
   private def convertStandardStatusesToUserActions(statuses: CurrentStatus, consignmentId: UUID, consignmentRef: String, consignmentType: String): UserAction = {
@@ -79,7 +78,7 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
       case s if s.transferAgreement.contains(inProgressStep)                    => UserAction(transferStatusInProgress, pageNameToUrlMap("taCompliance"), resumeTransfer)
       case s if s.transferAgreement.contains(completedStep) && s.upload.isEmpty => UserAction(transferStatusInProgress, pageNameToUrlMap("upload"), resumeTransfer)
 
-      case s if s.confirmTransfer.isEmpty => convertUploadAndFileCheckStatusesToUserActions(s, pageNameToUrlMap, consignmentRef, consignmentType)
+      case s if s.confirmTransfer.isEmpty                                       => convertUploadAndFileCheckStatusesToUserActions(s, pageNameToUrlMap, consignmentRef)
       case s if s.confirmTransfer.contains(completedStep) && s.`export`.isEmpty => UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
       case s if s.`export`.nonEmpty                                             => convertExportStatusesToUserActions(s, pageNameToUrlMap, consignmentRef, consignmentType)
 
@@ -92,10 +91,10 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
 
     statuses match {
       case s if s.upload.isEmpty    => UserAction(transferStatusInProgress, pageNameToUrlMap("beforeYouUpload"), resumeTransfer)
-      case s if s.`export`.isEmpty  => convertUploadAndFileCheckStatusesToUserActions(s, pageNameToUrlMap, consignmentRef, consignmentType)
+      case s if s.`export`.isEmpty  => convertUploadAndFileCheckStatusesToUserActions(s, pageNameToUrlMap, consignmentRef)
       case s if s.`export`.nonEmpty => convertExportStatusesToUserActions(s, pageNameToUrlMap, consignmentRef, consignmentType)
 
-      case _ => contactUsAction(consignmentRef, consignmentType)
+      case _ => contactUsAction(consignmentRef)
     }
   }
 
@@ -112,8 +111,7 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
   private def convertUploadAndFileCheckStatusesToUserActions(
       statuses: CurrentStatus,
       pageNameToUrlMap: Map[String, String],
-      consignmentRef: String,
-      consignmentType: String
+      consignmentRef: String
   ): UserAction = {
     val fileChecks = fileChecksProgress(statuses)
 
@@ -122,16 +120,17 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
         UserAction(transferStatusInProgress, pageNameToUrlMap("upload"), resumeTransfer)
       case s if s.upload.contains(completedWithIssuesStep) || s.upload.contains(failedStep) =>
         UserAction(transferStatusFailed, pageNameToUrlMap("upload"), viewErrors)
-      case s if s.upload.contains(completedStep) && s.clientChecks.isEmpty => UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecks"), resumeTransfer)
-
-      case s if s.clientChecks.contains(inProgressStep) => UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecks"), resumeTransfer)
-      case s if s.clientChecks.contains(completedWithIssuesStep) || s.clientChecks.contains(failedStep) || fileChecks == failedStep || fileChecks == completedWithIssuesStep =>
+      case s if s.upload.contains(completedStep) && s.clientChecks.isEmpty => UserAction(transferStatusInProgress, pageNameToUrlMap("upload"), resumeTransfer)
+      case s if s.clientChecks.contains(inProgressStep)                    => UserAction(transferStatusInProgress, pageNameToUrlMap("upload"), resumeTransfer)
+      case s if s.clientChecks.contains(completedWithIssuesStep) || s.clientChecks.contains(failedStep) =>
+        UserAction(transferStatusFailed, pageNameToUrlMap("upload"), viewErrors)
+      case _ if fileChecks == failedStep || fileChecks == completedWithIssuesStep =>
         UserAction(transferStatusFailed, pageNameToUrlMap("fileChecksResults"), viewErrors)
       case s if (s.clientChecks.contains(completedStep) && fileChecks == inProgressStep) && s.confirmTransfer.isEmpty =>
         UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecks"), resumeTransfer)
       case s if fileChecks == completedStep && s.confirmTransfer.isEmpty =>
         UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
-      case _ => contactUsAction(consignmentRef, consignmentType)
+      case _ => contactUsAction(consignmentRef)
     }
   }
 
@@ -142,7 +141,7 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
       case s if s.`export`.contains(inProgressStep) => UserAction(transferStatusInProgress, pageNameToUrlMap("export"), completeLink)
       case s if s.`export`.contains(completedStep)  => UserAction(transferStatusTransferred, pageNameToUrlMap("export"), completeLink)
       case s if s.`export`.contains(failedStep)     => UserAction(transferStatusFailed, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", "Contact us")
-      case _                                        => contactUsAction(consignmentRef, consignmentType)
+      case _                                        => contactUsAction(consignmentRef)
     }
   }
   // scalastyle:on cyclomatic.complexity
