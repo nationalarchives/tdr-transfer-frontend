@@ -99,12 +99,24 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
     }
   }
 
+  private def fileChecksProgress(statuses: CurrentStatus): String = {
+    val fileChecksStatuses = Set(statuses.serverAntivirus, statuses.serverChecksum, statuses.serverFFID)
+    fileChecksStatuses match {
+      case fcs if fcs.contains(Some(failedStep))                           => failedStep
+      case fcs if fcs.contains(Some(completedWithIssuesStep))              => completedWithIssuesStep
+      case fcs if fcs.contains(Some(inProgressStep)) || fcs.contains(None) => inProgressStep
+      case _                                                               => completedStep
+    }
+  }
+
   private def convertUploadAndFileCheckStatusesToUserActions(
       statuses: CurrentStatus,
       pageNameToUrlMap: Map[String, String],
       consignmentRef: String,
       consignmentType: String
   ): UserAction = {
+    val fileChecks = fileChecksProgress(statuses)
+
     statuses match {
       case s if s.upload.contains(inProgressStep) || (s.upload.contains(completedStep) && s.clientChecks.isEmpty) =>
         UserAction(transferStatusInProgress, pageNameToUrlMap("upload"), resumeTransfer)
@@ -113,9 +125,11 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
       case s if s.upload.contains(completedStep) && s.clientChecks.isEmpty => UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecks"), resumeTransfer)
 
       case s if s.clientChecks.contains(inProgressStep) => UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecks"), resumeTransfer)
-      case s if s.clientChecks.contains(completedWithIssuesStep) || s.clientChecks.contains(failedStep) =>
+      case s if s.clientChecks.contains(completedWithIssuesStep) || s.clientChecks.contains(failedStep) || fileChecks == failedStep || fileChecks == completedWithIssuesStep =>
         UserAction(transferStatusFailed, pageNameToUrlMap("fileChecksResults"), viewErrors)
-      case s if s.clientChecks.contains(completedStep) && s.confirmTransfer.isEmpty =>
+      case s if (s.clientChecks.contains(completedStep) && fileChecks == inProgressStep) && s.confirmTransfer.isEmpty =>
+        UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecks"), resumeTransfer)
+      case s if fileChecks == completedStep && s.confirmTransfer.isEmpty =>
         UserAction(transferStatusInProgress, pageNameToUrlMap("fileChecksResults"), resumeTransfer)
       case _ => contactUsAction(consignmentRef, consignmentType)
     }
