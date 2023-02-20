@@ -32,7 +32,7 @@
       </div>
       <ul class="tna-tree__nested-list tna-tree__nested-list--radios" role="group" id="radios-node-group-@file.id">
         @for((child, idx) <- file.children.zipWithIndex) {
-          @display(child, level + 1, file.children.length, idx)
+          @display(child, level + 1, file.children.length, idx + 1)
         }
       </ul>
     </li>
@@ -68,7 +68,7 @@
       <div class="govuk-grid-column-two-thirds">
         <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
         <h1 class="govuk-heading-l">Choose a file</h1>
-        <p class="govuk-body">Select a file you wish to add or edit @metadataType metadata.</p>
+        <p class="govuk-body">Select the file you wish to add or edit @metadataType metadata.</p>
       </div>
     </div>
     <div class="govuk-grid-row">
@@ -82,7 +82,7 @@
           @CSRF.formField
           <div class="tna-tree" id="file-selection">
             <ul tabindex="0" class="tna-tree__root-list" id="radio-tree" role="tree">
-              @display(files, 1, files.children.length, 0)
+              @display(files, 1, files.children.length, 1)
             </ul>
           </div>
           <div class="govuk-button-group">
