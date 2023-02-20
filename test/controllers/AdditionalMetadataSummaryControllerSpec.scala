@@ -49,6 +49,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val closureStartDate = LocalDateTime.of(1990, 12, 1, 10, 0)
       val fileMetadata = List(
         GetConsignment.Files.FileMetadata("TitleClosed", "true"),
+        GetConsignment.Files.FileMetadata("TitleAlternate", "An alternative title"),
         GetConsignment.Files.FileMetadata("ClosurePeriod", "4"),
         GetConsignment.Files.FileMetadata("FoiExemptionCode", "1"),
         GetConsignment.Files.FileMetadata("FoiExemptionCode", "2"),
@@ -72,7 +73,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       contentType(response) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(closureMetadataSummaryPage, userType = "standard")
-      val metadataFields = List(("Is the title closed?", "Yes"), ("Closure Period", "4 years"), ("Closure Start Date", "01/12/1990"), ("FOI exemption code(s)", "1, 2 "))
+      val metadataFields = List(
+        ("Is the title closed?", "Yes"),
+        ("Closure Period", "4 years"),
+        ("Closure Start Date", "01/12/1990"),
+        ("FOI exemption code(s)", "1, 2 "),
+        ("Alternative Title2", "An alternative title ")
+      )
 
       verifySummaryPage(closureMetadataSummaryPage, consignmentId.toString, closureMetadataType, metadataFields)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))

@@ -62,7 +62,7 @@ class AdditionalMetadataSummaryController @Inject() (
 
     filteredMetadata.map { case (displayProperty, metadataValue) =>
       FileMetadata(
-        displayProperty.displayName,
+        getDisplayName(displayProperty),
         displayProperty.dataType match {
           case DateTime => formatter.format(Timestamp.valueOf(metadataValue))
           case Boolean =>
@@ -74,6 +74,11 @@ class AdditionalMetadataSummaryController @Inject() (
         }
       )
     }
+  }
+
+  private def getDisplayName(displayProperty: DisplayProperty) = {
+    val fieldsWithAlternativeName = List("TitleAlternate")
+    if (fieldsWithAlternativeName.contains(displayProperty.propertyName)) displayProperty.alternativeName else displayProperty.displayName
   }
 }
 
