@@ -26,40 +26,100 @@ object ConsignmentStatusesOptions {
     ("upload failed", CurrentStatus(completed, completed, failed, None, None, None, None, None, None), "/upload", "Failed", "View errors"),
     ("upload completed with issues", CurrentStatus(completed, completed, completedWithIssues, None, None, None, None, None, None), "/upload", "Failed", "View errors"),
     ("upload completed", CurrentStatus(completed, completed, completed, None, None, None, None, None, None), "/upload", "In Progress", "Resume transfer"),
-    ("client checks in progress", CurrentStatus(completed, completed, completed, inProgress, None, None, None, None, None), "/file-checks", "In Progress", "Resume transfer"),
-    ("client checks failed", CurrentStatus(completed, completed, completed, failed, None, None, None, None, None), "/file-checks-results", "Failed", "View errors"),
+    ("client checks in progress", CurrentStatus(completed, completed, completed, inProgress, None, None, None, None, None), "/upload", "In Progress", "Resume transfer"),
+    ("client checks failed", CurrentStatus(completed, completed, completed, failed, None, None, None, None, None), "/upload", "Failed", "View errors"),
     (
       "client checks completed with issues",
       CurrentStatus(completed, completed, completed, completedWithIssues, None, None, None, None, None),
+      "/upload",
+      "Failed",
+      "View errors"
+    ),
+    ("client checks completed", CurrentStatus(completed, completed, completed, completed, None, None, None, None, None), "/file-checks", "In Progress", "Resume transfer"),
+    ("av file check in progress", CurrentStatus(completed, completed, completed, completed, inProgress, None, None, None, None), "/file-checks", "In Progress", "Resume transfer"),
+    ("av file check failed", CurrentStatus(completed, completed, completed, completed, failed, None, None, None, None), "/file-checks-results", "Failed", "View errors"),
+    (
+      "av file check completed with issues",
+      CurrentStatus(completed, completed, completed, completed, completedWithIssues, None, None, None, None),
       "/file-checks-results",
       "Failed",
       "View errors"
     ),
-    ("client checks completed", CurrentStatus(completed, completed, completed, completed, None, None, None, None, None), "/file-checks-results", "In Progress", "Resume transfer"),
+    ("av file check completed", CurrentStatus(completed, completed, completed, completed, completed, None, None, None, None), "/file-checks", "In Progress", "Resume transfer"),
+    (
+      "checksum file check in progress",
+      CurrentStatus(completed, completed, completed, completed, completed, inProgress, None, None, None),
+      "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    ("checksum file check failed", CurrentStatus(completed, completed, completed, completed, completed, failed, None, None, None), "/file-checks-results", "Failed", "View errors"),
+    (
+      "checksum file check completed with issues",
+      CurrentStatus(completed, completed, completed, completed, completed, completedWithIssues, None, None, None),
+      "/file-checks-results",
+      "Failed",
+      "View errors"
+    ),
+    (
+      "checksum file check completed",
+      CurrentStatus(completed, completed, completed, completed, completed, completed, None, None, None),
+      "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "FFID file check in progress",
+      CurrentStatus(completed, completed, completed, completed, completed, completed, inProgress, None, None),
+      "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "FFID file check failed",
+      CurrentStatus(completed, completed, completed, completed, completed, completed, failed, None, None),
+      "/file-checks-results",
+      "Failed",
+      "View errors"
+    ),
+    (
+      "FFID file check completed with issues",
+      CurrentStatus(completed, completed, completed, completed, completed, completed, completedWithIssues, None, None),
+      "/file-checks-results",
+      "Failed",
+      "View errors"
+    ),
+    (
+      "all file checks completed",
+      CurrentStatus(completed, completed, completed, completed, completed, completed, completed, None, None),
+      "/file-checks-results",
+      "In Progress",
+      "Resume transfer"
+    ),
     (
       "confirm transfer completed",
-      CurrentStatus(completed, completed, completed, completed, None, None, None, completed, None),
+      CurrentStatus(completed, completed, completed, completed, completed, completed, completed, completed, None),
       "/file-checks-results",
       "In Progress",
       "Resume transfer"
     ),
     (
       "export in progress",
-      CurrentStatus(completed, completed, completed, completed, None, None, None, completed, inProgress),
+      CurrentStatus(completed, completed, completed, completed, completed, completed, completed, completed, inProgress),
       "/additional-metadata/download-metadata/csv",
       "In Progress",
       "Download report"
     ),
     (
       "export failed",
-      CurrentStatus(completed, completed, completed, completed, None, None, None, completed, failed),
+      CurrentStatus(completed, completed, completed, completed, completed, completed, completed, completed, failed),
       "mailto:nationalArchives.email?subject=Ref: consignment-ref-1 - Export failure",
       "Failed",
       "Contact us"
     ),
     (
       "export completed",
-      CurrentStatus(completed, completed, completed, completed, None, None, None, completed, completed),
+      CurrentStatus(completed, completed, completed, completed, completed, completed, completed, completed, completed),
       "/additional-metadata/download-metadata/csv",
       "Transferred",
       "Download report"
@@ -72,24 +132,84 @@ object ConsignmentStatusesOptions {
     ("upload in progress", CurrentStatus(None, None, inProgress, None, None, None, None, None, None), "/upload", "In Progress", "Resume transfer"),
     ("upload failed", CurrentStatus(None, None, failed, None, None, None, None, None, None), "/upload", "Failed", "View errors"),
     ("upload completed", CurrentStatus(None, None, completed, None, None, None, None, None, None), "/upload", "In Progress", "Resume transfer"),
-    ("client checks in progress", CurrentStatus(None, None, completed, inProgress, None, None, None, None, None), "/file-checks", "In Progress", "Resume transfer"),
-    ("client checks failed", CurrentStatus(None, None, completed, failed, None, None, None, None, None), "/file-checks-results", "Failed", "View errors"),
+    ("client checks in progress", CurrentStatus(None, None, completed, inProgress, None, None, None, None, None), "/upload", "In Progress", "Resume transfer"),
+    ("client checks failed", CurrentStatus(None, None, completed, failed, None, None, None, None, None), "/upload", "Failed", "View errors"),
     (
       "client checks completed with issues",
       CurrentStatus(None, None, completed, completedWithIssues, None, None, None, None, None),
+      "/upload",
+      "Failed",
+      "View errors"
+    ),
+    ("client checks completed", CurrentStatus(None, None, completed, completed, None, None, None, None, None), "/file-checks", "In Progress", "Resume transfer"),
+    ("av file check in progress", CurrentStatus(None, None, completed, completed, inProgress, None, None, None, None), "/file-checks", "In Progress", "Resume transfer"),
+    ("av file check failed", CurrentStatus(None, None, completed, completed, failed, None, None, None, None), "/file-checks-results", "Failed", "View errors"),
+    (
+      "av file check completed with issues",
+      CurrentStatus(None, None, completed, completed, completedWithIssues, None, None, None, None),
       "/file-checks-results",
       "Failed",
       "View errors"
     ),
-    ("client checks completed", CurrentStatus(None, None, completed, completed, None, None, None, None, None), "/file-checks-results", "In Progress", "Resume transfer"),
-    ("export in progress", CurrentStatus(None, None, completed, completed, None, None, None, completed, inProgress), "/transfer-complete", "In Progress", "View"),
+    ("av file check completed", CurrentStatus(None, None, completed, completed, completed, None, None, None, None), "/file-checks", "In Progress", "Resume transfer"),
+    (
+      "checksum file check in progress",
+      CurrentStatus(None, None, completed, completed, completed, inProgress, None, None, None),
+      "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    ("checksum file check failed", CurrentStatus(None, None, completed, completed, completed, failed, None, None, None), "/file-checks-results", "Failed", "View errors"),
+    (
+      "checksum file check completed with issues",
+      CurrentStatus(None, None, completed, completed, completed, completedWithIssues, None, None, None),
+      "/file-checks-results",
+      "Failed",
+      "View errors"
+    ),
+    (
+      "checksum file check completed",
+      CurrentStatus(None, None, completed, completed, completed, completed, None, None, None),
+      "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "FFID file check in progress",
+      CurrentStatus(None, None, completed, completed, completed, completed, inProgress, None, None),
+      "/file-checks",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "FFID file check failed",
+      CurrentStatus(None, None, completed, completed, completed, completed, failed, None, None),
+      "/file-checks-results",
+      "Failed",
+      "View errors"
+    ),
+    (
+      "FFID file check completed with issues",
+      CurrentStatus(None, None, completed, completed, completed, completed, completedWithIssues, None, None),
+      "/file-checks-results",
+      "Failed",
+      "View errors"
+    ),
+    (
+      "all file checks completed",
+      CurrentStatus(None, None, completed, completed, completed, completed, completed, None, None),
+      "/file-checks-results",
+      "In Progress",
+      "Resume transfer"
+    ),
+    ("export in progress", CurrentStatus(None, None, completed, completed, completed, completed, completed, completed, inProgress), "/transfer-complete", "In Progress", "View"),
     (
       "export failed",
-      CurrentStatus(None, None, completed, completed, None, None, None, completed, failed),
+      CurrentStatus(None, None, completed, completed, completed, completed, completed, completed, failed),
       "mailto:nationalArchives.email?subject=Ref: consignment-ref-1 - Export failure",
       "Failed",
       "Contact us"
     ),
-    ("export completed", CurrentStatus(None, None, completed, completed, None, None, None, completed, completed), "/transfer-complete", "Transferred", "View")
+    ("export completed", CurrentStatus(None, None, completed, completed, completed, completed, completed, completed, completed), "/transfer-complete", "Transferred", "View")
   )
 }

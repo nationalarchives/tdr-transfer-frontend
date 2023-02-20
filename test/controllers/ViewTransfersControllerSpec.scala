@@ -140,7 +140,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
 
         val consignmentEdgeForSeries = consignmentsWithAllStatusStates.head
-        val expectedActionPage = """mailto:nationalArchives.email?subject=Ref: consignment-ref-1 - Consignment Failure (Status value is not valid)"""
+        val expectedActionPage = """mailto:nationalArchives.email?subject=Ref: consignment-ref-1 - Issue With Transfer"""
         val expectedTransferStatus, expectedAction = "Contact us"
         verifyConsignmentRow(viewTransfersPageAsString, consignmentEdgeForSeries.node, expectedActionPage, expectedTransferStatus, expectedAction, standardType)
       }
