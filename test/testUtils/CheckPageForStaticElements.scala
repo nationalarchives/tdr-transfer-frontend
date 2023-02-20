@@ -18,6 +18,7 @@ class CheckPageForStaticElements() {
     |    <link rel="shortcut icon" type="image/ico" href="/assets/images/favicon.ico">
     |    <script  src="/assets/javascripts/all.js" type="text/javascript"></script>
     |    <script  src="/assets/javascripts/main.js" type="text/javascript"></script>""".stripMargin)
+    page must include("""<a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>""")
     page must include("This is a new service – your feedback will help us to improve it. Please")
     page must include("href=\"/contact\">get in touch (opens in new tab).</a>")
     page must include("""href="/contact">""")
@@ -46,21 +47,21 @@ class CheckPageForStaticElements() {
       pageRequiresAwsServices: Boolean
   ) = {
     page must include(
-      """<a href="/sign-out" class="govuk-header__link">
-        |                            Sign out""".stripMargin
+      """    <a href="/sign-out" class="govuk-header__link">
+        |                                Sign out""".stripMargin
     )
-    page must include("""<dialog class="timeout-dialog">
-                         |        <div>
-                         |            <h2 class="govuk-heading-m">You have been inactive for more than 55 minutes.</h2>
-                         |            <p class="govuk-body">If you do not respond within 5 minutes, you will be logged out to keep your information secure.</p>
-                         |        </div>
-                         |        <div class="govuk-button-group">
-                         |            <button id="extend-timeout" class="govuk-button" role="button">
-                         |                Keep me signed in
-                         |            </button>
-                         |            <a class="govuk-link" href="/sign-out">Sign me out</a>
-                         |        </div>
-                         |    </dialog>""".stripMargin)
+    page must include("""    <dialog class="timeout-dialog">
+                         |            <div>
+                         |                <h2 class="govuk-heading-m">You have been inactive for more than 55 minutes.</h2>
+                         |                <p class="govuk-body">If you do not respond within 5 minutes, you will be logged out to keep your information secure.</p>
+                         |            </div>
+                         |            <div class="govuk-button-group">
+                         |                <button id="extend-timeout" class="govuk-button" role="button">
+                         |                    Keep me signed in
+                         |                </button>
+                         |                <a class="govuk-link" href="/sign-out">Sign me out</a>
+                         |            </div>
+                         |        </dialog>""".stripMargin)
     if (userType == "judgment") {
       page must include("Judgment Username")
       page must include("""href="/judgment/faq">""")
