@@ -30,7 +30,17 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
 
   private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
-  private val defaultCurrentStatus = CurrentStatus(series = None, transferAgreement = None, upload = None, clientChecks = None, confirmTransfer = None, export = None)
+  private val defaultCurrentStatus = CurrentStatus(
+    series = None,
+    transferAgreement = None,
+    upload = None,
+    clientChecks = None,
+    serverAntivirus = None,
+    serverChecksum = None,
+    serverFFID = None,
+    confirmTransfer = None,
+    export = None
+  )
   private val standardType = "standard"
   private val judgmentType = "judgment"
 
@@ -112,7 +122,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     "render the view transfers page with list of user's consignments and have 'Contact us' as an Action for consignments" +
       " where the status value were invalid/not recognised" in {
         setConsignmentTypeResponse(wiremockServer, standardType)
-        val invalidCurrentStatusValue = CurrentStatus(Some("InvalidStatusValue"), None, None, None, None, None)
+        val invalidCurrentStatusValue = CurrentStatus(Some("InvalidStatusValue"), None, None, None, None, None, None, None, None)
         val consignmentsWithAllStatusStates: List[Consignments.Edges] =
           setConsignmentViewTransfersResponse(wiremockServer, standardType, customStatusValues = List(invalidCurrentStatusValue))
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
