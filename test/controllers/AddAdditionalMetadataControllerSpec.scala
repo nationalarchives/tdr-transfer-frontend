@@ -6,17 +6,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent
 import configuration.GraphQLConfiguration
-import controllers.util.MetadataProperty.{
-  clientSideFileLastModifiedDate,
-  clientSideOriginalFilepath,
-  closurePeriod,
-  closureStartDate,
-  description,
-  descriptionClosed,
-  end_date,
-  fileName,
-  titleClosed
-}
+import controllers.util.MetadataProperty._
 import controllers.util.{DateField, FormField, InputNameAndValue, RadioButtonGroupField}
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
