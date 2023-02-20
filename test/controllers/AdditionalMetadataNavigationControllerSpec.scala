@@ -58,7 +58,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
           content must include(s"${metadataType.capitalize} metadata")
           content must include("""<h1 class="govuk-heading-l">Choose a file</h1>""")
-          content must include(s"Select a file you wish to add or edit $metadataType metadata.")
+          content must include(s"Select the file you wish to add or edit $metadataType metadata.")
           content must not include ("Select a file to proceed")
           content must include(
             s"""<a href="/consignment/$consignmentId/additional-metadata" class="govuk-back-link">Step additionalMetadataStart.progress: Descriptive and closure metadata</a>"""
