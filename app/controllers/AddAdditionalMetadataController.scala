@@ -119,7 +119,7 @@ class AddAdditionalMetadataController @Inject() (
 
   private def getConsignmentFileMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID])(implicit request: Request[AnyContent]): Future[GetConsignment] = {
     val additionalProperties = metadataType match {
-      case "closure" => Some(List(clientSideOriginalFilepath, description, clientSideFileLastModifiedDate, end_date))
+      case "closure" => Some(List(clientSideOriginalFilepath, description, clientSideFileLastModifiedDate, end_date, fileName))
       case _         => None
     }
     consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds), additionalProperties)
@@ -221,20 +221,26 @@ object AddAdditionalMetadataController {
 
   def formFieldOverrides(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
     formField.fieldId match {
-      case fieldId if fieldId == descriptionClosed => overrideDescriptionClosed(formField, fileMetadata)
+      case fieldId if fieldId == descriptionClosed => overrideClosedText(formField, fileMetadata.get(description), description)
+      case fieldId if fieldId == titleClosed       => overrideClosedText(formField, fileMetadata.get(fileName), title)
       case fieldId if fieldId == end_date          => overrideEndDate(formField, fileMetadata)
       case fieldId if fieldId == closureStartDate  => overrideClosureStartDate(formField, fileMetadata)
       case _                                       => formField
     }
   }
-  private def overrideDescriptionClosed(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
+
+  private def overrideClosedText(formField: FormField, metadataValue: Option[List[FileMetadata]], fieldName: String): FormField = {
     // We have hard code this logic here as we are still not sure how to make it data-driven.
-    // Hide DescriptionClosed field if the Description property value is empty
-    val descriptionValue = fileMetadata.get(description).map(_.head.value).getOrElse("")
-    val (fieldDescription, hideInputs, info) = if (descriptionValue.isEmpty) {
-      ("If you need to add a description, you can do so in the Descriptive metadata step.", true, "")
+    // Hide field if the property value is empty
+    val value = metadataValue.flatMap(_.headOption).map(_.value).getOrElse("")
+    val (fieldDescription, hideInputs, info) = if (value.isEmpty) {
+      (
+        s"If the $fieldName of this record contains sensitive information you must add an uncensored description in Descriptive Metadata section before entering an alternative $fieldName here.",
+        true,
+        ""
+      )
     } else {
-      ("The current description of your record is below. You can edit it in the Descriptive metadata step.", false, descriptionValue)
+      (s"If the $fieldName of this record contains sensitive information, you must select 'Yes' and provide an alternative $fieldName.", false, value)
     }
     formField.asInstanceOf[RadioButtonGroupField].copy(fieldDescription = fieldDescription, hideInputs = hideInputs, additionalInfo = info)
   }
