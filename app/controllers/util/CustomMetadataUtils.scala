@@ -26,6 +26,7 @@ object MetadataProperty {
   val closureStartDate = "ClosureStartDate"
   val closurePeriod = "ClosurePeriod"
   val foiExemptionCode = "FoiExemptionCode"
+  val fileName = "Filename"
   val titleClosed = "TitleClosed"
   val descriptionClosed = "DescriptionClosed"
   val clientSideOriginalFilepath = "ClientSideOriginalFilepath"
@@ -33,6 +34,7 @@ object MetadataProperty {
   val titleAlternate = "TitleAlternate"
   val descriptionAlternate = "DescriptionAlternate"
   val description = "description"
+  val title = "title"
   val fileType = "FileType"
   val closureType: StaticMetadata = StaticMetadata("ClosureType", "Closed")
   val descriptiveType: StaticMetadata = StaticMetadata("DescriptiveType", "")
