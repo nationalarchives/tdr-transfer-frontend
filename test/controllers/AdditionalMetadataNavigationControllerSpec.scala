@@ -133,13 +133,13 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           content must include(getExpectedFolderHtml(parentId, "parent"))
           content must include(getExpectedFolderHtml(descendantOneFileId, "descendantOneFile"))
           if (metadataType == "closure") {
-            content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile", 2, closedTag))
-            content must include(getExpectedFileHtml(descendantThreeFileId, "descendantThreeFile", 1))
-            content must include(getExpectedFileHtml(descendantFourFileId, "descendantFourFile", 0, incompleteTag))
+            content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile", 3, closedTag))
+            content must include(getExpectedFileHtml(descendantThreeFileId, "descendantThreeFile", 2))
+            content must include(getExpectedFileHtml(descendantFourFileId, "descendantFourFile", 1, incompleteTag))
           } else {
-            content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile", 2, enteredTag))
-            content must include(getExpectedFileHtml(descendantThreeFileId, "descendantThreeFile", 1))
-            content must include(getExpectedFileHtml(descendantFourFileId, "descendantFourFile", 0))
+            content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile", 3, enteredTag))
+            content must include(getExpectedFileHtml(descendantThreeFileId, "descendantThreeFile", 2))
+            content must include(getExpectedFileHtml(descendantFourFileId, "descendantFourFile", 1))
           }
         }
       }
