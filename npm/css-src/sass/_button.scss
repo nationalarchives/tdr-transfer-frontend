@@ -11,3 +11,14 @@
   font: inherit;
   padding: 0;
 }
+
+.tna-button-icon {
+  height: 1rem;
+  width: 1rem;
+  margin-right: 5px;
+  display: inline-block;
+}
+
+.tna-button-icon svg {
+  max-height: 100%;
+}

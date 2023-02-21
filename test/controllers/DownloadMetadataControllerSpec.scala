@@ -243,8 +243,10 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val responseAsString = contentAsString(response)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(responseAsString, userType = "standard")
-      responseAsString must include("""<svg class="thumbnail-icon"""")
-      responseAsString must include(s"""<a class="download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">""")
+      responseAsString must include("""<svg""")
+      responseAsString must include(
+        s"""<a class="govuk-button govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
+      )
       responseAsString must include(s"""<a class="govuk-button" href="/consignment/$consignmentId/confirm-transfer"""")
     }
 
