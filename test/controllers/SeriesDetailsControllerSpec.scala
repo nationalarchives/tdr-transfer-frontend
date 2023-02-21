@@ -76,9 +76,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       seriesDetailsPageAsString should include("""<select class="govuk-select" id="series" name="series"  >""")
       seriesDetailsPageAsString should include(s"""<option value="${seriesId.toString}">MOCK1</option>""")
-      seriesDetailsPageAsString must include("""        <h1 class="govuk-label-wrapper">
-          |            <label class="govuk-label govuk-label--l" for="choose-series">Choose a series reference</label>
-          |        </h1>""".stripMargin)
+      seriesDetailsPageAsString must include("""<h1 class="govuk-label-wrapper">
+                                               |            <label class="govuk-label govuk-label--l" for="series">Choose a series reference</label>
+                                               |        </h1>""".stripMargin)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
