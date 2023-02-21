@@ -512,6 +512,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
                 Some("Completed"),
                 Some("Completed")
               ),
+              List(),
               5
             ),
             "Cursor"

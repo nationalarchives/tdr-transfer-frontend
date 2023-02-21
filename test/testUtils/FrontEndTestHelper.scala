@@ -17,7 +17,7 @@ import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{ConsignmentStatuses, CurrentStatus, Series}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
@@ -219,7 +219,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       clientChecksStatus: Option[String] = None,
       serverFFIDStatus: Option[String] = None,
       serverChecksumStatus: Option[String] = None,
-      serverAntivirusStatus: Option[String] = None
+      serverAntivirusStatus: Option[String] = None,
+      consignmentStatuses: List[ConsignmentStatuses] = Nil
   ): StubMapping = {
     val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
     val consignmentResponse = gcs.Data(
@@ -236,7 +237,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
             serverFFIDStatus,
             confirmTransferStatus,
             exportStatus
-          )
+          ),
+          // List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None))
+          consignmentStatuses
         )
       )
     )
@@ -380,6 +383,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
               exportDatetime = someDateTime,
               createdDatetime = someDateTime,
               currentStatus = e._1,
+              List(),
               totalFiles = orderNumber
             ),
             "Cursor"

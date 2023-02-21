@@ -8,6 +8,7 @@ import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc._
+import services.ConsignmentStatusService.Export
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import viewsapi.Caching.preventCaching
 
@@ -47,8 +48,8 @@ class ConfirmTransferController @Inject() (
   private def loadStandardPageBasedOnCtStatus(consignmentId: UUID, httpStatus: Status, finalTransferForm: Form[FinalTransferConfirmationData] = finalTransferConfirmationForm)(
       implicit request: Request[AnyContent]
   ): Future[Result] = {
-    consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken).flatMap { consignmentStatus =>
-      val exportTransferStatus = consignmentStatus.flatMap(_.export)
+    consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken).flatMap { consignmentStatuses =>
+      val exportTransferStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Export)
       exportTransferStatus match {
         case Some("InProgress") | Some("Completed") | Some("Failed") =>
           consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map { consignmentRef =>
@@ -78,8 +79,8 @@ class ConfirmTransferController @Inject() (
         val token: BearerAccessToken = request.token.bearerAccessToken
 
         for {
-          consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
-          exportStatus = consignmentStatus.flatMap(_.export)
+          consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+          exportStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Export)
           result <- exportStatus match {
             case Some("Completed") => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
             case None =>
@@ -103,8 +104,8 @@ class ConfirmTransferController @Inject() (
 
   def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
-      exportStatus = consignmentStatus.flatMap(_.export)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+      exportStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Export)
       res <- {
         exportStatus match {
           case Some("InProgress") | Some("Completed") | Some("Failed") =>
