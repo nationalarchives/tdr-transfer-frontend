@@ -27,11 +27,10 @@ class AdditionalMetadataNavigationController @Inject() (
 
   def submitFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val fileIds = request.body.asFormUrlEncoded
-      .getOrElse(Map())
-      .keys
+      .flatMap(_.get("nested-navigation"))
+      .getOrElse(Nil)
+      .map(UUID.fromString)
       .toList
-      .filter(_ != "csrfToken")
-      .map(p => UUID.fromString(p.substring("radios-list-".length)))
 
     if (fileIds.nonEmpty) {
       submitAndRedirectToNextPage(metadataType, fileIds, consignmentId)
