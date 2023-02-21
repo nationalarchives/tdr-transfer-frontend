@@ -7,6 +7,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.{Action, AnyContent, Request, Result}
+import services.ConsignmentStatusService.{Series, TransferAgreement}
 import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
 import viewsapi.Caching.preventCaching
 
@@ -59,9 +60,9 @@ class TransferAgreementPrivateBetaController @Inject() (
       request: Request[AnyContent]
   ): Future[Result] = {
     for {
-      consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
-      transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
-      seriesStatus: Option[String] = consignmentStatus.flatMap(_.series)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+      transferAgreementStatus: Option[String] = consignmentStatusService.getStatusValue(consignmentStatuses, TransferAgreement)
+      seriesStatus: Option[String] = consignmentStatusService.getStatusValue(consignmentStatuses, Series)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val formAndLabel = transferAgreementFormNameAndLabel.filter(f => taForm.formats.keys.toList.contains(f._1))
@@ -105,8 +106,8 @@ class TransferAgreementPrivateBetaController @Inject() (
       val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
       for {
-        consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
-        transferAgreementStatus = consignmentStatus.flatMap(_.transferAgreement)
+        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+        transferAgreementStatus = consignmentStatusService.getStatusValue(consignmentStatuses, TransferAgreement)
         result <- transferAgreementStatus match {
           case Some("InProgress") => Future(Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
           case None =>

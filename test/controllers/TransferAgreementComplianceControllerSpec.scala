@@ -3,6 +3,7 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import errors.AuthorisationException
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.prop.TableFor2
 import play.api.Play.materializer
@@ -14,6 +15,7 @@ import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper, TransferAgreementTestHelper}
 
+import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
@@ -32,6 +34,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
+  val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
   val taHelper = new TransferAgreementTestHelper(wiremockServer)
   val checkPageForStaticElements = new CheckPageForStaticElements
 
@@ -91,7 +94,9 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
             getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
-        setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer, seriesStatus = Some("Completed"))
+        val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+        val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None))
+        setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer, consignmentStatuses = consignmentStatuses)
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
 
@@ -115,11 +120,15 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
             getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
+        val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+        val consignmentStatuses = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "InProgress", someDateTime, None)
+        )
         setConsignmentStatusResponse(
           getConfig(blockClosureMetadata, blockDescriptiveMetadata),
           wiremockServer,
-          seriesStatus = Some("Completed"),
-          transferAgreementStatus = Some("InProgress")
+          consignmentStatuses = consignmentStatuses
         )
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
@@ -176,8 +185,9 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
         )
         taHelper.stubTAComplianceResponse(Some(addTransferAgreementResponse), getConfig(blockClosureMetadata, blockDescriptiveMetadata))
 
+        val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "InProgress", someDateTime, None))
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
-        setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer, transferAgreementStatus = Some("InProgress"))
+        setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer, consignmentStatuses = consignmentStatuses)
 
         val controller: TransferAgreementComplianceController =
           taHelper.instantiateTransferAgreementComplianceController(
@@ -247,11 +257,16 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
             getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
+
+        val consignmentStatuses = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "InProgress", someDateTime, None)
+        )
+
         setConsignmentStatusResponse(
           getConfig(blockClosureMetadata, blockDescriptiveMetadata),
           wiremockServer,
-          seriesStatus = Some("Completed"),
-          transferAgreementStatus = Some("InProgress")
+          consignmentStatuses = consignmentStatuses
         )
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
@@ -290,11 +305,16 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
             getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
+
+          val consignmentStatuses = List(
+            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "InProgress", someDateTime, None)
+          )
+
           setConsignmentStatusResponse(
             getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             wiremockServer,
-            seriesStatus = Some("Completed"),
-            transferAgreementStatus = Some("InProgress")
+            consignmentStatuses = consignmentStatuses
           )
           setConsignmentTypeResponse(wiremockServer, "standard")
           setConsignmentReferenceResponse(wiremockServer)
@@ -333,11 +353,16 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
             getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
+
+        val consignmentStatuses = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None)
+        )
+
         setConsignmentStatusResponse(
           getConfig(blockClosureMetadata, blockDescriptiveMetadata),
           wiremockServer,
-          seriesStatus = Some("Completed"),
-          transferAgreementStatus = Some("Completed")
+          consignmentStatuses = consignmentStatuses
         )
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
         setConsignmentReferenceResponse(wiremockServer)
@@ -366,11 +391,16 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
               getConfig(blockClosureMetadata, blockDescriptiveMetadata),
               getValidStandardUserKeycloakConfiguration
             )
+
+          val consignmentStatuses = List(
+            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None)
+          )
+
           setConsignmentStatusResponse(
             getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             wiremockServer,
-            seriesStatus = Some("Completed"),
-            transferAgreementStatus = Some("Completed")
+            consignmentStatuses = consignmentStatuses
           )
           setConsignmentTypeResponse(wiremockServer, taHelper.userType)
           setConsignmentReferenceResponse(wiremockServer)
@@ -401,11 +431,16 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
               getConfig(blockClosureMetadata, blockDescriptiveMetadata),
               getValidStandardUserKeycloakConfiguration
             )
+
+            val consignmentStatuses = List(
+              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None)
+            )
+
             setConsignmentStatusResponse(
               getConfig(blockClosureMetadata, blockDescriptiveMetadata),
               wiremockServer,
-              seriesStatus = Some("Completed"),
-              transferAgreementStatus = Some("Completed")
+              consignmentStatuses = consignmentStatuses
             )
             setConsignmentTypeResponse(wiremockServer, taHelper.userType)
             setConsignmentReferenceResponse(wiremockServer)
