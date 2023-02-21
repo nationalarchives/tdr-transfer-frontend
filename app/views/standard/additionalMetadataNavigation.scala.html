@@ -10,14 +10,14 @@
   @if(file.fileType.contains("File")) {
     <li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-@file.id" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" aria-selected="false">
       <div class="tna-tree__node-item__radio govuk-radios__item">
-        <span class="govuk-radios__input" aria-hidden="true" id="radio-@file.id" name="nested-navigation"></span>
-        <span class="govuk-label govuk-radios__label">
+        <input type="radio" name="nested-navigation" class="govuk-radios__input" id="radio-@file.id" value="@file.id"/>
+        <label class="govuk-label govuk-radios__label" for="radio-@file.id">
           @file.name @displayStatusTag(file.statusTag)
-        </span>
+        </label>
       </div>
     </li>
   } else {
-    <li class="tna-tree__node-item-radios" role="treeitem" id="radios-list-@file.id" aria-expanded="false" aria-selected="false" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" tabindex="0">
+    <li class="tna-tree__node-item-radios" role="treeitem" id="radios-list-@file.id" aria-expanded="true" aria-selected="false" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" tabindex="0">
       <div class="tna-tree__node-item__container">
         <span class="tna-tree__expander js-tree__expander--radios" tabindex="-1" id="radios-expander-@file.id">
           <span class="govuk-visually-hidden">Expand</span>
@@ -68,7 +68,6 @@
       <div class="govuk-grid-column-two-thirds">
         <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
         <h1 class="govuk-heading-l">Choose a file</h1>
-        <p class="govuk-body">Select the file you wish to add or edit @metadataType metadata.</p>
       </div>
     </div>
     <div class="govuk-grid-row">
@@ -81,9 +80,14 @@
         <form method="post" action="@routes.AdditionalMetadataNavigationController.submitFiles(consignmentId, metadataType)">
           @CSRF.formField
           <div class="tna-tree" id="file-selection">
-            <ul tabindex="0" class="tna-tree__root-list" id="radio-tree" role="tree">
-              @display(files, 1, files.children.length, 1)
-            </ul>
+            <fieldset class="govuk-fieldset">
+              <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+                <p class="govuk-body">Select the file you wish to add or edit @metadataType metadata.</p>
+              </legend>
+              <ul tabindex="0" class="tna-tree__root-list" id="radio-tree" role="tree">
+                @display(files, 1, files.children.length, 1)
+              </ul>
+            </fieldset>
           </div>
           <div class="govuk-button-group">
             <button class="govuk-button" type="submit" value="edit" data-module="govuk-button" draggable="false">
