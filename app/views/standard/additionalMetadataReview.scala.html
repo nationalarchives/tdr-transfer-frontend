@@ -1,0 +1,48 @@
+@import views.html.partials.transferReference
+@import views.html.partials.metadata
+@import java.util.UUID
+
+@import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
+
+@(
+    consignmentId: UUID,
+    metadataType: String,
+    fileIds: List[UUID],
+    fileNames: List[String],
+    consignmentRef: String,
+    name: String,
+    metadataList: List[FileMetadata])(implicit messages: Messages, request: RequestHeader)
+@main(title = "Review saved changes", name = name) {
+  @defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
+        <h1 class="govuk-heading-l"> Review saved changes </h1>
+        <p class="govuk-body">Review the @metadataType metadata changes you have made below. You may also edit and delete any metadata changes.</p>
+
+        @metadata(fileNames, metadataList)
+
+        <div class="govuk-button-group">
+          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+            Edit metadata
+          </a>
+          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary">
+          Delete metadata
+          </a>
+        </div>
+
+        <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--l">
+        <h2 class="govuk-heading-m  govuk-!-margin-bottom-3">Have you finished reviewing the metadata?</h2>
+        <p class="govuk-body govuk-!-margin-bottom-2">Once you have finished reviewing the metadata of this file you may add metadata to another file.</p>
+
+        <a href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        Select another file
+        </a>
+        <p class="govuk-body">If you have finished adding closure metadata to all of your files, return to the
+          <a href="@routes.AdditionalMetadataController.start(consignmentId)" role="button" draggable="false" data-module="govuk-button">Descriptive & closure metadata page</a>.</p>
+      </div>
+      @transferReference(consignmentRef, isJudgmentUser = false)
+
+    </div>
+  }
+}

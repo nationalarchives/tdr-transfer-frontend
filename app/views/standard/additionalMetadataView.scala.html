@@ -1,0 +1,44 @@
+@import views.html.partials.{transferReference, metadata}
+@import java.util.UUID
+
+@import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
+
+@(
+    consignmentId: UUID,
+    metadataType: String,
+    fileIds: List[UUID],
+    fileNames: List[String],
+    consignmentRef: String,
+    name: String,
+    metadataList: List[FileMetadata])(implicit messages: Messages, request: RequestHeader)
+@main(title = "Review metadata added", name = name) {
+  @defining(play.core.PlayVersion.current) { version =>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
+        <h1 class="govuk-heading-l"> View metadata </h1>
+
+        <p class="govuk-body">View existing @metadataType metadata.</p>
+
+        @metadata(fileNames, metadataList)
+
+        <div class="govuk-button-group">
+          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
+            Edit metadata
+          </a>
+          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary">
+            Delete metadata
+          </a>
+        </div>
+
+        <div class="govuk-button-group">
+          <a href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType)" draggable="false" class="govuk-link govuk-link--no-visited-state">
+          Return to all files
+          </a>
+        </div>
+      </div>
+      @transferReference(consignmentRef, isJudgmentUser = false)
+
+    </div>
+  }
+}

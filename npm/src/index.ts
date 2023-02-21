@@ -40,7 +40,7 @@ export const renderModules = async () => {
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
-  const fileNavigation = document.querySelector(".tna-tree")
+  const fileSelectionTree = document.querySelector(".tna-tree")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
   const multiSelectSearch = document.querySelector(".tna-multi-select-search")
@@ -115,7 +115,7 @@ export const renderModules = async () => {
     const sessionTimeoutModule = await import("./auth/session-timeout")
     await sessionTimeoutModule.initialiseSessionTimeout()
   }
-  if (fileNavigation) {
+  if (fileSelectionTree) {
     const trees: NodeListOf<HTMLUListElement> =
       document.querySelectorAll("[role=tree]")
     trees.forEach((tree) => {
@@ -127,11 +127,15 @@ export const renderModules = async () => {
       form.addEventListener("submit", async (ev) => {
         ev.preventDefault()
         const body = new URLSearchParams()
+        let selectedItems: string[] = []
         document
           .querySelectorAll("li[aria-checked=true]")
           .forEach((el, _, __) => {
-            body.set(el.id, "on")
+            selectedItems.push(el.id)
           })
+        body.set("Action", (<HTMLInputElement>ev.submitter)?.value)
+        body.set("Ids", selectedItems.join(","))
+
         const csrfInput: HTMLInputElement | null = document.querySelector(
           "input[name='csrfToken']"
         )
