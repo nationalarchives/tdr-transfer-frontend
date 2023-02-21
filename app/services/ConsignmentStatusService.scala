@@ -30,12 +30,6 @@ class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfi
     }
   }
 
-  @deprecated("Use getConsignmentStatuses(consignmentId: UUID, token: BearerAccessToken): Future[List[ConsignmentStatuses]]")
-  def getConsignmentStatus(consignmentId: UUID, token: BearerAccessToken): Future[Option[GetConsignment.CurrentStatus]] = {
-    val variables = new Variables(consignmentId)
-    sendApiRequest(getConsignmentStatusClient, gcs.document, token, variables).map(data => data.getConsignment.map(_.currentStatus))
-  }
-
   def consignmentStatusSeries(consignmentId: UUID, token: BearerAccessToken): Future[Option[GetConsignment]] = {
     val variables = new Variables(consignmentId)
     sendApiRequest(getConsignmentStatusClient, gcs.document, token, variables).map(data => data.getConsignment)
