@@ -122,37 +122,6 @@ export const renderModules = async () => {
       const nestedNavigation = new NestedNavigation(tree)
       nestedNavigation.initialiseFormListeners(InputType.radios)
     })
-    const form = document.querySelector("form")
-    if (form) {
-      form.addEventListener("submit", async (ev) => {
-        ev.preventDefault()
-        const body = new URLSearchParams()
-        let selectedItems: string[] = []
-        document
-          .querySelectorAll("li[aria-checked=true]")
-          .forEach((el, _, __) => {
-            selectedItems.push(el.id)
-          })
-        body.set("Action", (<HTMLInputElement>ev.submitter)?.value)
-        body.set("Ids", selectedItems.join(","))
-
-        const csrfInput: HTMLInputElement | null = document.querySelector(
-          "input[name='csrfToken']"
-        )
-        fetch(form.action, {
-          body,
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Csrf-Token": csrfInput!.value,
-            "X-Requested-With": "XMLHttpRequest"
-          },
-          redirect: "follow"
-        }).then((res) => {
-          window.location.replace(res.url)
-        })
-      })
-    }
   }
   if (multiSelectSearch) {
     const rootElement: HTMLElement | null = document.querySelector(

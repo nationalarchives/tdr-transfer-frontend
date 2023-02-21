@@ -43,6 +43,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       .toMap
     new ApplicationConfig(Configuration.from(config))
   }
+  val twoOrMoreSpaces = "\\s{2,}"
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -54,10 +55,17 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   }
 
   val checkPageForStaticElements = new CheckPageForStaticElements
+  val warningMsg = "Now that your records have been uploaded you can proceed with the transfer."
   val expectedSuccessSummaryTitle: String =
-    """                <h2 class="success-summary__title" id="success-summary-title">
-      |                    Success
-      |                </h2>""".stripMargin
+    """                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+      |                        Success
+      |                    </h2>""".stripMargin
+  val expectedSuccessWarningText: String => String = (warningMsg: String) => s"""            <div class="govuk-warning-text">
+      |                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+      |                <strong class="govuk-warning-text__text">
+      |                    <span class="govuk-warning-text__assistive">Warning</span>
+      |                    $warningMsg</strong>
+      |            </div>""".stripMargin
   val expectedFailureReturnButton: String =
     """      <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
       |          Return to start
@@ -92,16 +100,17 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |              </p>""".stripMargin
         )
       } else {
-        // scalastyle:off line.size.limit
         (
           "consignment",
           getValidStandardUserKeycloakConfiguration,
           "<title>Results of your checks</title>",
           """<h1 class="govuk-heading-l">Results of your checks</h1>""",
-          """                    <p class="govuk-body">Your folder 'parentFolder' containing 1 item has been successfully checked and uploaded.</p>
-            |                    <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""".stripMargin,
+          """                    <h3 class="govuk-notification-banner__heading">
+            |                        Your folder 'parentFolder' containing 1 item has been successfully uploaded.
+            |                    </h3>
+            |                    <p class="govuk-body">You can leave and return to this transfer at any time from the <a class="govuk-notification-banner__link" href="/view-transfers">View transfers</a> page.</p>""".stripMargin,
           s"""                <a class="govuk-button" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/additional-metadata" role="button" draggable="false" data-module="govuk-button">
-             |                    Continue
+             |                    Next
              |                </a>""".stripMargin,
           """              <p class="govuk-body">
             |    One or more files you uploaded have failed our checks. Contact us at
@@ -116,7 +125,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |    <li>Ambiguous naming of redacted files</li>
             |</ul>""".stripMargin
         )
-        // scalastyle:on line.size.limit
       }
 
       s"render the $userType fileChecksResults page with the confirmation box and the continue button link to 'confirm-transfer' page if addition metadata features are blocked" in {
@@ -128,7 +136,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
         val confirmTransferButton =
           s"""                <a class="govuk-button" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/confirm-transfer" role="button" draggable="false" data-module="govuk-button">
-             |                    Continue
+             |                    Next
              |                </a>""".stripMargin
 
         val fileChecksData = gfcp.Data(
@@ -181,6 +189,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         resultsPageAsString must include(expectedHeading)
         if (userType == "standard") {
           resultsPageAsString must include(expectedSuccessSummaryTitle)
+          resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(expectedSuccessWarningText(warningMsg).replaceAll(twoOrMoreSpaces, ""))
           resultsPageAsString must include(confirmTransferButton)
         }
 
@@ -245,6 +254,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         resultsPageAsString must include(expectedHeading)
         if (userType != "judgment") {
           resultsPageAsString must include(expectedSuccessSummaryTitle)
+          resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(
+            expectedSuccessWarningText(s"$warningMsg In the next step you will be given the opportunity to add metadata to your records before transferring them.")
+              .replaceAll(twoOrMoreSpaces, "")
+          )
         }
         resultsPageAsString must include(expectedSuccessMessage)
         resultsPageAsString must include regex (buttonToProgress)
