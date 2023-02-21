@@ -43,6 +43,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       .toMap
     new ApplicationConfig(Configuration.from(config))
   }
+  val twoOrMoreSpaces = "\\s{2,}"
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -54,16 +55,16 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   }
 
   val checkPageForStaticElements = new CheckPageForStaticElements
+  val warningMsg = "Now that your records have been uploaded you can proceed with the transfer."
   val expectedSuccessSummaryTitle: String =
     """                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
       |                        Success
       |                    </h2>""".stripMargin
-  val expectedSuccessWarningText: String =
-    """            <div class="govuk-warning-text">
+  val expectedSuccessWarningText: String => String = (warningMsg: String) => s"""            <div class="govuk-warning-text">
       |                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
       |                <strong class="govuk-warning-text__text">
       |                    <span class="govuk-warning-text__assistive">Warning</span>
-      |                    Now that your records have been uploaded you can proceed with the transfer. In the next step you will be given the opportunity to add metadata to your records before transferring them.</strong>
+      |                    $warningMsg</strong>
       |            </div>""".stripMargin
   val expectedFailureReturnButton: String =
     """      <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
@@ -188,7 +189,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         resultsPageAsString must include(expectedHeading)
         if (userType == "standard") {
           resultsPageAsString must include(expectedSuccessSummaryTitle)
-          resultsPageAsString must include(expectedSuccessWarningText)
+          resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(expectedSuccessWarningText(warningMsg).replaceAll(twoOrMoreSpaces, ""))
           resultsPageAsString must include(confirmTransferButton)
         }
 
@@ -253,6 +254,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         resultsPageAsString must include(expectedHeading)
         if (userType != "judgment") {
           resultsPageAsString must include(expectedSuccessSummaryTitle)
+          resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(
+            expectedSuccessWarningText(s"$warningMsg In the next step you will be given the opportunity to add metadata to your records before transferring them.")
+              .replaceAll(twoOrMoreSpaces, "")
+          )
         }
         resultsPageAsString must include(expectedSuccessMessage)
         resultsPageAsString must include regex (buttonToProgress)
