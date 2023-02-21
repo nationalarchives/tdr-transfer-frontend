@@ -1,36 +1,44 @@
 @import java.util.UUID
 @import views.html.partials.{progressIndicator, transferReference}
+@import views.html.partials.notificationBanner
 @(consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("Download or view metadata", name = name) {
+@main("Download and review metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
-    <div class="govuk-grid-row file-check-progress">
+    <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-
         @progressIndicator(Messages("downloadMetadata.progress"))
-      <h1 class="govuk-heading-l">Download or view metadata</h1>
+      <h1 class="govuk-heading-l">Download and review metadata</h1>
       <div class="download-metadata">
-        <section class="attachment">
-          <div class="attachment-thumb">
-            <a aria-hidden="true" class="thumbnail" tabindex="-1" href="/consignment/@consignmentId/additional-metadata/download-metadata/csv">
-              <svg class="thumbnail-icon" viewBox="0 0 99 140" width="99" height="140" aria-hidden="true">
-                <path d="M12 12h75v27H12zm0 47h18.75v63H12zm55 2v59H51V61h16m2-2H49v63h20V59z" stroke-width="0"></path>
-                <path d="M49 61.05V120H32.8V61.05H49m2-2H30.75v63H51V59zm34 2V120H69.05V61.05H85m2-2H67v63h20V59z" stroke-width="0"></path>
-                <path d="M30 68.5h56.5M30 77.34h56.5M30 112.7h56.5M30 95.02h56.5M30 86.18h56.5M30 103.86h56.5" fill="none" stroke-miterlimit="10" stroke-width="2"></path>
-              </svg>
-            </a>
-          </div>
-          <p class="govuk-body">
-            <a class="download-metadata" href="/consignment/@consignmentId/additional-metadata/download-metadata/csv">Download a CSV file</a>
-            showing all the metadata added to these records and, optionally, review before continuing.
-          </p>
-        </section>
+        @notificationBanner(
+          Messages("notification.savedProgress.title"),
+          Messages("notification.savedProgress.heading"),
+          Messages("notification.savedProgress.metadataInfo", routes.ViewTransfersController.viewConsignments(), "View Transfers")
+        )
+        <p class="govuk-body">
+          You can review the metadata added to your records by downloading the CSV file. If you would like to add or amend the metadata, return to the previous step.
+        </p>
+        <a class="govuk-button govuk-!-margin-bottom-8 download-metadata" href="/consignment/@consignmentId/additional-metadata/download-metadata/csv">
+          <span aria-hidden="true" class="tna-button-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 21">
+              <path fill="#fff" d="M15.96 21V2.52h-1.68v16.8H2.52V21h13.44Z"></path>
+              <path fill="#fff" d="M0 0h13.44v18.48H0z"></path>
+            </svg>
+          </span>
+          Download metadata CSV
+        </a>
 
       </div>
-      <a class="govuk-button" href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" data-module="govuk-button">
-          Continue
-      </a>
+      <div class="govuk-button-group">
+        <a href="@routes.AdditionalMetadataController.start(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+          Back
+        </a>
+        <a class="govuk-button" href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" data-module="govuk-button">
+          Next
+        </a>
       </div>
+
+    </div>
 
       @transferReference(consignmentRef, isJudgmentUser = false)
     </div>
