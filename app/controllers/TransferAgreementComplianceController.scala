@@ -69,8 +69,9 @@ class TransferAgreementComplianceController @Inject() (
   ): Future[Result] = {
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      transferAgreementStatus: Option[String] = consignmentStatusService.getStatusValue(consignmentStatuses, TransferAgreement)
-      seriesStatus: Option[String] = consignmentStatusService.getStatusValue(consignmentStatuses, Series)
+      statuses = consignmentStatusService.getStatusValue(consignmentStatuses, Set(TransferAgreement, Series))
+      transferAgreementStatus: Option[String] = statuses.get(TransferAgreement).flatten
+      seriesStatus: Option[String] = statuses.get(Series).flatten
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val formAndLabels = taFormNamesAndLabels.filter(f => taForm.formats.keys.toList.contains(f._1))
@@ -109,7 +110,7 @@ class TransferAgreementComplianceController @Inject() (
 
       for {
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-        transferAgreementStatus = consignmentStatusService.getStatusValue(consignmentStatuses, TransferAgreement)
+        transferAgreementStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Set(TransferAgreement)).values.head
         result <- transferAgreementStatus match {
           case Some("Completed") => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
           case Some("InProgress") =>
