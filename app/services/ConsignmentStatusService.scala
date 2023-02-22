@@ -18,10 +18,7 @@ class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfi
   def getStatusValues(statuses: List[ConsignmentStatuses], statusTypes: StatusType*): Map[StatusType, Option[String]] = {
     statusTypes
       .map(t => {
-        val value = statuses.find(_.statusType == t.id) match {
-          case Some(status) => Some(status.value)
-          case _            => None
-        }
+        val value = statuses.find(_.statusType == t.id).map(_.value)
         t -> value
       })
       .toMap

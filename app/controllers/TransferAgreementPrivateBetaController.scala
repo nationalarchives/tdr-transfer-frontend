@@ -108,7 +108,7 @@ class TransferAgreementPrivateBetaController @Inject() (
 
       for {
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-        transferAgreementStatus = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreement).values.head
+        transferAgreementStatus = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreement).values.headOption.flatten
         result <- transferAgreementStatus match {
           case Some("InProgress") => Future(Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
           case None =>

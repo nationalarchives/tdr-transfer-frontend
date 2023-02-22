@@ -118,7 +118,7 @@ class UploadController @Inject() (
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val uploadStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, Upload).values.head
+      val uploadStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, Upload).values.headOption.flatten
       val pageHeadingUpload = "Upload judgment"
       val pageHeadingUploading = "Uploading judgment"
 
