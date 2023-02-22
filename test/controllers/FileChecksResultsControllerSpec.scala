@@ -47,7 +47,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   }
   val twoOrMoreSpaces = "\\s{2,}"
 
-  val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
