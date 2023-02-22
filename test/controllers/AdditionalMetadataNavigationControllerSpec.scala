@@ -66,10 +66,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
           content must include(
             s"""          <div class="govuk-button-group">
-               |            <button class="govuk-button" type="submit" value="edit" data-module="govuk-button" draggable="false">
+               |            <button class="govuk-button" type="submit" name="action" value="edit" data-module="govuk-button" draggable="false">
                |              Add or Edit metadata
                |            </button>
-               |            <button class="govuk-button govuk-button--secondary" type="submit" value="view" data-module="govuk-button" draggable="false">
+               |            <button class="govuk-button govuk-button--secondary" type="submit" name="action" value="view" data-module="govuk-button" draggable="false">
                |              View metadata
                |            </button>
                |          </div>""".stripMargin
@@ -176,7 +176,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "closure")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((s"nested-navigation", fileId.toString)): _*)
+              .withFormUrlEncodedBody(Seq(("nested-navigation", fileId.toString), ("action", "edit")): _*)
               .withCSRFToken
           )
 
@@ -203,7 +203,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, metadataType(0))
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((s"nested-navigation", fileId)): _*)
+              .withFormUrlEncodedBody(Seq(("nested-navigation", fileId), ("action", "edit")): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
@@ -212,7 +212,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         )
       }
 
-      "redirect to the metadata summary page if the metadata type is descriptive" in {
+      "redirect to the add metadata page if the metadata type is descriptive" in {
         val consignmentService = mockConsignmentService(Nil, "standard")
         val additionalMetadataController =
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
@@ -221,7 +221,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "descriptive")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/")
-              .withFormUrlEncodedBody(Seq((s"nested-navigation", fileId)): _*)
+              .withFormUrlEncodedBody(Seq(("nested-navigation", fileId), ("action", "edit")): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
@@ -235,7 +235,11 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
-          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure").withCSRFToken)
+          .apply(
+            FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure")
+              .withFormUrlEncodedBody(Seq(("action", "edit")): _*)
+              .withCSRFToken
+          )
 
         playStatus(result) must equal(BAD_REQUEST)
         val content = contentAsString(result)
@@ -253,6 +257,24 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             |      </div>
             |    </div>""".stripMargin
         )
+      }
+
+      forAll(metadataType) { metadataType =>
+        s"redirect to the view metadata page for $metadataType metadata when user clicks on the view metadata button" in {
+          val consignmentService = mockConsignmentService(Nil, "standard")
+          val additionalMetadataController =
+            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val fileId = UUID.randomUUID().toString
+          val result = additionalMetadataController
+            .submitFiles(consignmentId, metadataType)
+            .apply(
+              FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/")
+                .withFormUrlEncodedBody(Seq(("nested-navigation", fileId), ("action", "view")): _*)
+                .withCSRFToken
+            )
+          playStatus(result) must equal(SEE_OTHER)
+          redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/$metadataType?fileIds=$fileId")
+        }
       }
 
       "return forbidden for a judgment user" in {
@@ -316,7 +338,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     val getMetadataFiles = files.map(file => {
       val closureType: String = if (allClosed) "Closed" else "Open"
       val fileMetadata = List(gcfm.GetConsignment.Files.FileMetadata("FileType", "File"), gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType))
-      gcfm.GetConsignment.Files(file.fileId, Some("FileName"), fileMetadata)
+      gcfm.GetConsignment.Files(file.fileId, Some("FileName"), fileMetadata, Nil)
     })
 
     val metadataDataString = metadataClient.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(getMetadataFiles, "Reference"))))).asJson.printWith(Printer.noSpaces)

@@ -89,7 +89,7 @@ class AddAdditionalMetadataController @Inject() (
             }
           } else {
             updateMetadata(updatedFormFields, consignmentId, fileIds).map { _ =>
-              Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds))
+              Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, Some("review")))
             }
           }
         }

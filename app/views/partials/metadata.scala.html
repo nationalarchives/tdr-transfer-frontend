@@ -1,0 +1,27 @@
+@import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
+
+@(fileNames: List[String], metadataList: List[FileMetadata])(implicit messages: Messages)
+
+<dl class="govuk-summary-list">
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key">
+      Name
+    </dt>
+    @for(fileName <- fileNames) {
+      <dd class="govuk-summary-list__value">
+      @fileName
+      </dd>
+    }
+  </div>
+
+  @for(metadata <- metadataList) {
+    <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+      <dt class="govuk-summary-list__key">
+      @metadata.name
+      </dt>
+      <dd class="govuk-summary-list__value">
+        <pre>@metadata.value</pre>
+      </dd>
+    </div>
+  }
+</dl>

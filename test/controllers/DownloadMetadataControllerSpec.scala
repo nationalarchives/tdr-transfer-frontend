@@ -70,8 +70,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("FileName", "FileName2")
       )
       val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne),
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo)
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil),
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo, Nil)
       )
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
@@ -102,8 +102,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("FileName", "FileName2")
       )
       val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne),
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo)
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil),
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo, Nil)
       )
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
@@ -131,7 +131,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("FileName", "FileName1")
       )
       val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne)
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil)
       )
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
@@ -155,7 +155,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("FileName", "FileName1")
       )
       val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne)
+        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil)
       )
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
@@ -177,7 +177,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("TestProperty2", "TestValue2File1"),
         FileMetadata("FileName", "FileName1")
       )
-      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne))
+      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil))
 
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files).toLazyListWithHeaders().toList
 
@@ -202,7 +202,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("TestProperty3", "TestValue3File1"),
         FileMetadata("TestProperty4", "TestValue4File1")
       )
-      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne))
+      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil))
 
       val csvList = getCsvFromController(customProperties, files).toLazyList()
 

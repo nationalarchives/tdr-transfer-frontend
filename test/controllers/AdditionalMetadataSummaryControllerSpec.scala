@@ -1,10 +1,12 @@
 package controllers
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileStatuses
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
@@ -42,7 +44,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
   val descriptiveMetadataType: String = metadataType(1)
 
   "AdditionalMetadataSummaryController" should {
-    "render the additional metadata summary page for closure metadata type" in {
+    "render the additional metadata review page for closure metadata type when the page is 'review'" in {
       val consignmentId = UUID.randomUUID()
       val consignmentReference = "TEST-TDR-2021-GB"
 
@@ -65,7 +67,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val controller =
         new AdditionalMetadataSummaryController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds)
+        .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds, "review".some)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))
       val closureMetadataSummaryPage = contentAsString(response)
 
@@ -81,11 +83,11 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         ("Alternative Title2", "An alternative title ")
       )
 
-      verifySummaryPage(closureMetadataSummaryPage, consignmentId.toString, closureMetadataType, metadataFields)
+      verifyReviewPage(closureMetadataSummaryPage, consignmentId.toString, closureMetadataType, metadataFields)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
-    "render the additional metadata summary page for descriptive metadata type" in {
+    "render the additional metadata review page for descriptive metadata type when the page is 'review'" in {
       val consignmentId = UUID.randomUUID()
       val consignmentReference = "TEST-TDR-2021-GB"
 
@@ -99,7 +101,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val controller =
         new AdditionalMetadataSummaryController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .getSelectedSummaryPage(consignmentId, descriptiveMetadataType, fileIds)
+        .getSelectedSummaryPage(consignmentId, descriptiveMetadataType, fileIds, "review".some)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${descriptiveMetadataType}"))
       val closureMetadataSummaryPage = contentAsString(response)
 
@@ -108,8 +110,80 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(closureMetadataSummaryPage, userType = "standard")
       val metadataFields = List(("Description", "a previously added description "), ("Language", "Welsh "))
-      verifySummaryPage(closureMetadataSummaryPage, consignmentId.toString, descriptiveMetadataType, metadataFields)
+      verifyReviewPage(closureMetadataSummaryPage, consignmentId.toString, descriptiveMetadataType, metadataFields)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
+    }
+
+    forAll(metadataType) { metadataType =>
+      s"render the additional metadata view page for $metadataType metadata type when the page is 'view' and the user hasn't entered any metadata" in {
+        val consignmentId = UUID.randomUUID()
+        val consignmentReference = "TEST-TDR-2021-GB"
+
+        setConsignmentTypeResponse(wiremockServer, "standard")
+        setConsignmentFilesMetadataResponse(
+          wiremockServer,
+          consignmentReference,
+          fileIds = List(UUID.randomUUID()),
+          fileStatuses = FileStatuses("ClosureMetadata", "NotEntered") :: Nil
+        )
+        setDisplayPropertiesResponse(wiremockServer)
+
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+        val controller =
+          new AdditionalMetadataSummaryController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val response = controller
+          .getSelectedSummaryPage(consignmentId, metadataType, fileIds)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/$metadataType"))
+        val metadataSummaryPage = contentAsString(response)
+
+        status(response) mustBe OK
+        contentType(response) mustBe Some("text/html")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataSummaryPage, userType = "standard")
+        val descriptiveMetadataFields = List(("Description", "a previously added description "), ("Language", "Welsh "))
+        val closureMetadataFields = List(("FOI decision asserted", "12/01/1995"), ("Closure Start Date", "01/12/1990"))
+        val metadataFields = if (metadataType == "closure") closureMetadataFields else descriptiveMetadataFields
+        verifyViewPage(metadataSummaryPage, consignmentId.toString, metadataType, metadataFields)
+        wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
+      }
+    }
+
+    forAll(metadataType) { metadataType =>
+      s"render the additional metadata view page for $metadataType metadata type when the page is 'view' and the user has entered metadata" in {
+        val consignmentId = UUID.randomUUID()
+        val consignmentReference = "TEST-TDR-2021-GB"
+
+        setConsignmentTypeResponse(wiremockServer, "standard")
+        setConsignmentFilesMetadataResponse(
+          wiremockServer,
+          consignmentReference,
+          fileIds = List(UUID.randomUUID()),
+          fileStatuses = FileStatuses("ClosureMetadata", "Completed") :: FileStatuses("DescriptiveMetadata", "Completed") :: Nil
+        )
+        setDisplayPropertiesResponse(wiremockServer)
+
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+        val controller =
+          new AdditionalMetadataSummaryController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val response = controller
+          .getSelectedSummaryPage(consignmentId, metadataType, fileIds)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/$metadataType"))
+        val metadataSummaryPage = contentAsString(response)
+
+        status(response) mustBe OK
+        contentType(response) mustBe Some("text/html")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataSummaryPage, userType = "standard")
+        val descriptiveMetadataFields = List(("Description", "a previously added description "), ("Language", "Welsh "))
+        val closureMetadataFields = List(("FOI decision asserted", "12/01/1995"), ("Closure Start Date", "01/12/1990"))
+        val metadataFields = if (metadataType == "closure") closureMetadataFields else descriptiveMetadataFields
+        verifyViewPage(metadataSummaryPage, consignmentId.toString, metadataType, metadataFields, hasMetadata = true)
+        wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
+      }
     }
 
     "return forbidden if the pages are accessed by a judgment user" in {
@@ -238,54 +312,134 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  def verifySummaryPage(page: String, consignmentId: String, metadataType: String, metadataFields: List[(String, String)]): Unit = {
-    page must include(
-      s"""        <h1 class="govuk-heading-xl">
-         |          Review $metadataType metadata changes
-         |        </h1>""".stripMargin
-    )
-    page must include(
-      s"""        <p class="govuk-body">You can edit, remove or save $metadataType metadata here.</p>""".stripMargin
-    )
+  def verifyReviewPage(page: String, consignmentId: String, metadataType: String, metadataFields: List[(String, String)]): Unit = {
+    page must include(s"""<span class="govuk-caption-l">${metadataType.capitalize} metadata</span>""")
+    page must include("""<h1 class="govuk-heading-l"> Review saved changes </h1>""")
+    page must include(s"""<p class="govuk-body">Review the $metadataType metadata changes you have made below. You may also edit and delete any metadata changes.</p>""")
+
     val href = s"/consignment/$consignmentId/additional-metadata/add/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     page must include(
-      s"""          <a href="$href" role="button" draggable="false" class="govuk-button govuk-button" data-module="govuk-button">
+      s"""          <a href="$href" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
          |            Edit metadata
          |          </a>""".stripMargin
     )
     val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     page must include(
-      s"""          <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--warning">
-         |            Delete metadata
+      s"""          <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--secondary">
+         |          Delete metadata
          |          </a>""".stripMargin
     )
     metadataFields.foreach { field =>
       page must include(
         s"""
-           |            <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
-           |              <dt class="govuk-summary-list__key">
-           |              ${field._1}
-           |              </dt>
-           |              <dd class="govuk-summary-list__value">
-           |              <pre>${field._2}</pre>
-           |              </dd>
-           |            </div>
-           |""".stripMargin
+          |    <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+          |      <dt class="govuk-summary-list__key">
+          |      ${field._1}
+          |      </dt>
+          |      <dd class="govuk-summary-list__value">
+          |        <pre>${field._2}</pre>
+          |      </dd>
+          |    </div>
+          |""".stripMargin
       )
     }
     page must include(
-      """            <dt class="govuk-summary-list__key">
-        |              Name
-        |            </dt>
-        |............
-        |              <dd class="govuk-summary-list__value">
-        |                FileName
-        |              </dd>""".stripMargin.replaceAll("\\.", " ")
+      """    <dt class="govuk-summary-list__key">
+        |      Name
+        |    </dt>""".stripMargin
     )
     page must include(
-      s"""        <a href="/consignment/$consignmentId/additional-metadata/files/$metadataType" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-         |          Save and return to all files
-         |        </a>""".stripMargin
+      """      <dd class="govuk-summary-list__value">
+        |      FileName
+        |      </dd>""".stripMargin
+    )
+    page must include(
+      """        <h2 class="govuk-heading-m  govuk-!-margin-bottom-3">Have you finished reviewing the metadata?</h2>
+        |        <p class="govuk-body govuk-!-margin-bottom-2">Once you have finished reviewing the metadata of this file you may add metadata to another file.</p>""".stripMargin
+    )
+    page must include(
+      s"""
+        |        <a href="/consignment/$consignmentId/additional-metadata/files/$metadataType" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        |        Select another file
+        |        </a>
+        |""".stripMargin
+    )
+    page must include(
+      s"""<p class="govuk-body">If you have finished adding $metadataType metadata to all of your files, return to the
+        |          <a href="/consignment/$consignmentId/additional-metadata" role="button" draggable="false" data-module="govuk-button">Descriptive & closure metadata page</a>.</p>""".stripMargin
+    )
+  }
+
+  def verifyViewPage(page: String, consignmentId: String, metadataType: String, metadataFields: List[(String, String)], hasMetadata: Boolean = false): Unit = {
+    page must include(s"""<span class="govuk-caption-l">${metadataType.capitalize} metadata</span>""")
+    if (metadataType == "descriptive") {
+      page must include(s"""<h1 class="govuk-heading-l"> View  existing  metadata </h1>""")
+    } else {
+      page must include(s"""<h1 class="govuk-heading-l"> View  metadata </h1>""")
+    }
+    page must include(s"""<p class="govuk-body">View existing $metadataType metadata.</p>""")
+
+    if (hasMetadata) {
+      val href = s"/consignment/$consignmentId/additional-metadata/add/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
+      page must include(s"""
+           |            <a href="$href" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+           |              Edit metadata
+           |            </a>""".stripMargin)
+      val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
+      page must include(s"""
+           |            <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--secondary">
+           |              Delete metadata
+           |            </a>""".stripMargin)
+    } else {
+      if (metadataType == "descriptive") {
+        val href = s"/consignment/$consignmentId/additional-metadata/add/descriptive?fileIds=${fileIds.mkString("&amp;")}"
+        page must include(s"""
+           |              <a href="$href" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+           |                Add metadata
+           |              </a>
+           |""".stripMargin)
+        s""
+      } else {
+        val href = s"/consignment/$consignmentId/additional-metadata/status/closure?fileIds=${fileIds.mkString("&amp;")}"
+        page must include(s"""
+           |              <a href="$href" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+           |                Add closure metadata
+           |              </a>
+           |""".stripMargin)
+      }
+
+    }
+    metadataFields.foreach { field =>
+      page must include(
+        s"""
+           |    <div class="govuk-summary-list__row govuk-summary-list__row--no-border">
+           |      <dt class="govuk-summary-list__key">
+           |      ${field._1}
+           |      </dt>
+           |      <dd class="govuk-summary-list__value">
+           |        <pre>${field._2}</pre>
+           |      </dd>
+           |    </div>
+           |""".stripMargin
+      )
+    }
+
+    page must include(
+      """    <dt class="govuk-summary-list__key">
+        |      Name
+        |    </dt>""".stripMargin
+    )
+    page must include(
+      """      <dd class="govuk-summary-list__value">
+        |      FileName
+        |      </dd>""".stripMargin
+    )
+    page must include(
+      s"""        <div class="govuk-button-group">
+         |          <a href="/consignment/$consignmentId/additional-metadata/files/$metadataType" draggable="false" class="govuk-link govuk-link--no-visited-state">
+         |          Return to all files
+         |          </a>
+         |        </div>""".stripMargin
     )
   }
 }
