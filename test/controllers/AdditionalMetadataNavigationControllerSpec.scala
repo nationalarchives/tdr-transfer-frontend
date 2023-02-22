@@ -176,7 +176,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "closure")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
+              .withFormUrlEncodedBody(Seq((s"nested-navigation", fileId.toString)): _*)
               .withCSRFToken
           )
 
@@ -203,7 +203,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, metadataType(0))
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
+              .withFormUrlEncodedBody(Seq((s"nested-navigation", fileId)): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
@@ -221,7 +221,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "descriptive")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/")
-              .withFormUrlEncodedBody(Seq((s"radios-list-$fileId", "checked")): _*)
+              .withFormUrlEncodedBody(Seq((s"nested-navigation", fileId)): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
@@ -298,10 +298,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     s"""
         |<li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-$id" aria-level="3" aria-setsize="3" aria-posinset="$ariaPosinset" aria-selected="false">
         |      <div class="tna-tree__node-item__radio govuk-radios__item">
-        |        <span class="govuk-radios__input" aria-hidden="true" id="radio-$id" name="nested-navigation"></span>
-        |        <span class="govuk-label govuk-radios__label">
+        |        <input type="radio" name="nested-navigation" class="govuk-radios__input" id="radio-$id" value="$id"/>
+        |        <label class="govuk-label govuk-radios__label" for="radio-$id">
         |        $label$tag
-        |        </span>
+        |        </label>
         |      </div>
         |    </li>
         |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")

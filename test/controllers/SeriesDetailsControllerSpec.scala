@@ -80,6 +80,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       seriesDetailsPageAsString should include("""<select class="govuk-select" id="series" name="series"  >""")
       seriesDetailsPageAsString should include(s"""<option value="${seriesId.toString}">MOCK1</option>""")
+      seriesDetailsPageAsString must include("""<h1 class="govuk-label-wrapper">
+                                               |            <label class="govuk-label govuk-label--l" for="series">Choose a series reference</label>
+                                               |        </h1>""".stripMargin)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
@@ -284,7 +287,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
   private def checkForExpectedSeriesPageContent(pageAsString: String, seriesAlreadyChosen: Boolean = false): Unit = {
     pageAsString must include("Choose a series")
-    pageAsString must include("Please choose an existing series reference for the records you would like to transfer.")
 
     if (seriesAlreadyChosen) {
       pageAsString must include("""<select class="govuk-select" id="series" name="series"  disabled>""")
