@@ -23,7 +23,7 @@
         @metadata(fileNames, metadataList)
 
         <div class="govuk-button-group">
-          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
             Edit metadata
           </a>
           <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary">
@@ -38,7 +38,7 @@
         <a href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
         Select another file
         </a>
-        <p class="govuk-body">If you have finished adding closure metadata to all of your files, return to the
+        <p class="govuk-body">If you have finished adding @metadataType metadata to all of your files, return to the
           <a href="@routes.AdditionalMetadataController.start(consignmentId)" role="button" draggable="false" data-module="govuk-button">Descriptive & closure metadata page</a>.</p>
       </div>
       @transferReference(consignmentRef, isJudgmentUser = false)

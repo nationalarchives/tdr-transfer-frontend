@@ -10,25 +10,37 @@
     fileNames: List[String],
     consignmentRef: String,
     name: String,
-    metadataList: List[FileMetadata])(implicit messages: Messages, request: RequestHeader)
-@main(title = "Review metadata added", name = name) {
+    metadataList: List[FileMetadata],
+    hasMetadata: Boolean)(implicit messages: Messages, request: RequestHeader)
+@main(title = "View existing metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
-        <h1 class="govuk-heading-l"> View metadata </h1>
-
+        <h1 class="govuk-heading-l"> View @if(metadataType == "descriptive") { existing } metadata </h1>
         <p class="govuk-body">View existing @metadataType metadata.</p>
 
-        @metadata(fileNames, metadataList)
+          @metadata(fileNames, metadataList)
 
         <div class="govuk-button-group">
-          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
-            Edit metadata
-          </a>
-          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary">
-            Delete metadata
-          </a>
+          @if(hasMetadata) {
+            <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+              Edit metadata
+            </a>
+            <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary">
+              Delete metadata
+            </a>
+          } else {
+            @if(metadataType == "closure") {
+              <a href="@routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+                Add closure metadata
+              </a>
+            } else {
+              <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+                Add metadata
+              </a>
+            }
+          }
         </div>
 
         <div class="govuk-button-group">

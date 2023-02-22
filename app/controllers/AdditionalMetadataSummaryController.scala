@@ -2,11 +2,12 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+import controllers.util.MetadataProperty.titleAlternate
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime}
 import org.pac4j.play.scala.SecurityComponents
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, DisplayPropertiesService, DisplayProperty}
 
 import java.sql.Timestamp
@@ -30,28 +31,42 @@ class AdditionalMetadataSummaryController @Inject() (
         response <- consignment.files match {
           case first :: _ =>
             val filePaths = consignment.files.flatMap(_.fileName)
-            getSummaryPage(page, consignmentId, metadataType, fileIds, filePaths, consignment.consignmentReference, getMetadataForView(first.fileMetadata, displayProperties))
+            val metadataStatusType = if (metadataType == "closure") "ClosureMetadata" else "DescriptiveMetadata"
+            val hasMetadata = first.fileStatuses.exists(p => p.statusType == metadataStatusType && p.statusValue != "NotEntered")
+            if (page.contains("review")) {
+              Future.successful(
+                Ok(
+                  views.html.standard.additionalMetadataReview(
+                    consignmentId,
+                    metadataType,
+                    fileIds,
+                    filePaths,
+                    consignment.consignmentReference,
+                    request.token.name,
+                    getMetadataForView(first.fileMetadata, displayProperties)
+                  )
+                )
+              )
+            } else {
+              Future.successful(
+                Ok(
+                  views.html.standard.additionalMetadataView(
+                    consignmentId,
+                    metadataType,
+                    fileIds,
+                    filePaths,
+                    consignment.consignmentReference,
+                    request.token.name,
+                    getMetadataForView(first.fileMetadata, displayProperties),
+                    hasMetadata
+                  )
+                )
+              )
+            }
           case Nil => Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
         }
       } yield response
     }
-
-  def getSummaryPage(
-      page: Option[String],
-      consignmentId: UUID,
-      metadataType: String,
-      fileIds: List[UUID],
-      filePaths: List[String],
-      consignmentReference: String,
-      fileMetadata: List[FileMetadata]
-  )(implicit request: Request[AnyContent]): Future[Result] = {
-
-    if (page.contains("review")) {
-      Future(Ok(views.html.standard.additionalMetadataReview(consignmentId, metadataType, fileIds, filePaths, consignmentReference, request.token.name, fileMetadata)))
-    } else {
-      Future(Ok(views.html.standard.additionalMetadataView(consignmentId, metadataType, fileIds, filePaths, consignmentReference, request.token.name, fileMetadata)))
-    }
-  }
 
   private def getMetadataForView(metadata: List[GetConsignment.Files.FileMetadata], displayProperties: List[DisplayProperty]): List[FileMetadata] = {
 
@@ -81,9 +96,7 @@ class AdditionalMetadataSummaryController @Inject() (
   }
 
   private def getDisplayName(displayProperty: DisplayProperty) = {
-    val fieldsWithAlternativeName = List("TitleAlternate")
+    val fieldsWithAlternativeName = List(titleAlternate)
     if (fieldsWithAlternativeName.contains(displayProperty.propertyName)) displayProperty.alternativeName else displayProperty.displayName
   }
 }
-
-case class Metadata(foiExemptionAsserted: String, closureStartDate: String, foiExemptionCode: String, closurePeriod: String)

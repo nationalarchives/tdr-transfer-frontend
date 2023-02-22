@@ -66,10 +66,10 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
 
           content must include(
             s"""          <div class="govuk-button-group">
-               |            <button class="govuk-button" type="submit" value="edit" data-module="govuk-button" draggable="false">
+               |            <button class="govuk-button" type="submit" name="action" value="edit" data-module="govuk-button" draggable="false">
                |              Add or Edit metadata
                |            </button>
-               |            <button class="govuk-button govuk-button--secondary" type="submit" value="view" data-module="govuk-button" draggable="false">
+               |            <button class="govuk-button govuk-button--secondary" type="submit" name="action" value="view" data-module="govuk-button" draggable="false">
                |              View metadata
                |            </button>
                |          </div>""".stripMargin
@@ -176,7 +176,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "closure")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((s"nested-navigation", fileId.toString)): _*)
+              .withFormUrlEncodedBody(Seq(("nested-navigation", fileId.toString), ("action", "edit")): _*)
               .withCSRFToken
           )
 
@@ -203,7 +203,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, metadataType(0))
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}")
-              .withFormUrlEncodedBody(Seq((s"nested-navigation", fileId)): _*)
+              .withFormUrlEncodedBody(Seq(("nested-navigation", fileId), ("action", "edit")): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
@@ -221,7 +221,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "descriptive")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/descriptive/")
-              .withFormUrlEncodedBody(Seq((s"nested-navigation", fileId)): _*)
+              .withFormUrlEncodedBody(Seq(("nested-navigation", fileId), ("action", "edit")): _*)
               .withCSRFToken
           )
         playStatus(result) must equal(SEE_OTHER)
@@ -237,7 +237,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           .submitFiles(consignmentId, "closure")
           .apply(
             FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure")
-              .withFormUrlEncodedBody(Seq(("Action", "edit")): _*)
+              .withFormUrlEncodedBody(Seq(("action", "edit")): _*)
               .withCSRFToken
           )
 
@@ -269,7 +269,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             .submitFiles(consignmentId, metadataType)
             .apply(
               FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/")
-                .withFormUrlEncodedBody(Seq(("Ids", s"radios-list-$fileId"), ("Action", "view")): _*)
+                .withFormUrlEncodedBody(Seq(("nested-navigation", fileId), ("action", "view")): _*)
                 .withCSRFToken
             )
           playStatus(result) must equal(SEE_OTHER)
@@ -338,7 +338,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     val getMetadataFiles = files.map(file => {
       val closureType: String = if (allClosed) "Closed" else "Open"
       val fileMetadata = List(gcfm.GetConsignment.Files.FileMetadata("FileType", "File"), gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType))
-      gcfm.GetConsignment.Files(file.fileId, Some("FileName"), fileMetadata)
+      gcfm.GetConsignment.Files(file.fileId, Some("FileName"), fileMetadata, Nil)
     })
 
     val metadataDataString = metadataClient.GraphqlData(Option(gcfm.Data(Option(gcfm.GetConsignment(getMetadataFiles, "Reference"))))).asJson.printWith(Printer.noSpaces)

@@ -32,6 +32,7 @@ import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expected
 import testUtils._
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import org.scalatest.concurrent.ScalaFutures._
+import play.api.http.Status.SEE_OTHER
 
 import java.sql.Timestamp
 import java.time.LocalDateTime
@@ -427,14 +428,16 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setBulkUpdateMetadataResponse(wiremockServer)
       setDeleteFileMetadataResponse(wiremockServer)
 
-      addAdditionalMetadataController
+      val result = addAdditionalMetadataController
         .addAdditionalMetadataSubmit(consignmentId, closureMetadataType, fileIds)
         .apply(
           FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
-        .futureValue
+
+      playStatus(result) must equal(SEE_OTHER)
+      redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/closure?fileIds=${fileIds.head}&page=review")
 
       val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
       val request: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
@@ -483,14 +486,16 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setBulkUpdateMetadataResponse(wiremockServer)
       setDeleteFileMetadataResponse(wiremockServer)
 
-      addAdditionalMetadataController
+      val result = addAdditionalMetadataController
         .addAdditionalMetadataSubmit(consignmentId, "closure", fileIds)
         .apply(
           FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
-        .futureValue
+
+      playStatus(result) must equal(SEE_OTHER)
+      redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/closure?fileIds=${fileIds.head}&page=review")
 
       val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
       val request: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
@@ -540,14 +545,15 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setBulkUpdateMetadataResponse(wiremockServer)
       setDeleteFileMetadataResponse(wiremockServer)
 
-      addAdditionalMetadataController
+      val result = addAdditionalMetadataController
         .addAdditionalMetadataSubmit(consignmentId, closureMetadataType, fileIds)
         .apply(
           FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType")
             .withFormUrlEncodedBody(formSubmission: _*)
             .withCSRFToken
         )
-        .futureValue
+      playStatus(result) must equal(SEE_OTHER)
+      redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/closure?fileIds=${fileIds.head}&page=review")
 
       val addMetadataEvent = getServeEvent("addBulkFileMetadata").get
       val request: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
@@ -634,14 +640,16 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         ("inputmultiselect-Language", "Welsh")
       )
 
-      addAdditionalMetadataController
+      val result = addAdditionalMetadataController
         .addAdditionalMetadataSubmit(consignmentId, descriptiveMetadataType, fileIds)
         .apply(
           FakeRequest(POST, s"/standard/$consignmentId/additional-metadata/add/$descriptiveMetadataType")
             .withFormUrlEncodedBody(formToSubmitWithEmptyValue: _*)
             .withCSRFToken
         )
-        .futureValue
+
+      playStatus(result) must equal(SEE_OTHER)
+      redirectLocation(result).get must equal(s"/consignment/$consignmentId/additional-metadata/selected-summary/descriptive?fileIds=${fileIds.head}&page=review")
 
       val events = wiremockServer.getAllServeEvents
       val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("addBulkFileMetadata")).get
