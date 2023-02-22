@@ -7,6 +7,7 @@ import configuration.GraphQLConfiguration
 import graphql.codegen.AddFileStatus.addFileStatus
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.StartUpload.startUpload
 import graphql.codegen.UpdateConsignmentStatus.updateConsignmentStatus
 import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, ClientSideMetadataInput, ConsignmentStatusInput, StartUploadInput}
@@ -27,6 +28,7 @@ import scala.concurrent.ExecutionContext
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.test.WsTestClient.InternalWSClient
 
+import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import scala.jdk.CollectionConverters._
 
 class UploadControllerSpec extends FrontEndTestHelper {
@@ -46,6 +48,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
   }
 
   val checkPageForStaticElements = new CheckPageForStaticElements
+  val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 
@@ -126,7 +129,9 @@ class UploadControllerSpec extends FrontEndTestHelper {
         backendChecksService
       )
 
-      setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("InProgress"))
+      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "InProgress", someDateTime, None))
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
 
@@ -155,7 +160,9 @@ class UploadControllerSpec extends FrontEndTestHelper {
         backendChecksService
       )
 
-      setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"))
+      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None))
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
 
@@ -241,9 +248,13 @@ class UploadControllerSpec extends FrontEndTestHelper {
         fileStatusService,
         backendChecksService
       )
-      val uploadStatus = "InProgress"
 
-      setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some(uploadStatus))
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "InProgress", someDateTime, None)
+      )
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
 
@@ -255,7 +266,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe OK
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "standard")
-      checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, uploadStatus = uploadStatus)
+      checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, uploadStatus = "InProgress")
     }
 
     "render 'upload is complete' page if a standard upload has completed" in {
@@ -277,7 +288,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
       )
       val uploadStatus = "Completed"
 
-      setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some(uploadStatus))
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", uploadStatus, someDateTime, None)
+      )
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
 
@@ -385,8 +401,15 @@ class UploadControllerSpec extends FrontEndTestHelper {
         fileStatusService,
         backendChecksService
       )
+
       val uploadStatus = "InProgress"
-      setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some(uploadStatus))
+
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", uploadStatus, someDateTime, None)
+      )
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
 
@@ -419,7 +442,13 @@ class UploadControllerSpec extends FrontEndTestHelper {
         backendChecksService
       )
       val uploadStatus = "Completed"
-      setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some(uploadStatus))
+
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", uploadStatus, someDateTime, None)
+      )
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
 
@@ -499,7 +528,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
             backendChecksService
           )
 
-        setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some("InProgress"))
+        val consignmentStatuses = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "InProgress", someDateTime, None)
+        )
+
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
         val uploadPage = url match {
           case "judgment" =>
@@ -537,7 +571,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
             backendChecksService
           )
 
-        setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some("Completed"))
+        val consignmentStatuses = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None)
+        )
+
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
         val uploadPage = url match {
           case "judgment" =>
