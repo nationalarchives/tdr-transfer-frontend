@@ -13,6 +13,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor2}
 import org.scalatestplus.mockito.MockitoSugar
 import sttp.client.HttpError
 import sttp.model.StatusCode
@@ -22,7 +23,7 @@ import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
+class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach with TableDrivenPropertyChecks {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   private val graphQLConfig = mock[GraphQLConfiguration]
@@ -49,7 +50,9 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
         dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
         dp.DisplayProperties.Attributes("Ordinal", Some("11"), Integer),
         dp.DisplayProperties.Attributes("PropertyType", Some("propertyType"), Text),
-        dp.DisplayProperties.Attributes("UnitType", Some("unitType"), Text)
+        dp.DisplayProperties.Attributes("UnitType", Some("unitType"), Text),
+        dp.DisplayProperties.Attributes("DetailsSummary", Some("summary"), Text),
+        dp.DisplayProperties.Attributes("DetailsText", Some("text"), Text)
       )
   )
 
@@ -230,6 +233,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     property.ordinal should equal(11)
     property.propertyType should equal("propertyType")
     property.unitType should equal("unitType")
+    property.details should equal(Some(Details("summary", "text")))
   }
 
   "toDisplayProperty" should "return default values for all optional property fields" in {
@@ -251,6 +255,24 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     property.propertyType should equal("")
     property.unitType should equal("")
   }
+
+  val detailsTable: TableFor2[Option[String], Option[String]] = Table(
+    ("detailsSummary", "detailsText"),
+    (Some("summary"), None),
+    (None, Some("text")),
+    (None, None)
+  )
+
+  forAll(detailsTable)((detailsSummary, detailsText) => {
+    "toDisplayProperty" should s"return an empty details object if the summary is $detailsSummary and the text is $detailsText" in {
+      val textAttributes = dp.DisplayProperties.Attributes("DetailsText", detailsText, Text)
+      val summaryAttributes = dp.DisplayProperties.Attributes("DetailsText", detailsSummary, Text)
+      val input = dp.DisplayProperties("test", List(textAttributes, summaryAttributes) ++ requiredAttributes())
+      val property: DisplayProperty = displayPropertiesService.toDisplayProperty(input)
+      property.details should equal(None)
+    }
+  })
+
 
   private def requiredAttributes(dataType: Option[String] = Some("text")): List[dp.DisplayProperties.Attributes] = {
     List(dp.DisplayProperties.Attributes("Datatype", dataType, Text))
