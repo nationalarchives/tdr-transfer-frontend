@@ -69,7 +69,7 @@ class TransferAgreementComplianceController @Inject() (
   ): Future[Result] = {
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      statuses = consignmentStatusService.getStatusValue(consignmentStatuses, Set(TransferAgreement, Series))
+      statuses = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreement, Series)
       transferAgreementStatus: Option[String] = statuses.get(TransferAgreement).flatten
       seriesStatus: Option[String] = statuses.get(Series).flatten
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
@@ -110,7 +110,7 @@ class TransferAgreementComplianceController @Inject() (
 
       for {
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-        transferAgreementStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Set(TransferAgreement)).values.head
+        transferAgreementStatus = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreement).values.head
         result <- transferAgreementStatus match {
           case Some("Completed") => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
           case Some("InProgress") =>

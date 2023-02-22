@@ -15,7 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val getConsignmentStatusClient = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
 
-  def getStatusValue(statuses: List[ConsignmentStatuses], statusTypes: Set[StatusType]): Map[StatusType, Option[String]] = {
+  def getStatusValues(statuses: List[ConsignmentStatuses], statusTypes: StatusType*): Map[StatusType, Option[String]] = {
     statusTypes
       .map(t => {
         val value = statuses.find(_.statusType == t.id) match {

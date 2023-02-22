@@ -47,7 +47,7 @@ class SeriesDetailsController @Inject() (
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
       for {
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-        seriesStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Set(Series)).values.head
+        seriesStatus = consignmentStatusService.getStatusValues(consignmentStatuses, Series).values.head
       } yield seriesStatus match {
         case Some("Completed") => Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
         case _ =>
@@ -65,10 +65,10 @@ class SeriesDetailsController @Inject() (
   private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken)
-      seriesStatus = consignmentStatus.flatMap(cs => cs.consignmentStatuses.find(_.statusType == "Series"))
+      seriesStatus = consignmentStatus.flatMap(s => consignmentStatusService.getStatusValues(s.consignmentStatuses, Series).values.head)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       result <- seriesStatus match {
-        case s if s.nonEmpty && s.get.value == "Completed" =>
+        case Some("Completed") =>
           val seriesOption: InputNameAndValue = consignmentStatus
             .flatMap(_.series)
             .map(series => InputNameAndValue(series.code, series.seriesid.toString))
