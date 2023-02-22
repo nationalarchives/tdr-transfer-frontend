@@ -46,6 +46,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     new ApplicationConfig(Configuration.from(config))
   }
 
+  val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+
   override def beforeEach(): Unit = {
     wiremockServer.start()
   }
@@ -522,7 +524,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         consignmentStatusService,
         configuration
       )
-      val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+
       val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None))
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
       setConsignmentTypeResponse(wiremockServer, userType)

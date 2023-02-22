@@ -94,7 +94,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
             getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
-        val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+
         val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None))
         setConsignmentStatusResponse(getConfig(blockClosureMetadata, blockDescriptiveMetadata), wiremockServer, consignmentStatuses = consignmentStatuses)
         setConsignmentTypeResponse(wiremockServer, taHelper.userType)
@@ -120,7 +120,6 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
             getConfig(blockClosureMetadata, blockDescriptiveMetadata),
             getValidStandardUserKeycloakConfiguration
           )
-        val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
         val consignmentStatuses = List(
           ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
           ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "InProgress", someDateTime, None)

@@ -525,7 +525,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
             backendChecksService
           )
 
-        setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some("InProgress"))
+        val consignmentStatuses = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "InProgress", someDateTime, None)
+        )
+
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
         val uploadPage = url match {
           case "judgment" =>
@@ -563,7 +568,12 @@ class UploadControllerSpec extends FrontEndTestHelper {
             backendChecksService
           )
 
-        setConsignmentStatusResponse(app.configuration, wiremockServer, transferAgreementStatus = Some("Completed"), uploadStatus = Some("Completed"))
+        val consignmentStatuses = List(
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+          ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None)
+        )
+
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
         val uploadPage = url match {
           case "judgment" =>
