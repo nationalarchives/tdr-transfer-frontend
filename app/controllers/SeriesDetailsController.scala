@@ -87,13 +87,11 @@ class SeriesDetailsController @Inject() (
   }
 
   def createDropDownField(options: List[InputNameAndValue], form: Form[SelectedSeriesData]): DropdownField = {
-
-    val description = "Please choose an existing series reference for the records you would like to transfer."
     val errors = form("series").errors.headOption match {
       case Some(formError) => formError.messages
       case None            => Nil
     }
-    DropdownField(form("series").id, "", "", description, Nil, multiValue = false, options, None, isRequired = true, errors.toList)
+    DropdownField(form("series").id, "", "", "", Nil, multiValue = false, options, None, isRequired = true, errors.toList)
   }
 }
 
