@@ -179,13 +179,16 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("<title>Upload your records</title>")
       uploadPageAsString must include("""<h1 class="govuk-heading-l">Upload your records</h1>""")
       uploadPageAsString must include(
-        """<p class="govuk-body">You can only upload one folder to be transferred. """ +
-          """If your folder contains files that we cannot accept, you may have to start again.</p>"""
+        """<p class="govuk-body">Before uploading, all records (files and folders) you wish to transfer must be put into a single, top-level folder.</p>"""
       )
-      uploadPageAsString must include("There is no limit to the size of the files but larger files may take longer to be uploaded and checked.")
       uploadPageAsString must include(
-        """We cannot accept files or folders which are password protected, zipped or contain slashes (/ and \) in the name.""" +
-          " Remove any thumbnail images (thumb dbs) and executable files (.exe) from the records before uploading."
+        """There is a size limit of 2GB for an individual file and we ask that you upload no more than 500 files per consignment. """ +
+          """If you need to transfer larger files, contact us at <a href="mailto:nationalArchives.email">nationalArchives.email</a>. """ +
+          "If your folder contains files that we cannot accept, you may have to start again.</p>"
+      )
+      uploadPageAsString must include(
+        """We cannot accept files and folders which are password protected, zipped or contain slashes (/ and \) in the name. """ +
+          "You must remove all thumbnail images (thumbs.db) and executable files (.exe). Empty folders will not be transferred."
       )
       uploadPageAsString must include(
         """<p id="success-message-text" class="success-message">The folder "<span class="folder-name"></span>"""" +
@@ -206,11 +209,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include(
         """|                                    accept="*"
            |                                    >
-           |                                    <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single folder here or</p>
+           |                                    <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single top-level folder here or</p>
            |                                    <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
            |                                        Choose folder""".stripMargin
       )
-      uploadPageAsString must include("For more information on what metadata will be captured during the upload please visit our")
+      uploadPageAsString must include("For information on what metadata will be captured during upload, visit the")
       uploadPageAsString must include(
         """<a href="/faq#metadata-captured" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a>"""
       )
