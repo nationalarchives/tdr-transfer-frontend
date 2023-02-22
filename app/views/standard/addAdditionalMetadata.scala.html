@@ -75,7 +75,7 @@
                   inputMode,
                   addSuffixText
                 )
-                case TextAreaField(fieldId, fieldName, _, fieldDescription, _, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit, _) => inputTextArea(
+                case TextAreaField(fieldId, fieldName, _, fieldDescription, _, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit, details, _) => inputTextArea(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -84,7 +84,8 @@
                   Map(Symbol("_dynamicForm") -> true),
                   rows,
                   wrap,
-                  characterLimit
+                  characterLimit,
+                  details
                 )
                 case MultiSelectField(fieldId, fieldName, _, fieldDescription, _, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors, _) =>
                   inputMultiSelect(
