@@ -26,14 +26,16 @@ class AdditionalMetadataNavigationController @Inject() (
   }
 
   def submitFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val fileIds = request.body.asFormUrlEncoded
+    val formData = request.body.asFormUrlEncoded
+    val action = formData.flatMap(_.get("action")).map(_.head)
+    val fileIds = formData
       .flatMap(_.get("nested-navigation"))
       .getOrElse(Nil)
       .map(UUID.fromString)
       .toList
 
     if (fileIds.nonEmpty) {
-      submitAndRedirectToNextPage(metadataType, fileIds, consignmentId)
+      submitAndRedirectToNextPage(metadataType, fileIds, consignmentId, action)
     } else {
       for {
         allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken, metadataType)
@@ -43,20 +45,24 @@ class AdditionalMetadataNavigationController @Inject() (
     }
   }
 
-  def submitAndRedirectToNextPage(metadataType: String, fileIds: List[UUID], consignmentId: UUID)(implicit request: Request[AnyContent]): Future[Result] = {
-    if (metadataType == "closure") {
-      consignmentService
-        .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds), Some(List(fileType)))
-        .map(consignment => {
-          val areAllClosed = consignmentService.areAllFilesClosed(consignment)
-          if (areAllClosed) {
-            Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds))
-          } else {
-            Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, metadataType, fileIds))
-          }
-        })
+  def submitAndRedirectToNextPage(metadataType: String, fileIds: List[UUID], consignmentId: UUID, action: Option[String])(implicit request: Request[AnyContent]): Future[Result] = {
+    if (action.contains("edit")) {
+      if (metadataType == "closure") {
+        consignmentService
+          .getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds), Some(List(fileType)))
+          .map(consignment => {
+            val areAllClosed = consignmentService.areAllFilesClosed(consignment)
+            if (areAllClosed) {
+              Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds))
+            } else {
+              Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, metadataType, fileIds))
+            }
+          })
+      } else {
+        Future.successful(Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)))
+      }
     } else {
-      Future(Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)))
+      Future.successful(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, None)))
     }
   }
 }
