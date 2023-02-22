@@ -8,6 +8,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import services.ConsignmentStatusService.Series
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
 import viewsapi.Caching.preventCaching
 
@@ -45,8 +46,8 @@ class SeriesDetailsController @Inject() (
 
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
       for {
-        consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
-        seriesStatus = consignmentStatus.flatMap(_.series)
+        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+        seriesStatus = consignmentStatusService.getStatusValues(consignmentStatuses, Series).values.headOption.flatten
       } yield seriesStatus match {
         case Some("Completed") => Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
         case _ =>
@@ -64,7 +65,7 @@ class SeriesDetailsController @Inject() (
   private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken)
-      seriesStatus = consignmentStatus.flatMap(_.currentStatus.series)
+      seriesStatus = consignmentStatus.flatMap(s => consignmentStatusService.getStatusValues(s.consignmentStatuses, Series).values.headOption.flatten)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       result <- seriesStatus match {
         case Some("Completed") =>

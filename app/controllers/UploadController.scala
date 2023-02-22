@@ -9,6 +9,7 @@ import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
+import services.ConsignmentStatusService.{TransferAgreement, Upload}
 import services.{BackendChecksService, ConsignmentService, ConsignmentStatusService, FileStatusService, UploadService}
 import viewsapi.Caching.preventCaching
 
@@ -76,11 +77,12 @@ class UploadController @Inject() (
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     for {
-      consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val transferAgreementStatus: Option[String] = consignmentStatus.flatMap(_.transferAgreement)
-      val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
+      val statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreement, Upload)
+      val transferAgreementStatus: Option[String] = statusesToValue.get(TransferAgreement).flatten
+      val uploadStatus: Option[String] = statusesToValue.get(Upload).flatten
       val pageHeadingUpload = "Upload your records"
       val pageHeadingUploading = "Uploading records"
 
@@ -113,10 +115,10 @@ class UploadController @Inject() (
     val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
     for {
-      consignmentStatus <- consignmentStatusService.getConsignmentStatus(consignmentId, request.token.bearerAccessToken)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val uploadStatus: Option[String] = consignmentStatus.flatMap(_.upload)
+      val uploadStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, Upload).values.headOption.flatten
       val pageHeadingUpload = "Upload judgment"
       val pageHeadingUploading = "Uploading judgment"
 

@@ -7,6 +7,7 @@ import errors.AuthorisationException
 import graphql.codegen.AddFinalJudgmentTransferConfirmation.{addFinalJudgmentTransferConfirmation => afjtc}
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcs}
 import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
 import io.circe.Printer
@@ -29,6 +30,7 @@ import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 import testUtils.{CheckPageForStaticElements, EnglishLang, FormTester, FrontEndTestHelper}
 import testUtils.DefaultMockFormOptions.expectedConfirmTransferOptions
 
+import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
@@ -57,6 +59,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.randomUUID()
   private val completedConfirmTransferForm: Seq[(String, String)] = Seq(("transferLegalCustody", "true"))
+  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
@@ -547,7 +550,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       forAll(consignmentStatuses) { consignmentStatus =>
         s"render the confirm transfer 'already confirmed' page with an authenticated $userType user if export status is '$consignmentStatus'" in {
           val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-          setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+          val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None))
+          setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
           setConsignmentReferenceResponse(wiremockServer)
           setConsignmentTypeResponse(wiremockServer, "standard")
 
@@ -566,7 +570,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         s"render the confirm transfer 'already confirmed' page with an authenticated user if the $userType user navigates back to the " +
           s"confirmTransfer after previously successfully submitting the transfer and the export status is '$consignmentStatus'" in {
             val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-            setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+            val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None))
+            setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
             setConsignmentReferenceResponse(wiremockServer)
             setConsignmentTypeResponse(wiremockServer, "standard")
 
@@ -586,7 +591,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
           s"confirmTransfer after previously submitting an incorrect form and the export status is '$consignmentStatus'" in {
             val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
             val incompleteTransferConfirmationForm = Seq()
-            setConsignmentStatusResponse(app.configuration, wiremockServer, exportStatus = Some(consignmentStatus))
+            val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None))
+            setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
             setConsignmentReferenceResponse(wiremockServer)
             setConsignmentTypeResponse(wiremockServer, "standard")
 

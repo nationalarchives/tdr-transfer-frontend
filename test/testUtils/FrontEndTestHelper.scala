@@ -2,7 +2,7 @@ package testUtils
 
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, status, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
@@ -17,7 +17,7 @@ import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.{FileMetadata, FileStatuses}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{ConsignmentStatuses, Series}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
@@ -72,12 +72,11 @@ import java.net.URI
 import java.sql.Timestamp
 import java.time.{LocalDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.{Date, UUID}
-import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.language.existentials
 import scala.jdk.CollectionConverters._
+import scala.language.existentials
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach with TableDrivenPropertyChecks {
 
@@ -213,33 +212,14 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       config: Configuration,
       wiremockServer: WireMockServer,
       seriesId: Option[UUID] = None,
-      seriesStatus: Option[String] = None,
-      transferAgreementStatus: Option[String] = None,
-      uploadStatus: Option[String] = None,
-      clientChecks: Option[String] = None,
-      confirmTransferStatus: Option[String] = None,
-      exportStatus: Option[String] = None,
-      clientChecksStatus: Option[String] = None,
-      serverFFIDStatus: Option[String] = None,
-      serverChecksumStatus: Option[String] = None,
-      serverAntivirusStatus: Option[String] = None
+      consignmentStatuses: List[ConsignmentStatuses] = Nil
   ): StubMapping = {
     val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
     val consignmentResponse = gcs.Data(
       Option(
         GetConsignment(
           Some(Series(seriesId.getOrElse(UUID.randomUUID()), "MOCK1")),
-          CurrentStatus(
-            seriesStatus,
-            transferAgreementStatus,
-            uploadStatus,
-            clientChecksStatus,
-            serverAntivirusStatus,
-            serverChecksumStatus,
-            serverFFIDStatus,
-            confirmTransferStatus,
-            exportStatus
-          )
+          consignmentStatuses
         )
       )
     )
