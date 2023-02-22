@@ -80,7 +80,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       .fill(numberOfFiles)(UUID.randomUUID())
       .map(fileId => {
         val fileMetadata = List(gcfm.GetConsignment.Files.FileMetadata("FileType", fileType), gcfm.GetConsignment.Files.FileMetadata("ClosureType", closureType))
-        gcfm.GetConsignment.Files(fileId, Some("FileName"), fileMetadata)
+        gcfm.GetConsignment.Files(fileId, Some("FileName"), fileMetadata, Nil)
       })
   }
 
@@ -265,7 +265,10 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val fileId = UUID.randomUUID()
       val exemptionCode = "Open"
       val graphQlGetConsignmentFilesMetadata =
-        gcfm.GetConsignment(List(gcfm.GetConsignment.Files(fileId, Some("FileName"), List(gcfm.GetConsignment.Files.FileMetadata("FoiExemptionCode", "Open")))), "TEST-TDR-2021-GB")
+        gcfm.GetConsignment(
+          List(gcfm.GetConsignment.Files(fileId, Some("FileName"), List(gcfm.GetConsignment.Files.FileMetadata("FoiExemptionCode", "Open")), Nil)),
+          "TEST-TDR-2021-GB"
+        )
 
       val response = GraphQlResponse[gcfm.Data](Some(gcfm.Data(Some(graphQlGetConsignmentFilesMetadata))), Nil)
 
@@ -284,7 +287,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val fileId = UUID.randomUUID()
       val exemptionCode = "Open"
       val graphQlGetConsignmentFilesMetadata =
-        gcfm.GetConsignment(List(gcfm.GetConsignment.Files(fileId, Some("FileName"), List(gcfm.GetConsignment.Files.FileMetadata("", exemptionCode)))), "TEST-TDR-2021-GB")
+        gcfm.GetConsignment(List(gcfm.GetConsignment.Files(fileId, Some("FileName"), List(gcfm.GetConsignment.Files.FileMetadata("", exemptionCode)), Nil)), "TEST-TDR-2021-GB")
 
       val response = GraphQlResponse[gcfm.Data](Some(gcfm.Data(Some(graphQlGetConsignmentFilesMetadata))), Nil)
 
@@ -303,7 +306,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val fileId = UUID.randomUUID()
       val exemptionCode = "Open"
       val graphQlGetConsignmentFilesMetadata =
-        gcfm.GetConsignment(List(gcfm.GetConsignment.Files(fileId, Some("FileName"), List(gcfm.GetConsignment.Files.FileMetadata("", exemptionCode)))), "TEST-TDR-2021-GB")
+        gcfm.GetConsignment(List(gcfm.GetConsignment.Files(fileId, Some("FileName"), List(gcfm.GetConsignment.Files.FileMetadata("", exemptionCode)), Nil)), "TEST-TDR-2021-GB")
 
       val response = GraphQlResponse[gcfm.Data](Some(gcfm.Data(Some(graphQlGetConsignmentFilesMetadata))), Nil)
 
@@ -323,7 +326,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
       val fileId = UUID.randomUUID()
       val exemptionCode = "Open"
       val graphQlGetConsignmentFilesMetadata =
-        gcfm.GetConsignment(List(gcfm.GetConsignment.Files(fileId, Some("FileName"), List(gcfm.GetConsignment.Files.FileMetadata("", exemptionCode)))), "TEST-TDR-2021-GB")
+        gcfm.GetConsignment(List(gcfm.GetConsignment.Files(fileId, Some("FileName"), List(gcfm.GetConsignment.Files.FileMetadata("", exemptionCode)), Nil)), "TEST-TDR-2021-GB")
 
       val response = GraphQlResponse[gcfm.Data](Some(gcfm.Data(Some(graphQlGetConsignmentFilesMetadata))), Nil)
 

@@ -23,7 +23,7 @@
                 @if(areAllFilesClosed) {
                     @warningMessage(Messages(
                         "closureStatus.warningMessage",
-                        routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds),
+                        routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, None),
                         "Summary page"
                     ))
                 }
