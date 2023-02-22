@@ -402,7 +402,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Descriptive"), Text),
-          dp.DisplayProperties.Attributes("Summary", Some("Descriptive"), Text)
+          dp.DisplayProperties.Attributes("Summary", Some("Descriptive"), Text),
+          dp.DisplayProperties.Attributes("DetailsSummary", Some("A details summary"), Text),
+          dp.DisplayProperties.Attributes("DetailsText", Some("A details text"), Text)
         )
       ),
       dp.DisplayProperties(
