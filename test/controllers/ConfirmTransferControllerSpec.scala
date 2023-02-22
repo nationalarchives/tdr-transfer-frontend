@@ -59,6 +59,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.randomUUID()
   private val completedConfirmTransferForm: Seq[(String, String)] = Seq(("transferLegalCustody", "true"))
+  val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   def exportService(configuration: Configuration): ConsignmentExportService = {
     val wsClient = new InternalWSClient("http", 9007)
@@ -549,7 +550,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       forAll(consignmentStatuses) { consignmentStatus =>
         s"render the confirm transfer 'already confirmed' page with an authenticated $userType user if export status is '$consignmentStatus'" in {
           val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-          val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
           val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None))
           setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
           setConsignmentReferenceResponse(wiremockServer)
@@ -570,7 +570,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         s"render the confirm transfer 'already confirmed' page with an authenticated user if the $userType user navigates back to the " +
           s"confirmTransfer after previously successfully submitting the transfer and the export status is '$consignmentStatus'" in {
             val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-            val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
             val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None))
             setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
             setConsignmentReferenceResponse(wiremockServer)
@@ -592,7 +591,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
           s"confirmTransfer after previously submitting an incorrect form and the export status is '$consignmentStatus'" in {
             val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
             val incompleteTransferConfirmationForm = Seq()
-            val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
             val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None))
             setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
             setConsignmentReferenceResponse(wiremockServer)

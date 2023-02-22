@@ -50,6 +50,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
   val checkPageForStaticElements = new CheckPageForStaticElements
 
+  val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+
   "SeriesDetailsController GET" should {
 
     "render the correct series details page with an authenticated user" in {
@@ -218,7 +220,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "return forbidden if the pages are accessed by a judgment user" in {
       mockGetSeries()
-      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), seriesStatus = None)
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val seriesGet = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
@@ -230,7 +232,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "render the series 'already chosen' page with an authenticated user if series status is 'Completed'" in {
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, f"/consignment/$consignmentId/series").withCSRFToken)
-      val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
       val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None))
 
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), consignmentStatuses = consignmentStatuses)

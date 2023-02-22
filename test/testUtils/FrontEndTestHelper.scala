@@ -209,16 +209,6 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       config: Configuration,
       wiremockServer: WireMockServer,
       seriesId: Option[UUID] = None,
-      seriesStatus: Option[String] = None,
-      transferAgreementStatus: Option[String] = None,
-      uploadStatus: Option[String] = None,
-      clientChecks: Option[String] = None,
-      confirmTransferStatus: Option[String] = None,
-      exportStatus: Option[String] = None,
-      clientChecksStatus: Option[String] = None,
-      serverFFIDStatus: Option[String] = None,
-      serverChecksumStatus: Option[String] = None,
-      serverAntivirusStatus: Option[String] = None,
       consignmentStatuses: List[ConsignmentStatuses] = Nil
   ): StubMapping = {
     val client = new GraphQLConfiguration(config).getClient[gcs.Data, gcs.Variables]()
