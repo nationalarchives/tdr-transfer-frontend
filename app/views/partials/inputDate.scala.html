@@ -1,6 +1,7 @@
 @import controllers.util.InputNameAndValue
 @import views.html.partials.errorMessage
 
+@import views.html.partials.insetText
 @(fieldId: String,
 fieldName: String,
 fieldDescription: String,
@@ -24,12 +25,8 @@ attributes: Map[Symbol, Any]=Map())(implicit messages: Messages)
         <div id="date-input-@fieldId-hint" class="govuk-hint">
             @fieldDescription
         </div>
-      @for(insetText <- fieldInsetTexts) {
-          <div class="govuk-inset-text govuk-!-margin-top-3 govuk-!-margin-bottom-3">
-             @Html(insetText)
-          </div>
-      }
-            @errorMessage(fieldId, fieldErrors)
+        @insetText(fieldInsetTexts)
+        @errorMessage(fieldId, fieldErrors)
         <div class="govuk-date-input" id="">
             <div class="govuk-date-input__item">
                 <div class="govuk-form-group">
