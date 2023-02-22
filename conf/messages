@@ -48,7 +48,7 @@ additionalMetadataClosure.progress=[StepNumberToBeImplemented]
 additionalMetadataDescriptive.progress=[StepNumberToBeImplemented]
 transferComplete.progress=8
 
-progress.totalSteps=8
+progress.totalSteps=7
 judgmentProgress.totalSteps=3
 
 notification.savedProgress.title=Important
