@@ -26,14 +26,16 @@ class AdditionalMetadataNavigationController @Inject() (
   }
 
   def submitFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val fileIds = request.body.asFormUrlEncoded
+    val formData = request.body.asFormUrlEncoded
+    val action = formData.flatMap(_.get("action")).map(_.head)
+    val fileIds = formData
       .flatMap(_.get("nested-navigation"))
       .getOrElse(Nil)
       .map(UUID.fromString)
       .toList
 
     if (fileIds.nonEmpty) {
-      submitAndRedirectToNextPage(metadataType, fileIds.get.toList, consignmentId, action)
+      submitAndRedirectToNextPage(metadataType, fileIds, consignmentId, action)
     } else {
       for {
         allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken, metadataType)
@@ -57,10 +59,10 @@ class AdditionalMetadataNavigationController @Inject() (
             }
           })
       } else {
-        Future(Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)))
+        Future.successful(Redirect(routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)))
       }
     } else {
-      Future(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, None)))
+      Future.successful(Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, None)))
     }
   }
 }

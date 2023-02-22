@@ -14,7 +14,7 @@ import graphql.codegen.DeleteFileMetadata.deleteFileMetadata.DeleteFileMetadata
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetAllDescendants.getAllDescendantIds
 import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
-import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.{FileMetadata, FileStatuses}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{CurrentStatus, Series}
@@ -135,7 +135,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       fileHasMetadata: Boolean = true,
       fileIds: List[UUID] = Nil,
       closureType: String = "Open",
-      fileMetadata: List[FileMetadata] = Nil
+      fileMetadata: List[FileMetadata] = Nil,
+      fileStatuses: List[FileStatuses] = Nil
   ): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfm.Data, gcfm.Variables]()
     val defaultFileMetadata = if (fileHasMetadata) {
@@ -166,7 +167,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
             gcfm.GetConsignment.Files(
               fileId,
               Some("FileName"),
-              if (fileMetadata.nonEmpty) fileMetadata else defaultFileMetadata
+              if (fileMetadata.nonEmpty) fileMetadata else defaultFileMetadata,
+              fileStatuses
             )
           ),
           consignmentRef

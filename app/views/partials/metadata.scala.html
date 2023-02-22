@@ -1,6 +1,6 @@
 @import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 
-@(fileNames: List[String], metadataList: List[FileMetadata]))(implicit messages: Messages)
+@(fileNames: List[String], metadataList: List[FileMetadata])(implicit messages: Messages)
 
 <dl class="govuk-summary-list">
   <div class="govuk-summary-list__row">
@@ -20,7 +20,7 @@
       @metadata.name
       </dt>
       <dd class="govuk-summary-list__value">
-      @metadata.value
+        <pre>@metadata.value</pre>
       </dd>
     </div>
   }
