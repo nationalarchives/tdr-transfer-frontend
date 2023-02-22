@@ -80,7 +80,7 @@ class UploadController @Inject() (
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val statusesToValue = consignmentStatusService.getStatusValue(consignmentStatuses, Set(TransferAgreement, Upload))
+      val statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreement, Upload)
       val transferAgreementStatus: Option[String] = statusesToValue.get(TransferAgreement).flatten
       val uploadStatus: Option[String] = statusesToValue.get(Upload).flatten
       val pageHeadingUpload = "Upload your records"
@@ -118,7 +118,7 @@ class UploadController @Inject() (
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val uploadStatus: Option[String] = consignmentStatusService.getStatusValue(consignmentStatuses, Set(Upload)).values.head
+      val uploadStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, Upload).values.head
       val pageHeadingUpload = "Upload judgment"
       val pageHeadingUploading = "Uploading judgment"
 

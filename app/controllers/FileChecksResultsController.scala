@@ -61,7 +61,7 @@ class FileChecksResultsController @Inject() (
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      exportStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Set(Export)).values.head
+      exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, Export).values.head
       result <- exportStatus match {
         case Some("InProgress") | Some("Completed") | Some("Failed") =>
           Future(Ok(views.html.transferAlreadyCompleted(consignmentId, reference, request.token.name, isJudgmentUser = true)).uncache())

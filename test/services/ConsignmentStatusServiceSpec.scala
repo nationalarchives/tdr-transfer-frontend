@@ -54,9 +54,9 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
     }
   }
 
-  "getStatusValue" should {
+  "getStatusValues" should {
     "return the values for the given status types from a list of statuses" in {
-      val result = consignmentStatusService.getStatusValue(statuses, Set(Series, TransferAgreement))
+      val result = consignmentStatusService.getStatusValues(statuses, Series, TransferAgreement)
 
       result.size shouldBe 2
       result.get(Series).flatten should equal(Some("Completed"))
@@ -64,11 +64,17 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
     }
 
     "return 'None' for value where status type is not present in list of statuses" in {
-      val result = consignmentStatusService.getStatusValue(List(), Set(Series, TransferAgreement))
+      val result = consignmentStatusService.getStatusValues(List(), Series, TransferAgreement)
 
       result.size shouldBe 2
       result.get(Series).flatten shouldBe None
       result.get(TransferAgreement).flatten shouldBe None
+    }
+
+    "return an empty map where no status types passed in" in {
+      val result = consignmentStatusService.getStatusValues(statuses)
+
+      result.size shouldBe 0
     }
   }
 
