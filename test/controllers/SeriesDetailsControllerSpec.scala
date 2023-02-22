@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import errors.GraphQlException
 import graphql.codegen.AddConsignment.{addConsignment => ac}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetSeries.{getSeries => gs}
 import io.circe.Printer
 import io.circe.generic.auto._
@@ -20,8 +21,9 @@ import play.api.test.Helpers.{status => playStatus, _}
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
-import testUtils.DefaultMockFormOptions.{getExpectedSeriesDefaultOptions, MockInputOption}
+import testUtils.DefaultMockFormOptions.{MockInputOption, getExpectedSeriesDefaultOptions}
 
+import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
@@ -47,6 +49,8 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
   val expectedSeriesDefaultOptions: List[MockInputOption] = getExpectedSeriesDefaultOptions(seriesId)
 
   val checkPageForStaticElements = new CheckPageForStaticElements
+
+  val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   "SeriesDetailsController GET" should {
 
@@ -219,7 +223,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
     "return forbidden if the pages are accessed by a judgment user" in {
       mockGetSeries()
-      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), seriesStatus = None)
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val seriesGet = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
@@ -231,7 +235,9 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
     "render the series 'already chosen' page with an authenticated user if series status is 'Completed'" in {
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, f"/consignment/$consignmentId/series").withCSRFToken)
-      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), seriesStatus = Some("Completed"))
+      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None))
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), consignmentStatuses = consignmentStatuses)
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
       val seriesDetailsPageAsString = contentAsString(seriesDetailsPage)
