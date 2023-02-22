@@ -1,0 +1,7 @@
+@(fieldInsetTexts: List[String])
+
+@for(insetText <- fieldInsetTexts) {
+  <div class="govuk-inset-text govuk-!-margin-top-3 govuk-!-margin-bottom-3">
+    @Html(insetText)
+  </div>
+}
