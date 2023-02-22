@@ -238,7 +238,9 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
           |                    <th scope="col" class="govuk-table__header">Status</th>
           |                    <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin
     )
-    viewTransfersPageAsString must include(s"""View the history of all the consignments you have uploaded. You can also resume incomplete transfers or view the errors of failed transfers.""")
+    viewTransfersPageAsString must include(
+      s"""View the history of all the consignments you have uploaded. You can also resume incomplete transfers or view the errors of failed transfers."""
+    )
     viewTransfersPageAsString must include(
       """        <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
         |            Back to homepage
