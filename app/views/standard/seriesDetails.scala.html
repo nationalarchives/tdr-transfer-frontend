@@ -15,7 +15,14 @@ messages: Messages)
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("seriesDetails.progress"))
 
-        <h1 class="govuk-heading-l">Choose a series</h1>
+        <h1 class="govuk-label-wrapper">
+            <label class="govuk-label govuk-label--l" for="@dropdownField.fieldId">Choose a series reference</label>
+        </h1>
+
+        <p class="govuk-body">
+            If you cannot see the correct series reference for the records, you need a new one adding, or you’re transferring records on behalf of another transferring body, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.
+        </p>
+
         @errorSummary(
             if (dropdownField.fieldErrors.nonEmpty) {
                 List(dropdownField.fieldId -> dropdownField.fieldErrors)
