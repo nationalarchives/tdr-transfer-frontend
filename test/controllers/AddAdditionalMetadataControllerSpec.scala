@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent
 import configuration.GraphQLConfiguration
-import controllers.util.MetadataProperty.{clientSideFileLastModifiedDate, clientSideOriginalFilepath, closureStartDate, description, descriptionClosed, end_date, titleClosed}
+import controllers.util.MetadataProperty._
 import controllers.util.{DateField, FormField, InputNameAndValue, RadioButtonGroupField}
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
@@ -73,7 +73,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val formTester = new FormTester(expectedClosureDefaultOptions.filterNot(_.name.contains("DescriptionClosed")))
 
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, fileHasMetadata = false)
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
 
@@ -94,7 +94,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
       verifyConsignmentFileMetadataCall(
         consignmentId,
-        FileMetadataFilters(Some(true), None, Some(List(clientSideOriginalFilepath, description, clientSideFileLastModifiedDate, end_date))).some
+        FileMetadataFilters(Some(true), None, Some(List(clientSideOriginalFilepath, description, clientSideFileLastModifiedDate, end_date, fileName))).some
       )
       getServeEvent("addBulkFileMetadata") should be(None)
       getServeEvent("deleteFileMetadata") should be(None)
@@ -265,7 +265,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         new FormTester(expectedClosureDefaultOptions.filterNot(formOptionMocks => formOptionMocks.name.contains("DescriptionClosed") || formOptionMocks.name.contains("inputdate")))
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
-      setConsignmentFilesMetadataResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
       setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
@@ -308,7 +308,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
-      setConsignmentFilesMetadataResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
       setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
@@ -352,7 +352,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setCustomMetadataResponse(wiremockServer)
-      setConsignmentFilesMetadataResponse(wiremockServer)
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
       setDisplayPropertiesResponse(wiremockServer)
 
       val formSubmission = Seq(
@@ -673,61 +673,70 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   "AddAdditionalMetadataController formFieldOverrides" should {
-    "override the 'descriptionClosed' field when the description is not empty" in {
-      val fileMetadata: Map[String, List[FileMetadata]] = Map(
-        descriptionClosed -> List(FileMetadata(descriptionClosed, "true")),
-        description -> List(FileMetadata(description, "some value"))
-      )
-      val formField: FormField =
-        RadioButtonGroupField(descriptionClosed, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
-      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+    val closedPrefixes = Table(
+      "prefix",
+      "title",
+      "description"
+    )
+    forAll(closedPrefixes) { prefix =>
+      val fieldId = s"${prefix.capitalize}Closed"
 
-      val expectedField = RadioButtonGroupField(
-        descriptionClosed,
-        "name",
-        "alternativeName",
-        "The current description of your record is below. You can edit it in the Descriptive metadata step.",
-        Nil,
-        "some value",
-        false,
-        Seq(InputNameAndValue("Yes", "Yes")),
-        "Yes",
-        false
-      )
-      actualFormField should equal(expectedField)
-    }
+      s"override the '${prefix}Closed' field when the field value is not empty" in {
+        val fileMetadata: Map[String, List[FileMetadata]] = Map(
+          fieldId -> List(FileMetadata(fieldId, "true")),
+          description -> List(FileMetadata(description, "some value")),
+          fileName -> List(FileMetadata(fileName, "some value"))
+        )
+        val formField: FormField =
+          RadioButtonGroupField(fieldId, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+        val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
 
-    "not override the 'descriptionClosed' field when the description is empty" in {
+        val expectedField = RadioButtonGroupField(
+          fieldId,
+          "name",
+          "alternativeName",
+          s"If the $prefix of this record contains sensitive information, you must select 'Yes' and provide an alternative $prefix.",
+          Nil,
+          "some value",
+          false,
+          Seq(InputNameAndValue("Yes", "Yes")),
+          "Yes",
+          false
+        )
+        actualFormField should equal(expectedField)
+      }
 
-      val fileMetadata: Map[String, List[FileMetadata]] = Map(
-        descriptionClosed -> List(FileMetadata(descriptionClosed, "true"))
-      )
-      val formField: FormField =
-        RadioButtonGroupField(descriptionClosed, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
-      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+      s"not override the '${prefix}Closed' field when the field value is empty" in {
 
-      val expectedField = RadioButtonGroupField(
-        descriptionClosed,
-        "name",
-        "alternativeName",
-        "If you need to add a description, you can do so in the Descriptive metadata step.",
-        Nil,
-        "",
-        false,
-        Seq(InputNameAndValue("Yes", "Yes")),
-        "Yes",
-        false,
-        hideInputs = true
-      )
-      actualFormField should equal(expectedField)
+        val fileMetadata: Map[String, List[FileMetadata]] = Map(
+          fieldId -> List(FileMetadata(fieldId, "true"))
+        )
+        val formField: FormField =
+          RadioButtonGroupField(fieldId, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+        val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+
+        val expectedField = RadioButtonGroupField(
+          fieldId,
+          "name",
+          "alternativeName",
+          s"If the $prefix of this record contains sensitive information you must add an uncensored description in Descriptive Metadata section before entering an alternative $prefix here.",
+          Nil,
+          "",
+          false,
+          Seq(InputNameAndValue("Yes", "Yes")),
+          "Yes",
+          false,
+          hideInputs = true
+        )
+        actualFormField should equal(expectedField)
+      }
     }
 
     "not override the field when the given field is not descriptionClosed" in {
       val fileMetadata: Map[String, List[FileMetadata]] = Map(
-        titleClosed -> List(FileMetadata(titleClosed, "true")),
         description -> List(FileMetadata(description, "some value"))
       )
-      val formField: FormField = RadioButtonGroupField(titleClosed, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
+      val formField: FormField = RadioButtonGroupField(closurePeriod, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
       val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
       actualFormField should equal(formField)
     }
