@@ -3,7 +3,7 @@ package services
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{ConsignmentStatuses, CurrentStatus}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -12,7 +12,7 @@ import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import services.ConsignmentStatusService.Series
+import services.ConsignmentStatusService.{Series, TransferAgreement}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
@@ -55,14 +55,20 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
   }
 
   "getStatusValue" should {
-    "return the status type value from a list of statuses" in {
-      val result = consignmentStatusService.getStatusValue(statuses, Series)
-      result.get should equal("Completed")
+    "return the values for the given status types from a list of statuses" in {
+      val result = consignmentStatusService.getStatusValue(statuses, Set(Series, TransferAgreement))
+
+      result.size shouldBe 2
+      result.get(Series).flatten should equal(Some("Completed"))
+      result.get(TransferAgreement).flatten should equal(Some("Completed"))
     }
 
-    "return 'None' where status type is no present in statuses" in {
-      val result = consignmentStatusService.getStatusValue(List(), Series)
-      result shouldBe None
+    "return 'None' for value where status type is not present in list of statuses" in {
+      val result = consignmentStatusService.getStatusValue(List(), Set(Series, TransferAgreement))
+
+      result.size shouldBe 2
+      result.get(Series).flatten shouldBe None
+      result.get(TransferAgreement).flatten shouldBe None
     }
   }
 
@@ -73,7 +79,6 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
           Option(
             gcs.GetConsignment(
               None,
-              CurrentStatus(None, None, None, None, None, None, None, None, None),
               statuses
             )
           )

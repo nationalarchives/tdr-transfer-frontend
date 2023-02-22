@@ -47,7 +47,7 @@ class SeriesDetailsController @Inject() (
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
       for {
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-        seriesStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Series)
+        seriesStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Set(Series)).values.head
       } yield seriesStatus match {
         case Some("Completed") => Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
         case _ =>

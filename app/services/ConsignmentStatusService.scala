@@ -15,11 +15,16 @@ import scala.concurrent.{ExecutionContext, Future}
 class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val getConsignmentStatusClient = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
 
-  def getStatusValue(statuses: List[ConsignmentStatuses], statusType: StatusType): Option[String] = {
-    statuses.find(_.statusType == statusType.id) match {
-      case Some(status) => Some(status.value)
-      case _            => None
-    }
+  def getStatusValue(statuses: List[ConsignmentStatuses], statusTypes: Set[StatusType]): Map[StatusType, Option[String]] = {
+    statusTypes
+      .map(t => {
+        val value = statuses.find(_.statusType == t.id) match {
+          case Some(status) => Some(status.value)
+          case _            => None
+        }
+        t -> value
+      })
+      .toMap
   }
 
   def getConsignmentStatuses(consignmentId: UUID, token: BearerAccessToken): Future[List[ConsignmentStatuses]] = {

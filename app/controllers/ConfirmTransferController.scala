@@ -49,7 +49,7 @@ class ConfirmTransferController @Inject() (
       implicit request: Request[AnyContent]
   ): Future[Result] = {
     consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken).flatMap { consignmentStatuses =>
-      val exportTransferStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Export)
+      val exportTransferStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Set(Export)).values.head
       exportTransferStatus match {
         case Some("InProgress") | Some("Completed") | Some("Failed") =>
           consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map { consignmentRef =>
@@ -80,7 +80,7 @@ class ConfirmTransferController @Inject() (
 
         for {
           consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-          exportStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Export)
+          exportStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Set(Export)).values.head
           result <- exportStatus match {
             case Some("Completed") => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
             case None =>
@@ -105,7 +105,7 @@ class ConfirmTransferController @Inject() (
   def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      exportStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Export)
+      exportStatus = consignmentStatusService.getStatusValue(consignmentStatuses, Set(Export)).values.head
       res <- {
         exportStatus match {
           case Some("InProgress") | Some("Completed") | Some("Failed") =>
