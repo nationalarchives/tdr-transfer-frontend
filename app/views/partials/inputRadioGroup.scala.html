@@ -1,5 +1,6 @@
 @import controllers.util.{FormField, InputNameAndValue, TextField}
 @import controllers.util.TextAreaField
+@import views.html.partials.insetText
 @(fieldId: String,
         fieldName: String,
         fieldDescription: String,
@@ -32,7 +33,7 @@
         } else {
             <div class="govuk-hint"> @Html(fieldDescription) </div>
             @errorMessage(fieldId, fieldErrors)
-            @displayReadOnlyLargeText(additionalInfo)
+            @insetText(List(additionalInfo))
             <div class="govuk-radios" data-module="govuk-radios" @radioOptionsSize @optionSize id="@formFieldId">
             @options.map { input =>
                 <div class="govuk-radios__item">
@@ -72,20 +73,26 @@
         <div class="govuk-form-group">
             <label class="govuk-label" for="@formFieldId-@textField.fieldId-@inputValue">
                 @textField.fieldName
+                @if(textField.fieldDescription.nonEmpty) {
+                    <div id="hint-@formFieldId-@inputValue" class="govuk-hint">
+                    @textField.fieldDescription
+                    </div>
+                }
             </label>
             <input class="govuk-input" id="@formFieldId-@textField.fieldId-@inputValue" name="@formFieldId-@textField.fieldId-@inputValue" type="text" value="@textField.nameAndValue.value" />
         </div>
     </div>
 }
-@displayReadOnlyLargeText(text: String) = {
-    @if(text.nonEmpty) {
-        <textarea class="govuk-textarea" id="details" name="details" rows="5" readonly>@text</textarea>
-    }
-}
+
 @displayLargeText(formId: String, inputValue: String, textAreaField: TextAreaField) = {
     <div class="govuk-radios__conditional" id="conditional-@formFieldId-@inputValue">
         <label class="govuk-label" for="@formFieldId-@textAreaField.fieldId-@inputValue">
             @textAreaField.fieldName
+            @if(textAreaField.fieldDescription.nonEmpty) {
+                <div id="hint-@formFieldId-@inputValue" class="govuk-hint">
+                @textAreaField.fieldDescription
+                </div>
+            }
         </label>
         <textarea class="govuk-textarea" id="@formFieldId-@textAreaField.fieldId-@inputValue" name="@formFieldId-@textAreaField.fieldId-@inputValue" rows="5">@textAreaField.nameAndValue.value</textarea>
     </div>
