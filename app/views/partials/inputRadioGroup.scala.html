@@ -1,5 +1,6 @@
 @import controllers.util.{FormField, InputNameAndValue, TextField}
 @import controllers.util.TextAreaField
+@import views.html.partials.insetText
 @(fieldId: String,
         fieldName: String,
         fieldDescription: String,
@@ -32,7 +33,7 @@
         } else {
             <div class="govuk-hint"> @Html(fieldDescription) </div>
             @errorMessage(fieldId, fieldErrors)
-            @displayInsetText(additionalInfo)
+            @insetText(List(additionalInfo))
             <div class="govuk-radios" data-module="govuk-radios" @radioOptionsSize @optionSize id="@formFieldId">
             @options.map { input =>
                 <div class="govuk-radios__item">
@@ -82,13 +83,7 @@
         </div>
     </div>
 }
-@displayInsetText(text: String) = {
-    @if(text.nonEmpty) {
-        <div class="govuk-inset-text">
-            @text
-        </div>
-    }
-}
+
 @displayLargeText(formId: String, inputValue: String, textAreaField: TextAreaField) = {
     <div class="govuk-radios__conditional" id="conditional-@formFieldId-@inputValue">
         <label class="govuk-label" for="@formFieldId-@textAreaField.fieldId-@inputValue">
