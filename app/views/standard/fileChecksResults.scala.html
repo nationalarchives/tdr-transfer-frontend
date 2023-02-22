@@ -8,23 +8,37 @@
         <div class="govuk-grid-column-two-thirds">
             @progressIndicator(Messages("fileChecksResults.progress"))
             <h1 class="govuk-heading-l">@title</h1>
-            <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
-            role="status" data-module="success-summary" tabindex="-1">
-                <h2 class="success-summary__title" id="success-summary-title">
-                    Success
-                </h2>
-                <div class="success-summary__body">
-                    <p class="govuk-body">Your folder '@{consignmentInfo.parentFolder}' containing @{consignmentInfo.numberOfFiles} item@if(consignmentInfo.numberOfFiles > 1){s} has been successfully checked and uploaded.</p>
-                    <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
+            <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+                <div class="govuk-notification-banner__header">
+                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                        Success
+                    </h2>
                 </div>
+                <div class="govuk-notification-banner__content">
+                    <h3 class="govuk-notification-banner__heading">
+                        Your folder '@{consignmentInfo.parentFolder}' containing @{consignmentInfo.numberOfFiles} item@if(consignmentInfo.numberOfFiles > 1){s} has been successfully uploaded.
+                    </h3>
+                    <p class="govuk-body">You can leave and return to this transfer at any time from the <a class="govuk-notification-banner__link" href="@routes.ViewTransfersController.viewConsignments()">View transfers</a> page.</p>
+                </div>
+            </div>
+            <div class="govuk-warning-text">
+                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                <strong class="govuk-warning-text__text">
+                    <span class="govuk-warning-text__assistive">Warning</span>
+                    @if(blockClosureMetadata || blockDescriptiveMetadata) {
+                        Now that your records have been uploaded you can proceed with the transfer.
+                    } else {
+                        Now that your records have been uploaded you can proceed with the transfer. In the next step you will be given the opportunity to add metadata to your records before transferring them.
+                    }
+                </strong>
             </div>
             @if(blockClosureMetadata || blockDescriptiveMetadata) {
                 <a class="govuk-button" href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" data-module="govuk-button">
-                    Continue
+                    Next
                 </a>
             } else {
                 <a class="govuk-button" href="@routes.AdditionalMetadataController.start(consignmentId)" role="button" draggable="false" data-module="govuk-button">
-                    Continue
+                    Next
                 </a>
             }
         </div>
