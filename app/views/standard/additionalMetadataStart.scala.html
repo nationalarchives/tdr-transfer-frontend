@@ -1,6 +1,8 @@
 @import views.html.partials.{notificationBanner, progressIndicator, transferReference, warningMessage}
+@import services.Details
 
 @import java.util.UUID
+@import views.html.partials.details
 @(consignmentRef: String, consignmentId: UUID, name: String, closurePropertiesSummaries: List[String], descriptivePropertiesSummaries: List[String])(implicit messages: Messages, request: RequestHeader)
 @main(title = "Descriptive and closure metadata", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -63,6 +65,9 @@
           </ul>
         </div>
       </details>
+      @if(name.toLowerCase == "descriptive metadata") {
+        @details(Details("Records with sensitive descriptions", Messages("additionalMetadata.descriptive.sensitive")))
+      }
     </div>
   </div>
 }
