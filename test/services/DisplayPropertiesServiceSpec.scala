@@ -273,7 +273,6 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     }
   })
 
-
   private def requiredAttributes(dataType: Option[String] = Some("text")): List[dp.DisplayProperties.Attributes] = {
     List(dp.DisplayProperties.Attributes("Datatype", dataType, Text))
   }
