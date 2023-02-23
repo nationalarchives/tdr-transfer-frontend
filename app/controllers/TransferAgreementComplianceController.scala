@@ -7,7 +7,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.ConsignmentStatusService.{Series, TransferAgreement}
+import services.Statuses.{CompletedValue, InProgressValue, SeriesType, TransferAgreementType}
 import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
 import viewsapi.Caching.preventCaching
 
@@ -69,22 +69,22 @@ class TransferAgreementComplianceController @Inject() (
   ): Future[Result] = {
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      statuses = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreement, Series)
-      transferAgreementStatus: Option[String] = statuses.get(TransferAgreement).flatten
-      seriesStatus: Option[String] = statuses.get(Series).flatten
+      statuses = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType, SeriesType)
+      transferAgreementStatus: Option[String] = statuses.get(TransferAgreementType).flatten
+      seriesStatus: Option[String] = statuses.get(SeriesType).flatten
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val formAndLabels = taFormNamesAndLabels.filter(f => taForm.formats.keys.toList.contains(f._1))
       seriesStatus match {
-        case Some("Completed") =>
+        case Some(CompletedValue.value) =>
           transferAgreementStatus match {
-            case Some("Completed") =>
+            case Some(CompletedValue.value) =>
               Ok(
                 views.html.standard
                   .transferAgreementComplianceAlreadyConfirmed(consignmentId, reference, form, formAndLabels, request.token.name)
               )
                 .uncache()
-            case Some("InProgress") =>
+            case Some(InProgressValue.value) =>
               httpStatus(views.html.standard.transferAgreementCompliance(consignmentId, reference, taForm, formAndLabels, request.token.name)).uncache()
             case None =>
               Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)).uncache()
@@ -110,10 +110,10 @@ class TransferAgreementComplianceController @Inject() (
 
       for {
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-        transferAgreementStatus = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreement).values.headOption.flatten
+        transferAgreementStatus = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType).values.headOption.flatten
         result <- transferAgreementStatus match {
-          case Some("Completed") => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
-          case Some("InProgress") =>
+          case Some(CompletedValue.value) => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
+          case Some(InProgressValue.value) =>
             transferAgreementService
               .addTransferAgreementCompliance(consignmentId, request.token.bearerAccessToken, formData)
               .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
