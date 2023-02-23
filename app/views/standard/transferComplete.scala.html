@@ -6,9 +6,8 @@
         @defining(play.core.PlayVersion.current) { version =>
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-two-thirds">
-                    @progressIndicator(Messages("transferComplete.progress"))
 
-                    <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-6">
+                    <div class="govuk-panel govuk-panel--confirmation">
                         <h1 class="govuk-panel__title">
                             Transfer complete
                         </h1>
@@ -20,21 +19,19 @@
                         </div>
                     </div>
 
-                    <p class="govuk-body">We have now received your records. Please do not delete the original files you uploaded until you are notified that your records have been preserved.</p>
-
-                    <p class="govuk-body">Download a printable report of the
-                        <a class="govuk-link" href=@routes.DownloadMetadataController.downloadMetadataCsv(consignmentId)>
-                            records that you have transferred with the metadata included.
-                        </a>
-                    </p>
+                    <p class="govuk-body">Your records are now transferred to The National Archives.
+                        They are not yet preserved so you must not delete the original records.
+                        We will notify you by email when we have preserved your records.</p>
 
                     <h2 class="govuk-heading-m govuk-!-margin-top-2">What happens next</h2>
 
-                    <p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, please contact us.</p>
+                    <p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.</p>
 
                     @feedbackSurvey("https://www.smartsurvey.co.uk/s/tdr-feedback/")
 
-                    @returnToStartPage()
+                    <a href="@routes.HomepageController.homepage()" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+                        Return to homepage
+                    </a>
                 </div>
 
             </div>
