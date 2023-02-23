@@ -8,7 +8,7 @@ import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc._
-import services.ConsignmentStatusService.Export
+import services.Statuses.{CompletedValue, ExportType, FailedValue, InProgressValue}
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import viewsapi.Caching.preventCaching
 
@@ -49,9 +49,9 @@ class ConfirmTransferController @Inject() (
       implicit request: Request[AnyContent]
   ): Future[Result] = {
     consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken).flatMap { consignmentStatuses =>
-      val exportTransferStatus = consignmentStatusService.getStatusValues(consignmentStatuses, Export).values.headOption.flatten
+      val exportTransferStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
       exportTransferStatus match {
-        case Some("InProgress") | Some("Completed") | Some("Failed") =>
+        case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) =>
           consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map { consignmentRef =>
             Ok(views.html.transferAlreadyCompleted(consignmentId, consignmentRef, request.token.name)).uncache()
           }
@@ -80,9 +80,9 @@ class ConfirmTransferController @Inject() (
 
         for {
           consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-          exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, Export).values.headOption.flatten
+          exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
           result <- exportStatus match {
-            case Some("Completed") => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
+            case Some(CompletedValue.value) => Future(Redirect(routes.TransferCompleteController.transferComplete(consignmentId)))
             case None =>
               for {
                 _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, formData)
@@ -105,10 +105,10 @@ class ConfirmTransferController @Inject() (
   def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      exportStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, Export).values.headOption.flatten
+      exportStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
       res <- {
         exportStatus match {
-          case Some("InProgress") | Some("Completed") | Some("Failed") =>
+          case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) =>
             consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map { consignmentRef =>
               Ok(views.html.transferAlreadyCompleted(consignmentId, consignmentRef, request.token.name, isJudgmentUser = true)).uncache()
             }
