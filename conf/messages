@@ -54,3 +54,5 @@ judgmentProgress.totalSteps=3
 notification.savedProgress.title=Important
 notification.savedProgress.heading=Your progress has been saved
 notification.savedProgress.metadataInfo=Your records and any metadata you added has been saved. You can leave at any time and return to this transfer by visiting the <a class="govuk-notification-banner__link" href="{0}">{1}</a> page.
+
+additionalMetadata.descriptive.sensitive=If the description of a record contains sensitive information, you must enter the full uncensored version on the Descriptive metadata page before entering an alternative description on the Closure metadata page.
