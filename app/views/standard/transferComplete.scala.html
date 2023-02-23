@@ -1,4 +1,4 @@
-@import views.html.partials.{feedbackSurvey, progressIndicator, returnToStartPage}
+@import views.html.partials.{feedbackSurvey, returnToHomepage}
 
 @import java.util.UUID
 @(consignmentId: UUID, consignmentReference: String, name: String)(implicit messages: Messages, request: RequestHeader)
@@ -29,9 +29,7 @@
 
                     @feedbackSurvey("https://www.smartsurvey.co.uk/s/tdr-feedback/")
 
-                    <a href="@routes.HomepageController.homepage()" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-                        Return to homepage
-                    </a>
+                    @returnToHomepage(text = "Return to homepage")
                 </div>
 
             </div>

@@ -67,6 +67,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       transferCompletePageAsString must include(
         """<p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>.</p>"""
       )
+      transferCompletePageAsString must include(
+        """<a href="/homepage" role="button" draggable="false" class="govuk-button ">
+          |    Return to homepage
+          |</a>""".stripMargin
+      )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(
         transferCompletePageAsString,
@@ -97,6 +102,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       )
       transferCompletePageAsString must include(
         """                    <p class="govuk-body">Do not delete the original file you uploaded until you have been notified.</p>"""
+      )
+      transferCompletePageAsString must include(
+        """<a href="/homepage" role="button" draggable="false" class="govuk-button ">
+          |    Return to start
+          |</a>""".stripMargin
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(
@@ -171,11 +181,6 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       s"""<a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank" title="What did you think of this service? (opens in new tab)">
          |    What did you think of this service? (opens in new tab)
          |    </a>""".stripMargin
-    )
-    transferCompletePageAsString must include(
-      """<a href="/home" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-        |                        Return to homepage
-        |                    </a>""".stripMargin
     )
   }
 }
