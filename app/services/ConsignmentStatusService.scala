@@ -2,11 +2,11 @@ package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
-import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment, Variables}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment, Variables}
+import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import services.ApiErrorHandling._
-import services.ConsignmentStatusService.StatusType
+import services.Statuses.StatusType
 
 import java.util.UUID
 import javax.inject.Inject
@@ -36,13 +36,4 @@ class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfi
     val variables = new Variables(consignmentId)
     sendApiRequest(getConsignmentStatusClient, gcs.document, token, variables).map(data => data.getConsignment)
   }
-}
-
-object ConsignmentStatusService {
-  sealed trait StatusType { val id: String }
-
-  case object Series extends StatusType { val id: String = "Series" }
-  case object Upload extends StatusType { val id: String = "Upload" }
-  case object TransferAgreement extends StatusType { val id: String = "TransferAgreement" }
-  case object Export extends StatusType { val id: String = "Export" }
 }

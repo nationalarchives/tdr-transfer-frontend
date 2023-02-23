@@ -8,7 +8,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import services.ConsignmentStatusService.Series
+import services.Statuses.{CompletedValue, SeriesType}
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
 import viewsapi.Caching.preventCaching
 
@@ -47,9 +47,9 @@ class SeriesDetailsController @Inject() (
     val successFunction: SelectedSeriesData => Future[Result] = { formData: SelectedSeriesData =>
       for {
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-        seriesStatus = consignmentStatusService.getStatusValues(consignmentStatuses, Series).values.headOption.flatten
+        seriesStatus = consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType).values.headOption.flatten
       } yield seriesStatus match {
-        case Some("Completed") => Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
+        case Some(CompletedValue.value) => Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
         case _ =>
           consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
           Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
@@ -65,10 +65,10 @@ class SeriesDetailsController @Inject() (
   private def getSeriesDetails(consignmentId: UUID, request: Request[AnyContent], status: Status, form: Form[SelectedSeriesData])(implicit requestHeader: RequestHeader) = {
     for {
       consignmentStatus <- consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken)
-      seriesStatus = consignmentStatus.flatMap(s => consignmentStatusService.getStatusValues(s.consignmentStatuses, Series).values.headOption.flatten)
+      seriesStatus = consignmentStatus.flatMap(s => consignmentStatusService.getStatusValues(s.consignmentStatuses, SeriesType).values.headOption.flatten)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       result <- seriesStatus match {
-        case Some("Completed") =>
+        case Some(CompletedValue.value) =>
           val seriesOption: InputNameAndValue = consignmentStatus
             .flatMap(_.series)
             .map(series => InputNameAndValue(series.code, series.seriesid.toString))
