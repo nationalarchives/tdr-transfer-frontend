@@ -17,7 +17,6 @@ import graphql.codegen.GetConsignmentPaginatedFiles.{getConsignmentPaginatedFile
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
-import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.CurrentStatus
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
 import graphql.codegen.types.{AddConsignmentInput, ConsignmentFilters, FileFilters, FileMetadataFilters}
 import org.keycloak.representations.AccessToken
@@ -504,17 +503,7 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
               Some("standard"),
               Some(ZonedDateTime.now()),
               Some(ZonedDateTime.now()),
-              CurrentStatus(
-                Some("Completed"),
-                Some("Completed"),
-                Some("Completed"),
-                Some("Completed"),
-                Some("Completed"),
-                Some("Completed"),
-                Some("Completed"),
-                Some("Completed"),
-                Some("Completed")
-              ),
+              List(),
               5
             ),
             "Cursor"
