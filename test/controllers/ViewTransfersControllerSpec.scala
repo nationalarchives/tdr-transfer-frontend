@@ -1,5 +1,6 @@
 package controllers
 
+import org.scalatest.matchers.should.Matchers._
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignments.getConsignments.Consignments
@@ -220,6 +221,25 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+    }
+  }
+
+  "ActionText" should {
+    "have the correct value" in {
+      ContactUs.value should equal("Contact us")
+      Download.value should equal("Download report")
+      Errors.value should equal("View errors")
+      Resume.value should equal("Resume transfer")
+      View.value should equal("View")
+    }
+  }
+
+  "TransferStatus" should {
+    "have the correct value" in {
+      ContactUs.value should equal("Contact us")
+      Failed.value should equal("Failed")
+      InProgress.value should equal("In Progress")
+      Transferred.value should equal("Transferred")
     }
   }
 

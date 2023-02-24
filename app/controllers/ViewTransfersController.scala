@@ -211,12 +211,12 @@ case object Download extends ActionText {
   val value: String = "Download report"
 }
 
-case object ContactUs extends ActionText with TransferStatus {
-  val value: String = "Contact us"
-}
-
 case object Resume extends ActionText {
   val value: String = "Resume transfer"
+}
+
+case object ContactUs extends ActionText with TransferStatus {
+  val value: String = "Contact us"
 }
 
 case object InProgress extends TransferStatus {
