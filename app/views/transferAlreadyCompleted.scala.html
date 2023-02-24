@@ -1,5 +1,5 @@
 @import java.util.UUID
-@import views.html.partials.returnToStartPage
+@import views.html.partials.returnToHomepage
 
 @import views.html.partials.transferReference
 @import views.html.partials.progressIndicator
@@ -24,7 +24,7 @@
                           else {routes.TransferCompleteController.transferComplete(consignmentId)}
                         }">Continue
                     </a>
-                    @returnToStartPage("govuk-button--secondary")
+                    @returnToHomepage("govuk-button--secondary")
                 </div>
             </div>
             @transferReference(consignmentRef, isJudgmentUser)

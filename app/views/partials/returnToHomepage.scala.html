@@ -1,4 +1,4 @@
-@(btnType: String = "")
+@(btnType: String = "", text: String = "Return to start")
 <a href="@routes.HomepageController.homepage()" role="button" draggable="false" class="govuk-button @btnType">
-    Return to start
+    @text
 </a>
