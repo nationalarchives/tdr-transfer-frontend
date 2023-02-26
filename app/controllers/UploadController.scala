@@ -84,7 +84,7 @@ class UploadController @Inject() (
       val transferAgreementStatus: Option[String] = statusesToValue.get(TransferAgreementType).flatten
       val uploadStatus: Option[String] = statusesToValue.get(UploadType).flatten
       val pageHeadingUpload = "Upload your records"
-      val pageHeadingUploading = "Uploading records"
+      val pageHeadingUploading = "Uploading your records"
 
       transferAgreementStatus match {
         case Some(CompletedValue.value) =>
