@@ -2,7 +2,7 @@
 @import views.html.partials.{progressIndicator, transferReference}
 @(consignmentId: UUID, consignmentRef: String, pageHeading: String, name: String, isJudgmentUser: Boolean)(implicit request: RequestHeader, messages: Messages)
 
-@main("Upload your records", name = name, isJudgmentUser = isJudgmentUser) {
+@main("Your records have been uploaded", name = name, isJudgmentUser = isJudgmentUser) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         @if(isJudgmentUser) {
@@ -11,8 +11,8 @@
             @progressIndicator(Messages("upload.progress"), isJudgmentUser)
         }
       <h1 class="govuk-heading-l">@pageHeading</h1>
-      <p class="govuk-body">Your upload is complete and has been saved. You cannot make amendments to your upload or add additional files.</p>
-      <p class="govuk-body">Please click 'Continue' to proceed with your transfer.</p>
+      <p class="govuk-body">Your records have been uploaded and saved. You cannot add additional files or folders to this transfer.</p>
+      <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
       <a href="@{if(isJudgmentUser) {routes.FileChecksController.judgmentFileChecksPage(consignmentId)}
                 else {routes.FileChecksController.fileChecksPage(consignmentId)}}" role="button" draggable="false" class="govuk-button govuk-button--primary">
         Continue

@@ -217,7 +217,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include(
         """<a href="/faq#metadata-captured" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a>"""
       )
-      uploadPageAsString must include("""<h1 class="govuk-heading-l">Uploading records</h1>""")
+      uploadPageAsString must include("""<h1 class="govuk-heading-l">Uploading your records</h1>""")
       uploadPageAsString must include(
         """|                <h2 class="govuk-error-summary__title" id="progress-error-summary-title">
            |                    There is a problem
@@ -227,7 +227,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       )
 
       uploadPageAsString must include(
-        """<p class="govuk-body">Do not close your browser window while your files are being uploaded. This could take a few minutes.</p>"""
+        """<p class="govuk-body">Do not close your browser while your records are being uploaded. This may take a few minutes.</p>"""
       )
     }
 
@@ -1130,15 +1130,15 @@ class UploadControllerSpec extends FrontEndTestHelper {
     if (userType == "judgment") {
       pageAsString must include("""<h1 class="govuk-heading-l">Uploading judgment</h1>""")
     } else {
-      pageAsString must include("""<h1 class="govuk-heading-l">Uploading records</h1>""")
+      pageAsString must include("""<h1 class="govuk-heading-l">Uploading your records</h1>""")
     }
 
     if (uploadStatus == "Completed") {
       pageAsString must include(
-        """<p class="govuk-body">Your upload is complete and has been saved. You cannot make amendments to your upload or add additional files.</p>"""
+        """<p class="govuk-body">Your records have been uploaded and saved. You cannot add additional files or folders to this transfer.</p>"""
       )
       pageAsString must include(
-        """<p class="govuk-body">Please click 'Continue' to proceed with your transfer.</p>"""
+        """<p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>"""
       )
     } else if (uploadStatus == "InProgress") {
       pageAsString must include(
