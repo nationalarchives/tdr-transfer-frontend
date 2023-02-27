@@ -5,7 +5,7 @@ import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfigura
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.ConsignmentStatusService.Export
+import services.Statuses.{CompletedValue, ExportType, FailedValue, InProgressValue}
 import services.{ConsignmentService, ConsignmentStatusService}
 import viewsapi.Caching.preventCaching
 
@@ -61,9 +61,9 @@ class FileChecksResultsController @Inject() (
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, Export).values.headOption.flatten
+      exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
       result <- exportStatus match {
-        case Some("InProgress") | Some("Completed") | Some("Failed") =>
+        case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) =>
           Future(Ok(views.html.transferAlreadyCompleted(consignmentId, reference, request.token.name, isJudgmentUser = true)).uncache())
         case None =>
           for {

@@ -59,18 +59,18 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         |                            Consignment reference: <span class="govuk-!-font-weight-bold">TEST-TDR-2021-GB</span>
         |                        </div>""".stripMargin
       )
-      transferCompletePageAsString must include(s"""                    <p class="govuk-body">Download a printable report of the
-           |                        <a class="govuk-link" href=/consignment/$consignmentId/additional-metadata/download-metadata/csv>
-           |                            records that you have transferred with the metadata included.
-           |                        </a>
-           |                    </p>""".stripMargin)
       transferCompletePageAsString must include(
-        """                    <p class="govuk-body">We have now received your records. Please do not delete the original files you uploaded""" +
-          " until you are notified that your records have been preserved.</p>"
+        """<p class="govuk-body">Your records are now transferred to The National Archives.
+          |                        They are not yet preserved so you must not delete the original records.
+          |                        We will notify you by email when we have preserved your records.</p>""".stripMargin
       )
       transferCompletePageAsString must include(
-        """                    <p class="govuk-body">We will contact you via email within 90 days.""" +
-          " If you do not receive an email, please contact us.</p>"
+        """<p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>.</p>"""
+      )
+      transferCompletePageAsString must include(
+        """<a href="/homepage" role="button" draggable="false" class="govuk-button ">
+          |    Return to homepage
+          |</a>""".stripMargin
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(
@@ -102,6 +102,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       )
       transferCompletePageAsString must include(
         """                    <p class="govuk-body">Do not delete the original file you uploaded until you have been notified.</p>"""
+      )
+      transferCompletePageAsString must include(
+        """<a href="/homepage" role="button" draggable="false" class="govuk-button ">
+          |    Return to start
+          |</a>""".stripMargin
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(
@@ -173,13 +178,9 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       """                    <h2 class="govuk-heading-m govuk-!-margin-top-2">What happens next</h2>""".stripMargin
     )
     transferCompletePageAsString must include(
-      s"""    <a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank">
-        |        What did you think of this service? (opens in new tab)""".stripMargin
-    )
-    transferCompletePageAsString must include(
-      """                    <a href="/homepage" role="button" draggable="false" class="govuk-button ">
-        |    Return to start
-        |</a>""".stripMargin
+      s"""<a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank" title="What did you think of this service? (opens in new tab)">
+         |    What did you think of this service? (opens in new tab)
+         |    </a>""".stripMargin
     )
   }
 }

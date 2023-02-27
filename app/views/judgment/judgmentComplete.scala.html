@@ -1,6 +1,5 @@
 @import java.util.UUID
-@import views.html.partials.returnToStartPage
-@import views.html.partials.feedbackSurvey
+@import views.html.partials.{feedbackSurvey, returnToHomepage}
 @(reference: String, name: String)(implicit messages: Messages, request: RequestHeader)
     @main("Transfer complete", name = name, isJudgmentUser = true) {
         @defining(play.core.PlayVersion.current) { version =>
@@ -29,7 +28,7 @@
 
                     @feedbackSurvey("https://www.smartsurvey.co.uk/s/5YDPSA/")
 
-                    @returnToStartPage()
+                    @returnToHomepage()
                 </div>
 
             </div>
