@@ -85,6 +85,13 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
     val propertyType: String = attributes.find(_.attribute == "PropertyType").getStringValue
 
+    val details: Option[Details] = for {
+      summaryAttribute <- attributes.find(_.attribute == "DetailsSummary")
+      summary <- summaryAttribute.value
+      textAttribute <- attributes.find(_.attribute == "DetailsText")
+      text <- textAttribute.value
+    } yield Details(summary, text)
+
     DisplayProperty(
       active,
       componentType,
@@ -101,7 +108,8 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
       propertyType,
       unitType,
       summary,
-      alternativeName
+      alternativeName,
+      details
     )
   }
 
@@ -136,5 +144,8 @@ case class DisplayProperty(
     propertyType: String,
     unitType: String,
     summary: String,
-    alternativeName: String
+    alternativeName: String,
+    details: Option[Details] = None
 )
+
+case class Details(detailsSummary: String, detailsText: String)
