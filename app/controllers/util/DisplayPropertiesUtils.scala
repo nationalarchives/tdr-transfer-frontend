@@ -55,7 +55,8 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
           Nil,
           property.multiValue,
           InputNameAndValue(property.propertyName, customMetadata.defaultValue),
-          required
+          required,
+          details = property.details
         )
       case "small text" => generateTextField(property, customMetadata)
       case "date" =>
