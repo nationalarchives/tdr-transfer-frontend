@@ -15,10 +15,10 @@ attributes: Map[Symbol, Any]=Map())(implicit messages: Messages)
 
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 
-<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+<div class="govuk-form-group govuk-!-margin-bottom-9 @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
     <fieldset class="govuk-fieldset" role="group" aria-describedby="date-input-@fieldId-hint">
-        <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
-            <h2 class="govuk-label govuk-label--m">
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+            <h2 class="govuk-fieldset__heading">
                 @fieldName
             </h2>
         </legend>

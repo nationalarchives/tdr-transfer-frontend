@@ -9,13 +9,13 @@ class CheckFormPageElements() {
     """      <title>Add or edit closure metadata</title>""",
     """      <span class="govuk-caption-l">Closure metadata</span>""",
     """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
-    """            <h2 class="govuk-label govuk-label--m">
+    """            <h2 class="govuk-fieldset__heading">
       |                FOI decision asserted
       |            </h2>""",
     """        <div id="date-input-FoiExemptionAsserted-hint" class="govuk-hint">
       |            Date of the Advisory Council approval
       |        </div>""",
-    """            <h2 class="govuk-label govuk-label--m">
+    """            <h2 class="govuk-fieldset__heading">
       |                Closure Start Date
       |            </h2>""",
     """        <div id="date-input-ClosureStartDate-hint" class="govuk-hint">
@@ -52,7 +52,7 @@ class CheckFormPageElements() {
     """      <title>Add or edit descriptive metadata</title>""",
     """      <span class="govuk-caption-l">Descriptive metadata</span>""",
     """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
-    """      <h2 class="govuk-label govuk-label--m">Date of the record</h2>""",
+    """      <h2 class="govuk-fieldset__heading">Date of the record</h2>""",
     """      <div id="date-input-end_date-hint" class="govuk-hint">The date the most recent change was made to the record</div>""",
     """        <label class="govuk-label govuk-label--m" for=inputtextarea-description>
       |            Description
