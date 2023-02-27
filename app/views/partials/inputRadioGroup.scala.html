@@ -21,7 +21,7 @@
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @formFieldId = @{if(isDynamicForm) s"inputradio-$fieldId" else fieldId}
 
-<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+<div class="govuk-form-group govuk-!-margin-bottom-9 @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
     <fieldset class="govuk-fieldset">
         <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
             @fieldName
