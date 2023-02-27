@@ -12,7 +12,7 @@ import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import services.ConsignmentStatusService.{Series, TransferAgreement}
+import services.Statuses.{SeriesType, TransferAgreementType}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
@@ -45,30 +45,21 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
     Mockito.reset(getConsignmentStatusClient)
   }
 
-  "StatusTypes" should {
-    "have the correct ids" in {
-      ConsignmentStatusService.Series.id should equal("Series")
-      ConsignmentStatusService.Upload.id should equal("Upload")
-      ConsignmentStatusService.TransferAgreement.id should equal("TransferAgreement")
-      ConsignmentStatusService.Export.id should equal("Export")
-    }
-  }
-
   "getStatusValues" should {
     "return the values for the given status types from a list of statuses" in {
-      val result = consignmentStatusService.getStatusValues(statuses, Series, TransferAgreement)
+      val result = consignmentStatusService.getStatusValues(statuses, SeriesType, TransferAgreementType)
 
       result.size shouldBe 2
-      result.get(Series).flatten should equal(Some("Completed"))
-      result.get(TransferAgreement).flatten should equal(Some("Completed"))
+      result.get(SeriesType).flatten should equal(Some("Completed"))
+      result.get(TransferAgreementType).flatten should equal(Some("Completed"))
     }
 
     "return 'None' for value where status type is not present in list of statuses" in {
-      val result = consignmentStatusService.getStatusValues(List(), Series, TransferAgreement)
+      val result = consignmentStatusService.getStatusValues(List(), SeriesType, TransferAgreementType)
 
       result.size shouldBe 2
-      result.get(Series).flatten shouldBe None
-      result.get(TransferAgreement).flatten shouldBe None
+      result.get(SeriesType).flatten shouldBe None
+      result.get(TransferAgreementType).flatten shouldBe None
     }
 
     "return an empty map where no status types passed in" in {

@@ -9,7 +9,7 @@ import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.ConsignmentStatusService.{TransferAgreement, Upload}
+import services.Statuses.{CompletedValue, InProgressValue, TransferAgreementType, UploadType}
 import services.{BackendChecksService, ConsignmentService, ConsignmentStatusService, FileStatusService, UploadService}
 import viewsapi.Caching.preventCaching
 
@@ -80,19 +80,19 @@ class UploadController @Inject() (
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreement, Upload)
-      val transferAgreementStatus: Option[String] = statusesToValue.get(TransferAgreement).flatten
-      val uploadStatus: Option[String] = statusesToValue.get(Upload).flatten
+      val statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType, UploadType)
+      val transferAgreementStatus: Option[String] = statusesToValue.get(TransferAgreementType).flatten
+      val uploadStatus: Option[String] = statusesToValue.get(UploadType).flatten
       val pageHeadingUpload = "Upload your records"
-      val pageHeadingUploading = "Uploading records"
+      val pageHeadingUploading = "Uploading your records"
 
       transferAgreementStatus match {
-        case Some("Completed") =>
+        case Some(CompletedValue.value) =>
           uploadStatus match {
-            case Some("InProgress") =>
+            case Some(InProgressValue.value) =>
               Ok(views.html.uploadInProgress(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = false))
                 .uncache()
-            case Some("Completed") =>
+            case Some(CompletedValue.value) =>
               Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = false))
                 .uncache()
             case None =>
@@ -101,7 +101,7 @@ class UploadController @Inject() (
             case _ =>
               throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
           }
-        case Some("InProgress") =>
+        case Some(InProgressValue.value) =>
           Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId))
         case None =>
           Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
@@ -118,15 +118,15 @@ class UploadController @Inject() (
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val uploadStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, Upload).values.headOption.flatten
+      val uploadStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, UploadType).values.headOption.flatten
       val pageHeadingUpload = "Upload judgment"
       val pageHeadingUploading = "Uploading judgment"
 
       uploadStatus match {
-        case Some("InProgress") =>
+        case Some(InProgressValue.value) =>
           Ok(views.html.uploadInProgress(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
-        case Some("Completed") =>
+        case Some(CompletedValue.value) =>
           Ok(views.html.uploadHasCompleted(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
         case None =>
