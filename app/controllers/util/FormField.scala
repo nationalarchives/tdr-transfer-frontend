@@ -2,6 +2,7 @@ package controllers.util
 
 import controllers.util.FormField._
 import org.apache.commons.lang3.NotImplementedException
+import services.Details
 
 import java.time.{LocalDateTime, Year}
 import scala.util.control.Exception.allCatch
@@ -76,6 +77,7 @@ case class TextAreaField(
     rows: String = "5",
     wrap: String = "soft",
     characterLimit: Int = 8000,
+    details: Option[Details],
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = List(nameAndValue.name)

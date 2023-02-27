@@ -199,6 +199,15 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
           |<Spaces>
           |          </ul>""".stripMargin.replace("<Spaces>", "            ")
       )
+      page must include(
+        """<details class="govuk-details govuk-!-margin-bottom-2" data-module="govuk-details">
+          |  <summary class="govuk-details__summary">
+          |    <span class="govuk-details__summary-text">Records with sensitive descriptions</span>
+          |  </summary>
+          |  <div class="govuk-details__text">
+          |    <p class="govuk-body">additionalMetadata.descriptive.sensitive</p>
+          |  </div>""".stripMargin
+      )
     }
   }
 }

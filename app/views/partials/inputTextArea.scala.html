@@ -1,6 +1,8 @@
 @import controllers.util.InputNameAndValue
 @import views.html.partials.errorMessage
 
+@import services.Details
+@import views.html.partials.details
 @(fieldId: String,
 fieldName: String,
 fieldDescription: String,
@@ -9,7 +11,8 @@ fieldErrors: Seq[String],
 attributes: Map[Symbol, Any] = Map(),
 rows: String,
 wrap: String,
-characterLimit: Int)(implicit messages: Messages)
+characterLimit: Int,
+detailsOpt: Option[Details])(implicit messages: Messages)
 
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @inputName = @{if(isDynamicForm) s"inputtextarea-$fieldId" else fieldId}
@@ -25,6 +28,9 @@ characterLimit: Int)(implicit messages: Messages)
     <div id="@inputName-hint" class="govuk-hint">
         @fieldDescription
     </div>
+    @for(detail <- detailsOpt) {
+      @details(detail)
+    }
     @errorMessage(fieldId, fieldErrors)
     <div class="govuk-input__wrapper">
           <textarea class="govuk-textarea @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
