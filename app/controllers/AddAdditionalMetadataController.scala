@@ -129,7 +129,7 @@ class AddAdditionalMetadataController @Inject() (
     updatedFormFields.collect {
       case TextField(fieldId, _, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
-      case TextAreaField(fieldId, _, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
+      case TextAreaField(fieldId, _, _, _, _, multiValue, nameAndValue, _, _, _, _, _, _, _) if nameAndValue.value.nonEmpty =>
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, nameAndValue.value) :: Nil
       case DateField(fieldId, _, _, _, _, multiValue, day, month, year, _, _, _, _) if day.value.nonEmpty =>
         val dateTime: LocalDateTime = LocalDate.of(year.value.toInt, month.value.toInt, day.value.toInt).atTime(LocalTime.MIDNIGHT)

@@ -1,0 +1,10 @@
+@import services.Details
+@(detail: Details)
+<details class="govuk-details govuk-!-margin-bottom-2" data-module="govuk-details">
+  <summary class="govuk-details__summary">
+    <span class="govuk-details__summary-text">@detail.detailsSummary</span>
+  </summary>
+  <div class="govuk-details__text">
+    <p class="govuk-body">@detail.detailsText</p>
+  </div>
+</details>
