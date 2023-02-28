@@ -1,18 +1,12 @@
 @* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
-@import helper.{inputRadioGroup => _, _}
-@import java.util.UUID
-
-@import scala.language.postfixOps
-@import views.html.partials.{inputDate, inputText, errorSummary, inputTextArea}
-@import views.html.partials.transferReference
-@import views.html.partials.inputRadioGroup
-@import controllers.util._
-@import views.html.partials.inputMultiSelect
-
 @import controllers.AddAdditionalMetadataController.File
-@import views.html.partials.fileNameCard
+@import controllers.util.MetadataProperty.{description, end_date, foiExemptionCode}
+@import controllers.util._
+@import helper.{inputRadioGroup => _, _}
+@import views.html.partials.{inputDate, inputText, _}
 
-@import views.html.partials.inputDropdown
+@import java.util.UUID
+@import scala.language.postfixOps
 @(consignmentId: UUID, consignmentRef: String, metadataType: String, fieldsToApplyToFile: List[FormField], name: String, files: List[File])(implicit request: RequestHeader, messages: Messages)
 @main(s"Add or edit $metadataType metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
@@ -116,6 +110,11 @@
                     ),
                     fieldErrors
                   )
+              }
+            }
+            @defining(List(foiExemptionCode, description, end_date)) { fieldsWithSectionBreak =>
+              @if(fieldsWithSectionBreak.contains(fieldToApplyToFile.fieldId)) {
+                <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
               }
             }
           }
