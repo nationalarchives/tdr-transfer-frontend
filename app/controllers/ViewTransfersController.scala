@@ -23,7 +23,6 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
 
   implicit class ConsignmentStatusesHelper(statuses: List[ConsignmentStatuses]) {
     def containsStatuses(statusTypes: StatusType*): Boolean = {
-      // statuses.exists(_.statusType == statusType.id)
       statusTypes.foldLeft(false)((contains, statusType) => contains || statuses.exists(_.statusType == statusType.id))
     }
 
