@@ -15,7 +15,7 @@ addSuffixText: Boolean)(implicit messages: Messages)
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @inputName = @{if(isDynamicForm) s"input$inputTextDataType-$fieldId-${input.name}" else fieldId}
 
-<div class="govuk-form-group @{
+<div class="govuk-form-group govuk-!-margin-bottom-9  @{
     if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""
 }">
     <h2 class="govuk-label-wrapper">
