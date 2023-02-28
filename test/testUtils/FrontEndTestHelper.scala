@@ -22,7 +22,7 @@ import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
-import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.{CurrentStatus => encs}
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.{ConsignmentStatuses => ecs}
 import graphql.codegen.GetConsignments.{getConsignments => gc}
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
@@ -296,13 +296,13 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
   def setConsignmentViewTransfersResponse(
       wiremockServer: WireMockServer,
       consignmentType: String,
-      customStatusValues: List[encs] = List(),
-      noConsignment: Boolean = false
+      noConsignment: Boolean = false,
+      statuses: List[ecs] = List()
   ): List[Edges] = {
 
     val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
     val consignmentId = UUID.randomUUID()
-    val edges = generateConsignmentEdges(customStatusValues, consignmentId, consignmentType)
+    val edges = generateConsignmentEdges(consignmentId, consignmentType, statuses)
 
     val consignments = gc.Data(
       gc.Consignments(
@@ -348,27 +348,24 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  def generateConsignmentEdges(statuses: List[encs], consignmentId: UUID, consignmentType: String): List[Some[Edges]] = {
-    statuses
-      .zip(LazyList.from(1))
-      .map(e => {
-        val orderNumber = e._2
-        val someDateTime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault()))
-        Some(
-          Edges(
-            Node(
-              consignmentid = Some(consignmentId),
-              consignmentReference = s"consignment-ref-$orderNumber",
-              consignmentType = Some(consignmentType),
-              exportDatetime = someDateTime,
-              createdDatetime = someDateTime,
-              currentStatus = e._1,
-              totalFiles = orderNumber
-            ),
-            "Cursor"
-          )
+  def generateConsignmentEdges(consignmentId: UUID, consignmentType: String, statuses: List[ecs]): List[Some[Edges]] = {
+    val someDateTime = Some(ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault()))
+    List(
+      Some(
+        Edges(
+          Node(
+            consignmentid = Some(consignmentId),
+            consignmentReference = s"consignment-ref-1",
+            consignmentType = Some(consignmentType),
+            exportDatetime = someDateTime,
+            createdDatetime = someDateTime,
+            statuses,
+            totalFiles = 1
+          ),
+          "Cursor"
         )
-      })
+      )
+    )
   }
 
   private def getDisplayPropertiesDataObject: dp.Data = {
