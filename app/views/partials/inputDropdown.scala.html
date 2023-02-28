@@ -17,7 +17,7 @@ fieldErrors: List[String] = Nil
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @formFieldId = @{if(isDynamicForm) s"inputdropdown-$fieldId" else fieldId}
 
-<div class="govuk-form-group @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+<div class="govuk-form-group govuk-!-margin-bottom-9 @{if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
     @if(fieldName != "") {
         <h2 class="govuk-label-wrapper">
             <label class="govuk-label govuk-label--m" for="@formFieldId">
