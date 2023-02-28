@@ -1,18 +1,22 @@
 package controllers
 
+import org.scalatest.matchers.should.Matchers._
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
-import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.CurrentStatus
+import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.ConsignmentStatuses
 import play.api.Play.materializer
 import play.api.http.Status.{FOUND, OK}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.ConsignmentService
+import services.Statuses.SeriesType
 import testUtils.{CheckPageForStaticElements, ConsignmentStatusesOptions, FrontEndTestHelper}
 
 import java.time.format.DateTimeFormatter
+import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
+import java.util.UUID
 import scala.concurrent.ExecutionContext
 
 class ViewTransfersControllerSpec extends FrontEndTestHelper {
@@ -30,28 +34,17 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
 
   private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
-  private val defaultCurrentStatus = CurrentStatus(
-    series = None,
-    transferAgreement = None,
-    upload = None,
-    clientChecks = None,
-    serverAntivirus = None,
-    serverChecksum = None,
-    serverFFID = None,
-    confirmTransfer = None,
-    export = None
-  )
   private val standardType = "standard"
   private val judgmentType = "judgment"
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  forAll(ConsignmentStatusesOptions.expectedStandardStatesAndStatuses) { (expectedTransferState, currentStatus, actionUrl, transferState, actionText) =>
+  forAll(ConsignmentStatusesOptions.expectedStandardStatesAndStatuses) { (expectedTransferState, statuses, actionUrl, transferState, actionText) =>
     {
       s"ViewTransfersController for '$standardType' consignments" should {
         s"render the '$expectedTransferState' action for the given 'consignment status'" in {
           setConsignmentTypeResponse(wiremockServer, "standard")
-          val consignment: List[Consignments.Edges] = setConsignmentViewTransfersResponse(wiremockServer, standardType, customStatusValues = List(currentStatus))
+          val consignment: List[Consignments.Edges] = setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = statuses)
           val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
           val consignmentService = new ConsignmentService(graphQLConfiguration)
           val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
@@ -70,12 +63,12 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  forAll(ConsignmentStatusesOptions.expectedJudgmentStatesAndStatuses) { (expectedTransferState, currentStatus, actionUrl, transferState, actionText) =>
+  forAll(ConsignmentStatusesOptions.expectedJudgmentStatesAndStatuses) { (expectedTransferState, statuses, actionUrl, transferState, actionText) =>
     {
       s"ViewTransfersController for '$judgmentType' consignments" should {
         s"render the '$expectedTransferState' action for the given 'consignment status'" in {
           setConsignmentTypeResponse(wiremockServer, judgmentType)
-          val consignment: List[Consignments.Edges] = setConsignmentViewTransfersResponse(wiremockServer, judgmentType, customStatusValues = List(currentStatus))
+          val consignment: List[Consignments.Edges] = setConsignmentViewTransfersResponse(wiremockServer, judgmentType, statuses = statuses)
 
           val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
           val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -98,7 +91,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   "ViewTransfersController" should {
     "render the view transfers page with a list of all user's consignments" in {
       setConsignmentTypeResponse(wiremockServer, standardType)
-      val consignments = setConsignmentViewTransfersResponse(wiremockServer, standardType, List(defaultCurrentStatus, defaultCurrentStatus))
+      val consignments = setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -121,10 +114,12 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
     "render the view transfers page with list of user's consignments and have 'Contact us' as an Action for consignments" +
       " where the status value were invalid/not recognised" in {
+        val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+        val invalidConsignmentStatus = ConsignmentStatuses(UUID.randomUUID, UUID.randomUUID, SeriesType.id, "InvalidStatusValue", someDateTime, None)
+
         setConsignmentTypeResponse(wiremockServer, standardType)
-        val invalidCurrentStatusValue = CurrentStatus(Some("InvalidStatusValue"), None, None, None, None, None, None, None, None)
         val consignmentsWithAllStatusStates: List[Consignments.Edges] =
-          setConsignmentViewTransfersResponse(wiremockServer, standardType, customStatusValues = List(invalidCurrentStatusValue))
+          setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = List(invalidConsignmentStatus))
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
         val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
@@ -171,7 +166,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
     "render the view transfers page with a list of all a judgment user's consignments" in {
       setConsignmentTypeResponse(wiremockServer, judgmentType)
-      val consignments = setConsignmentViewTransfersResponse(wiremockServer, judgmentType, List(defaultCurrentStatus, defaultCurrentStatus))
+      val consignments = setConsignmentViewTransfersResponse(wiremockServer, judgmentType, statuses = List())
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new ViewTransfersController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
@@ -226,6 +221,25 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+    }
+  }
+
+  "ActionText" should {
+    "have the correct value" in {
+      ContactUs.value should equal("Contact us")
+      Download.value should equal("Download report")
+      Errors.value should equal("View errors")
+      Resume.value should equal("Resume transfer")
+      View.value should equal("View")
+    }
+  }
+
+  "TransferStatus" should {
+    "have the correct value" in {
+      ContactUs.value should equal("Contact us")
+      Failed.value should equal("Failed")
+      InProgress.value should equal("In Progress")
+      Transferred.value should equal("Transferred")
     }
   }
 
