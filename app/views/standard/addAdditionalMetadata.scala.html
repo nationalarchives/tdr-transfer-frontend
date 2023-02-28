@@ -1,9 +1,8 @@
-@* helper package contains inputRadioGroup therefore exclude from imports to prevent ambiguous import with view of the same name *@
 @import controllers.AddAdditionalMetadataController.File
 @import controllers.util.MetadataProperty.{description, end_date, foiExemptionCode}
 @import controllers.util._
-@import helper.{inputRadioGroup => _, _}
-@import views.html.partials.{inputDate, inputText, _}
+@import views.html.helper.{CSRF, form}
+@import views.html.partials._
 
 @import java.util.UUID
 @import scala.language.postfixOps
