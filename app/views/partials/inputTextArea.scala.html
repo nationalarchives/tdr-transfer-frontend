@@ -11,7 +11,6 @@ fieldErrors: Seq[String],
 attributes: Map[Symbol, Any] = Map(),
 rows: String,
 wrap: String,
-characterLimit: Int,
 detailsOpt: Option[Details])(implicit messages: Messages)
 
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
@@ -38,7 +37,6 @@ detailsOpt: Option[Details])(implicit messages: Messages)
             id="@inputName"
             name="@{if(isDynamicForm) s"$inputName" else fieldId}"
             placeholder="@input.placeHolder"
-            wrap="@wrap"
-            maxlength="@characterLimit">@input.value</textarea>
+            wrap="@wrap">@input.value</textarea>
     </div>
 </div>
