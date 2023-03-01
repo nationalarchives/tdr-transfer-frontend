@@ -16,7 +16,7 @@ detailsOpt: Option[Details])(implicit messages: Messages)
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @inputName = @{if(isDynamicForm) s"inputtextarea-$fieldId" else fieldId}
 
-<div class="govuk-form-group govuk-!-margin-bottom-9 @{
+<div class="govuk-form-group @{
     if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""
 }">
     <h2 class="govuk-label-wrapper">
@@ -31,12 +31,10 @@ detailsOpt: Option[Details])(implicit messages: Messages)
       @details(detail)
     }
     @errorMessage(fieldId, fieldErrors)
-    <div class="govuk-input__wrapper">
-          <textarea class="govuk-textarea @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
-            rows="@rows"
-            id="@inputName"
-            name="@{if(isDynamicForm) s"$inputName" else fieldId}"
-            placeholder="@input.placeHolder"
-            wrap="@wrap">@input.value</textarea>
-    </div>
+    <textarea class="govuk-textarea @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
+     rows="@rows"
+     id="@inputName"
+     name="@{if(isDynamicForm) s"$inputName" else fieldId}"
+     placeholder="@input.placeHolder"
+     wrap="@wrap">@input.value</textarea>
 </div>
