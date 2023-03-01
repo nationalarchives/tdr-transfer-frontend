@@ -194,8 +194,7 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
        |            id="$id"
        |            name="$name"
        |            placeholder="$placeholder"
-       |            wrap="$wrap"
-       |            maxlength="$maxLength">$value</textarea>""".stripMargin
+       |            wrap="$wrap">$value</textarea>""".stripMargin
   }
 
   private def addValuesToRadioAttributes(id: String, name: String, selected: Boolean, value: String): String = {
