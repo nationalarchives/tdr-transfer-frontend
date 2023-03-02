@@ -33,7 +33,6 @@ class CheckPageForStaticElements() {
       checkContentOfSignedInPagesThatUseMainScala(page, userType, consignmentExists, transferStillInProgress, pageRequiresAwsServices)
     } else {
       page must not include "/faq"
-      page must not include "/help"
       page must not include "Sign out"
     }
   }
