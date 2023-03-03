@@ -37,6 +37,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
   val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
   val taHelper = new TransferAgreementTestHelper(wiremockServer)
   val checkPageForStaticElements = new CheckPageForStaticElements
+  val expectedConfirmationMessage = "You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor."
 
   val additionalMetadataBlocks: TableFor2[Boolean, Boolean] = Table(
     ("blockClosureMetadata", "blockDescriptiveMetadata"),
@@ -86,7 +87,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
         redirectLocation(transferAgreementPage).get must equal(s"/consignment/$consignmentId/series")
       }
 
-      "redirect to the transfer agreement page with an authenticated user if consignment status is 'None'" in {
+      "redirect to the transfer agreement (part 2) page with an authenticated user if consignment status is 'None'" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller: TransferAgreementComplianceController =
           taHelper.instantiateTransferAgreementComplianceController(
@@ -112,7 +113,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
         redirectLocation(transferAgreementPage) must be(Some(s"/consignment/$consignmentId/transfer-agreement"))
       }
 
-      "render the transfer agreement (continued) page with an authenticated user if consignment status is 'InProgress'" in {
+      "render the transfer agreement (part 2) page with an authenticated user if consignment status is 'InProgress'" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller: TransferAgreementComplianceController =
           taHelper.instantiateTransferAgreementComplianceController(
@@ -143,7 +144,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
 
         checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType = taHelper.userType)
         formOptions.checkHtmlForOptionAndItsAttributes(transferAgreementPageAsString, Map())
-        taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+        taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false, expectedConfirmationMessage)
         checkForExpectedTACompliancePageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
       }
 
@@ -173,7 +174,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
         failure mustBe an[AuthorisationException]
       }
 
-      "create a transfer agreement (continued) when a valid form is submitted and the api response is successful" in {
+      "create a transfer agreement (part 2) when a valid form is submitted and the api response is successful" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
 
         val addTransferAgreementResponse: atac.AddTransferAgreementCompliance = new atac.AddTransferAgreementCompliance(
@@ -291,7 +292,7 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
         transferAgreementPageAsString must include("error")
 
         checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType = taHelper.userType)
-        taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+        taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false, expectedConfirmationMessage)
         checkForExpectedTACompliancePageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
       }
 
@@ -339,12 +340,12 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
           transferAgreementPageAsString must include("error")
 
           checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType = taHelper.userType)
-          taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
+          taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, taAlreadyConfirmed = false, expectedConfirmationMessage)
           checkForExpectedTACompliancePageContent(transferAgreementPageAsString, taAlreadyConfirmed = false)
         }
       }
 
-      "render the transfer agreement (continued) 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
+      "render the transfer agreement (part 2) 'already confirmed' page with an authenticated user if consignment status is 'Completed'" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val controller: TransferAgreementComplianceController =
           taHelper.instantiateTransferAgreementComplianceController(
@@ -377,11 +378,11 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
 
         checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAgreementPageAsString, userType = taHelper.userType)
         formOptions.checkHtmlForOptionAndItsAttributes(transferAgreementPageAsString, Map(), formStatus = "Submitted")
-        taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString)
+        taHelper.checkForExpectedTAPageContent(transferAgreementPageAsString, confirmationMessage = expectedConfirmationMessage)
         checkForExpectedTACompliancePageContent(transferAgreementPageAsString)
       }
 
-      "render the transfer agreement (continued) 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page " +
+      "render the transfer agreement (part 2) 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page " +
         "after successfully submitting transfer agreement form having previously submitted an empty form" in {
           val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
           val controller =
@@ -415,13 +416,13 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
 
           checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType = taHelper.userType)
           formOptions.checkHtmlForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, Map(), formStatus = "Submitted")
-          taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
+          taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString, confirmationMessage = expectedConfirmationMessage)
           checkForExpectedTACompliancePageContent(taAlreadyConfirmedPageAsString)
         }
 
       optionsToSelectToGenerateFormErrors.foreach { optionsToSelect =>
         val optionsAsString: String = optionsToSelect.map(optionAndValue => optionAndValue._1).mkString(", ")
-        "render the transfer agreement (continued) 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
+        "render the transfer agreement (part 2) 'already confirmed' page with an authenticated user if user navigates back to transfer agreement page" +
           "after successfully submitting transfer agreement form having previously submitted a partially complete form " +
           s"(only these options: $optionsAsString selected)" in {
             val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
@@ -461,13 +462,13 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
 
             checkPageForStaticElements.checkContentOfPagesThatUseMainScala(taAlreadyConfirmedPageAsString, userType = taHelper.userType)
             formOptions.checkHtmlForOptionAndItsAttributes(taAlreadyConfirmedPageAsString, Map(), formStatus = "Submitted")
-            taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString)
+            taHelper.checkForExpectedTAPageContent(taAlreadyConfirmedPageAsString, confirmationMessage = expectedConfirmationMessage)
             checkForExpectedTACompliancePageContent(taAlreadyConfirmedPageAsString)
           }
       }
     }
 
-    s"The consignment transfer agreement continued page with blockAdditionalMetadata $blockClosureMetadata $blockDescriptiveMetadata" should {
+    s"The consignment transfer agreement (part 2) page with blockAdditionalMetadata $blockClosureMetadata $blockDescriptiveMetadata" should {
       s"return 403 if the GET is accessed by a non-standard user" in {
         val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
         val transferAgreementComplianceController =
@@ -485,8 +486,8 @@ class TransferAgreementComplianceControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkForExpectedTACompliancePageContent(pageAsString: String, taAlreadyConfirmed: Boolean = true): Unit = {
-    pageAsString must include("<title>Transfer agreement continued</title>")
-    pageAsString must include("""<h1 class="govuk-heading-l">Transfer agreement continued</h1>""")
+    pageAsString must include("<title>Transfer agreement (part 2)</title>")
+    pageAsString must include("""<h1 class="govuk-heading-l">Transfer agreement (part 2)</h1>""")
     if (taAlreadyConfirmed) {
       pageAsString must include(
         s"""href="/consignment/c2efd3e6-6664-4582-8c28-dcf891f60e68/upload">
