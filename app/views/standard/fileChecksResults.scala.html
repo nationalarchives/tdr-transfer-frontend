@@ -16,9 +16,9 @@
                 </div>
                 <div class="govuk-notification-banner__content">
                     <h3 class="govuk-notification-banner__heading">
-                        Your folder '@{consignmentInfo.parentFolder}' containing @{consignmentInfo.numberOfFiles} item@if(consignmentInfo.numberOfFiles > 1){s} has been successfully uploaded
+                        Your folder '@{consignmentInfo.parentFolder}' containing @{consignmentInfo.numberOfFiles} record@if(consignmentInfo.numberOfFiles > 1){s} has been uploaded and checked.
                     </h3>
-                    <p class="govuk-body">You can leave and return to this transfer at any time from the <a class="govuk-notification-banner__link" href="@routes.ViewTransfersController.viewConsignments()">View transfers</a> page.</p>
+                    <p class="govuk-body">You can leave and return to this upload at any time from the <a class="govuk-notification-banner__link" href="@routes.ViewTransfersController.viewConsignments()">View transfers</a> page.</p>
                 </div>
             </div>
             <div class="govuk-warning-text">
