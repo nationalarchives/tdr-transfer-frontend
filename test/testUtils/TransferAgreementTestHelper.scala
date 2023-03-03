@@ -142,14 +142,13 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
   }
 
-  def checkForExpectedTAPageContent(pageAsString: String, taAlreadyConfirmed: Boolean = true): Unit = {
+  def checkForExpectedTAPageContent(pageAsString: String, taAlreadyConfirmed: Boolean = true, confirmationMessage: String): Unit = {
     if (taAlreadyConfirmed) {
       pageAsString must include("""            <h2 class="success-summary__title">You have already confirmed all statements</h2>""")
       pageAsString must include("""            <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""")
     } else {
       pageAsString must include(
-        """        <p class="govuk-body">You must confirm all statements before proceeding. """ +
-          """If you cannot, please close your browser and contact your transfer advisor.</p>"""
+        s"""        <p class="govuk-body">$confirmationMessage</p>"""
       )
     }
   }

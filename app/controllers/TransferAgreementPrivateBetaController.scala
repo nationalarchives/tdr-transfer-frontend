@@ -28,6 +28,8 @@ class TransferAgreementPrivateBetaController @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
+  private val blockAdditionalMetadata: Boolean = applicationConfig.blockClosureMetadata && applicationConfig.blockDescriptiveMetadata
+
   private val transferAgreementFormWithEnglish: Form[TransferAgreementData] = Form(
     mapping(
       "publicRecord" -> boolean
@@ -67,7 +69,8 @@ class TransferAgreementPrivateBetaController @Inject() (
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val formAndLabel = transferAgreementFormNameAndLabel.filter(f => taForm.formats.keys.toList.contains(f._1))
-      val warningMessage = Messages("transferAgreement.warning")
+      val warningMessage = if (blockAdditionalMetadata) { Messages("transferAgreementPrivateBeta.warning") }
+      else { Messages("transferAgreement.warning") }
       seriesStatus match {
         case Some(CompletedValue.value) =>
           transferAgreementStatus match {
@@ -130,7 +133,7 @@ class TransferAgreementPrivateBetaController @Inject() (
   }
 
   private def form: Form[TransferAgreementData] =
-    if (applicationConfig.blockClosureMetadata && applicationConfig.blockDescriptiveMetadata) {
+    if (blockAdditionalMetadata) {
       transferAgreementFormWithEnglish
     } else {
       transferAgreementForm
