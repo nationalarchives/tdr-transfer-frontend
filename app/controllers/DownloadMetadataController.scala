@@ -10,6 +10,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, CustomMetadataService}
 
+import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -61,9 +62,10 @@ class DownloadMetadataController @Inject() (
         }
       }
       val csvString = CsvUtils.writeCsv(header :: fileMetadataRows)
+      val currentDate = formatter.format(LocalDateTime.now())
       Ok(csvString)
         .as("text/csv")
-        .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-metadata.csv")
+        .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-$currentDate-metadata.csv")
     }
   }
 }
