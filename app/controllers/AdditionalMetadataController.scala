@@ -2,8 +2,11 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+import controllers.AdditionalMetadataController._
+import graphql.codegen.GetConsignment.getConsignment.GetConsignment
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
+import services.Statuses.{ClosureMetadataType, CompletedValue, DescriptiveMetadataType, IncompleteValue, NotEnteredValue, StatusType}
 import services.{ConsignmentService, DisplayPropertiesService, DisplayProperty}
 
 import java.util.UUID
@@ -25,8 +28,39 @@ class AdditionalMetadataController @Inject() (
         .getDisplayProperties(consignmentId, request.token.bearerAccessToken, None)
         .map(_.partition(byClosureType))
         .map(m => (m._1.map(_.summary), m._2.map(_.summary)))
-    } yield Ok(
-      views.html.standard.additionalMetadataStart(consignment.consignmentReference, consignmentId, request.token.name, closurePropertiesSummaries, descriptivePropertiesSummaries)
-    )
+    } yield {
+      val pageArgs = AdditionalMetadataStartPage(
+        consignment.consignmentReference,
+        consignmentId,
+        request.token.name,
+        closurePropertiesSummaries,
+        descriptivePropertiesSummaries,
+        getValue(consignment.consignmentStatuses, ClosureMetadataType),
+        getValue(consignment.consignmentStatuses, DescriptiveMetadataType)
+      )
+      Ok(views.html.standard.additionalMetadataStart(pageArgs))
+    }
   }
+
+  def getValue(statuses: List[GetConsignment.ConsignmentStatuses], statusType: StatusType): MetadataProgress = {
+    val notEntered = MetadataProgress("NOT ENTERED", "grey")
+    statuses.find(_.statusType == statusType.id).map(_.value).map {
+      case NotEnteredValue.value => notEntered
+      case CompletedValue.value  => MetadataProgress("ENTERED", "blue")
+      case IncompleteValue.value => MetadataProgress("INCOMPLETE", "red")
+      case _                     => notEntered
+    } getOrElse notEntered
+  }
+}
+object AdditionalMetadataController {
+  case class MetadataProgress(value: String, colour: String)
+  case class AdditionalMetadataStartPage(
+      consignmentRef: String,
+      consignmentId: UUID,
+      name: String,
+      closurePropertiesSummaries: List[String],
+      descriptivePropertiesSummaries: List[String],
+      closureStatus: MetadataProgress,
+      descriptiveStatus: MetadataProgress
+  )
 }

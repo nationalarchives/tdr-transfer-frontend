@@ -65,6 +65,7 @@ import play.api.test.Injecting
 import play.api.{Application, Configuration}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
+import graphql.codegen.GetConsignment.{getConsignment => gcd}
 import viewsapi.FrontEndInfo
 
 import java.io.File
@@ -187,9 +188,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
   def setConsignmentDetailsResponse(
       wiremockServer: WireMockServer,
-      parentFolder: Option[String],
+      parentFolder: Option[String] = None,
       consignmentReference: String = "TEST-TDR-2021-GB",
-      parentFolderId: Option[UUID]
+      parentFolderId: Option[UUID] = None,
+      consignmentStatuses: List[gcd.GetConsignment.ConsignmentStatuses]
   ): StubMapping = {
     val folderOrNull = parentFolder.map(folder => s""" "$folder" """).getOrElse("null")
     val folderIdOrNull = parentFolderId.map(id => s""" "$id" """).getOrElse("null")
@@ -199,7 +201,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
          | "parentFolder": $folderOrNull,
          | "parentFolderId": $folderIdOrNull,
          | "userid" : "${UUID.randomUUID()}",
-         | "seriesid": "${UUID.randomUUID()}"}}} """.stripMargin
+         | "seriesid": "${UUID.randomUUID()}",
+         | "consignmentStatuses": ${consignmentStatuses.asJson.printWith(Printer.noSpaces)}
+         | }}} """.stripMargin
 
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))

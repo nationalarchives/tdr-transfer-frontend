@@ -3,7 +3,9 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
+import controllers.AdditionalMetadataController.MetadataProgress
 import graphql.codegen.GetConsignment.getConsignment
+import graphql.codegen.GetConsignment.getConsignment.GetConsignment.ConsignmentStatuses
 import io.circe.generic.auto._
 import io.circe.syntax._
 import play.api.Play.materializer
@@ -37,8 +39,9 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val parentFolder = "parentFolder"
       val parentFolderId = UUID.randomUUID()
       val consignmentId = UUID.randomUUID()
+      val consignmentStatuses = List(ConsignmentStatuses("DescriptiveMetadata", "NotEntered"), ConsignmentStatuses("ClosureMetadata", "NotEntered"))
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = Option(parentFolderId))
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = Option(parentFolderId), consignmentStatuses = consignmentStatuses)
       setDisplayPropertiesResponse(wiremockServer)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -92,7 +95,8 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
         "Descriptive metadata",
         "descriptive",
         "Add descriptive metadata to your files",
-        "You do not need to add descriptive metadata but it can enhance your record."
+        "You do not need to add descriptive metadata but it can enhance your record.",
+        MetadataProgress("NOT ENTERED", "grey")
       )
       verifyCard(
         startPageAsString,
@@ -100,8 +104,59 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
         "Closure metadata",
         "closure",
         "Add closure and associated metadata to your files",
-        "You must add closure metadata to closed files and folders."
+        "You must add closure metadata to closed files and folders.",
+        MetadataProgress("NOT ENTERED", "grey")
       )
+    }
+
+    val metadataTypeTable = Table(
+      "metadataType",
+      "Descriptive",
+      "Closure"
+    )
+
+    forAll(metadataTypeTable) { metadataType =>
+      val statusesTable = Table(
+        ("consignmentStatuses", "progress"),
+        (ConsignmentStatuses(s"${metadataType}Metadata", "NotEntered") :: Nil, MetadataProgress("NOT ENTERED", "grey")),
+        (ConsignmentStatuses(s"${metadataType}Metadata", "Completed") :: Nil, MetadataProgress("ENTERED", "blue")),
+        (ConsignmentStatuses(s"${metadataType}Metadata", "Incomplete") :: Nil, MetadataProgress("INCOMPLETE", "red")),
+        (Nil, MetadataProgress("NOT ENTERED", "grey"))
+      )
+      forAll(statusesTable) { (consignmentStatuses, progress) =>
+        val statusValue = consignmentStatuses.headOption.map(_.value).getOrElse("Missing Status")
+        s"render the progress value for $metadataType with status $statusValue" in {
+          val consignmentId = UUID.randomUUID()
+          setConsignmentTypeResponse(wiremockServer, "standard")
+          setConsignmentDetailsResponse(wiremockServer, consignmentStatuses = consignmentStatuses)
+          setDisplayPropertiesResponse(wiremockServer)
+
+          val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+          val consignmentService = new ConsignmentService(graphQLConfiguration)
+          val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+          val controller =
+            new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val response = controller
+            .start(consignmentId)
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
+          val startPageAsString = contentAsString(response)
+          val (title, description) = if (metadataType == "Closure") {
+            ("Add closure and associated metadata to your files", "You must add closure metadata to closed files and folders.")
+          } else {
+            ("Add descriptive metadata to your files", "You do not need to add descriptive metadata but it can enhance your record.")
+
+          }
+          verifyCard(
+            startPageAsString,
+            consignmentId.toString,
+            s"$metadataType metadata",
+            metadataType.toLowerCase(),
+            title,
+            description,
+            progress
+          )
+        }
+      }
     }
 
     "return forbidden if the pages are accessed by a judgment user" in {
@@ -156,15 +211,15 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  def verifyCard(page: String, consignmentId: String, name: String, metadataType: String, title: String, description: String): Unit = {
+  def verifyCard(page: String, consignmentId: String, name: String, metadataType: String, title: String, description: String, progress: MetadataProgress): Unit = {
 
     page must include(s"""<div class="tdr-card tdr-metadata-card">
                          |    <div class="tdr-card__content">
                          |      <h2 class="govuk-heading-s">
                          |        <a class="govuk-link govuk-link--no-visited-state" href="/consignment/$consignmentId/additional-metadata/files/$metadataType">$name</a>
                          |      </h2>
-                         |      <strong class="tdr-metadata-card__state govuk-tag govuk-tag--grey">
-                         |        Not entered
+                         |      <strong class="tdr-metadata-card__state govuk-tag govuk-tag--${progress.colour}">
+                         |        ${progress.value}
                          |      </strong>
                          |      <p class="govuk-body">$title</p>
                          |      <p class="govuk-inset-text govuk-!-margin-top-0">$description</p>
