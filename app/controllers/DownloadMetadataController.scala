@@ -10,7 +10,6 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, CustomMetadataService}
 
-import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
