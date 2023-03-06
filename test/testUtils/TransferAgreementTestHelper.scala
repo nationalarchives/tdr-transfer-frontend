@@ -3,9 +3,8 @@ package testUtils
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import controllers.{TransferAgreementPart2Controller, TransferAgreementPart1Controller}
+import controllers.{TransferAgreementPart1Controller, TransferAgreementPart2Controller}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
@@ -13,10 +12,8 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
-import org.scalatest.concurrent.ScalaFutures._
 import play.api.Configuration
 import services.{ConsignmentService, ConsignmentStatusService, TransferAgreementService}
-import testUtils.DefaultMockFormOptions.{expectedPart2Options, expectedPart1Options}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.GraphQLClient.Extensions
 
@@ -25,7 +22,7 @@ import scala.concurrent.ExecutionContext
 class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  val privateBeta = "privateBeta"
+  val part1 = "part1"
   val part2 = "part2"
   val userType = "standard"
 
@@ -50,7 +47,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val value = "true"
 
     val options = Map(
-      "privateBeta" ->
+      "part1" ->
         Seq(
           ("publicRecord", value),
           ("crownCopyright", value),
@@ -112,7 +109,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     )
   }
 
-  def stubTAPrivateBetaResponse(transferAgreement: Option[atapb.AddTransferAgreementPrivateBeta] = None, config: Configuration, errors: List[GraphQLClient.Error] = Nil): Unit = {
+  def stubTAPart1Response(transferAgreement: Option[atapb.AddTransferAgreementPrivateBeta] = None, config: Configuration, errors: List[GraphQLClient.Error] = Nil): Unit = {
     val client = new GraphQLConfiguration(config).getClient[atapb.Data, atapb.Variables]()
 
     val data: client.GraphqlData =
