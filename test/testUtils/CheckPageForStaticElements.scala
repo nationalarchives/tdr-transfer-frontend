@@ -11,6 +11,7 @@ class CheckPageForStaticElements() {
       transferStillInProgress: Boolean = true,
       pageRequiresAwsServices: Boolean = false
   ): Unit = {
+    page must include("""<html lang="en" class="govuk-template">""")
     page must include("""
     |    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     |    <meta name="robots" content="noindex">
