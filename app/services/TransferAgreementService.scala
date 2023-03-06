@@ -2,7 +2,7 @@ package services
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
-import controllers.{TransferAgreementData, TransferAgreementComplianceData}
+import controllers.{TransferAgreementData, TransferAgreementPart2Data}
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.types.{AddTransferAgreementComplianceInput, AddTransferAgreementPrivateBetaInput}
@@ -16,7 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TransferAgreementService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val addTransferAgreementPrivateBetaClient =
     graphqlConfiguration.getClient[atapb.Data, atapb.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
-  private val addTransferAgreementComplianceClient =
+  private val addTransferAgreementPart2Client =
     graphqlConfiguration.getClient[atac.Data, atac.Variables]() // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
   def addTransferAgreementPrivateBeta(consignmentId: UUID, token: BearerAccessToken, formData: TransferAgreementData): Future[atapb.AddTransferAgreementPrivateBeta] = {
     val addTransferAgreementPrivateBetaInput: AddTransferAgreementPrivateBetaInput =
@@ -26,11 +26,11 @@ class TransferAgreementService @Inject() (val graphqlConfiguration: GraphQLConfi
     sendApiRequest(addTransferAgreementPrivateBetaClient, atapb.document, token, variables).map(_.addTransferAgreementPrivateBeta)
   }
 
-  def addTransferAgreementCompliance(consignmentId: UUID, token: BearerAccessToken, formData: TransferAgreementComplianceData): Future[atac.AddTransferAgreementCompliance] = {
+  def addTransferAgreementPart2(consignmentId: UUID, token: BearerAccessToken, formData: TransferAgreementPart2Data): Future[atac.AddTransferAgreementCompliance] = {
     val addTransferAgreementComplianceInput: AddTransferAgreementComplianceInput =
       AddTransferAgreementComplianceInput(consignmentId, formData.droAppraisalSelection, formData.openRecords, formData.droSensitivity)
     val variables: atac.Variables = atac.Variables(addTransferAgreementComplianceInput)
 
-    sendApiRequest(addTransferAgreementComplianceClient, atac.document, token, variables).map(_.addTransferAgreementCompliance)
+    sendApiRequest(addTransferAgreementPart2Client, atac.document, token, variables).map(_.addTransferAgreementCompliance)
   }
 }

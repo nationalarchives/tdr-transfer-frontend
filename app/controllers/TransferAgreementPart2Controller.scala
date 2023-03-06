@@ -16,7 +16,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TransferAgreementComplianceController @Inject() (
+class TransferAgreementPart2Controller @Inject() (
     val controllerComponents: SecurityComponents,
     val graphqlConfiguration: GraphQLConfiguration,
     val transferAgreementService: TransferAgreementService,
@@ -27,7 +27,7 @@ class TransferAgreementComplianceController @Inject() (
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
-  val transferAgreementFormWithOpenRecords: Form[TransferAgreementComplianceData] = Form(
+  val transferAgreementFormWithOpenRecords: Form[TransferAgreementPart2Data] = Form(
     mapping(
       "droAppraisalSelection" -> boolean
         .verifying("Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records", b => b),
@@ -35,23 +35,23 @@ class TransferAgreementComplianceController @Inject() (
         .verifying("Departmental Records Officer (DRO) must have signed off sensitivity review", b => b),
       "openRecords" -> boolean
         .verifying("All records must be open", b => b)
-    )((droAppraisalSelection, droSensitivity, openRecords) => TransferAgreementComplianceData(droAppraisalSelection, droSensitivity, Option(openRecords)))(data =>
+    )((droAppraisalSelection, droSensitivity, openRecords) => TransferAgreementPart2Data(droAppraisalSelection, droSensitivity, Option(openRecords)))(data =>
       Option(data.droAppraisalSelection, data.droSensitivity, data.openRecords.getOrElse(false))
     )
   )
 
-  val transferAgreementForm: Form[TransferAgreementComplianceData] = Form(
+  val transferAgreementForm: Form[TransferAgreementPart2Data] = Form(
     mapping(
       "droAppraisalSelection" -> boolean
         .verifying("Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records", b => b),
       "droSensitivity" -> boolean
         .verifying("Departmental Records Officer (DRO) must have signed off sensitivity review", b => b)
-    )((droAppraisalSelection, droSensitivity) => TransferAgreementComplianceData(droAppraisalSelection, droSensitivity, None))(data =>
+    )((droAppraisalSelection, droSensitivity) => TransferAgreementPart2Data(droAppraisalSelection, droSensitivity, None))(data =>
       Option(data.droSensitivity, data.droAppraisalSelection)
     )
   )
 
-  private def form: Form[TransferAgreementComplianceData] =
+  private def form: Form[TransferAgreementPart2Data] =
     if (applicationConfig.blockClosureMetadata && applicationConfig.blockDescriptiveMetadata) {
       transferAgreementFormWithOpenRecords
     } else {
@@ -64,8 +64,8 @@ class TransferAgreementComplianceController @Inject() (
     ("openRecords", "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
   )
 
-  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementComplianceData])(implicit
-      request: Request[AnyContent]
+  private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementPart2Data])(implicit
+                                                                                                                                 request: Request[AnyContent]
   ): Future[Result] = {
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
@@ -81,13 +81,13 @@ class TransferAgreementComplianceController @Inject() (
             case Some(CompletedValue.value) =>
               Ok(
                 views.html.standard
-                  .transferAgreementComplianceAlreadyConfirmed(consignmentId, reference, form, formAndLabels, request.token.name)
+                  .transferAgreementPart2AlreadyConfirmed(consignmentId, reference, form, formAndLabels, request.token.name)
               )
                 .uncache()
             case Some(InProgressValue.value) =>
-              httpStatus(views.html.standard.transferAgreementCompliance(consignmentId, reference, taForm, formAndLabels, request.token.name)).uncache()
+              httpStatus(views.html.standard.transferAgreementPart2(consignmentId, reference, taForm, formAndLabels, request.token.name)).uncache()
             case None =>
-              Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId)).uncache()
+              Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId)).uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
           }
@@ -101,11 +101,11 @@ class TransferAgreementComplianceController @Inject() (
   }
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val errorFunction: Form[TransferAgreementComplianceData] => Future[Result] = { formWithErrors: Form[TransferAgreementComplianceData] =>
+    val errorFunction: Form[TransferAgreementPart2Data] => Future[Result] = { formWithErrors: Form[TransferAgreementPart2Data] =>
       loadStandardPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
     }
 
-    val successFunction: TransferAgreementComplianceData => Future[Result] = { formData: TransferAgreementComplianceData =>
+    val successFunction: TransferAgreementPart2Data => Future[Result] = { formData: TransferAgreementPart2Data =>
       val consignmentStatusService = new ConsignmentStatusService(graphqlConfiguration)
 
       for {
@@ -115,7 +115,7 @@ class TransferAgreementComplianceController @Inject() (
           case Some(CompletedValue.value) => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
           case Some(InProgressValue.value) =>
             transferAgreementService
-              .addTransferAgreementCompliance(consignmentId, request.token.bearerAccessToken, formData)
+              .addTransferAgreementPart2(consignmentId, request.token.bearerAccessToken, formData)
               .map(_ => Redirect(routes.UploadController.uploadPage(consignmentId)))
           case _ =>
             throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
@@ -123,7 +123,7 @@ class TransferAgreementComplianceController @Inject() (
       } yield result
     }
 
-    val formValidationResult: Form[TransferAgreementComplianceData] = form.bindFromRequest()
+    val formValidationResult: Form[TransferAgreementPart2Data] = form.bindFromRequest()
 
     formValidationResult.fold(
       errorFunction,
@@ -132,4 +132,4 @@ class TransferAgreementComplianceController @Inject() (
   }
 }
 
-case class TransferAgreementComplianceData(droAppraisalSelection: Boolean, droSensitivity: Boolean, openRecords: Option[Boolean])
+case class TransferAgreementPart2Data(droAppraisalSelection: Boolean, droSensitivity: Boolean, openRecords: Option[Boolean])
