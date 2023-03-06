@@ -2,15 +2,14 @@
 @import java.util.UUID
 
 @import scala.language.postfixOps
-@import views.html.partials.{transferAgreementFormGroup, transferAgreementHeader, transferReference}
+@import views.html.partials.{transferAgreementFormGroup, transferAgreementHeader, transferAgreementWarning, transferReference}
 
-@(consignmentId: UUID, consignmentRef: String, transferAgreementFormData: Form[TransferAgreementComplianceData], taFormNamesAndLabels: Seq[(String, String)],
-        name: String)(implicit request: RequestHeader, messages: Messages)
-@main("Transfer agreement (part 2)", name = name) {
+@(consignmentId: UUID, consignmentRef: String, transferAgreementFormData: Form[TransferAgreementData], taFormNameAndLabel: Seq[(String, String)], warningMessage: String, name: String)(implicit request: RequestHeader, messages: Messages)
+@main("Transfer agreement (part 1)", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        @transferAgreementHeader(" (part 2)")
+        @transferAgreementHeader(" (part 1)")
         <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
         role="alert" data-module="success-summary" tabindex="-1">
           <div class="success-summary__body">
@@ -18,10 +17,11 @@
             <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
           </div>
         </div>
-          @transferAgreementFormGroup(transferAgreementFormData, taFormNamesAndLabels, formAlreadySubmitted=true)
+          @transferAgreementWarning(warningMessage)
+          @transferAgreementFormGroup(transferAgreementFormData, taFormNameAndLabel, formAlreadySubmitted=true)
 
         <div class="govuk-button-group">
-            <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button" href="@routes.UploadController.uploadPage(consignmentId)">
+            <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button" href="@routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)">
                 Continue
             </a>
 
