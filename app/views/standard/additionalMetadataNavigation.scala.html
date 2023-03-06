@@ -4,11 +4,11 @@
 
 @import services.ConsignmentService.StatusTag
 @import views.html.partials.backLink
-@(consignmentId: UUID, name: String, files: File, metadataType: String, displayError: Boolean = false)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, name: String, files: File, metadataType: String, displayError: Boolean = false, expanded: Boolean = false)(implicit messages: Messages, request: RequestHeader)
 
 @display(file: File, level: Int, size: Int, pos: Int) = {
   @if(file.fileType.contains("File")) {
-    <li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-@file.id" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" aria-selected="false">
+    <li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-@file.id" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" aria-selected="false" aria-expanded="@expanded" >
       <div class="tna-tree__node-item__radio govuk-radios__item">
         <input type="radio" name="nested-navigation" class="govuk-radios__input" id="radio-@file.id" value="@file.id"/>
         <label class="govuk-label govuk-radios__label" for="radio-@file.id">
@@ -17,7 +17,7 @@
       </div>
     </li>
   } else {
-    <li class="tna-tree__node-item-radios" role="treeitem" id="radios-list-@file.id" aria-expanded="true" aria-selected="false" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" tabindex="0">
+    <li class="tna-tree__node-item-radios" role="treeitem" id="radios-list-@file.id" aria-selected="false" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" tabindex="0" aria-expanded="@expanded">
       <div class="tna-tree__node-item__container">
         <span class="tna-tree__expander js-tree__expander--radios" tabindex="-1" id="radios-expander-@file.id">
           <span class="govuk-visually-hidden">Expand</span>
@@ -62,7 +62,12 @@
 }
 
 @main("Additional Metadata", name = name, backLink = Some(backLink(routes.AdditionalMetadataController.start(consignmentId).url, "additionalMetadataStart.progress", "Descriptive and closure metadata"))) {
-
+@*  Only render the noscript if not expanded to prevent a continuous page refresh when the display is expanded, ie when there is no javascript *@
+  @if(!expanded) {
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType, expanded = Some("true"))">
+    </noscript>
+  }
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
