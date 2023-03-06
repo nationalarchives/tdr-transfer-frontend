@@ -1,20 +1,25 @@
 import { displayChecksCompletedBanner } from "../src/filechecks/display-checks-completed-banner"
 
-test("displayChecksCompletedBanner unhides the button and displays banner when called", () => {
+test("displayChecksCompletedBanner unhides the button removes the disabled reason and displays banner when called", () => {
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
-                            <a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`
+                            <a id="file-checks-continue" class="govuk-button--disabled" aria-describedby="reason-disabled" aria-disabled="true"></a>
+                            <p id="reason-disabled"></p>
+                            `
   displayChecksCompletedBanner()
 
   const notificationBanner = document.querySelector(
     "#file-checks-completed-banner"
   )
   const continueButton = document.querySelector("#file-checks-continue")
+  const disabledReason = document.querySelector("#reason-disabled")
 
   expect(notificationBanner!.getAttribute("hidden")).toBeNull()
   expect(
     continueButton!.classList.contains("govuk-button--disabled")
   ).toBeFalsy()
-  expect(continueButton!.hasAttribute("disabled")).toBeFalsy()
+  expect(continueButton!.getAttribute("aria-disabled")).toBe("false")
+  expect(continueButton!.getAttribute("aria-described-by")).toBeNull()
+  expect(disabledReason).toBeNull()
 })
 
 test("displayChecksCompletedBanner doesn't display banner if 'continue' button is missing", () => {
@@ -33,7 +38,7 @@ test("displayChecksCompletedBanner doesn't display banner if 'continue' button i
 })
 
 test("displayChecksCompletedBanner doesn't enable 'continue' button if display banner is missing", () => {
-  document.body.innerHTML = `<a id="file-checks-continue" class="govuk-button--disabled" disabled></a>`  // no banner exists in the HTML
+  document.body.innerHTML = `<a id="file-checks-continue" class="govuk-button--disabled" aria-disabled="true"></a>`  // no banner exists in the HTML
   displayChecksCompletedBanner()
 
   const notificationBanner = document.querySelector(
@@ -46,5 +51,5 @@ test("displayChecksCompletedBanner doesn't enable 'continue' button if display b
   expect(
     continueButton!.classList.contains("govuk-button--disabled")
   ).toBeTruthy()
-  expect(continueButton!.hasAttribute("disabled")).toBeTruthy()
+  expect(continueButton!.getAttribute("aria-disabled")).toBeTruthy()
 })
