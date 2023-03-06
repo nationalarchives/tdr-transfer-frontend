@@ -65,13 +65,13 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     Mockito.reset(graphQlClientForTAPart1)
   }
 
-  "addTransferAgreementPrivateBeta" should "return the TransferAgreement from the API" in {
-    val transferAgreementPrivateBetaResponse = AddTransferAgreementPrivateBeta(consignmentId, allPublicRecords = true, allCrownCopyright = true, allEnglish = Option(true))
+  "addTransferAgreementPart1" should "return the TransferAgreement from the API" in {
+    val transferAgreementPart1Response = AddTransferAgreementPrivateBeta(consignmentId, allPublicRecords = true, allCrownCopyright = true, allEnglish = Option(true))
 
     val graphQlResponse =
       GraphQlResponse(
         Some(
-          atapb.Data(transferAgreementPrivateBetaResponse)
+          atapb.Data(transferAgreementPart1Response)
         ),
         Nil
       ) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
@@ -79,7 +79,7 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
       .thenReturn(Future.successful(graphQlResponse))
 
     val transferAgreement: AddTransferAgreementPrivateBeta =
-      transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPart1FormData).futureValue
+      transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).futureValue
 
     transferAgreement.consignmentId should equal(consignmentId)
     transferAgreement.allPublicRecords should equal(taPart1FormData.publicRecord)
@@ -87,23 +87,23 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     transferAgreement.allEnglish should equal(taPart1FormData.english)
   }
 
-  "addTransferAgreementPrivateBeta" should "return an error when the API has an error" in {
+  "addTransferAgreementPart1" should "return an error when the API has an error" in {
     val graphQlResponse = HttpError("something went wrong", StatusCode.InternalServerError)
     when(graphQlClientForTAPart1.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPart1Input))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferAgreement = transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPart1FormData).failed.futureValue.asInstanceOf[HttpError]
+    val transferAgreement = transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).failed.futureValue.asInstanceOf[HttpError]
 
     transferAgreement shouldBe a[HttpError]
   }
 
-  "addTransferAgreementPrivateBeta" should "throw an AuthorisationException if the API returns an auth error" in {
+  "addTransferAgreementPart1" should "throw an AuthorisationException if the API returns an auth error" in {
     val graphQlResponse = GraphQlResponse[atapb.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
     when(graphQlClientForTAPart1.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPart1Input))))
       .thenReturn(Future.successful(graphQlResponse))
 
     val transferAgreement =
-      transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPart1FormData).failed.futureValue.asInstanceOf[AuthorisationException]
+      transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).failed.futureValue.asInstanceOf[AuthorisationException]
 
     transferAgreement shouldBe a[AuthorisationException]
   }

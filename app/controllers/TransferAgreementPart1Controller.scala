@@ -116,7 +116,7 @@ class TransferAgreementPart1Controller @Inject() (
           case Some(InProgressValue.value) => Future(Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)))
           case None =>
             transferAgreementService
-              .addTransferAgreementPrivateBeta(consignmentId, request.token.bearerAccessToken, formData)
+              .addTransferAgreementPart1(consignmentId, request.token.bearerAccessToken, formData)
               .map(_ => Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)))
           case _ =>
             throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
