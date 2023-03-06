@@ -65,7 +65,7 @@ class TransferAgreementPart2Controller @Inject() (
   )
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementPart2Data])(implicit
-                                                                                                                                 request: Request[AnyContent]
+      request: Request[AnyContent]
   ): Future[Result] = {
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
