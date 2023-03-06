@@ -16,7 +16,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TransferAgreementPrivateBetaController @Inject() (
+class TransferAgreementPart1Controller @Inject() (
     val controllerComponents: SecurityComponents,
     val graphqlConfiguration: GraphQLConfiguration,
     val transferAgreementService: TransferAgreementService,
@@ -76,7 +76,7 @@ class TransferAgreementPrivateBetaController @Inject() (
           transferAgreementStatus match {
             case Some(InProgressValue.value) | Some(CompletedValue.value) =>
               Ok(
-                views.html.standard.transferAgreementPrivateBetaAlreadyConfirmed(
+                views.html.standard.transferAgreementPart1AlreadyConfirmed(
                   consignmentId,
                   reference,
                   form,
@@ -87,7 +87,7 @@ class TransferAgreementPrivateBetaController @Inject() (
               )
                 .uncache()
             case None =>
-              httpStatus(views.html.standard.transferAgreementPrivateBeta(consignmentId, reference, taForm, formAndLabel, warningMessage, request.token.name))
+              httpStatus(views.html.standard.transferAgreementPart1(consignmentId, reference, taForm, formAndLabel, warningMessage, request.token.name))
                 .uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
@@ -113,11 +113,11 @@ class TransferAgreementPrivateBetaController @Inject() (
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
         transferAgreementStatus = consignmentStatusService.getStatusValues(consignmentStatuses, TransferAgreementType).values.headOption.flatten
         result <- transferAgreementStatus match {
-          case Some(InProgressValue.value) => Future(Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
+          case Some(InProgressValue.value) => Future(Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)))
           case None =>
             transferAgreementService
-              .addTransferAgreementPrivateBeta(consignmentId, request.token.bearerAccessToken, formData)
-              .map(_ => Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId)))
+              .addTransferAgreementPart1(consignmentId, request.token.bearerAccessToken, formData)
+              .map(_ => Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)))
           case _ =>
             throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
         }
