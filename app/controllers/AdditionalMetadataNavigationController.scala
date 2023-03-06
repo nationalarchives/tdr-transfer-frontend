@@ -17,12 +17,14 @@ class AdditionalMetadataNavigationController @Inject() (
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  def getAllFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    for {
-      allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken, metadataType)
-    } yield {
-      Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType))
-    }
+  def getAllFiles(consignmentId: UUID, metadataType: String, expanded: Option[String] = Some("false")): Action[AnyContent] = standardTypeAction(consignmentId) {
+    implicit request: Request[AnyContent] =>
+      for {
+        allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken, metadataType)
+      } yield {
+        val ex = expanded.contains("true")
+        Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, expanded = ex))
+      }
   }
 
   def submitFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>

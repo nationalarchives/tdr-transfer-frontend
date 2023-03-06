@@ -54,7 +54,7 @@ class DeleteAdditionalMetadataController @Inject() (
             Future(
               Redirect(
                 routes.AdditionalMetadataNavigationController
-                  .getAllFiles(consignmentId, metadataType)
+                  .getAllFiles(consignmentId, metadataType, expanded = None)
               )
             )
         } yield response
