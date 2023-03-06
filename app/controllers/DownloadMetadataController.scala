@@ -61,10 +61,10 @@ class DownloadMetadataController @Inject() (
         }
       }
       val csvString = CsvUtils.writeCsv(header :: fileMetadataRows)
-      val currentDate = formatter.format(LocalDateTime.now())
+      val currentDateTime = formatter.format(LocalDateTime.now())
       Ok(csvString)
         .as("text/csv")
-        .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-$currentDate-metadata.csv")
+        .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-$currentDateTime-metadata.csv")
     }
   }
 }
