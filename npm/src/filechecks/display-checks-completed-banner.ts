@@ -6,10 +6,15 @@ export const displayChecksCompletedBanner: () => void = () => {
     "#file-checks-continue"
   )
 
-  if (checksCompletedBanner && continueButton) {
+  const reasonDisabled: HTMLParagraphElement | null =
+    document.querySelector("#reason-disabled")
+
+  if (checksCompletedBanner && continueButton && reasonDisabled) {
     checksCompletedBanner.removeAttribute("hidden")
     checksCompletedBanner.focus()
     continueButton.classList.remove("govuk-button--disabled")
-    continueButton.removeAttribute("disabled")
+    continueButton.setAttribute("aria-disabled", "false")
+    continueButton.removeAttribute("aria-describedby")
+    reasonDisabled.remove()
   }
 }

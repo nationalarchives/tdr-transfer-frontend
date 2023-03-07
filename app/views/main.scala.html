@@ -9,7 +9,7 @@
 @(title: String, hasError: Boolean = false, isLoggedIn: Boolean = true, name: String = "", isJudgmentUser: Boolean = false, backLink: Option[Html] = None)(content: Html)(implicit messages: Messages, request: RequestHeader)
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="govuk-template">
 <head>
     @if(hasError) {
       <title>Error: @title</title>
