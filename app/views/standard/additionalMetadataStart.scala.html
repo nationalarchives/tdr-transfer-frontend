@@ -1,10 +1,10 @@
 @import views.html.partials.{notificationBanner, progressIndicator, transferReference, warningMessage}
+@import controllers.AdditionalMetadataController._
 @import services.Details
 
-@import java.util.UUID
 @import views.html.partials.details
-@(consignmentRef: String, consignmentId: UUID, name: String, closurePropertiesSummaries: List[String], descriptivePropertiesSummaries: List[String])(implicit messages: Messages, request: RequestHeader)
-@main(title = "Descriptive and closure metadata", name = name) {
+@(pageArgs: AdditionalMetadataStartPage)(implicit messages: Messages, request: RequestHeader)
+@main(title = "Descriptive and closure metadata", name = pageArgs.name) {
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds-from-desktop">
@@ -21,35 +21,35 @@
                 @displayCard(
                     "Descriptive metadata",
                     "descriptive",
-                    "Not entered",
+                    pageArgs.descriptiveStatus,
                     "Add descriptive metadata to your files",
                     "You do not need to add descriptive metadata but it can enhance your record.",
-                    descriptivePropertiesSummaries
+                    pageArgs.descriptivePropertiesSummaries
                 )
                 @displayCard(
                     "Closure metadata",
                     "closure",
-                    "Not entered",
+                    pageArgs.closureStatus,
                     "Add closure and associated metadata to your files",
                     "You must add closure metadata to closed files and folders.",
-                    closurePropertiesSummaries
+                    pageArgs.closurePropertiesSummaries
                 )
                 @warningMessage(Messages("additionalMetadata.warningMessage"))
-                <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Next</a>
+                <a href="@routes.DownloadMetadataController.downloadMetadataPage(pageArgs.consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Next</a>
             </div>
-            @transferReference(consignmentRef, isJudgmentUser = false)
+            @transferReference(pageArgs.consignmentRef, isJudgmentUser = false)
         </div>
     }
 }
 
-@displayCard(name: String, metadataType: String, progress: String, title: String, description: String, properties: List[String]) = {
+@displayCard(name: String, metadataType: String, progress: MetadataProgress, title: String, description: String, properties: List[String]) = {
   <div class="tdr-card tdr-metadata-card">
     <div class="tdr-card__content">
       <h2 class="govuk-heading-s">
-        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType)">@name</a>
+        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(pageArgs.consignmentId, metadataType)">@name</a>
       </h2>
-      <strong class="tdr-metadata-card__state govuk-tag govuk-tag--grey">
-        @progress
+      <strong class="tdr-metadata-card__state govuk-tag govuk-tag--@{progress.colour}">
+        @progress.value
       </strong>
       <p class="govuk-body">@title</p>
       <p class="govuk-inset-text govuk-!-margin-top-0">@description</p>
