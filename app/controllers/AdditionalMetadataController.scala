@@ -52,6 +52,7 @@ class AdditionalMetadataController @Inject() (
     } getOrElse notEntered
   }
 }
+
 object AdditionalMetadataController {
   case class MetadataProgress(value: String, colour: String)
   case class AdditionalMetadataStartPage(
