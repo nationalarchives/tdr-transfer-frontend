@@ -102,9 +102,9 @@ class UploadController @Inject() (
               throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
           }
         case Some(InProgressValue.value) =>
-          Redirect(routes.TransferAgreementComplianceController.transferAgreement(consignmentId))
+          Redirect(routes.TransferAgreementPart2Controller.transferAgreement(consignmentId))
         case None =>
-          Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
+          Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId))
         case _ =>
           throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
       }
