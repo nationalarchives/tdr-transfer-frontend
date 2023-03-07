@@ -3,7 +3,7 @@ package services
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
-import controllers.{TransferAgreementComplianceData, TransferAgreementData}
+import controllers.{TransferAgreementPart2Data, TransferAgreementData}
 import errors.AuthorisationException
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
 import graphql.codegen.AddTransferAgreementPrivateBeta.addTransferAgreementPrivateBeta.AddTransferAgreementPrivateBeta
@@ -30,125 +30,125 @@ class TransferAgreementServiceSpec extends AnyFlatSpec with MockitoSugar with Be
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   private val graphQlConfig = mock[GraphQLConfiguration]
-  private val graphQlClientForTAPrivateBeta = mock[GraphQLClient[atapb.Data, atapb.Variables]]
-  private val graphQlClientForTACompliance = mock[GraphQLClient[atac.Data, atac.Variables]]
+  private val graphQlClientForTAPart1 = mock[GraphQLClient[atapb.Data, atapb.Variables]]
+  private val graphQlClientForTAPart2 = mock[GraphQLClient[atac.Data, atac.Variables]]
   when(graphQlConfig.getClient[atapb.Data, atapb.Variables]())
-    .thenReturn(graphQlClientForTAPrivateBeta) // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
+    .thenReturn(graphQlClientForTAPart1) // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
 
   when(graphQlConfig.getClient[atac.Data, atac.Variables]())
-    .thenReturn(graphQlClientForTACompliance) // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
+    .thenReturn(graphQlClientForTAPart2) // Please ignore the Implicit-related error that IntelliJ displays, as it is incorrect.
 
   private val transferAgreementService: TransferAgreementService = new TransferAgreementService(graphQlConfig)
   private val consignmentId = UUID.fromString("e1ca3948-ee41-4e80-85e6-2123040c135d")
 
   private val token = new BearerAccessToken("some-token")
 
-  private val taPrivateBetaFormData = TransferAgreementData(publicRecord = true, crownCopyright = true, english = Option(true))
+  private val taPart1FormData = TransferAgreementData(publicRecord = true, crownCopyright = true, english = Option(true))
 
-  private val taComplianceFormData = TransferAgreementComplianceData(droAppraisalSelection = true, droSensitivity = true, openRecords = Option(true))
+  private val taPart2FormData = TransferAgreementPart2Data(droAppraisalSelection = true, droSensitivity = true, openRecords = Option(true))
 
-  private val transferAgreementPrivateBetaInput = AddTransferAgreementPrivateBetaInput(
+  private val transferAgreementPart1Input = AddTransferAgreementPrivateBetaInput(
     consignmentId,
-    allPublicRecords = taPrivateBetaFormData.publicRecord,
-    allCrownCopyright = taPrivateBetaFormData.crownCopyright,
-    allEnglish = taPrivateBetaFormData.english
+    allPublicRecords = taPart1FormData.publicRecord,
+    allCrownCopyright = taPart1FormData.crownCopyright,
+    allEnglish = taPart1FormData.english
   )
 
-  private val transferAgreementComplianceInput = AddTransferAgreementComplianceInput(
+  private val transferAgreementPart2Input = AddTransferAgreementComplianceInput(
     consignmentId,
-    appraisalSelectionSignedOff = taComplianceFormData.droAppraisalSelection,
-    sensitivityReviewSignedOff = taComplianceFormData.droSensitivity,
-    initialOpenRecords = taComplianceFormData.openRecords
+    appraisalSelectionSignedOff = taPart2FormData.droAppraisalSelection,
+    sensitivityReviewSignedOff = taPart2FormData.droSensitivity,
+    initialOpenRecords = taPart2FormData.openRecords
   )
 
   override def afterEach(): Unit = {
-    Mockito.reset(graphQlClientForTAPrivateBeta)
+    Mockito.reset(graphQlClientForTAPart1)
   }
 
-  "addTransferAgreementPrivateBeta" should "return the TransferAgreement from the API" in {
-    val transferAgreementPrivateBetaResponse = AddTransferAgreementPrivateBeta(consignmentId, allPublicRecords = true, allCrownCopyright = true, allEnglish = Option(true))
+  "addTransferAgreementPart1" should "return the TransferAgreement from the API" in {
+    val transferAgreementPart1Response = AddTransferAgreementPrivateBeta(consignmentId, allPublicRecords = true, allCrownCopyright = true, allEnglish = Option(true))
 
     val graphQlResponse =
       GraphQlResponse(
         Some(
-          atapb.Data(transferAgreementPrivateBetaResponse)
+          atapb.Data(transferAgreementPart1Response)
         ),
         Nil
       ) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
-    when(graphQlClientForTAPrivateBeta.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPrivateBetaInput))))
+    when(graphQlClientForTAPart1.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPart1Input))))
       .thenReturn(Future.successful(graphQlResponse))
 
     val transferAgreement: AddTransferAgreementPrivateBeta =
-      transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPrivateBetaFormData).futureValue
+      transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).futureValue
 
     transferAgreement.consignmentId should equal(consignmentId)
-    transferAgreement.allPublicRecords should equal(taPrivateBetaFormData.publicRecord)
-    transferAgreement.allCrownCopyright should equal(taPrivateBetaFormData.crownCopyright)
-    transferAgreement.allEnglish should equal(taPrivateBetaFormData.english)
+    transferAgreement.allPublicRecords should equal(taPart1FormData.publicRecord)
+    transferAgreement.allCrownCopyright should equal(taPart1FormData.crownCopyright)
+    transferAgreement.allEnglish should equal(taPart1FormData.english)
   }
 
-  "addTransferAgreementPrivateBeta" should "return an error when the API has an error" in {
+  "addTransferAgreementPart1" should "return an error when the API has an error" in {
     val graphQlResponse = HttpError("something went wrong", StatusCode.InternalServerError)
-    when(graphQlClientForTAPrivateBeta.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPrivateBetaInput))))
+    when(graphQlClientForTAPart1.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPart1Input))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferAgreement = transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPrivateBetaFormData).failed.futureValue.asInstanceOf[HttpError]
+    val transferAgreement = transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).failed.futureValue.asInstanceOf[HttpError]
 
     transferAgreement shouldBe a[HttpError]
   }
 
-  "addTransferAgreementPrivateBeta" should "throw an AuthorisationException if the API returns an auth error" in {
+  "addTransferAgreementPart1" should "throw an AuthorisationException if the API returns an auth error" in {
     val graphQlResponse = GraphQlResponse[atapb.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
-    when(graphQlClientForTAPrivateBeta.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPrivateBetaInput))))
+    when(graphQlClientForTAPart1.getResult(token, atapb.document, Some(atapb.Variables(transferAgreementPart1Input))))
       .thenReturn(Future.successful(graphQlResponse))
 
     val transferAgreement =
-      transferAgreementService.addTransferAgreementPrivateBeta(consignmentId, token, taPrivateBetaFormData).failed.futureValue.asInstanceOf[AuthorisationException]
+      transferAgreementService.addTransferAgreementPart1(consignmentId, token, taPart1FormData).failed.futureValue.asInstanceOf[AuthorisationException]
 
     transferAgreement shouldBe a[AuthorisationException]
   }
 
-  "addTransferAgreementCompliance" should "return the TransferAgreement from the API" in {
-    val transferAgreementComplianceResponse =
+  "addTransferAgreementPart2" should "return the TransferAgreement from the API" in {
+    val transferAgreementPart2Response =
       AddTransferAgreementCompliance(consignmentId, appraisalSelectionSignedOff = true, sensitivityReviewSignedOff = true, Option(true))
 
     val graphQlResponse =
       GraphQlResponse(
         Some(
-          atac.Data(transferAgreementComplianceResponse)
+          atac.Data(transferAgreementPart2Response)
         ),
         Nil
       ) // Please ignore the "Type mismatch" error that IntelliJ displays, as it is incorrect.
-    when(graphQlClientForTACompliance.getResult(token, atac.document, Some(atac.Variables(transferAgreementComplianceInput))))
+    when(graphQlClientForTAPart2.getResult(token, atac.document, Some(atac.Variables(transferAgreementPart2Input))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferAgreementCompliance: AddTransferAgreementCompliance =
-      transferAgreementService.addTransferAgreementCompliance(consignmentId, token, taComplianceFormData).futureValue
+    val transferAgreementPart2: AddTransferAgreementCompliance =
+      transferAgreementService.addTransferAgreementPart2(consignmentId, token, taPart2FormData).futureValue
 
-    transferAgreementCompliance.consignmentId should equal(consignmentId)
-    transferAgreementCompliance.appraisalSelectionSignedOff should equal(taComplianceFormData.droAppraisalSelection)
-    transferAgreementCompliance.sensitivityReviewSignedOff should equal(taComplianceFormData.droSensitivity)
-    transferAgreementCompliance.initialOpenRecords should equal(taComplianceFormData.openRecords)
+    transferAgreementPart2.consignmentId should equal(consignmentId)
+    transferAgreementPart2.appraisalSelectionSignedOff should equal(taPart2FormData.droAppraisalSelection)
+    transferAgreementPart2.sensitivityReviewSignedOff should equal(taPart2FormData.droSensitivity)
+    transferAgreementPart2.initialOpenRecords should equal(taPart2FormData.openRecords)
   }
 
-  "addTransferAgreementCompliance" should "return an error when the API has an error" in {
+  "addTransferAgreementPart2" should "return an error when the API has an error" in {
     val graphQlResponse = HttpError("something went wrong", StatusCode.InternalServerError)
-    when(graphQlClientForTACompliance.getResult(token, atac.document, Some(atac.Variables(transferAgreementComplianceInput))))
+    when(graphQlClientForTAPart2.getResult(token, atac.document, Some(atac.Variables(transferAgreementPart2Input))))
       .thenReturn(Future.failed(graphQlResponse))
 
-    val transferAgreementCompliance = transferAgreementService.addTransferAgreementCompliance(consignmentId, token, taComplianceFormData).failed.futureValue.asInstanceOf[HttpError]
+    val transferAgreementPart2 = transferAgreementService.addTransferAgreementPart2(consignmentId, token, taPart2FormData).failed.futureValue.asInstanceOf[HttpError]
 
-    transferAgreementCompliance shouldBe a[HttpError]
+    transferAgreementPart2 shouldBe a[HttpError]
   }
 
-  "addTransferAgreementCompliance" should "throw an AuthorisationException if the API returns an auth error" in {
+  "addTransferAgreementPart2" should "throw an AuthorisationException if the API returns an auth error" in {
     val graphQlResponse = GraphQlResponse[atac.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
-    when(graphQlClientForTACompliance.getResult(token, atac.document, Some(atac.Variables(transferAgreementComplianceInput))))
+    when(graphQlClientForTAPart2.getResult(token, atac.document, Some(atac.Variables(transferAgreementPart2Input))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val transferAgreementCompliance =
-      transferAgreementService.addTransferAgreementCompliance(consignmentId, token, taComplianceFormData).failed.futureValue.asInstanceOf[AuthorisationException]
+    val transferAgreementPart2 =
+      transferAgreementService.addTransferAgreementPart2(consignmentId, token, taPart2FormData).failed.futureValue.asInstanceOf[AuthorisationException]
 
-    transferAgreementCompliance shouldBe a[AuthorisationException]
+    transferAgreementPart2 shouldBe a[AuthorisationException]
   }
 }
