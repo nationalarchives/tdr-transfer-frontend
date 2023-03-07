@@ -19,7 +19,7 @@
                     .collect { case (id, Some(formError)) => id -> formError.messages}
         )
         @form(
-            routes.TransferAgreementPrivateBetaController.transferAgreementSubmit(consignmentId),
+            routes.TransferAgreementPart1Controller.transferAgreementSubmit(consignmentId),
             (Symbol("novalidate"), "")
         ) {
         @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementData], taFormNameAndLabel, formAlreadySubmitted=false)

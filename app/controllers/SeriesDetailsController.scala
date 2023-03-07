@@ -49,10 +49,10 @@ class SeriesDetailsController @Inject() (
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
         seriesStatus = consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType).values.headOption.flatten
       } yield seriesStatus match {
-        case Some(CompletedValue.value) => Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
+        case Some(CompletedValue.value) => Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId))
         case _ =>
           consignmentService.updateSeriesIdOfConsignment(consignmentId, UUID.fromString(formData.seriesId), request.token.bearerAccessToken)
-          Redirect(routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId))
+          Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId))
       }
     }
 
