@@ -4,7 +4,7 @@ import java.util.UUID
 
 object DefaultMockFormOptions {
 
-  lazy val expectedPrivateBetaOptions: List[MockInputOption] = List(
+  lazy val expectedPart1Options: List[MockInputOption] = List(
     MockInputOption(
       "publicRecord",
       "I confirm that the records are Public Records.",
@@ -21,7 +21,7 @@ object DefaultMockFormOptions {
     )
   )
 
-  lazy val expectedComplianceOptions: List[MockInputOption] = List(
+  lazy val expectedPart2Options: List[MockInputOption] = List(
     MockInputOption(
       "droAppraisalSelection",
       "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
