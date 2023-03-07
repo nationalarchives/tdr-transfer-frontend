@@ -73,9 +73,12 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
             |                <li>Validating data integrity</li>
             |            </ul>""".stripMargin,
           s"""            <form action="/consignment/$consignmentId/file-checks-results">
-            |                <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button govuk-button--disabled" disabled>
+            |                <button type="submit" role="button" draggable="false" id="file-checks-continue" class="govuk-button govuk-button--disabled" aria-disabled="true" aria-describedby="reason-disabled">
             |                Continue
             |                </button>
+            |                <p class="govuk-visually-hidden" id="reason-disabled">
+            |                    This button will be enabled when we have finished checking your files.
+            |                </p>
             |            </form>""".stripMargin
         )
         // scalastyle:on line.size.limit

@@ -84,7 +84,7 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
       case s if s.containsStatuses(TransferAgreementType) =>
         toTransferAgreementAction(s.find(_.statusType == TransferAgreementType.id).get, consignmentId)
       case s if s.statusValue(SeriesType).contains(CompletedValue.value) =>
-        UserAction(InProgress.value, routes.TransferAgreementPrivateBetaController.transferAgreement(consignmentId).url, Resume.value)
+        UserAction(InProgress.value, routes.TransferAgreementPart1Controller.transferAgreement(consignmentId).url, Resume.value)
       case s if s.isEmpty => toStartAction(consignmentId, judgmentType)
       case _              => toContactUsAction(consignmentRef)
     }
@@ -162,7 +162,7 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
   private def toTransferAgreementAction(status: ConsignmentStatuses, consignmentId: UUID): UserAction = {
     status.value match {
       case v if v == InProgressValue.value =>
-        UserAction(InProgress.value, routes.TransferAgreementComplianceController.transferAgreement(consignmentId).url, Resume.value)
+        UserAction(InProgress.value, routes.TransferAgreementPart2Controller.transferAgreement(consignmentId).url, Resume.value)
       case _ =>
         UserAction(InProgress.value, routes.UploadController.uploadPage(consignmentId).url, Resume.value)
     }
