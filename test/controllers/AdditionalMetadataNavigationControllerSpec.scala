@@ -16,6 +16,7 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import play.api.Play.materializer
 import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, FOUND, SEE_OTHER}
+import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, POST, contentAsString, defaultAwaitTimeout, redirectLocation, status => playStatus}
@@ -24,6 +25,7 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, GetConsignment
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
@@ -41,6 +43,15 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
   }
 
   val consignmentId: UUID = UUID.randomUUID()
+  val parentId: UUID = UUID.randomUUID()
+  val descendantOneFileId: UUID = UUID.randomUUID()
+  val descendantTwoFileId: UUID = UUID.randomUUID()
+  val descendantThreeFileId: UUID = UUID.randomUUID()
+  val descendantFourFileId: UUID = UUID.randomUUID()
+
+  val closedTag = """<strong class="tdr-tag tdr-tag--blue">closed</strong>"""
+  val enteredTag = """<strong class="tdr-tag tdr-tag--blue">entered</strong>"""
+  val incompleteTag = """<strong class="tdr-tag tdr-tag--red">incomplete</strong>"""
 
   "AdditionalMetadataNavigationController" should {
     "getAllFiles" should {
@@ -85,39 +96,8 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         }
 
         s"render the file navigation page with nested directories for metadata type $metadataType" in {
-          val parentId = UUID.randomUUID()
-          val descendantOneFileId = UUID.randomUUID()
-          val descendantTwoFileId = UUID.randomUUID()
-          val descendantThreeFileId = UUID.randomUUID()
-          val descendantFourFileId = UUID.randomUUID()
-          val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("Folder"), None, emptyMetadata, Nil)
-          val descendantOneFile = gcf.GetConsignment.Files(descendantOneFileId, Option("descendantOneFile"), Option("Folder"), Option(parentId), emptyMetadata, Nil)
-          val descendantTwoFile = gcf.GetConsignment.Files(
-            descendantTwoFileId,
-            Option("descendantTwoFile"),
-            Option("File"),
-            Option(descendantOneFileId),
-            emptyMetadata,
-            List(FileStatuses("ClosureMetadata", "Completed"), FileStatuses("DescriptiveMetadata", "Completed"))
-          )
-          val descendantThreeFile = gcf.GetConsignment.Files(
-            descendantThreeFileId,
-            Option("descendantThreeFile"),
-            Option("File"),
-            Option(descendantOneFileId),
-            emptyMetadata,
-            List(FileStatuses("ClosureMetadata", "NotEntered"), FileStatuses("DescriptiveMetadata", "NotEntered"))
-          )
-          val descendantFourFile = gcf.GetConsignment.Files(
-            descendantFourFileId,
-            Option("descendantFourFile"),
-            Option("File"),
-            Option(descendantOneFileId),
-            emptyMetadata,
-            List(FileStatuses("ClosureMetadata", "Incomplete"), FileStatuses("DescriptiveMetadata", "NotEntered"))
-          )
           val consignmentService: ConsignmentService =
-            mockConsignmentService(List(parentFile, descendantOneFile, descendantTwoFile, descendantThreeFile, descendantFourFile), "standard")
+            mockConsignmentService(mockFileHierarchy(), "standard")
 
           val additionalMetadataController =
             new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
@@ -125,22 +105,33 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             .getAllFiles(consignmentId, metadataType)
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
 
-          val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
+          checkPageContent(result, metadataType)
+        }
 
-          val closedTag = """<strong class="tdr-tag tdr-tag--blue">closed</strong>"""
-          val enteredTag = """<strong class="tdr-tag tdr-tag--blue">entered</strong>"""
-          val incompleteTag = """<strong class="tdr-tag tdr-tag--red">incomplete</strong>"""
-          content must include(getExpectedFolderHtml(parentId, "parent"))
-          content must include(getExpectedFolderHtml(descendantOneFileId, "descendantOneFile"))
-          if (metadataType == "closure") {
-            content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile", 3, closedTag))
-            content must include(getExpectedFileHtml(descendantThreeFileId, "descendantThreeFile", 2))
-            content must include(getExpectedFileHtml(descendantFourFileId, "descendantFourFile", 1, incompleteTag))
-          } else {
-            content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile", 3, enteredTag))
-            content must include(getExpectedFileHtml(descendantThreeFileId, "descendantThreeFile", 2))
-            content must include(getExpectedFileHtml(descendantFourFileId, "descendantFourFile", 1))
-          }
+        s"render nested navigation page with all nodes expanded where 'expanded' set to 'true' for metadata type $metadataType" in {
+          val consignmentService: ConsignmentService =
+            mockConsignmentService(mockFileHierarchy(), "standard")
+
+          val additionalMetadataController =
+            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val result = additionalMetadataController
+            .getAllFiles(consignmentId, metadataType, expanded = Some("true"))
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
+
+          checkPageContent(result, metadataType, expanded = true)
+        }
+
+        s"render nested navigation page with all nodes collapsed where 'expanded' set to 'false' for metadata type $metadataType" in {
+          val consignmentService: ConsignmentService =
+            mockConsignmentService(mockFileHierarchy(), "standard")
+
+          val additionalMetadataController =
+            new AdditionalMetadataNavigationController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val result = additionalMetadataController
+            .getAllFiles(consignmentId, metadataType, expanded = Some("false"))
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
+
+          checkPageContent(result, metadataType)
         }
       }
 
@@ -299,6 +290,22 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  private def checkPageContent(result: Future[Result], metadataType: String, expanded: Boolean = false): Unit = {
+    val content = contentAsString(result).replaceAll("\n", "").replaceAll(" ", "")
+
+    content must include(getExpectedFolderHtml(parentId, "parent"))
+    content must include(getExpectedFolderHtml(descendantOneFileId, "descendantOneFile"))
+    if (metadataType == "closure") {
+      content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile", 3, closedTag, expanded = expanded))
+      content must include(getExpectedFileHtml(descendantThreeFileId, "descendantThreeFile", 2, expanded = expanded))
+      content must include(getExpectedFileHtml(descendantFourFileId, "descendantFourFile", 1, incompleteTag, expanded = expanded))
+    } else {
+      content must include(getExpectedFileHtml(descendantTwoFileId, "descendantTwoFile", 3, enteredTag, expanded = expanded))
+      content must include(getExpectedFileHtml(descendantThreeFileId, "descendantThreeFile", 2, expanded = expanded))
+      content must include(getExpectedFileHtml(descendantFourFileId, "descendantFourFile", 1, expanded = expanded))
+    }
+  }
+
   private def getExpectedFolderHtml(id: UUID, label: String): String = {
     s"""
         |<div class="tna-tree__node-item__container">
@@ -316,9 +323,9 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
   }
 
-  private def getExpectedFileHtml(id: UUID, label: String, ariaPosinset: Int, tag: String = ""): String = {
+  private def getExpectedFileHtml(id: UUID, label: String, ariaPosinset: Int, tag: String = "", expanded: Boolean): String = {
     s"""
-        |<li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-$id" aria-level="3" aria-setsize="3" aria-posinset="$ariaPosinset" aria-selected="false">
+        |<li class="tna-tree__item govuk-radios--small" role="treeitem" id="radios-list-$id" aria-level="3" aria-setsize="3" aria-posinset="$ariaPosinset" aria-selected="false" aria-expanded="$expanded">
         |      <div class="tna-tree__node-item__radio govuk-radios__item">
         |        <input type="radio" name="nested-navigation" class="govuk-radios__input" id="radio-$id" value="$id"/>
         |        <label class="govuk-label govuk-radios__label" for="radio-$id">
@@ -327,6 +334,37 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         |      </div>
         |    </li>
         |""".stripMargin.replaceAll("\n", "").replaceAll(" ", "")
+  }
+
+  private def mockFileHierarchy(): List[Files] = {
+    val parentFile = gcf.GetConsignment.Files(parentId, Option("parent"), Option("Folder"), None, emptyMetadata, Nil)
+    val descendantOneFile = gcf.GetConsignment.Files(descendantOneFileId, Option("descendantOneFile"), Option("Folder"), Option(parentId), emptyMetadata, Nil)
+    val descendantTwoFile = gcf.GetConsignment.Files(
+      descendantTwoFileId,
+      Option("descendantTwoFile"),
+      Option("File"),
+      Option(descendantOneFileId),
+      emptyMetadata,
+      List(FileStatuses("ClosureMetadata", "Completed"), FileStatuses("DescriptiveMetadata", "Completed"))
+    )
+    val descendantThreeFile = gcf.GetConsignment.Files(
+      descendantThreeFileId,
+      Option("descendantThreeFile"),
+      Option("File"),
+      Option(descendantOneFileId),
+      emptyMetadata,
+      List(FileStatuses("ClosureMetadata", "NotEntered"), FileStatuses("DescriptiveMetadata", "NotEntered"))
+    )
+    val descendantFourFile = gcf.GetConsignment.Files(
+      descendantFourFileId,
+      Option("descendantFourFile"),
+      Option("File"),
+      Option(descendantOneFileId),
+      emptyMetadata,
+      List(FileStatuses("ClosureMetadata", "Incomplete"), FileStatuses("DescriptiveMetadata", "NotEntered"))
+    )
+
+    List(parentFile, descendantOneFile, descendantTwoFile, descendantThreeFile, descendantFourFile)
   }
 
   private def mockConsignmentService(files: List[gcf.GetConsignment.Files], consignmentType: String, allClosed: Boolean = false) = {

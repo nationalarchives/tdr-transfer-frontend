@@ -35,7 +35,7 @@
         <h2 class="govuk-heading-m  govuk-!-margin-bottom-3">Have you finished reviewing the metadata?</h2>
         <p class="govuk-body govuk-!-margin-bottom-2">Once you have finished reviewing the metadata of this file you may add metadata to another file.</p>
 
-        <a href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        <a href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType, expanded = None)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
         Select another file
         </a>
         <p class="govuk-body">If you have finished adding @metadataType metadata to all of your files, return to the
