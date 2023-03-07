@@ -46,7 +46,7 @@
   <div class="tdr-card tdr-metadata-card">
     <div class="tdr-card__content">
       <h2 class="govuk-heading-s">
-        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(pageArgs.consignmentId, metadataType)">@name</a>
+        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(pageArgs.consignmentId, metadataType, expanded = None)">@name</a>
       </h2>
       <strong class="tdr-metadata-card__state govuk-tag govuk-tag--@{progress.colour}">
         @progress.value
