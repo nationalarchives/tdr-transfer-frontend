@@ -62,7 +62,10 @@
 }
 
 @main("Additional Metadata", name = name, backLink = Some(backLink(routes.AdditionalMetadataController.start(consignmentId).url, "additionalMetadataStart.progress", "Descriptive and closure metadata"))) {
-@*  Only render the noscript if not expanded to prevent a continuous page refresh when the display is expanded, ie when there is no javascript *@
+@*  Only render the noscript if not expanded to prevent a continuous page refresh when no javascript, if hierarchy:
+    already expanded then irrelevant if no javascript or not;
+    not expanded then expand if no javascript
+*@
   @if(!expanded) {
     <noscript>
       <meta http-equiv="refresh" content="0; url=@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType, expanded = Some("true"))">
