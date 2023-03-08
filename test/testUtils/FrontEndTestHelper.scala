@@ -131,7 +131,6 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-
   def setConsignmentFilesIncompleteMetadataResponse(wiremockServer: WireMockServer, fileStatuses: List[gcf.GetConsignment.Files.FileStatuses]) = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcf.Data, gcf.Variables]()
 
@@ -143,7 +142,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentFiles($consignmentId:UUID!)"))
-        .willReturn(okJson(dataString)))
+        .willReturn(okJson(dataString))
+    )
   }
 
   def setConsignmentFilesMetadataResponse(
