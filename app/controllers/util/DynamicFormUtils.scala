@@ -41,12 +41,9 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
     formField match {
       case dateField: DateField =>
         val (day, month, year) = fieldValue.toDate
-        // 'ClosureStartDate' is not a required property in the schema, but want to enforce user behaviour to actively enter a value
-        val required: Boolean = if (formField.fieldId == "ClosureStartDate") { true }
-        else { formField.isRequired }
         DateField
           .update(dateField, day, month, year)
-          .copy(fieldErrors = DateField.validate(day, month, year, dateField, required).map(List(_)).getOrElse(Nil))
+          .copy(fieldErrors = DateField.validate(day, month, year, dateField, formField.isRequired).map(List(_)).getOrElse(Nil))
 
       case radioButtonGroupField: RadioButtonGroupField =>
         val selectedOption = fieldValue.getValue(radioButtonGroupField.fieldId)
