@@ -6,7 +6,7 @@
 @import views.html.helper.form
 @import views.html.helper.CSRF
 @import views.html.partials.errorSummary
-@import views.html.partials.errorMessage
+
 @(pageArgs: AdditionalMetadataStartPage)(implicit messages: Messages, request: RequestHeader)
 @main(title = "Descriptive and closure metadata", name = pageArgs.name) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -32,7 +32,7 @@
                     "Add descriptive metadata to your files",
                     "You do not need to add descriptive metadata but it can enhance your record.",
                     pageArgs.descriptivePropertiesSummaries,
-                    Nil
+                    pageArgs.errors.filter(_._1 == "descriptive-metadata")
                   )
                   @displayCard(
                     "Closure metadata",
@@ -41,8 +41,9 @@
                     "Add closure and associated metadata to your files",
                     "You must add closure metadata to closed files and folders.",
                     pageArgs.closurePropertiesSummaries,
-                    pageArgs.errors
+                    pageArgs.errors.filter(_._1 == "closure-metadata")
                   )
+                  @warningMessage(Messages("additionalMetadata.warningMessage"))
                   <button type="submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Next</button>
                 }
             </div>
@@ -52,7 +53,7 @@
 }
 
 @displayCard(name: String, metadataType: String, progress: MetadataProgress, title: String, description: String, properties: List[String], errors: Seq[(String, Seq[String])]) = {
-  <div class="tdr-card tdr-metadata-card @{if(errors.nonEmpty) "tdr-card--error" else ""}">
+  <div class="tdr-card tdr-metadata-card@{if(errors.nonEmpty) " tdr-card--error" else ""}">
     <div class="tdr-card__content">
       <h2 class="govuk-heading-s">
         <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(pageArgs.consignmentId, metadataType, expanded = None)">@name</a>

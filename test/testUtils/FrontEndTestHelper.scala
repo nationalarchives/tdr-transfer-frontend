@@ -17,6 +17,7 @@ import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.{FileMetadata, FileStatuses}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
+import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{ConsignmentStatuses, Series}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
@@ -66,6 +67,7 @@ import play.api.{Application, Configuration}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
+import services.Statuses.{ClosureMetadataType, DescriptiveMetadataType, IncompleteValue, StatusType}
 import viewsapi.FrontEndInfo
 
 import java.io.File
@@ -127,6 +129,21 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         .withRequestBody(containing("updateBulkFileMetadata"))
         .willReturn(okJson(dataString))
     )
+  }
+
+
+  def setConsignmentFilesIncompleteMetadataResponse(wiremockServer: WireMockServer, fileStatuses: List[gcf.GetConsignment.Files.FileStatuses]) = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcf.Data, gcf.Variables]()
+
+    val statuses = fileStatuses
+      .map(fileStatus => gcf.GetConsignment.Files(UUID.randomUUID(), None, None, None, gcf.GetConsignment.Files.Metadata(None), fileStatus :: Nil))
+    val consignmentData = gcf.Data(Option(gcf.GetConsignment(statuses)))
+    val data: client.GraphqlData = client.GraphqlData(Some(consignmentData))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentFiles($consignmentId:UUID!)"))
+        .willReturn(okJson(dataString)))
   }
 
   def setConsignmentFilesMetadataResponse(
