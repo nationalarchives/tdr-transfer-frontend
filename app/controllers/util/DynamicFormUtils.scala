@@ -43,7 +43,7 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
         val (day, month, year) = fieldValue.toDate
         DateField
           .update(dateField, day, month, year)
-          .copy(fieldErrors = DateField.validate(day, month, year, dateField).map(List(_)).getOrElse(Nil))
+          .copy(fieldErrors = DateField.validate(day, month, year, dateField, formField.isRequired).map(List(_)).getOrElse(Nil))
 
       case radioButtonGroupField: RadioButtonGroupField =>
         val selectedOption = fieldValue.getValue(radioButtonGroupField.fieldId)
