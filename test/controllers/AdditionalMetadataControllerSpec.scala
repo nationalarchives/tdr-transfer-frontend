@@ -295,7 +295,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   def verifyErrors(page: String, numberOfRecords: Int, metadataType: String): Unit = {
-    val record = if(numberOfRecords == 1) "record" else "records"
+    val record = if (numberOfRecords == 1) "record" else "records"
     page must include(s"""<a href="#error-$metadataType-metadata">There is incomplete $metadataType metadata associated with $numberOfRecords $record</a>""".stripMargin)
     page must include("""<div class="tdr-card tdr-metadata-card tdr-card--error">""")
     page must include("""<span class="govuk-visually-hidden">Error:</span>You must complete the mandatory fields for all records flagged as incomplete.""".stripMargin)

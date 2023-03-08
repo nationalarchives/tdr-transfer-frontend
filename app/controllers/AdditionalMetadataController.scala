@@ -20,7 +20,8 @@ class AdditionalMetadataController @Inject() (
     val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents
-) extends TokenSecurity with Logging {
+) extends TokenSecurity
+    with Logging {
 
   val byClosureType: DisplayProperty => Boolean = (dp: DisplayProperty) => dp.propertyType == "Closure"
 
