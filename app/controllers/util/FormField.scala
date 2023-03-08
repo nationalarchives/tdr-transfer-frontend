@@ -276,15 +276,13 @@ object DateField {
     val emptyDate: Boolean = day.isEmpty && month.isEmpty && year.isEmpty
 
     emptyDate match {
-      case false => dateError(day, month, year, fieldName, dateField)
-      case ed if ed && required => Some(dateNotEnteredError.format(fieldName))
-      case _ => None
+      case false                         => validateDateValues(day, month, year, fieldName, dateField)
+      case true if emptyDate && required => Some(dateNotEnteredError.format(fieldName))
+      case _                             => None
     }
   }
 
-  private def dateError(day: String, month: String, year: String, fieldName: String, dateField: DateField): Option[String] = {
-    val fieldName = if (dateField.getAlternativeName == "Advisory Council Approval") dateField.fieldAlternativeName else dateField.getAlternativeName.toLowerCase
-
+  private def validateDateValues(day: String, month: String, year: String, fieldName: String, dateField: DateField): Option[String] = {
     val dayError = validateValue(day, "Day", invalidDayValidation, wholeNumberExample, "31", fieldName)
     val monthError = if (dayError.isEmpty) validateValue(month, "Month", invalidMonthValidation, "3, 9, 12", "12", fieldName) else dayError
     val yearError = if (monthError.isEmpty) validateValue(year, "Year", invalidYearValidation, "1994, 2000, 2023", "", fieldName) else monthError
