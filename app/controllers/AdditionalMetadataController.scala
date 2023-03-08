@@ -4,7 +4,9 @@ import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.AdditionalMetadataController._
 import graphql.codegen.GetConsignment.getConsignment.GetConsignment
+import graphql.codegen.GetConsignmentFiles
 import org.pac4j.play.scala.SecurityComponents
+import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
 import services.{ConsignmentService, DisplayPropertiesService, DisplayProperty}
@@ -18,12 +20,17 @@ class AdditionalMetadataController @Inject() (
     val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents
-) extends TokenSecurity {
+) extends TokenSecurity with Logging {
 
   val byClosureType: DisplayProperty => Boolean = (dp: DisplayProperty) => dp.propertyType == "Closure"
 
   def start(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    getStartPageDetails(consignmentId, request.token).map(pageArgs => Ok(views.html.standard.additionalMetadataStart(pageArgs)))
+    getStartPageDetails(consignmentId, request.token)
+      .map(pageArgs => Ok(views.html.standard.additionalMetadataStart(pageArgs)))
+      .recover(err => {
+        logger.error(err.getMessage, err)
+        Forbidden(views.html.forbiddenError(request.token.name, isLoggedIn = true, isJudgmentUser = false))
+      })
   }
 
   private def getStartPageDetails(consignmentId: UUID, token: Token) = {
@@ -43,22 +50,35 @@ class AdditionalMetadataController @Inject() (
         getValue(consignment.consignmentStatuses, ClosureMetadataType),
         getValue(consignment.consignmentStatuses, DescriptiveMetadataType)
       )
-
     }
   }
 
   def validate(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    for {
+    (for {
       pageArgs <- getStartPageDetails(consignmentId, request.token)
       statuses <- consignmentService.getConsignmentFilesData(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val incompleteCount = statuses.files.flatMap(_.fileStatuses).filter(_.statusType == "ClosureMetadata").count(_.statusValue == "Incomplete")
-      if(incompleteCount > 0) {
-        val args = pageArgs.copy(errors = Seq(("closure-metadata", s"There is incomplete closure metadata associated with $incompleteCount records" :: Nil)))
+      val allErrors = getErrors(statuses, "descriptive", DescriptiveMetadataType) ++
+        getErrors(statuses, "closure", ClosureMetadataType)
+      if (allErrors.nonEmpty) {
+        val args = pageArgs.copy(errors = allErrors)
         Ok(views.html.standard.additionalMetadataStart(args))
       } else {
         Redirect(routes.DownloadMetadataController.downloadMetadataPage(consignmentId))
       }
+    }).recover(err => {
+      logger.error(err.getMessage, err)
+      Forbidden(views.html.forbiddenError(request.token.name, isLoggedIn = true, isJudgmentUser = false))
+    })
+  }
+
+  private def getErrors(statuses: GetConsignmentFiles.getConsignmentFiles.GetConsignment, metadataType: String, statusType: StatusType): Seq[(String, List[String])] = {
+    val incompleteCount = statuses.files.flatMap(_.fileStatuses).filter(_.statusType == statusType.id).count(_.statusValue == "Incomplete")
+    if (incompleteCount > 0) {
+      val record = if (incompleteCount == 1) "record" else "records"
+      Seq((s"$metadataType-metadata", s"There is incomplete $metadataType metadata associated with $incompleteCount $record" :: Nil))
+    } else {
+      Nil
     }
   }
 
