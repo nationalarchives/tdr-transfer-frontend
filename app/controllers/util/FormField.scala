@@ -271,17 +271,25 @@ object DateField {
     11 -> "November"
   )
 
-  def validate(day: String, month: String, year: String, dateField: DateField): Option[String] = {
+  def validate(day: String, month: String, year: String, dateField: DateField, required: Boolean): Option[String] = {
     val fieldName = if (dateField.getAlternativeName == "Advisory Council Approval") dateField.fieldAlternativeName else dateField.getAlternativeName.toLowerCase
-    if (day.isEmpty && month.isEmpty && year.isEmpty) {
-      Some(dateNotEnteredError.format(fieldName))
-    } else {
-      val dayError = validateValue(day, "Day", invalidDayValidation, wholeNumberExample, "31", fieldName)
-      val monthError = if (dayError.isEmpty) validateValue(month, "Month", invalidMonthValidation, "3, 9, 12", "12", fieldName) else dayError
-      val yearError = if (monthError.isEmpty) validateValue(year, "Year", invalidYearValidation, "1994, 2000, 2023", "", fieldName) else monthError
-      val dayForMonthAndYearError = if (yearError.isEmpty) checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt, fieldName) else yearError
-      if (dayForMonthAndYearError.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField, fieldName) else dayForMonthAndYearError
+    val emptyDate: Boolean = day.isEmpty && month.isEmpty && year.isEmpty
+
+    emptyDate match {
+      case false => dateError(day, month, year, fieldName, dateField)
+      case ed if ed && required => Some(dateNotEnteredError.format(fieldName))
+      case _ => None
     }
+  }
+
+  private def dateError(day: String, month: String, year: String, fieldName: String, dateField: DateField): Option[String] = {
+    val fieldName = if (dateField.getAlternativeName == "Advisory Council Approval") dateField.fieldAlternativeName else dateField.getAlternativeName.toLowerCase
+
+    val dayError = validateValue(day, "Day", invalidDayValidation, wholeNumberExample, "31", fieldName)
+    val monthError = if (dayError.isEmpty) validateValue(month, "Month", invalidMonthValidation, "3, 9, 12", "12", fieldName) else dayError
+    val yearError = if (monthError.isEmpty) validateValue(year, "Year", invalidYearValidation, "1994, 2000, 2023", "", fieldName) else monthError
+    val dayForMonthAndYearError = if (yearError.isEmpty) checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt, fieldName) else yearError
+    if (dayForMonthAndYearError.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField, fieldName) else dayForMonthAndYearError
   }
 
   def update(dateField: DateField, localDateTime: LocalDateTime): DateField =
@@ -295,18 +303,18 @@ object DateField {
     dateField.copy(day = dateField.day.copy(value = day), month = dateField.month.copy(value = month), year = dateField.year.copy(value = year))
 
   private def validateValue(
-      day: String,
+      value: String,
       unitType: String,
       isInvalidDate: Int => Boolean,
       wholeNumberError: String,
       incorrectDateError: String,
       fieldName: String
   ): Option[String] = {
-    day match {
-      case ""                                 => Some(emptyValueError.format(fieldName, unitType.toLowerCase))
-      case d if allCatch.opt(d.toInt).isEmpty => Some(wholeNumberError2.format(unitType.toLowerCase, fieldName, wholeNumberError))
-      case d if d.toInt < 0                   => Some(negativeNumberError.format(unitType.toLowerCase))
-      case d if isInvalidDate(d.toInt) =>
+    value match {
+      case v if v.isEmpty                     => Some(emptyValueError.format(fieldName, unitType.toLowerCase))
+      case v if allCatch.opt(v.toInt).isEmpty => Some(wholeNumberError2.format(unitType.toLowerCase, fieldName, wholeNumberError))
+      case v if v.toInt < 0                   => Some(negativeNumberError.format(unitType.toLowerCase))
+      case v if isInvalidDate(v.toInt) =>
         if (unitType.equals("Year")) {
           Some(invalidYearError.format(fieldName))
         } else {
