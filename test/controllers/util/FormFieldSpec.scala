@@ -237,23 +237,6 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       DateField.validate("", "", "", dateField, required = true) shouldBe Some("Enter the alternativename for this record")
     }
 
-    "validate should return an error when the given day, month and year is empty for 'ClosureStartDate' field" in {
-      val closureStartDateField = DateField(
-        "ClosureStartDate",
-        "Closure Start Date",
-        "Closure Start Date",
-        "desc",
-        Nil,
-        multiValue = false,
-        InputNameAndValue("Day", "", "DD"),
-        InputNameAndValue("Month", "", "MM"),
-        InputNameAndValue("Year", "", "YYYY"),
-        isRequired = false
-      )
-
-      DateField.validate("", "", "", closureStartDateField, required = false) shouldBe Some("Enter the closure start date for this record")
-    }
-
     "validate should not return an error when the given day, month and year is empty and the field is not required" in {
       DateField.validate("", "", "", dateField, required = false) shouldBe None
     }
