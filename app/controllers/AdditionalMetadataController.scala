@@ -59,8 +59,7 @@ class AdditionalMetadataController @Inject() (
       pageArgs <- getStartPageDetails(consignmentId, request.token)
       statuses <- consignmentService.getConsignmentFilesData(consignmentId, request.token.bearerAccessToken)
     } yield {
-      val allErrors = getErrors(statuses, "descriptive", DescriptiveMetadataType) ++
-        getErrors(statuses, "closure", ClosureMetadataType)
+      val allErrors = getErrors(statuses, List("descriptive", "closure"))
       if (allErrors.nonEmpty) {
         val args = pageArgs.copy(errors = allErrors)
         Ok(views.html.standard.additionalMetadataStart(args))
@@ -73,14 +72,21 @@ class AdditionalMetadataController @Inject() (
     })
   }
 
-  private def getErrors(statuses: GetConsignmentFiles.getConsignmentFiles.GetConsignment, metadataType: String, statusType: StatusType): Seq[(String, List[String])] = {
-    val incompleteCount = statuses.files.flatMap(_.fileStatuses).filter(_.statusType == statusType.id).count(_.statusValue == "Incomplete")
-    if (incompleteCount > 0) {
-      val record = if (incompleteCount == 1) "record" else "records"
-      Seq((s"$metadataType-metadata", s"There is incomplete $metadataType metadata associated with $incompleteCount $record" :: Nil))
-    } else {
-      Nil
-    }
+  private def getErrors(statuses: GetConsignmentFiles.getConsignmentFiles.GetConsignment, metadataTypes: List[String]): Seq[(String, List[String])] = {
+    metadataTypes.flatMap(metadataType => {
+      val statusType = metadataType match {
+        case "descriptive" => DescriptiveMetadataType
+        case "closure"     => ClosureMetadataType
+      }
+      val incompleteCount = statuses.files.flatMap(_.fileStatuses).filter(_.statusType == statusType.id).count(_.statusValue == IncompleteValue.value)
+      if (incompleteCount > 0) {
+        val record = if (incompleteCount == 1) "record" else "records"
+        Seq((s"$metadataType-metadata", s"There is incomplete $metadataType metadata associated with $incompleteCount $record" :: Nil))
+      } else {
+        Nil
+      }
+    })
+
   }
 
   def getValue(statuses: List[GetConsignment.ConsignmentStatuses], statusType: StatusType): MetadataProgress = {
