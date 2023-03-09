@@ -274,13 +274,11 @@ object DateField {
   def validate(day: String, month: String, year: String, dateField: DateField, required: Boolean): Option[String] = {
     val fieldName = if (dateField.getAlternativeName == "Advisory Council Approval") dateField.fieldAlternativeName else dateField.getAlternativeName.toLowerCase
     val emptyDate: Boolean = day.isEmpty && month.isEmpty && year.isEmpty
-    // 'ClosureStartDate' is not a required property in the schema, but want to enforce user behaviour to actively enter a value
-    val emptyDateNotAllowed: Boolean = required || dateField.fieldId == "ClosureStartDate"
 
     emptyDate match {
-      case false                       => validateDateValues(day, month, year, fieldName, dateField)
-      case true if emptyDateNotAllowed => Some(dateNotEnteredError.format(fieldName))
-      case _                           => None
+      case false            => validateDateValues(day, month, year, fieldName, dateField)
+      case true if required => Some(dateNotEnteredError.format(fieldName))
+      case _                => None
     }
   }
 
