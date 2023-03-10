@@ -71,7 +71,7 @@ class FileChecksResultsController @Inject() (
             result <-
               if (fileCheck.allChecksSucceeded) {
                 consignmentService
-                  .getConsignmentFilePath(consignmentId, request.token.bearerAccessToken)
+                  .getConsignmentFilesData(consignmentId, request.token.bearerAccessToken)
                   .flatMap(files => {
                     val filename = files.files.head.metadata.clientSideOriginalFilePath.get
                     Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, pageTitle, consignmentId, reference, request.token.name)).uncache())
