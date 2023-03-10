@@ -3,6 +3,10 @@
 @import services.Details
 
 @import views.html.partials.details
+@import views.html.helper.form
+@import views.html.helper.CSRF
+@import views.html.partials.errorSummary
+
 @(pageArgs: AdditionalMetadataStartPage)(implicit messages: Messages, request: RequestHeader)
 @main(title = "Descriptive and closure metadata", name = pageArgs.name) {
     @defining(play.core.PlayVersion.current) { version =>
@@ -11,48 +15,60 @@
                 @progressIndicator(Messages("additionalMetadataStart.progress"))
                 <h1 class="govuk-heading-l">Descriptive & closure metadata</h1>
 
-                @notificationBanner(
+                @form(routes.AdditionalMetadataController.validate(pageArgs.consignmentId)) {
+                  @CSRF.formField
+                  @errorSummary(pageArgs.errors)
+                  @notificationBanner(
                     Messages("notification.savedProgress.title"),
                     Messages("notification.savedProgress.heading"),
                     Messages("notification.savedProgress.metadataInfo", routes.ViewTransfersController.viewConsignments(), "View Transfers")
-                )
-                <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records.</p>
+                  )
+                  <p class="govuk-body">You can now add or edit closure and descriptive metadata to your records.</p>
 
-                @displayCard(
+                  @displayCard(
                     "Descriptive metadata",
                     "descriptive",
                     pageArgs.descriptiveStatus,
                     "Add descriptive metadata to your files",
                     "You do not need to add descriptive metadata but it can enhance your record.",
-                    pageArgs.descriptivePropertiesSummaries
-                )
-                @displayCard(
+                    pageArgs.descriptivePropertiesSummaries,
+                    pageArgs.errors.filter(_._1 == "descriptive-metadata")
+                  )
+                  @displayCard(
                     "Closure metadata",
                     "closure",
                     pageArgs.closureStatus,
                     "Add closure and associated metadata to your files",
                     "You must add closure metadata to closed files and folders.",
-                    pageArgs.closurePropertiesSummaries
-                )
-                @warningMessage(Messages("additionalMetadata.warningMessage"))
-                <a href="@routes.DownloadMetadataController.downloadMetadataPage(pageArgs.consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Next</a>
+                    pageArgs.closurePropertiesSummaries,
+                    pageArgs.errors.filter(_._1 == "closure-metadata")
+                  )
+                  @warningMessage(Messages("additionalMetadata.warningMessage"))
+                  <button type="submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Next</button>
+                }
             </div>
             @transferReference(pageArgs.consignmentRef, isJudgmentUser = false)
         </div>
     }
 }
 
-@displayCard(name: String, metadataType: String, progress: MetadataProgress, title: String, description: String, properties: List[String]) = {
-  <div class="tdr-card tdr-metadata-card">
+@displayCard(name: String, metadataType: String, progress: MetadataProgress, title: String, description: String, properties: List[String], errors: Seq[(String, Seq[String])]) = {
+  <div class="tdr-card tdr-metadata-card@{if(errors.nonEmpty) " tdr-card--error" else ""}">
     <div class="tdr-card__content">
       <h2 class="govuk-heading-s">
         <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(pageArgs.consignmentId, metadataType, expanded = None)">@name</a>
       </h2>
-      <strong class="tdr-metadata-card__state govuk-tag govuk-tag--@{progress.colour}">
+      <strong class="tdr-card--metadata__state govuk-tag govuk-tag--@{progress.colour}">
         @progress.value
       </strong>
+      @if(errors.nonEmpty) {
+        <p id="error-@metadataType-metadata" class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span>You must complete the mandatory fields for all records flagged as incomplete.
+        </p>
+      }
       <p class="govuk-body">@title</p>
-      <p class="govuk-inset-text govuk-!-margin-top-0">@description</p>
+      <p class="tdr-card--metadata__inset-text govuk-inset-text govuk-!-margin-top-0">@description</p>
+
       <details class="govuk-details" data-module="govuk-details">
         <summary class="govuk-details__summary">
           <span class="govuk-details__summary-text">What @{name.toLowerCase} you can provide</span>
