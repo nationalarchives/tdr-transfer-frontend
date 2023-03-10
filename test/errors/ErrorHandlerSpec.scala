@@ -77,6 +77,6 @@ class ErrorHandlerSpec extends AnyFlatSpec with Matchers {
     val response = errorHandler.onServerError(request, stateException).futureValue
 
     response.header.status should equal(Status.SEE_OTHER)
-    response.header.headers("Location") should equal("/homepage")
+    response.header.headers("Location") should equal("/view-transfers")
   }
 }
