@@ -14,14 +14,25 @@
   margin: 0;
 }
 
-.tdr-metadata-card__state {
+.tdr-card--metadata__state {
   position: absolute;
   right: 0;
   top: 0;
 }
 
-.tdr-metadata-card .govuk-inset-text {
+.tdr-card--metadata__inset-text {
   color: $govuk-secondary-text-colour;
+}
+
+.tdr-card--error {
+  @include govuk-responsive-padding(4, 'left');
+  border: 2px solid $govuk-error-colour;
+}
+
+.tdr-card--error .tdr-card__content {
+  @include govuk-responsive-padding(4, 'left');
+  border-left: 5px solid #d4351c;
+  padding-left: 15px;
 }
 
 
