@@ -6,12 +6,14 @@ import configuration.GraphQLConfiguration
 import controllers.AdditionalMetadataController.MetadataProgress
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.GetConsignment.getConsignment.GetConsignment.ConsignmentStatuses
+import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.FileStatuses
 import io.circe.generic.auto._
 import io.circe.syntax._
 import play.api.Play.materializer
-import play.api.http.Status.{FORBIDDEN, FOUND, OK}
+import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
+import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
+import play.api.test.Helpers.{GET, POST, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.{ConsignmentService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
@@ -34,7 +36,13 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
   val checkPageForStaticElements = new CheckPageForStaticElements
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  "AdditionalMetadataController" should {
+  val metadataTypeTable = Table(
+    "metadataType",
+    "Descriptive",
+    "Closure"
+  )
+
+  "AdditionalMetadataController start" should {
     "render the additional metadata start page" in {
       val parentFolder = "parentFolder"
       val parentFolderId = UUID.randomUUID()
@@ -50,7 +58,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller = new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .start(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata").withCSRFToken)
       val startPageAsString = contentAsString(response)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(startPageAsString, userType = "standard")
@@ -109,12 +117,6 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
     }
 
-    val metadataTypeTable = Table(
-      "metadataType",
-      "Descriptive",
-      "Closure"
-    )
-
     forAll(metadataTypeTable) { metadataType =>
       val statusesTable = Table(
         ("consignmentStatuses", "progress"),
@@ -138,7 +140,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
             new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val response = controller
             .start(consignmentId)
-            .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata"))
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata").withCSRFToken)
           val startPageAsString = contentAsString(response)
           val (title, description) = if (metadataType == "Closure") {
             ("Add closure and associated metadata to your files", "You must add closure metadata to closed files and folders.")
@@ -175,7 +177,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
     "return forbidden if the user does not own the consignment" in {
       val consignmentId = UUID.randomUUID()
-      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentTypeResponse(wiremockServer, "standard")
       val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
       val errors = Error(s"User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '$consignmentId'", Nil, Nil, None) :: Nil
       val dataString: String = client.GraphqlData(None, errors).asJson.noSpaces
@@ -211,6 +213,94 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  "AdditionalMetadataController validate" should {
+    "return forbidden if the pages are accessed by a judgment user" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val response = controller
+        .validate(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata"))
+
+      status(response) mustBe FORBIDDEN
+    }
+
+    "return forbidden if the user does not own the consignment" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val client = new GraphQLConfiguration(app.configuration).getClient[getConsignment.Data, getConsignment.Variables]()
+      val errors = Error(s"User '7bee3c41-c059-46f6-8e9b-9ba44b0489b7' does not own consignment '$consignmentId'", Nil, Nil, None) :: Nil
+      val dataString: String = client.GraphqlData(None, errors).asJson.noSpaces
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getConsignment($consignmentId:UUID!)"))
+          .willReturn(okJson(dataString))
+      )
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val response = controller
+        .validate(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata"))
+
+      status(response) mustBe FORBIDDEN
+    }
+
+    "redirect to the login page if the page is accessed by a logged out user" in {
+      val consignmentId = UUID.randomUUID()
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+      val response = controller
+        .validate(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata"))
+
+      status(response) mustBe SEE_OTHER
+      redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+    }
+
+    forAll(metadataTypeTable) { metadataType =>
+      s"render errors if there are incomplete $metadataType metadata statuses" in {
+        val consignmentId = UUID.randomUUID()
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+        setConsignmentTypeResponse(wiremockServer, "standard")
+        setConsignmentDetailsResponse(wiremockServer, consignmentStatuses = Nil)
+        setDisplayPropertiesResponse(wiremockServer)
+
+        val fileStatuses = List(
+          FileStatuses(s"${metadataType}Metadata", "Incomplete"),
+          FileStatuses(s"${metadataType}Metadata", "Incomplete")
+        )
+        setConsignmentFilesIncompleteMetadataResponse(wiremockServer, fileStatuses)
+
+        val controller = new AdditionalMetadataController(consignmentService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+
+        val response = controller
+          .validate(consignmentId)
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata").withCSRFToken)
+
+        val page = contentAsString(response)
+        verifyErrors(page, 2, metadataType.toLowerCase)
+      }
+    }
+  }
+
+  def verifyErrors(page: String, numberOfRecords: Int, metadataType: String): Unit = {
+    val record = if (numberOfRecords == 1) "record" else "records"
+    page must include(s"""<a href="#error-$metadataType-metadata">There is incomplete $metadataType metadata associated with $numberOfRecords $record</a>""".stripMargin)
+    page must include("""<div class="tdr-card tdr-metadata-card tdr-card--error">""")
+    page must include("""<span class="govuk-visually-hidden">Error:</span>You must complete the mandatory fields for all records flagged as incomplete.""".stripMargin)
+  }
+
   def verifyCard(page: String, consignmentId: String, name: String, metadataType: String, title: String, description: String, progress: MetadataProgress): Unit = {
 
     page must include(s"""<div class="tdr-card tdr-metadata-card">
@@ -218,17 +308,19 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
                          |      <h2 class="govuk-heading-s">
                          |        <a class="govuk-link govuk-link--no-visited-state" href="/consignment/$consignmentId/additional-metadata/files/$metadataType">$name</a>
                          |      </h2>
-                         |      <strong class="tdr-metadata-card__state govuk-tag govuk-tag--${progress.colour}">
+                         |      <strong class="tdr-card--metadata__state govuk-tag govuk-tag--${progress.colour}">
                          |        ${progress.value}
                          |      </strong>
+                         |<Spaces>
                          |      <p class="govuk-body">$title</p>
-                         |      <p class="govuk-inset-text govuk-!-margin-top-0">$description</p>
+                         |      <p class="tdr-card--metadata__inset-text govuk-inset-text govuk-!-margin-top-0">$description</p>
+                         |
                          |      <details class="govuk-details" data-module="govuk-details">
                          |        <summary class="govuk-details__summary">
                          |          <span class="govuk-details__summary-text">What ${name.toLowerCase} you can provide</span>
                          |        </summary>
                          |        <div class="govuk-details__text">
-                         |          <ul class="govuk-list govuk-list--bullet govuk-list--spaced">""".stripMargin)
+                         |          <ul class="govuk-list govuk-list--bullet govuk-list--spaced">""".stripMargin.replaceAll("<Spaces>", "      "))
 
     if (metadataType.equals("closure")) {
       page must include(

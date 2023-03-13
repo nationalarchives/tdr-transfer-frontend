@@ -145,7 +145,8 @@ class FormTestData() {
         "propertyType",
         "unitType",
         "summary",
-        "alternativeName"
+        "alternativeName",
+        required = true
       ),
       DisplayProperty(
         active = true,
@@ -163,7 +164,8 @@ class FormTestData() {
         "propertyType",
         "unitType",
         "summary",
-        "alternativeName"
+        "alternativeName",
+        required = true
       ),
       DisplayProperty(
         active = true,
@@ -181,7 +183,8 @@ class FormTestData() {
         "propertyType",
         "unitType",
         "summary",
-        "alternativeName"
+        "alternativeName",
+        required = true
       ),
       DisplayProperty(
         active = true,
@@ -199,7 +202,8 @@ class FormTestData() {
         "propertyType",
         "unitType",
         "summary",
-        "alternativeName"
+        "alternativeName",
+        required = true
       ),
       DisplayProperty(
         active = true,
@@ -217,7 +221,8 @@ class FormTestData() {
         "propertyType",
         "unitType",
         "summary",
-        "alternativeName"
+        "alternativeName",
+        required = true
       ),
       DisplayProperty(
         active = true,
@@ -235,7 +240,8 @@ class FormTestData() {
         "propertyType",
         "unitType",
         "summary",
-        "alternativeName"
+        "alternativeName",
+        required = true
       )
     )
   }
