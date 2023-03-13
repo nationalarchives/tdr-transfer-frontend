@@ -76,6 +76,8 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
     val alternativeName: String = attributes.find(_.attribute == "AlternativeName").getStringValue
 
+    val required: Boolean = attributes.find(_.attribute == "Required").getBoolean
+
     val ordinal: Int = {
       attributes.find(_.attribute == "Ordinal") match {
         case Some(o) => o.value.get.toInt
@@ -109,7 +111,8 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
       unitType,
       summary,
       alternativeName,
-      details
+      details,
+      required
     )
   }
 
@@ -145,7 +148,8 @@ case class DisplayProperty(
     unitType: String,
     summary: String,
     alternativeName: String,
-    details: Option[Details] = None
+    details: Option[Details] = None,
+    required: Boolean
 )
 
 case class Details(detailsSummary: String, detailsText: String)
