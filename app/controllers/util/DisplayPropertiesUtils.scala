@@ -44,7 +44,9 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
   }
 
   private def generateFormField(property: DisplayProperty, customMetadata: Option[CustomMetadata]): FormField = {
-    val required: Boolean = customMetadata.requiredField
+    // Always ensure that if required in data schema still required in the UI
+    val required: Boolean = if (customMetadata.requiredField) customMetadata.requiredField else property.required
+
     property.componentType match {
       case "large text" =>
         TextAreaField(
