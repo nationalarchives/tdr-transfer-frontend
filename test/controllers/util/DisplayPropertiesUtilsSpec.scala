@@ -7,6 +7,8 @@ import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatest.prop.TableFor3
+import org.scalatest.prop.Tables.Table
 import org.scalatestplus.mockito.MockitoSugar
 import services.DisplayProperty
 import testUtils.FormTestData
@@ -23,7 +25,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     fields should equal(List("FoiExemptionAsserted", "ClosureStartDate", "ClosurePeriod", "Radio", "DescriptionAlternate", "Dropdown"))
   }
 
-  "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select' where the property is not mult-value" in {
+  "convertPropertiesToFormFields" should "generate 'dropdown' field for componentType value 'select' where the property is not multi-value" in {
     val customMetadata = CustomMetadata(
       "Dropdown",
       None,
@@ -40,7 +42,25 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       allowExport = false
     )
     val displayProperty =
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", false, 3, "Dropdown", "propertyType", "", "", "alternativeName")
+      DisplayProperty(
+        active = true,
+        "select",
+        Text,
+        "description",
+        "Dropdown Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = false,
+        3,
+        "Dropdown",
+        "propertyType",
+        "",
+        "",
+        "alternativeName",
+        required = false
+      )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
@@ -74,7 +94,25 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
       allowExport = false
     )
     val displayProperty =
-      DisplayProperty(true, "select", Text, "description", "Dropdown Display", true, "group", "guidance", "label", true, 3, "Dropdown1", "propertyType", "", "", "alternativeName")
+      DisplayProperty(
+        active = true,
+        "select",
+        Text,
+        "description",
+        "Dropdown Display",
+        editable = true,
+        "group",
+        "guidance",
+        "label",
+        multiValue = true,
+        3,
+        "Dropdown1",
+        "propertyType",
+        "",
+        "",
+        "alternativeName",
+        required = false
+      )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
     val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
@@ -109,22 +147,23 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     )
     val displayProperty =
       DisplayProperty(
-        true,
+        active = true,
         "large text",
         Text,
         "description",
         "TextField Display",
-        true,
+        editable = true,
         "group",
         "guidance",
         "label",
-        false,
+        multiValue = false,
         3,
         "TextField",
         "propertyType",
         "",
         "",
-        "alternativeName"
+        "alternativeName",
+        required = false
       )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
@@ -162,7 +201,8 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "propertyType",
         "",
         "",
-        "alternativeName"
+        "alternativeName",
+        required = true
       )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
@@ -198,7 +238,8 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "propertyType",
         "",
         "",
-        "alternativeName"
+        "alternativeName",
+        required = false
       )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
@@ -234,7 +275,8 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "propertyType",
         "",
         "",
-        "alternativeName"
+        "alternativeName",
+        required = true
       )
 
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
@@ -248,6 +290,51 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     textField.inputMode should equal("text")
     textField.isRequired should equal(false)
     textField.multiValue should equal(false)
+  }
+
+  "convertPropertiesToFormFields" should "set field 'required' based on custom metadata group and if display property is required" in {
+    val requiredGroup = "MandatoryClosure"
+    val optionalGroup = "OptionalClosure"
+
+    val optionsAndExpectedOutcome: TableFor3[String, Boolean, Boolean] = Table(
+      ("custom metadata group", "display properties required", "expected field required"),
+      (requiredGroup, true, true),
+      (requiredGroup, false, true),
+      (optionalGroup, true, true),
+      (optionalGroup, false, false)
+    )
+
+    optionsAndExpectedOutcome.foreach(options => {
+      val group = options._1
+      val displayPropertyRequired = options._2
+      val expected = options._3
+      val customMetadata = createCustomMetadata(propertyGroup = group)
+      val displayProperty =
+        DisplayProperty(
+          active = true,
+          "large text",
+          Text,
+          "description",
+          "TextField Display",
+          editable = true,
+          "group",
+          "guidance",
+          "label",
+          multiValue = false,
+          3,
+          "Property",
+          "propertyType",
+          "",
+          "",
+          "alternativeName",
+          required = displayPropertyRequired
+        )
+      val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List(customMetadata))
+      val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
+
+      val field: TextAreaField = fields.head.asInstanceOf[TextAreaField]
+      field.isRequired should equal(expected)
+    })
   }
 
   "convertPropertiesToFormFields" should "throw an error for an unsupported component type" in {
@@ -268,7 +355,8 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "propertyType",
         "",
         "",
-        "alternativeName"
+        "alternativeName",
+        required = true
       )
     val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), List())
 

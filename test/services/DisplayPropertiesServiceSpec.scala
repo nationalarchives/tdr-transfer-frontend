@@ -52,7 +52,8 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
         dp.DisplayProperties.Attributes("PropertyType", Some("propertyType"), Text),
         dp.DisplayProperties.Attributes("UnitType", Some("unitType"), Text),
         dp.DisplayProperties.Attributes("DetailsSummary", Some("summary"), Text),
-        dp.DisplayProperties.Attributes("DetailsText", Some("text"), Text)
+        dp.DisplayProperties.Attributes("DetailsText", Some("text"), Text),
+        dp.DisplayProperties.Attributes("Required", Some("true"), Boolean)
       )
   )
 
@@ -234,6 +235,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     property.propertyType should equal("propertyType")
     property.unitType should equal("unitType")
     property.details should equal(Some(Details("summary", "text")))
+    property.required should equal(true)
   }
 
   "toDisplayProperty" should "return default values for all optional property fields" in {
@@ -254,6 +256,7 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     property.ordinal should equal(0)
     property.propertyType should equal("")
     property.unitType should equal("")
+    property.required should equal(false)
   }
 
   val detailsTable: TableFor2[Option[String], Option[String]] = Table(
