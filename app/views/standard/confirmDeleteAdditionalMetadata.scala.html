@@ -3,7 +3,7 @@
 @import java.util.UUID
 @import views.html.helper.CSRF
 @import views.html.helper.form
-@(consignmentId: UUID, metadataType: String, fileIds: List[UUID], fileNames: List[String], name: String)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, metadataType: String, fileIds: List[UUID], fileNames: List[String], hasEnteredMetadata: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
     @main(title = s"Delete $metadataType metadata", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
 
@@ -15,11 +15,11 @@
                             Delete @metadataType metadata
                         </h1>
                         @fileNameCard(fileNames, Messages(s"deleteAdditionalMetadata.${metadataType}DeletionMessage"))
-                        @warningMessage(Messages(s"deleteAdditionalMetadata.${metadataType}DeletionWarningMessage"))
+                        @displayWarningMessage(hasEnteredMetadata)
                         <p class="govuk-body">Confirm you wish to proceed.</p>
 
                         <div class="govuk-button-group">
-                            <button role="button" draggable="false" class="govuk-button govuk-button--warning" data-module="govuk-button" type="submit">
+                            <button role="button" draggable="false" class="govuk-button govuk-button--warning" data-module="govuk-button" type="submit" @if(!hasEnteredMetadata) {disabled}>
                                 Delete and return to files
                             </button>
                             <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, None)">
@@ -29,5 +29,13 @@
                     }
                 </div>
             </div>
+        }
+    }
+
+    @displayWarningMessage(hasEnteredMetadata: Boolean) = {
+        @if(hasEnteredMetadata) {
+            @warningMessage(Messages(s"deleteAdditionalMetadata.${metadataType}DeletionWarningMessage"))
+        } else {
+            @warningMessage(Messages(s"deleteAdditionalMetadata.noMetadataWarningMessage", routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType, expanded = None), "file selection page"))
         }
     }
