@@ -194,7 +194,12 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
        |         name="$name"
        |         placeholder="$placeholder"
        |         wrap="$wrap"
-       |         aria-describedby="$name-hint $name-info">$value</textarea>""".stripMargin
+       |         aria-describedby="$name-hint $name-info">$value</textarea>
+       |    </div>
+       |    <div id="$name-info" class="govuk-hint govuk-character-count__message">
+       |        You can enter up to $maxLength characters
+       |    </div>
+       |</div>""".stripMargin
   }
 
   private def addValuesToRadioAttributes(id: String, name: String, selected: Boolean, value: String): String = {
