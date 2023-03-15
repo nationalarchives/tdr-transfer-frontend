@@ -115,7 +115,8 @@ test("upload function submits redirect form on upload files success", async () =
 
   await uploadFiles.uploadFiles([dummyFile], {
     consignmentId: "12345",
-    parentFolder: "TEST PARENT FOLDER NAME"
+    parentFolder: "TEST PARENT FOLDER NAME",
+    includeTopLevelFolder: false
   })
 
   expect(consoleErrorSpy).not.toHaveBeenCalled()
@@ -133,7 +134,8 @@ test("upload function throws an error when upload fails", async () => {
 
   await uploadFiles.uploadFiles([dummyFile], {
     consignmentId: "12345",
-    parentFolder: "TEST PARENT FOLDER NAME"
+    parentFolder: "TEST PARENT FOLDER NAME",
+    includeTopLevelFolder: false
   })
 
   expect(mockGoToNextPage).not.toHaveBeenCalled()
@@ -150,7 +152,8 @@ test("upload function will not redirect to the next page if the backend checks t
 
   await uploadFiles.uploadFiles([dummyFile], {
     consignmentId: "12345",
-    parentFolder: "TEST PARENT FOLDER NAME"
+    parentFolder: "TEST PARENT FOLDER NAME",
+    includeTopLevelFolder: false
   })
 
   expect(mockGoToNextPage).not.toHaveBeenCalled()
@@ -167,7 +170,8 @@ test("upload function redirects to the next page when backend checks trigger suc
 
   await uploadFiles.uploadFiles([dummyFile], {
     consignmentId: "12345",
-    parentFolder: "TEST PARENT FOLDER NAME"
+    parentFolder: "TEST PARENT FOLDER NAME",
+    includeTopLevelFolder: false
   })
 
   expect(mockGoToNextPage).toHaveBeenCalled()
@@ -201,7 +205,8 @@ test("upload function refreshes idle session", async () => {
   jest.useFakeTimers()
   await uploadFiles.uploadFiles([dummyFile], {
     consignmentId: "12345",
-    parentFolder: "TEST PARENT FOLDER NAME"
+    parentFolder: "TEST PARENT FOLDER NAME",
+    includeTopLevelFolder: false
   })
   jest.runAllTimers()
 
@@ -221,7 +226,8 @@ test("upload function updates the consignment upload status with Completed when 
 
   await uploadFiles.uploadFiles([dummyFile], {
     consignmentId: "12345",
-    parentFolder: "TEST PARENT FOLDER NAME"
+    parentFolder: "TEST PARENT FOLDER NAME",
+    includeTopLevelFolder: false
   })
   const updateStatusBody = fetchMock.mock.calls
     .filter((call) => call[0] == "/update-consignment-status")[0][1]!
@@ -239,7 +245,8 @@ test("upload function updates the consignment upload status with Completed when 
 
   await uploadFiles.uploadFiles([dummyFile], {
     consignmentId: "12345",
-    parentFolder: "TEST PARENT FOLDER NAME"
+    parentFolder: "TEST PARENT FOLDER NAME",
+    includeTopLevelFolder: false
   })
 
   const updateStatusBody = fetchMock.mock.calls
