@@ -188,12 +188,13 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
   }
 
   private def addValuesToTextAreaAttributes(id: String, rows: String, name: String, value: String, placeholder: String, wrap: String, maxLength: String): String = {
-    s"""<textarea class="govuk-textarea "
-       |     rows="$rows"
-       |     id="$id"
-       |     name="$name"
-       |     placeholder="$placeholder"
-       |     wrap="$wrap">$value</textarea>""".stripMargin
+    s"""<textarea class="govuk-textarea govuk-js-character-count "
+       |         rows="$rows"
+       |         id="$id"
+       |         name="$name"
+       |         placeholder="$placeholder"
+       |         wrap="$wrap"
+       |         aria-describedby="$name-hint $name-info">$value</textarea>""".stripMargin
   }
 
   private def addValuesToRadioAttributes(id: String, name: String, selected: Boolean, value: String): String = {
