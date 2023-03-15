@@ -568,6 +568,11 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     val cancelButtonHref =
       s"/consignment/$consignmentId/additional-metadata/selected-summary/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     pageString must include(s"""form action="$deleteButtonHref"""")
+    if (!hasEnteredMetadata) {
+      pageString must include("deleteAdditionalMetadata.noMetadataWarningMessage")
+    } else {
+      pageString must (include("deleteAdditionalMetadata.closureDeletionWarningMessage") or include("deleteAdditionalMetadata.descriptiveDeletionWarningMessage"))
+    }
     val isButtonDisabled = if (!hasEnteredMetadata) "disabled" else ""
     pageString must include(
       s"""                        <div class="govuk-button-group">
