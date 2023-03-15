@@ -153,7 +153,7 @@ test("client file metadata successfully uploaded", async () => {
   await expect(
     fileProcessing.processClientFiles(
       [],
-      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME", includeTopLevelFolder: false },
       "",
       userId
     )
@@ -232,7 +232,7 @@ test("file successfully uploaded to s3", async () => {
   await expect(
     fileProcessing.processClientFiles(
       [],
-      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME", includeTopLevelFolder: false },
       "",
       userId
     )
@@ -317,7 +317,7 @@ test("Error thrown if processing files fails", async () => {
   await expect(
     fileProcessing.processClientFiles(
       [],
-      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME", includeTopLevelFolder: false },
       "",
       userId
     )
@@ -337,7 +337,7 @@ test("Error thrown if processing file metadata fails", async () => {
   await expect(
     fileProcessing.processClientFiles(
       [],
-      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME", includeTopLevelFolder: false },
       "",
       userId
     )
@@ -357,7 +357,7 @@ test("Error thrown if extracting file metadata fails", async () => {
   await expect(
     fileProcessing.processClientFiles(
       [],
-      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME", includeTopLevelFolder: false },
       "",
       userId
     )
@@ -376,7 +376,7 @@ test("Error thrown if S3 upload fails", async () => {
   await expect(
     fileProcessing.processClientFiles(
       [],
-      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+      { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME", includeTopLevelFolder: false },
       "",
       userId
     )
@@ -400,7 +400,7 @@ test("empty folders are passed correctly to the save metadata function", async (
 
   await fileProcessing.processClientFiles(
     [{path: "directoryPath"}, {path: "filePath", file: new File(["a"], "test")}],
-    { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME" },
+    { consignmentId: "1", parentFolder: "TEST PARENT FOLDER NAME", includeTopLevelFolder: false },
     "",
     userId
   )
