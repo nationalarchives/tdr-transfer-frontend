@@ -42,7 +42,8 @@ test("startUpload returns error if the request to the frontend fails ", async ()
   await expect(
     uploadMetadata.startUpload({
       consignmentId: "1",
-      parentFolder: "TEST PARENT FOLDER NAME"
+      parentFolder: "TEST PARENT FOLDER NAME",
+      includeTopLevelFolder: false
     })
   ).resolves.toStrictEqual(Error("Error: Error from frontend"))
 })
@@ -53,7 +54,8 @@ test("startUpload returns error if the http status is not OK", async () => {
   await expect(
     uploadMetadata.startUpload({
       consignmentId: "1",
-      parentFolder: "TEST PARENT FOLDER NAME"
+      parentFolder: "TEST PARENT FOLDER NAME",
+      includeTopLevelFolder: false
     })
   ).resolves.toStrictEqual(Error("Start upload failed: There was an error"))
 })

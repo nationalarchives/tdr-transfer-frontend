@@ -24,7 +24,7 @@ class UploadServiceSpec extends AnyFlatSpec {
   private val token = new BearerAccessToken("some-token")
 
   "startUpload" should "return the correct data" in {
-    val input = StartUploadInput(UUID.randomUUID(), "parent")
+    val input = StartUploadInput(UUID.randomUUID(), "parent", Some(false))
     val graphQlClientForStartUpload = mock[GraphQLClient[su.Data, su.Variables]]
     when(graphQlConfig.getClient[su.Data, su.Variables]())
       .thenReturn(graphQlClientForStartUpload)
