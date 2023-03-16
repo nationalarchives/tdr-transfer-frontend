@@ -8,6 +8,7 @@ import configuration.GraphQLConfiguration
 import controllers.util.MetadataProperty.clientSideOriginalFilepath
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetConsignment.getConsignment
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileStatuses
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
 import graphql.codegen.types.FileMetadataFilters
 import io.circe.generic.auto._
@@ -51,8 +52,9 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     "render the delete closure metadata page with an authenticated user for the 'closure' metadata type" in {
       val consignmentId = UUID.randomUUID()
       val consignmentReference = "TEST-TDR-2021-GB"
+      val fileStatuses = List(FileStatuses(closureMetadataType.capitalize, "Completed"))
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()))
+      setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()), fileStatuses = fileStatuses)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -92,6 +94,80 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     "render the delete closure metadata page with an authenticated user for the 'descriptive' metadata type" in {
       val consignmentId = UUID.randomUUID()
       val consignmentReference = "TEST-TDR-2021-GB"
+      val fileStatuses = List(FileStatuses(descriptiveMetadataType.capitalize, "Completed"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()), fileStatuses = fileStatuses)
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val controller =
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
+      val response = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType").withCSRFToken)
+      val deleteMetadataPage = contentAsString(response)
+
+      status(response) mustBe OK
+      contentType(response) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
+      checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, descriptiveMetadataType)
+      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
+    }
+
+    "delete button should be disabled if no metadata has been entered for an authenticated user for the 'closure' metadata type" in {
+      val consignmentId = UUID.randomUUID()
+      val consignmentReference = "TEST-TDR-2021-GB"
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()))
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val controller =
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
+      val response = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType").withCSRFToken)
+      val deleteMetadataPage = contentAsString(response)
+
+      val events = wiremockServer.getAllServeEvents
+      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
+      val request: GetConsignmentFilesMetadataGraphqlRequestData = decode[GetConsignmentFilesMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+        .getOrElse(GetConsignmentFilesMetadataGraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+
+      val input = request.variables.fileFiltersInput
+      input.get.selectedFileIds mustBe fileIds.some
+      input.get.metadataFilters mustBe FileMetadataFilters(None, None, Some(List(clientSideOriginalFilepath))).some
+
+      status(response) mustBe OK
+      contentType(response) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
+      checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, closureMetadataType, hasEnteredMetadata = false)
+      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
+    }
+
+    "delete button should be disabled if no metadata has been entered for an authenticated user for the 'descriptive' metadata type" in {
+      val consignmentId = UUID.randomUUID()
+      val consignmentReference = "TEST-TDR-2021-GB"
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()))
 
@@ -117,7 +193,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       contentType(response) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
-      checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, descriptiveMetadataType)
+      checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, descriptiveMetadataType, hasEnteredMetadata = false)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
@@ -478,7 +554,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def checkConfirmDeleteMetadataPage(pageString: String, consignmentId: UUID, metadataType: String): Unit = {
+  private def checkConfirmDeleteMetadataPage(pageString: String, consignmentId: UUID, metadataType: String, hasEnteredMetadata: Boolean = true): Unit = {
     pageString must include(s"<title>Delete $metadataType metadata</title>")
     pageString must include(
       s"""              <h1 class="govuk-heading-xl">
@@ -492,9 +568,15 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     val cancelButtonHref =
       s"/consignment/$consignmentId/additional-metadata/selected-summary/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     pageString must include(s"""form action="$deleteButtonHref"""")
+    if (!hasEnteredMetadata) {
+      pageString must include("deleteAdditionalMetadata.noMetadataWarningMessage")
+    } else {
+      pageString must (include(s"deleteAdditionalMetadata.${metadataType}DeletionWarningMessage"))
+    }
+    val isButtonDisabled = if (!hasEnteredMetadata) "disabled" else ""
     pageString must include(
       s"""                        <div class="govuk-button-group">
-         |                            <button role="button" draggable="false" class="govuk-button govuk-button--warning" data-module="govuk-button" type="submit">
+         |                            <button role="button" draggable="false" class="govuk-button govuk-button--warning" data-module="govuk-button" type="submit" $isButtonDisabled>
          |                                Delete and return to files
          |                            </button>
          |                            <a class="govuk-link govuk-link--no-visited-state" href="$cancelButtonHref">
