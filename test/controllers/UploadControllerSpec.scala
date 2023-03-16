@@ -824,7 +824,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
       val uploadService = new UploadService(graphQLConfiguration)
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val startUploadInput = StartUploadInput(consignmentId, "parent")
+      val startUploadInput = StartUploadInput(consignmentId, "parent", Some(false))
       val data = client.GraphqlData(Option(startUpload.Data("ok")), Nil)
       val dataString = data.asJson.noSpaces
 
@@ -901,7 +901,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         fileStatusService,
         backendChecksService
       )
-      val startUploadInput = StartUploadInput(consignmentId, "parent")
+      val startUploadInput = StartUploadInput(consignmentId, "parent", Some(false))
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
           .withRequestBody(containing("startUpload"))
