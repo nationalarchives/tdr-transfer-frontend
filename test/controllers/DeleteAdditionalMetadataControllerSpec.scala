@@ -571,7 +571,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     if (!hasEnteredMetadata) {
       pageString must include("deleteAdditionalMetadata.noMetadataWarningMessage")
     } else {
-      pageString must (include("deleteAdditionalMetadata.closureDeletionWarningMessage") or include("deleteAdditionalMetadata.descriptiveDeletionWarningMessage"))
+      pageString must (include(s"deleteAdditionalMetadata.${metadataType}DeletionWarningMessage") or include(s"deleteAdditionalMetadata.${metadataType}DeletionWarningMessage"))
     }
     val isButtonDisabled = if (!hasEnteredMetadata) "disabled" else ""
     pageString must include(
