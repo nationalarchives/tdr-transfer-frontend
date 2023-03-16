@@ -54,7 +54,18 @@ export const htmlForFolderUploadForm = `
                                       </div>
                                   </div>
                                   <p class="govuk-body">For more information on what metadata will be captured during the upload please visit our FAQ’s page</p>
-
+                                  <div class="govuk-form-group">
+                                      <fieldset class="govuk-fieldset" aria-describedby="waste-hint">
+                                          <div class="govuk-checkboxes">
+                                              <div class="govuk-checkboxes__item">
+                                                  <input class="govuk-checkboxes__input" id="includeTopLevelFolder" name="includeTopLevelFolder" type="checkbox" value="mines">
+                                                  <label class="govuk-label govuk-checkboxes__label" for="includeTopLevelFolder">
+                                                      Check the box if you want to display the name of your top-level folder in the public catalogue.
+                                                  </label>
+                                              </div>
+                                          </div>
+                                      </fieldset>
+                                  </div>
                                   <div class="govuk-button-group">
                                       <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
                                           Start upload
@@ -130,7 +141,18 @@ export const htmlForFileUploadForm = `
                                       </label>
                                   </div>
                               </div>
-
+                              <div class="govuk-form-group">
+                                  <fieldset class="govuk-fieldset" aria-describedby="waste-hint">
+                                      <div class="govuk-checkboxes">
+                                          <div class="govuk-checkboxes__item">
+                                              <input class="govuk-checkboxes__input" id="includeTopLevelFolder" name="includeTopLevelFolder" type="checkbox" value="mines">
+                                              <label class="govuk-label govuk-checkboxes__label" for="includeTopLevelFolder">
+                                                  Check the box if you want to display the name of your top-level folder in the public catalogue.
+                                              </label>
+                                          </div>
+                                      </div>
+                                  </fieldset>
+                              </div>
                               <div class="govuk-button-group">
                                   <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
                                       Start upload

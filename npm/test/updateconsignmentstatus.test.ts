@@ -13,7 +13,8 @@ beforeEach(() => {
 
 const uploadFilesInfo = {
   consignmentId: "2o4i5u4ywd5g4",
-  parentFolder: "TEST PARENT FOLDER NAME"
+  parentFolder: "TEST PARENT FOLDER NAME",
+  includeTopLevelFolder: false
 }
 
 test("setUploadStatusBasedOnFileStatuses returns the status of 1", async () => {

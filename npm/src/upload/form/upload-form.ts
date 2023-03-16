@@ -21,6 +21,7 @@ interface FileWithRelativePath extends File {
 export interface FileUploadInfo {
   consignmentId: string
   parentFolder: string
+  includeTopLevelFolder: boolean
 }
 
 export class UploadForm {
@@ -61,6 +62,10 @@ export class UploadForm {
       return Error("No consignment provided")
     }
     return value
+  }
+
+  includeTopLevelFolder: () => boolean = () => {
+    return this.formElement.includeTopLevelFolder?.checked
   }
 
   addButtonHighlighter() {
@@ -215,11 +220,13 @@ export class UploadForm {
 
       const parentFolder = this.getParentFolderName(this.selectedFiles)
       const consignmentIdOrError = this.consignmentId()
+      const includeTopLevelFolder = this.includeTopLevelFolder()
       if (!isError(consignmentIdOrError)) {
         const consignmentId = consignmentIdOrError
         const uploadFilesInfo: FileUploadInfo = {
           consignmentId,
-          parentFolder: parentFolder
+          parentFolder: parentFolder,
+          includeTopLevelFolder
         }
         UploadForm.showUploadingRecordsPage()
         this.folderUploader(this.selectedFiles, uploadFilesInfo)
