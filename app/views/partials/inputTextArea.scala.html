@@ -11,30 +11,36 @@ fieldErrors: Seq[String],
 attributes: Map[Symbol, Any] = Map(),
 rows: String,
 wrap: String,
+characterLimit: Int,
 detailsOpt: Option[Details])(implicit messages: Messages)
 
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
 @inputName = @{if(isDynamicForm) s"inputtextarea-$fieldId" else fieldId}
 
-<div class="govuk-form-group @{
-    if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""
-}">
-    <h2 class="govuk-label-wrapper">
-        <label class="govuk-label govuk-label--m" for=@inputName>
-            @fieldName
-        </label>
-    </h2>
-    <div id="@inputName-hint" class="govuk-hint">
-        @fieldDescription
+<div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="@characterLimit">
+    <div class="govuk-form-group @{
+        if(fieldErrors.nonEmpty) "govuk-form-group--error" else ""}">
+        <h2 class="govuk-label-wrapper">
+            <label class="govuk-label govuk-label--m" for=@inputName>
+                @fieldName
+            </label>
+        </h2>
+        <div id="@inputName-hint" class="govuk-hint">
+            @fieldDescription
+        </div>
+        @for(detail <- detailsOpt) {
+          @details(detail)
+        }
+        @errorMessage(fieldId, fieldErrors)
+        <textarea class="govuk-textarea govuk-js-character-count @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
+         rows="@rows"
+         id="@inputName"
+         name="@{if(isDynamicForm) s"$inputName" else fieldId}"
+         placeholder="@input.placeHolder"
+         wrap="@wrap"
+         aria-describedby="@inputName-hint @inputName-info">@input.value</textarea>
     </div>
-    @for(detail <- detailsOpt) {
-      @details(detail)
-    }
-    @errorMessage(fieldId, fieldErrors)
-    <textarea class="govuk-textarea @{if(fieldErrors.nonEmpty) "govuk-input--error" else ""}"
-     rows="@rows"
-     id="@inputName"
-     name="@{if(isDynamicForm) s"$inputName" else fieldId}"
-     placeholder="@input.placeHolder"
-     wrap="@wrap">@input.value</textarea>
+    <div id="@inputName-info" class="govuk-hint govuk-character-count__message">
+        You can enter up to @characterLimit characters
+    </div>
 </div>
