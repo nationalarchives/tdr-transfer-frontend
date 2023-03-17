@@ -371,6 +371,16 @@ object ConsignmentStatusesOptions {
       "Download report"
     ),
     (
+      "export in progress with metadata entered",
+      generateStatuses(
+        clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportInProgress ++ descriptiveMetadataEntered ++ closureMetadataComplete,
+        includeDefaultStatuses = false
+      ),
+      "/additional-metadata/download-metadata/csv",
+      "In Progress",
+      "Download report"
+    ),
+    (
       "export failed",
       generateStatuses(
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportFailed
@@ -380,9 +390,29 @@ object ConsignmentStatusesOptions {
       "Contact us"
     ),
     (
+      "export failed with metadata entered",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportFailed ++ descriptiveMetadataEntered ++ closureMetadataComplete,
+        includeDefaultStatuses = false
+      ),
+      "mailto:nationalArchives.email?subject=Ref: consignment-ref-1 - Export failure",
+      "Failed",
+      "Contact us"
+    ),
+    (
       "export completed",
       generateStatuses(
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportCompleted
+      ),
+      "/additional-metadata/download-metadata/csv",
+      "Transferred",
+      "Download report"
+    ),
+    (
+      "export completed with metadata entered",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportCompleted ++ descriptiveMetadataEntered ++ closureMetadataComplete,
+        includeDefaultStatuses = false
       ),
       "/additional-metadata/download-metadata/csv",
       "Transferred",
