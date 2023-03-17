@@ -7,6 +7,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import viewsapi.Caching.preventCaching
 
 import java.util.UUID
 import javax.inject.Inject
@@ -31,8 +32,9 @@ class DeleteAdditionalMetadataController @Inject() (
           response <-
             if (consignment.files.nonEmpty) {
               val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
+              val hasEnteredMetadata = consignment.files.flatMap(_.fileStatuses.filter(_.statusType.contains(metadataType.capitalize))).exists(_.statusValue == "Completed")
               Future(
-                Ok(views.html.standard.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds, filePaths, request.token.name))
+                Ok(views.html.standard.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds, filePaths, hasEnteredMetadata, request.token.name)).uncache()
               )
             } else {
               Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
