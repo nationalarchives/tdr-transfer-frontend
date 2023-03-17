@@ -40,10 +40,17 @@ object ConsignmentStatusesOptions {
   private val ffidFailed: Map[StatusType, StatusValue] = Map(ServerFFIDType -> FailedValue)
   private val ffidWithIssues: Map[StatusType, StatusValue] = Map(ServerFFIDType -> CompletedWithIssuesValue)
   private val ffidCompleted: Map[StatusType, StatusValue] = Map(ServerFFIDType -> CompletedValue)
+  private val descriptiveMetadataNotEntered: Map[StatusType, StatusValue] = Map(DescriptiveMetadataType -> NotEnteredValue)
+  private val descriptiveMetadataEntered: Map[StatusType, StatusValue] = Map(DescriptiveMetadataType -> EnteredValue)
+  private val closureMetadataNotEntered: Map[StatusType, StatusValue] = Map(ClosureMetadataType -> NotEnteredValue)
+  private val closureMetadataIncomplete: Map[StatusType, StatusValue] = Map(ClosureMetadataType -> IncompleteValue)
+  private val closureMetadataComplete: Map[StatusType, StatusValue] = Map(ClosureMetadataType -> CompletedValue)
   private val confirmCompleted: Map[StatusType, StatusValue] = Map(ConfirmTransferType -> CompletedValue)
   private val exportInProgress: Map[StatusType, StatusValue] = Map(ExportType -> InProgressValue)
   private val exportFailed: Map[StatusType, StatusValue] = Map(ExportType -> FailedValue)
   private val exportCompleted: Map[StatusType, StatusValue] = Map(ExportType -> CompletedValue)
+
+  private val defaultStatuses: Map[StatusType, StatusValue] = descriptiveMetadataNotEntered ++ closureMetadataNotEntered
 
   val expectedStandardStatesAndStatuses: TableFor5[String, List[ConsignmentStatuses], String, String, String] = Table(
     ("expected transfer state", "statuses", "action url", "transfer state", "action text"),
@@ -266,11 +273,91 @@ object ConsignmentStatusesOptions {
       "Resume transfer"
     ),
     (
-      "confirm transfer completed",
+      "descriptive metadata entered only",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataEntered ++ closureMetadataNotEntered,
+        includeDefaultStatuses = false
+      ),
+      "/additional-metadata",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "descriptive metadata entered and incomplete closure metadata",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataEntered ++ closureMetadataNotEntered,
+        includeDefaultStatuses = false
+      ),
+      "/additional-metadata",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "descriptive metadata entered and complete closure metadata",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataEntered ++ closureMetadataComplete,
+        includeDefaultStatuses = false
+      ),
+      "/additional-metadata",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "closure metadata incomplete only",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataNotEntered ++ closureMetadataIncomplete,
+        includeDefaultStatuses = false
+      ),
+      "/additional-metadata",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "closure metadata complete only",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataNotEntered ++ closureMetadataComplete,
+        includeDefaultStatuses = false
+      ),
+      "/additional-metadata",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "confirm transfer completed with no additional metadata",
       generateStatuses(
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted
       ),
-      "/file-checks-results",
+      "/transfer-complete",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "confirm transfer completed with additional metadata entered",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ descriptiveMetadataEntered ++ closureMetadataComplete,
+        includeDefaultStatuses = false
+      ),
+      "/transfer-complete",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "confirm transfer completed with descriptive metadata only entered",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ descriptiveMetadataEntered ++ closureMetadataNotEntered,
+        includeDefaultStatuses = false
+      ),
+      "/transfer-complete",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "confirm transfer completed with closure metadata only entered",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ descriptiveMetadataNotEntered ++ closureMetadataComplete,
+        includeDefaultStatuses = false
+      ),
+      "/transfer-complete",
       "In Progress",
       "Resume transfer"
     ),
@@ -515,9 +602,14 @@ object ConsignmentStatusesOptions {
   def generateStatuses(
       statuses: Map[StatusType, StatusValue],
       consignmentId: UUID = UUID.randomUUID(),
-      modifiedDateTime: Option[ZonedDateTime] = Some(someDateTime)
+      modifiedDateTime: Option[ZonedDateTime] = Some(someDateTime),
+      includeDefaultStatuses: Boolean = true
   ): List[ConsignmentStatuses] = {
-    statuses
+
+    val statusesToGenerate = if (includeDefaultStatuses) { statuses ++ defaultStatuses }
+    else { statuses }
+
+    statusesToGenerate
       .map(s => {
         ConsignmentStatuses(UUID.randomUUID(), consignmentId, s._1.id, s._2.value, someDateTime, modifiedDateTime)
       })
