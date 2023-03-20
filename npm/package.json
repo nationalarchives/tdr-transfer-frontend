@@ -41,10 +41,10 @@
   },
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.292.0",
+    "@aws-sdk/client-s3": "^3.293.0",
     "@aws-sdk/lib-storage": "^3.85.0",
-    "@nationalarchives/file-information": "^1.0.444",
-    "@nationalarchives/tdr-components": "1.0.26",
+    "@nationalarchives/file-information": "^1.0.445",
+    "@nationalarchives/tdr-components": "1.0.28",
     "@nationalarchives/tdr-generated-graphql": "1.0.373",
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
@@ -84,7 +84,7 @@
     "stylelint-config-sass-guidelines": "^9.0.0",
     "ts-jest": "^28.0.8",
     "ts-loader": "^9.4.2",
-    "typescript": "4.9.5",
+    "typescript": "5.0.2",
     "webpack": "^5.76.2",
     "webpack-cli": "^5.0.1"
   },

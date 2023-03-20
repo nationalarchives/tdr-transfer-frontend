@@ -133,10 +133,10 @@ export class MockUploadFormDom {
     const submitButton = this.submitButton
 
     class MockSubmitEvent implements SubmitEvent {
-      readonly AT_TARGET: number = 0
-      readonly BUBBLING_PHASE: number = 0
-      readonly CAPTURING_PHASE: number = 0
-      readonly NONE: number = 0
+      readonly AT_TARGET = 2
+      readonly BUBBLING_PHASE = 3
+      readonly CAPTURING_PHASE = 1
+      readonly NONE = 0
       readonly bubbles: boolean = true
       cancelBubble: boolean = true
       readonly cancelable: boolean = true
