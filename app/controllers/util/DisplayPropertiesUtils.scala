@@ -24,8 +24,9 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
 
     def definedInputs: List[InputNameAndValue] = {
       customMetadata match {
-        case Some(cm) => cm.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value))
-        case _        => List()
+        case Some(cm) if cm.values.exists(_.uiOrdinal == Int.MaxValue) => cm.values.sortBy(_.value).map(v => InputNameAndValue(v.value, v.value))
+        case Some(cm)                                                  => cm.values.sortBy(_.uiOrdinal).map(v => InputNameAndValue(v.value, v.value))
+        case _                                                         => List()
       }
     }
 
@@ -108,9 +109,9 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
 
   private def generateTextField(property: DisplayProperty, customMetadata: Option[CustomMetadata]) = {
     val required: Boolean = customMetadata.requiredField
-    val dataType = customMetadata match {
-      case Some(datatype) => if (datatype.dataType == DataType.Integer) "numeric" else "text"
-      case _              => "text"
+    val (inputMode, inputType) = property.dataType match {
+      case DataType.Integer => ("numeric", "number")
+      case _                => ("text", "text")
     }
     val inputName: String = property.guidance
     TextField(
@@ -121,8 +122,10 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
       Nil,
       property.multiValue,
       InputNameAndValue(inputName, customMetadata.defaultValue),
-      dataType,
-      required
+      inputMode,
+      required,
+      addSuffixText = property.guidance.nonEmpty,
+      inputType = inputType
     )
   }
 
