@@ -285,7 +285,7 @@ object ConsignmentStatusesOptions {
     (
       "descriptive metadata entered and incomplete closure metadata",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataEntered ++ closureMetadataNotEntered,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataEntered ++ closureMetadataIncomplete,
         includeDefaultStatuses = false
       ),
       "/additional-metadata",
