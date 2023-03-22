@@ -428,7 +428,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     displayPropertiesUtils.CustomMetadataHelper(None).defaultInput should equal(None)
   }
 
-  "CustomMetadataHelper.definedInputs" should "should sort by uiOrdinal when uiOrdinal is valid" in {
+  "CustomMetadataHelper.definedInputs" should "sort by uiOrdinal when uiOrdinal is valid" in {
     val noValues = createCustomMetadata()
     val withValues = createCustomMetadata(values =
       List(

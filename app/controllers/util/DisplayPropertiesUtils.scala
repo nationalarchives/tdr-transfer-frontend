@@ -124,7 +124,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
       InputNameAndValue(inputName, customMetadata.defaultValue),
       inputMode,
       required,
-      addSuffixText = property.guidance.nonEmpty,
+      addSuffixText = inputName.nonEmpty,
       inputType = inputType
     )
   }
