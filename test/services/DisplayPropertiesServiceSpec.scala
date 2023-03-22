@@ -120,6 +120,20 @@ class DisplayPropertiesServiceSpec extends AnyFlatSpec with MockitoSugar with Be
     properties.last.propertyName should equal("activeProperty")
   }
 
+  "getDisplayProperties" should "show all active an inactive properties is showInactive is true" in {
+    val data: Option[dp.Data] = Some(
+      dp.Data(
+        List(activeProperty, inactiveProperty, differentPropertyTypeActiveProperty, differentPropertyTypeInactiveProperty)
+      )
+    )
+    val response = GraphQlResponse(data, Nil)
+    when(displayPropertiesClient.getResult(token, dp.document, Some(dp.Variables(consignmentId))))
+      .thenReturn(Future.successful(response))
+
+    val properties: List[DisplayProperty] = displayPropertiesService.getDisplayProperties(consignmentId, token, None, showInactive = true).futureValue
+    properties.size should equal(4)
+  }
+
   "getDisplayProperties" should "not return any properties if none are active or are different property type to the given 'metadata type'" in {
     val data: Option[dp.Data] = Some(
       dp.Data(
