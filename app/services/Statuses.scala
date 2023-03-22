@@ -69,6 +69,8 @@ object Statuses {
     val nonJudgmentStatus: Boolean = true
   }
 
+  case object EnteredValue extends StatusValue { val value: String = "Entered" }
+
   case object NotEnteredValue extends StatusValue { val value: String = "NotEntered" }
 
   case object IncompleteValue extends StatusValue { val value: String = "Incomplete" }
