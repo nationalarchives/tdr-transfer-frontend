@@ -2,61 +2,194 @@
 @nationalArchivesEmailAddress = @{if(isJudgmentUser) Messages("nationalArchives.judgmentsEmail") else Messages("nationalArchives.email")}
 
 @main("View Transfers", name = name, isJudgmentUser = isJudgmentUser) {
-  @defining(play.core.PlayVersion.current) { version =>
-    <div class="govuk-width-container ">
-        <div class="govuk-grid-row">
-          <div class="govuk-grid-column-full">
-            <h1 class="govuk-heading-l">View Transfers</h1>
-            <p class="govuk-body">View the history of all the consignments you have uploaded. You can also resume incomplete transfers or view the errors of failed transfers.</p>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
 
-            <table class="govuk-table">
-              <thead class="govuk-table__head">
-                <tr class="govuk-table__row">
-                    <th scope="col" class="govuk-table__header">Reference</th>
-                    <th scope="col" class="govuk-table__header">Date started</th>
-                    <th scope="col" class="govuk-table__header">Date transferred</th>
-                    <th scope="col" class="govuk-table__header">Status</th>
-                    <th scope="col" class="govuk-table__header">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="govuk-table__body">
-                @for(consignment <- consignments) {
-                  <tr class="govuk-table__row">
-                    <th scope="row" class="govuk-table__header">
-                      <details class="govuk-details" data-module="govuk-details">
-                        <summary class="govuk-details__summary">
-                          <strong class="consignment-ref-cell">
-                            @consignment.reference
-                          </strong>
-                        </summary>
-                        <div class="govuk-details__text">
-                          <p class="govuk-body">Please do not delete the original files you exported until you are notified that your records have been preserved.</p>
-                          <ul class="govuk-list govuk-list--bullet">
-                            <li>Consignment uploaded by: @email</li>
-                            <li>Date started: @consignment.dateStarted</li>
-                            <li>Date of transfer: @consignment.dateOfTransfer</li>
-                            <li>Number of files: @consignment.numberOfFiles records</li>
-                          </ul>
-                        </div>
-                      </details>
-                    </th>
-                    <td class="govuk-table__cell">@consignment.dateStarted</td>
-                    <td class="govuk-table__cell @{if(consignment.dateOfTransfer == "N/A") "not-applicable"}">@consignment.dateOfTransfer</td>
-                    <td class="govuk-table__cell">
-                      <strong class="govuk-tag govuk-tag--@consignment.statusColour">
-                        @consignment.status
-                      </strong>
-                    </td>
-                    <td class="govuk-table__cell"><a href="@{consignment.userAction.actionUrl.format(nationalArchivesEmailAddress)}">@consignment.userAction.actionText</a></td>
-                  </tr>
+      <h1 class="govuk-heading-l">View Transfers</h1>
+      <p class="govuk-body">View the history of all the consignments you have uploaded. You can also resume incomplete transfers or view the errors of failed transfers.</p>
+
+      <table data-module="table-row-expander" class="govuk-table govuk-table--tdr-transfers govuk-!-margin-bottom-2">
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header" id="toggle">
+              <span class="govuk-visually-hidden">Expand</span></th>
+            <th scope="col" class="govuk-table__header">Reference</th>
+            <th scope="col" class="govuk-table__header">Date started</th>
+            <th scope="col" class="govuk-table__header">Date transferred</th>
+            <th scope="col" class="govuk-table__header">Status</th>
+            <th scope="col" class="govuk-table__header">Actions</th>
+            <th scope="col" class="govuk-table__header govuk-visually-hidden" id="more-details">More details</th>
+          </tr>
+        </thead>
+        <tbody>
+        @for((consignment, index) <- consignments.zipWithIndex) {
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" rowspan="2">
+              <button class="tdr-arrow-expander" aria-expanded="false" aria-controls="details-@index">
+                <span class="govuk-visually-hidden">More details about @consignment.reference</span></button>
+            </td>
+            <th scope="row" class="govuk-table__header">@consignment.reference</th>
+            <td class="govuk-table__cell">@consignment.dateStarted</td>
+            <td class="govuk-table__cell">@consignment.dateOfTransfer</td>
+            <td class="govuk-table__cell">
+              <strong class="tdr-tag tdr-tag--@consignment.statusColour">@consignment.status</strong>
+            </td>
+            <td class="govuk-table__cell">
+              <div class="tdr-link-group">
+                <a href="@{consignment.userAction.actionUrl.format(nationalArchivesEmailAddress)}" class="govuk-link govuk-link--no-visited-state">@consignment.userAction.actionText</a>
+              </div>
+            </td>
+          </tr>
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" headers="more-details" colspan="5" id="details-@index">
+                @if(consignment.status == Transferred.value) {
+                  <div class="govuk-warning-text govuk-!-margin-bottom-0">
+                    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                    <strong class="govuk-warning-text__text">
+                      <span class="govuk-warning-text__assistive">Warning</span>
+                      You must not delete the original records of this transfer as they are not yet preserved. You will receive an email once preservation has taken place. If you do not receive an email, contact <a href="mailto:tdr@@nationalarchives.gov.uk.">
+                      tdr@@nationalarchives.gov.uk</a>.
+                    </strong>
+                  </div>
                 }
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <a href="@routes.HomepageController.homepage()" role="button" draggable="false" class="govuk-button govuk-button--primary">
-            Back to homepage
-        </a>
+              <div class="tdr-transfers-extra">
+                <dl class="tdr-dlist tdr-transfers-extra__list">
+                  <dt class="govuk-body-m float govuk-!-margin-bottom-0">Number of files</dt>
+                  <dd class="govuk-!-font-size-36">@consignment.numberOfFiles</dd>
+                </dl>
+                <dl class="tdr-dlist tdr-transfers-extra__list">
+                  <dt class="govuk-body-m float govuk-!-margin-bottom-0">Uploaded by</dt>
+                  <dd>
+                    <a href="mailto:@email">@email</a>
+                  </dd>
+                </dl>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        }
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" rowspan="2">
+              <button class="tdr-arrow-expander" aria-expanded="false" aria-controls="details-01">
+                <span class="govuk-visually-hidden">More details about MOCK-TDR-1234</span></button>
+            </td>
+            <th scope="row" class="govuk-table__header">MOCK-TDR-1294</th>
+            <td class="govuk-table__cell">12/11/22</td>
+            <td class="govuk-table__cell">
+              <span class="no-data">N/A <span class="govuk-visually-hidden">Transfer not complete yet</span></span></td>
+            <td class="govuk-table__cell">
+              <strong class="tdr-tag tdr-tag--red">failed</strong>
+            </td>
+            <td class="govuk-table__cell">
+              <div class="tdr-link-group">
+                <a href="#" class="govuk-link govuk-link--no-visited-state">View errors</a>
+              </div>
+            </td>
+          </tr>
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" headers="more-details" colspan="5" id="details-01">
+              <div class="tdr-transfers-extra">
+                <dl class="tdr-dlist tdr-transfers-extra__list">
+                  <dt class="govuk-body-m float govuk-!-margin-bottom-0">Number of files</dt>
+                  <dd class="govuk-!-font-size-36">1050</dd>
+                </dl>
+                <dl class="tdr-dlist tdr-transfers-extra__list">
+                  <dt class="govuk-body-m float govuk-!-margin-bottom-0">Uploaded by</dt>
+                  <dd>
+                    <a href="mailto:max@@departmentofcookies.gov.uk">max@@departmentofcookies.gov.uk</a>
+                  </dd>
+                  <dd>
+                    <a href="mailto:toni@@departmentofcookies.gov.uk">toni@@departmentofcookies.gov.uk</a>
+                  </dd>
+                </dl>
+              </div>
+
+            </td>
+          </tr>
+        </tbody>
+        <tbody>
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" rowspan="2">
+              <button class="tdr-arrow-expander" aria-expanded="false" aria-controls="details-02">
+                <span class="govuk-visually-hidden">More details about MOCK-TDR-1235</span></button>
+            </td>
+            <th scope="row" class="govuk-table__header">MOCK-TDR-1291</th>
+            <td class="govuk-table__cell">09/10/22</td>
+            <td class="govuk-table__cell">
+              <span class="no-data">N/A<span class="govuk-visually-hidden">Transfer not complete yet</span></span></td>
+            <td class="govuk-table__cell">
+              <strong class="tdr-tag tdr-tag--yellow">in progress</strong>
+            </td>
+            <td class="govuk-table__cell">
+              <div class="tdr-link-group">
+                <a href="/metadata/additional-metadata" class="govuk-link govuk-link--no-visited-state">Resume transfer</a>
+              </div>
+            </td>
+          </tr>
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" headers="more-details" colspan="5" id="details-02">
+              <div class="tdr-transfers-extra">
+                <dl class="tdr-dlist tdr-transfers-extra__list">
+                  <dt class="govuk-body-m float govuk-!-margin-bottom-0">Number of files</dt>
+                  <dd class="govuk-!-font-size-36">5</dd>
+                </dl>
+                <dl class="tdr-dlist tdr-transfers-extra__list">
+                  <dt class="govuk-body-m float govuk-!-margin-bottom-0">Uploaded by</dt>
+                  <dd>
+                    <a href="mailto:johndoe@@departmentofcookies.gov.uk">charlie@@departmentofcookies.gov.uk</a>
+                  </dd>
+                </dl>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        <tbody>
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" rowspan="2">
+              <button class="tdr-arrow-expander" aria-expanded="false" aria-controls="details-03">
+                <span class="govuk-visually-hidden">More details about MOCK-TDR-1236</span></button>
+            </td>
+            <th scope="row" class="govuk-table__header">MOCK-TDR-1290</th>
+            <td class="govuk-table__cell">21/09/22</td>
+            <td class="govuk-table__cell">11/10/22</td>
+            <td class="govuk-table__cell">
+              <strong class="tdr-tag tdr-tag--green">transferred</strong>
+            </td>
+            <td class="govuk-table__cell">
+              <div class="tdr-link-group">
+                <a href="#" class="govuk-link govuk-link--no-visited-state">Download report</a>
+              </div>
+            </td>
+          </tr>
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell" headers="more-details" colspan="5" id="details-03">
+              <div class="govuk-warning-text govuk-!-margin-bottom-0">
+                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                <strong class="govuk-warning-text__text">
+                  <span class="govuk-warning-text__assistive">Warning</span>
+                  You must not delete the original records of this transfer as they are not yet preserved. You will receive an email once preservation has taken place. If you do not receive an email, contact <a href="mailto:tdr@@nationalarchives.gov.uk.">tdr@@nationalarchives.gov.uk</a>.
+                </strong>
+              </div>
+              <div class="tdr-transfers-extra">
+                <dl class="tdr-dlist tdr-transfers-extra__list">
+                  <dt class="govuk-body-m float govuk-!-margin-bottom-0">Number of files</dt>
+                  <dd class="govuk-!-font-size-36">80</dd>
+                </dl>
+                <dl class="tdr-dlist tdr-transfers-extra__list">
+                  <dt class="govuk-body-m float govuk-!-margin-bottom-0">Uploaded by</dt>
+                  <dd>
+                    <a href="mailto:johndoe@@departmentofcookies.gov.uk">jo@@departmentofpasta.gov.uk</a>
+                  </dd>
+                </dl>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <a href="home" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        Back to homepage
+      </a>
     </div>
-  }
+  </div>
 }

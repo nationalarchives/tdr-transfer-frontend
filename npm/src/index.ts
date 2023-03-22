@@ -1,7 +1,6 @@
 import { initAll } from "govuk-frontend"
 import { NestedNavigation, InputType } from "@nationalarchives/tdr-components"
 import { MultiSelectSearch } from "@nationalarchives/tdr-components"
-
 window.onload = async function () {
   initAll()
   await renderModules()
@@ -44,6 +43,7 @@ export const renderModules = async () => {
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
   const multiSelectSearch = document.querySelector(".tna-multi-select-search")
+  const tableRowExpanderButtons = document.querySelectorAll("[data-module=table-row-expander] button[aria-expanded][aria-controls]");
 
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
@@ -131,5 +131,11 @@ export const renderModules = async () => {
       const multiSelectSearch = new MultiSelectSearch(rootElement)
       multiSelectSearch.initialise()
     }
+  }
+  if (tableRowExpanderButtons) {
+    const disclosureModule = await import("./viewtransfers/disclosure")
+    tableRowExpanderButtons.forEach((btn) => {
+      new disclosureModule.Disclosure(btn);
+    })
   }
 }
