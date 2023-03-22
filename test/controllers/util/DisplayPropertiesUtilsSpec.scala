@@ -2,6 +2,7 @@ package controllers.util
 
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
+import graphql.codegen.types.DataType
 import graphql.codegen.types.DataType.{Boolean, DateTime, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
 import org.scalatest.BeforeAndAfterEach
@@ -257,12 +258,12 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     dateField.year should equal(InputNameAndValue("Year", "", "YYYY"))
   }
 
-  "convertPropertiesToFormFields" should "generate 'text' field for componentType value 'small text'" in {
+  "convertPropertiesToFormFields" should "generate 'text' field for componentType value 'small text' and inputType is number" in {
     val displayProperty =
       DisplayProperty(
         active = true,
         "small text",
-        Text,
+        DataType.Integer,
         "description",
         "Text Display",
         editable = true,
@@ -287,9 +288,48 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     textField.fieldName should equal("Text Display")
     textField.fieldDescription should equal("description")
     textField.fieldErrors should equal(Nil)
+    textField.inputMode should equal("numeric")
+    textField.isRequired should equal(false)
+    textField.multiValue should equal(false)
+    textField.addSuffixText should equal(true)
+    textField.inputType should equal("number")
+  }
+
+  "convertPropertiesToFormFields" should "generate 'text' field for componentType value 'small text' and inputType is text" in {
+    val displayProperty =
+      DisplayProperty(
+        active = true,
+        "small text",
+        Text,
+        "description",
+        "Text Display",
+        editable = true,
+        "group",
+        "",
+        "label",
+        multiValue = false,
+        3,
+        "TestProperty2",
+        "propertyType",
+        "",
+        "",
+        "alternativeName",
+        required = true
+      )
+
+    val displayPropertiesUtils = new DisplayPropertiesUtils(List(displayProperty), customMetadata)
+    val fields: Seq[FormField] = displayPropertiesUtils.convertPropertiesToFormFields(List(displayProperty))
+
+    val textField: TextField = fields.head.asInstanceOf[TextField]
+    textField.fieldId should equal("TestProperty2")
+    textField.fieldName should equal("Text Display")
+    textField.fieldDescription should equal("description")
+    textField.fieldErrors should equal(Nil)
     textField.inputMode should equal("text")
     textField.isRequired should equal(false)
     textField.multiValue should equal(false)
+    textField.addSuffixText should equal(false)
+    textField.inputType should equal("text")
   }
 
   "convertPropertiesToFormFields" should "set field 'required' based on custom metadata group and if display property is required" in {
@@ -388,24 +428,42 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     displayPropertiesUtils.CustomMetadataHelper(None).defaultInput should equal(None)
   }
 
-  "CustomMetadataHelper" should "return the correct 'defined inputs' for custom metadata" in {
+  "CustomMetadataHelper.definedInputs" should "sort by uiOrdinal when uiOrdinal is valid" in {
     val noValues = createCustomMetadata()
     val withValues = createCustomMetadata(values =
       List(
         Values("value3", List(), 3),
-        Values("value1", List(), 1),
-        Values("value2", List(), 2)
+        Values("value1", List(), 2),
+        Values("value2", List(), 1)
       )
     )
 
     val values = displayPropertiesUtils.CustomMetadataHelper(Some(withValues)).definedInputs
     values.size should equal(3)
-    values.head.name should equal("value1")
-    values.head.value should equal("value1")
-    values.tail.head.name should equal("value2")
-    values.tail.head.value should equal("value2")
-    values.last.name should equal("value3")
-    values.last.value should equal("value3")
+
+    values.head should equal(InputNameAndValue("value2", "value2"))
+    values(1) should equal(InputNameAndValue("value1", "value1"))
+    values(2) should equal(InputNameAndValue("value3", "value3"))
+
+    displayPropertiesUtils.CustomMetadataHelper(Some(noValues)).definedInputs should equal(List())
+    displayPropertiesUtils.CustomMetadataHelper(None).definedInputs should equal(List())
+  }
+
+  "CustomMetadataHelper.definedInputs" should "sort by name when uiOrdinal has invalid value (Int.MaxValue)" in {
+    val noValues = createCustomMetadata()
+    val withValues = createCustomMetadata(values =
+      List(
+        Values("value3", List(), Int.MaxValue),
+        Values("value1", List(), Int.MaxValue),
+        Values("value2", List(), Int.MaxValue)
+      )
+    )
+
+    val values = displayPropertiesUtils.CustomMetadataHelper(Some(withValues)).definedInputs
+    values.size should equal(3)
+    values.head should equal(InputNameAndValue("value1", "value1"))
+    values(1) should equal(InputNameAndValue("value2", "value2"))
+    values(2) should equal(InputNameAndValue("value3", "value3"))
 
     displayPropertiesUtils.CustomMetadataHelper(Some(noValues)).definedInputs should equal(List())
     displayPropertiesUtils.CustomMetadataHelper(None).definedInputs should equal(List())
