@@ -77,7 +77,9 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
     statusesToCheck match {
       case s if s.containsStatuses(ExportType) => toExportAction(s.find(_.statusType == ExportType.id).get, judgmentType, consignmentId, consignmentRef)
       case s if s.statusValue(ConfirmTransferType).contains(CompletedValue.value) =>
-        UserAction(InProgress.value, routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url, Resume.value)
+        UserAction(InProgress.value, routes.TransferCompleteController.transferComplete(consignmentId).url, Resume.value)
+      case s if additionalMetadataEntered(s) =>
+        UserAction(InProgress.value, routes.AdditionalMetadataController.start(consignmentId).url, Resume.value)
       case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>
         toFileChecksAction(s, judgmentType, consignmentId)
       case s if s.containsStatuses(ClientChecksType, UploadType) => toClientSideChecksAction(statuses, consignmentId, judgmentType)
@@ -105,6 +107,11 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
 
   private def toContactUsAction(consignmentRef: String): UserAction = {
     UserAction(ContactUs.value, s"mailto:%s?subject=Ref: $consignmentRef - Issue With Transfer", ContactUs.value)
+  }
+
+  private def additionalMetadataEntered(statuses: List[ConsignmentStatuses]): Boolean = {
+    val additionalMetadataStatuses = statuses.filter(s => s.statusType == DescriptiveMetadataType.id || s.statusType == ClosureMetadataType.id).map(_.value)
+    !additionalMetadataStatuses.forall(_ == NotEnteredValue.value)
   }
 
   private def toFileChecksAction(statuses: List[ConsignmentStatuses], judgmentType: Boolean, consignmentId: UUID): UserAction = {
