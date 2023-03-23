@@ -170,7 +170,7 @@ class FormTestData() {
       DisplayProperty(
         active = true,
         "small text",
-        Text,
+        Integer,
         "description",
         "Small text Display",
         editable = true,
