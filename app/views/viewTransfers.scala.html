@@ -31,7 +31,7 @@
               </td>
               <th scope="row" class="govuk-table__header">@consignment.reference</th>
               <td class="govuk-table__cell">@consignment.dateStarted</td>
-              <td class="govuk-table__cell">@consignment.dateOfTransfer</td>
+              <td class="govuk-table__cell @{if(consignment.dateOfTransfer == "N/A") "not-applicable"}">@consignment.dateOfTransfer</td>
               <td class="govuk-table__cell">
                 <strong class="tdr-tag tdr-tag--@consignment.statusColour">@consignment.status</strong>
               </td>

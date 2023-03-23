@@ -277,7 +277,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     val expectedTableData =
       s"""              <th scope="row" class="govuk-table__header">${node.consignmentReference}</th>
          |              <td class="govuk-table__cell">$createdDate</td>
-         |              <td class="govuk-table__cell${if (dateOfTransfer == "N/A") "not-applicable" else ""}">$dateOfTransfer</td>
+         |              <td class="govuk-table__cell ${if (dateOfTransfer == "N/A") "not-applicable" else ""}">$dateOfTransfer</td>
          |              <td class="govuk-table__cell">
          |                <strong class="tdr-tag tdr-tag--$transferStatusColour">$transferStatus</strong>
          |              </td>
