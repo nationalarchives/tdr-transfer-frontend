@@ -54,13 +54,10 @@ class DownloadMetadataController @Inject() (
           groupedMetadata
             .get(customMetadata.name)
             .map { fileMetadataValue =>
-              val dataType: Option[DataType] = filteredMetadata.find(_.name == customMetadata.name).map(_.dataType)
-              if (dataType.contains(DataType.DateTime)) {
-                LocalDateTime.parse(fileMetadataValue, parseFormatter).format(formatter)
-              } else if (dataType.contains(DataType.Boolean)) {
-                if (fileMetadataValue == "true") "Yes" else "No"
-              } else {
-                fileMetadataValue
+              customMetadata.dataType match {
+                case DataType.DateTime => LocalDateTime.parse(fileMetadataValue, parseFormatter).format(formatter)
+                case DataType.Boolean => if (fileMetadataValue == "true") "Yes" else "No"
+                case _ => fileMetadataValue
               }
             }
             .getOrElse("")
