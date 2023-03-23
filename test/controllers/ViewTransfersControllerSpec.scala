@@ -308,7 +308,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
     viewTransferPageString must include(expectedTableData)
     viewTransferPageString must include(expectedDescriptionList)
-    if(transferStatus == "Transferred") {
+    if (transferStatus == "Transferred") {
       viewTransferPageString must include(expectedWarningText)
     }
   }
