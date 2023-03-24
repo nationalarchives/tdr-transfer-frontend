@@ -1,9 +1,9 @@
 @(isLoggedIn: Boolean, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
-
-@main("Help", isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
+@defining("User Help Guide") { title =>
+  @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            <h1 class="govuk-heading-l">User Help Guide</h1>
+            <h1 class="govuk-heading-l">@title</h1>
 
             <h2 class="govuk-heading-m">This user help guide includes:</h2>
             <nav aria-label="List">
@@ -78,7 +78,7 @@
                 At this stage of development, the service is only available to pre-approved users.
                 Over time, TDR will be made available to more Public Record Bodies and will continue to be developed in consultation with our users.
             </p>
-            
+
             <h2 class="govuk-heading-m" id="before-you-begin">Before you begin</h2>
             <p class="govuk-body">
                 Currently we can only accept records that are Crown Copyright, Public Records and from shared drives.
@@ -267,7 +267,7 @@
 
             <h3 class="govuk-heading-s" id="transfer-agreement">Step 2: Transfer agreement</h3>
             <p class="govuk-body">
-                Before you upload records, you must confirm that, to the best of your knowledge, your records meet our criteria. 
+                Before you upload records, you must confirm that, to the best of your knowledge, your records meet our criteria.
             </p>
             <p class="govuk-body">
                 During beta, records must meet the following criteria:
@@ -559,4 +559,5 @@
             </p>
         </div>
     </div>
+}
 }

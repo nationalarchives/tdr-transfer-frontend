@@ -5,7 +5,7 @@
 
 @(consignmentId: UUID, consignmentRef: String, pageHeading1stHalf: String, pageHeading2ndHalf: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
-@main("Upload your judgment", name = name, isJudgmentUser = true) {
+@main(pageHeading1stHalf, name = name, isJudgmentUser = true) {
 <noscript>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">

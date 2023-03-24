@@ -6,9 +6,9 @@ class CheckFormPageElements() {
   val twoOrMoreSpaces = "\\s{2,}"
 
   private val expectedClosureFormHtmlElements = Set(
-    """      <title>Add or edit closure metadata</title>""",
+    """      <title>Add or edit closure metadata - Transfer Digital Records - GOV.UK</title>""",
     """      <span class="govuk-caption-l">Closure metadata</span>""",
-    """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
+    """      <h1 class="govuk-heading-l">Add or edit closure metadata</h1>""",
     """            <h2 class="govuk-fieldset__heading">
       |                FOI decision asserted
       |            </h2>""",
@@ -49,9 +49,9 @@ class CheckFormPageElements() {
   )
 
   private val expectedDescriptiveFormHtmlElements = Set(
-    """      <title>Add or edit descriptive metadata</title>""",
+    """      <title>Add or edit descriptive metadata - Transfer Digital Records - GOV.UK</title>""",
     """      <span class="govuk-caption-l">Descriptive metadata</span>""",
-    """      <h1 class="govuk-heading-l">Add or edit metadata</h1>""",
+    """      <h1 class="govuk-heading-l">Add or edit descriptive metadata</h1>""",
     """      <h2 class="govuk-fieldset__heading">Date of the record</h2>""",
     """      <div id="date-input-end_date-hint" class="govuk-hint">The date the most recent change was made to the record</div>""",
     """        <label class="govuk-label govuk-label--m" for=inputtextarea-description>

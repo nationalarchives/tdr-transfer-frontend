@@ -1,18 +1,21 @@
 @(name: String)(implicit request: RequestHeader, messages: Messages)
-@main("Registration Complete", name = name) {
-@defining(play.core.PlayVersion.current) { version =>
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <h1 class="govuk-heading-l">Thank you for completing your registration</h1>
-      <p class="govuk-body govuk-!-margin-bottom-1">You have successfully set up Multi-factor Authentication for Transfer Digital Records.</p>
-      <h2 class="govuk-heading-s">Next Steps</h2>
-      <p class="govuk-body">You will be able to access this service once it becomes live on
-        19 April 2022. If you have any queries or require further assistance,
-        please take a look at our <a href="@routes.FaqController.judgmentFaq()">FAQ</a>
-        or
-        <a href="@routes.HelpController.help()">Help</a> page.
-      </p>
-    </div>
-</div>
-}
+@defining("Thank you for completing your registration") { title =>
+  @main(title, name = name) {
+    @defining(play.core.PlayVersion.current) { version =>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <h1 class="govuk-heading-l">@title</h1>
+          <p class="govuk-body govuk-!-margin-bottom-1">
+            You have successfully set up Multi-factor Authentication for Transfer Digital Records.</p>
+          <h2 class="govuk-heading-s">Next Steps</h2>
+          <p class="govuk-body">You will be able to access this service once it becomes live on
+            19 April 2022. If you have any queries or require further assistance,
+            please take a look at our <a href="@routes.FaqController.judgmentFaq()">FAQ</a>
+            or
+            <a href="@routes.HelpController.help()">Help</a> page.
+          </p>
+        </div>
+      </div>
+    }
+  }
 }
