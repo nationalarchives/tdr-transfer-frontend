@@ -2,7 +2,7 @@
   color: $govuk-secondary-text-colour;
 }
 
-//View Transfer
+//Table
 .govuk-table--tdr-transfers tr:first-child td:first-child {
   padding-left: 4px;
   padding-right: 8px;
@@ -56,7 +56,6 @@
 
 .tdr-arrow-expander:focus {
   background-color: $govuk-focus-colour;
-  //-webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   box-shadow: 0 -2px $govuk-focus-colour, 0 4px $govuk-focus-text-colour;
   color: $govuk-focus-text-colour;
@@ -75,7 +74,6 @@
   display: flex;
   gap: 10px;
   width: 100%;
-  // justify-content: space-between;
 }
 
 .tdr-transfers-extra__list {
