@@ -195,7 +195,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
           """ (containing <span class="folder-size"></span>) has been selected </p>"""
       )
       uploadPageAsString must include(
-        """<a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>"""
+        """<a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove selected records</a>"""
       )
       uploadPageAsString must include(
         """<p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>"""" +
@@ -356,7 +356,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
         """<p id="success-message-text" class="success-message">The file "<span class="file-name"></span>" has been selected </p>"""
       )
       uploadPageAsString must include(
-        """<a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>"""
+        """<a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove selected records</a>"""
       )
       uploadPageAsString must include(
         """<p id="removed-selection-message-text" class="govuk-error-message">The file "<span class="file-name"></span>" has been removed. Select a file.</p>"""

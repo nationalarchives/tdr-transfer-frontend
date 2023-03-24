@@ -157,10 +157,10 @@ object FormField {
 object RadioButtonGroupField {
 
   def validate(option: String, dependencies: Map[String, String], radioButtonGroupField: RadioButtonGroupField): List[String] = {
-    val optionErrors = option match {
-      case ""                                                               => Some(radioOptionNotSelectedError.format(radioButtonGroupField.fieldName))
-      case value if !radioButtonGroupField.options.exists(_.value == value) => Some(invalidRadioOptionSelectedError.format(value))
-      case _                                                                => None
+    val optionErrors = Option(option).filter(_.nonEmpty) match {
+      case None if radioButtonGroupField.isRequired                               => Some(radioOptionNotSelectedError.format(radioButtonGroupField.fieldName))
+      case Some(value) if !radioButtonGroupField.options.exists(_.value == value) => Some(invalidRadioOptionSelectedError.format(value))
+      case _                                                                      => None
     }
     def dependenciesError: Option[String] = radioButtonGroupField.dependencies
       .get(option)
@@ -212,12 +212,13 @@ object MultiSelectField {
 
 object DropdownField {
 
-  def validate(selectedOption: Option[String], dropdownField: DropdownField): Option[String] =
+  def validate(selectedOption: Option[String], dropdownField: DropdownField): Option[String] = {
     selectedOption match {
-      case None                                                           => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
+      case None if dropdownField.isRequired                               => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
       case Some(value) if !dropdownField.options.exists(_.value == value) => Some(invalidDropdownOptionSelectedError.format(value))
       case _                                                              => None
     }
+  }
 
   def update(dropdownField: DropdownField, selectedValue: Option[String]): DropdownField = {
     val selectedOption: Option[InputNameAndValue] = dropdownField.options.find(v => selectedValue.contains(v.value))
@@ -227,10 +228,14 @@ object DropdownField {
 
 object TextField {
 
-  def validate(text: String, textField: TextField): Option[String] =
-    if (text == "") {
-      val fieldName = textField.getAlternativeName.toLowerCase
-      if (textField.fieldId == "ClosurePeriod") Some(closurePeriodNotEnteredError.format(textField)) else Some(dependencyNotEntered.format(fieldName))
+  def validate(text: String, textField: TextField): Option[String] = {
+
+    if (text.isEmpty) {
+      textField.isRequired match {
+        case true if textField.fieldId == "ClosurePeriod" => Some(closurePeriodNotEnteredError.format(textField))
+        case true                                         => Some(dependencyNotEntered.format(textField.getAlternativeName.toLowerCase))
+        case _                                            => None
+      }
     } else if (textField.inputMode.equals("numeric")) {
       text match {
         case t if allCatch.opt(t.toInt).isEmpty => Some(wholeNumberError.format(textField.fieldName.toLowerCase, wholeNumberExample))
@@ -240,6 +245,7 @@ object TextField {
     } else {
       None
     }
+  }
 
   def update(textField: TextField, value: String): TextField = textField.copy(nameAndValue = textField.nameAndValue.copy(value = value))
 }
@@ -271,14 +277,14 @@ object DateField {
     11 -> "November"
   )
 
-  def validate(day: String, month: String, year: String, dateField: DateField, required: Boolean): Option[String] = {
+  def validate(day: String, month: String, year: String, dateField: DateField): Option[String] = {
     val fieldName = if (dateField.getAlternativeName == "Advisory Council Approval") dateField.fieldAlternativeName else dateField.getAlternativeName.toLowerCase
     val emptyDate: Boolean = day.isEmpty && month.isEmpty && year.isEmpty
 
     emptyDate match {
-      case false            => validateDateValues(day, month, year, fieldName, dateField)
-      case true if required => Some(dateNotEnteredError.format(fieldName))
-      case _                => None
+      case false                        => validateDateValues(day, month, year, fieldName, dateField)
+      case true if dateField.isRequired => Some(dateNotEnteredError.format(fieldName))
+      case _                            => None
     }
   }
 
