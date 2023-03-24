@@ -105,3 +105,12 @@
   margin: 0;
   padding: 0;
 }
+
+//Constraining some of the th widths to avoid movement in the table when it expands
+.govuk-table__row .govuk-table__header:first-child {
+  width: 30px;
+}
+
+.govuk-table__header:not(:first-child) {
+  width: 200px;
+}
