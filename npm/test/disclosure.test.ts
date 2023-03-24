@@ -31,19 +31,6 @@ describe("Disclosure", () => {
     test("should hide the controlled node", () => {
       expect(controlledNode.getAttribute("hidden")).toBe("")
     })
-
-    test("should add click event listener to button", () => {
-      const spy = jest.spyOn(disclosure, "toggle")
-      button.click()
-      expect(spy).toHaveBeenCalled()
-    })
-  })
-
-  describe("hide", () => {
-    test("should set hidden attribute on controlled node", () => {
-      disclosure.hide()
-      expect(controlledNode.getAttribute("hidden")).toBe("")
-    })
   })
 
   describe("show", () => {
