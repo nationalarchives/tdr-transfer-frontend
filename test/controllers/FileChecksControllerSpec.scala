@@ -51,7 +51,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         (
           "judgment",
           getValidJudgmentUserKeycloakConfiguration,
-          "<title>Checking your upload</title>",
+          "<title>Checking your upload - Transfer Digital Records - GOV.UK</title>",
           """<h1 class="govuk-heading-l">Checking your upload""",
           """            <p class="govuk-body">Your judgment is being checked for errors.
             |              This may take a few minutes. Once your judgment has been checked, you will be redirected automatically.
@@ -63,7 +63,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         (
           "consignment",
           getValidStandardUserKeycloakConfiguration,
-          "<title>Checking your records</title>",
+          "<title>Checking your records - Transfer Digital Records - GOV.UK</title>",
           """<h1 class="govuk-heading-l">Checking your records</h1>""",
           """            <p class="govuk-body">Please wait while your records are being checked. This may take a few minutes.</p>
             |            <p class="govuk-body">The following checks are now being performed:</p>

@@ -7,56 +7,58 @@
 @import views.html.partials.inputDropdown
 @(consignmentId: UUID, consignmentRef: String, dropdownField: DropdownField, name: String)(implicit request: RequestHeader,
 messages: Messages)
+@defining("Choose a series reference") { title =>
+  @main(title, hasError = dropdownField.fieldErrors.nonEmpty, name = name) {
+        @defining(play.core.PlayVersion.current) { version =>
 
-@main("Series Information", hasError = dropdownField.fieldErrors.nonEmpty, name = name) {
-@defining(play.core.PlayVersion.current) { version =>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-two-thirds">
+                    @progressIndicator(Messages("seriesDetails.progress"))
 
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("seriesDetails.progress"))
+                <h1 class="govuk-label-wrapper">
+                    <label class="govuk-label govuk-label--l" for="@dropdownField.fieldId">@title</label>
+                </h1>
 
-        <h1 class="govuk-label-wrapper">
-            <label class="govuk-label govuk-label--l" for="@dropdownField.fieldId">Choose a series reference</label>
-        </h1>
-
-        <p class="govuk-body">
-            If you cannot see the correct series reference for the records, you need a new one adding, or you’re transferring records on behalf of another transferring body, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.
+                <p class="govuk-body">
+            If you cannot see the correct series reference for the records, you need a new one adding, or you’re transferring records on behalf of another transferring body, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+                    .
         </p>
 
-        @errorSummary(
-            if (dropdownField.fieldErrors.nonEmpty) {
-                List(dropdownField.fieldId -> dropdownField.fieldErrors)
-            } else {
-                Nil
-            }
-        )
+                    @errorSummary(
+                        if(dropdownField.fieldErrors.nonEmpty) {
+                            List(dropdownField.fieldId -> dropdownField.fieldErrors)
+                        } else {
+                            Nil
+                        }
+                    )
 
-        @form(routes.SeriesDetailsController.seriesSubmit(consignmentId), (Symbol("novalidate"), "")) {
-            @CSRF.formField
-            @inputDropdown(
-                dropdownField.fieldId,
-                dropdownField.fieldName,
-                dropdownField.fieldDescription,
-                dropdownField.options,
-                dropdownField.selectedOption,
-                dropdownField.multiValue,
-                Map(
-                    Symbol("_dynamicForm") -> false,
-                ),
-                dropdownField.fieldErrors,
-            )
+                    @form(routes.SeriesDetailsController.seriesSubmit(consignmentId), (Symbol("novalidate"), "")) {
+                        @CSRF.formField
+                        @inputDropdown(
+                            dropdownField.fieldId,
+                            dropdownField.fieldName,
+                            dropdownField.fieldDescription,
+                            dropdownField.options,
+                            dropdownField.selectedOption,
+                            dropdownField.multiValue,
+                            Map(
+                                Symbol("_dynamicForm") -> false,
+                            ),
+                            dropdownField.fieldErrors,
+                        )
 
-        <div class="govuk-button-group">
-            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
-                role="button">
-                Continue
-            </button>
+                        <div class="govuk-button-group">
+                            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
+                            role="button">
+                                Continue
+                            </button>
 
-                <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+                            <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+                        </div>
+                    }
+                </div>
+                @transferReference(consignmentRef, isJudgmentUser = false)
             </div>
-            }
-        </div>
-        @transferReference(consignmentRef, isJudgmentUser = false)
-    </div>
-}
+        }
+    }
 }

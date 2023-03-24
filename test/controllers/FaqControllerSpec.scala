@@ -67,12 +67,6 @@ class FaqControllerSpec extends FrontEndTestHelper {
     pageAsString must include("""<h2 id="accessing-tdr-account" class="govuk-heading-m">Accessing my TDR account</h2>""")
     pageAsString must include("""<h2 id="upload-process" class="govuk-heading-m">The upload process</h2>""")
     pageAsString must include("""<h2 id="general" class="govuk-heading-m">General</h2>""")
-
-    if (userType == "standard") {
-      pageAsString must include("<title>FAQ</title>")
-    } else {
-      pageAsString must include("<title>judgmentFAQ</title>")
-
-    }
+    pageAsString must include("<title>Frequently Asked Questions - Transfer Digital Records - GOV.UK</title>")
   }
 }
