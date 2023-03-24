@@ -55,7 +55,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       }
     }
 
-    "validate should not return an error if the field is optional" in {
+    "validate should not return an error if the value is empty and the field is optional" in {
       RadioButtonGroupField.validate("", Map.empty, radioButtonGroupField.copy(isRequired = false)) shouldBe Nil
     }
 
@@ -82,7 +82,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       }
     }
 
-    "validate should not return any error when the field is optional" in {
+    "validate should not return any error when the value is empty and the field is optional" in {
 
       TextField.validate("", textField.copy(isRequired = false)) shouldBe None
     }
@@ -156,7 +156,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       DropdownField.validate("34".some, dropdownField) shouldBe None
     }
 
-    "validate should not return an error when the field is optional" in {
+    "validate should not return an error when the value is empty and the field is optional" in {
 
       DropdownField.validate(None, dropdownField.copy(isRequired = false)) shouldBe None
     }
