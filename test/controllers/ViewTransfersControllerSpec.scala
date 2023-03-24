@@ -1,11 +1,12 @@
 package controllers
 
-import org.scalatest.matchers.should.Matchers._
 import com.github.tomakehurst.wiremock.WireMockServer
-import configuration.GraphQLConfiguration
+import configuration.{ApplicationConfig, GraphQLConfiguration}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.ConsignmentStatuses
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.prop.TableFor4
 import play.api.Play.materializer
 import play.api.http.Status.{FOUND, OK}
 import play.api.test.FakeRequest
@@ -47,7 +48,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
           val consignment: List[Consignments.Edges] = setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = statuses)
           val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
           val consignmentService = new ConsignmentService(graphQLConfiguration)
-          val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val applicationConfig = new ApplicationConfig(app.configuration)
+          val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val response = controller
             .viewConsignments()
             .apply(FakeRequest(GET, s"/view-transfers"))
@@ -72,7 +74,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
           val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
           val consignmentService = new ConsignmentService(graphQLConfiguration)
-          val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val applicationConfig = new ApplicationConfig(app.configuration)
+          val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val response = controller
             .viewConsignments()
             .apply(FakeRequest(GET, s"/view-transfers"))
@@ -89,15 +92,16 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   }
 
   "ViewTransfersController" should {
-    "render the view transfers page with a list of all user's consignments" in {
+    "render the view transfers page with a list of all user's consignments and should not display pagination when total number of pages is 1" in {
       setConsignmentTypeResponse(wiremockServer, standardType)
       val consignments = setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = List())
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val applicationConfig = new ApplicationConfig(app.configuration)
+      val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .viewConsignments()
+        .viewConsignments(1)
         .apply(FakeRequest(GET, s"/view-transfers"))
       val viewTransfersPageAsString = contentAsString(response)
 
@@ -110,6 +114,41 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       consignments.foreach(c => {
         verifyConsignmentRow(viewTransfersPageAsString, c.node, "/series", "In Progress", "Resume transfer", standardType)
       })
+      viewTransfersPageAsString should not include ("""<nav class="govuk-pagination govuk-pagination__center" role="navigation" aria-label="results">""")
+    }
+
+    val paginationTable: TableFor4[Int, Int, Boolean, Boolean] = Table(
+      ("totalPages", "currentPage", "hidePrev", "hideNext"),
+      (3, 1, true, false),
+      (3, 2, false, false),
+      (3, 3, false, true)
+    )
+
+    forAll(paginationTable) { (totalPages, currentPage, hidePrev, hideNext) =>
+      s"render the view transfers page with a list of all user's consignments and should display pagination when total number of pages is $totalPages and currentPage is $currentPage" in {
+        setConsignmentTypeResponse(wiremockServer, standardType)
+        val consignments = setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = List(), totalPages = totalPages)
+
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val applicationConfig = new ApplicationConfig(app.configuration)
+        val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val response = controller
+          .viewConsignments(currentPage)
+          .apply(FakeRequest(GET, s"/view-transfers"))
+        val viewTransfersPageAsString = contentAsString(response)
+
+        status(response) mustBe OK
+        contentType(response) mustBe Some("text/html")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = standardType, consignmentExists = false)
+        checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
+
+        consignments.foreach(c => {
+          verifyConsignmentRow(viewTransfersPageAsString, c.node, "/series", "In Progress", "Resume transfer", standardType)
+        })
+        verifyPagination(viewTransfersPageAsString, hidePrev, hideNext, totalPages, currentPage)
+      }
     }
 
     "render the view transfers page with list of user's consignments and have 'Contact us' as an Action for consignments" +
@@ -122,7 +161,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
           setConsignmentViewTransfersResponse(wiremockServer, standardType, statuses = List(invalidConsignmentStatus))
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
-        val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        val applicationConfig = new ApplicationConfig(app.configuration)
+        val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val response = controller
           .viewConsignments()
           .apply(FakeRequest(GET, s"/view-transfers"))
@@ -145,7 +185,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       setConsignmentViewTransfersResponse(wiremockServer, standardType, noConsignment = true)
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val applicationConfig = new ApplicationConfig(app.configuration)
+      val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
@@ -169,7 +210,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val consignments = setConsignmentViewTransfersResponse(wiremockServer, judgmentType, statuses = List())
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewTransfersController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val applicationConfig = new ApplicationConfig(app.configuration)
+      val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
@@ -192,7 +234,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewTransfersController(consignmentService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val applicationConfig = new ApplicationConfig(app.configuration)
+      val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
@@ -214,9 +257,10 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     "redirect to the login page if the page is accessed by a logged out user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new ViewTransfersController(consignmentService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+      val applicationConfig = new ApplicationConfig(app.configuration)
+      val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
-        .viewConsignments()
+        .viewConsignments(1)
         .apply(FakeRequest(GET, s"/view-transfers"))
 
       status(response) mustBe FOUND
@@ -317,6 +361,29 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     viewTransferPageString must include(expectedSummary)
     viewTransferPageString must include(expectedDetails)
     viewTransferPageString must include(expectedStatusAndDate)
+  }
+
+  def verifyPagination(viewTransfersPageAsString: String, hidePrev: Boolean, hideNext: Boolean, totalPages: Int, currentPage: Int): Unit = {
+
+    viewTransfersPageAsString should include("""<nav class="govuk-pagination govuk-pagination__center" role="navigation" aria-label="results">""")
+    viewTransfersPageAsString should include(s"""<div class="govuk-pagination__prev" ${if (hidePrev) "hidden" else ""}>""")
+    viewTransfersPageAsString should include(s"""<div class="govuk-pagination__next" ${if (hideNext) "hidden" else ""}>""")
+
+    for (page <- 1 to totalPages) {
+      val href = if (page == 1) "/view-transfers" else s"/view-transfers/$page"
+      if (page == currentPage) {
+        viewTransfersPageAsString should include(s"""
+             |                    <li class="govuk-pagination__item govuk-pagination__item--current">
+             |                      <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page $page" aria-current="page">$page</a>
+             |                    </li>
+             |""".stripMargin)
+      } else {
+        viewTransfersPageAsString should include(s"""
+             |                    <li class="govuk-pagination__item">
+             |                      <a class="govuk-link govuk-pagination__link" href="$href" aria-label="Page $page">$page</a>
+             |                    </li>""".stripMargin)
+      }
+    }
   }
 
   private val expectedStatusColour = Map(
