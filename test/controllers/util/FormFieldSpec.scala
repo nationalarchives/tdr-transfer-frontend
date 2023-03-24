@@ -54,10 +54,19 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
         RadioButtonGroupField.validate(validValue, Map.empty, radioButtonGroupField) shouldBe List(s"Option '$validValue' was not an option provided to the user.")
       }
     }
+
+    "validate should not return an error if the field is optional" in {
+      RadioButtonGroupField.validate("", Map.empty, radioButtonGroupField.copy(isRequired = false)) shouldBe Nil
+    }
+
+    "validate should return an error if the field is optional but the value is invalid" in {
+      RadioButtonGroupField.validate("agreed", Map.empty, radioButtonGroupField.copy(isRequired = false)) shouldBe List(s"Option 'agreed' was not an option provided to the user.")
+    }
   }
 
   "TextField" should {
     val textField = TextField("id", "name", "alternativeName", "desc", Nil, multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true)
+    val optionalTextField = textField.copy(isRequired = false)
     val closureTextField =
       TextField("ClosurePeriod", "name", "alternativeName", "desc", Nil, multiValue = false, InputNameAndValue("years", "0", "0"), "numeric", isRequired = true)
 
@@ -73,6 +82,11 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       }
     }
 
+    "validate should not return any error when the field is optional" in {
+
+      TextField.validate("", textField.copy(isRequired = false)) shouldBe None
+    }
+
     "validate should return an error when the given value is empty" in {
 
       TextField.validate("", textField) shouldBe Some("Add an alternativename for this record")
@@ -85,16 +99,20 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "validate should return an error when the given value is not a numeric value" in {
 
-      List("1b12", "b1", "notNumeric", "e").foreach { invalidValue =>
-        TextField.validate(invalidValue, textField) shouldBe Some("The name must be a whole number, like 3, 15, 21")
-      }
+      List(textField, optionalTextField).foreach(formField => {
+        List("1b12", "b1", "notNumeric", "e").foreach { invalidValue =>
+          TextField.validate(invalidValue, formField) shouldBe Some("The name must be a whole number, like 3, 15, 21")
+        }
+      })
     }
 
     "validate should return an error when the given value is a negative value" in {
 
-      List("-1", "-12", "-03").foreach { negativeNumber =>
-        TextField.validate(negativeNumber, textField) shouldBe Some("The name cannot be a negative number")
-      }
+      List(textField, optionalTextField).foreach(formField => {
+        List("-1", "-12", "-03").foreach { negativeNumber =>
+          TextField.validate(negativeNumber, textField) shouldBe Some("The name cannot be a negative number")
+        }
+      })
     }
   }
 
@@ -127,6 +145,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     val dropdownField =
       DropdownField("id", "name", "alternativeName", "desc", Nil, multiValue = true, Seq(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")), None, isRequired = true)
 
+    val optionalDropdownField = dropdownField.copy(isRequired = false)
     "update should set value for the field" in {
 
       DropdownField.update(dropdownField, "34".some) shouldBe dropdownField.copy(selectedOption = Some(InputNameAndValue("34", "34")))
@@ -137,6 +156,11 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       DropdownField.validate("34".some, dropdownField) shouldBe None
     }
 
+    "validate should not return an error when the field is optional" in {
+
+      DropdownField.validate(None, dropdownField.copy(isRequired = false)) shouldBe None
+    }
+
     "validate should return an error when the given value is empty" in {
 
       DropdownField.validate(None, dropdownField) shouldBe Some("Search for and select at least one name")
@@ -144,7 +168,9 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "validate should return an error when the given value is not a valid option" in {
 
-      DropdownField.validate("ABC".some, dropdownField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
+      List(dropdownField, optionalDropdownField).foreach(formField =>
+        DropdownField.validate("ABC".some, formField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
+      )
     }
   }
 
@@ -188,7 +214,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
   }
 
   "DateField" should {
-    val dateField = DateField(
+    val mandatoryDateField = DateField(
       "id",
       "name",
       "alternativename",
@@ -201,12 +227,12 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       isRequired = true
     )
 
-    val requiredField = List(true, false)
+    val optionalDateField = mandatoryDateField.copy(isRequired = false)
 
     "update should set day, month and year for the field" in {
 
-      val updatedField = DateField.update(dateField, "12", "1", "1999")
-      updatedField shouldBe dateField.copy(
+      val updatedField = DateField.update(mandatoryDateField, "12", "1", "1999")
+      updatedField shouldBe mandatoryDateField.copy(
         day = InputNameAndValue("Day", "12", "DD"),
         month = InputNameAndValue("Month", "1", "MM"),
         year = InputNameAndValue("Year", "1999", "YYYY")
@@ -216,8 +242,8 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     "update should set day, month and year when the date is LocalDateTome" in {
 
       val dateTime = LocalDateTime.of(2015, Month.JULY, 29, 19, 30, 40)
-      val updatedField = DateField.update(dateField, dateTime)
-      updatedField shouldBe dateField.copy(
+      val updatedField = DateField.update(mandatoryDateField, dateTime)
+      updatedField shouldBe mandatoryDateField.copy(
         day = InputNameAndValue("Day", "29", "DD"),
         month = InputNameAndValue("Month", "7", "MM"),
         year = InputNameAndValue("Year", "2015", "YYYY")
@@ -225,91 +251,91 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "validate should not return any error when the given date is valid" in {
-      requiredField.foreach(required => {
-        DateField.validate("12", "2", "1990", dateField, required) shouldBe None
-        DateField.validate("30", "4", "1990", dateField, required) shouldBe None
-        DateField.validate("29", "2", "2000", dateField, required) shouldBe None
-        DateField.validate("1", "10", "2022", dateField, required) shouldBe None
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
+        DateField.validate("12", "2", "1990", dateField) shouldBe None
+        DateField.validate("30", "4", "1990", dateField) shouldBe None
+        DateField.validate("29", "2", "2000", dateField) shouldBe None
+        DateField.validate("1", "10", "2022", dateField) shouldBe None
       })
     }
 
     "validate should return an error when the given day, month and year is empty and the field is required" in {
-      DateField.validate("", "", "", dateField, required = true) shouldBe Some("Enter the alternativename for this record")
+      DateField.validate("", "", "", mandatoryDateField) shouldBe Some("Enter the alternativename for this record")
     }
 
     "validate should not return an error when the given day, month and year is empty and the field is not required" in {
-      DateField.validate("", "", "", dateField, required = false) shouldBe None
+      DateField.validate("", "", "", optionalDateField) shouldBe None
     }
 
     "validate should return an error when the given day, month or year is empty" in {
-      requiredField.foreach(required => {
-        DateField.validate("", "2", "1990", dateField, required) shouldBe Some("The alternativename must contain a day")
-        DateField.validate("1", "", "1990", dateField, required) shouldBe Some("The alternativename must contain a month")
-        DateField.validate("1", "2", "", dateField, required) shouldBe Some("The alternativename must contain a year")
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
+        DateField.validate("", "2", "1990", dateField) shouldBe Some("The alternativename must contain a day")
+        DateField.validate("1", "", "1990", dateField) shouldBe Some("The alternativename must contain a month")
+        DateField.validate("1", "2", "", dateField) shouldBe Some("The alternativename must contain a year")
       })
     }
 
     "validate should return an error when the given day, month or year is not a numeric value" in {
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         List("1b12", "b1", "notNumeric", "e").foreach { invalidValue =>
-          DateField.validate(invalidValue, "2", "1990", dateField, required) shouldBe Some("The day of the alternativename must be a whole number, like 3, 15, 21")
-          DateField.validate("1", invalidValue, "1990", dateField, required) shouldBe Some("The month of the alternativename must be a whole number, like 3, 9, 12")
-          DateField.validate("1", "2", invalidValue, dateField, required) shouldBe Some("The year of the alternativename must be a whole number, like 1994, 2000, 2023")
+          DateField.validate(invalidValue, "2", "1990", dateField) shouldBe Some("The day of the alternativename must be a whole number, like 3, 15, 21")
+          DateField.validate("1", invalidValue, "1990", dateField) shouldBe Some("The month of the alternativename must be a whole number, like 3, 9, 12")
+          DateField.validate("1", "2", invalidValue, dateField) shouldBe Some("The year of the alternativename must be a whole number, like 1994, 2000, 2023")
         }
       })
     }
 
     "validate should return an error when the given day, month or year is a negative value" in {
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         List(("-1", "-1990"), ("-12", "-9999"), ("-03", "-2563")).foreach { case (negativeDayOrNumber, negativeYear) =>
-          DateField.validate(negativeDayOrNumber, "2", "1990", dateField, required) shouldBe Some("The day cannot be a negative number")
-          DateField.validate("1", negativeDayOrNumber, "1990", dateField, required) shouldBe Some("The month cannot be a negative number")
-          DateField.validate("1", "2", negativeYear, dateField, required) shouldBe Some("The year cannot be a negative number")
+          DateField.validate(negativeDayOrNumber, "2", "1990", dateField) shouldBe Some("The day cannot be a negative number")
+          DateField.validate("1", negativeDayOrNumber, "1990", dateField) shouldBe Some("The month cannot be a negative number")
+          DateField.validate("1", "2", negativeYear, dateField) shouldBe Some("The year cannot be a negative number")
         }
       })
     }
 
     "validate should not return an error when the given year is 4 digits long" in {
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         List("1000", "2022").foreach { fourDigitYear =>
-          DateField.validate("1", "2", fourDigitYear, dateField, required) shouldBe None
+          DateField.validate("1", "2", fourDigitYear, dateField) shouldBe None
         }
       })
     }
 
     "validate should return an error when the given year is a less than or greater than 4 digit" in {
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         List("1", "40", "199", "19999", "300000").foreach { nonFourDigitYear =>
-          DateField.validate("1", "2", nonFourDigitYear, dateField, required) shouldBe Some("The year of the alternativename must contain 4 digits")
+          DateField.validate("1", "2", nonFourDigitYear, dateField) shouldBe Some("The year of the alternativename must contain 4 digits")
         }
       })
     }
 
     "validate should return an error when the given day/month number is more/less than what is possible" in {
-      requiredField.foreach(required => {
-        DateField.validate("0", "2", "1990", dateField, required) shouldBe Some("The day of the alternativename must be between 1 and 31")
-        DateField.validate("-0", "2", "1990", dateField, required) shouldBe Some("The day of the alternativename must be between 1 and 31")
-        DateField.validate("12", "0", "1990", dateField, required) shouldBe Some("The month of the alternativename must be between 1 and 12")
-        DateField.validate("12", "-0", "1990", dateField, required) shouldBe Some("The month of the alternativename must be between 1 and 12")
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
+        DateField.validate("0", "2", "1990", dateField) shouldBe Some("The day of the alternativename must be between 1 and 31")
+        DateField.validate("-0", "2", "1990", dateField) shouldBe Some("The day of the alternativename must be between 1 and 31")
+        DateField.validate("12", "0", "1990", dateField) shouldBe Some("The month of the alternativename must be between 1 and 12")
+        DateField.validate("12", "-0", "1990", dateField) shouldBe Some("The month of the alternativename must be between 1 and 12")
         List(("32", "13"), ("54", "31"), ("100", "64")).foreach { case (invalidDay, invalidMonth) =>
-          DateField.validate(invalidDay, "1", "1990", dateField, required) shouldBe Some(s"The day of the alternativename must be between 1 and 31")
-          DateField.validate("12", invalidMonth, "1990", dateField, required) shouldBe Some(s"The month of the alternativename must be between 1 and 12")
+          DateField.validate(invalidDay, "1", "1990", dateField) shouldBe Some(s"The day of the alternativename must be between 1 and 31")
+          DateField.validate("12", invalidMonth, "1990", dateField) shouldBe Some(s"The month of the alternativename must be between 1 and 12")
         }
       })
     }
 
     "validate should not return an error if 31 days was input for the day and the month entered has 31 days" in {
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         List("01", "03", "05", "07", "08", "10", "12").foreach { monthWith31Days =>
-          DateField.validate("31", monthWith31Days, "1990", dateField, required) shouldBe None
+          DateField.validate("31", monthWith31Days, "1990", dateField) shouldBe None
         }
       })
     }
 
     "validate should return an error if 31 days was input for the day and the month entered does not have 31 days" in {
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         List("02", "04", "06", "09", "11").foreach { monthWithLessThan31Days =>
-          DateField.validate("31", monthWithLessThan31Days, "1990", dateField, required) shouldBe
+          DateField.validate("31", monthWithLessThan31Days, "1990", dateField) shouldBe
             Some(s"${monthsWithLessThan31Days(monthWithLessThan31Days.toInt)} does not have 31 days in it. Enter the day for the alternativename between 1 and 30")
         }
       })
@@ -317,32 +343,32 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "validate should not return an error if 30 days was input for the day and the month entered has 30 days" in {
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         List("01", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12").foreach { monthWithAtLeast30Days =>
-          DateField.validate("30", monthWithAtLeast30Days, "1990", dateField, required) shouldBe None
+          DateField.validate("30", monthWithAtLeast30Days, "1990", dateField) shouldBe None
         }
       })
     }
 
     "validate should return an error if 30 days was input for the day and the month entered was February" in {
-      requiredField.foreach(required => {
-        DateField.validate("30", "02", "1990", dateField, required) shouldBe Some(s"February does not have 30 days in it. Enter the day for the alternativename between 1 and 30")
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
+        DateField.validate("30", "02", "1990", dateField) shouldBe Some(s"February does not have 30 days in it. Enter the day for the alternativename between 1 and 30")
       })
     }
 
     "validate should return no errors if February does have 29 days that year (leap year)" in {
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         List("2000", "2008", "2012", "2016", "2020").foreach { leapYear =>
-          DateField.validate("29", "02", leapYear, dateField, required) shouldBe None
+          DateField.validate("29", "02", leapYear, dateField) shouldBe None
         }
       })
     }
 
     "validate should return an error if February does not have 29 days that year (not leap year)" in {
       // the first 4 years are special because they are skipped leap years
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         List("1700", "1800", "1900", "2100", "2023", "2027", "2031", "2035").foreach { nonLeapYear =>
-          DateField.validate("29", "02", nonLeapYear, dateField, required) shouldBe Some(
+          DateField.validate("29", "02", nonLeapYear, dateField) shouldBe Some(
             s"February does not have 29 days in it. Enter the day for the alternativename between 1 and 28"
           )
         }
@@ -351,31 +377,31 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "validate should return only the error for the Day if the day has an error, even if Month and/or Year have errors" in {
       // We must only show the user one error at a time so if there are 2 or more, we must show the foremost error
-      requiredField.foreach(required => {
-        DateField.validate("", "-1", "notYear", dateField, required) shouldBe Some("The alternativename must contain a day")
-        DateField.validate("33", "13", "-2022", dateField, required) shouldBe Some("The day of the alternativename must be between 1 and 31")
-        DateField.validate("-1", "", "19904", dateField, required) shouldBe Some("The day cannot be a negative number")
-        DateField.validate("0", "month", "42", dateField, required) shouldBe Some("The day of the alternativename must be between 1 and 31")
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
+        DateField.validate("", "-1", "notYear", dateField) shouldBe Some("The alternativename must contain a day")
+        DateField.validate("33", "13", "-2022", dateField) shouldBe Some("The day of the alternativename must be between 1 and 31")
+        DateField.validate("-1", "", "19904", dateField) shouldBe Some("The day cannot be a negative number")
+        DateField.validate("0", "month", "42", dateField) shouldBe Some("The day of the alternativename must be between 1 and 31")
       })
     }
 
     "validate should return only the error for the Month if the Day has no errors but Month has an error, even if Year has an error" in {
       // We must only show the user one error at a time so if there are 2 or more, we must show the foremost error
-      requiredField.foreach(required => {
-        DateField.validate("1", "-1", "notYear", dateField, required) shouldBe Some("The month cannot be a negative number")
-        DateField.validate("12", "13", "-2022", dateField, required) shouldBe Some("The month of the alternativename must be between 1 and 12")
-        DateField.validate("25", "", "19904", dateField, required) shouldBe Some("The alternativename must contain a month")
-        DateField.validate("8", "month", "42", dateField, required) shouldBe Some("The month of the alternativename must be a whole number, like 3, 9, 12")
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
+        DateField.validate("1", "-1", "notYear", dateField) shouldBe Some("The month cannot be a negative number")
+        DateField.validate("12", "13", "-2022", dateField) shouldBe Some("The month of the alternativename must be between 1 and 12")
+        DateField.validate("25", "", "19904", dateField) shouldBe Some("The alternativename must contain a month")
+        DateField.validate("8", "month", "42", dateField) shouldBe Some("The month of the alternativename must be a whole number, like 3, 9, 12")
       })
     }
 
     "validate should return only the error for the Year if the Day and Month have no errors" in {
       // We must only show the user one error at a time so if there are 2 or more, we must show the foremost error
-      requiredField.foreach(required => {
-        DateField.validate("1", "6", "notYear", dateField, required) shouldBe Some("The year of the alternativename must be a whole number, like 1994, 2000, 2023")
-        DateField.validate("12", "1", "-2022", dateField, required) shouldBe Some("The year cannot be a negative number")
-        DateField.validate("25", "8", "19904", dateField, required) shouldBe Some("The year of the alternativename must contain 4 digits")
-        DateField.validate("8", "2", "42", dateField, required) shouldBe Some("The year of the alternativename must contain 4 digits")
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
+        DateField.validate("1", "6", "notYear", dateField) shouldBe Some("The year of the alternativename must be a whole number, like 1994, 2000, 2023")
+        DateField.validate("12", "1", "-2022", dateField) shouldBe Some("The year cannot be a negative number")
+        DateField.validate("25", "8", "19904", dateField) shouldBe Some("The year of the alternativename must contain 4 digits")
+        DateField.validate("8", "2", "42", dateField) shouldBe Some("The year of the alternativename must contain 4 digits")
       })
     }
 
@@ -392,10 +418,10 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
         getDate(LocalDateTime.now().plusYears(1))
       )
 
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         date.foreach { case (day, month, year) =>
-          DateField.validate(day, month, year, dateField.copy(isFutureDateAllowed = false), required) shouldBe Some(
-            s"The date of the ${dateField.fieldAlternativeName} must be in the past"
+          DateField.validate(day, month, year, dateField.copy(isFutureDateAllowed = false)) shouldBe Some(
+            s"The date of the ${mandatoryDateField.fieldAlternativeName} must be in the past"
           )
         }
       })
@@ -410,9 +436,9 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
         getDate(LocalDateTime.now().minusMonths(1)),
         getDate(LocalDateTime.now().minusYears(1))
       )
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         date.foreach { case (day, month, year) =>
-          DateField.validate(day, month, year, dateField.copy(isFutureDateAllowed = false), required) shouldBe None
+          DateField.validate(day, month, year, dateField.copy(isFutureDateAllowed = false)) shouldBe None
         }
       })
     }
@@ -430,9 +456,9 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
         getDate(LocalDateTime.now().plusYears(1))
       )
 
-      requiredField.foreach(required => {
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
         date.foreach { case (day, month, year) =>
-          DateField.validate(day, month, year, dateField.copy(isFutureDateAllowed = true), required) shouldBe None
+          DateField.validate(day, month, year, dateField.copy(isFutureDateAllowed = true)) shouldBe None
         }
       })
     }
