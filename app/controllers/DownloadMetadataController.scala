@@ -8,7 +8,7 @@ import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, CustomMetadataService}
+import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -19,6 +19,7 @@ class DownloadMetadataController @Inject() (
     val controllerComponents: SecurityComponents,
     val consignmentService: ConsignmentService,
     val customMetadataService: CustomMetadataService,
+    val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration
 ) extends TokenSecurity {
 
@@ -40,21 +41,23 @@ class DownloadMetadataController @Inject() (
     for {
       metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
+      displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, None, showInactive = true)
     } yield {
       val parseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
       val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-      val filteredMetadata: List[CustomMetadata] = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
-      val header: List[String] = filteredMetadata.map(f => f.fullName.getOrElse(f.name))
+      val nameMap = displayProperties.filter(dp => dp.active || dp.propertyName == "Filename").map(dp => (dp.propertyName, dp.displayName)).toMap
+      val filteredMetadata: List[CustomMetadata] = customMetadata.filter(cm => nameMap.keySet.contains(cm.name) && cm.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
+      val header: List[String] = filteredMetadata.map(f => nameMap.getOrElse(f.name, f.name))
       val fileMetadataRows: List[List[String]] = metadata.files.map { file =>
         val groupedMetadata: Map[String, String] = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
         filteredMetadata.map { customMetadata =>
           groupedMetadata
             .get(customMetadata.name)
             .map { fileMetadataValue =>
-              if (filteredMetadata.find(_.name == customMetadata.name).exists(_.dataType == DataType.DateTime)) {
-                LocalDateTime.parse(fileMetadataValue, parseFormatter).format(formatter)
-              } else {
-                fileMetadataValue
+              customMetadata.dataType match {
+                case DataType.DateTime => LocalDateTime.parse(fileMetadataValue, parseFormatter).format(formatter)
+                case DataType.Boolean  => if (fileMetadataValue == "true") "Yes" else "No"
+                case _                 => fileMetadataValue
               }
             }
             .getOrElse("")
