@@ -116,16 +116,16 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
     )
   }
 
-  private def displayPropertyFilter(dp: DisplayProperty, metadataType: Option[String]): Boolean = {
-    dp.active && metadataType.forall(`type` => dp.propertyType.equalsIgnoreCase(`type`))
+  private def displayPropertyFilter(dp: DisplayProperty, metadataType: Option[String], showInactive: Boolean): Boolean = {
+    (dp.active || showInactive) && metadataType.forall(`type` => dp.propertyType.equalsIgnoreCase(`type`))
   }
 
-  def getDisplayProperties(consignmentId: UUID, token: BearerAccessToken, metadataType: Option[String]): Future[List[DisplayProperty]] = {
+  def getDisplayProperties(consignmentId: UUID, token: BearerAccessToken, metadataType: Option[String], showInactive: Boolean = false): Future[List[DisplayProperty]] = {
     val variables = new Variables(consignmentId)
     sendApiRequest(displayPropertiesClient, dp.document, token, variables).map(data =>
       data.displayProperties
         .map(toDisplayProperty)
-        .filter(displayPropertyFilter(_, metadataType))
+        .filter(displayPropertyFilter(_, metadataType, showInactive))
         .sortBy(_.ordinal)
     )
   }

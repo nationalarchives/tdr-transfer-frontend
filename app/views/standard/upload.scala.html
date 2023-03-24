@@ -54,7 +54,7 @@
                                 tabindex="-1" role="alert" aria-describedby="success-message-text">
                                 <div class="success-message-flexbox-container" id="item-selection-success-container">
                                     <p id="success-message-text" class="success-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been selected </p>
-                                    <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
+                                    <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove selected records</a>
                                 </div>
                                 <div class="success-message-flexbox-container" id="removed-selection-container" hidden="true">
                                     <p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been removed. Select a folder.</p>
@@ -86,16 +86,14 @@
                             </div>
                             <p class="govuk-body">For information on what metadata will be captured during upload, visit the <a href="@routes.FaqController.faq()#metadata-captured" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a>.</p>
                             <div class="govuk-form-group">
-                                <fieldset class="govuk-fieldset" aria-describedby="includeTopLevelFolder">
-                                    <div class="govuk-checkboxes">
-                                        <div class="govuk-checkboxes__item">
-                                            <input class="govuk-checkboxes__input" id="includeTopLevelFolder" name="includeTopLevelFolder" type="checkbox">
-                                            <label class="govuk-label govuk-checkboxes__label" for="includeTopLevelFolder">
-                                                Check the box if you want to display the name of your top-level folder in the public catalogue.
-                                            </label>
-                                        </div>
+                                <div class="govuk-checkboxes">
+                                    <div class="govuk-checkboxes__item">
+                                        <input class="govuk-checkboxes__input" id="includeTopLevelFolder" name="includeTopLevelFolder" type="checkbox">
+                                        <label class="govuk-label govuk-checkboxes__label" for="includeTopLevelFolder">
+                                            Check the box if you want to display the name of your top-level folder in the public catalogue.
+                                        </label>
                                     </div>
-                                </fieldset>
+                                </div>
                             </div>
                             <div class="govuk-button-group">
                                 <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
