@@ -31,13 +31,13 @@
             <div class="govuk-header__container govuk-width-container tna-header">
 
                 <div class="govuk-header__tna-logo">
-                    <a href="/" class="govuk-header__tna_link govuk-header__tna_link--homepage">
-                            <img src="@routes.Assets.versioned("images/tna-horizontal-white-logo.svg")" class="govuk-header__tna-logo-image" alt="Transfer Digital Records Homepage" />
+                    <a href="@Messages("nationalArchives.homepage")" class="govuk-header__tna_link govuk-header__tna_link--homepage">
+                            <img src="@routes.Assets.versioned("images/tna-horizontal-white-logo.svg")" class="govuk-header__tna-logo-image" alt="The National Archives homepage" />
                     </a>
                 </div>
 
                 <div class="govuk-header__tna-content">
-                    <a href="/" class="govuk-header__link govuk-header__link--service-name">
+                    <a href="@if(isLoggedIn) {/homepage} else {/}" class="govuk-header__link govuk-header__link--service-name">
                         Transfer Digital Records
                     </a>
                 </div>
