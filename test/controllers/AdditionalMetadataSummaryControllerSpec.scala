@@ -372,7 +372,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
 
   def verifyViewPage(page: String, consignmentId: String, metadataType: String, metadataFields: List[(String, String)], hasMetadata: Boolean = false): Unit = {
     page must include(s"""<span class="govuk-caption-l">${metadataType.capitalize} metadata</span>""")
-    page must include(s"""<h1 class="govuk-heading-l">View $metadataType metadata</h1>""")
+    page must include(s"""<h1 class="govuk-heading-l">View Metadata</h1>""")
     page must include(s"""<p class="govuk-body">View existing $metadataType metadata.</p>""")
 
     if (hasMetadata) {
