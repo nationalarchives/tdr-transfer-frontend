@@ -300,11 +300,10 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
          |                  </dl>""".stripMargin
 
     val expectedWarningText =
-      s"""                      <strong class="govuk-warning-text__text">
-         |                        <span class="govuk-warning-text__assistive">Warning</span>
-         |                        You must not delete the original records of this transfer as they are not yet preserved. You will receive an email once preservation has taken place. If you do not receive an email, contact <a href="mailto:tdr@nationalarchives.gov.uk.">
-         |                        tdr@nationalarchives.gov.uk</a>.
-         |                      </strong>""".stripMargin
+      s"""    <strong class="govuk-warning-text__text">
+         |        <span class="govuk-warning-text__assistive">Warning</span>
+         |        You must not delete the original records of this transfer as they are not yet preserved. You will receive an email once preservation has taken place. If you do not receive an email, contact <a href="mailto:tdr@nationalarchives.gov.uk.">tdr@nationalarchives.gov.uk</a>.
+         |    </strong>""".stripMargin
 
     viewTransferPageString must include(expectedTableData)
     viewTransferPageString must include(expectedDescriptionList)
