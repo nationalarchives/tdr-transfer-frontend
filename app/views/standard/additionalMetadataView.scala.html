@@ -12,7 +12,7 @@
     name: String,
     metadataList: List[FileMetadata],
     hasMetadata: Boolean)(implicit messages: Messages, request: RequestHeader)
-@defining(s"View $metadataType metadata") { title =>
+@defining(s"View Metadata") { title =>
   @main(title, name = name) {
     @defining(play.core.PlayVersion.current) { version =>
       <div class="govuk-grid-row">
