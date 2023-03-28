@@ -63,12 +63,13 @@ class HelpControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkForContentOnHelpPage(pageAsString: String, userType: String = "standard", signedIn: Boolean = true): Unit = {
-    pageAsString must include("<title>Help</title>")
 
     if (userType == "standard") {
+      pageAsString must include("<title>User Help Guide - Transfer Digital Records - GOV.UK</title>")
       pageAsString must include("""<h1 class="govuk-heading-l">User Help Guide</h1>""")
       pageAsString must include("""<h2 class="govuk-heading-m">This user help guide includes:</h2>""")
     } else {
+      pageAsString must include("<title>Transferring Judgments to The National Archives - Transfer Digital Records - GOV.UK</title>")
       pageAsString must include(
         """<h1 class="govuk-heading-l" id="transferring-judgments">Transferring Judgments to The National Archives</h1>"""
       )
