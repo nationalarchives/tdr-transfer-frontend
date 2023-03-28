@@ -45,7 +45,7 @@
             <tr class="govuk-table__row">
               <td class="govuk-table__cell" headers="more-details" colspan="5" id="details-@index">
                   @if(consignment.status == Transferred.value) {
-                    @warningMessage("""You must not delete the original records of this transfer as they are not yet preserved. You will receive an email once preservation has taken place. If you do not receive an email, contact <a href="mailto:tdr@nationalarchives.gov.uk.">tdr@nationalarchives.gov.uk</a>.""", marginValue = 0)
+                    @warningMessage(s"""You must not delete the original records of this transfer as they are not yet preserved. You will receive an email once preservation has taken place. If you do not receive an email, contact <a href="mailto:${Messages("nationalArchives.email")}">${Messages("nationalArchives.email")}</a>.""", marginValue = 0)
                   }
                 <div class="tdr-transfers-extra">
                   <dl class="tdr-dlist tdr-transfers-extra__list">
