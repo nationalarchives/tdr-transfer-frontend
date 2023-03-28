@@ -6,14 +6,15 @@
 @(consignmentId: UUID, consignmentRef: String, dropdownField: DropdownField, name: String)(implicit request: RequestHeader,
 messages: Messages)
 @disabledStatus = {disabled}
-@main("Series Information", name = name) {
+@defining("Choose a series") { title =>
+  @main(title, name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         @progressIndicator(Messages("seriesDetails.progress"))
 
-        <h1 class="govuk-heading-l">Choose a series</h1>
+        <h1 class="govuk-heading-l">@title</h1>
         <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"
         role="alert" data-module="success-summary" tabindex="-1">
             <div class="success-summary__body">
@@ -46,4 +47,5 @@ messages: Messages)
     </div>
     @transferReference(consignmentRef, isJudgmentUser = false)
 </div>
+}
 }

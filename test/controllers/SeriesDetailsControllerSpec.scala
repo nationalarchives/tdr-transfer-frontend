@@ -73,16 +73,13 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
 
       playStatus(seriesDetailsPage) mustBe OK
       contentType(seriesDetailsPage) mustBe Some("text/html")
-      seriesDetailsPageAsString must include("<title>Series Information</title>")
+      seriesDetailsPageAsString must include("<title>Choose a series reference - Transfer Digital Records - GOV.UK</title>")
       checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
 
       seriesDetailsPageAsString should include("""<select class="govuk-select" id="series" name="series"  >""")
       seriesDetailsPageAsString should include(s"""<option value="${seriesId.toString}">MOCK1</option>""")
-      seriesDetailsPageAsString must include("""<h1 class="govuk-label-wrapper">
-                                               |            <label class="govuk-label govuk-label--l" for="series">Choose a series reference</label>
-                                               |        </h1>""".stripMargin)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
@@ -192,7 +189,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       val seriesSubmitAsString = contentAsString(seriesSubmit)
 
       contentType(seriesSubmit) mustBe Some("text/html")
-      contentAsString(seriesSubmit) must include("<title>Error: Series Information</title>")
+      contentAsString(seriesSubmit) must include("<title>Error: Choose a series reference - Transfer Digital Records - GOV.UK</title>")
       seriesSubmitAsString must include("class=\"govuk-visually-hidden\">Error:")
       checkForExpectedSeriesPageContent(seriesSubmitAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesSubmitAsString, userType = "standard")
