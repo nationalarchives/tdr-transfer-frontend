@@ -2,26 +2,27 @@
 @import views.html.helper.CSRF
 @import views.html.partials.viewTransfersBtn
 @(name:String, blockViewTransfers: Boolean)(implicit messages: Messages, request: RequestHeader)
+@defining("Welcome to the Transfer Digital Records service") { title =>
+  @main(title, name = name) {
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <h1 class="govuk-heading-l">@title</h1>
 
-@main("Welcome", name = name) {
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <h1 class="govuk-heading-l">Welcome to the Transfer Digital Records service</h1>
+                <h2 class="govuk-heading-m govuk-!-margin-top-9">Upload your records to start a new transfer</h2>
 
-            <h2 class="govuk-heading-m govuk-!-margin-top-9">Upload your records to start a new transfer</h2>
-
-            @form(routes.HomepageController.homepageSubmit(), (Symbol("novalidate"), "")) {
-                @CSRF.formField
-                <div class="govuk-button-group">
-                    <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
-                    role="button">
-                        Start transfer
-                    </button>
-                </div>
-                @if(!blockViewTransfers){
-                    @viewTransfersBtn()
+                @form(routes.HomepageController.homepageSubmit(), (Symbol("novalidate"), "")) {
+                    @CSRF.formField
+                    <div class="govuk-button-group">
+                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
+                        role="button">
+                            Start transfer
+                        </button>
+                    </div>
+                    @if(!blockViewTransfers) {
+                        @viewTransfersBtn()
+                    }
                 }
-            }
+            </div>
         </div>
-    </div>
+    }
 }

@@ -1,9 +1,9 @@
 @(isLoggedIn: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
-
-@main("judgmentFAQ", isLoggedIn = isLoggedIn, name = name, isJudgmentUser = true) {
+@defining("Frequently Asked Questions") { title =>
+  @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = true) {
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            <h1 class="govuk-heading-l">Frequently Asked Questions</h1>
+            <h1 class="govuk-heading-l">@title</h1>
             <h2 id="getting-started" class="govuk-heading-m">Getting started</h2>
             <h3 class="govuk-heading-s" id="what-is-tdr">What is TDR?</h3>
             <p class="govuk-body">
@@ -260,4 +260,5 @@
         </div>
     </div>
 
+  }
 }

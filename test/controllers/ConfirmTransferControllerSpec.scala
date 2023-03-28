@@ -85,7 +85,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       playStatus(confirmTransferPage) mustBe OK
       contentType(confirmTransferPage) mustBe Some("text/html")
-      confirmTransferPageAsString must include("<title>Confirm transfer</title>")
+      confirmTransferPageAsString must include("<title>Confirm transfer - Transfer Digital Records - GOV.UK</title>")
       confirmTransferPageAsString must include("""<h1 class="govuk-heading-l">Confirm transfer</h1>""")
 
       confirmTransferPageAsString must include(
@@ -760,10 +760,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkForCommonElementsOnConfirmationPage(transferAlreadyConfirmedPageAsString: String, transferType: String = "consignment") = {
-    transferAlreadyConfirmedPageAsString must include(
-      """                <h1 class="govuk-heading-l">Your transfer has already been completed</h1>
-        |                <p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>""".stripMargin
-    )
+    transferAlreadyConfirmedPageAsString must include("""<h1 class="govuk-heading-l">Your transfer has already been completed</h1>""")
+    transferAlreadyConfirmedPageAsString must include("""<p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>""")
+
     transferAlreadyConfirmedPageAsString must include(
       s"""href="/$transferType/$consignmentId/transfer-complete">Continue""".stripMargin
     )
