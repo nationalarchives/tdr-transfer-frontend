@@ -2,32 +2,33 @@
 @import views.html.helper.form
 @import views.html.partials.viewTransfersBtn
 @(name: String, blockViewTransfers: Boolean)(implicit messages: Messages, request: RequestHeader)
+@defining("Welcome to the Transfer Digital Records service") { title =>
+  @main(title, name = name, isJudgmentUser = true) {
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <h1 class="govuk-heading-l">@title</h1>
 
-@main("Welcome", name = name, isJudgmentUser = true) {
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <h1 class="govuk-heading-l">Welcome to the Transfer Digital Records service</h1>
+        <h2 class="govuk-heading-m govuk-!-margin-top-7">Before you start</h2>
 
-      <h2 class="govuk-heading-m govuk-!-margin-top-7">Before you start</h2>
+        <p class="govuk-body">
+          You must upload your judgment as a Microsoft Word (.docx) document. Any other formats will not be accepted.
+        </p>
 
-      <p class="govuk-body">
-        You must upload your judgment as a Microsoft Word (.docx) document. Any other formats will not be accepted.
-      </p>
+        <h2 class="govuk-heading-m govuk-!-margin-top-2">Upload your judgment to start a new transfer</h2>
 
-      <h2 class="govuk-heading-m govuk-!-margin-top-2">Upload your judgment to start a new transfer</h2>
-
-      @form(routes.HomepageController.judgmentHomepageSubmit(), (Symbol("novalidate"), "")) {
-        @CSRF.formField
-        <div class="govuk-button-group">
-          <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
-          role="button">
-            Start transfer
-          </button>
-        </div>
-        @if(!blockViewTransfers){
-          @viewTransfersBtn()
+        @form(routes.HomepageController.judgmentHomepageSubmit(), (Symbol("novalidate"), "")) {
+          @CSRF.formField
+          <div class="govuk-button-group">
+            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
+            role="button">
+              Start transfer
+            </button>
+          </div>
+          @if(!blockViewTransfers) {
+            @viewTransfersBtn()
+          }
         }
-      }
+      </div>
     </div>
-  </div>
+  }
 }

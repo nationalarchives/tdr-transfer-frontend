@@ -176,7 +176,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "standard", pageRequiresAwsServices = true)
       checkForExpectedPageContentOnMainUploadPage(uploadPageAsString)
-      uploadPageAsString must include("<title>Upload your records</title>")
+      uploadPageAsString must include("<title>Upload your records - Transfer Digital Records - GOV.UK</title>")
       uploadPageAsString must include("""<h1 class="govuk-heading-l">Upload your records</h1>""")
       uploadPageAsString must include(
         """<p class="govuk-body">Before uploading, all records (files and folders) you wish to transfer must be put into a single, top-level folder.</p>"""
@@ -345,7 +345,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "judgment", pageRequiresAwsServices = true)
       checkForExpectedPageContentOnMainUploadPage(uploadPageAsString)
-      uploadPageAsString must include("<title>Upload your judgment</title>")
+      uploadPageAsString must include("<title>Upload judgment - Transfer Digital Records - GOV.UK</title>")
       uploadPageAsString must include("""<h1 class="govuk-heading-l">Upload judgment</h1>""")
       uploadPageAsString must include("You may now upload the judgment you wish to transfer. You can only upload one file.")
       uploadPageAsString must include("We only accept Microsoft Word files (.docx).")

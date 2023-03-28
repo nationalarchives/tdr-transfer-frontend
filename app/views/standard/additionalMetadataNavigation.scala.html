@@ -60,8 +60,8 @@
     <strong class="tdr-tag tdr-tag--@statusTag.get.colour">@statusTag.get.text</strong>
   }
 }
-
-@main("Additional Metadata", name = name, backLink = Some(backLink(routes.AdditionalMetadataController.start(consignmentId).url, "additionalMetadataStart.progress", "Descriptive and closure metadata"))) {
+@defining("Choose a file") { title =>
+  @main(title, name = name, backLink = Some(backLink(routes.AdditionalMetadataController.start(consignmentId).url, "additionalMetadataStart.progress", "Descriptive and closure metadata"))) {
 @*  Only render the noscript if not expanded to prevent a continuous page refresh when no javascript, if hierarchy:
     already expanded then irrelevant if no javascript or not;
     not expanded then expand if no javascript
@@ -75,7 +75,7 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
-        <h1 class="govuk-heading-l">Choose a file</h1>
+        <h1 class="govuk-heading-l">@title</h1>
       </div>
     </div>
     <div class="govuk-grid-row">
@@ -119,4 +119,5 @@
       </div>
     </div>
   }
+}
 }

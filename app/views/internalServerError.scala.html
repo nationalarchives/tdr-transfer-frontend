@@ -1,12 +1,13 @@
 @(name: String, isLoggedIn: Boolean, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
-
-@main("Service not available", name = name, isLoggedIn = isLoggedIn, isJudgmentUser = isJudgmentUser) {
-@defining(play.core.PlayVersion.current) { version =>
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">Sorry, there is a problem with the service</h1>
-        <p class="govuk-body">Please try again later.</p>
-    </div>
-</div>
+@defining("Sorry, there is a problem with the service") { title =>
+  @main(title, name = name, isLoggedIn = isLoggedIn, isJudgmentUser = isJudgmentUser) {
+    @defining(play.core.PlayVersion.current) { version =>
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <h1 class="govuk-heading-l">@title</h1>
+                <p class="govuk-body">Please try again later.</p>
+            </div>
+        </div>
+    }
 }
 }
