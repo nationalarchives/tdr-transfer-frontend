@@ -35,11 +35,9 @@ class ContactControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkForContentOnContactPage(pageAsString: String, signedIn: Boolean = true): Unit = {
-    pageAsString must include("<title>Contact</title>")
+    pageAsString must include("<title>Get in touch - Transfer Digital Records - GOV.UK</title>")
     pageAsString must include("""<h1 class="govuk-heading-l">Get in touch</h1>""")
-    pageAsString must include(
-      """<p class="govuk-body">If you have got feedback, ideas or questions get in touch with the Transfer Digital Records team</p>"""
-    )
+    pageAsString must include("If you have got feedback, ideas or questions")
     pageAsString must include("""<h1 class="govuk-heading-l">Email</h1>""")
     pageAsString must include(
       """<p class="govuk-body"><a class="govuk-link" href="mailto:nationalArchives.email" data-hsupport="email">nationalArchives.email</a></p>"""
