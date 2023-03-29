@@ -103,7 +103,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
         s"""<p class="govuk-body">You can now add or edit closure and descriptive metadata to your records.</p>""".stripMargin
       )
       startPageAsString must include(
-        s"""<div class="govuk-warning-text">
+        s"""<div class="govuk-warning-text govuk-!-margin-bottom-30">
            |    <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
            |    <strong class="govuk-warning-text__text">
            |        <span class="govuk-warning-text__assistive">Warning</span>
