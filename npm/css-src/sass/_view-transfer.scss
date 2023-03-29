@@ -1,7 +1,114 @@
-.consignment-ref-cell {
-  color: $govuk-text-colour;
-}
-
 .not-applicable {
   color: $govuk-secondary-text-colour;
+}
+
+//Table
+.govuk-table--tdr-transfers tr:first-child td:first-child {
+  padding-left: 4px;
+  padding-right: 8px;
+}
+
+.govuk-table--tdr-transfers .tdr-arrow-expander {
+  position: relative;
+  top: -6px;
+}
+
+.govuk-table--tdr-transfers td,
+.govuk-table--tdr-transfers th {
+  text-align: left;
+}
+
+@include govuk-media-query($from: tablet) {
+  .govuk-table--tdr-transfers td,
+  .govuk-table--tdr-transfers th {
+    padding-bottom: 12px;
+    padding-right: 20px;
+    padding-top: 12px;
+  }
+}
+
+.tdr-link-group a {
+  white-space: nowrap;
+}
+
+//Arrow Expander
+.tdr-arrow-expander {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  height: 26px;
+  position: relative;
+  width: 30px;
+}
+
+.tdr-arrow-expander::before {
+  @include govuk-shape-arrow($direction: right, $base: 15px);
+  border-color: $govuk-link-colour;
+  bottom: 0;
+
+  content: '';
+  left: 10px;
+  margin: auto;
+
+  position: absolute;
+  top: -1px;
+}
+
+.tdr-arrow-expander:focus {
+  background-color: $govuk-focus-colour;
+  box-decoration-break: clone;
+  box-shadow: 0 -2px $govuk-focus-colour, 0 4px $govuk-focus-text-colour;
+  color: $govuk-focus-text-colour;
+  outline: 3px solid transparent;
+  text-decoration: none;
+}
+
+.tdr-arrow-expander[aria-expanded='true']::before {
+  @include govuk-shape-arrow($direction: down, $base: 15px);
+  border-color: $govuk-link-colour;
+  left: 7px;
+}
+
+//Expanded Content
+.tdr-transfers-extra {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.tdr-transfers-extra__list {
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+.tdr-transfers-extra__list:first-child {
+  flex-grow: 1;
+}
+
+.tdr-transfers-extra__list:last-child {
+  flex-grow: 3;
+}
+
+.tdr-dlist {
+  background-color: #f8f8f8;
+  padding: 20px;
+}
+
+.tdr-dlist dt {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.tdr-dlist dd {
+  margin: 0;
+  padding: 0;
+}
+
+//Constraining some of the th widths to avoid movement in the table when it expands
+.govuk-table__row .govuk-table__header:first-child {
+  width: 30px;
+}
+
+.govuk-table__header:not(:first-child) {
+  width: 200px;
 }

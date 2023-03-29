@@ -12,9 +12,9 @@
 <html lang="en" class="govuk-template">
 <head>
     @if(hasError) {
-      <title>Error: @title</title>
+      <title>Error: @title - Transfer Digital Records - GOV.UK</title>
     } else {
-      <title>@title</title>
+      <title>@title - Transfer Digital Records - GOV.UK</title>
     }
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -129,6 +129,11 @@
                             <li class="govuk-footer__inline-list-item">
                                 <a class="govuk-footer__link" href="@routes.CookiesController.cookies()">
                                   Cookies
+                                </a>
+                            </li>
+                            <li class="govuk-footer__inline-list-item">
+                                <a class="govuk-footer__link" href="@routes.AccessibilityController.accessibilityStatement()">
+                                      Accessibility statement
                                 </a>
                             </li>
                         </ul>

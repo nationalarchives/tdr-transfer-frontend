@@ -198,11 +198,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = standardType, consignmentExists = false)
       checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
 
-      viewTransfersPageAsString must include(
-        """              <tbody class="govuk-table__body">""" +
-          "\n                " +
-          "\n              </tbody>"
-      )
+      viewTransfersPageAsString must not include "<tbody"
     }
 
     "render the view transfers page with a list of all a judgment user's consignments" in {
@@ -247,11 +243,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = judgmentType, consignmentExists = false)
       checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
 
-      viewTransfersPageAsString must include(
-        """              <tbody class="govuk-table__body">""" +
-          "\n                " +
-          "\n              </tbody>"
-      )
+      viewTransfersPageAsString must not include "<tbody"
     }
 
     "redirect to the login page if the page is accessed by a logged out user" in {
@@ -290,19 +282,19 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   def checkForExpectedViewTransfersPageContent(viewTransfersPageAsString: String): Unit = {
     viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
     viewTransfersPageAsString must include(
-      s"""                    <th scope="col" class="govuk-table__header">Reference</th>
-          |                    <th scope="col" class="govuk-table__header">Date started</th>
-          |                    <th scope="col" class="govuk-table__header">Date transferred</th>
-          |                    <th scope="col" class="govuk-table__header">Status</th>
-          |                    <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin
+      s"""            <th scope="col" class="govuk-table__header">Reference</th>
+         |            <th scope="col" class="govuk-table__header">Date started</th>
+         |            <th scope="col" class="govuk-table__header">Date transferred</th>
+         |            <th scope="col" class="govuk-table__header">Status</th>
+         |            <th scope="col" class="govuk-table__header">Actions</th>""".stripMargin
     )
     viewTransfersPageAsString must include(
       s"""View the history of all the consignments you have uploaded. You can also resume incomplete transfers or view the errors of failed transfers."""
     )
     viewTransfersPageAsString must include(
-      """        <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
-        |            Back to homepage
-        |        </a>""".stripMargin
+      """      <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
+        |        Back to homepage
+        |      </a>""".stripMargin
     )
   }
 
@@ -321,46 +313,47 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     val domainPrefix = if (consignmentType == "standard") { "consignment" }
     else consignmentType
     val expectedActionUrl = if (action == "Contact us") {
-      s"""<a href="$actionPage">$action</a>"""
+      s"""<a href="$actionPage" class="govuk-link govuk-link--no-visited-state">$action</a>"""
     } else {
-      s"""<a href="/$domainPrefix/$consignmentId$actionPage">$action</a>"""
+      s"""<a href="/$domainPrefix/$consignmentId$actionPage" class="govuk-link govuk-link--no-visited-state">$action</a>"""
     }
 
-    val expectedSummary =
-      s"""
-         |                          <strong class="consignment-ref-cell">
-         |                            ${node.consignmentReference}
-         |                          </strong>
-         |""".stripMargin
+    val expectedTableData =
+      s"""              <th scope="row" class="govuk-table__header">${node.consignmentReference}</th>
+         |              <td class="govuk-table__cell">$createdDate</td>
+         |              <td class="govuk-table__cell ${if (dateOfTransfer == "N/A") "not-applicable" else ""}">$dateOfTransfer</td>
+         |              <td class="govuk-table__cell">
+         |                <strong class="tdr-tag tdr-tag--$transferStatusColour">$transferStatus</strong>
+         |              </td>
+         |              <td class="govuk-table__cell">
+         |                <div class="tdr-link-group">
+         |                  $expectedActionUrl
+         |                </div>
+         |              </td>""".stripMargin
 
-    val expectedDetails =
-      s"""
-         |                        <div class="govuk-details__text">
-         |                          <p class="govuk-body">Please do not delete the original files you exported until you are notified that your records have been preserved.</p>
-         |                          <ul class="govuk-list govuk-list--bullet">
-         |                            <li>Consignment uploaded by: test@example.com</li>
-         |                            <li>Date started: $createdDate</li>
-         |                            <li>Date of transfer: $dateOfTransfer</li>
-         |                            <li>Number of files: ${node.totalFiles} records</li>
-         |                          </ul>
-         |                        </div>
-         |""".stripMargin
+    val expectedDescriptionList =
+      s"""                  <dl class="tdr-dlist tdr-transfers-extra__list">
+         |                    <dt class="govuk-body-m float govuk-!-margin-bottom-0">Number of files</dt>
+         |                    <dd class="govuk-!-font-size-36">${node.totalFiles}</dd>
+         |                  </dl>
+         |                  <dl class="tdr-dlist tdr-transfers-extra__list">
+         |                    <dt class="govuk-body-m float govuk-!-margin-bottom-0">Uploaded by</dt>
+         |                    <dd>
+         |                      <a href="mailto:test@example.com">test@example.com</a>
+         |                    </dd>
+         |                  </dl>""".stripMargin
 
-    val expectedStatusAndDate =
-      s"""
-         |                    <td class="govuk-table__cell">$createdDate</td>
-         |                    <td class="govuk-table__cell ${if (dateOfTransfer == "N/A") "not-applicable" else ""}">$dateOfTransfer</td>
-         |                    <td class="govuk-table__cell">
-         |                      <strong class="govuk-tag govuk-tag--$transferStatusColour">
-         |                        $transferStatus
-         |                      </strong>
-         |                    </td>
-         |                    <td class="govuk-table__cell">$expectedActionUrl</td>
-         |""".stripMargin
+    val expectedWarningText =
+      s"""    <strong class="govuk-warning-text__text">
+         |        <span class="govuk-warning-text__assistive">Warning</span>
+         |        You must not delete the original records of this transfer as they are not yet preserved. You will receive an email once preservation has taken place. If you do not receive an email, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>.
+         |    </strong>""".stripMargin
 
-    viewTransferPageString must include(expectedSummary)
-    viewTransferPageString must include(expectedDetails)
-    viewTransferPageString must include(expectedStatusAndDate)
+    viewTransferPageString must include(expectedTableData)
+    viewTransferPageString must include(expectedDescriptionList)
+    if (transferStatus == "Transferred") {
+      viewTransferPageString must include(expectedWarningText)
+    }
   }
 
   def verifyPagination(viewTransfersPageAsString: String, hidePrev: Boolean, hideNext: Boolean, totalPages: Int, currentPage: Int): Unit = {

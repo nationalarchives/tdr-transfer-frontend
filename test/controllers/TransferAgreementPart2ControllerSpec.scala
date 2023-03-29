@@ -486,7 +486,7 @@ class TransferAgreementPart2ControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkForExpectedTAPart2PageContent(pageAsString: String, taAlreadyConfirmed: Boolean = true): Unit = {
-    pageAsString must include("<title>Transfer agreement (part 2)</title>")
+    pageAsString must include("<title>Transfer agreement (part 2) - Transfer Digital Records - GOV.UK</title>")
     pageAsString must include("""<h1 class="govuk-heading-l">Transfer agreement (part 2)</h1>""")
     if (taAlreadyConfirmed) {
       pageAsString must include(
