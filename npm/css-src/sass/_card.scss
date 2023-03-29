@@ -64,3 +64,13 @@
   background: govuk-tint(govuk-colour('red'), 80);
   color: govuk-shade(govuk-colour('red'), 30);
 }
+
+.tdr-tag--yellow {
+  background: govuk-tint(govuk-colour('yellow'), 75);
+  color: govuk-shade(govuk-colour('yellow'), 65);
+}
+
+.tdr-tag--green {
+  background: govuk-tint(govuk-colour('green'), 80);
+  color: govuk-shade(govuk-colour('green'), 20);
+}

@@ -6,6 +6,7 @@
 # An example controller showing a sample home page
 GET         /                                                                                     controllers.HomeController.index()
 GET         /homepage                                                                             controllers.HomepageController.homepage()
+GET         /accessibility-statement                                                              controllers.AccessibilityController.accessibilityStatement()
 POST        /homepage                                                                             controllers.HomepageController.homepageSubmit()
 GET         /contact                                                                              controllers.ContactController.contact()
 GET         /cookies                                                                              controllers.CookiesController.cookies()

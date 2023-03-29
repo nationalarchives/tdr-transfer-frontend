@@ -24,6 +24,7 @@ class CheckPageForStaticElements() {
     page must include("href=\"/contact\">get in touch (opens in new tab).</a>")
     page must include("""href="/contact">""")
     page must include("""href="/cookies">""")
+    page must include("""href="/accessibility-statement">""")
     page must include("All content is available under the")
     page must include(
       "href=\"https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/\" rel=\"license\">Open Government Licence v3.0"
