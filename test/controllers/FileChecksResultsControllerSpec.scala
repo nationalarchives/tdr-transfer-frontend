@@ -87,7 +87,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         (
           "judgment",
           getValidJudgmentUserKeycloakConfiguration,
-          "<title>Results of checks</title>",
+          "<title>Results of checks - Transfer Digital Records - GOV.UK</title>",
           """<h1 class="govuk-heading-l">Results of checks</h1>""",
           s"""                    <p class="govuk-body">Your uploaded file 'test file.docx' has now been validated.</p>
           |                    <p class="govuk-body">Click 'Continue' to transfer it to The National Archives.</p>""".stripMargin,
@@ -107,7 +107,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         (
           "consignment",
           getValidStandardUserKeycloakConfiguration,
-          "<title>Results of your checks</title>",
+          "<title>Results of your checks - Transfer Digital Records - GOV.UK</title>",
           """<h1 class="govuk-heading-l">Results of your checks</h1>""",
           """                    <h3 class="govuk-notification-banner__heading">
             |                        Your folder 'parentFolder' containing 1 record has been uploaded and checked.
@@ -554,16 +554,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       headers(transferAlreadyCompletedPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(transferAlreadyCompletedPageAsString, userType = userType)
-      transferAlreadyCompletedPageAsString must include("<title>Transfer Already Completed</title>")
-      transferAlreadyCompletedPageAsString must include(
-        """                <h1 class="govuk-heading-l">Your transfer has already been completed</h1>
-        |                <p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>""".stripMargin
-      )
-      transferAlreadyCompletedPageAsString must include(
-        s"""                    <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
-           |                        href="/$userType/$consignmentId/transfer-complete">Continue
-           |                    </a>""".stripMargin
-      )
+      transferAlreadyCompletedPageAsString must include("<title>Your transfer has already been completed - Transfer Digital Records - GOV.UK</title>")
+      transferAlreadyCompletedPageAsString must include("""<h1 class="govuk-heading-l">Your transfer has already been completed</h1>""")
+      transferAlreadyCompletedPageAsString must include("""<p class="govuk-body">Click 'Continue' to see the confirmation page again or return to the start.</p>""")
+      transferAlreadyCompletedPageAsString must include(s"""href="/$userType/$consignmentId/transfer-complete">Continue""")
     }
   }
 

@@ -2,7 +2,7 @@
 @import views.html.partials.{progressIndicator, transferReference}
 @(consignmentId: UUID, consignmentRef: String, pageHeading: String, name: String, isJudgmentUser: Boolean)(implicit request: RequestHeader, messages: Messages)
 
-  @main("Upload your records", name = name, isJudgmentUser = isJudgmentUser) {
+  @main(pageHeading, name = name, isJudgmentUser = isJudgmentUser) {
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
           @if(isJudgmentUser) {

@@ -1,9 +1,9 @@
 @(isLoggedIn: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
-
-  @main("Help", isLoggedIn = isLoggedIn, name = name, isJudgmentUser = true) {
+@defining("Transferring Judgments to The National Archives") { title =>
+  @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = true) {
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l" id="transferring-judgments">Transferring Judgments to The National Archives</h1>
+        <h1 class="govuk-heading-l" id="transferring-judgments">@title</h1>
 
         <h2 class="govuk-heading-m" id="step-by-step-guide">A step-by-step guide to using Transfer Digital Records (TDR)</h2>
         <nav aria-label="List">
@@ -404,3 +404,4 @@
       </div>
     </div>
   }
+}

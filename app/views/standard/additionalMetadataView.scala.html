@@ -12,17 +12,18 @@
     name: String,
     metadataList: List[FileMetadata],
     hasMetadata: Boolean)(implicit messages: Messages, request: RequestHeader)
-@main(title = "View existing metadata", name = name) {
-  @defining(play.core.PlayVersion.current) { version =>
-    <div class="govuk-grid-row">
-      <div class="govuk-grid-column-two-thirds">
-        <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
-        <h1 class="govuk-heading-l"> View @if(metadataType == "descriptive") { existing } metadata </h1>
-        <p class="govuk-body">View existing @metadataType metadata.</p>
+@defining(s"View Metadata") { title =>
+  @main(title, name = name) {
+    @defining(play.core.PlayVersion.current) { version =>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
+          <h1 class="govuk-heading-l">@title</h1>
+          <p class="govuk-body">View existing @metadataType metadata.</p>
 
           @metadata(fileNames, metadataList)
 
-        <div class="govuk-button-group">
+          <div class="govuk-button-group">
           @if(hasMetadata) {
             <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
               Edit metadata
@@ -41,16 +42,17 @@
               </a>
             }
           }
-        </div>
+          </div>
 
-        <div class="govuk-button-group">
-          <a href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType, expanded = None)" draggable="false" class="govuk-link govuk-link--no-visited-state">
-          Return to all files
-          </a>
+          <div class="govuk-button-group">
+            <a href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType, expanded = None)" draggable="false" class="govuk-link govuk-link--no-visited-state">
+              Return to all files
+            </a>
+          </div>
         </div>
+        @transferReference(consignmentRef, isJudgmentUser = false)
+
       </div>
-      @transferReference(consignmentRef, isJudgmentUser = false)
-
-    </div>
+    }
   }
 }

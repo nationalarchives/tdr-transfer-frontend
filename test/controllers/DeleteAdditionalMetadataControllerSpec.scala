@@ -555,7 +555,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkConfirmDeleteMetadataPage(pageString: String, consignmentId: UUID, metadataType: String, hasEnteredMetadata: Boolean = true): Unit = {
-    pageString must include(s"<title>Delete $metadataType metadata</title>")
+    pageString must include(s"<title>Delete $metadataType metadata - Transfer Digital Records - GOV.UK</title>")
     pageString must include(
       s"""              <h1 class="govuk-heading-xl">
                             Delete $metadataType metadata

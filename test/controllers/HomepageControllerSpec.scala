@@ -58,7 +58,6 @@ class HomepageControllerSpec extends FrontEndTestHelper {
 
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
-      homepagePageAsString must include("Registration Complete")
       homepagePageAsString must include("Thank you for completing your registration")
       homepagePageAsString must include("Next Steps")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = "", consignmentExists = false)
@@ -230,8 +229,8 @@ class HomepageControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkForContentOnHomepagePage(pageAsString: String, userType: String = "standard"): Unit = {
-    pageAsString must include("<title>Welcome</title>")
     pageAsString must include("Welcome to the Transfer Digital Records service")
+    pageAsString must include("<title>Welcome to the Transfer Digital Records service - Transfer Digital Records - GOV.UK</title>")
     pageAsString must include("Start transfer")
     if (userType == "judgment") {
       pageAsString must include("""<form action="/judgment/homepage" method="POST" novalidate="">""")

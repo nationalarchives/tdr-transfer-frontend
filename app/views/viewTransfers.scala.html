@@ -1,95 +1,105 @@
+@import views.html.partials.warningMessage
 @(consignments: List[ConsignmentTransfers], pageNumber:Int, totalPage: Option[Int], name: String, email: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
 @nationalArchivesEmailAddress = @{if(isJudgmentUser) Messages("nationalArchives.judgmentsEmail") else Messages("nationalArchives.email")}
 
 @main("View Transfers", name = name, isJudgmentUser = isJudgmentUser) {
-  @defining(play.core.PlayVersion.current) { version =>
-    <div class="govuk-width-container ">
-        <div class="govuk-grid-row">
-          <div class="govuk-grid-column-full">
-            <h1 class="govuk-heading-l">View Transfers</h1>
-            <p class="govuk-body">View the history of all the consignments you have uploaded. You can also resume incomplete transfers or view the errors of failed transfers.</p>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
 
-            <table class="govuk-table">
-              <thead class="govuk-table__head">
-                <tr class="govuk-table__row">
-                    <th scope="col" class="govuk-table__header">Reference</th>
-                    <th scope="col" class="govuk-table__header">Date started</th>
-                    <th scope="col" class="govuk-table__header">Date transferred</th>
-                    <th scope="col" class="govuk-table__header">Status</th>
-                    <th scope="col" class="govuk-table__header">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="govuk-table__body">
-                @for(consignment <- consignments) {
-                  <tr class="govuk-table__row">
-                    <th scope="row" class="govuk-table__header">
-                      <details class="govuk-details" data-module="govuk-details">
-                        <summary class="govuk-details__summary">
-                          <strong class="consignment-ref-cell">
-                            @consignment.reference
-                          </strong>
-                        </summary>
-                        <div class="govuk-details__text">
-                          <p class="govuk-body">Please do not delete the original files you exported until you are notified that your records have been preserved.</p>
-                          <ul class="govuk-list govuk-list--bullet">
-                            <li>Consignment uploaded by: @email</li>
-                            <li>Date started: @consignment.dateStarted</li>
-                            <li>Date of transfer: @consignment.dateOfTransfer</li>
-                            <li>Number of files: @consignment.numberOfFiles records</li>
-                          </ul>
-                        </div>
-                      </details>
-                    </th>
-                    <td class="govuk-table__cell">@consignment.dateStarted</td>
-                    <td class="govuk-table__cell @{if(consignment.dateOfTransfer == "N/A") "not-applicable"}">@consignment.dateOfTransfer</td>
-                    <td class="govuk-table__cell">
-                      <strong class="govuk-tag govuk-tag--@consignment.statusColour">
-                        @consignment.status
-                      </strong>
-                    </td>
-                    <td class="govuk-table__cell"><a href="@{consignment.userAction.actionUrl.format(nationalArchivesEmailAddress)}">@consignment.userAction.actionText</a></td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+      <h1 class="govuk-heading-l">View Transfers</h1>
+      <p class="govuk-body">View the history of all the consignments you have uploaded. You can also resume incomplete transfers or view the errors of failed transfers.</p>
 
-            @if(consignments.nonEmpty && totalPage.exists(_ > 1)) {
-              <nav class="govuk-pagination govuk-pagination__center" role="navigation" aria-label="results">
-                <div class="govuk-pagination__prev" @{if(pageNumber < 2) "hidden"}>
-                  <a class="govuk-link govuk-pagination__link" href="@routes.ViewTransfersController.viewConsignments(pageNumber - 1)" rel="prev">
-                    <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-                      <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
-                    </svg>
-                    <span class="govuk-pagination__link-title">Previous</span></a>
+      <table data-module="table-row-expander" class="govuk-table govuk-table--tdr-transfers govuk-!-margin-bottom-2">
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header" id="toggle">
+              <span class="govuk-visually-hidden">Expand</span></th>
+            <th scope="col" class="govuk-table__header">Reference</th>
+            <th scope="col" class="govuk-table__header">Date started</th>
+            <th scope="col" class="govuk-table__header">Date transferred</th>
+            <th scope="col" class="govuk-table__header">Status</th>
+            <th scope="col" class="govuk-table__header">Actions</th>
+            <th scope="col" class="govuk-table__header govuk-visually-hidden" id="more-details">More details</th>
+          </tr>
+        </thead>
+        @for((consignment, index) <- consignments.zipWithIndex) {
+          <tbody>
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell" rowspan="2">
+                <button class="tdr-arrow-expander" aria-expanded="false" aria-controls="details-@index">
+                  <span class="govuk-visually-hidden">More details about @consignment.reference</span>
+                </button>
+              </td>
+              <th scope="row" class="govuk-table__header">@consignment.reference</th>
+              <td class="govuk-table__cell">@consignment.dateStarted</td>
+              <td class="govuk-table__cell @{if(consignment.dateOfTransfer == "N/A") "not-applicable"}">@consignment.dateOfTransfer</td>
+              <td class="govuk-table__cell">
+                <strong class="tdr-tag tdr-tag--@consignment.statusColour">@consignment.status</strong>
+              </td>
+              <td class="govuk-table__cell">
+                <div class="tdr-link-group">
+                  <a href="@{consignment.userAction.actionUrl.format(nationalArchivesEmailAddress)}" class="govuk-link govuk-link--no-visited-state">@consignment.userAction.actionText</a>
                 </div>
-                <ul class="govuk-pagination__list">
-                @for(page <- 1 to totalPage.getOrElse(1)) {
-                  @if(pageNumber == page) {
-                    <li class="govuk-pagination__item govuk-pagination__item--current">
-                      <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page @page" aria-current="page">@page</a>
-                    </li>
-                  } else {
-                    <li class="govuk-pagination__item">
-                      <a class="govuk-link govuk-pagination__link" href="@routes.ViewTransfersController.viewConsignments(page)" aria-label="Page @page">@page</a>
-                    </li>
+              </td>
+            </tr>
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell" headers="more-details" colspan="5" id="details-@index">
+                  @if(consignment.status == Transferred.value) {
+                    @warningMessage(s"""You must not delete the original records of this transfer as they are not yet preserved. You will receive an email once preservation has taken place. If you do not receive an email, contact <a href="mailto:${Messages("nationalArchives.email")}">${Messages("nationalArchives.email")}</a>.""", marginValue = 0)
                   }
-                }
-                </ul>
-                <div class="govuk-pagination__next" @{if(totalPage.exists(_ <= pageNumber)) "hidden"}>
-                  <a class="govuk-link govuk-pagination__link" href="@routes.ViewTransfersController.viewConsignments(pageNumber + 1)" rel="next">
-                    <span class="govuk-pagination__link-title">Next</span>
-                    <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-                      <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
-                    </svg>
-                  </a>
+                <div class="tdr-transfers-extra">
+                  <dl class="tdr-dlist tdr-transfers-extra__list">
+                    <dt class="govuk-body-m float govuk-!-margin-bottom-0">Number of files</dt>
+                    <dd class="govuk-!-font-size-36">@consignment.numberOfFiles</dd>
+                  </dl>
+                  <dl class="tdr-dlist tdr-transfers-extra__list">
+                    <dt class="govuk-body-m float govuk-!-margin-bottom-0">Uploaded by</dt>
+                    <dd>
+                      <a href="mailto:@email">@email</a>
+                    </dd>
+                  </dl>
                 </div>
-              </nav>
+              </td>
+            </tr>
+          </tbody>
+        }
+      </table>
+
+      @if(consignments.nonEmpty && totalPage.exists(_ > 1)) {
+        <nav class="govuk-pagination govuk-pagination__center" role="navigation" aria-label="results">
+          <div class="govuk-pagination__prev" @{if(pageNumber < 2) "hidden"}>
+            <a class="govuk-link govuk-pagination__link" href="@routes.ViewTransfersController.viewConsignments(pageNumber - 1)" rel="prev">
+              <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
+              </svg>
+              <span class="govuk-pagination__link-title">Previous</span></a>
+          </div>
+          <ul class="govuk-pagination__list">
+          @for(page <- 1 to totalPage.getOrElse(1)) {
+            @if(pageNumber == page) {
+              <li class="govuk-pagination__item govuk-pagination__item--current">
+                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page @page" aria-current="page">@page</a>
+              </li>
+            } else {
+              <li class="govuk-pagination__item">
+                <a class="govuk-link govuk-pagination__link" href="@routes.ViewTransfersController.viewConsignments(page)" aria-label="Page @page">@page</a>
+              </li>
             }
-        </div>
-        </div>
-        <a href="@routes.HomepageController.homepage()" role="button" draggable="false" class="govuk-button govuk-button--primary">
-            Back to homepage
-        </a>
+          }
+          </ul>
+          <div class="govuk-pagination__next" @{if(totalPage.exists(_ <= pageNumber)) "hidden"}>
+            <a class="govuk-link govuk-pagination__link" href="@routes.ViewTransfersController.viewConsignments(pageNumber + 1)" rel="next">
+              <span class="govuk-pagination__link-title">Next</span>
+              <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
+              </svg>
+            </a>
+          </div>
+        </nav>
+      }
+      <a href="@routes.HomepageController.homepage()" role="button" draggable="false" class="govuk-button govuk-button--primary">
+        Back to homepage
+      </a>
     </div>
-  }
+  </div>
 }
