@@ -366,15 +366,15 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val href = if (page == 1) "/view-transfers" else s"/view-transfers/$page"
       if (page == currentPage) {
         viewTransfersPageAsString should include(s"""
-             |                    <li class="govuk-pagination__item govuk-pagination__item--current">
-             |                      <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page $page" aria-current="page">$page</a>
-             |                    </li>
+             |              <li class="govuk-pagination__item govuk-pagination__item--current">
+             |                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page $page" aria-current="page">$page</a>
+             |              </li>
              |""".stripMargin)
       } else {
         viewTransfersPageAsString should include(s"""
-             |                    <li class="govuk-pagination__item">
-             |                      <a class="govuk-link govuk-pagination__link" href="$href" aria-label="Page $page">$page</a>
-             |                    </li>""".stripMargin)
+             |              <li class="govuk-pagination__item">
+             |                <a class="govuk-link govuk-pagination__link" href="$href" aria-label="Page $page">$page</a>
+             |              </li>""".stripMargin)
       }
     }
   }
