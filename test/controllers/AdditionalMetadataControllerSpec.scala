@@ -427,7 +427,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
                          |      <p class="govuk-body">$title</p>
                          |      <p class="tdr-card--metadata__inset-text govuk-inset-text govuk-!-margin-top-0">$description</p>
                          |
-                         |      <details class="govuk-details" data-module="govuk-details">
+                         |      <details class="govuk-details govuk-!-margin-bottom-2" data-module="govuk-details">
                          |        <summary class="govuk-details__summary">
                          |          <span class="govuk-details__summary-text">What ${name.toLowerCase} you can provide</span>
                          |        </summary>
