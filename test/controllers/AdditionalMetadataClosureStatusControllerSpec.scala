@@ -332,7 +332,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     closureStatusPage must include("<li>original/file/path</li>")
     closureStatusPage must include(
       """<h2 class="govuk-fieldset__heading">
-        |                                    Has this closure status been approved by the Advisory Council?
+        |                                    Has this closure status been agreed with the Advisory Council and/or The National Archives SIRO?
         |                                </h2>""".stripMargin
     )
     val href = s"/consignment/$consignmentId/additional-metadata/status/closure?fileIds=${fileIds.mkString("&")}"
