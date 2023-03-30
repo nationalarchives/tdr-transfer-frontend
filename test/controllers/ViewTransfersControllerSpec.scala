@@ -101,7 +101,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val applicationConfig = new ApplicationConfig(app.configuration)
       val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
-        .viewConsignments(1)
+        .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
       val viewTransfersPageAsString = contentAsString(response)
 
@@ -121,7 +121,10 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       ("totalPages", "currentPage", "hidePrev", "hideNext"),
       (3, 1, true, false),
       (3, 2, false, false),
-      (3, 3, false, true)
+      (3, 3, false, true),
+      (6, 4, false, false),
+      (5, 3, false, false),
+      (10, 10, false, true)
     )
 
     forAll(paginationTable) { (totalPages, currentPage, hidePrev, hideNext) =>
@@ -252,7 +255,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val applicationConfig = new ApplicationConfig(app.configuration)
       val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
-        .viewConsignments(1)
+        .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
 
       status(response) mustBe FOUND
@@ -371,10 +374,14 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
              |              </li>
              |""".stripMargin)
       } else {
-        viewTransfersPageAsString should include(s"""
-             |              <li class="govuk-pagination__item">
-             |                <a class="govuk-link govuk-pagination__link" href="$href" aria-label="Page $page">$page</a>
-             |              </li>""".stripMargin)
+        if (page == 1 || page == totalPages || page + 1 == currentPage || page - 1 == currentPage) {
+          viewTransfersPageAsString should include(s"""
+               |                <li class="govuk-pagination__item">
+               |                  <a class="govuk-link govuk-pagination__link" href="$href" aria-label="Page $page">$page</a>
+               |                </li>""".stripMargin)
+        } else if (page + 2 == currentPage || page - 2 == currentPage) {
+          viewTransfersPageAsString should include("""<li class="govuk-pagination__item govuk-pagination__item--ellipses">&ctdot;</li>""")
+        }
       }
     }
   }
