@@ -52,7 +52,9 @@ class ViewTransfersController @Inject() (
         case Some(edges) => edges.flatMap(createView)
         case None        => Nil
       }
-    } yield Ok(views.html.viewTransfers(consignments, pageNumber, consignmentTransfers.totalPages, request.token.name, request.token.email, request.token.isJudgmentUser))
+    } yield Ok(
+      views.html.viewTransfers(consignments, pageNumber, consignmentTransfers.totalPages.getOrElse(1), request.token.name, request.token.email, request.token.isJudgmentUser)
+    )
   }
 
   private def createView(edges: Option[Edges]): Option[ConsignmentTransfers] =
