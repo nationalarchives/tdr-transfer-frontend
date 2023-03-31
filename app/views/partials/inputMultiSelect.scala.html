@@ -36,17 +36,7 @@ fieldErrors: List[String] = Nil
     @errorMessage(fieldId, fieldErrors)
 
     <div class="tna-multi-select-search" data-module="multi-select-search">
-
-        <div class="tna-multi-select-search__filter">
-            <label for="input-filter" class="govuk-label govuk-visually-hidden">Start typing to filter languages</label>
-            <input name="tna-multi-select-search" id="input-filter" class="tna-multi-select-search__filter-input govuk-input" type="text" aria-describedby="@fieldId-filter-count" placeholder="@fieldGuidance">
-        </div>
-
-        <div class="js-selected-count"></div>
-
-        <span id="@fieldId-filter-count" class="govuk-visually-hidden js-filter-count" aria-live="polite"></span>
-
-        <div class="tna-multi-select-search__list-container js-container">
+        <div class="tna-multi-select-search__list-container">
             <ul class="govuk-checkboxes tna-multi-select-search__list"
             id="@fieldId" aria-describedby="@fieldId-filter-count">
                 @for((option, index) <- options.zipWithIndex) {
