@@ -17,4 +17,5 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val blockClosureMetadata: Boolean = configuration.get[Boolean]("featureAccessBlock.closureMetadata")
   val blockDescriptiveMetadata: Boolean = configuration.get[Boolean]("featureAccessBlock.descriptiveMetadata")
+  val numberOfItemsOnViewTransferPage: Int = configuration.get[Int]("viewTransfers.numberOfItemsPerPage")
 }
