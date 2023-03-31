@@ -1,22 +1,26 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.KeycloakConfiguration
+import configuration.{ApplicationConfig, KeycloakConfiguration}
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.ConsignmentStatuses
 import graphql.codegen.types.ConsignmentFilters
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
-import services.Statuses._
 import services.ConsignmentService
+import services.Statuses._
 
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
 
-class ViewTransfersController @Inject() (val consignmentService: ConsignmentService, val keycloakConfiguration: KeycloakConfiguration, val controllerComponents: SecurityComponents)
-    extends TokenSecurity {
+class ViewTransfersController @Inject() (
+    val consignmentService: ConsignmentService,
+    val applicationConfig: ApplicationConfig,
+    val keycloakConfiguration: KeycloakConfiguration,
+    val controllerComponents: SecurityComponents
+) extends TokenSecurity {
 
   private val statusColours: Map[String, String] = Map(InProgress.value -> "yellow", Failed.value -> "red", ContactUs.value -> "red", Transferred.value -> "green")
   private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
@@ -35,15 +39,22 @@ class ViewTransfersController @Inject() (val consignmentService: ConsignmentServ
     }
   }
 
-  def viewConsignments(): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def viewConsignments(pageNumber: Int = 1): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
     val consignmentFilters = ConsignmentFilters(Some(request.token.userId), None)
     for {
-      consignmentTransfers <- consignmentService.getConsignments(consignmentFilters, request.token.bearerAccessToken)
+      consignmentTransfers <- consignmentService.getConsignments(
+        pageNumber - 1,
+        applicationConfig.numberOfItemsOnViewTransferPage,
+        consignmentFilters,
+        request.token.bearerAccessToken
+      )
       consignments = consignmentTransfers.edges match {
         case Some(edges) => edges.flatMap(createView)
         case None        => Nil
       }
-    } yield Ok(views.html.viewTransfers(consignments, request.token.name, request.token.email, request.token.isJudgmentUser))
+    } yield Ok(
+      views.html.viewTransfers(consignments, pageNumber, consignmentTransfers.totalPages.getOrElse(1), request.token.name, request.token.email, request.token.isJudgmentUser)
+    )
   }
 
   private def createView(edges: Option[Edges]): Option[ConsignmentTransfers] =

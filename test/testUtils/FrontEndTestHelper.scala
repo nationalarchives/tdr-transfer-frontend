@@ -318,7 +318,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       wiremockServer: WireMockServer,
       consignmentType: String,
       noConsignment: Boolean = false,
-      statuses: List[ecs] = List()
+      statuses: List[ecs] = List(),
+      totalPages: Int = 1
   ): List[Edges] = {
 
     val client = new GraphQLConfiguration(app.configuration).getClient[gc.Data, gc.Variables]()
@@ -328,7 +329,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val consignments = gc.Data(
       gc.Consignments(
         if (noConsignment) None else edges.some,
-        Consignments.PageInfo(hasNextPage = false, None)
+        Consignments.PageInfo(hasNextPage = false, None),
+        totalPages.some
       )
     )
 
