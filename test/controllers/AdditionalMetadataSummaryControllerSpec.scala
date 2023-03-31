@@ -372,11 +372,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
 
   def verifyViewPage(page: String, consignmentId: String, metadataType: String, metadataFields: List[(String, String)], hasMetadata: Boolean = false): Unit = {
     page must include(s"""<span class="govuk-caption-l">${metadataType.capitalize} metadata</span>""")
-    if (metadataType == "descriptive") {
-      page must include(s"""<h1 class="govuk-heading-l"> View  existing  metadata </h1>""")
-    } else {
-      page must include(s"""<h1 class="govuk-heading-l"> View  metadata </h1>""")
-    }
+    page must include(s"""<h1 class="govuk-heading-l">View Metadata</h1>""")
     page must include(s"""<p class="govuk-body">View existing $metadataType metadata.</p>""")
 
     if (hasMetadata) {
@@ -435,11 +431,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         |      </dd>""".stripMargin
     )
     page must include(
-      s"""        <div class="govuk-button-group">
-         |          <a href="/consignment/$consignmentId/additional-metadata/files/$metadataType" draggable="false" class="govuk-link govuk-link--no-visited-state">
-         |          Return to all files
-         |          </a>
-         |        </div>""".stripMargin
+      s"""<a href="/consignment/$consignmentId/additional-metadata/files/$metadataType" draggable="false" class="govuk-link govuk-link--no-visited-state">""".stripMargin
     )
   }
 }

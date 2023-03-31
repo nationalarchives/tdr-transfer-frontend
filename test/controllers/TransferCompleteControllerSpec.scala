@@ -168,7 +168,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkTransferCompletePageForCommonElements(transferCompletePageAsString: String, survey: String = "tdr-feedback") = {
-    transferCompletePageAsString must include("<title>Transfer complete</title>")
+    transferCompletePageAsString must include("<title>Transfer complete - Transfer Digital Records - GOV.UK</title>")
     transferCompletePageAsString must include(
       """                        <h1 class="govuk-panel__title">
         |                            Transfer complete

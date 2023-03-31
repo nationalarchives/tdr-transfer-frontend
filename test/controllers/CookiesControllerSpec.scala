@@ -35,7 +35,7 @@ class CookiesControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkForContentOnCookiesPage(pageAsString: String, signedIn: Boolean = true): Unit = {
-    pageAsString must include("<title>Cookies</title>")
+    pageAsString must include("<title>Cookies - Transfer Digital Records - GOV.UK</title>")
     pageAsString must include("""<h1 class="govuk-heading-l">Cookies</h1>""")
   }
 }

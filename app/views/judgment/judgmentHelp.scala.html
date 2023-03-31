@@ -1,9 +1,9 @@
 @(isLoggedIn: Boolean, name: String)(implicit messages: Messages, request: RequestHeader)
-
-  @main("Help", isLoggedIn = isLoggedIn, name = name, isJudgmentUser = true) {
+@defining("Transferring Judgments to The National Archives") { title =>
+  @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = true) {
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l" id="transferring-judgments">Transferring Judgments to The National Archives</h1>
+        <h1 class="govuk-heading-l" id="transferring-judgments">@title</h1>
 
         <h2 class="govuk-heading-m" id="step-by-step-guide">A step-by-step guide to using Transfer Digital Records (TDR)</h2>
         <nav aria-label="List">
@@ -256,7 +256,7 @@
           <img src="@routes.Assets.versioned("images/judgment-upload-valid-file.png")" class="screenshots" alt="Judgment upload page with a valid file selected" />
 
           <p class="govuk-body">
-            If you selected a file in error, use the blue "Remove" link, to the right of the file name, to remove the file and start the selection again.
+            If you selected a file in error, use the blue "Remove selected records" link, to the right of the file name, to remove the file and start the selection again.
           </p>
           <li>Click <span class="govuk-!-font-weight-bold">"Start upload"</span> to upload your judgment into TDR. You will see a progress bar as the file is uploaded.</li>
           <img src="@routes.Assets.versioned("images/judgment-progress-bar.png")" class="screenshots" alt="Judgment upload progress bar" />
@@ -404,3 +404,4 @@
       </div>
     </div>
   }
+}

@@ -17,10 +17,11 @@ import io.circe.syntax.EncoderOps
 import org.mockito.Mockito.when
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.prop.TableFor4
 import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, POST, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
+import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, GetConsignmentFilesMetadataGraphqlRequestData}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
@@ -31,8 +32,8 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
-  val closureMetadataType = metadataType(0)
-  val descriptiveMetadataType = metadataType(1)
+  val closureMetadataType: String = metadataType(0)
+  val descriptiveMetadataType: String = metadataType(1)
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -47,6 +48,15 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val fileIds: List[UUID] = List(UUID.randomUUID())
+
+  val deleteButtonStates: TableFor4[String, String, String, Boolean] = Table(
+    ("Metadata Type", "File Metadata Status", "Button State", "Has Entered Metadata"),
+    (closureMetadataType, "NotEntered", "disabled", false),
+    (closureMetadataType, "Incomplete", "enabled", true),
+    (closureMetadataType, "Complete", "enabled", true),
+    (descriptiveMetadataType, "NotEntered", "disabled", false),
+    (descriptiveMetadataType, "Complete", "enabled", true)
+  )
 
   "confirmDeleteAdditionalMetadata" should {
     "render the delete closure metadata page with an authenticated user for the 'closure' metadata type" in {
@@ -124,77 +134,49 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
-    "delete button should be disabled if no metadata has been entered for an authenticated user for the 'closure' metadata type" in {
-      val consignmentId = UUID.randomUUID()
-      val consignmentReference = "TEST-TDR-2021-GB"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()))
+    forAll(deleteButtonStates) { (metadataType, fileMetadataStatus, buttonState, hasEnteredMetadata) =>
+      s"delete button should be '$buttonState' if metadata status is $fileMetadataStatus for an authenticated user for the $metadataType metadata type" in {
+        val consignmentId = UUID.randomUUID()
+        val consignmentReference = "TEST-TDR-2021-GB"
+        val fileId = UUID.randomUUID()
+        val fileStatus = FileStatuses(metadataType.capitalize, fileMetadataStatus)
+        setConsignmentTypeResponse(wiremockServer, "standard")
+        setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(fileId), fileStatuses = List(fileStatus))
 
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
-      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+        val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
-      val controller =
-        new DeleteAdditionalMetadataController(
-          consignmentService,
-          customMetadataService,
-          displayPropertiesService,
-          getValidStandardUserKeycloakConfiguration,
-          getAuthorisedSecurityComponents
-        )
-      val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType").withCSRFToken)
-      val deleteMetadataPage = contentAsString(response)
+        val controller =
+          new DeleteAdditionalMetadataController(
+            consignmentService,
+            customMetadataService,
+            displayPropertiesService,
+            getValidStandardUserKeycloakConfiguration,
+            getAuthorisedSecurityComponents
+          )
+        val response = controller
+          .confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$metadataType").withCSRFToken)
+        val deleteMetadataPage = contentAsString(response)
 
-      val events = wiremockServer.getAllServeEvents
-      val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
-      val request: GetConsignmentFilesMetadataGraphqlRequestData = decode[GetConsignmentFilesMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(GetConsignmentFilesMetadataGraphqlRequestData("", gcfm.Variables(consignmentId, None)))
+        val events = wiremockServer.getAllServeEvents
+        val addMetadataEvent = events.asScala.find(event => event.getRequest.getBodyAsString.contains("getConsignmentFilesMetadata")).get
+        val request: GetConsignmentFilesMetadataGraphqlRequestData = decode[GetConsignmentFilesMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
+          .getOrElse(GetConsignmentFilesMetadataGraphqlRequestData("", gcfm.Variables(consignmentId, None)))
 
-      val input = request.variables.fileFiltersInput
-      input.get.selectedFileIds mustBe fileIds.some
-      input.get.metadataFilters mustBe FileMetadataFilters(None, None, Some(List(clientSideOriginalFilepath))).some
+        val input = request.variables.fileFiltersInput
+        input.get.selectedFileIds mustBe fileIds.some
+        input.get.metadataFilters mustBe FileMetadataFilters(None, None, Some(List(clientSideOriginalFilepath))).some
 
-      status(response) mustBe OK
-      contentType(response) mustBe Some("text/html")
+        status(response) mustBe OK
+        contentType(response) mustBe Some("text/html")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
-      checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, closureMetadataType, hasEnteredMetadata = false)
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
-    }
-
-    "delete button should be disabled if no metadata has been entered for an authenticated user for the 'descriptive' metadata type" in {
-      val consignmentId = UUID.randomUUID()
-      val consignmentReference = "TEST-TDR-2021-GB"
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()))
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
-      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
-
-      val controller =
-        new DeleteAdditionalMetadataController(
-          consignmentService,
-          customMetadataService,
-          displayPropertiesService,
-          getValidStandardUserKeycloakConfiguration,
-          getAuthorisedSecurityComponents
-        )
-      val response = controller
-        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType").withCSRFToken)
-      val deleteMetadataPage = contentAsString(response)
-
-      status(response) mustBe OK
-      contentType(response) mustBe Some("text/html")
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
-      checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, descriptiveMetadataType, hasEnteredMetadata = false)
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
+        checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, metadataType, hasEnteredMetadata = hasEnteredMetadata)
+        wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
+      }
     }
 
     "return forbidden if the page is accessed by a judgment user" in {
@@ -555,7 +537,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   private def checkConfirmDeleteMetadataPage(pageString: String, consignmentId: UUID, metadataType: String, hasEnteredMetadata: Boolean = true): Unit = {
-    pageString must include(s"<title>Delete $metadataType metadata</title>")
+    pageString must include(s"<title>Delete $metadataType metadata - Transfer Digital Records - GOV.UK</title>")
     pageString must include(
       s"""              <h1 class="govuk-heading-xl">
                             Delete $metadataType metadata

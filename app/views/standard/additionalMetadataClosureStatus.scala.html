@@ -10,15 +10,15 @@
     case Some(formError) => formError.messages
     case None => Nil
 }}
-
-@main(title = "Check closure status", name = name) {
+@defining("Confirm closure status") { title =>
+  @main(title = "Confirm closure status", name = name) {
     @defining(play.core.PlayVersion.current) { version =>
         <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
 
                 <h1 class="govuk-heading-l">
-                Confirm closure status
+                @title
                 </h1>
                 @if(areAllFilesClosed) {
                     @warningMessage(Messages(
@@ -36,7 +36,7 @@
                         <fieldset class="govuk-fieldset">
                             <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
                                 <h2 class="govuk-fieldset__heading">
-                                    Has this closure status been approved by the Advisory Council?
+                                    Has this closure status been agreed with the Advisory Council and/or The National Archives SIRO?
                                 </h2>
                             </legend>
 
@@ -87,4 +87,5 @@
             @transferReference(consignmentRef, isJudgmentUser = false)
     </div>
     }
+}
 }

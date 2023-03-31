@@ -5,7 +5,7 @@
 
 @(consignmentId: UUID, consignmentRef: String, pageHeading1stHalf: String, pageHeading2ndHalf: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
-@main("Upload your judgment", name = name, isJudgmentUser = true) {
+@main(pageHeading1stHalf, name = name, isJudgmentUser = true) {
 <noscript>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
@@ -46,7 +46,7 @@
                                 tabindex="-1" role="alert" aria-describedby="success-message-text">
                                 <div class="success-message-flexbox-container" id="item-selection-success-container">
                                     <p id="success-message-text" class="success-message">The file "<span class="file-name"></span>" has been selected </p>
-                                    <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove</a>
+                                    <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove selected records</a>
                                 </div>
                                 <div class="success-message-flexbox-container" id="removed-selection-container" hidden>
                                     <p id="removed-selection-message-text" class="govuk-error-message">The file "<span class="file-name"></span>" has been removed. Select a file.</p>
