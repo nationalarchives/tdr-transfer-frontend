@@ -511,25 +511,25 @@ class ConsignmentServiceSpec extends AnyWordSpec with MockitoSugar with BeforeAn
           .some
       )
 
-      val consignments = gcs.Consignments(edges.some, Consignments.PageInfo(hasNextPage = false, None))
+      val consignments = gcs.Consignments(edges.some, Consignments.PageInfo(hasNextPage = false, None), None)
 
       val response = GraphQlResponse[gcs.Data](Some(gcs.Data(consignments)), Nil)
 
       val consignmentFilter = ConsignmentFilters(userId.some, None)
-      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, consignmentFilter.some).some))
+      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, Some(1), consignmentFilter.some).some))
         .thenReturn(Future.successful(response))
 
-      val history = consignmentService.getConsignments(consignmentFilter, bearerAccessToken).futureValue
+      val history = consignmentService.getConsignments(1, 100, consignmentFilter, bearerAccessToken).futureValue
       history.edges.get should be(edges)
     }
 
     "return an error when the API has an error" in {
 
       val consignmentFilter = ConsignmentFilters(UUID.randomUUID().some, None)
-      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, consignmentFilter.some).some))
+      when(getConsignmentsClient.getResult(bearerAccessToken, gcs.document, gcs.Variables(100, None, Some(1), consignmentFilter.some).some))
         .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-      val results = consignmentService.getConsignments(consignmentFilter, bearerAccessToken)
+      val results = consignmentService.getConsignments(1, 100, consignmentFilter, bearerAccessToken)
       results.failed.futureValue shouldBe a[HttpError]
     }
   }
