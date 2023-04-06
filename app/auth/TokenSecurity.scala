@@ -23,7 +23,6 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   val consignmentIdKey = "ConsignmentId"
   val userIdKey = "UserId"
 
-
   def getProfile(request: Request[AnyContent]): Optional[UserProfile] = {
     val webContext = new PlayWebContext(request)
     val profileManager = new ProfileManager(webContext, sessionStore)
