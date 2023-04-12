@@ -8,7 +8,7 @@
             <div class="govuk-grid-column-two-thirds">
                 <h1 class="govuk-heading-l">@title</h1>
 
-                <h2 class="govuk-heading-m govuk-!-margin-top-9">Upload your records to start a new transfer</h2>
+                <h2 class="govuk-heading-m">Upload your records to start a new transfer</h2>
 
                 @form(routes.HomepageController.homepageSubmit(), (Symbol("novalidate"), "")) {
                     @CSRF.formField
