@@ -1,8 +1,7 @@
 package controllers
-import scala.jdk.CollectionConverters._
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
-import com.typesafe.config.{Config, ConfigFactory, ConfigValue, ConfigValueFactory}
+import com.typesafe.config.{ConfigFactory, ConfigValue}
 import configuration.{ApplicationConfig, GraphQLConfiguration}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
@@ -28,6 +27,7 @@ import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters._
 
 class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -37,8 +37,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   val configuration: ApplicationConfig = {
     val config: Map[String, ConfigValue] = ConfigFactory
       .load()
-      .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef("false"))
-      .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef("false"))
       .entrySet()
       .asScala
       .map(e => e.getKey -> e.getValue)
@@ -59,7 +57,8 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   }
 
   val checkPageForStaticElements = new CheckPageForStaticElements
-  val warningMsg = "Now that your records have been uploaded you can proceed with the transfer."
+  val warningMsg =
+    "Now that your records have been uploaded you can proceed with the transfer. In the next step you will be given the opportunity to add metadata to your records before transferring them."
   val expectedSuccessSummaryTitle: String =
     """                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
       |                        Success
@@ -113,9 +112,9 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |                        Your folder 'parentFolder' containing 1 record has been uploaded and checked.
             |                    </h3>
             |                    <p class="govuk-body">You can leave and return to this upload at any time from the <a class="govuk-notification-banner__link" href="/view-transfers">View transfers</a> page.</p>""".stripMargin,
-          s"""                <a class="govuk-button" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/additional-metadata" role="button" draggable="false" data-module="govuk-button">
-             |                    Next
-             |                </a>""".stripMargin,
+          s"""            <a class="govuk-button" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/additional-metadata" role="button" draggable="false" data-module="govuk-button">
+             |                Next
+             |            </a>""".stripMargin,
           """              <p class="govuk-body">
             |    One or more files you uploaded have failed our checks. Contact us at
             |    <a class="govuk-link" href="mailto:nationalArchives.email?subject=Ref: TEST-TDR-2021-GB - Problem with Results of checks">nationalArchives.email</a>
@@ -129,79 +128,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |    <li>Ambiguous naming of redacted files</li>
             |</ul>""".stripMargin
         )
-      }
-
-      s"render the $userType fileChecksResults page with the confirmation box and the continue button link to 'confirm-transfer' page if addition metadata features are blocked" in {
-        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-        val consignmentService = new ConsignmentService(graphQLConfiguration)
-        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-        setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
-
-        val confirmTransferButton =
-          s"""                <a class="govuk-button" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/confirm-transfer" role="button" draggable="false" data-module="govuk-button">
-             |                    Next
-             |                </a>""".stripMargin
-
-        val fileChecksData = gfcp.Data(
-          Option(
-            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
-          )
-        )
-
-        val filePathData = gcf.Data(
-          Option(gcf.GetConsignment(List(Files(UUID.randomUUID(), Option(""), Option(""), Option(UUID.randomUUID()), Metadata(Some("test file.docx")), Nil))))
-        )
-
-        val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables]()
-        val getConsignmentFilesClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables]()
-        val fileStatusResponse: String =
-          getFileChecksProgressClient.GraphqlData(Option(fileChecksData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
-        val filePathResponse: String =
-          getConsignmentFilesClient.GraphqlData(Option(filePathData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
-
-        mockGraphqlResponse(userType, fileStatusResponse, filePathResponse)
-        setConsignmentReferenceResponse(wiremockServer)
-        val config: Map[String, ConfigValue] = ConfigFactory
-          .load()
-          .entrySet()
-          .asScala
-          .map(e => e.getKey -> e.getValue)
-          .toMap
-        val applicationConfig = new ApplicationConfig(Configuration.from(config))
-
-        val fileCheckResultsController = new FileChecksResultsController(
-          getAuthorisedSecurityComponents,
-          keycloakConfiguration,
-          new GraphQLConfiguration(app.configuration),
-          consignmentService,
-          consignmentStatusService,
-          applicationConfig
-        )
-
-        val recordCheckResultsPage = {
-          if (userType == "judgment") { fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId) }
-          else { fileCheckResultsController.fileCheckResultsPage(consignmentId) }
-        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
-        val resultsPageAsString = contentAsString(recordCheckResultsPage)
-
-        status(recordCheckResultsPage) mustBe 200
-        contentType(recordCheckResultsPage) mustBe Some("text/html")
-
-        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
-        resultsPageAsString must include(expectedTitle)
-        resultsPageAsString must include(expectedHeading)
-        if (userType == "standard") {
-          resultsPageAsString must include(expectedSuccessSummaryTitle)
-          resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(expectedSuccessWarningText(warningMsg).replaceAll(twoOrMoreSpaces, ""))
-          resultsPageAsString must include(confirmTransferButton)
-        }
-
-        if (userType == "judgment") {
-          resultsPageAsString must include regex (buttonToProgress)
-        }
-
-        resultsPageAsString must include(expectedSuccessMessage)
       }
 
       s"render the $userType fileChecksResults page with the confirmation box" in {
@@ -258,13 +184,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         resultsPageAsString must include(expectedHeading)
         if (userType != "judgment") {
           resultsPageAsString must include(expectedSuccessSummaryTitle)
-          resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(
-            expectedSuccessWarningText(s"$warningMsg In the next step you will be given the opportunity to add metadata to your records before transferring them.")
-              .replaceAll(twoOrMoreSpaces, "")
-          )
+          resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(expectedSuccessWarningText(warningMsg).replaceAll(twoOrMoreSpaces, ""))
         }
         resultsPageAsString must include(expectedSuccessMessage)
-        resultsPageAsString must include regex (buttonToProgress)
+        resultsPageAsString must include regex buttonToProgress
       }
 
       s"return a redirect to the auth server if an unauthenticated user tries to access the $userType file checks page" in {

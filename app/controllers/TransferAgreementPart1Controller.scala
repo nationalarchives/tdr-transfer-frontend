@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
@@ -22,26 +22,10 @@ class TransferAgreementPart1Controller @Inject() (
     val transferAgreementService: TransferAgreementService,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val consignmentStatusService: ConsignmentStatusService,
-    val applicationConfig: ApplicationConfig
+    val consignmentStatusService: ConsignmentStatusService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
-
-  private val blockAdditionalMetadata: Boolean = applicationConfig.blockClosureMetadata && applicationConfig.blockDescriptiveMetadata
-
-  private val transferAgreementFormWithEnglish: Form[TransferAgreementData] = Form(
-    mapping(
-      "publicRecord" -> boolean
-        .verifying("All records must be confirmed as public before proceeding", b => b),
-      "crownCopyright" -> boolean
-        .verifying("All records must be confirmed Crown Copyright before proceeding", b => b),
-      "english" -> boolean
-        .verifying("All records must be confirmed as English language before proceeding", b => b)
-    )((publicRecord, crownCopyright, english) => TransferAgreementData(publicRecord, crownCopyright, Option(english)))(data =>
-      Option(data.publicRecord, data.crownCopyright, data.english.getOrElse(false))
-    )
-  )
 
   val transferAgreementForm: Form[TransferAgreementData] = Form(
     mapping(
@@ -69,8 +53,7 @@ class TransferAgreementPart1Controller @Inject() (
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val formAndLabel = transferAgreementFormNameAndLabel.filter(f => taForm.formats.keys.toList.contains(f._1))
-      val warningMessage = if (blockAdditionalMetadata) { Messages("transferAgreementPrivateBeta.warning") }
-      else { Messages("transferAgreement.warning") }
+      val warningMessage = Messages("transferAgreement.warning")
       seriesStatus match {
         case Some(CompletedValue.value) =>
           transferAgreementStatus match {
@@ -79,7 +62,7 @@ class TransferAgreementPart1Controller @Inject() (
                 views.html.standard.transferAgreementPart1AlreadyConfirmed(
                   consignmentId,
                   reference,
-                  form,
+                  transferAgreementForm,
                   formAndLabel,
                   warningMessage,
                   request.token.name
@@ -98,7 +81,7 @@ class TransferAgreementPart1Controller @Inject() (
   }
 
   def transferAgreement(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    loadStandardPageBasedOnTaStatus(consignmentId, Ok, form)
+    loadStandardPageBasedOnTaStatus(consignmentId, Ok, transferAgreementForm)
   }
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
@@ -124,20 +107,13 @@ class TransferAgreementPart1Controller @Inject() (
       } yield result
     }
 
-    val formValidationResult: Form[TransferAgreementData] = form.bindFromRequest()
+    val formValidationResult: Form[TransferAgreementData] = transferAgreementForm.bindFromRequest()
 
     formValidationResult.fold(
       errorFunction,
       successFunction
     )
   }
-
-  private def form: Form[TransferAgreementData] =
-    if (blockAdditionalMetadata) {
-      transferAgreementFormWithEnglish
-    } else {
-      transferAgreementForm
-    }
 }
 
 case class TransferAgreementData(publicRecord: Boolean, crownCopyright: Boolean, english: Option[Boolean])
