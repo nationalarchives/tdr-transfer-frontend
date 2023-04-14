@@ -3,7 +3,7 @@ package testUtils
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.{TransferAgreementPart1Controller, TransferAgreementPart2Controller}
 import graphql.codegen.AddTransferAgreementCompliance.{addTransferAgreementCompliance => atac}
 import graphql.codegen.AddTransferAgreementPrivateBeta.{addTransferAgreementPrivateBeta => atapb}
@@ -74,16 +74,14 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val applicationConfig = new ApplicationConfig(config)
 
     new TransferAgreementPart1Controller(
       securityComponents,
-      new GraphQLConfiguration(config),
+      graphQLConfiguration,
       transferAgreementService,
       keycloakConfiguration,
       consignmentService,
-      consignmentStatusService,
-      applicationConfig
+      consignmentStatusService
     )
   }
 
@@ -96,16 +94,14 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val applicationConfig = new ApplicationConfig(config)
 
     new TransferAgreementPart2Controller(
       securityComponents,
-      new GraphQLConfiguration(config),
+      graphQLConfiguration,
       transferAgreementService,
       keycloakConfiguration,
       consignmentService,
-      consignmentStatusService,
-      applicationConfig
+      consignmentStatusService
     )
   }
 
