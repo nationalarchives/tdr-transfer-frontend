@@ -31,9 +31,9 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.98",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.125",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.319",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.99",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.126",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.320",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.4.6",
   ws,
@@ -45,7 +45,7 @@ libraryDependencies ++= Seq(
     "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.23.0",
     "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
   "com.github.tomakehurst" % "wiremock-jre8" % "2.35.0" % Test,
-  "org.mockito" % "mockito-core" % "5.2.0" % Test,
+  "org.mockito" % "mockito-core" % "5.3.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
 
