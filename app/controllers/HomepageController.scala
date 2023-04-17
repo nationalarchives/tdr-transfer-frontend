@@ -15,13 +15,10 @@ import scala.concurrent.{ExecutionContext, Future}
 class HomepageController @Inject() (
     val controllerComponents: SecurityComponents,
     val keycloakConfiguration: KeycloakConfiguration,
-    val consignmentService: ConsignmentService,
-    val configuration: Config
+    val consignmentService: ConsignmentService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
-
-  val blockViewTransfers: Boolean = configuration.getBoolean("featureAccessBlock.viewTransfers")
 
   def judgmentHomepageSubmit(): Action[AnyContent] = judgmentUserAction { implicit request: Request[AnyContent] =>
     consignmentService.createConsignment(None, request.token).map(consignment => Redirect(routes.BeforeUploadingController.beforeUploading(consignment.consignmentid.get)))
@@ -36,7 +33,7 @@ class HomepageController @Inject() (
       if (request.token.isJudgmentUser) {
         Redirect(routes.HomepageController.judgmentHomepage())
       } else if (request.token.isStandardUser) {
-        Ok(views.html.standard.homepage(request.token.name, blockViewTransfers))
+        Ok(views.html.standard.homepage(request.token.name))
       } else {
         Ok(views.html.registrationComplete(request.token.name))
       }
