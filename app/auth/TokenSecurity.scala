@@ -2,7 +2,7 @@ package auth
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
-import io.opentelemetry.api.trace.{Span, SpanContext}
+import io.opentelemetry.api.trace.Span
 import org.pac4j.core.profile.{ProfileManager, UserProfile}
 import org.pac4j.play.PlayWebContext
 import play.api.i18n.I18nSupport
