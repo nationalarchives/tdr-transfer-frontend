@@ -1,7 +1,7 @@
 @import views.html.partials.{progressIndicator, transferReference}
 
 @import java.util.UUID
-@(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String, blockClosureMetadata: Boolean, blockDescriptiveMetadata: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
 
 @main(title, name = name) {
     <div class="govuk-grid-row">
@@ -25,22 +25,12 @@
                 <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
                 <strong class="govuk-warning-text__text">
                     <span class="govuk-warning-text__assistive">Warning</span>
-                    @if(blockClosureMetadata || blockDescriptiveMetadata) {
-                        Now that your records have been uploaded you can proceed with the transfer.
-                    } else {
-                        Now that your records have been uploaded you can proceed with the transfer. In the next step you will be given the opportunity to add metadata to your records before transferring them.
-                    }
+                    Now that your records have been uploaded you can proceed with the transfer. In the next step you will be given the opportunity to add metadata to your records before transferring them.
                 </strong>
             </div>
-            @if(blockClosureMetadata || blockDescriptiveMetadata) {
-                <a class="govuk-button" href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" data-module="govuk-button">
-                    Next
-                </a>
-            } else {
-                <a class="govuk-button" href="@routes.AdditionalMetadataController.start(consignmentId)" role="button" draggable="false" data-module="govuk-button">
-                    Next
-                </a>
-            }
+            <a class="govuk-button" href="@routes.AdditionalMetadataController.start(consignmentId)" role="button" draggable="false" data-module="govuk-button">
+                Next
+            </a>
         </div>
         @transferReference(consignmentRef, isJudgmentUser = false)
     </div>
