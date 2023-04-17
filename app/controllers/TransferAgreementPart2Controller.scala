@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms._
@@ -22,23 +22,10 @@ class TransferAgreementPart2Controller @Inject() (
     val transferAgreementService: TransferAgreementService,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val consignmentStatusService: ConsignmentStatusService,
-    val applicationConfig: ApplicationConfig
+    val consignmentStatusService: ConsignmentStatusService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
-  val transferAgreementFormWithOpenRecords: Form[TransferAgreementPart2Data] = Form(
-    mapping(
-      "droAppraisalSelection" -> boolean
-        .verifying("Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records", b => b),
-      "droSensitivity" -> boolean
-        .verifying("Departmental Records Officer (DRO) must have signed off sensitivity review", b => b),
-      "openRecords" -> boolean
-        .verifying("All records must be open", b => b)
-    )((droAppraisalSelection, droSensitivity, openRecords) => TransferAgreementPart2Data(droAppraisalSelection, droSensitivity, Option(openRecords)))(data =>
-      Option(data.droAppraisalSelection, data.droSensitivity, data.openRecords.getOrElse(false))
-    )
-  )
 
   val transferAgreementForm: Form[TransferAgreementPart2Data] = Form(
     mapping(
@@ -50,13 +37,6 @@ class TransferAgreementPart2Controller @Inject() (
       Option(data.droSensitivity, data.droAppraisalSelection)
     )
   )
-
-  private def form: Form[TransferAgreementPart2Data] =
-    if (applicationConfig.blockClosureMetadata && applicationConfig.blockDescriptiveMetadata) {
-      transferAgreementFormWithOpenRecords
-    } else {
-      transferAgreementForm
-    }
 
   val taFormNamesAndLabels: Seq[(String, String)] = Seq(
     ("droAppraisalSelection", "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection decision."),
@@ -81,7 +61,7 @@ class TransferAgreementPart2Controller @Inject() (
             case Some(CompletedValue.value) =>
               Ok(
                 views.html.standard
-                  .transferAgreementPart2AlreadyConfirmed(consignmentId, reference, form, formAndLabels, request.token.name)
+                  .transferAgreementPart2AlreadyConfirmed(consignmentId, reference, transferAgreementForm, formAndLabels, request.token.name)
               )
                 .uncache()
             case Some(InProgressValue.value) =>
@@ -97,7 +77,7 @@ class TransferAgreementPart2Controller @Inject() (
   }
 
   def transferAgreement(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    loadStandardPageBasedOnTaStatus(consignmentId, Ok, form)
+    loadStandardPageBasedOnTaStatus(consignmentId, Ok, transferAgreementForm)
   }
 
   def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
@@ -123,7 +103,7 @@ class TransferAgreementPart2Controller @Inject() (
       } yield result
     }
 
-    val formValidationResult: Form[TransferAgreementPart2Data] = form.bindFromRequest()
+    val formValidationResult: Form[TransferAgreementPart2Data] = transferAgreementForm.bindFromRequest()
 
     formValidationResult.fold(
       errorFunction,

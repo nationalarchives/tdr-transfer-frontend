@@ -67,7 +67,6 @@ import play.api.{Application, Configuration}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
-import services.Statuses.{ClosureMetadataType, DescriptiveMetadataType, IncompleteValue, StatusType}
 import viewsapi.FrontEndInfo
 
 import java.io.File
@@ -89,18 +88,6 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     def await(timeout: Duration = 2.seconds): T = {
       Await.result(future, timeout)
     }
-  }
-
-  def getConfig(blockClosureMetadata: Boolean, blockDescriptiveMetadata: Boolean): Configuration = {
-    val config: Map[String, ConfigValue] = ConfigFactory
-      .load()
-      .withValue("featureAccessBlock.closureMetadata", ConfigValueFactory.fromAnyRef(blockClosureMetadata.toString))
-      .withValue("featureAccessBlock.descriptiveMetadata", ConfigValueFactory.fromAnyRef(blockDescriptiveMetadata.toString))
-      .entrySet()
-      .asScala
-      .map(e => e.getKey -> e.getValue)
-      .toMap
-    Configuration.from(config)
   }
 
   def setConsignmentTypeResponse(wiremockServer: WireMockServer, consignmentType: String): StubMapping = {

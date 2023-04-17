@@ -6,7 +6,6 @@ nationalArchives.homepage=https://www.nationalarchives.gov.uk
 nationalArchives.judgmentsEmail=judgments@nationalarchives.gov.uk
 judiciary.email=Judgments@judiciary.uk
 
-transferAgreement.warningPrivateBeta=This service is in private beta. During this time, the Transfer Digital Records service can only accept records that are in English, are Public Records and are Crown Copyright. For more information, please see our <a href="/faq" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> if you need to transfer records that this service cannot currently handle.
 transferAgreement.warning=This service is in beta. During this time, only records that are Public Records and are Crown Copyright will be accepted. For more information, visit the <a href="/faq" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a>. If you need to transfer records that do not meet this criteria, contact <a href="mailto:tdr@nationalarchives.gov.uk">tdr@nationalarchives.gov.uk</a>.
 
 upload.dragAndDropFolderErrorMessage=You can only drop a single folder.
