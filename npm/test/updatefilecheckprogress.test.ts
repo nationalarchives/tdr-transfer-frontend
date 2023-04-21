@@ -36,12 +36,6 @@ const mockGoToNextPage = jest.fn()
 
 jest.useFakeTimers()
 
-window.location = {
-  ...window.location,
-  origin: "testorigin",
-  href: "originalHref"
-}
-
 beforeEach(() => {
   jest.clearAllMocks()
   mockGoToNextPage.mockRestore()
