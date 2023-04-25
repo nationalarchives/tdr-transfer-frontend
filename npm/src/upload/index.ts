@@ -94,14 +94,16 @@ export class FileUploader {
         this.keycloak.tokenParsed?.sub
       )
 
-      const backendChecks =
-        await this.triggerBackendChecks.triggerBackendChecks(
-          uploadFilesInfo.consignmentId
-        )
-
-      if (isError(backendChecks)) {
-        errors.push(backendChecks)
+      if(files.length != 0) {
+        const backendChecks =
+          await this.triggerBackendChecks.triggerBackendChecks(
+            uploadFilesInfo.consignmentId
+          )
+        if (isError(backendChecks)) {
+          errors.push(backendChecks)
+        }
       }
+
       if (isError(processResult)) {
         errors.push(processResult)
       }
