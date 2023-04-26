@@ -23,6 +23,7 @@ import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
 import play.api.Play.materializer
 import play.api.cache.AsyncCacheApi
+import play.api.http.Status.SEE_OTHER
 import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -32,7 +33,6 @@ import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expected
 import testUtils._
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import org.scalatest.concurrent.ScalaFutures._
-import play.api.http.Status.SEE_OTHER
 
 import java.sql.Timestamp
 import java.time.LocalDateTime
@@ -778,7 +778,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       actualFormField should equal(expectedField)
     }
 
-    "add the 'end_date' and 'lastModifiedDate' when present to the 'closureStartDate' field" in {
+    "add the 'end_date' only when it is available for the 'closureStartDate' field" in {
       val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
       val endDateValue = LocalDateTime.of(2023, 1, 15, 0, 0)
       val closureStartDateValue = LocalDateTime.of(1990, 12, 1, 10, 0)
@@ -807,10 +807,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         "name",
         "alternativename",
         "desc",
-        List(
-          "The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>22/02/2000</strong>",
-          "The date of the last change to this record entered as descriptive metadata is <strong>15/01/2023</strong>"
-        ),
+        List("The date of the last change to this record entered as descriptive metadata is <strong>15/01/2023</strong>"),
         multiValue = false,
         InputNameAndValue("Day", "1", "DD"),
         InputNameAndValue("Month", "12", "MM"),
