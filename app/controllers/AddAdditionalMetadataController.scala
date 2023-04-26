@@ -12,7 +12,7 @@ import graphql.codegen.types.UpdateFileMetadataInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 import viewsapi.Caching.preventCaching
 
@@ -221,11 +221,11 @@ object AddAdditionalMetadataController {
 
   def formFieldOverrides(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
     formField.fieldId match {
-      case fieldId if fieldId == descriptionClosed => overrideClosedText(formField, fileMetadata.get(description), description)
-      case fieldId if fieldId == titleClosed       => overrideClosedText(formField, fileMetadata.get(fileName), title)
-      case fieldId if fieldId == end_date          => overrideEndDate(formField, fileMetadata)
-      case fieldId if fieldId == closureStartDate  => overrideClosureStartDate(formField, fileMetadata)
-      case _                                       => formField
+      case `descriptionClosed` => overrideClosedText(formField, fileMetadata.get(description), description)
+      case `titleClosed`       => overrideClosedText(formField, fileMetadata.get(fileName), title)
+      case `end_date`          => overrideEndDate(formField, fileMetadata)
+      case `closureStartDate`  => overrideClosureStartDate(formField, fileMetadata)
+      case _                   => formField
     }
   }
 
@@ -265,10 +265,7 @@ object AddAdditionalMetadataController {
       List(dateModifiedInsetText.format(formattedLastModifiedDate))
     } else {
       val formattedEndDate = dateFormatter(endDate)
-      List(
-        dateModifiedInsetText.format(formattedLastModifiedDate),
-        s"The date of the last change to this record entered as descriptive metadata is <strong>$formattedEndDate</strong>"
-      )
+      List(s"The date of the last change to this record entered as descriptive metadata is <strong>$formattedEndDate</strong>")
     }
     formField.asInstanceOf[DateField].copy(fieldInsetTexts = insetTexts)
   }
