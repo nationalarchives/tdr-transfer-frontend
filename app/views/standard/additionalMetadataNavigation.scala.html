@@ -17,15 +17,15 @@
       </div>
     </li>
   } else {
-    <li class="tna-tree__node-item-radios" role="treeitem" id="radios-list-@file.id" aria-selected="false" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" tabindex="0" aria-expanded="@expanded">
+    <li class="tna-tree__node-item-radios" role="treeitem" id="radios-list-@file.id" aria-level="@level" aria-setsize="@size" aria-posinset="@pos" tabindex="0" aria-expanded="@expanded">
       <div class="tna-tree__node-item__container">
         <span class="tna-tree__expander js-tree__expander--radios" tabindex="-1" id="radios-expander-@file.id">
-          <span class="govuk-visually-hidden">Expand</span>
+          <span aria-hidden="true" class="govuk-visually-hidden">Expand</span>
         </span>
 
-        <div class="js-radios-directory tna-radios-directory">
-          <span class="govuk-label tna-radios-directory__label">
-            <img class="tna-tree__svg-directory" role="img" src="@routes.Assets.versioned("images/folder.svg")" alt="Directory">
+        <div class="js-radios-directory tna-tree__radios-directory">
+          <span class="govuk-label tna-tree__radios-directory__label">
+            <span class="govuk-visually-hidden">Directory - </span>
               @file.name
           </span>
         </div>
@@ -76,6 +76,7 @@
       <div class="govuk-grid-column-two-thirds">
         <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
         <h1 class="govuk-heading-l">@title</h1>
+        <p class="govuk-body">Select the file you wish to add or edit @metadataType metadata.</p>
       </div>
     </div>
     <div class="govuk-grid-row">
@@ -89,14 +90,12 @@
           @CSRF.formField
           <div class="tna-tree" id="file-selection">
             <fieldset class="govuk-fieldset">
-              <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
-                <p class="govuk-body">Select the file you wish to add or edit @metadataType metadata.</p>
-              </legend>
               <ul tabindex="0" class="tna-tree__root-list" id="radio-tree" role="tree">
                 @display(files, 1, files.children.length, 1)
               </ul>
             </fieldset>
           </div>
+          <div aria-atomic="true" aria-live="assertive" class="govuk-inset-text">File selected: <span class="govuk-!-font-weight-bold" id="radio-tree-selected">No file selected</span></div>
           <div class="govuk-button-group">
             <button class="govuk-button" type="submit" name="action" value="edit" data-module="govuk-button" draggable="false">
               Add or Edit metadata
