@@ -68,17 +68,17 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     }
   }
 
-  private def consignmentTypeAction(consignmentId: UUID, consignmentType: String)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async {
+  private def consignmentTypeAction(consignmentId: UUID, expectedConsignmentType: String)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async {
     request =>
       val token = request.token
       consignmentService
         .getConsignmentType(consignmentId, token.bearerAccessToken)
-        .flatMap(consignmentTypeFromService => {
+        .flatMap(consignmentType => {
           // These are custom user annotation traces used in Xray
           val current = Span.current()
           current.setAttribute(consignmentIdKey, consignmentId.toString)
           current.setAttribute(userIdKey, token.userId.toString)
-          createResult(action, request, consignmentTypeFromService == consignmentType)
+          createResult(action, request, consignmentType == expectedConsignmentType)
         })
   }
 }
