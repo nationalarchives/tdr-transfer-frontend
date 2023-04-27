@@ -36,8 +36,8 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     RequestWithToken(request, accessToken)
   }
 
-  def judgmentTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    consignmentService.getConsignmentType(consignmentId, request.token.bearerAccessToken).flatMap(consignmentType => createResult(action, request, consignmentType == "judgment"))
+  def judgmentTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = {
+    consignmentTypeAction(consignmentId, "judgment")(action)
   }
 
   def judgmentUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
@@ -48,17 +48,8 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     createResult(action, request, request.token.isStandardUser)
   }
 
-  def standardTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
-    val token = request.token
-    consignmentService
-      .getConsignmentType(consignmentId, token.bearerAccessToken)
-      .flatMap(consignmentType => {
-
-        val current = Span.current()
-        current.setAttribute(consignmentIdKey, consignmentId.toString)
-        current.setAttribute(userIdKey, token.userId.toString)
-        createResult(action, request, consignmentType == "standard")
-      })
+  def standardTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = {
+    consignmentTypeAction(consignmentId, "standard")(action)
   }
 
   private def createResult(action: Request[AnyContent] => Future[Result], request: AuthenticatedRequest[AnyContent], isPermitted: Boolean) = {
@@ -75,5 +66,19 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
         )
       )
     }
+  }
+
+  private def consignmentTypeAction(consignmentId: UUID, consignmentType: String)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async {
+    request =>
+      val token = request.token
+      consignmentService
+        .getConsignmentType(consignmentId, token.bearerAccessToken)
+        .flatMap(consignmentTypeFromService => {
+          // These are custom user annotations traces used in Xray
+          val current = Span.current()
+          current.setAttribute(consignmentIdKey, consignmentId.toString)
+          current.setAttribute(userIdKey, token.userId.toString)
+          createResult(action, request, consignmentTypeFromService == consignmentType)
+        })
   }
 }
