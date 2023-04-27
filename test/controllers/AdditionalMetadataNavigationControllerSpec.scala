@@ -310,12 +310,12 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
     s"""
         |<div class="tna-tree__node-item__container">
         |        <span class="tna-tree__expander js-tree__expander--radios" tabindex="-1" id="radios-expander-$id">
-        |          <span class="govuk-visually-hidden">Expand</span>
+        |          <span aria-hidden="true" class="govuk-visually-hidden">Expand</span>
         |        </span>
         |
-        |        <div class="js-radios-directory tna-radios-directory">
-        |          <span class="govuk-label tna-radios-directory__label">
-        |            <img class="tna-tree__svg-directory" role="img" src="/assets/images/folder.svg" alt="Directory">
+        |        <div class="js-radios-directory tna-tree__radios-directory">
+        |          <span class="govuk-label tna-tree__radios-directory__label">
+        |            <span class="govuk-visually-hidden">Directory - </span>
         |            $label
         |          </span>
         |        </div>
