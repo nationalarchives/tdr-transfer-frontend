@@ -2,6 +2,7 @@ package auth
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
+import io.opentelemetry.api.trace.Span
 import org.pac4j.core.profile.{ProfileManager, UserProfile}
 import org.pac4j.play.PlayWebContext
 import play.api.i18n.I18nSupport
@@ -18,6 +19,9 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
 
   def consignmentService: ConsignmentService
   implicit val executionContext: ExecutionContext = consignmentService.ec
+
+  val consignmentIdKey = "ConsignmentId"
+  val userIdKey = "UserId"
 
   def getProfile(request: Request[AnyContent]): Optional[UserProfile] = {
     val webContext = new PlayWebContext(request)
@@ -45,9 +49,14 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   }
 
   def standardTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
+    val token = request.token
     consignmentService
-      .getConsignmentType(consignmentId, request.token.bearerAccessToken)
+      .getConsignmentType(consignmentId, token.bearerAccessToken)
       .flatMap(consignmentType => {
+
+        val current = Span.current()
+        current.setAttribute(consignmentIdKey, consignmentId.toString)
+        current.setAttribute(userIdKey, token.userId.toString)
         createResult(action, request, consignmentType == "standard")
       })
   }
