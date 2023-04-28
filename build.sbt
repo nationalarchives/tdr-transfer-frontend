@@ -40,7 +40,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry" % "opentelemetry-api" % "1.24.0",
   "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.24.0",
   "io.opentelemetry" % "opentelemetry-sdk" % "1.24.0",
-  "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.0",
+  "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.25.1",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
