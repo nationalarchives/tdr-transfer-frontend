@@ -70,8 +70,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           content must include(s"${metadataType.capitalize} metadata")
           content must include("""<h1 class="govuk-heading-l">Choose a file</h1>""")
           content must include(s"Select the file you wish to add or edit $metadataType metadata.")
-          content must include(
-            s"""<details class="govuk-details" data-module="govuk-details">
+          content must include(s"""<details class="govuk-details" data-module="govuk-details">
                |            <summary class="govuk-details__summary">
                |              <span class="govuk-details__summary-text">
                |                Using the keyboard to choose a file
