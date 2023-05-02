@@ -10,14 +10,14 @@
   position: relative;
 }
 
-.tdr-card__content > *:last-child {
-  margin: 0;
+.tdr-card header {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
 }
 
-.tdr-card--metadata__state {
-  position: absolute;
-  right: 0;
-  top: 0;
+.tdr-card__content > *:last-child {
+  margin: 0;
 }
 
 .tdr-card--metadata__inset-text {
