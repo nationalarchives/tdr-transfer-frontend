@@ -3,6 +3,7 @@
 
 @import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 
+@import views.html.partials.backLink
 @(
     consignmentId: UUID,
     metadataType: String,
@@ -13,7 +14,7 @@
     metadataList: List[FileMetadata],
     hasMetadata: Boolean)(implicit messages: Messages, request: RequestHeader)
 @defining(s"View Metadata") { title =>
-  @main(title, name = name) {
+  @main(title, name = name, backLink = Some(backLink(routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType, Some("false")).url, "Choose a file"))) {
     @defining(play.core.PlayVersion.current) { version =>
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
@@ -25,7 +26,7 @@
 
           <div class="govuk-button-group">
           @if(hasMetadata) {
-            <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+            <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
               Edit metadata
             </a>
             <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary">
@@ -33,21 +34,15 @@
             </a>
           } else {
             @if(metadataType == "closure") {
-              <a href="@routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+              <a href="@routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
                 Add closure metadata
               </a>
             } else {
-              <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+              <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
                 Add metadata
               </a>
             }
           }
-          </div>
-
-          <div class="govuk-button-group">
-            <a href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType, expanded = None)" draggable="false" class="govuk-link govuk-link--no-visited-state">
-              Return to all files
-            </a>
           </div>
         </div>
         @transferReference(consignmentRef, isJudgmentUser = false)
