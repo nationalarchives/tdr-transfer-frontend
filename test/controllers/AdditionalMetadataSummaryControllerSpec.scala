@@ -319,14 +319,14 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
 
     val href = s"/consignment/$consignmentId/additional-metadata/add/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     page must include(
-      s"""          <a href="$href" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+      s"""          <a href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
          |            Edit metadata
          |          </a>""".stripMargin
     )
     val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     page must include(
       s"""          <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--secondary">
-         |          Delete metadata
+         |            Delete metadata
          |          </a>""".stripMargin
     )
     metadataFields.foreach { field =>
@@ -360,13 +360,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
     page must include(
       s"""
         |        <a href="/consignment/$consignmentId/additional-metadata/files/$metadataType" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-        |        Select another file
+        |          Choose another file
         |        </a>
         |""".stripMargin
     )
     page must include(
-      s"""<p class="govuk-body">If you have finished adding $metadataType metadata to all of your files, return to the
-        |          <a href="/consignment/$consignmentId/additional-metadata" role="button" draggable="false" data-module="govuk-button">Descriptive & closure metadata page</a>.</p>""".stripMargin
+      s"""<p class="govuk-body">Or leave $metadataType metadata and return to the
+        |          <a href="/consignment/$consignmentId/additional-metadata" role="button" draggable="false" data-module="govuk-button">Descriptive & closure metadata</a> overview page.</p>""".stripMargin
     )
   }
 
@@ -374,11 +374,12 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
     page must include(s"""<span class="govuk-caption-l">${metadataType.capitalize} metadata</span>""")
     page must include(s"""<h1 class="govuk-heading-l">View Metadata</h1>""")
     page must include(s"""<p class="govuk-body">View existing $metadataType metadata.</p>""")
+    page must include(s"""<a href="/consignment/$consignmentId/additional-metadata/files/$metadataType?expanded=false" class="govuk-back-link">Choose a file</a>""".stripMargin)
 
     if (hasMetadata) {
       val href = s"/consignment/$consignmentId/additional-metadata/add/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
       page must include(s"""
-           |            <a href="$href" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+           |            <a href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
            |              Edit metadata
            |            </a>""".stripMargin)
       val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
@@ -390,7 +391,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       if (metadataType == "descriptive") {
         val href = s"/consignment/$consignmentId/additional-metadata/add/descriptive?fileIds=${fileIds.mkString("&amp;")}"
         page must include(s"""
-           |              <a href="$href" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+           |              <a href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
            |                Add metadata
            |              </a>
            |""".stripMargin)
@@ -398,7 +399,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       } else {
         val href = s"/consignment/$consignmentId/additional-metadata/status/closure?fileIds=${fileIds.mkString("&amp;")}"
         page must include(s"""
-           |              <a href="$href" role="button" draggable="false" class="govuk-button govuk-!-margin-bottom-4" data-module="govuk-button">
+           |              <a href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
            |                Add closure metadata
            |              </a>
            |""".stripMargin)
@@ -429,9 +430,6 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       """      <dd class="govuk-summary-list__value">
         |      FileName
         |      </dd>""".stripMargin
-    )
-    page must include(
-      s"""<a href="/consignment/$consignmentId/additional-metadata/files/$metadataType" draggable="false" class="govuk-link govuk-link--no-visited-state">""".stripMargin
     )
   }
 }

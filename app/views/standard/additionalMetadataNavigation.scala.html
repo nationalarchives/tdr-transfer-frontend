@@ -60,8 +60,9 @@
     <strong class="tdr-tag tdr-tag--@statusTag.get.colour">@statusTag.get.text</strong>
   }
 }
+
 @defining("Choose a file") { title =>
-  @main(s"${metadataType.capitalize} metadata - choose a file", name = name, backLink = Some(backLink(routes.AdditionalMetadataController.start(consignmentId).url, "additionalMetadataStart.progress", "Descriptive and closure metadata"))) {
+  @main(s"${metadataType.capitalize} metadata - choose a file", name = name, backLink = Some(backLink(routes.AdditionalMetadataController.start(consignmentId).url, s"Step ${Messages("additionalMetadataStart.progress")}: Descriptive and closure metadata"))) {
 @*  Only render the noscript if not expanded to prevent a continuous page refresh when no javascript, if hierarchy:
     already expanded then irrelevant if no javascript or not;
     not expanded then expand if no javascript
