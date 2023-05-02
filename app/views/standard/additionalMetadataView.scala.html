@@ -1,9 +1,8 @@
-@import views.html.partials.{transferReference, metadata}
+@import views.html.partials.{transferReference, metadata, backLink}
 @import java.util.UUID
 
 @import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 
-@import views.html.partials.backLink
 @(
     consignmentId: UUID,
     metadataType: String,
