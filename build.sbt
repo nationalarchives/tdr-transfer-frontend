@@ -44,6 +44,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.25.1",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
+  "io.opentelemetry.instrumentation" % "opentelemetry-logback-mdc-1.0" % "1.25.1-alpha",
   "com.github.tomakehurst" % "wiremock-jre8" % "2.35.0" % Test,
   "org.mockito" % "mockito-core" % "5.3.1" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
