@@ -53,14 +53,16 @@
 }
 
 @displayCard(name: String, metadataType: String, progress: MetadataProgress, title: String, description: String, properties: List[String], errors: Seq[(String, Seq[String])]) = {
-  <div class="tdr-card tdr-metadata-card@{if(errors.nonEmpty) " tdr-card--error" else ""}">
+  <section class="tdr-card tdr-metadata-card@{if(errors.nonEmpty) " tdr-card--error" else ""}">
     <div class="tdr-card__content">
-      <h2 class="govuk-heading-s">
-        <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(pageArgs.consignmentId, metadataType, expanded = None)">@name</a>
-      </h2>
-      <strong class="tdr-card--metadata__state govuk-tag govuk-tag--@{progress.colour}">
-        @progress.value
-      </strong>
+      <header>
+        <h2 class="govuk-heading-s">
+          <a class="govuk-link govuk-link--no-visited-state" href="@routes.AdditionalMetadataNavigationController.getAllFiles(pageArgs.consignmentId, metadataType, expanded = None)">@name</a>
+        </h2>
+        <strong class="tdr-card--metadata__state govuk-tag govuk-tag--@{progress.colour}">
+          @progress.value
+        </strong>
+      </header>
       @if(errors.nonEmpty) {
         <p id="error-@metadataType-metadata" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span>You must complete the mandatory fields for all records flagged as incomplete.
@@ -84,6 +86,6 @@
       @if(name.toLowerCase == "descriptive metadata") {
         @details(Details("Records with sensitive descriptions", Messages("additionalMetadata.descriptive.sensitive")))
       }
-    </div>
-  </div>
+   </div>
+  </section>
 }

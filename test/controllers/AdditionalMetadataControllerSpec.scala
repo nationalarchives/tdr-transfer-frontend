@@ -409,20 +409,22 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
   def verifyErrors(page: String, numberOfRecords: Int, metadataType: String): Unit = {
     val record = if (numberOfRecords == 1) "record" else "records"
     page must include(s"""<a href="#error-$metadataType-metadata">There is incomplete $metadataType metadata associated with $numberOfRecords $record</a>""".stripMargin)
-    page must include("""<div class="tdr-card tdr-metadata-card tdr-card--error">""")
+    page must include("""<section class="tdr-card tdr-metadata-card tdr-card--error">""")
     page must include("""<span class="govuk-visually-hidden">Error:</span>You must complete the mandatory fields for all records flagged as incomplete.""".stripMargin)
   }
 
   def verifyCard(page: String, consignmentId: String, name: String, metadataType: String, title: String, description: String, progress: MetadataProgress): Unit = {
 
-    page must include(s"""<div class="tdr-card tdr-metadata-card">
+    page must include(s"""<section class="tdr-card tdr-metadata-card">
                          |    <div class="tdr-card__content">
-                         |      <h2 class="govuk-heading-s">
-                         |        <a class="govuk-link govuk-link--no-visited-state" href="/consignment/$consignmentId/additional-metadata/files/$metadataType">$name</a>
-                         |      </h2>
-                         |      <strong class="tdr-card--metadata__state govuk-tag govuk-tag--${progress.colour}">
-                         |        ${progress.value}
-                         |      </strong>
+                         |      <header>
+                         |        <h2 class="govuk-heading-s">
+                         |          <a class="govuk-link govuk-link--no-visited-state" href="/consignment/$consignmentId/additional-metadata/files/$metadataType">$name</a>
+                         |        </h2>
+                         |        <strong class="tdr-card--metadata__state govuk-tag govuk-tag--${progress.colour}">
+                         |          ${progress.value}
+                         |        </strong>
+                         |      </header>
                          |<Spaces>
                          |      <p class="govuk-body">$title</p>
                          |      <p class="tdr-card--metadata__inset-text govuk-inset-text govuk-!-margin-top-0">$description</p>
