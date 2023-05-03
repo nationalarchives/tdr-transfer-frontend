@@ -23,10 +23,10 @@
         @metadata(fileNames, metadataList)
 
         <div class="govuk-button-group">
-          <a href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+          <a id="editMetadata" href="@routes.AddAdditionalMetadataController.addAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
             Edit metadata
           </a>
-          <a href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary">
+          <a id="deleteMetadata" href="@routes.DeleteAdditionalMetadataController.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds)" role="button" draggable="false" class="govuk-button govuk-button--secondary">
             Delete metadata
           </a>
         </div>
@@ -35,7 +35,7 @@
         <h2 class="govuk-heading-m  govuk-!-margin-bottom-3">Have you finished reviewing the metadata?</h2>
         <p class="govuk-body govuk-!-margin-bottom-2">Once you have finished reviewing the metadata of this file you may add metadata to another file.</p>
 
-        <a href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType, expanded = None)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        <a id="chooseFile" href="@routes.AdditionalMetadataNavigationController.getAllFiles(consignmentId, metadataType, expanded = None)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
           Choose another file
         </a>
         <p class="govuk-body">Or leave @metadataType metadata and return to the
