@@ -319,13 +319,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
 
     val href = s"/consignment/$consignmentId/additional-metadata/add/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     page must include(
-      s"""          <a href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+      s"""          <a id="editMetadata" href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
          |            Edit metadata
          |          </a>""".stripMargin
     )
     val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     page must include(
-      s"""          <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--secondary">
+      s"""          <a id="deleteMetadata" href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--secondary">
          |            Delete metadata
          |          </a>""".stripMargin
     )
@@ -359,7 +359,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
     )
     page must include(
       s"""
-        |        <a href="/consignment/$consignmentId/additional-metadata/files/$metadataType" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+        |        <a id="chooseFile" href="/consignment/$consignmentId/additional-metadata/files/$metadataType" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
         |          Choose another file
         |        </a>
         |""".stripMargin
@@ -379,19 +379,19 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
     if (hasMetadata) {
       val href = s"/consignment/$consignmentId/additional-metadata/add/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
       page must include(s"""
-           |            <a href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
+           |            <a id="editMetadata" href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
            |              Edit metadata
            |            </a>""".stripMargin)
       val deleteMetadataButtonHref = s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
       page must include(s"""
-           |            <a href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--secondary">
+           |            <a id="deleteMetadata" href="$deleteMetadataButtonHref" role="button" draggable="false" class="govuk-button govuk-button--secondary">
            |              Delete metadata
            |            </a>""".stripMargin)
     } else {
       if (metadataType == "descriptive") {
         val href = s"/consignment/$consignmentId/additional-metadata/add/descriptive?fileIds=${fileIds.mkString("&amp;")}"
         page must include(s"""
-           |              <a href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
+           |              <a id="addMetadata" href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
            |                Add metadata
            |              </a>
            |""".stripMargin)
@@ -399,7 +399,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       } else {
         val href = s"/consignment/$consignmentId/additional-metadata/status/closure?fileIds=${fileIds.mkString("&amp;")}"
         page must include(s"""
-           |              <a href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
+           |              <a id="addMetadata" href="$href" role="button" draggable="false" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-4" data-module="govuk-button">
            |                Add closure metadata
            |              </a>
            |""".stripMargin)
