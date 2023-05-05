@@ -70,6 +70,16 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           content must include(s"${metadataType.capitalize} metadata")
           content must include("""<h1 class="govuk-heading-l">Choose a file</h1>""")
           content must include(s"Select the file you wish to add or edit $metadataType metadata.")
+          content must include(s"""<details class="govuk-details" data-module="govuk-details">
+               |            <summary class="govuk-details__summary">
+               |              <span class="govuk-details__summary-text">
+               |                Using the keyboard to choose a file
+               |              </span>
+               |            </summary>
+               |            <div class="govuk-details__text" id="tree-view-description">
+               |              The arrow keys can be used to navigate and select a file. Right arrow to open and left arrow to close a folder. Up and down arrows to move between files and folders. Space or enter to select a file or open and close a folder.
+               |            </div>
+               |          </details>""".stripMargin)
           content must not include ("Select a file to proceed")
           content must include(
             s"""<a href="/consignment/$consignmentId/additional-metadata" class="govuk-back-link">Step additionalMetadataStart.progress: Descriptive and closure metadata</a>"""
