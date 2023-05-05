@@ -89,12 +89,20 @@
       <div class="govuk-grid-column-full">
         <form method="post" action="@routes.AdditionalMetadataNavigationController.submitFiles(consignmentId, metadataType)">
           @CSRF.formField
+          <details class="govuk-details" data-module="govuk-details">
+            <summary class="govuk-details__summary">
+              <span class="govuk-details__summary-text">
+                Using the keyboard to choose a file
+              </span>
+            </summary>
+            <div class="govuk-details__text" id="tree-view-description">
+              The arrow keys can be used to navigate and select a file. Right arrow to open and left arrow to close a folder. Up and down arrows to move between files and folders. Space or enter to select a file or open and close a folder.
+            </div>
+          </details>
           <div class="tna-tree" id="file-selection">
-            <fieldset class="govuk-fieldset">
-              <ul tabindex="0" class="tna-tree__root-list" id="radio-tree" role="tree">
-                @display(files, 1, files.children.length, 1)
-              </ul>
-            </fieldset>
+            <ul aria-labelledby="tree-view-label" aria-describedby="tree-view-description" class="tna-tree__root-list" id="radio-tree" role="tree">
+              @display(files, 1, files.children.length, 1)
+            </ul>
           </div>
           <div aria-atomic="true" aria-live="assertive" class="govuk-inset-text">File selected: <span class="govuk-!-font-weight-bold" id="radio-tree-selected">No file selected</span></div>
           <div class="govuk-button-group">
