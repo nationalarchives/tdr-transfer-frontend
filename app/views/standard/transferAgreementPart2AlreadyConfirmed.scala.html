@@ -5,7 +5,7 @@
 @import views.html.partials.{transferAgreementFormGroup, transferAgreementHeader, transferReference}
 
 @(consignmentId: UUID, consignmentRef: String, transferAgreementFormData: Form[TransferAgreementPart2Data], taFormNamesAndLabels: Seq[(String, String)],
-        name: String)(implicit request: RequestHeader, messages: Messages)
+        formHeading: String, name: String)(implicit request: RequestHeader, messages: Messages)
 @main("Transfer agreement (part 2)", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
@@ -18,7 +18,7 @@
             <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
           </div>
         </div>
-          @transferAgreementFormGroup(transferAgreementFormData, taFormNamesAndLabels, formAlreadySubmitted=true)
+          @transferAgreementFormGroup(transferAgreementFormData, taFormNamesAndLabels, formAlreadySubmitted=true, formHeading)
 
         <div class="govuk-button-group">
             <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button" href="@routes.UploadController.uploadPage(consignmentId)">

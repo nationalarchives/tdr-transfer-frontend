@@ -39,9 +39,8 @@ class TransferAgreementPart2Controller @Inject() (
   )
 
   val taFormNamesAndLabels: Seq[(String, String)] = Seq(
-    ("droAppraisalSelection", "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection decision."),
-    ("droSensitivity", "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review."),
-    ("openRecords", "I confirm that all records are open and no Freedom of Information (FOI) exemptions apply to these records.")
+    ("droAppraisalSelection", "The appraisal and selection decision"),
+    ("droSensitivity", "The sensitivity review")
   )
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementPart2Data])(implicit
@@ -55,17 +54,18 @@ class TransferAgreementPart2Controller @Inject() (
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       val formAndLabels = taFormNamesAndLabels.filter(f => taForm.formats.keys.toList.contains(f._1))
+      val formHeading = "I confirm that the Departmental Records Officer (DRO) has signed off on the following:"
       seriesStatus match {
         case Some(CompletedValue.value) =>
           transferAgreementStatus match {
             case Some(CompletedValue.value) =>
               Ok(
                 views.html.standard
-                  .transferAgreementPart2AlreadyConfirmed(consignmentId, reference, transferAgreementForm, formAndLabels, request.token.name)
+                  .transferAgreementPart2AlreadyConfirmed(consignmentId, reference, transferAgreementForm, formAndLabels, formHeading, request.token.name)
               )
                 .uncache()
             case Some(InProgressValue.value) =>
-              httpStatus(views.html.standard.transferAgreementPart2(consignmentId, reference, taForm, formAndLabels, request.token.name)).uncache()
+              httpStatus(views.html.standard.transferAgreementPart2(consignmentId, reference, taForm, formAndLabels, formHeading, request.token.name)).uncache()
             case None =>
               Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId)).uncache()
             case _ =>
