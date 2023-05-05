@@ -22,6 +22,10 @@ POST        /consignment/:consignmentId/transfer-agreement                      
 GET         /consignment/:consignmentId/transfer-agreement-continued                              controllers.TransferAgreementPart2Controller.transferAgreement(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/transfer-agreement-continued                              controllers.TransferAgreementPart2Controller.transferAgreementSubmit(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/upload                                                    controllers.UploadController.uploadPage(consignmentId: java.util.UUID)
+
+GET         /consignment/:consignmentId/uploadV2                                                  controllers.UploadControllerV2.uploadPage(consignmentId: java.util.UUID)
+POST        /consignment/:consignmentId/uploadV2                                                  controllers.UploadControllerV2.startUpload(consignmentId: java.util.UUID)
+
 POST        /start-upload                                                                         controllers.UploadController.startUpload()
 POST        /save-metadata                                                                        controllers.UploadController.saveClientMetadata()
 POST        /add-file-status                                                                      controllers.UploadController.addFileStatus()
