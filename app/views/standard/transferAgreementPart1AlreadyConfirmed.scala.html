@@ -4,7 +4,7 @@
 @import scala.language.postfixOps
 @import views.html.partials.{transferAgreementFormGroup, transferAgreementHeader, transferAgreementWarning, transferReference}
 
-@(consignmentId: UUID, consignmentRef: String, transferAgreementFormData: Form[TransferAgreementData], taFormNameAndLabel: Seq[(String, String)], warningMessage: String, name: String)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, transferAgreementFormData: Form[TransferAgreementData], taFormNameAndLabel: Seq[(String, String)], warningMessage: String, formHeading: String, name: String)(implicit request: RequestHeader, messages: Messages)
 @main("Transfer agreement (part 1)", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
@@ -18,7 +18,7 @@
           </div>
         </div>
           @transferAgreementWarning(warningMessage)
-          @transferAgreementFormGroup(transferAgreementFormData, taFormNameAndLabel, formAlreadySubmitted=true)
+          @transferAgreementFormGroup(transferAgreementFormData, taFormNameAndLabel, formAlreadySubmitted=true, formHeading)
 
         <div class="govuk-button-group">
             <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button" href="@routes.TransferAgreementPart2Controller.transferAgreement(consignmentId)">

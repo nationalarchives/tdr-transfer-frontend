@@ -6,14 +6,14 @@
 @import views.html.partials.{errorSummary, progressIndicator, transferAgreementHeader, transferAgreementFormGroup, transferAgreementNavButtons, transferReference}
 
 @(consignmentId: UUID, consignmentRef: String, transferAgreementFormData: Form[TransferAgreementPart2Data], taFormNamesAndLabels: Seq[(String, String)],
-  name: String)(implicit request: RequestHeader, messages: Messages
+        formHeading: String, name: String)(implicit request: RequestHeader, messages: Messages
 )
 @main("Transfer agreement (part 2)", name = name) {
 @defining(play.core.PlayVersion.current) { version =>
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
         @transferAgreementHeader(" (part 2)")
-        <p class="govuk-body">You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor.</p>
+        <p class="govuk-hint govuk-!-margin-bottom-6">You must confirm all statements before proceeding. If you cannot, please close your browser and contact your transfer advisor.</p>
 
         @errorSummary(
             transferAgreementFormData.formats.keys.toList
@@ -24,7 +24,7 @@
             routes.TransferAgreementPart2Controller.transferAgreementSubmit(consignmentId),
             (Symbol("novalidate"), "")
         ) {
-        @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementPart2Data], taFormNamesAndLabels, formAlreadySubmitted=false)
+        @transferAgreementFormGroup(transferAgreementFormData: Form[TransferAgreementPart2Data], taFormNamesAndLabels, formAlreadySubmitted=false, formHeading)
         @transferAgreementNavButtons()
         }
     </div>
