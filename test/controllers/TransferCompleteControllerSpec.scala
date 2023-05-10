@@ -61,8 +61,13 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       )
       transferCompletePageAsString must include(
         """<p class="govuk-body">Your records are now transferred to The National Archives.
-          |                        They are not yet preserved so you must not delete the original records.
+          |                        <strong>They are not yet preserved so you must not delete the original records</strong>.
           |                        We will notify you by email when we have preserved your records.</p>""".stripMargin
+      )
+      transferCompletePageAsString must include(
+        s"""<p class="govuk-body">
+          |                        Download a <a href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">CSV of your records and metadata</a>.
+          |                    </p>""".stripMargin
       )
       transferCompletePageAsString must include(
         """<p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>.</p>"""
