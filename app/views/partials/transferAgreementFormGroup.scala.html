@@ -7,14 +7,14 @@
 @(transferAgreementFormData: Form[_],
   taFormNamesAndLabels: Seq[(String, String)],
   formAlreadySubmitted: Boolean,
-  formHeading: String
+  fieldSetLegend: String
 )(implicit request: RequestHeader, messages: Messages)
 @disabledStatus = {@if(formAlreadySubmitted) {disabled} else {}}
 
 <div class="govuk-form-group">
     <fieldset class="govuk-fieldset">
         <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
-          @formHeading
+          @fieldSetLegend
         </legend>
         @if(!formAlreadySubmitted) @{
             CSRF.formField
