@@ -53,7 +53,7 @@ class TransferAgreementPart1Controller @Inject() (
     } yield {
       val formAndLabel = transferAgreementFormNameAndLabel.filter(f => taForm.formats.keys.toList.contains(f._1))
       val warningMessage = Messages("transferAgreement.warning")
-      val formHeading = "I confirm that all records are:"
+      val fieldSetLegend = "I confirm that all records are:"
       seriesStatus match {
         case Some(CompletedValue.value) =>
           transferAgreementStatus match {
@@ -65,13 +65,13 @@ class TransferAgreementPart1Controller @Inject() (
                   transferAgreementForm,
                   formAndLabel,
                   warningMessage,
-                  formHeading,
+                  fieldSetLegend,
                   request.token.name
                 )
               )
                 .uncache()
             case None =>
-              httpStatus(views.html.standard.transferAgreementPart1(consignmentId, reference, taForm, formAndLabel, warningMessage, formHeading, request.token.name))
+              httpStatus(views.html.standard.transferAgreementPart1(consignmentId, reference, taForm, formAndLabel, warningMessage, fieldSetLegend, request.token.name))
                 .uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
