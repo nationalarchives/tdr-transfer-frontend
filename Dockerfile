@@ -1,4 +1,4 @@
-FROM alpine:3.17
+FROM alpine:3.18
 #For alpine versions need to create a group before adding a user to the image
 RUN addgroup --system frontendgroup && adduser --system frontenduser -G frontendgroup
 WORKDIR play
