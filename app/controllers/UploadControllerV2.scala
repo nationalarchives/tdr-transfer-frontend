@@ -1,6 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
+import com.amazonaws.services.s3.model.{ObjectTagging, PutObjectRequest}
 import com.amazonaws.services.s3.transfer.{TransferManager, TransferManagerBuilder}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
@@ -64,22 +65,9 @@ class UploadControllerV2 @Inject() (val controllerComponents: SecurityComponents
             })
             Ok(s"File Uploaded: ${data.fileId}")
           } else {
-            Forbidden(
-              views.html.forbiddenError(
-                request.token.name,
-                getProfile(request).isPresent,
-                request.token.isJudgmentUser
-              )(request2Messages(request), request)
-            )}
+            Forbidden(s"User does not have access to consignment: ${data.consignmentId}")
+          }
         } yield result
-
-//        val body = request.body.asMultipartFormData.get
-//
-//        body.files.map(f => {
-//          tm.upload(bucketName, s"${data.userId}/${data.consignmentId}/${data.fileId}", f.ref)
-//        })
-//
-//        Future(Ok(s"Files Uploaded"))
       }
     }
   }

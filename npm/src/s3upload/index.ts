@@ -224,7 +224,7 @@ export class S3Upload {
     if (isError(result)) {
       return result
     } else if (result.status != 200) {
-      return Error(`Start upload to s3 failed: ${result.statusText}`)
+      return Error(`Upload to s3 failed: ${result.statusText}`)
     }
   }
 
