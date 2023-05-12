@@ -11,6 +11,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent}
 import services.{BackendChecksService, ConsignmentService, FileStatusService, UploadService}
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,31 +35,51 @@ class UploadControllerV2 @Inject() (val controllerComponents: SecurityComponents
     .withMultipartUploadThreshold(5 * 1024 * 1025)
     .build()
 
-  case class FileUploadData(consignmentId: String, userId: String, fileId: String)
+  case class FileUploadData(consignmentId: String, fileId: String)
 
   private val uploadFileForm: Form[FileUploadData] = Form(
     mapping(
       "consignmentId" -> text,
-      "userId" -> text,
       "fileId" -> text
     )
     (FileUploadData.apply)(FileUploadData.unapply)
   )
 
   def s3UploadRecords(): Action[AnyContent] =  secureAction.async { implicit request => {
-      val result: Form[FileUploadData] = uploadFileForm.bindFromRequest()
+      val uploadData: Form[FileUploadData] = uploadFileForm.bindFromRequest()
 
-      if (result.hasErrors) {
-        throw new Exception("upload failed")
+      if (uploadData.hasErrors) {
+        Future.failed(new Exception(s"Incorrect data provided $uploadData"))
       } else {
-        val data = result.get
-        val body = request.body.asMultipartFormData.get
+        val userId = request.token.userId
+        val data = uploadData.get
+        for {
+          //check user owns consignment here. Cache the result as have to make call each time
+          details <- consignmentService.getConsignmentDetails(UUID.fromString(data.consignmentId), request.token.bearerAccessToken)
+          hasAccess = details.userid == userId
+          result = if (hasAccess) {
+            val body = request.body.asMultipartFormData.get
+            body.files.map(f => {
+              tm.upload(bucketName, s"$userId/${data.consignmentId}/${data.fileId}", f.ref)
+            })
+            Ok(s"File Uploaded: ${data.fileId}")
+          } else {
+            Forbidden(
+              views.html.forbiddenError(
+                request.token.name,
+                getProfile(request).isPresent,
+                request.token.isJudgmentUser
+              )(request2Messages(request), request)
+            )}
+        } yield result
 
-        body.files.map(f => {
-          tm.upload(bucketName, s"${data.userId}/${data.consignmentId}/${data.fileId}", f.ref)
-        })
-
-        Future(Ok(s"Files Uploaded"))
+//        val body = request.body.asMultipartFormData.get
+//
+//        body.files.map(f => {
+//          tm.upload(bucketName, s"${data.userId}/${data.consignmentId}/${data.fileId}", f.ref)
+//        })
+//
+//        Future(Ok(s"Files Uploaded"))
       }
     }
   }

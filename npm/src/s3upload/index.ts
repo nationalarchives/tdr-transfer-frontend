@@ -206,7 +206,6 @@ export class S3Upload {
 
     const formData: FormData = new FormData()
     formData.append("consignmentId", consignmentId)
-    formData.append("userId", userId)
     formData.append("fileId",tdrFileWithPath.fileId)
     formData.append("file", tdrFileWithPath.fileWithPath.file)
 
@@ -225,7 +224,7 @@ export class S3Upload {
     if (isError(result)) {
       return result
     } else if (result.status != 200) {
-      return Error(`Start upload failed: ${result.statusText}`)
+      return Error(`Start upload to s3 failed: ${result.statusText}`)
     }
   }
 
