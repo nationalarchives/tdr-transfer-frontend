@@ -20,8 +20,12 @@
                     </div>
 
                     <p class="govuk-body">Your records are now transferred to The National Archives.
-                        They are not yet preserved so you must not delete the original records.
+                        <strong>They are not yet preserved so you must not delete the original records</strong>.
                         We will notify you by email when we have preserved your records.</p>
+
+                    <p class="govuk-body">
+                        Download a <a href="@routes.DownloadMetadataController.downloadMetadataCsv(consignmentId)">CSV of your records and metadata</a>.
+                    </p>
 
                     <h2 class="govuk-heading-m govuk-!-margin-top-2">What happens next</h2>
 
