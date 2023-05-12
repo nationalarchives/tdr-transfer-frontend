@@ -1,12 +1,16 @@
 package controllers
 
 import auth.TokenSecurity
+import com.amazonaws.services.s3.transfer.{TransferManager, TransferManagerBuilder}
+import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.typesafe.config.{Config, ConfigFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, ConsignmentStatusInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
+import play.api.data.Form
+import play.api.data.Forms.{mapping, text}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses.{CompletedValue, InProgressValue, TransferAgreementType, UploadType}
@@ -30,6 +34,25 @@ class UploadController @Inject() (
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
+
+  // permission to be added to ECS task role or execution role for access to upload to s3 bucket
+  private val bucketName = "something-else"
+  private val s3Client: AmazonS3 = AmazonS3ClientBuilder.defaultClient()
+
+  private val tm: TransferManager = TransferManagerBuilder
+    .standard()
+    .withS3Client(s3Client)
+    .withMultipartUploadThreshold(5 * 1024 * 1025)
+    .build()
+
+  private case class FileUploadData(consignmentId: String, fileId: String)
+
+  private val uploadFileForm: Form[FileUploadData] = Form(
+    mapping(
+      "consignmentId" -> text,
+      "fileId" -> text
+    )(FileUploadData.apply)(FileUploadData.unapply)
+  )
 
   def triggerBackendChecks(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
     backendChecksService
@@ -61,6 +84,34 @@ class UploadController @Inject() (
     }) match {
       case Some(metadataInput) => uploadService.saveClientMetadata(metadataInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
       case None                => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+    }
+  }
+
+  def s3UploadRecords(): Action[AnyContent] = secureAction.async { implicit request =>
+    {
+      val uploadData: Form[FileUploadData] = uploadFileForm.bindFromRequest()
+
+      if (uploadData.hasErrors) {
+        Future.failed(new Exception(s"Incorrect data provided $uploadData"))
+      } else {
+        val userId = request.token.userId
+        val data = uploadData.get
+        for {
+          // check user owns consignment here. Cache the result as have to make call each time?
+          details <- consignmentService.getConsignmentDetails(UUID.fromString(data.consignmentId), request.token.bearerAccessToken)
+          hasAccess = details.userid == userId
+          result =
+            if (hasAccess) {
+              val body = request.body.asMultipartFormData.get
+              body.files.map(f => {
+                tm.upload(bucketName, s"$userId/${data.consignmentId}/${data.fileId}", f.ref)
+              })
+              Ok(s"File Uploaded: ${data.fileId}")
+            } else {
+              Forbidden(s"User does not have access to consignment: ${data.consignmentId}")
+            }
+        } yield result
+      }
     }
   }
 
