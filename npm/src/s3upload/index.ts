@@ -206,6 +206,8 @@ export class S3Upload {
 
     const formData: FormData = new FormData()
     formData.append("consignmentId", consignmentId)
+    formData.append("userId", userId)
+    formData.append("fileId",tdrFileWithPath.fileId)
     formData.append("file", tdrFileWithPath.fileWithPath.file)
 
     const result: Response | Error = await fetch("/s3-upload-records", {
@@ -213,7 +215,6 @@ export class S3Upload {
       method: "POST",
       body: formData,
       headers: {
-        "Content-Type": "application/json",
         "Csrf-Token": csrfInput.value,
         "X-Requested-With": "XMLHttpRequest"
       }
