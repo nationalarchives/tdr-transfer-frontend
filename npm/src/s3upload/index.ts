@@ -67,6 +67,21 @@ export class S3Upload {
       let processedChunks = 0
       const sendData: ServiceOutputTypes[] = []
       const fileIdsOfFilesThatFailedToUpload: string[] = []
+
+      for (const tdrFileWithPath of iTdrFilesWithPath) {
+        const r = await this.uploadSingleFileV2(
+            consignmentId,
+            userId,
+            stage,
+            tdrFileWithPath,
+            callback, {
+              processedChunks,
+              totalChunks,
+              totalFiles
+            }
+        )
+      }
+
       for (const tdrFileWithPath of iTdrFilesWithPath) {
         const uploadResult = await this.uploadSingleFile(
           consignmentId,
@@ -175,6 +190,42 @@ export class S3Upload {
     const processedFiles = Math.floor((chunks / totalChunks) * totalFiles)
 
     updateProgressFunction({ processedFiles, percentageProcessed, totalFiles })
+  }
+
+  private async uploadSingleFileV2(
+      consignmentId: string,
+      userId: string,
+      stage: string,
+      tdrFileWithPath: ITdrFileWithPath,
+      updateProgressCallback: TProgressFunction,
+      progressInfo: IFileProgressInfo
+  ): Promise<void | Error> {
+    const csrfInput: HTMLInputElement = document.querySelector(
+        "input[name='csrfToken']"
+    )!
+
+    const formData: FormData = new FormData()
+    formData.append("consignmentId", consignmentId)
+    formData.append("file", tdrFileWithPath.fileWithPath.file)
+
+    const result: Response | Error = await fetch("/s3-upload-records", {
+      credentials: "include",
+      method: "POST",
+      body: formData,
+      headers: {
+        "Content-Type": "application/json",
+        "Csrf-Token": csrfInput.value,
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    }).catch((err) => {
+      return Error(err)
+    })
+
+    if (isError(result)) {
+      return result
+    } else if (result.status != 200) {
+      return Error(`Start upload failed: ${result.statusText}`)
+    }
   }
 
   private async addFileStatus(

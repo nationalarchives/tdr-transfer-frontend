@@ -25,6 +25,7 @@ GET         /consignment/:consignmentId/upload                                  
 
 GET         /consignment/:consignmentId/uploadV2                                                  controllers.UploadControllerV2.uploadPage(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/uploadV2                                                  controllers.UploadControllerV2.startUpload(consignmentId: java.util.UUID)
+POST        /s3-upload-records                                                                    controllers.UploadControllerV2.s3UploadRecords()
 
 POST        /start-upload                                                                         controllers.UploadController.startUpload()
 POST        /save-metadata                                                                        controllers.UploadController.saveClientMetadata()
