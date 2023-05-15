@@ -3,61 +3,83 @@
 }
 
 .drag-and-drop {
-  margin-bottom: 40px;
-}
-
-.drag-and-drop__button {
-  margin-bottom: 32px;
-  margin-top: 65px;
-  padding-left: 15px;
-  position: static;
-  width: auto;
-}
-
-.drag-and-drop__button::before {
-  position: static;
-}
-
-.drag-and-drop__button--highlight {
-  background-color: $govuk-focus-colour;
-  box-shadow: 0 -2px $govuk-focus-colour, 0 4px govuk-colour('black');
-  color: $govuk-text-colour;
-  outline: none;
+  margin-bottom: 15px;
 }
 
 .drag-and-drop__dropzone {
+  box-sizing: border-box;
   display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 12rem;
   margin-bottom: 20px;
-  outline: 3px dashed $govuk-input-border-colour;
-  padding-bottom: 30px;
-  padding-top: 0;
-  text-align: center;
-  transition: outline-offset 0.1s ease-in-out, background-color 0.1s linear;
-}
-
-.drag-and-drop__dropzone--dragover {
-  background: govuk-colour('mid-grey');
-  outline-color: govuk-colour('dark-grey');
-}
-
-.drag-and-drop__hint-text {
-  margin-bottom: 0;
-  margin-right: 10px;
-  padding-left: 15px;
-  padding-top: 70px;
+  outline: 3px dashed #0b0c0c;
+  padding: 15px 10px;
+  transition: outline-offset .1s ease-in-out, background-color .1s linear
 }
 
 .drag-and-drop__input {
   height: 0;
-  opacity: 0; /*Opacity is 0 in order to hide the input button AND keep it functioning ('visibility' and 'display' properties can't do this)*/
+  opacity: 0;
   padding-top: 0;
   position: absolute;
   width: 0;
 }
 
+.drag-and-drop__button {
+  height: 2.25em;
+  margin-bottom: 0;
+  white-space: nowrap;
+  flex-basis: 0px;
+}
+
+.drag-and-drop__hint-text {
+  margin-bottom: 0;
+}
+
+.drag-and-drop__selected {
+  display: flex;
+  gap: 15px;
+  align-items: baseline;
+  border-bottom: 1px solid #B1B4B6;
+}
+
+.drag-and-drop__selected__description {
+  /* Close to govuk green but is AAA compliant
+  for normal sized text */
+  color: #006636;
+}
+
 .drag-and-drop__success {
-  color: govuk-colour('green');
-  padding-left: 10px;
+  color: #00703c;
+  font-weight: 700
+}
+
+.green-tick-mark {
+  fill: currentColor;
+  float: left;
+  height: 25px;
+  margin-right: 10px;
+  width: 25px
+}
+
+
+.drag-and-drop__button--highlight {
+  background-color: #fd0;
+  box-shadow: 0 -2px #fd0, 0 4px #0b0c0c;
+  color: #0b0c0c;
+  outline: 0
+}
+
+.drag-and-drop__dropzone--dragover {
+  background: #005A30;
+  outline-color: #FFF;
+  outline-offset: -4px;
+}
+
+.drag-and-drop__dropzone--dragover .drag-and-drop__hint-text {
+  color: white;
 }
 
 .error-messages {
