@@ -37,9 +37,8 @@ class TransferAgreementPart1Controller @Inject() (
   )
 
   private val transferAgreementFormNameAndLabel: Seq[(String, String)] = Seq(
-    ("publicRecord", "I confirm that the records are Public Records."),
-    ("crownCopyright", "I confirm that the records are all Crown Copyright."),
-    ("english", "I confirm that the records are all in English.")
+    ("publicRecord", "Public Records"),
+    ("crownCopyright", "Crown Copyright")
   )
 
   private def loadStandardPageBasedOnTaStatus(consignmentId: UUID, httpStatus: Status, taForm: Form[TransferAgreementData])(implicit
@@ -54,6 +53,7 @@ class TransferAgreementPart1Controller @Inject() (
     } yield {
       val formAndLabel = transferAgreementFormNameAndLabel.filter(f => taForm.formats.keys.toList.contains(f._1))
       val warningMessage = Messages("transferAgreement.warning")
+      val fieldSetLegend = "I confirm that all records are:"
       seriesStatus match {
         case Some(CompletedValue.value) =>
           transferAgreementStatus match {
@@ -65,12 +65,13 @@ class TransferAgreementPart1Controller @Inject() (
                   transferAgreementForm,
                   formAndLabel,
                   warningMessage,
+                  fieldSetLegend,
                   request.token.name
                 )
               )
                 .uncache()
             case None =>
-              httpStatus(views.html.standard.transferAgreementPart1(consignmentId, reference, taForm, formAndLabel, warningMessage, request.token.name))
+              httpStatus(views.html.standard.transferAgreementPart1(consignmentId, reference, taForm, formAndLabel, warningMessage, fieldSetLegend, request.token.name))
                 .uncache()
             case _ =>
               throw new IllegalStateException(s"Unexpected Transfer Agreement status: $transferAgreementStatus for consignment $consignmentId")
