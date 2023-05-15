@@ -7,14 +7,14 @@ object DefaultMockFormOptions {
   lazy val expectedPart1Options: List[MockInputOption] = List(
     MockInputOption(
       "publicRecord",
-      "I confirm that the records are Public Records.",
+      "Public Records",
       value = "true",
       errorMessage = "All records must be confirmed as public before proceeding",
       fieldType = "inputCheckbox"
     ),
     MockInputOption(
       "crownCopyright",
-      "I confirm that the records are all Crown Copyright.",
+      "Crown Copyright",
       value = "true",
       errorMessage = "All records must be confirmed Crown Copyright before proceeding",
       fieldType = "inputCheckbox"
@@ -24,14 +24,14 @@ object DefaultMockFormOptions {
   lazy val expectedPart2Options: List[MockInputOption] = List(
     MockInputOption(
       "droAppraisalSelection",
-      "I confirm that the Departmental Records Officer (DRO) has signed off on the appraisal and selection",
+      "The appraisal and selection decision",
       value = "true",
       errorMessage = "Departmental Records Officer (DRO) must have signed off the appraisal and selection decision for records",
       fieldType = "inputCheckbox"
     ),
     MockInputOption(
       "droSensitivity",
-      "I confirm that the Departmental Records Officer (DRO) has signed off on the sensitivity review.",
+      "The sensitivity review",
       value = "true",
       errorMessage = "Departmental Records Officer (DRO) must have signed off sensitivity review",
       fieldType = "inputCheckbox"
