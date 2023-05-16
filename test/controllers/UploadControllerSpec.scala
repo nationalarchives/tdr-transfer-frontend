@@ -190,7 +190,9 @@ class UploadControllerSpec extends FrontEndTestHelper {
           "You must remove all thumbnail images (thumbs.db) and executable files (.exe). Empty folders will not be transferred."
       )
       uploadPageAsString must include("""<h2 class="govuk-heading-m">Choose a folder to upload</h2>""")
-      uploadPageAsString must include("""<p class="govuk-body">The 'Choose folder' button below will cause your browser to open a dialog box to find and select a folder. Once selected, you will be prompted to confirm your choice.</p>""")
+      uploadPageAsString must include(
+        """<p class="govuk-body">The 'Choose folder' button below will cause your browser to open a dialog box to find and select a folder. Once selected, you will be prompted to confirm your choice.</p>"""
+      )
       uploadPageAsString must include(
         """<p id="success-message-text" aria-live="assertive" aria-atomic="true" class="govuk-!-margin-bottom-3 govuk-!-margin-top-0 drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span> files) has been selected.</p>"""
       )
