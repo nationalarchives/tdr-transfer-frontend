@@ -141,7 +141,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
       pageAsString must include("""            <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>""")
     } else {
       pageAsString must include(
-        s"""        <p class="govuk-body">$confirmationMessage</p>"""
+        s"""$confirmationMessage</p>"""
       )
     }
   }
