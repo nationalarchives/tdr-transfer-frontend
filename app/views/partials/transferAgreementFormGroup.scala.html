@@ -6,27 +6,35 @@
 
 @(transferAgreementFormData: Form[_],
   taFormNamesAndLabels: Seq[(String, String)],
-  formAlreadySubmitted: Boolean
+  formAlreadySubmitted: Boolean,
+  fieldSetLegend: String
 )(implicit request: RequestHeader, messages: Messages)
 @disabledStatus = {@if(formAlreadySubmitted) {disabled} else {}}
 
 <div class="govuk-form-group">
-  @if(!formAlreadySubmitted) @{CSRF.formField} else {}
-  @for((name, label) <- taFormNamesAndLabels) {
-    @inputSingleCheckbox(
-        transferAgreementFormData(name).id,
-        Map(
-            Symbol("_label") -> label,
-            Symbol("_value") -> "true",
-            Symbol("_smallCheckbox") -> false,
-            Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected(name, formAlreadySubmitted),
-            Symbol("_requiredOption") -> true,
-            Symbol("_disabledOption") -> disabledStatus
-        ),
-        transferAgreementFormData(name).errors.headOption match {
-            case Some(formError) => formError.messages
-            case None => Nil
+    <fieldset class="govuk-fieldset">
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+          @fieldSetLegend
+        </legend>
+        @if(!formAlreadySubmitted) @{
+            CSRF.formField
+        } else {}
+        @for((name, label) <- taFormNamesAndLabels) {
+            @inputSingleCheckbox(
+                transferAgreementFormData(name).id,
+                Map(
+                    Symbol("_label") -> label,
+                    Symbol("_value") -> "true",
+                    Symbol("_smallCheckbox") -> false,
+                    Symbol("_checkedOption") -> transferAgreementFormData.shouldOptionBeSelected(name, formAlreadySubmitted),
+                    Symbol("_requiredOption") -> true,
+                    Symbol("_disabledOption") -> disabledStatus
+                ),
+                transferAgreementFormData(name).errors.headOption match {
+                    case Some(formError) => formError.messages
+                    case None => Nil
+                }
+            )
         }
-    )
-  }
+    </fieldset>
 </div>
