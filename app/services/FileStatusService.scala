@@ -13,7 +13,7 @@ class FileStatusService @Inject() (val graphqlConfiguration: GraphQLConfiguratio
   private val addFileStatusClient = graphqlConfiguration.getClient[amfs.Data, amfs.Variables]()
 
   def addFileStatus(addMultipleFileStatusesInput: AddMultipleFileStatusesInput, token: BearerAccessToken): Future[List[amfs.AddMultipleFileStatuses]] = {
-    val variables = amfs.Variables(List[AddMultipleFileStatusesInput])
+    val variables = amfs.Variables(addMultipleFileStatusesInput)
     sendApiRequest(addFileStatusClient, amfs.document, token, variables).map(data => data.addMultipleFileStatuses)
   }
 }
