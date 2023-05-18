@@ -82,31 +82,31 @@ export class S3Upload {
         )
       }
 
-      for (const tdrFileWithPath of iTdrFilesWithPath) {
-        const uploadResult = await this.uploadSingleFile(
-          consignmentId,
-          userId,
-          stage,
-          tdrFileWithPath,
-          callback,
-          {
-            processedChunks,
-            totalChunks,
-            totalFiles
-          }
-        )
-        if (
-          uploadResult?.$metadata !== undefined &&
-          uploadResult.$metadata.httpStatusCode != 200
-        ) {
-          await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
-          fileIdsOfFilesThatFailedToUpload.push(tdrFileWithPath.fileId)
-        }
-        sendData.push(uploadResult)
-        processedChunks += tdrFileWithPath.fileWithPath.file.size
-          ? tdrFileWithPath.fileWithPath.file.size
-          : 1
-      }
+      // for (const tdrFileWithPath of iTdrFilesWithPath) {
+      //   const uploadResult = await this.uploadSingleFile(
+      //     consignmentId,
+      //     userId,
+      //     stage,
+      //     tdrFileWithPath,
+      //     callback,
+      //     {
+      //       processedChunks,
+      //       totalChunks,
+      //       totalFiles
+      //     }
+      //   )
+      //   if (
+      //     uploadResult?.$metadata !== undefined &&
+      //     uploadResult.$metadata.httpStatusCode != 200
+      //   ) {
+      //     await this.addFileStatus(tdrFileWithPath.fileId, "Failed")
+      //     fileIdsOfFilesThatFailedToUpload.push(tdrFileWithPath.fileId)
+      //   }
+      //   sendData.push(uploadResult)
+      //   processedChunks += tdrFileWithPath.fileWithPath.file.size
+      //     ? tdrFileWithPath.fileWithPath.file.size
+      //     : 1
+      // }
 
       return fileIdsOfFilesThatFailedToUpload.length === 0
         ? {
@@ -209,7 +209,7 @@ export class S3Upload {
     formData.append("fileId",tdrFileWithPath.fileId)
     formData.append("file", tdrFileWithPath.fileWithPath.file)
 
-    const result: Response | Error = await fetch("/s3-upload-records", {
+    const result: Response | Error = await fetch(`/s3-upload-records/${userId}/${consignmentId}/${tdrFileWithPath.fileId}`, {
       credentials: "include",
       method: "POST",
       body: formData,

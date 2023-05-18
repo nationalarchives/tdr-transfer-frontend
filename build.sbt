@@ -16,11 +16,16 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0
 //Needed to run the tests. Prevents incompatible databind version errors.
 //More details on a similar error here: https://stackoverflow.com/questions/43841091/spark2-1-0-incompatible-jackson-versions-2-7-6
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.4" % Test
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.5"
 
 val playPac4jVersion = "11.1.0-PLAY2.8"
 val pac4jVersion = "5.7.1"
-val akkaVersion = "2.6.3"
+//val akkaVersion = "2.6.3"
 val sttpVersion = "2.3.0"
+lazy val `playakkastreams` = (project in file(".")).enablePlugins(PlayScala)
+
+val AkkaVersion = "2.7.0"
+val AkkaHttpVersion = "10.4.0"
 
 libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
@@ -49,7 +54,16 @@ libraryDependencies ++= Seq(
   "io.opentelemetry.instrumentation" % "opentelemetry-logback-mdc-1.0" % "1.25.1-alpha",
   "com.github.tomakehurst" % "wiremock-jre8" % "2.35.0" % Test,
   "org.mockito" % "mockito-core" % "5.3.1" % Test,
-  "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
+  "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
+  "com.lightbend.akka" %% "akka-stream-alpakka-s3" % "5.0.0",
+  "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+  "com.typesafe.akka" %% "akka-http-xml" % AkkaHttpVersion,
+  "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-serialization-jackson" % AkkaVersion,
+  //"org.scala-lang" % "scala-library" % "2.13.10",
+  //"com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2"
 )
 
 disablePlugins(PlayLogback)

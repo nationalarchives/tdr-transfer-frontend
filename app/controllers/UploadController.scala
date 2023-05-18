@@ -1,9 +1,13 @@
 package controllers
 
+import akka.stream.IOResult
+import akka.stream.alpakka.s3.MultipartUploadResult
+import akka.stream.scaladsl._
+import akka.util.ByteString
 import auth.TokenSecurity
+import com.amazonaws.services.s3.model.PutObjectRequest
 import com.amazonaws.services.s3.transfer.{TransferManager, TransferManagerBuilder}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
-import com.typesafe.config.{Config, ConfigFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, ConsignmentStatusInput, StartUploadInput}
 import io.circe.parser.decode
@@ -12,14 +16,22 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.data.Form
 import play.api.data.Forms.{mapping, text}
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request}
+import play.api.libs.streams.Accumulator
+import play.api.mvc.MultipartFormData.FilePart
+import play.api.mvc.{Action, AnyContent, MultipartFormData, Request}
+import play.core.parsers.Multipart
+import play.core.parsers.Multipart.FileInfo
 import services.Statuses.{CompletedValue, InProgressValue, TransferAgreementType, UploadType}
-import services.{BackendChecksService, ConsignmentService, ConsignmentStatusService, FileStatusService, UploadService}
+import services._
 import viewsapi.Caching.preventCaching
 
+import java.io.File
+import java.nio.file.attribute.PosixFilePermissions
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import java.nio.file.attribute.PosixFilePermission._
+import java.nio.file.{Files => JFiles}
 
 @Singleton
 class UploadController @Inject() (
@@ -30,7 +42,8 @@ class UploadController @Inject() (
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
     val fileStatusService: FileStatusService,
-    val backendChecksService: BackendChecksService
+    val backendChecksService: BackendChecksService,
+    val awsS3Client: AwsS3Client
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -87,33 +100,90 @@ class UploadController @Inject() (
     }
   }
 
-  def s3UploadRecords(): Action[AnyContent] = secureAction.async { implicit request =>
-    {
-      val uploadData: Form[FileUploadData] = uploadFileForm.bindFromRequest()
+  type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
 
-      if (uploadData.hasErrors) {
-        Future.failed(new Exception(s"Incorrect data provided $uploadData"))
-      } else {
-        val userId = request.token.userId
-        val data = uploadData.get
-        for {
-          // check user owns consignment here. Cache the result as have to make call each time?
-          details <- consignmentService.getConsignmentDetails(UUID.fromString(data.consignmentId), request.token.bearerAccessToken)
-          hasAccess = details.userid == userId
-          result =
-            if (hasAccess) {
-              val body = request.body.asMultipartFormData.get
-              body.files.map(f => {
-                tm.upload(bucketName, s"$userId/${data.consignmentId}/${data.fileId}", f.ref)
-              })
-              Ok(s"File Uploaded: ${data.fileId}")
-            } else {
-              Forbidden(s"User does not have access to consignment: ${data.consignmentId}")
-            }
-        } yield result
-      }
-    }
+  def handleFilePartAsFile: FilePartHandler[File] = {
+    case FileInfo(partName, filename, contentType, dispositionType) =>
+      val perms = java.util.EnumSet.of(OWNER_READ, OWNER_WRITE)
+      val attr = PosixFilePermissions.asFileAttribute(perms)
+      val path = JFiles.createTempFile("multipartBody", "tempFile", attr)
+      val file = path.toFile
+      val fileSink = FileIO.toPath(path)
+      val accumulator = Accumulator(fileSink)
+      accumulator.map {
+        case IOResult(count, status) =>
+          FilePart(partName, filename, contentType, file, count, dispositionType)
+      }(ec)
   }
+
+//  def s3UploadRecords() = secureAction(parse.multipartFormData(handleFilePartAsFile)) { request =>
+//    request.body.files.map { file => {
+//      val id = request.profiles.head.getId
+//      tm.upload("something-else", s"${id}/${file.filename}", file.ref)
+//    }
+//    }
+//    Ok(s"Files Uploaded")
+//  }
+
+
+
+  def s3UploadRecords(userId: UUID, consignmentId: UUID, fileId: UUID): Action[MultipartFormData[MultipartUploadResult]] =
+    secureAction(parse.multipartFormData(handleFilePartAwsUploadResult(userId, consignmentId, fileId))) { implicit request  =>
+
+      val uploadData: Form[FileUploadData] = uploadFileForm.bindFromRequest()
+      val profile = request.profiles.head
+      println("HERE")
+
+      val maybeUploadResult =
+        request.body.file("file").map {
+          case FilePart(partName, filename, contentType, multipartUploadResult, count, dispositionType) =>
+            multipartUploadResult
+        }
+
+      maybeUploadResult.fold(
+        InternalServerError("Something went wrong!")
+      )(uploadResult =>
+        Ok(s"File ${uploadResult.key} upload to bucket ${uploadResult.bucket}")
+      )
+    }
+
+  private def handleFilePartAwsUploadResult(userId: UUID, consignmentId: UUID, fileId: UUID): Multipart.FilePartHandler[MultipartUploadResult] = {
+    case FileInfo(partName, filename, contentType, dispositionType) =>
+      val accumulator = Accumulator(awsS3Client.s3Sink(bucketName, s"${userId.toString}/${consignmentId.toString}/${fileId.toString}"))
+
+      accumulator map { multipartUploadResult =>
+        FilePart(partName, filename, contentType, multipartUploadResult)
+      }
+  }
+
+//  def s3UploadRecords(): Action[AnyContent] = secureAction.async { implicit request =>
+//    {
+//      val uploadData: Form[FileUploadData] = uploadFileForm.bindFromRequest()
+//
+//      if (uploadData.hasErrors) {
+//        Future.failed(new Exception(s"Incorrect data provided $uploadData"))
+//      } else {
+//        val userId = request.token.userId
+//        val data = uploadData.get
+//        for {
+//          // check user owns consignment here. Cache the result as have to make call each time?
+//          details <- consignmentService.getConsignmentDetails(UUID.fromString(data.consignmentId), request.token.bearerAccessToken)
+//          hasAccess = details.userid == userId
+//          result =
+//            if (hasAccess) {
+//              val body = request.body.asMultipartFormData.get
+//              body.files.map(f => {
+//                val putRequest: PutObjectRequest = new PutObjectRequest(bucketName, s"$userId/${data.consignmentId}/${data.fileId}", f.ref)
+//                tm.upload(putRequest)
+//              })
+//              Ok(s"File Uploaded: ${data.fileId}")
+//            } else {
+//              Forbidden(s"User does not have access to consignment: ${data.consignmentId}")
+//            }
+//        } yield result
+//      }
+//    }
+//  }
 
   def addFileStatus(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {

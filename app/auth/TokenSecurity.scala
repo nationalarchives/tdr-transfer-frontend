@@ -1,12 +1,14 @@
 package auth
 
+import akka.stream.alpakka.s3.MultipartUploadResult
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
 import io.opentelemetry.api.trace.Span
 import org.pac4j.core.profile.{ProfileManager, UserProfile}
 import org.pac4j.play.PlayWebContext
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.mvc.{Action, AnyContent, BodyParser, MultipartFormData, Request, Result}
+import play.core.parsers.Multipart
 import services.ConsignmentService
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
@@ -50,6 +52,15 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
 
   def standardTypeAction(consignmentId: UUID)(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = {
     consignmentTypeAction(consignmentId, "standard")(action)
+  }
+
+  def uploadAction(consignmentId: UUID, parser: Multipart.FilePartHandler[MultipartUploadResult])(action: AuthenticatedRequest[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { implicit request =>
+    val token = request.token
+    consignmentService.getConsignmentDetails(consignmentId, token.bearerAccessToken)
+      .flatMap(details => {
+        val permitted = details.userid == token.userId
+        action(request)
+      })
   }
 
   private def createResult(action: Request[AnyContent] => Future[Result], request: AuthenticatedRequest[AnyContent], isPermitted: Boolean) = {
