@@ -15,6 +15,5 @@ class AwsS3Client @Inject() () {
 
   def s3Sink(bucket: String, key: String): Sink[ByteString, Future[MultipartUploadResult]] = {
     S3.multipartUploadWithHeaders(bucket, key, s3Headers = s3Headers)
-    // S3.multipartUpload(bucket, key)
   }
 }

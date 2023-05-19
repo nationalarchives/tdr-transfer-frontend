@@ -1,13 +1,10 @@
 package controllers
 
-import akka.stream.IOResult
 import akka.stream.alpakka.s3.MultipartUploadResult
-import akka.stream.scaladsl._
-import akka.util.ByteString
 import auth.TokenSecurity
-import com.amazonaws.services.s3.model.PutObjectRequest
 import com.amazonaws.services.s3.transfer.{TransferManager, TransferManagerBuilder}
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, ConsignmentStatusInput, StartUploadInput}
 import io.circe.parser.decode
@@ -25,13 +22,9 @@ import services.Statuses.{CompletedValue, InProgressValue, TransferAgreementType
 import services._
 import viewsapi.Caching.preventCaching
 
-import java.io.File
-import java.nio.file.attribute.PosixFilePermissions
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import java.nio.file.attribute.PosixFilePermission._
-import java.nio.file.{Files => JFiles}
 
 @Singleton
 class UploadController @Inject() (
@@ -100,51 +93,31 @@ class UploadController @Inject() (
     }
   }
 
-  type FilePartHandler[A] = FileInfo => Accumulator[ByteString, FilePart[A]]
-
-  def handleFilePartAsFile: FilePartHandler[File] = {
-    case FileInfo(partName, filename, contentType, dispositionType) =>
-      val perms = java.util.EnumSet.of(OWNER_READ, OWNER_WRITE)
-      val attr = PosixFilePermissions.asFileAttribute(perms)
-      val path = JFiles.createTempFile("multipartBody", "tempFile", attr)
-      val file = path.toFile
-      val fileSink = FileIO.toPath(path)
-      val accumulator = Accumulator(fileSink)
-      accumulator.map {
-        case IOResult(count, status) =>
-          FilePart(partName, filename, contentType, file, count, dispositionType)
-      }(ec)
-  }
-
-//  def s3UploadRecords() = secureAction(parse.multipartFormData(handleFilePartAsFile)) { request =>
-//    request.body.files.map { file => {
-//      val id = request.profiles.head.getId
-//      tm.upload("something-else", s"${id}/${file.filename}", file.ref)
-//    }
-//    }
-//    Ok(s"Files Uploaded")
-//  }
-
-
-
+  //with alpakka - still needs disk buffering???
   def s3UploadRecords(userId: UUID, consignmentId: UUID, fileId: UUID): Action[MultipartFormData[MultipartUploadResult]] =
-    secureAction(parse.multipartFormData(handleFilePartAwsUploadResult(userId, consignmentId, fileId))) { implicit request  =>
-
-      val uploadData: Form[FileUploadData] = uploadFileForm.bindFromRequest()
+    secureAction.async(parse.multipartFormData(handleFilePartAwsUploadResult(userId, consignmentId, fileId))) { implicit request =>
       val profile = request.profiles.head
-      println("HERE")
+      val profileUserId = UUID.fromString(profile.getId)
+      val token = profile.getAttribute("access_token").asInstanceOf[BearerAccessToken]
 
-      val maybeUploadResult =
-        request.body.file("file").map {
-          case FilePart(partName, filename, contentType, multipartUploadResult, count, dispositionType) =>
-            multipartUploadResult
+      val uploadResult = for {
+        details <- consignmentService.getConsignmentDetails(consignmentId, token)
+        hasAccess = (userId == profileUserId) && (details.userid == profileUserId)
+        result = if (hasAccess) {
+          val maybeUploadResult =
+            request.body.file("file").map { case FilePart(partName, filename, contentType, multipartUploadResult, count, dispositionType) =>
+              multipartUploadResult
+            }
+
+          maybeUploadResult.fold(
+            InternalServerError("Something went wrong!")
+          )(uploadResult => Ok(s"File ${uploadResult.key} upload to bucket ${uploadResult.bucket}"))
+        } else {
+          Forbidden(s"User does not have access to consignment: $consignmentId")
         }
+      } yield result
 
-      maybeUploadResult.fold(
-        InternalServerError("Something went wrong!")
-      )(uploadResult =>
-        Ok(s"File ${uploadResult.key} upload to bucket ${uploadResult.bucket}")
-      )
+      uploadResult
     }
 
   private def handleFilePartAwsUploadResult(userId: UUID, consignmentId: UUID, fileId: UUID): Multipart.FilePartHandler[MultipartUploadResult] = {
@@ -156,6 +129,7 @@ class UploadController @Inject() (
       }
   }
 
+// without Alpakka
 //  def s3UploadRecords(): Action[AnyContent] = secureAction.async { implicit request =>
 //    {
 //      val uploadData: Form[FileUploadData] = uploadFileForm.bindFromRequest()

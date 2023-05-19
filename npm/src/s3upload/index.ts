@@ -205,8 +205,6 @@ export class S3Upload {
     )!
 
     const formData: FormData = new FormData()
-    formData.append("consignmentId", consignmentId)
-    formData.append("fileId",tdrFileWithPath.fileId)
     formData.append("file", tdrFileWithPath.fileWithPath.file)
 
     const result: Response | Error = await fetch(`/s3-upload-records/${userId}/${consignmentId}/${tdrFileWithPath.fileId}`, {
