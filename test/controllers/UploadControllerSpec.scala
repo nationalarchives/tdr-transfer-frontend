@@ -4,9 +4,10 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, serverError, urlEqualTo}
 import configuration.GraphQLConfiguration
-import graphql.codegen.AddFileStatus.addFileStatus
+import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
+import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses.AddMultipleFileStatuses
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.StartUpload.startUpload
 import graphql.codegen.UpdateConsignmentStatus.updateConsignmentStatus
@@ -708,14 +709,14 @@ class UploadControllerSpec extends FrontEndTestHelper {
   "UploadController addFileStatus" should {
     "call the addFileStatus endpoint" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val client = graphQLConfiguration.getClient[addFileStatus.Data, addFileStatus.Variables]()
+      val client = graphQLConfiguration.getClient[addMultipleFileStatuses.Data, addMultipleFileStatuses.Variables]()
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
       val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
       val uploadService = new UploadService(graphQLConfiguration)
       val fileId = UUID.randomUUID()
       val addFileStatusInput = AddFileStatusInput(fileId, "Upload", "Success")
-      val data = client.GraphqlData(Option(addFileStatus.Data(addFileStatus.AddFileStatus(fileId, "Upload", "Success"))), Nil)
+      val data = client.GraphqlData(Option(addMultipleFileStatuses.Data(List(addMultipleFileStatuses.AddMultipleFileStatuses(fileId, "Upload", "Success")))), Nil)
       val dataString = data.asJson.noSpaces
 
       wiremockServer.stubFor(
@@ -742,7 +743,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
             .withCSRFToken
         )
       val response: String = contentAsString(result)
-      val addFileStatusResponse = decode[addFileStatus.AddFileStatus](response).toOption
+      val addFileStatusResponse = decode[addMultipleFileStatuses.AddMultipleFileStatuses](response).toOption
       addFileStatusResponse.isDefined must be(true)
       addFileStatusResponse.get.fileId must be(addFileStatusInput.fileId)
       addFileStatusResponse.get.statusType must be(addFileStatusInput.statusType)
