@@ -28,7 +28,13 @@ class DeleteAdditionalMetadataController @Inject() (
         Future.failed(new IllegalArgumentException("fileIds are empty"))
       } else {
         for {
-          consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, Some(fileIds), Some(List(clientSideOriginalFilepath, descriptionAlternate)))
+          consignment <- consignmentService.getConsignmentFileMetadata(
+            consignmentId,
+            request.token.bearerAccessToken,
+            None,
+            Some(fileIds),
+            Some(List(clientSideOriginalFilepath, descriptionAlternate))
+          )
           response <-
             if (consignment.files.nonEmpty) {
               val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
@@ -36,7 +42,10 @@ class DeleteAdditionalMetadataController @Inject() (
               val hasEnteredMetadata =
                 consignment.files.flatMap(_.fileStatuses.filter(_.statusType.contains(metadataType.capitalize))).exists(_.statusValue != Statuses.NotEnteredValue.value)
               Future(
-                Ok(views.html.standard.confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds, filePaths, hasEnteredMetadata, hasAlternateDescription, request.token.name)).uncache()
+                Ok(
+                  views.html.standard
+                    .confirmDeleteAdditionalMetadata(consignmentId, metadataType, fileIds, filePaths, hasEnteredMetadata, hasAlternateDescription, request.token.name)
+                ).uncache()
               )
             } else {
               Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
