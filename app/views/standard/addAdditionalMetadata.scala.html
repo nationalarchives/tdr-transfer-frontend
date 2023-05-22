@@ -14,6 +14,7 @@
       <div class="govuk-grid-column-two-thirds">
         <span class="govuk-caption-l">@metadataType.capitalize metadata</span>
         <h1 class="govuk-heading-l">@title</h1>
+        <p class="govuk-body">All fields on this page are required.</p>
         @fileNameCard(files.map(_.name), s"You are adding or editing $metadataType metadata for the following file:")
         @errorSummary(
           fieldsToApplyToFile.collect {
