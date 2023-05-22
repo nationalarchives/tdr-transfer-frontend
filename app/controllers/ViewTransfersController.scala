@@ -109,11 +109,10 @@ class ViewTransfersController @Inject() (
       if (judgmentType) routes.TransferCompleteController.judgmentTransferComplete(consignmentId).url
       else routes.DownloadMetadataController.downloadMetadataCsv(consignmentId).url
     status.value match {
-      //Even though export is InProgress once a user clicks export there is nothing else they can do, hence setting the status to transferred
-      case s if s == InProgressValue.value => UserAction(Transferred.value, url, actionText)
-      case s if s == CompletedValue.value => UserAction(Transferred.value, url, actionText)
-      case s if s == FailedValue.value => UserAction(Failed.value, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", ContactUs.value)
-      case _ => toContactUsAction(consignmentRef)
+      // Even though export is InProgress once a user clicks export there is nothing else they can do, hence setting the status to transferred
+      case s if s == InProgressValue.value || s == CompletedValue.value => UserAction(Transferred.value, url, actionText)
+      case s if s == FailedValue.value                                  => UserAction(Failed.value, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", ContactUs.value)
+      case _                                                            => toContactUsAction(consignmentRef)
     }
   }
 
