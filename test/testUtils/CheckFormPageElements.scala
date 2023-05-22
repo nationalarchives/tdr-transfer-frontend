@@ -8,6 +8,7 @@ class CheckFormPageElements() {
   private val expectedClosureFormHtmlElements = Set(
     """      <title>Add or edit closure metadata - Transfer Digital Records - GOV.UK</title>""",
     """      <span class="govuk-caption-l">Closure metadata</span>""",
+    """      <p class="govuk-body">All fields on this page are required.</p>""",
     """      <h1 class="govuk-heading-l">Add or edit closure metadata</h1>""",
     """            <h2 class="govuk-fieldset__heading">
       |                FOI decision asserted
