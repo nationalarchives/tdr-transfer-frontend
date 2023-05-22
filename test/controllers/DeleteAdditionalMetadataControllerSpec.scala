@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
-import controllers.util.MetadataProperty.clientSideOriginalFilepath
+import controllers.util.MetadataProperty.{clientSideOriginalFilepath, descriptionAlternate}
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetConsignment.getConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileStatuses
@@ -17,7 +17,7 @@ import io.circe.syntax.EncoderOps
 import org.mockito.Mockito.when
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-import org.scalatest.prop.TableFor4
+import org.scalatest.prop.TableFor5
 import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
@@ -49,13 +49,13 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
   val fileIds: List[UUID] = List(UUID.randomUUID())
 
-  val deleteButtonStates: TableFor4[String, String, String, Boolean] = Table(
-    ("Metadata Type", "File Metadata Status", "Button State", "Has Entered Metadata"),
-    (closureMetadataType, "NotEntered", "disabled", false),
-    (closureMetadataType, "Incomplete", "enabled", true),
-    (closureMetadataType, "Complete", "enabled", true),
-    (descriptiveMetadataType, "NotEntered", "disabled", false),
-    (descriptiveMetadataType, "Complete", "enabled", true)
+  val deleteButtonStates: TableFor5[String, String, String, Boolean, Boolean] = Table(
+    ("Metadata Type", "File Metadata Status", "Button State", "Has Entered Metadata", "Has Alternate Description"),
+    (closureMetadataType, "NotEntered", "disabled", false, false),
+    (closureMetadataType, "Incomplete", "enabled", true, false),
+    (closureMetadataType, "Complete", "enabled", true, false),
+    (descriptiveMetadataType, "NotEntered", "disabled", false, false),
+    (descriptiveMetadataType, "Complete", "enabled", true, true)
   )
 
   "confirmDeleteAdditionalMetadata" should {
@@ -91,7 +91,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val input = request.variables.fileFiltersInput
       input.get.selectedFileIds mustBe fileIds.some
-      input.get.metadataFilters mustBe FileMetadataFilters(None, None, Some(List(clientSideOriginalFilepath))).some
+      input.get.metadataFilters mustBe FileMetadataFilters(None, None, Some(List(clientSideOriginalFilepath, descriptionAlternate))).some
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
@@ -101,7 +101,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
-    "render the delete closure metadata page with an authenticated user for the 'descriptive' metadata type" in {
+    "render the delete metadata page with a warning message when an alternate description exists for the 'descriptive' metadata type" in {
       val consignmentId = UUID.randomUUID()
       val consignmentReference = "TEST-TDR-2021-GB"
       val fileStatuses = List(FileStatuses(descriptiveMetadataType.capitalize, "Completed"))
@@ -130,11 +130,11 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       contentType(response) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
-      checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, descriptiveMetadataType)
+      checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, descriptiveMetadataType, hasAlternateDescription = true)
       wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
     }
 
-    forAll(deleteButtonStates) { (metadataType, fileMetadataStatus, buttonState, hasEnteredMetadata) =>
+    forAll(deleteButtonStates) { (metadataType, fileMetadataStatus, buttonState, hasEnteredMetadata, hasAlternateDescription) =>
       s"delete button should be '$buttonState' if metadata status is $fileMetadataStatus for an authenticated user for the $metadataType metadata type" in {
         val consignmentId = UUID.randomUUID()
         val consignmentReference = "TEST-TDR-2021-GB"
@@ -168,13 +168,13 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
         val input = request.variables.fileFiltersInput
         input.get.selectedFileIds mustBe fileIds.some
-        input.get.metadataFilters mustBe FileMetadataFilters(None, None, Some(List(clientSideOriginalFilepath))).some
+        input.get.metadataFilters mustBe FileMetadataFilters(None, None, Some(List(clientSideOriginalFilepath, descriptionAlternate))).some
 
         status(response) mustBe OK
         contentType(response) mustBe Some("text/html")
 
         checkPageForStaticElements.checkContentOfPagesThatUseMainScala(deleteMetadataPage, userType = "standard", consignmentExists = false)
-        checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, metadataType, hasEnteredMetadata = hasEnteredMetadata)
+        checkConfirmDeleteMetadataPage(deleteMetadataPage, consignmentId, metadataType, hasEnteredMetadata = hasEnteredMetadata, hasAlternateDescription = hasAlternateDescription)
         wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")))
       }
     }
@@ -536,7 +536,13 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def checkConfirmDeleteMetadataPage(pageString: String, consignmentId: UUID, metadataType: String, hasEnteredMetadata: Boolean = true): Unit = {
+  private def checkConfirmDeleteMetadataPage(
+      pageString: String,
+      consignmentId: UUID,
+      metadataType: String,
+      hasEnteredMetadata: Boolean = true,
+      hasAlternateDescription: Boolean = false
+  ): Unit = {
     pageString must include(s"<title>Delete $metadataType metadata - Transfer Digital Records - GOV.UK</title>")
     pageString must include(
       s"""              <h1 class="govuk-heading-xl">
@@ -544,7 +550,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
                         </h1>""".stripMargin
     )
 
-    pageString must include("<p class=\"govuk-body\">Confirm you wish to proceed.</p>")
+    pageString must include(s"<p class=\"govuk-body\">deleteAdditionalMetadata.${metadataType}DeletionWarningMessage</p>")
     val deleteButtonHref =
       s"/consignment/$consignmentId/additional-metadata/delete-metadata/$metadataType?fileIds=${fileIds.mkString("&amp;")}"
     val cancelButtonHref =
@@ -553,7 +559,11 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     if (!hasEnteredMetadata) {
       pageString must include("deleteAdditionalMetadata.noMetadataWarningMessage")
     } else {
-      pageString must (include(s"deleteAdditionalMetadata.${metadataType}DeletionWarningMessage"))
+      if (metadataType == descriptiveMetadataType && hasAlternateDescription) {
+        pageString must (include(s"deleteAdditionalMetadata.alternateDescriptionWarningMessage"))
+      } else {
+        pageString must not(include(s"deleteAdditionalMetadata.alternateDescriptionWarningMessage"))
+      }
     }
     val isButtonDisabled = if (!hasEnteredMetadata) "disabled" else ""
     pageString must include(
