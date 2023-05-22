@@ -42,7 +42,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry" % "opentelemetry-sdk" % "1.26.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.25.1",
+  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.26.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
   "io.opentelemetry.instrumentation" % "opentelemetry-logback-mdc-1.0" % "1.25.1-alpha",
   "com.github.tomakehurst" % "wiremock-jre8" % "2.35.0" % Test,
