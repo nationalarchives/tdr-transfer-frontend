@@ -46,26 +46,31 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(beforeUploadingPageAsString, userType = "judgment")
       beforeUploadingPageAsString must include("""<h1 class="govuk-heading-l">Check your file before uploading</h1>""")
       beforeUploadingPageAsString must include(
-        """<p class="govuk-body govuk-!-margin-bottom-1">Your upload must contain the following information:</p>"""
+        """<p class="govuk-body">Your upload must contain the following information:</p>"""
       )
       beforeUploadingPageAsString must include(
-        """<p class="govuk-body govuk-!-margin-bottom-1">neutral citation, name(s) of judge(s), name(s) of parties, court and judgment date.</p>"""
+        """                <ul class="govuk-list">
+          |                    <li>neutral citation</li>
+          |                    <li>name(s) of judge(s)</li>
+          |                    <li>name(s) of parties</li>
+          |                    <li>court and judgment date</li>
+          |                </ul>""".stripMargin
       )
-      // scalastyle:off line.size.limit
+      beforeUploadingPageAsString must include("""<h2 class="govuk-heading-m">Do you need to contact us about this transfer?</h2>""")
       beforeUploadingPageAsString must include(
-        """<h2 class="govuk-heading-s">Select <a href="mailto:nationalArchives.judgmentsEmail?subject=Ref: TEST-TDR-2021-GB">nationalArchives.judgmentsEmail</a>"""
+        """                <p class="govuk-body">
+          |                    Send an email to <a class="govuk-link" href="mailto:nationalArchives.judgmentsEmail?subject=Ref: TEST-TDR-2021-GB">judgments@nationalarchives.gov.uk</a>
+          |                    with <strong>Ref: TEST-TDR-2021-GB</strong> as the subject line if you need to:
+          |                </p>""".stripMargin
       )
-      // scalastyle:on line.size.limit
       beforeUploadingPageAsString must include(
-        """    <ul class="govuk-list govuk-list--bullet">
-          |        <li>Attach and send supplementary material for this judgment.</li>
-          |        <li>Flag when your judgment is a new version; quote the details of the original document being replaced.</li>
-          |        <li>Flag when your judgment is subject to an anonymisation order.</li>
-          |    </ul>""".stripMargin
+        """                <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+          |                    <li>Attach and send supplementary material for this judgment.</li>
+          |                    <li>Flag when your judgment is a new version; quote the details of the original document being replaced.</li>
+          |                    <li>Flag when your judgment is subject to an anonymisation order.</li>
+          |                </ul>""".stripMargin
       )
-      // scalastyle:off line.size.limit
       beforeUploadingPageAsString must include(s"""<a href="/judgment/$consignmentId/upload" role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
-      // scalastyle:on line.size.limit
     }
   }
 

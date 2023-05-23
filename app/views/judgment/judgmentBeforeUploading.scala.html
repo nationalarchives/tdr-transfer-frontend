@@ -3,32 +3,36 @@
 @import java.util.UUID
 
 @(consignmentId: UUID, consignmentRef: String, name: String)(implicit request: RequestHeader, messages: Messages)
-@main("Check your file before uploading", name = name, isJudgmentUser = true) {
-@defining(play.core.PlayVersion.current) { version =>
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      @progressIndicator(Messages("beforeUploading.progress"), isJudgmentUser=true)
-      <h1 class="govuk-heading-l">Check your file before uploading</h1>
-      <p class="govuk-body govuk-!-margin-bottom-1">Your upload must contain the following information:</p>
-      <p class="govuk-body govuk-!-margin-bottom-1">neutral citation, name(s) of judge(s), name(s) of parties, court and judgment date.</p>
+    @main("Check your file before uploading", name = name, isJudgmentUser = true) {
+        @defining(play.core.PlayVersion.current) { version =>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-two-thirds">
+                    @progressIndicator(Messages("beforeUploading.progress"), isJudgmentUser = true)
+                <h1 class="govuk-heading-l">Check your file before uploading</h1>
+                <p class="govuk-body">Your upload must contain the following information:</p>
+                <ul class="govuk-list">
+                    <li>neutral citation</li>
+                    <li>name(s) of judge(s)</li>
+                    <li>name(s) of parties</li>
+                    <li>court and judgment date</li>
+                </ul>
+                <h2 class="govuk-heading-m">Do you need to contact us about this transfer?</h2>
+                <p class="govuk-body">
+                    Send an email to <a class="govuk-link" href="mailto:@Messages("nationalArchives.judgmentsEmail")?subject=Ref: @consignmentRef">judgments@@nationalarchives.gov.uk</a>
+                    with <strong>Ref: @consignmentRef</strong> as the subject line if you need to:
+                </p>
+                <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+                    <li>Attach and send supplementary material for this judgment.</li>
+                    <li>Flag when your judgment is a new version; quote the details of the original document being replaced.</li>
+                    <li>Flag when your judgment is subject to an anonymisation order.</li>
+                </ul>
 
-      <h2 class="govuk-heading-s">Select <a href="mailto:@Messages("nationalArchives.judgmentsEmail")?subject=Ref: @consignmentRef">@Messages("nationalArchives.judgmentsEmail")</a>
-          to generate an automatic email, with the transfer reference included, in order to:
-      </h2>
-    <ul class="govuk-list govuk-list--bullet">
-        <li>Attach and send supplementary material for this judgment.</li>
-        <li>Flag when your judgment is a new version; quote the details of the original document being replaced.</li>
-        <li>Flag when your judgment is subject to an anonymisation order.</li>
-    </ul>
-      <div class="govuk-button-group">
-        <a href="@routes.UploadController.judgmentUploadPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-            Continue
-        </a>
-
-        <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
-      </div>
-    </div>
-    @transferReference(consignmentRef, isJudgmentUser = true)
-</div>
-}
-}
+                <div class="govuk-button-group">
+                    <a href="@routes.UploadController.judgmentUploadPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Continue</a>
+                    <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
+                </div>
+                </div>
+                @transferReference(consignmentRef, isJudgmentUser = true)
+            </div>
+        }
+    }
