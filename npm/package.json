@@ -53,7 +53,7 @@
     "minify": "^10.0.0",
     "npm-run-all": "^4.1.5",
     "sass": "^1.62.1",
-    "ts-loader": "^9.4.2",
+    "ts-loader": "^9.4.3",
     "unfetch": "^5.0.0",
     "util": "^0.12.5",
     "webpack": "^5.83.1",
@@ -83,7 +83,7 @@
     "stylelint": "^14.16.1",
     "stylelint-config-sass-guidelines": "^9.0.0",
     "ts-jest": "^28.0.8",
-    "ts-loader": "^9.4.2",
+    "ts-loader": "^9.4.3",
     "typescript": "5.0.4",
     "webpack": "^5.83.1",
     "webpack-cli": "^5.1.1"
