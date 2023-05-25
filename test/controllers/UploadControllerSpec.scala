@@ -786,7 +786,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
       val uploadService = new UploadService(graphQLConfiguration)
       val fileId = UUID.randomUUID()
-      val addFileStatusInput = AddFileStatusInput(fileId, "Upload", "Success")
+      val addFileStatusInput = AddMultipleFileStatusesInput(List(AddFileStatusInput(fileId, "Upload", "Success")))
 
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
