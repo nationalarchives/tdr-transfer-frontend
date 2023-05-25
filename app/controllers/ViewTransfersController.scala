@@ -111,8 +111,8 @@ class ViewTransfersController @Inject() (
     status.value match {
       // Even though export is InProgress once a user clicks export there is nothing else they can do, hence setting the status to transferred
       case InProgressValue.value | CompletedValue.value => UserAction(Transferred.value, url, actionText)
-      case FailedValue.value => UserAction(Failed.value, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", ContactUs.value)
-      case _ => toContactUsAction(consignmentRef)
+      case FailedValue.value                            => UserAction(Failed.value, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", ContactUs.value)
+      case _                                            => toContactUsAction(consignmentRef)
     }
   }
 
