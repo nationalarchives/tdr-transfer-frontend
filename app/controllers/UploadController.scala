@@ -69,7 +69,7 @@ class UploadController @Inject() (
       decode[AddMultipleFileStatusesInput](body.toString()).toOption
     }) match {
       case Some(addMultipleFileStatusesInput: AddMultipleFileStatusesInput) =>
-        fileStatusService.addFileStatus(addMultipleFileStatusesInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
+        fileStatusService.addMultipleFileStatuses(addMultipleFileStatusesInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
       case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
     }
   }

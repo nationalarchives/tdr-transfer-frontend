@@ -33,7 +33,7 @@ class FileStatusServiceSpec extends AnyFlatSpec {
     when(graphQlClientForAddFileStatus.getResult(token, amfs.document, Some(amfs.Variables(input))))
       .thenReturn(Future.successful(graphQlResponse))
 
-    val response = new FileStatusService(graphQlConfig).addFileStatus(input, token).futureValue
+    val response = new FileStatusService(graphQlConfig).addMultipleFileStatuses(input, token).futureValue
     val testItem = response.head
     testItem.fileId should equal(input.statuses.head.fileId)
     testItem.statusType should equal(input.statuses.head.statusType)
@@ -41,8 +41,7 @@ class FileStatusServiceSpec extends AnyFlatSpec {
   }
 
   "addFileStatus" should "return an error when the API has an error" in {
-    val preInput = AddFileStatusInput(UUID.randomUUID(), "Upload", "Success")
-    val input = AddMultipleFileStatusesInput(List(preInput))
+    val input = AddMultipleFileStatusesInput(List(AddFileStatusInput(UUID.randomUUID(), "Upload", "Success")))
     val graphQlClientForAddFileStatus = mock[GraphQLClient[amfs.Data, amfs.Variables]]
     when(graphQlConfig.getClient[amfs.Data, amfs.Variables]())
       .thenReturn(graphQlClientForAddFileStatus)
@@ -50,7 +49,7 @@ class FileStatusServiceSpec extends AnyFlatSpec {
     when(graphQlClientForAddFileStatus.getResult(token, amfs.document, Some(amfs.Variables(input))))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-    val results = new FileStatusService(graphQlConfig).addFileStatus(input, token)
+    val results = new FileStatusService(graphQlConfig).addMultipleFileStatuses(input, token)
     results.failed.futureValue shouldBe a[HttpError]
   }
 }
