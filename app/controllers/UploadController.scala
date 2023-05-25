@@ -3,7 +3,7 @@ package controllers
 import auth.TokenSecurity
 import com.typesafe.config.{Config, ConfigFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, ConsignmentStatusInput, StartUploadInput}
+import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, ConsignmentStatusInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
@@ -66,10 +66,11 @@ class UploadController @Inject() (
 
   def addFileStatus(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {
-      decode[AddFileStatusInput](body.toString()).toOption
+      decode[AddMultipleFileStatusesInput](body.toString()).toOption
     }) match {
-      case Some(addFileStatusInput) => fileStatusService.addFileStatus(addFileStatusInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
-      case None                     => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+      case Some(addMultipleFileStatusesInput: AddMultipleFileStatusesInput) =>
+        fileStatusService.addMultipleFileStatuses(addMultipleFileStatusesInput, request.token.bearerAccessToken).map(res => Ok(res.asJson.noSpaces))
+      case None => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
     }
   }
 
