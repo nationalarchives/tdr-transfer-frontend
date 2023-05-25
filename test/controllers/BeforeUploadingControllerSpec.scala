@@ -59,7 +59,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       beforeUploadingPageAsString must include("""<h2 class="govuk-heading-m">Do you need to contact us about this transfer?</h2>""")
       beforeUploadingPageAsString must include(
         """                <p class="govuk-body">
-          |                    Send an email to <a class="govuk-link" href="mailto:nationalArchives.judgmentsEmail?subject=Ref: TEST-TDR-2021-GB">judgments@nationalarchives.gov.uk</a>
+          |                    Send an email to <a class="govuk-link" href="mailto:nationalArchives.judgmentsEmail?subject=Ref: TEST-TDR-2021-GB">nationalArchives.judgmentsEmail</a>
           |                    with <strong>Ref: TEST-TDR-2021-GB</strong> as the subject line if you need to:
           |                </p>""".stripMargin
       )
