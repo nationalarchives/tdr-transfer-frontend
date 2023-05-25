@@ -2,33 +2,35 @@ package controllers
 
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, serverError, urlEqualTo}
 import configuration.GraphQLConfiguration
-import graphql.codegen.AddFileStatus.addFileStatus
+import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses
+import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses.AddMultipleFileStatuses
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.StartUpload.startUpload
 import graphql.codegen.UpdateConsignmentStatus.updateConsignmentStatus
-import graphql.codegen.types._
-import io.circe.generic.auto._
-import io.circe.parser.decode
+import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, AddMultipleFileStatusesInput, ClientSideMetadataInput, ConsignmentStatusInput, StartUploadInput}
 import io.circe.syntax._
+import io.circe.parser.decode
+import io.circe.generic.auto._
 import play.api.Play.materializer
-import play.api.libs.json._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
-import play.api.test.WsTestClient.InternalWSClient
-import services.{BackendChecksService, ConsignmentService, FileStatusService, UploadService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
+import services.{BackendChecksService, ConsignmentService, FileStatusService, UploadService}
+import play.api.libs.json._
 
-import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
-import scala.jdk.CollectionConverters._
 import org.scalatest.concurrent.ScalaFutures._
+import play.api.test.WsTestClient.InternalWSClient
+
+import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
+import scala.jdk.CollectionConverters._
 
 class UploadControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
@@ -711,19 +713,19 @@ class UploadControllerSpec extends FrontEndTestHelper {
   "UploadController addFileStatus" should {
     "call the addFileStatus endpoint" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val client = graphQLConfiguration.getClient[addFileStatus.Data, addFileStatus.Variables]()
+      val client = graphQLConfiguration.getClient[addMultipleFileStatuses.Data, addMultipleFileStatuses.Variables]()
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
       val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
       val uploadService = new UploadService(graphQLConfiguration)
       val fileId = UUID.randomUUID()
-      val addFileStatusInput = AddFileStatusInput(fileId, "Upload", "Success")
-      val data = client.GraphqlData(Option(addFileStatus.Data(addFileStatus.AddFileStatus(fileId, "Upload", "Success"))), Nil)
+      val addFileStatusInput = AddMultipleFileStatusesInput(List(AddFileStatusInput(fileId, "Upload", "Success")))
+      val data = client.GraphqlData(Option(addMultipleFileStatuses.Data(List(addMultipleFileStatuses.AddMultipleFileStatuses(fileId, "Upload", "Success")))), Nil)
       val dataString = data.asJson.noSpaces
 
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
-          .withRequestBody(containing("addFileStatus"))
+          .withRequestBody(containing("addMultipleFileStatuses"))
           .willReturn(okJson(dataString))
       )
 
@@ -745,11 +747,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
             .withCSRFToken
         )
       val response: String = contentAsString(result)
-      val addFileStatusResponse = decode[addFileStatus.AddFileStatus](response).toOption
+      val addFileStatusResponse = decode[List[addMultipleFileStatuses.AddMultipleFileStatuses]](response).toOption
       addFileStatusResponse.isDefined must be(true)
-      addFileStatusResponse.get.fileId must be(addFileStatusInput.fileId)
-      addFileStatusResponse.get.statusType must be(addFileStatusInput.statusType)
-      addFileStatusResponse.get.statusValue must be(addFileStatusInput.statusValue)
+      addFileStatusResponse.get.head.fileId must be(addFileStatusInput.statuses.head.fileId)
+      addFileStatusResponse.get.head.statusType must be(addFileStatusInput.statuses.head.statusType)
+      addFileStatusResponse.get.head.statusValue must be(addFileStatusInput.statuses.head.statusValue)
 
       wiremockServer.getAllServeEvents.asScala.nonEmpty must be(true)
     }
@@ -788,7 +790,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
       val uploadService = new UploadService(graphQLConfiguration)
       val fileId = UUID.randomUUID()
-      val addFileStatusInput = AddFileStatusInput(fileId, "Upload", "Success")
+      val addFileStatusInput = AddMultipleFileStatusesInput(List(AddFileStatusInput(fileId, "Upload", "Success")))
 
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
@@ -1127,8 +1129,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     // scalastyle:off line.size.limit
     pageAsString must include(
       """                    <p class="upload-progress-error-timeout__message" hidden>Your upload has timed out. Click 'Return to start' to begin a new transfer.</p>
-         |                    <p class="upload-progress-error-authentication__message" hidden>You have been signed out. Click 'Return to start' to begin a new transfer.</p>
-         |                    <p class="upload-progress-error-general__message" hidden>Click 'Return to start' to begin a new transfer.</p>""".stripMargin
+        |                    <p class="upload-progress-error-authentication__message" hidden>You have been signed out. Click 'Return to start' to begin a new transfer.</p>
+        |                    <p class="upload-progress-error-general__message" hidden>Click 'Return to start' to begin a new transfer.</p>""".stripMargin
     )
     // scalastyle:on line.size.limit
     pageAsString must include("""<div class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">""")
