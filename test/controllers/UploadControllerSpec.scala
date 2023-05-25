@@ -2,33 +2,35 @@ package controllers
 
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, serverError, urlEqualTo}
 import configuration.GraphQLConfiguration
-import graphql.codegen.AddFileStatus.addFileStatus
+import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses
+import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses.AddMultipleFileStatuses
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.StartUpload.startUpload
 import graphql.codegen.UpdateConsignmentStatus.updateConsignmentStatus
-import graphql.codegen.types._
-import io.circe.generic.auto._
-import io.circe.parser.decode
+import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, AddMultipleFileStatusesInput, ClientSideMetadataInput, ConsignmentStatusInput, StartUploadInput}
 import io.circe.syntax._
+import io.circe.parser.decode
+import io.circe.generic.auto._
 import play.api.Play.materializer
-import play.api.libs.json._
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
-import play.api.test.WsTestClient.InternalWSClient
-import services.{BackendChecksService, ConsignmentService, FileStatusService, UploadService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
+import services.{BackendChecksService, ConsignmentService, FileStatusService, UploadService}
+import play.api.libs.json._
 
-import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
-import scala.jdk.CollectionConverters._
 import org.scalatest.concurrent.ScalaFutures._
+import play.api.test.WsTestClient.InternalWSClient
+
+import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
+import scala.jdk.CollectionConverters._
 
 class UploadControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
@@ -189,32 +191,28 @@ class UploadControllerSpec extends FrontEndTestHelper {
         """We cannot accept files and folders which are password protected, zipped or contain slashes (/ and \) in the name. """ +
           "You must remove all thumbnail images (thumbs.db) and executable files (.exe). Empty folders will not be transferred."
       )
-      uploadPageAsString must include("""<h2 class="govuk-heading-m">Choose a folder to upload</h2>""")
       uploadPageAsString must include(
-        """<p class="govuk-body">The 'Choose folder' button below will cause your browser to open a dialog box to find and select a folder. Once selected, you will be prompted to confirm your choice.</p>"""
+        """<p id="success-message-text" class="success-message">The folder "<span class="folder-name"></span>"""" +
+          """ (containing <span class="folder-size"></span>) has been selected </p>"""
       )
       uploadPageAsString must include(
-        """<p id="success-message-text" aria-live="assertive" aria-atomic="true" class="govuk-!-margin-bottom-3 govuk-!-margin-top-0 drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span>) has been selected.</p>"""
-      )
-      uploadPageAsString must include(
-        """<a id="remove-file-btn" href="#" aria-describedby="files-selected-folder-name" class="govuk-link govuk-link--no-visited-state govuk-!-font-size-19 govuk-body govuk-!-font-weight-bold">Remove<span class="govuk-visually-hidden">&nbsp; selected files</span></a>""".stripMargin
+        """<a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove selected records</a>"""
       )
       uploadPageAsString must include(
         """<p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>"""" +
           """ (containing <span class="folder-size"></span>) has been removed. Select a folder.</p>"""
       )
       uploadPageAsString must include(
-        """|                            <div class="drag-and-drop__dropzone">
-           |                                <input type="file" id="file-selection" name="files"
-           |                                class="govuk-file-upload drag-and-drop__input" webkitdirectory""".stripMargin
+        """|                                <div class="drag-and-drop__dropzone">
+           |                                    <input type="file" id="file-selection" name="files"
+           |                                    class="govuk-file-upload drag-and-drop__input" webkitdirectory""".stripMargin
       )
       uploadPageAsString must include(
-        """|                                accept="*"
-           |                                >
-           |                                <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single top-level folder here or &nbsp;</p>
-           |                                <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
-           |                                    Choose folder
-           |                                </label>""".stripMargin
+        """|                                    accept="*"
+           |                                    >
+           |                                    <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single top-level folder here or</p>
+           |                                    <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
+           |                                        Choose folder""".stripMargin
       )
       uploadPageAsString must include("For information on what metadata will be captured during upload, visit the")
       uploadPageAsString must include(
@@ -711,19 +709,19 @@ class UploadControllerSpec extends FrontEndTestHelper {
   "UploadController addFileStatus" should {
     "call the addFileStatus endpoint" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val client = graphQLConfiguration.getClient[addFileStatus.Data, addFileStatus.Variables]()
+      val client = graphQLConfiguration.getClient[addMultipleFileStatuses.Data, addMultipleFileStatuses.Variables]()
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
       val fileStatusService = new FileStatusService(graphQLConfiguration)
       val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
       val uploadService = new UploadService(graphQLConfiguration)
       val fileId = UUID.randomUUID()
-      val addFileStatusInput = AddFileStatusInput(fileId, "Upload", "Success")
-      val data = client.GraphqlData(Option(addFileStatus.Data(addFileStatus.AddFileStatus(fileId, "Upload", "Success"))), Nil)
+      val addFileStatusInput = AddMultipleFileStatusesInput(List(AddFileStatusInput(fileId, "Upload", "Success")))
+      val data = client.GraphqlData(Option(addMultipleFileStatuses.Data(List(addMultipleFileStatuses.AddMultipleFileStatuses(fileId, "Upload", "Success")))), Nil)
       val dataString = data.asJson.noSpaces
 
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
-          .withRequestBody(containing("addFileStatus"))
+          .withRequestBody(containing("addMultipleFileStatuses"))
           .willReturn(okJson(dataString))
       )
 
@@ -745,11 +743,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
             .withCSRFToken
         )
       val response: String = contentAsString(result)
-      val addFileStatusResponse = decode[addFileStatus.AddFileStatus](response).toOption
+      val addFileStatusResponse = decode[List[addMultipleFileStatuses.AddMultipleFileStatuses]](response).toOption
       addFileStatusResponse.isDefined must be(true)
-      addFileStatusResponse.get.fileId must be(addFileStatusInput.fileId)
-      addFileStatusResponse.get.statusType must be(addFileStatusInput.statusType)
-      addFileStatusResponse.get.statusValue must be(addFileStatusInput.statusValue)
+      addFileStatusResponse.get.head.fileId must be(addFileStatusInput.statuses.head.fileId)
+      addFileStatusResponse.get.head.statusType must be(addFileStatusInput.statuses.head.statusType)
+      addFileStatusResponse.get.head.statusValue must be(addFileStatusInput.statuses.head.statusValue)
 
       wiremockServer.getAllServeEvents.asScala.nonEmpty must be(true)
     }
@@ -788,7 +786,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
       val uploadService = new UploadService(graphQLConfiguration)
       val fileId = UUID.randomUUID()
-      val addFileStatusInput = AddFileStatusInput(fileId, "Upload", "Success")
+      val addFileStatusInput = AddMultipleFileStatusesInput(List(AddFileStatusInput(fileId, "Upload", "Success")))
 
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
@@ -1110,15 +1108,10 @@ class UploadControllerSpec extends FrontEndTestHelper {
     pageAsString must include(
       """<form id="file-upload-form" data-consignment-id="c2efd3e6-6664-4582-8c28-dcf891f60e68">"""
     )
-    pageAsString must (include(
-      """                            <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-        |                                Start upload
-        |                            </button>""".stripMargin
-    ) or include(
+    pageAsString must include(
       """                                <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-        |                                    Start upload
-        |                                </button>""".stripMargin
-    ))
+        |                                    Start upload""".stripMargin
+    )
     pageAsString must include(
       s"""            <a class="govuk-button" href="/homepage" role="button" draggable="false" data-module="govuk-button">
          |                Return to start
@@ -1127,8 +1120,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
     // scalastyle:off line.size.limit
     pageAsString must include(
       """                    <p class="upload-progress-error-timeout__message" hidden>Your upload has timed out. Click 'Return to start' to begin a new transfer.</p>
-         |                    <p class="upload-progress-error-authentication__message" hidden>You have been signed out. Click 'Return to start' to begin a new transfer.</p>
-         |                    <p class="upload-progress-error-general__message" hidden>Click 'Return to start' to begin a new transfer.</p>""".stripMargin
+        |                    <p class="upload-progress-error-authentication__message" hidden>You have been signed out. Click 'Return to start' to begin a new transfer.</p>
+        |                    <p class="upload-progress-error-general__message" hidden>Click 'Return to start' to begin a new transfer.</p>""".stripMargin
     )
     // scalastyle:on line.size.limit
     pageAsString must include("""<div class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">""")
