@@ -86,10 +86,10 @@ pre {
   white-space: pre-wrap;
 }
 
-address span {
-  display: block;
+address {
+  margin-bottom: 15px;
 }
 
-address span:last-child {
-  margin-bottom: 15px;
+address span {
+  display: block;
 }
