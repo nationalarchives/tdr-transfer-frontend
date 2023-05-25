@@ -85,3 +85,11 @@ pre {
   margin: 0;
   white-space: pre-wrap;
 }
+
+address span {
+  display: block;
+}
+
+address span:last-child {
+  margin-bottom: 15px;
+}
