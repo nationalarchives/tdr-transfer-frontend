@@ -32,7 +32,6 @@ import play.api.test.WsTestClient.InternalWSClient
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import scala.jdk.CollectionConverters._
 
-
 class UploadControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val triggerBackendChecksServer = new WireMockServer(9008)
