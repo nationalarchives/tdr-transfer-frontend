@@ -8,8 +8,9 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.C
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.prop.TableFor4
 import play.api.Play.materializer
-import play.api.http.Status.{FOUND, OK}
+import play.api.http.Status.{FORBIDDEN, FOUND, OK}
 import play.api.test.FakeRequest
+import play.api.test.Helpers.status
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.ConsignmentService
 import services.Statuses.SeriesType
@@ -204,10 +205,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       viewTransfersPageAsString must not include "<tbody"
     }
 
-    // TODO: Uncomment once we allow judgment users to access the view transfers page
-    /*"render the view transfers page with a list of all a judgment user's consignments" in {
-      setConsignmentTypeResponse(wiremockServer, judgmentType)
-      val consignments = setConsignmentViewTransfersResponse(wiremockServer, judgmentType, statuses = List())
+    "return 403 if the view transfers page is accessed by a judgment user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val applicationConfig = new ApplicationConfig(app.configuration)
@@ -215,41 +213,9 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val response = controller
         .viewConsignments()
         .apply(FakeRequest(GET, s"/view-transfers"))
-      val viewTransfersPageAsString = contentAsString(response)
 
-      status(response) mustBe OK
-      contentType(response) mustBe Some("text/html")
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = judgmentType, consignmentExists = false)
-      checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
-
-      consignments.foreach(c => {
-        verifyConsignmentRow(viewTransfersPageAsString, c.node, "/before-uploading", "In Progress", "Resume transfer", judgmentType)
-      })
-    }*/
-
-    // TODO: Uncomment once we allow judgment users to access the view transfers page
-    /*"render the view transfers page with no consignments if the judgment user doesn't have any consignments" in {
-      setConsignmentTypeResponse(wiremockServer, judgmentType)
-      setConsignmentViewTransfersResponse(wiremockServer, judgmentType, noConsignment = true)
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val applicationConfig = new ApplicationConfig(app.configuration)
-      val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
-      val response = controller
-        .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-transfers"))
-      val viewTransfersPageAsString = contentAsString(response)
-
-      status(response) mustBe OK
-      contentType(response) mustBe Some("text/html")
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = judgmentType, consignmentExists = false)
-      checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
-
-      viewTransfersPageAsString must not include "<tbody"
-    }*/
+      status(response) mustBe FORBIDDEN
+    }
 
     "redirect to the login page if the page is accessed by a logged out user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
