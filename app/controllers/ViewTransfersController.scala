@@ -39,7 +39,7 @@ class ViewTransfersController @Inject() (
     }
   }
 
-  def viewConsignments(pageNumber: Int = 1): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def viewConsignments(pageNumber: Int = 1): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
     val consignmentFilters = ConsignmentFilters(Some(request.token.userId), None)
     for {
       consignmentTransfers <- consignmentService.getConsignments(
