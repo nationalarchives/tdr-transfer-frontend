@@ -23,9 +23,10 @@ fileChecksResults.description.plural=Your folder ''{0}'' containing {1} items ha
 transferComplete.error=There has been an error, contact us.
 deleteAdditionalMetadata.closureDeletionMessage=You have chosen to delete the closure metadata you added to the following record and set it as open:
 deleteAdditionalMetadata.descriptiveDeletionMessage=You have chosen to delete the descriptive metadata you added to the following record:
-deleteAdditionalMetadata.closureDeletionWarningMessage=Once closure metadata is deleted, it cannot be recovered. The selected file will be set to open.
+deleteAdditionalMetadata.closureDeletionWarningMessage=Once closure metadata is deleted, it cannot be recovered. The selected file will be set to open. Confirm you wish to proceed.
 deleteAdditionalMetadata.noMetadataWarningMessage=There is no metadata associated with this file. Return to the <a class="govuk-notification-banner__link" href="{0}">{1}</a> to continue.
-deleteAdditionalMetadata.descriptiveDeletionWarningMessage=Once descriptive metadata is deleted, it cannot be recovered.
+deleteAdditionalMetadata.descriptiveDeletionWarningMessage=Once descriptive metadata is deleted, it cannot be recovered. Confirm you wish to proceed.
+deleteAdditionalMetadata.alternateDescriptionWarningMessage=You have previously added an alternative description in closure metadata. Deleting the descriptive metadata will also remove that alternative description.
 additionalMetadata.warningMessage=Check you have entered any additional metadata that is required before proceeding with the transfer.
 closureStatus.warningMessage=You have now added closure status to the selected files. You can remove the status by deleting the closure metadata. To do this, visit the <a href="{0}">{1}</a>.
 
