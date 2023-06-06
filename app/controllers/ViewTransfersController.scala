@@ -39,7 +39,7 @@ class ViewTransfersController @Inject() (
     }
   }
 
-  def viewConsignments(pageNumber: Int = 1): Action[AnyContent] = secureAction.async { implicit request: Request[AnyContent] =>
+  def viewConsignments(pageNumber: Int = 1): Action[AnyContent] = standardUserAction { implicit request: Request[AnyContent] =>
     val consignmentFilters = ConsignmentFilters(Some(request.token.userId), None)
     for {
       consignmentTransfers <- consignmentService.getConsignments(
@@ -109,10 +109,10 @@ class ViewTransfersController @Inject() (
       if (judgmentType) routes.TransferCompleteController.judgmentTransferComplete(consignmentId).url
       else routes.DownloadMetadataController.downloadMetadataCsv(consignmentId).url
     status.value match {
-      case s if s == InProgressValue.value => UserAction(InProgress.value, url, actionText)
-      case s if s == CompletedValue.value  => UserAction(Transferred.value, url, actionText)
-      case s if s == FailedValue.value     => UserAction(Failed.value, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", ContactUs.value)
-      case _                               => toContactUsAction(consignmentRef)
+      // Even though export is InProgress once a user clicks export there is nothing else they can do, hence setting the status to transferred
+      case InProgressValue.value | CompletedValue.value => UserAction(Transferred.value, url, actionText)
+      case FailedValue.value                            => UserAction(Failed.value, s"""mailto:%s?subject=Ref: $consignmentRef - Export failure""", ContactUs.value)
+      case _                                            => toContactUsAction(consignmentRef)
     }
   }
 

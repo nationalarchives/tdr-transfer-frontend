@@ -34,6 +34,8 @@
                 We cannot accept files and folders which are password protected, zipped or contain slashes (/ and \) in the name. You must remove all thumbnail images (thumbs.db) and executable files (.exe). Empty folders will not be transferred.
             </div>
         </details>
+        <h2 class="govuk-heading-m">Choose a folder to upload</h2>
+        <p class="govuk-body">The 'Choose folder' button below will cause your browser to open a dialog box to find and select a folder. Once selected, you will be prompted to confirm your choice.</p>
         <div id="upload-error" class="govuk-error-summary upload-error" hidden aria-labelledby="error-summary-title"
             role="alert" tabindex="-1" data-module="govuk-error-summary">
             <h2 class="govuk-error-summary__title" id="error-summary-title">
@@ -48,60 +50,53 @@
         <form id="file-upload-form" data-consignment-id="@consignmentId">
             <div class="govuk-form-group">
                 <div class="drag-and-drop">
-                    <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden="true">
-                        <div class="govuk-summary-list__row">
-                            <dd class="govuk-summary-list__value drag-and-drop__success"
-                                tabindex="-1" role="alert" aria-describedby="success-message-text">
-                                <div class="success-message-flexbox-container" id="item-selection-success-container">
-                                    <p id="success-message-text" class="success-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been selected </p>
-                                    <a class="success-message-flexbox-item" id="remove-file-btn" href="#">Remove selected records</a>
-                                </div>
-                                <div class="success-message-flexbox-container" id="removed-selection-container" hidden="true">
-                                    <p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been removed. Select a folder.</p>
-                                </div>
-                            </dd>
+                    <div class="govuk-form-group">
+                        <div id="selection-area">
+                            @itemSelectionFailureMessage("multiple-folder-selection-failure", "multiple-folder-selected-message-text", "upload.dragAndDropMultipleFoldersErrorMessage")
+                            @itemSelectionFailureMessage("multiple-selection-failure", "multiple-object-type-selected-message-text", "upload.standard.dragAndDropMultipleFilesErrorMessage")
+                            @itemSelectionFailureMessage("item-selection-failure", "wrong-object-type-selected-message-text", "upload.dragAndDropFolderErrorMessage")
+                            @itemSelectionFailureMessage("nothing-selected-submission-message", "submission-without-anything-selected-text", "upload.submissionWithoutAFolderMessage")
+                            <div class="drag-and-drop__dropzone">
+                                <input type="file" id="file-selection" name="files"
+                                class="govuk-file-upload drag-and-drop__input" webkitdirectory
+                                @* Specify an arbitrary type in the 'accept' attribute to work around a bug in
+                                Safari 14.0.1, which does not let the user browse for files if the 'accept'
+                                attribute is missing. The actual value of the attribute is ignored because
+                                'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
+                                accept="*"
+                                >
+                                <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single top-level folder here or &nbsp;</p>
+                                <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
+                                    Choose folder
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                    <div>
+                        <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden="true">
+                            <div class="js-drag-and-drop-selected drag-and-drop__selected" id="item-selection-success-container">
+                                <p id="success-message-text" aria-live="assertive" aria-atomic="true" class="govuk-!-margin-bottom-3 govuk-!-margin-top-0 drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span>) has been selected.</p>
+                                <a id="remove-file-btn" href="#" aria-describedby="files-selected-folder-name" class="govuk-link govuk-link--no-visited-state govuk-!-font-size-19 govuk-body govuk-!-font-weight-bold">Remove<span class="govuk-visually-hidden">&nbsp; selected files</span></a>
+                            </div>
+                            <div class="js-drag-and-drop-selected drag-and-drop__selected" id="removed-selection-container" hidden="true">
+                                <p id="removed-selection-message-text" class="govuk-error-message">The folder "<span class="folder-name"></span>" (containing <span class="folder-size"></span>) has been removed. Select a folder.</p>
+                            </div>
+                        </div>
+                        <p class="govuk-body">For information on what metadata will be captured during upload, visit the <a href="@routes.FaqController.faq()#metadata-captured" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a>.</p>
                         <div class="govuk-form-group">
-                            <div id="selection-area">
-                                @itemSelectionFailureMessage("multiple-folder-selection-failure", "multiple-folder-selected-message-text", "upload.dragAndDropMultipleFoldersErrorMessage")
-                                @itemSelectionFailureMessage("multiple-selection-failure", "multiple-object-type-selected-message-text", "upload.standard.dragAndDropMultipleFilesErrorMessage")
-                                @itemSelectionFailureMessage("item-selection-failure", "wrong-object-type-selected-message-text", "upload.dragAndDropFolderErrorMessage")
-                                @itemSelectionFailureMessage("nothing-selected-submission-message", "submission-without-anything-selected-text", "upload.submissionWithoutAFolderMessage")
-                                <div class="drag-and-drop__dropzone">
-                                    <input type="file" id="file-selection" name="files"
-                                    class="govuk-file-upload drag-and-drop__input" webkitdirectory
-                                    @* Specify an arbitrary type in the 'accept' attribute to work around a bug in
-                                    Safari 14.0.1, which does not let the user browse for files if the 'accept'
-                                    attribute is missing. The actual value of the attribute is ignored because
-                                    'webkitdirectory' is specified. It just needs to be present to fix the Safari bug. *@
-                                    accept="*"
-                                    >
-                                    <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single top-level folder here or</p>
-                                    <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
-                                        Choose folder
+                            <div class="govuk-checkboxes">
+                                <div class="govuk-checkboxes__item">
+                                    <input class="govuk-checkboxes__input" id="includeTopLevelFolder" name="includeTopLevelFolder" type="checkbox">
+                                    <label class="govuk-label govuk-checkboxes__label" for="includeTopLevelFolder">
+                                        Check the box if you want to display the name of your top-level folder in the public catalogue.
                                     </label>
                                 </div>
                             </div>
-                            <p class="govuk-body">For information on what metadata will be captured during upload, visit the <a href="@routes.FaqController.faq()#metadata-captured" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a>.</p>
-                            <div class="govuk-form-group">
-                                <div class="govuk-checkboxes">
-                                    <div class="govuk-checkboxes__item">
-                                        <input class="govuk-checkboxes__input" id="includeTopLevelFolder" name="includeTopLevelFolder" type="checkbox">
-                                        <label class="govuk-label govuk-checkboxes__label" for="includeTopLevelFolder">
-                                            Check the box if you want to display the name of your top-level folder in the public catalogue.
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="govuk-button-group">
-                                <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                                    Start upload
-                                </button>
+                        </div>
+                        <div class="govuk-button-group">
+                            <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                                Start upload
+                            </button>
 
-                                <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
-                            </div>
+                            <a class="govuk-link" href="@routes.HomepageController.homepage()">Cancel</a>
                         </div>
                     </div>
                 </div>
