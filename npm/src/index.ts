@@ -1,6 +1,6 @@
 import { initAll } from "govuk-frontend"
 import { NestedNavigation, InputType } from "@nationalarchives/tdr-components"
-import { MultiSelectSearch } from "@nationalarchives/tdr-components"
+import { MultiSelectSearch, ButtonDisabled } from "@nationalarchives/tdr-components"
 
 window.onload = async function () {
   initAll()
@@ -47,6 +47,7 @@ export const renderModules = async () => {
   const tableRowExpanderButtons = document.querySelectorAll(
     "[data-module=table-row-expander] button[aria-expanded][aria-controls]"
   )
+  const buttonDisabled : NodeListOf<HTMLElement> = document.querySelectorAll('[data-tdr-module="button-disabled"]')
 
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
@@ -139,6 +140,12 @@ export const renderModules = async () => {
     const disclosureModule = await import("./viewtransfers/disclosure")
     tableRowExpanderButtons.forEach((btn) => {
       new disclosureModule.Disclosure(btn)
+    })
+  }
+  if (buttonDisabled) {
+    buttonDisabled.forEach((button)=>{
+      const buttonDisabled = new ButtonDisabled(button);
+      buttonDisabled.initialiseListeners();
     })
   }
 }
