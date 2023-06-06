@@ -367,7 +367,7 @@ object ConsignmentStatusesOptions {
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportInProgress
       ),
       "/additional-metadata/download-metadata/csv",
-      "In Progress",
+      "Transferred",
       "Download report"
     ),
     (
@@ -377,7 +377,7 @@ object ConsignmentStatusesOptions {
         includeDefaultStatuses = false
       ),
       "/additional-metadata/download-metadata/csv",
-      "In Progress",
+      "Transferred",
       "Download report"
     ),
     (
@@ -606,7 +606,7 @@ object ConsignmentStatusesOptions {
         clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ exportInProgress
       ),
       "/transfer-complete",
-      "In Progress",
+      "Transferred",
       "View"
     ),
     (
