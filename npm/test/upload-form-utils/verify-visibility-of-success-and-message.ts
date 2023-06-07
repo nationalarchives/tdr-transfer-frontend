@@ -9,8 +9,10 @@ export const verifyVisibilityOfSuccessAndRemovalMessage = (
     : expect(selectionArea!).toHaveClass("govuk-form-group--error")
 
   if (shouldBeVisible) {
-    expect(messageElement!).not.toHaveAttribute("hidden", "true")
+    expect(messageElement!).not.toHaveClass(
+      "govuk-visually-hidden"
+    )
   } else {
-    expect(messageElement!).toHaveAttribute("hidden", "true")
+    expect(messageElement!).toHaveClass("govuk-visually-hidden")
   }
 }
