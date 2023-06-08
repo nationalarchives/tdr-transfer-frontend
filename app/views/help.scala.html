@@ -371,29 +371,34 @@
 
             <h3 class="govuk-heading-s" id="additional-metadata">Step 5: Add, edit or delete metadata</h3>
             <p class="govuk-body">You may now add, edit or delete descriptive and closure metadata.</p>
+            <p class="govuk-body">Click on the ‘Descriptive metadata’ or ‘Closure metadata’ links to begin adding additional metadata to records as required.</p>
+            <p class="govuk-body">Use the ‘what you can provide’ links for information on the type of metadata fields you can currently enter in each section.</p>
+            <p class="govuk-body">Only click ‘Next’ when you have completed all your metadata entries to move on to the next step.</p>
             <img src="@routes.Assets.versioned("images/standard-additional-metadata-start-page.png")" class="screenshots" alt="Additional metadata start page" />
+
             <h3 class="govuk-heading-s" id="descriptive-metadata">Descriptive metadata</h3>
             <p class="govuk-body">You are not required to add descriptive metadata to your records, but it can enhance them.</p>
-            <p class="govuk-body">Once you select the file or files you wish to add descriptive metadata to, you may provide the following information:</p>
+            <p class="govuk-body">Once you select the record you wish to add descriptive metadata to, you may provide the following information:</p>
             <ul class="govuk-list govuk-list--bullet">
-                <li>Description – this will be visible to the public to help explain the content of your file or files</li>
-                <li>Date of record – this is prepopulated and shows the date last modified</li>
-                <li>Language</li>
+                <li>Description – this will explain the content of your record and will be visible to the public, unless you confirm this is sensitive when adding Closure Metadata and provide an alternative.</li>
+                <li>Date of the record – this is where you can add the last date that the record was modified if different to the date automatically determined during upload. Check this against your own information to ensure the correct date is added if required.</li>
+                <li>Language - this is where you can choose the language or languages used in the record. You can also provide a translated title if the record title is not in English.</li>
             </ul>
 
             <h3 class="govuk-heading-s" id="closure-metadata">Closure metadata</h3>
-            <p class="govuk-body">If you wish to transfer closed files and folders, you must add closure metadata.</p>
+            <p class="govuk-body">If you wish to transfer closed records, you must add closure metadata.</p>
             <p class="govuk-body">
-                Once you select the file or files to add closure metadata to, you must first confirm the closure status has been approved by the Advisory Council.
-                If it has been approved, you may proceed to add the following information:
+                Once you select the record to add closure metadata to, you must first confirm the closure status has been agreed with the Advisory Council and/or the National Archives.
+                If it has been agreed, you may proceed to add information to the following fields:
             </p>
             <ul class="govuk-list govuk-list--bullet">
-                <li>FOI decision asserted – this is the date of the Advisory Council approval</li>
-                <li>Closure start date – this is the date of the last meaningful change to the record</li>
-                <li>Closure period – this is the number of years the record is closed from the closure start date</li>
-                <li>FOI exemption code – you should search and select at least one exemption code per file</li>
-                <li>Title sensitivity – you should confirm if the title is sensitive to the public. If it is, you can add an alternative title</li>
-                <li>Description Sensitivity – you can only provide an alternative description if you have set a description on the Descriptive Metadata page first</li>
+                <li>FOI decision asserted – you should enter the date that the closure schedule was agreed with the Advisory Council and/or the National Archives. </li>
+                <li>Closure start date – you should enter the date of the last meaningful change to the record.</li>
+                <li>Closure period – you should enter the number of years the record must be closed from the closure start date.</li>
+                <li>FOI exemption code – you should search and select at least one exemption code per record</li>
+                <li>Is the title sensitive for the public? – under this question, you should confirm if the title is sensitive to the public. If it is, you can add an alternative title.</li>
+                <li>Is the description sensitive for the public? – under this question, you should confirm if the description is sensitive to the public. If it is, you can add an alternative description.
+                    You can only provide an alternative description if you have already added a description on the Descriptive Metadata page.</li>
             </ul>
 
             <h3 class="govuk-heading-s">Titles and descriptions that are sensitive to the public</h3>
@@ -408,7 +413,7 @@
                 Sanitise – replace the sensitive word. For example: 'UK military exercises in xxx' (where 'military' has replaced 'Special Forces').
             </p>
             <p class="govuk-body">
-                Withhold the title or description without providing an alternative. For example: '[Title withheld]' and or '[description with held]'.
+                Withhold the title or description without providing an alternative. For example: '[Title withheld]' and or '[description withheld]'.
             </p>
 
             <h3 class="govuk-heading-s" id="download-metadata">Step 6: Download and review metadata</h3>
