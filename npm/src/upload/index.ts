@@ -94,14 +94,14 @@ export class FileUploader {
         this.keycloak.tokenParsed?.sub
       )
 
-      const backendChecks =
-        await this.triggerBackendChecks.triggerBackendChecks(
-          uploadFilesInfo.consignmentId
-        )
+      // const backendChecks =
+      //   await this.triggerBackendChecks.triggerBackendChecks(
+      //     uploadFilesInfo.consignmentId
+      //   )
 
-      if (isError(backendChecks)) {
-        errors.push(backendChecks)
-      }
+      // if (isError(backendChecks)) {
+      //   errors.push(backendChecks)
+      // }
       if (isError(processResult)) {
         errors.push(processResult)
       }
@@ -110,18 +110,25 @@ export class FileUploader {
     }
     if (errors.length == 0) {
       window.removeEventListener("beforeunload", pageUnloadAction)
-      this.goToNextPage("#upload-data-form")
-      await this.updateConsignmentStatus.updateConsignmentStatus(
-        uploadFilesInfo,
-        "Upload",
-        "Completed"
-      )
+      // const result = await this.updateConsignmentStatus.updateConsignmentStatus(
+      //   uploadFilesInfo,
+      //   "Upload",
+      //   "Completed"
+      // )
+      // if (isError(result)) {
+      //   handleUploadError(result)
+      // } else {
+        this.goToNextPage("#upload-data-form")
+      // }
     } else {
-      await this.updateConsignmentStatus.updateConsignmentStatus(
+      const result = await this.updateConsignmentStatus.updateConsignmentStatus(
         uploadFilesInfo,
         "Upload",
         "CompletedWithIssues"
       )
+      if (isError(result)) {
+        errors.push(result)
+      }
       errors.forEach((err) => handleUploadError(err))
     }
   }
