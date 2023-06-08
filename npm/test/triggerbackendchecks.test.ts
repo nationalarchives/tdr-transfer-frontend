@@ -1,7 +1,6 @@
 import { TriggerBackendChecks } from "../src/triggerbackendchecks"
 
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
-import { UpdateConsignmentStatus } from "../src/updateconsignmentstatus"
 
 enableFetchMocks()
 
