@@ -38,7 +38,7 @@ export const htmlForFolderUploadForm = `
                                         </label>
                                     </div>
                                 </div>
-                                <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden="true">
+                                <div id="success-and-removal-message-container" class="js-drag-and-drop-selected drag-and-drop__selected govuk-visually-hidden">
                                     <div class="js-drag-and-drop-selected drag-and-drop__selected" id="item-selection-success-container">
                                         <p aria-live="assertive" aria-atomic="true" class="govuk-!-margin-bottom-3 govuk-!-margin-top-0 drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span> files) has been selected.</p>
                                         <a id="remove-file-btn" href="#" aria-describedby="files-selected-folder-name" class="govuk-link govuk-link--no-visited-state govuk-!-font-size-19 govuk-body govuk-!-font-weight-bold">Remove<span class="govuk-visually-hidden">&nbsp; selected files</span></a>
@@ -82,7 +82,7 @@ export const htmlForFileUploadForm = `
           <form id="file-upload-form" data-consignment-id="ee948bcd-ebe3-4dfd-8928-2b2c9c586b40">
               <div class="govuk-form-group">
                   <div class="drag-and-drop">
-                      <div id="success-and-removal-message-container" class="govuk-summary-list govuk-file-upload" hidden="true">
+                      <div id="success-and-removal-message-container" class="js-drag-and-drop-selected drag-and-drop__selected govuk-visually-hidden">
                           <div class="govuk-summary-list__row">
                               <dd class="govuk-summary-list__value drag-and-drop__success"
                                   tabindex="-1" role="alert" aria-describedby="success-message-text">

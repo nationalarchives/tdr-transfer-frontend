@@ -402,9 +402,8 @@ test("removeSelectedItem function should hide the success message row and displa
   }
   mockDom.selectItemViaButton()
 
-  expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute(
-    "hidden",
-    "true"
+  expect(mockDom.successAndRemovalMessageContainer).not.toHaveClass(
+    "govuk-visually-hidden"
   )
 
   mockDom.removeButton!.click()
@@ -438,9 +437,8 @@ test(
       files: [dummyFile]
     }
     mockDom.selectItemViaButton()
-    expect(mockDom.successAndRemovalMessageContainer).not.toHaveAttribute(
-      "hidden",
-      "true"
+    expect(mockDom.successAndRemovalMessageContainer).not.toHaveClass(
+      "govuk-visually-hidden"
     )
     mockDom.removeButton!.click()
 

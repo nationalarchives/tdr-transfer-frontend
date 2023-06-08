@@ -276,9 +276,8 @@ test("dropzone updates the page with an error if there is an empty nested folder
     warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
     expectedWarningMessageText: "You can only drop a single folder."
   })
-  expect(mockDom.successAndRemovalMessageContainer).toHaveAttribute(
-    "hidden",
-    "true"
+  expect(mockDom.successAndRemovalMessageContainer).toHaveClass(
+    "govuk-visually-hidden"
   )
 
   expect(mockDom.folderNameElement!.textContent).toStrictEqual("")

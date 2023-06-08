@@ -47,6 +47,6 @@ export const displaySelectionSuccessMessage = (
   )
 
   successMessageContainer?.removeAttribute("hidden")
-  successMessage?.removeAttribute("hidden")
+  successMessage?.classList.remove("govuk-visually-hidden")
   successMessage?.focus()
 }
