@@ -2,13 +2,17 @@ package controllers
 
 import java.util.UUID
 import auth.TokenSecurity
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.types.ConsignmentStatusInput
 import io.circe.syntax._
+
 import javax.inject.{Inject, Singleton}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, RequestHeader}
-import services.ConsignmentService
+import services.Statuses.{CompletedValue, CompletedWithIssuesValue, UploadType}
+import services.{BackendChecksService, ConsignmentService, ConsignmentStatusService, UploadService}
 import viewsapi.Caching.preventCaching
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,7 +23,10 @@ class FileChecksController @Inject() (
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val applicationConfig: ApplicationConfig
+    val applicationConfig: ApplicationConfig,
+    val backendChecksService: BackendChecksService,
+    val uploadService: UploadService,
+    val consignmentStatusService: ConsignmentStatusService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -37,6 +44,25 @@ class FileChecksController @Inject() (
       }
   }
 
+  def backendChecks(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
+    for {
+      statuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
+      uploadStatus = statuses.find(_.statusType == UploadType.id)
+      backendChecksTriggered <- if (uploadStatus.isDefined && uploadStatus.get.value != CompletedWithIssuesValue.value) {
+        backendChecksService.triggerBackendChecks(consignmentId, token.getValue)
+      }
+      else {
+        Future(false)
+      }
+      uploadStatusUpdate = if (backendChecksTriggered) {
+        CompletedValue
+      } else {
+        CompletedWithIssuesValue
+      }
+      _ <- uploadService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, UploadType.id, Some(uploadStatusUpdate.value)), token)
+    } yield backendChecksTriggered
+  }
+
   def fileCheckProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
     consignmentService
       .fileCheckProgress(consignmentId, request.token.bearerAccessToken)
@@ -44,10 +70,25 @@ class FileChecksController @Inject() (
       .map(Ok(_))
   }
 
-  def fileChecksPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def fileChecksPage(consignmentId: UUID, uploadFailed: Option[String] = Some("false")): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    val token = request.token.bearerAccessToken
+
+    if (uploadFailed.contains("true")) {
+      for {
+        _ <- uploadService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, UploadType.id, Some(CompletedWithIssuesValue.value)), token)
+      } yield {
+        throw new Exception(s"Upload failed for consignment $consignmentId")
+      }
+    }
+
     for {
-      fileChecks <- getFileChecksProgress(request, consignmentId)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      backendChecksTriggered <- backendChecks(consignmentId, token)
+      fileChecks <- if (backendChecksTriggered) {
+        getFileChecksProgress(request, consignmentId)
+      } else {
+        throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
+      }
+      reference <- consignmentService.getConsignmentRef(consignmentId, token)
     } yield {
       if (fileChecks.isComplete) {
         Ok(
@@ -67,9 +108,16 @@ class FileChecksController @Inject() (
   }
 
   def judgmentFileChecksPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    val token = request.token.bearerAccessToken
+
     for {
-      fileChecks <- getFileChecksProgress(request, consignmentId)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      backendChecksTriggered <- backendChecks(consignmentId, token)
+      fileChecks <- if (backendChecksTriggered) {
+        getFileChecksProgress(request, consignmentId)
+      } else {
+        throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
+      }
+      reference <- consignmentService.getConsignmentRef(consignmentId, token)
     } yield {
       if (fileChecks.isComplete) {
         Ok(

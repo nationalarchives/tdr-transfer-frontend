@@ -94,36 +94,19 @@ export class FileUploader {
         this.keycloak.tokenParsed?.sub
       )
 
-      const backendChecks =
-        await this.triggerBackendChecks.triggerBackendChecks(
-          uploadFilesInfo.consignmentId
-        )
-
-      if (isError(backendChecks)) {
-        errors.push(backendChecks)
-      }
       if (isError(processResult)) {
         errors.push(processResult)
       }
     } else {
       errors.push(cookiesResponse)
     }
-    if (errors.length == 0) {
-      window.removeEventListener("beforeunload", pageUnloadAction)
-      this.goToNextPage("#upload-data-form")
-      await this.updateConsignmentStatus.updateConsignmentStatus(
-        uploadFilesInfo,
-        "Upload",
-        "Completed"
-      )
-    } else {
-      await this.updateConsignmentStatus.updateConsignmentStatus(
-        uploadFilesInfo,
-        "Upload",
-        "CompletedWithIssues"
-      )
-      errors.forEach((err) => handleUploadError(err))
-    }
+    const consignmentId = uploadFilesInfo.consignmentId
+    const uploadFailed = errors.length > 0
+
+    window.removeEventListener("beforeunload", pageUnloadAction)
+    //set the upload status in the controller instead of relying on client js.
+    //issue where updating consignment status if errors might failed in users session has timed out
+    location.assign(`/consignment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`)
   }
 
   initialiseFormListeners(): void {
