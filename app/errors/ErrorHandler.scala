@@ -73,7 +73,8 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
       case _: AuthorisationException =>
         Forbidden(views.html.forbiddenError(name, loggedIn, isJudgmentUser)(request2Messages(request), request))
       case e: CompletionException if Option(e.getCause).exists(e => e.isInstanceOf[TechnicalException] && e.getMessage == "State cannot be determined") =>
-        Redirect("/view-transfers")
+        val redirectUrl: String = if (isJudgmentUser) { "/homepage" } else { "/view-transfers" }
+          Redirect(redirectUrl)
       case _ =>
         InternalServerError(views.html.internalServerError(name, loggedIn, isJudgmentUser)(request2Messages(request), request))
     }
