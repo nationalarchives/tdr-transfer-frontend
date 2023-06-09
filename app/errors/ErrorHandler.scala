@@ -64,6 +64,11 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
     Future.successful(response)
   }
 
+  def redirectUrl(isJudgmentUser: Boolean): String = {
+    if (isJudgmentUser) { "/homepage" }
+    else { "/view-transfers" }
+  }
+
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     logger.error(s"Internal server error at path '${request.path}'", exception)
     val name = getName(request)
@@ -73,8 +78,7 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
       case _: AuthorisationException =>
         Forbidden(views.html.forbiddenError(name, loggedIn, isJudgmentUser)(request2Messages(request), request))
       case e: CompletionException if Option(e.getCause).exists(e => e.isInstanceOf[TechnicalException] && e.getMessage == "State cannot be determined") =>
-        val redirectUrl: String = if (isJudgmentUser) { "/homepage" } else { "/view-transfers" }
-          Redirect(redirectUrl)
+        Redirect(redirectUrl(isJudgmentUser))
       case _ =>
         InternalServerError(views.html.internalServerError(name, loggedIn, isJudgmentUser)(request2Messages(request), request))
     }

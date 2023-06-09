@@ -11,6 +11,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.http.Status
 import play.api.i18n.DefaultMessagesApi
+import play.api.mvc.Request
 import play.api.test.FakeRequest
 
 import java.util.concurrent.CompletionException
@@ -78,5 +79,17 @@ class ErrorHandlerSpec extends AnyFlatSpec with Matchers {
 
     response.header.status should equal(Status.SEE_OTHER)
     response.header.headers("Location") should equal("/view-transfers")
+  }
+
+  "redirectUrl" should "return url '/view-transfers' for non-judgment user" in {
+    val redirectUrl = errorHandler.redirectUrl(false)
+
+    redirectUrl should equal("/view-transfers")
+  }
+
+  "redirectUrl" should "return url '/homepage' for judgment user" in {
+    val redirectUrl = errorHandler.redirectUrl(true)
+
+    redirectUrl should equal("/homepage")
   }
 }
