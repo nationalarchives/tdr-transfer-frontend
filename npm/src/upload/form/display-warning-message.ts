@@ -22,7 +22,7 @@ export const rejectUserItemSelection: (
     }
   }
 
-  successMessageToHide?.setAttribute("hidden", "true")
+  successMessageToHide?.classList.add("govuk-visually-hidden")
 
   warningMessageToReveal?.removeAttribute("hidden")
   warningMessageToReveal?.focus()
