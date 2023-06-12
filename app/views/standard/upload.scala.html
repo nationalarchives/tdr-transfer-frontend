@@ -133,12 +133,12 @@
             <p class="govuk-body">Do not close your browser while your records are being uploaded. This may take a few minutes.</p>
             <div>
                 <span id="upload-status-screen-reader">
-                    <label for="upload-records-progress-bar" class="govuk-label progress-label">
+                    <span id="upload-records-progress-label" class="govuk-label progress-label">
                         @pageHeading2ndHalf <span id="upload-percentage" role="status" aria-live="polite"></span>
-                    </label>
+                    </span>
                 </span>
                 <div class="progress-bar">
-                    <div class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div aria-labelledby="upload-records-progress-label" class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
             </div>
         </div>

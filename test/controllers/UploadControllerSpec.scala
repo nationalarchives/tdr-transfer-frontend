@@ -1133,7 +1133,9 @@ class UploadControllerSpec extends FrontEndTestHelper {
         |                    <p class="upload-progress-error-general__message" hidden>Click 'Return to start' to begin a new transfer.</p>""".stripMargin
     )
     // scalastyle:on line.size.limit
-    pageAsString must include("""<div class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">""")
+    pageAsString must include(
+      """<div aria-labelledby="upload-records-progress-label" class="progress-display" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">"""
+    )
   }
 
   private def checkForExpectedPageContentOnOtherUploadPages(pageAsString: String, userType: String = "standard", uploadStatus: String = "") = {
