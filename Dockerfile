@@ -3,7 +3,7 @@ FROM alpine:3
 RUN addgroup --system frontendgroup && adduser --system frontenduser -G frontendgroup
 WORKDIR play
 COPY target/universal/tdr-transfer-frontend*.zip .
-RUN apk update && apk upgrade p11-kit busybox expat libretls zlib && apk add bash unzip && \
+RUN apk update && apk upgrade p11-kit busybox expat libretls zlib openssl && apk add bash unzip && \
     apk add openjdk15 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community && \
     unzip -qq tdr-transfer-frontend-*.zip
 ADD https://github.com/aws-observability/aws-otel-java-instrumentation/releases/latest/download/aws-opentelemetry-agent.jar /opt/aws-opentelemetry-agent.jar
