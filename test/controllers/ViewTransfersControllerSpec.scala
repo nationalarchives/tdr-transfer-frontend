@@ -11,7 +11,6 @@ import play.api.Play.materializer
 import play.api.http.Status.{FORBIDDEN, FOUND, OK}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
-import play.api.test.Helpers.status
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.ConsignmentService
 import services.Statuses.SeriesType
@@ -269,7 +268,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
           |        </a>""".stripMargin
       )
     } else {
-      viewTransfersPageAsString must not include("Back to homepage")
+      viewTransfersPageAsString must not include ("Back to homepage")
       viewTransfersPageAsString must include(
         """<td colspan="6" class="govuk-table__cell govuk-table__cell--no-results">
           |                There are no transfers yet. <button type="submit" class="govuk-link tdr-button-link govuk-!-margin-bottom-0" data-module="govuk-button">Start a new transfer</button>
