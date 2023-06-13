@@ -9,6 +9,7 @@ import org.scalatest.matchers.should.Matchers._
 import org.scalatest.prop.TableFor4
 import play.api.Play.materializer
 import play.api.http.Status.{FORBIDDEN, FOUND, OK}
+import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.status
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
@@ -53,7 +54,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
           val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val response = controller
             .viewConsignments()
-            .apply(FakeRequest(GET, s"/view-transfers"))
+            .apply(FakeRequest(GET, s"/view-transfers").withCSRFToken)
           val viewTransfersPageAsString = contentAsString(response)
 
           status(response) mustBe OK
@@ -79,7 +80,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
           val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val response = controller
             .viewConsignments()
-            .apply(FakeRequest(GET, s"/view-transfers"))
+            .apply(FakeRequest(GET, s"/view-transfers").withCSRFToken)
           val viewTransfersPageAsString = contentAsString(response)
 
           status(response) mustBe OK
@@ -103,7 +104,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-transfers"))
+        .apply(FakeRequest(GET, s"/view-transfers").withCSRFToken)
       val viewTransfersPageAsString = contentAsString(response)
 
       status(response) mustBe OK
@@ -139,7 +140,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val response = controller
           .viewConsignments(currentPage)
-          .apply(FakeRequest(GET, s"/view-transfers"))
+          .apply(FakeRequest(GET, s"/view-transfers").withCSRFToken)
         val viewTransfersPageAsString = contentAsString(response)
 
         status(response) mustBe OK
@@ -169,7 +170,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
         val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val response = controller
           .viewConsignments()
-          .apply(FakeRequest(GET, s"/view-transfers"))
+          .apply(FakeRequest(GET, s"/view-transfers").withCSRFToken)
         val viewTransfersPageAsString = contentAsString(response)
 
         status(response) mustBe OK
@@ -193,16 +194,14 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-transfers"))
+        .apply(FakeRequest(GET, s"/view-transfers").withCSRFToken)
       val viewTransfersPageAsString = contentAsString(response)
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = standardType, consignmentExists = false)
-      checkForExpectedViewTransfersPageContent(viewTransfersPageAsString)
-
-      viewTransfersPageAsString must not include "<tbody"
+      checkForExpectedViewTransfersPageContent(viewTransfersPageAsString, consignmentExists = false)
     }
 
     "return 403 if the view transfers page is accessed by a judgment user" in {
@@ -212,7 +211,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-transfers"))
+        .apply(FakeRequest(GET, s"/view-transfers").withCSRFToken)
 
       status(response) mustBe FORBIDDEN
     }
@@ -224,7 +223,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
       val controller = new ViewTransfersController(consignmentService, applicationConfig, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
       val response = controller
         .viewConsignments()
-        .apply(FakeRequest(GET, s"/view-transfers"))
+        .apply(FakeRequest(GET, s"/view-transfers").withCSRFToken)
 
       status(response) mustBe FOUND
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
@@ -250,7 +249,8 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  def checkForExpectedViewTransfersPageContent(viewTransfersPageAsString: String): Unit = {
+  def checkForExpectedViewTransfersPageContent(viewTransfersPageAsString: String, consignmentExists: Boolean = true): Unit = {
+    viewTransfersPageAsString must include("""<a href="/homepage" class="govuk-back-link">Back</a>""")
     viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">View Transfers</h1>")
     viewTransfersPageAsString must include(
       s"""            <th scope="col" class="govuk-table__header">Reference</th>
@@ -262,11 +262,20 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     viewTransfersPageAsString must include(
       s"""View the history of all the consignments you have uploaded. You can also resume incomplete transfers or view the errors of failed transfers."""
     )
-    viewTransfersPageAsString must include(
-      """      <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
-        |        Back to homepage
-        |      </a>""".stripMargin
-    )
+    if (consignmentExists) {
+      viewTransfersPageAsString must include(
+        """        <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
+          |          Back to homepage
+          |        </a>""".stripMargin
+      )
+    } else {
+      viewTransfersPageAsString must not include("Back to homepage")
+      viewTransfersPageAsString must include(
+        """<td colspan="6" class="govuk-table__cell govuk-table__cell--no-results">
+          |                There are no transfers yet. <button type="submit" class="govuk-link tdr-button-link govuk-!-margin-bottom-0" data-module="govuk-button">Start a new transfer</button>
+          |              </td>""".stripMargin
+      )
+    }
   }
 
   def verifyConsignmentRow(
