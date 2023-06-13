@@ -153,30 +153,21 @@
             </p>
 
             <h3 class="govuk-heading-s" id="contact">Contact us</h3>
-            <p class="govuk-body">
-                If you have queries regarding the transfer process, the status of your transfer or to report an error or issue you have encountered, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+            <p class="govuk-body">You can contact us directly through our Digital Transfer Advisers via <a href="mailto:@Messages("nationalArchives.email")">
+            @Messages("nationalArchives.email")</a>
             </p>
-            <p class="govuk-body">
-                You can also contact us if you have more general queries regarding the suitability of records for transfer, file format or transfer agreement criteria.
+            <p class="govuk-body">You can also contact the Government Help Point via <a href="mailto:@Messages("nationalArchives.governmentHelpPointEmail")">
+            @Messages("nationalArchives.governmentHelpPointEmail")</a>
             </p>
-
-            <p class="govuk-body">
-                If you need to contact us by post, you can write to:
-            </p>
-            <address>
-                <span class="govuk-!-font-weight-bold">Digital Selection and Transfer team c/o</span>
-                <span class="govuk-!-font-weight-bold">Digital Archiving Department</span>
-                <span class="govuk-!-font-weight-bold">The National Archives</span>
-                <span class="govuk-!-font-weight-bold">Bessant Drive</span>
-                <span class="govuk-!-font-weight-bold">Richmond</span>
-                <span class="govuk-!-font-weight-bold">Surrey</span>
-                <span class="govuk-!-font-weight-bold">TW9 4DU</span>
-            </address>
-
-            <p class="govuk-body">
-                You should describe your query in detail and provide your full contact details for a response. We aim to respond to you within one month. If you have not received a response after one month, contact us again.
-            </p>
-
+            <p class="govuk-body">When contacting us, stipulate what the enquiry is about and, if possible, include any relevant attachments (e.g. screenshots, etc.)</p>
+            <p class="govuk-body">We aim to respond to queries within one week of first contact.</p>
+            <p class="govuk-body">If we cannot resolve an issue directly, we may offer to:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Schedule a call via MS Teams</li>
+                <li>Schedule an office visit</li>
+                <li>Advise users on getting support from their DRO, more digitally confident colleagues, or their IT department</li>
+            </ul>
+            
             <h2 class="govuk-heading-m" id="registering-new-account">Registering for a new account</h2>
             <h3 class="govuk-heading-s" id="new-user-email">Part 1: New user email</h3>
             <ol class="govuk-list govuk-list--number">
@@ -371,29 +362,33 @@
 
             <h3 class="govuk-heading-s" id="additional-metadata">Step 5: Add, edit or delete metadata</h3>
             <p class="govuk-body">You may now add, edit or delete descriptive and closure metadata.</p>
+            <p class="govuk-body">Click on the ‘Descriptive metadata’ or ‘Closure metadata’ links to begin adding additional metadata to records as required.</p>
+            <p class="govuk-body">Use the ‘what you can provide’ links for information on the type of metadata fields you can currently enter in each section.</p>
+            <p class="govuk-body">Only click ‘Next’ when you have completed all your metadata entries to move on to the next step.</p>
             <img src="@routes.Assets.versioned("images/standard-additional-metadata-start-page.png")" class="screenshots" alt="Additional metadata start page" />
+
             <h3 class="govuk-heading-s" id="descriptive-metadata">Descriptive metadata</h3>
-            <p class="govuk-body">You are not required to add descriptive metadata to your records, but it can enhance them.</p>
-            <p class="govuk-body">Once you select the file or files you wish to add descriptive metadata to, you may provide the following information:</p>
+            <p class="govuk-body">Descriptive metadata will enhance your record. Adding descriptions to your records will help the public find and understand what your record is about. We strongly encourage you to add any extra information available.</p>
+            <p class="govuk-body">Once you select the record you wish to add descriptive metadata to, you may provide the following information:</p>
             <ul class="govuk-list govuk-list--bullet">
-                <li>Description – this will be visible to the public to help explain the content of your file or files</li>
-                <li>Date of record – this is prepopulated and shows the date last modified</li>
-                <li>Language</li>
+                <li>Description – this will explain the content of your record and will be visible to the public, unless you confirm this is sensitive when adding Closure Metadata and provide an alternative.</li>
+                <li>Date of the record – this is where you can add the last date that the record was modified if different to the date automatically determined during upload. Check this against your own information to ensure the correct date is added if required.</li>
+                <li>Language - this is where you can choose the language or languages used in the record. You can also provide a translated title if the record title is not in English.</li>
             </ul>
 
             <h3 class="govuk-heading-s" id="closure-metadata">Closure metadata</h3>
-            <p class="govuk-body">If you wish to transfer closed files and folders, you must add closure metadata.</p>
+            <p class="govuk-body">If you wish to transfer closed records, you must add closure metadata.</p>
             <p class="govuk-body">
-                Once you select the file or files to add closure metadata to, you must first confirm the closure status has been approved by the Advisory Council.
-                If it has been approved, you may proceed to add the following information:
+                Once you select the record to add closure metadata to, you must first confirm the closure status has been agreed with the Advisory Council and/or The National Archives.
+                If it has been agreed, you may proceed to add information to the following fields:
             </p>
             <ul class="govuk-list govuk-list--bullet">
-                <li>FOI decision asserted – this is the date of the Advisory Council approval</li>
-                <li>Closure start date – this is the date of the last meaningful change to the record</li>
-                <li>Closure period – this is the number of years the record is closed from the closure start date</li>
-                <li>FOI exemption code – you should search and select at least one exemption code per file</li>
-                <li>Title sensitivity – you should confirm if the title is sensitive to the public. If it is, you can add an alternative title</li>
-                <li>Description Sensitivity – you can only provide an alternative description if you have set a description on the Descriptive Metadata page first</li>
+                <li>FOI decision asserted – you should enter the date that the closure schedule was agreed with the Advisory Council and/or The National Archives.</li>
+                <li>Closure start date – you should enter the date of the last meaningful change to the record.</li>
+                <li>Closure period – you should enter the number of years the record must be closed from the closure start date.</li>
+                <li>FOI exemption code – you should search and select at least one exemption code per record.</li>
+                <li>Is the title sensitive for the public? – under this question, you should confirm if the title is sensitive to the public. If it is, you can add an alternative title.</li>
+                <li>Is the description sensitive for the public? – under this question, you should confirm if the description is sensitive to the public. If it is, you can add an alternative description. You can only provide an alternative description if you have already added a description on the Descriptive Metadata page.</li>
             </ul>
 
             <h3 class="govuk-heading-s">Titles and descriptions that are sensitive to the public</h3>
@@ -408,7 +403,7 @@
                 Sanitise – replace the sensitive word. For example: 'UK military exercises in xxx' (where 'military' has replaced 'Special Forces').
             </p>
             <p class="govuk-body">
-                Withhold the title or description without providing an alternative. For example: '[Title withheld]' and or '[description with held]'.
+                Withhold the title or description without providing an alternative. For example: '[Title withheld]' and or '[description withheld]'.
             </p>
 
             <h3 class="govuk-heading-s" id="download-metadata">Step 6: Download and review metadata</h3>
