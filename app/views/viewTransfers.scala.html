@@ -1,8 +1,11 @@
 @import views.html.partials.warningMessage
+@import views.html.partials.backLink
+@import views.html.helper.CSRF
+@import views.html.helper.form
 @(consignments: List[ConsignmentTransfers], currentPage: Int, totalPages: Int, name: String, email: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
 @nationalArchivesEmailAddress = @{if(isJudgmentUser) Messages("nationalArchives.judgmentsEmail") else Messages("nationalArchives.email")}
 
-@main("View Transfers", name = name, isJudgmentUser = isJudgmentUser) {
+@main("View Transfers", name = name, isJudgmentUser = isJudgmentUser, backLink = Some(backLink(routes.HomepageController.homepage().url, "Back"))) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
 
@@ -22,7 +25,19 @@
             <th scope="col" class="govuk-table__header govuk-visually-hidden" id="more-details">More details</th>
           </tr>
         </thead>
-        @for((consignment, index) <- consignments.zipWithIndex) {
+        @if(consignments.isEmpty) {
+          <tbody>
+            <tr>
+            @form(routes.HomepageController.homepageSubmit(), (Symbol("novalidate"), "")) {
+              @CSRF.formField
+              <td colspan="6" class="govuk-table__cell govuk-table__cell--no-results">
+                There are no transfers yet. <button type="submit" class="govuk-link tdr-button-link govuk-!-margin-bottom-0" data-module="govuk-button">Start a new transfer</button>
+              </td>
+            }
+            </tr>
+          </tbody>
+        }
+          @for((consignment, index) <- consignments.zipWithIndex) {
           <tbody>
             <tr class="govuk-table__row">
               <td class="govuk-table__cell" rowspan="2">
@@ -101,9 +116,11 @@
           </div>
         </nav>
       }
-      <a href="@routes.HomepageController.homepage()" role="button" draggable="false" class="govuk-button govuk-button--primary">
-        Back to homepage
-      </a>
+      @if(consignments.nonEmpty) {
+        <a href="@routes.HomepageController.homepage()" role="button" draggable="false" class="govuk-button govuk-button--primary">
+          Back to homepage
+        </a>
+      }
     </div>
   </div>
 }
