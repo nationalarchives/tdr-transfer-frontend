@@ -74,32 +74,33 @@ class ViewTransfersController @Inject() (
     }
 
   private def toUserAction(consignment: Node): UserAction = {
-    val judgmentType = consignment.consignmentType.contains("judgment")
+    val isJudgmentType = consignment.consignmentType.contains("judgment")
     val consignmentId = consignment.consignmentid.get
     val consignmentRef = consignment.consignmentReference
     val statuses = consignment.consignmentStatuses
 
-    val statusesToCheck: List[ConsignmentStatuses] = if (judgmentType) {
+    val statusesToCheck: List[ConsignmentStatuses] = if (isJudgmentType) {
       statuses.filterNonJudgmentStatuses
     } else {
       statuses
     }
 
     statusesToCheck match {
-      case s if s.containsStatuses(ExportType) => toExportAction(s.find(_.statusType == ExportType.id).get, judgmentType, consignmentId, consignmentRef)
+      case s if s.containsStatuses(ExportType) => toExportAction(s.find(_.statusType == ExportType.id).get, isJudgmentType, consignmentId, consignmentRef)
       case s if s.statusValue(ConfirmTransferType).contains(CompletedValue.value) =>
         UserAction(InProgress.value, routes.TransferCompleteController.transferComplete(consignmentId).url, Resume.value)
       case s if additionalMetadataEntered(s) =>
         UserAction(InProgress.value, routes.AdditionalMetadataController.start(consignmentId).url, Resume.value)
       case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>
-        toFileChecksAction(s, judgmentType, consignmentId)
-      case s if s.containsStatuses(ClientChecksType, UploadType) => toClientSideChecksAction(statuses, consignmentId, judgmentType)
+        toFileChecksAction(s, isJudgmentType, consignmentId)
+      case s if s.containsStatuses(ClientChecksType, UploadType) => toClientSideChecksAction(statuses, consignmentId, isJudgmentType)
       case s if s.containsStatuses(TransferAgreementType) =>
         toTransferAgreementAction(s.find(_.statusType == TransferAgreementType.id).get, consignmentId)
       case s if s.statusValue(SeriesType).contains(CompletedValue.value) =>
         UserAction(InProgress.value, routes.TransferAgreementPart1Controller.transferAgreement(consignmentId).url, Resume.value)
-      case s if s.isEmpty => toStartAction(consignmentId, judgmentType)
-      case _              => toContactUsAction(consignmentRef)
+      case s if s.containsStatuses(DescriptiveMetadataType, ClosureMetadataType) || s.isEmpty =>
+        toStartAction(consignmentId, isJudgmentType)
+      case _ => toContactUsAction(consignmentRef)
     }
   }
 
