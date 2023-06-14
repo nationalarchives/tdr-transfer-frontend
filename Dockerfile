@@ -6,9 +6,7 @@ COPY target/universal/tdr-transfer-frontend*.zip .
 RUN apk update && apk upgrade p11-kit busybox expat libretls zlib openssl && apk add bash unzip && \
     apk add openjdk15 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community && \
     unzip -qq tdr-transfer-frontend-*.zip
-ADD https://github.com/aws-observability/aws-otel-java-instrumentation/releases/latest/download/aws-opentelemetry-agent.jar /opt/aws-opentelemetry-agent.jar
-ENV JAVA_TOOL_OPTIONS=-javaagent:/opt/aws-opentelemetry-agent.jar
-RUN chown -R frontenduser /play /opt/aws-opentelemetry-agent.jar
+RUN chown -R frontenduser /play
 
 USER frontenduser
 
