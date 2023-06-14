@@ -118,7 +118,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
         "Descriptive metadata",
         "descriptive",
         "Add descriptive metadata to your files",
-        "You do not need to add descriptive metadata but it can enhance your record.",
+        "Descriptive metadata will enhance your record. We strongly encourage you to add any extra information available.",
         MetadataProgress("NOT ENTERED", "grey")
       )
       verifyCard(
@@ -204,7 +204,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
           val (title, description) = if (metadataType == "Closure") {
             ("Add closure and associated metadata to your files", "You must add closure metadata to closed files and folders.")
           } else {
-            ("Add descriptive metadata to your files", "You do not need to add descriptive metadata but it can enhance your record.")
+            ("Add descriptive metadata to your files", "Descriptive metadata will enhance your record. We strongly encourage you to add any extra information available.")
 
           }
           verifyCard(
