@@ -28,7 +28,7 @@
         @if(consignments.isEmpty) {
           <tbody>
             <tr>
-            @form(routes.HomepageController.homepageSubmit(), (Symbol("novalidate"), "")) {
+            @form(if(isJudgmentUser) routes.HomepageController.judgmentHomepageSubmit() else routes.HomepageController.homepageSubmit(), (Symbol("novalidate"), "")) {
               @CSRF.formField
               <td colspan="6" class="govuk-table__cell govuk-table__cell--no-results">
                 There are no transfers yet. <button type="submit" class="govuk-link tdr-button-link govuk-!-margin-bottom-0" data-module="govuk-button">Start a new transfer</button>
