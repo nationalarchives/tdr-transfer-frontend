@@ -3,6 +3,13 @@
 }
 
 //Table
+.govuk-table--tdr-transfers .govuk-table__cell--no-results {
+  background-color: #f7f7f7;
+  padding-bottom: 60px;
+  padding-top: 60px;
+  text-align: center;
+}
+
 .govuk-table--tdr-transfers tr:first-child td:first-child {
   padding-left: 4px;
   padding-right: 8px;
@@ -111,4 +118,21 @@
 
 .govuk-table__header:not(:first-child) {
   width: 200px;
+}
+
+.tdr-button-link {
+  background: none;
+  border: none;
+  color: #1d70b8;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+  padding: 0;
+  text-decoration: underline;
+  top: 0 !important;
+}
+
+.govuk-table--tdr-transfers td .tdr-button-link {
+  top: 0;
 }
