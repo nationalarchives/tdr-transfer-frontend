@@ -79,7 +79,9 @@ class SeriesDetailsController @Inject() (
               .uncache()
           )
         case _ =>
-          if(!seriesStatus.contains(InProgressValue.value)) consignmentStatusService.addConsignmentStatus(consignmentId, "Series", InProgressValue.value, request.token.bearerAccessToken)
+          if (!seriesStatus.contains(InProgressValue.value)) {
+            consignmentStatusService.addConsignmentStatus(consignmentId, "Series", InProgressValue.value, request.token.bearerAccessToken)
+          }
           seriesService.getSeriesForUser(request.token).map { series =>
             val options = series.map(series => InputNameAndValue(series.code, series.seriesid.toString))
             status(views.html.standard.seriesDetails(consignmentId, reference, createDropDownField(options, form), request.token.name)).uncache()

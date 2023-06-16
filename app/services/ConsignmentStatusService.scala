@@ -5,7 +5,6 @@ import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment, Variables}
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
-import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.{Variables => acsv}
 import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import graphql.codegen.types.ConsignmentStatusInput
 import services.ApiErrorHandling._
@@ -36,9 +35,9 @@ class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfi
     }
   }
 
-  def addConsignmentStatus(consignmentId: UUID, statusType: String, statusValue: String, token: BearerAccessToken): Future[acs.Data] = {
-    val variables = new acsv(ConsignmentStatusInput(consignmentId, statusType, Some(statusValue)))
-    sendApiRequest(addConsignmentStatusClient, acs.document, token, variables)
+  def addConsignmentStatus(consignmentId: UUID, statusType: String, statusValue: String, token: BearerAccessToken): Future[acs.AddConsignmentStatus] = {
+    val variables = new acs.Variables(ConsignmentStatusInput(consignmentId, statusType, Some(statusValue)))
+    sendApiRequest(addConsignmentStatusClient, acs.document, token, variables).map(_.addConsignmentStatus)
   }
 
   def consignmentStatusSeries(consignmentId: UUID, token: BearerAccessToken): Future[Option[GetConsignment]] = {
