@@ -373,8 +373,9 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val mockData = mock[dfm.Data]
       val fileIdsArg: ArgumentCaptor[List[UUID]] = ArgumentCaptor.forClass(classOf[List[UUID]])
       val propertiesToDeleteArg: ArgumentCaptor[Set[String]] = ArgumentCaptor.forClass(classOf[Set[String]])
+      val consignmentIdArg: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
 
-      when(customMetadataService.deleteMetadata(fileIdsArg.capture(), ArgumentMatchers.any[BearerAccessToken], propertiesToDeleteArg.capture())).thenReturn(Future(mockData))
+      when(customMetadataService.deleteMetadata(fileIdsArg.capture(), ArgumentMatchers.any[BearerAccessToken], propertiesToDeleteArg.capture(), consignmentIdArg.capture())).thenReturn(Future(mockData))
 
       val controller = new DeleteAdditionalMetadataController(
         consignmentService,
@@ -401,6 +402,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         "TitleClosed",
         "ClosureType"
       )
+      consignmentIdArg.getValue mustEqual consignmentId
 
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/$closureMetadataType"))
     }
@@ -419,8 +421,9 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val mockData = mock[dfm.Data]
       val fileIdsArg: ArgumentCaptor[List[UUID]] = ArgumentCaptor.forClass(classOf[List[UUID]])
       val propertiesToDeleteArg: ArgumentCaptor[Set[String]] = ArgumentCaptor.forClass(classOf[Set[String]])
+      val consignmentIdArg: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
 
-      when(customMetadataService.deleteMetadata(fileIdsArg.capture(), ArgumentMatchers.any[BearerAccessToken], propertiesToDeleteArg.capture())).thenReturn(Future(mockData))
+      when(customMetadataService.deleteMetadata(fileIdsArg.capture(), ArgumentMatchers.any[BearerAccessToken], propertiesToDeleteArg.capture(), consignmentIdArg.capture())).thenReturn(Future(mockData))
 
       val controller = new DeleteAdditionalMetadataController(
         consignmentService,
@@ -437,6 +440,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(response) mustBe SEE_OTHER
       fileIdsArg.getValue mustEqual fileIds
       propertiesToDeleteArg.getValue mustEqual Set("end_date", "description", "Language")
+      consignmentIdArg.getValue mustEqual consignmentId
 
       redirectLocation(response) must be(Some(s"/consignment/$consignmentId/additional-metadata/files/$descriptiveMetadataType"))
     }

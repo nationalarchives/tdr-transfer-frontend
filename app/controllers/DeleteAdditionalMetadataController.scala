@@ -62,7 +62,7 @@ class DeleteAdditionalMetadataController @Inject() (
         for {
           displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some(metadataType))
           propertiesToDelete: Set[String] = displayProperties.map(_.propertyName).toSet
-          _ <- customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, propertiesToDelete)
+          _ <- customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, propertiesToDelete, consignmentId)
           response <-
             Future(
               Redirect(

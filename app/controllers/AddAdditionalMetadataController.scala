@@ -112,7 +112,7 @@ class AddAdditionalMetadataController @Inject() (
     }.toSet
 
     for {
-      _ <- if (deleteMetadataNames.nonEmpty) customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, deleteMetadataNames) else Future.successful(())
+      _ <- if (deleteMetadataNames.nonEmpty) customMetadataService.deleteMetadata(fileIds, request.token.bearerAccessToken, deleteMetadataNames, consignmentId) else Future.successful(())
       _ <- customMetadataService.saveMetadata(consignmentId, fileIds, request.token.bearerAccessToken, updateMetadataInputs)
     } yield ()
   }
