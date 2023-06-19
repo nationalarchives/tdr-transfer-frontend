@@ -38,7 +38,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.4.8",
   ws,
   "com.github.tomakehurst" % "wiremock-jre8" % "2.35.0" % Test,
-  "org.mockito" % "mockito-core" % "5.3.1" % Test,
+  "org.mockito" % "mockito-core" % "5.4.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
 
