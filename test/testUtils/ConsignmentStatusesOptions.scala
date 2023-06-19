@@ -16,7 +16,8 @@ object ConsignmentStatusesOptions {
   val completedWithIssues: Option[String] = Some("CompletedWithIssues")
   val failed: Option[String] = Some("Failed")
 
-  val seriesInProgress, beforeUpload = List()
+  val beforeUpload = List()
+  private val seriesInProgress: Map[StatusType, StatusValue] = Map(SeriesType -> InProgressValue)
   private val seriesCompleted: Map[StatusType, StatusValue] = Map(SeriesType -> CompletedValue)
   private val taInProgress: Map[StatusType, StatusValue] = Map(TransferAgreementType -> InProgressValue)
   private val taCompleted: Map[StatusType, StatusValue] = Map(TransferAgreementType -> CompletedValue)
@@ -54,7 +55,7 @@ object ConsignmentStatusesOptions {
 
   val expectedStandardStatesAndStatuses: TableFor5[String, List[ConsignmentStatuses], String, String, String] = Table(
     ("expected transfer state", "statuses", "action url", "transfer state", "action text"),
-    ("series in progress", seriesInProgress, "/series", "In Progress", "Resume transfer"),
+    ("series in progress", generateStatuses(seriesInProgress), "/series", "In Progress", "Resume transfer"),
     (
       "series completed",
       generateStatuses(
