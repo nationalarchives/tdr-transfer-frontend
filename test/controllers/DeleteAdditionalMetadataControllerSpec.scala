@@ -375,7 +375,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val propertiesToDeleteArg: ArgumentCaptor[Set[String]] = ArgumentCaptor.forClass(classOf[Set[String]])
       val consignmentIdArg: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
 
-      when(customMetadataService.deleteMetadata(fileIdsArg.capture(), ArgumentMatchers.any[BearerAccessToken], propertiesToDeleteArg.capture(), consignmentIdArg.capture())).thenReturn(Future(mockData))
+      when(customMetadataService.deleteMetadata(fileIdsArg.capture(), ArgumentMatchers.any[BearerAccessToken], propertiesToDeleteArg.capture(), consignmentIdArg.capture()))
+        .thenReturn(Future(mockData))
 
       val controller = new DeleteAdditionalMetadataController(
         consignmentService,
@@ -423,7 +424,8 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val propertiesToDeleteArg: ArgumentCaptor[Set[String]] = ArgumentCaptor.forClass(classOf[Set[String]])
       val consignmentIdArg: ArgumentCaptor[UUID] = ArgumentCaptor.forClass(classOf[UUID])
 
-      when(customMetadataService.deleteMetadata(fileIdsArg.capture(), ArgumentMatchers.any[BearerAccessToken], propertiesToDeleteArg.capture(), consignmentIdArg.capture())).thenReturn(Future(mockData))
+      when(customMetadataService.deleteMetadata(fileIdsArg.capture(), ArgumentMatchers.any[BearerAccessToken], propertiesToDeleteArg.capture(), consignmentIdArg.capture()))
+        .thenReturn(Future(mockData))
 
       val controller = new DeleteAdditionalMetadataController(
         consignmentService,
