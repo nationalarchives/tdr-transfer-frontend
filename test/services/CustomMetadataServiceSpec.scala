@@ -183,32 +183,32 @@ class CustomMetadataServiceSpec extends AnyFlatSpec with MockitoSugar with Befor
   }
 
   "deleteMetadata" should "delete the additional metadata" in {
-    val deleteFileMetadataInput = DeleteFileMetadataInput(fileIds, List("PropertyName1"))
+    val deleteFileMetadataInput = DeleteFileMetadataInput(fileIds, List("PropertyName1"), Some(consignmentId))
     val variables = Some(dfm.Variables(deleteFileMetadataInput))
     val deleteFileMetadata = dfm.DeleteFileMetadata(fileIds, List("PropertyName1"))
     when(deleteFileMetadataClient.getResult(token, dfm.document, variables))
       .thenReturn(Future(GraphQlResponse(Option(dfm.Data(deleteFileMetadata)), Nil)))
 
-    val response = customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1")).futureValue
+    val response = customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1"), consignmentId).futureValue
 
     response.deleteFileMetadata should equal(deleteFileMetadata)
     verify(deleteFileMetadataClient, times(1)).getResult(token, dfm.document, variables)
   }
 
   "deleteMetadata" should "return an error if the API call fails" in {
-    val variables = dfm.Variables(DeleteFileMetadataInput(fileIds, List("PropertyName1")))
+    val variables = dfm.Variables(DeleteFileMetadataInput(fileIds, List("PropertyName1"), Some(consignmentId)))
     when(deleteFileMetadataClient.getResult(token, dfm.document, Option(variables)))
       .thenReturn(Future.failed(HttpError("something went wrong", StatusCode.InternalServerError)))
 
-    customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1")).failed.futureValue shouldBe a[HttpError]
+    customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1"), consignmentId).failed.futureValue shouldBe a[HttpError]
   }
 
   "deleteMetadata" should "throw an AuthorisationException if the API returns an auth error" in {
-    val variables = dfm.Variables(DeleteFileMetadataInput(fileIds, List("PropertyName1")))
+    val variables = dfm.Variables(DeleteFileMetadataInput(fileIds, List("PropertyName1"), Some(consignmentId)))
     val response = GraphQlResponse[dfm.Data](None, List(NotAuthorisedError("some auth error", Nil, Nil)))
     when(deleteFileMetadataClient.getResult(token, dfm.document, Option(variables)))
       .thenReturn(Future.successful(response))
 
-    customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1")).failed.futureValue shouldBe a[AuthorisationException]
+    customMetadataService.deleteMetadata(fileIds, token, Set("PropertyName1"), consignmentId).failed.futureValue shouldBe a[AuthorisationException]
   }
 }
