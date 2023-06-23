@@ -10,6 +10,7 @@ import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddBulkFileMetadata.addBulkFileMetadata.UpdateBulkFileMetadata
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
+import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.AddConsignmentStatus
 import graphql.codegen.DeleteFileMetadata.deleteFileMetadata.DeleteFileMetadata
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetAllDescendants.getAllDescendantIds
@@ -31,6 +32,7 @@ import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.GetDisplayProperties.{displayProperties => dp}
 import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
+import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -67,6 +69,7 @@ import play.api.{Application, Configuration}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
+import services.Statuses.{InProgressValue, SeriesType}
 import viewsapi.FrontEndInfo
 
 import java.io.File
@@ -104,6 +107,19 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentReference"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
+  def setAddConsignmentStatusResponse(wiremockServer: WireMockServer): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[acs.Data, acs.Variables]()
+    val dataString = client
+      .GraphqlData(Option(acs.Data(AddConsignmentStatus(UUID.randomUUID(), UUID.randomUUID(), SeriesType.id, InProgressValue.value, ZonedDateTime.now(), None))))
+      .asJson
+      .printWith(Printer.noSpaces)
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("addConsignmentStatus"))
         .willReturn(okJson(dataString))
     )
   }

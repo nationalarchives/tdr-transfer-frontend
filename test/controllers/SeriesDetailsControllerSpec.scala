@@ -3,26 +3,21 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import errors.GraphQlException
 import graphql.codegen.AddConsignment.{addConsignment => ac}
-import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.AddConsignmentStatus
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetSeries.{getSeries => gs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.{never, verify, when}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.matchers.should.Matchers._
 import play.api.Play.materializer
-import play.api.mvc.{AnyContent, AnyContentAsEmpty, Request}
 import play.api.test.CSRFTokenHelper._
+import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
-import play.api.test.{FakeHeaders, FakeRequest}
 import services.Statuses.{InProgressValue, SeriesType}
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
 import testUtils.DefaultMockFormOptions.{MockInputOption, getExpectedSeriesDefaultOptions}
@@ -32,7 +27,7 @@ import uk.gov.nationalarchives.tdr.GraphQLClient
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class SeriesDetailsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -267,63 +262,59 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       seriesDetailsPageAsString should include("""<select class="govuk-select" id="series" name="series"  disabled>""")
       seriesDetailsPageAsString should include(s"""<option selected="selected" value="${seriesId.toString}">MOCK1</option>""")
     }
-  }
 
-  "addSeriesStatus" should {
     "add consignment status if seriesStatus is 'None'" in {
-      val consignmentId = UUID.randomUUID()
-      val seriesStatus = InProgressValue.value
-      val request = createRequest()
-      val token = new BearerAccessToken("some-token")
-
-      val mockConsignmentStatusService = mock[ConsignmentStatusService]
-      when(mockConsignmentStatusService.addConsignmentStatus(consignmentId, SeriesType.id, seriesStatus, token))
-        .thenReturn(Future(AddConsignmentStatus(UUID.randomUUID(), consignmentId, SeriesType.id, seriesStatus, ZonedDateTime.now(), None)))
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val seriesService = new SeriesService(graphQLConfiguration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-
-      val controller =
-        new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, seriesService, consignmentService, mockConsignmentStatusService)
-      controller.addSeriesStatus(None, consignmentId, request)
-
-      verify(mockConsignmentStatusService).addConsignmentStatus(
-        ArgumentMatchers.eq(consignmentId),
-        ArgumentMatchers.eq(SeriesType.id),
-        ArgumentMatchers.eq(seriesStatus),
-        ArgumentMatchers.any(classOf[BearerAccessToken])
+      val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(Some(gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getSeries"))
+          .willReturn(okJson(dataString))
       )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      setAddConsignmentStatusResponse(wiremockServer)
+
+      val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
+
+      val seriesDetailsPageAsString = contentAsString(seriesDetailsPage)
+
+      playStatus(seriesDetailsPage) mustBe OK
+      contentType(seriesDetailsPage) mustBe Some("text/html")
+      checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
+
+      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("addConsignmentStatus")))
     }
 
-    "not add consignment status if seriesStatus is in 'InProgress'" in {
-      val consignmentId = UUID.randomUUID()
-      val seriesStatus = InProgressValue.value
-      val request = createRequest()
-
-      val mockConsignmentStatusService = mock[ConsignmentStatusService]
-
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val seriesService = new SeriesService(graphQLConfiguration)
-      val consignmentService = new ConsignmentService(graphQLConfiguration)
-
-      val controller =
-        new SeriesDetailsController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, seriesService, consignmentService, mockConsignmentStatusService)
-      controller.addSeriesStatus(Some(seriesStatus), consignmentId, request)
-
-      verify(mockConsignmentStatusService, never()).addConsignmentStatus(
-        ArgumentMatchers.any(classOf[UUID]),
-        ArgumentMatchers.any(classOf[String]),
-        ArgumentMatchers.any(classOf[String]),
-        ArgumentMatchers.any(classOf[BearerAccessToken])
+    "not add consignment status if seriesStatus is 'InProgress'" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(Some(gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getSeries"))
+          .willReturn(okJson(dataString))
       )
-    }
-  }
+      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), SeriesType.id, InProgressValue.value, someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), consignmentStatuses)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      setAddConsignmentStatusResponse(wiremockServer)
 
-  def createRequest(): Request[AnyContent] = {
-    val fakeHeaders = FakeHeaders(Seq("Authorization" -> "some-token"))
-    val fakeRequest = FakeRequest("", "", fakeHeaders, AnyContentAsEmpty)
-    fakeRequest.withBody(AnyContentAsEmpty).asInstanceOf[Request[AnyContent]]
+      val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
+
+      val seriesDetailsPageAsString = contentAsString(seriesDetailsPage)
+
+      playStatus(seriesDetailsPage) mustBe OK
+      contentType(seriesDetailsPage) mustBe Some("text/html")
+      checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
+
+      wiremockServer.verify(0, postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("addConsignmentStatus")))
+    }
   }
 
   private def instantiateSeriesController(securityComponents: SecurityComponents, keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration) = {
