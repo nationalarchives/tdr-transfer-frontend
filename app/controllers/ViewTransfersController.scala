@@ -2,6 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
+import controllers.util.DateUtils
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.ConsignmentStatuses
@@ -11,7 +12,6 @@ import play.api.mvc.{Action, AnyContent, Request}
 import services.ConsignmentService
 import services.Statuses._
 
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
 
@@ -23,7 +23,6 @@ class ViewTransfersController @Inject() (
 ) extends TokenSecurity {
 
   private val statusColours: Map[String, String] = Map(InProgress.value -> "yellow", Failed.value -> "red", ContactUs.value -> "red", Transferred.value -> "green")
-  private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
 
   implicit class ConsignmentStatusesHelper(statuses: List[ConsignmentStatuses]) {
     def containsStatuses(statusTypes: StatusType*): Boolean = {
@@ -67,8 +66,8 @@ class ViewTransfersController @Inject() (
         userAction.transferStatus,
         statusColours(userAction.transferStatus),
         userAction,
-        edge.node.exportDatetime.map(_.format(formatter)).getOrElse("N/A"),
-        edge.node.createdDatetime.map(_.format(formatter)).getOrElse(""),
+        edge.node.exportDatetime.map(DateUtils.format(_)).getOrElse("N/A"),
+        edge.node.createdDatetime.map(DateUtils.format(_)).getOrElse(""),
         edge.node.totalFiles
       )
     }
