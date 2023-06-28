@@ -18,10 +18,11 @@ import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
+import services.Statuses.{InProgressValue, SeriesType}
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
-import uk.gov.nationalarchives.tdr.GraphQLClient
-import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
 import testUtils.DefaultMockFormOptions.{MockInputOption, getExpectedSeriesDefaultOptions}
+import testUtils.{CheckPageForStaticElements, FormTester, FrontEndTestHelper}
+import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
@@ -260,6 +261,59 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(seriesDetailsPageAsString, userType = "standard")
       seriesDetailsPageAsString should include("""<select class="govuk-select" id="series" name="series"  disabled>""")
       seriesDetailsPageAsString should include(s"""<option selected="selected" value="${seriesId.toString}">MOCK1</option>""")
+    }
+
+    "add consignment status if seriesStatus is 'None'" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(Some(gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getSeries"))
+          .willReturn(okJson(dataString))
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      setAddConsignmentStatusResponse(wiremockServer)
+
+      val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
+
+      val seriesDetailsPageAsString = contentAsString(seriesDetailsPage)
+
+      playStatus(seriesDetailsPage) mustBe OK
+      contentType(seriesDetailsPage) mustBe Some("text/html")
+      checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
+
+      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("addConsignmentStatus")))
+    }
+
+    "not add consignment status if seriesStatus is 'InProgress'" in {
+      val client = new GraphQLConfiguration(app.configuration).getClient[gs.Data, gs.Variables]()
+      val data: client.GraphqlData = client.GraphqlData(Some(gs.Data(List(gs.GetSeries(seriesId, bodyId, "name", "MOCK1", Option.empty)))))
+      val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getSeries"))
+          .willReturn(okJson(dataString))
+      )
+      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), SeriesType.id, InProgressValue.value, someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId), consignmentStatuses)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      setAddConsignmentStatusResponse(wiremockServer)
+
+      val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
+      val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
+
+      val seriesDetailsPageAsString = contentAsString(seriesDetailsPage)
+
+      playStatus(seriesDetailsPage) mustBe OK
+      contentType(seriesDetailsPage) mustBe Some("text/html")
+      checkForExpectedSeriesPageContent(seriesDetailsPageAsString)
+
+      wiremockServer.verify(0, postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("addConsignmentStatus")))
     }
   }
 

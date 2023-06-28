@@ -13,7 +13,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.ConsignmentService
-import services.Statuses.SeriesType
+import services.Statuses.{SeriesType, UnrecognisedType}
 import testUtils.{CheckPageForStaticElements, ConsignmentStatusesOptions, FrontEndTestHelper}
 
 import java.time.format.DateTimeFormatter
@@ -158,7 +158,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     "render the view transfers page with list of user's consignments and have 'Contact us' as an Action for consignments" +
       " where the status value were invalid/not recognised" in {
         val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
-        val invalidConsignmentStatus = ConsignmentStatuses(UUID.randomUUID, UUID.randomUUID, SeriesType.id, "InvalidStatusValue", someDateTime, None)
+        val invalidConsignmentStatus = ConsignmentStatuses(UUID.randomUUID, UUID.randomUUID, UnrecognisedType.id, "InvalidStatusValue", someDateTime, None)
 
         setConsignmentTypeResponse(wiremockServer, standardType)
         val consignmentsWithAllStatusStates: List[Consignments.Edges] =
