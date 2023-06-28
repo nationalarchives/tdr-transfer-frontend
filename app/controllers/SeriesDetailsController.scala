@@ -8,7 +8,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
-import services.Statuses.{CompletedValue, SeriesType}
+import services.Statuses.{CompletedValue, InProgressValue, SeriesType}
 import services.{ConsignmentService, ConsignmentStatusService, SeriesService}
 import viewsapi.Caching.preventCaching
 
@@ -79,6 +79,9 @@ class SeriesDetailsController @Inject() (
               .uncache()
           )
         case _ =>
+          if (!seriesStatus.contains(InProgressValue.value)) {
+            consignmentStatusService.addConsignmentStatus(consignmentId, "Series", InProgressValue.value, request.token.bearerAccessToken)
+          }
           seriesService.getSeriesForUser(request.token).map { series =>
             val options = series.map(series => InputNameAndValue(series.code, series.seriesid.toString))
             status(views.html.standard.seriesDetails(consignmentId, reference, createDropDownField(options, form), request.token.name)).uncache()
