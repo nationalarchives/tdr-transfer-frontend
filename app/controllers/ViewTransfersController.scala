@@ -95,8 +95,8 @@ class ViewTransfersController @Inject() (
       case s if s.containsStatuses(ClientChecksType, UploadType) => toClientSideChecksAction(statuses, consignmentId, judgmentType)
       case s if s.containsStatuses(TransferAgreementType) =>
         toTransferAgreementAction(s.find(_.statusType == TransferAgreementType.id).get, consignmentId)
-      case s if s.statusValue(SeriesType).contains(CompletedValue.value) =>
-        UserAction(InProgress.value, routes.TransferAgreementPart1Controller.transferAgreement(consignmentId).url, Resume.value)
+      case s if s.containsStatuses(SeriesType) =>
+        toSeriesAction(s.find(_.statusType == SeriesType.id).get, consignmentId)
       case s if s.isEmpty => toStartAction(consignmentId, judgmentType)
       case _              => toContactUsAction(consignmentRef)
     }
@@ -182,6 +182,15 @@ class ViewTransfersController @Inject() (
         UserAction(InProgress.value, routes.TransferAgreementPart2Controller.transferAgreement(consignmentId).url, Resume.value)
       case _ =>
         UserAction(InProgress.value, routes.UploadController.uploadPage(consignmentId).url, Resume.value)
+    }
+  }
+
+  private def toSeriesAction(status: ConsignmentStatuses, consignmentId: UUID): UserAction = {
+    status.value match {
+      case v if v == InProgressValue.value =>
+        UserAction(InProgress.value, routes.SeriesDetailsController.seriesDetails(consignmentId).url, Resume.value)
+      case _ =>
+        UserAction(InProgress.value, routes.TransferAgreementPart1Controller.transferAgreement(consignmentId).url, Resume.value)
     }
   }
 
