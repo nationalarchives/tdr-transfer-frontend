@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import errors.AuthorisationException
-import graphql.codegen.AddFinalJudgmentTransferConfirmation.{addFinalJudgmentTransferConfirmation => afjtc}
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
 import graphql.codegen.GetConsignment.{getConsignment => gc}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
@@ -254,7 +253,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     "add a final judgment transfer confirmation when the api response is successful" in {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
-      val addFinalJudgmentTransferConfirmationResponse: afjtc.AddFinalJudgmentTransferConfirmation = createFinalJudgmentTransferConfirmationResponse
+      val addFinalJudgmentTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalJudgmentTransferConfirmationResponse(Some(addFinalJudgmentTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
       mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
@@ -403,7 +402,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     }
 
     "return an error when the call to the export api fails for judgment" in {
-      val addFinalTransferConfirmationResponse: afjtc.AddFinalJudgmentTransferConfirmation = createFinalJudgmentTransferConfirmationResponse
+      val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalJudgmentTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       mockUpdateTransferInitiatedResponse
@@ -453,7 +452,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     }
 
     "calls the export api when a valid form is submitted for judgment" in {
-      val addFinalTransferConfirmationResponse: afjtc.AddFinalJudgmentTransferConfirmation = createFinalJudgmentTransferConfirmationResponse
+      val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalJudgmentTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
       mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
@@ -689,7 +688,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     legalCustodyTransferConfirmed = true
   )
 
-  private def createFinalJudgmentTransferConfirmationResponse = new afjtc.AddFinalJudgmentTransferConfirmation(
+  private def createFinalJudgmentTransferConfirmationResponse = new aftc.AddFinalTransferConfirmation(
     consignmentId,
     legalCustodyTransferConfirmed = true
   )
@@ -718,12 +717,12 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   }
 
   private def stubFinalJudgmentTransferConfirmationResponse(
-      finalJudgmentTransferConfirmation: Option[afjtc.AddFinalJudgmentTransferConfirmation] = None,
+      finalJudgmentTransferConfirmation: Option[aftc.AddFinalTransferConfirmation] = None,
       errors: List[GraphQLClient.Error] = Nil
   ): Unit = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[afjtc.Data, afjtc.Variables]()
+    val client = new GraphQLConfiguration(app.configuration).getClient[aftc.Data, aftc.Variables]()
 
-    val data: client.GraphqlData = client.GraphqlData(finalJudgmentTransferConfirmation.map(ftc => afjtc.Data(ftc)), errors)
+    val data: client.GraphqlData = client.GraphqlData(finalJudgmentTransferConfirmation.map(ftc => aftc.Data(ftc)), errors)
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     val query =
       s"""{"query":"mutation addFinalJudgmentTransferConfirmation($$input:AddFinalJudgmentTransferConfirmationInput!)
