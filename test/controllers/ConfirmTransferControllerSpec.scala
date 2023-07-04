@@ -254,7 +254,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       val addFinalJudgmentTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
-      stubFinalJudgmentTransferConfirmationResponse(Some(addFinalJudgmentTransferConfirmationResponse))
+      stubFinalTransferConfirmationResponse(Some(addFinalJudgmentTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
       mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
       wiremockExportServer.stubFor(
@@ -336,7 +336,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
     "throw an authorisation exception when the user does not have permission to save the transfer confirmation for judgment" in {
       setConsignmentStatusResponse(app.configuration, wiremockServer)
-      stubFinalJudgmentTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
+      stubFinalTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
       mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitResult = controller
@@ -403,7 +403,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
     "return an error when the call to the export api fails for judgment" in {
       val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
-      stubFinalJudgmentTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
+      stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       mockUpdateTransferInitiatedResponse
       mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
@@ -453,7 +453,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
     "calls the export api when a valid form is submitted for judgment" in {
       val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
-      stubFinalJudgmentTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
+      stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
       mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
       setConsignmentStatusResponse(app.configuration, wiremockServer)
@@ -688,11 +688,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     legalCustodyTransferConfirmed = true
   )
 
-  private def createFinalJudgmentTransferConfirmationResponse = new aftc.AddFinalTransferConfirmation(
-    consignmentId,
-    legalCustodyTransferConfirmed = true
-  )
-
   private def stubFinalTransferConfirmationResponse(finalTransferConfirmation: Option[aftc.AddFinalTransferConfirmation] = None, errors: List[GraphQLClient.Error] = Nil): Unit = {
     val client = new GraphQLConfiguration(app.configuration).getClient[aftc.Data, aftc.Variables]()
 
@@ -701,32 +696,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     val query =
       s"""{"query":"mutation addFinalTransferConfirmation($$input:AddFinalTransferConfirmationInput!)
                             {addFinalTransferConfirmation(addFinalTransferConfirmationInput:$$input)
-                            {consignmentId legalCustodyTransferConfirmed}}",
-           "variables":{
-                        "input":{
-                                 "consignmentId":"$consignmentId",
-                                 "legalCustodyTransferConfirmed":true
-                                }
-                       }
-                             }""".stripMargin.replaceAll("\n\\s*", "")
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .withRequestBody(equalToJson(query))
-        .willReturn(okJson(dataString))
-    )
-  }
-
-  private def stubFinalJudgmentTransferConfirmationResponse(
-      finalJudgmentTransferConfirmation: Option[aftc.AddFinalTransferConfirmation] = None,
-      errors: List[GraphQLClient.Error] = Nil
-  ): Unit = {
-    val client = new GraphQLConfiguration(app.configuration).getClient[aftc.Data, aftc.Variables]()
-
-    val data: client.GraphqlData = client.GraphqlData(finalJudgmentTransferConfirmation.map(ftc => aftc.Data(ftc)), errors)
-    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
-    val query =
-      s"""{"query":"mutation addFinalJudgmentTransferConfirmation($$input:AddFinalJudgmentTransferConfirmationInput!)
-                            {addFinalJudgmentTransferConfirmation(addFinalJudgmentTransferConfirmationInput:$$input)
                             {consignmentId legalCustodyTransferConfirmed}}",
            "variables":{
                         "input":{
