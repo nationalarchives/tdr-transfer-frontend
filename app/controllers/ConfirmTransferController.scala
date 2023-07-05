@@ -114,8 +114,9 @@ class ConfirmTransferController @Inject() (
             }
           case None =>
             val token: BearerAccessToken = request.token.bearerAccessToken
+            val legalCustodyTransferConfirmation = FinalTransferConfirmationData(transferLegalCustody = true)
             for {
-              _ <- confirmTransferService.addFinalJudgmentTransferConfirmation(consignmentId, token)
+              _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, legalCustodyTransferConfirmation)
               _ <- consignmentExportService.updateTransferInitiated(consignmentId, request.token.bearerAccessToken)
               _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
               res <- Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)))
