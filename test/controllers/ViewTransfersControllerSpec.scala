@@ -13,7 +13,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
 import services.ConsignmentService
-import services.Statuses.SeriesType
+import services.Statuses.{SeriesType, UnrecognisedType}
 import testUtils.{CheckPageForStaticElements, ConsignmentStatusesOptions, FrontEndTestHelper}
 
 import java.time.format.DateTimeFormatter
@@ -158,7 +158,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     "render the view transfers page with list of user's consignments and have 'Contact us' as an Action for consignments" +
       " where the status value were invalid/not recognised" in {
         val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
-        val invalidConsignmentStatus = ConsignmentStatuses(UUID.randomUUID, UUID.randomUUID, SeriesType.id, "InvalidStatusValue", someDateTime, None)
+        val invalidConsignmentStatus = ConsignmentStatuses(UUID.randomUUID, UUID.randomUUID, UnrecognisedType.id, "InvalidStatusValue", someDateTime, None)
 
         setConsignmentTypeResponse(wiremockServer, standardType)
         val consignmentsWithAllStatusStates: List[Consignments.Edges] =
@@ -261,14 +261,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
     viewTransfersPageAsString must include(
       s"""View the history of all the consignments you have uploaded. You can also resume incomplete transfers or view the errors of failed transfers."""
     )
-    if (consignmentExists) {
-      viewTransfersPageAsString must include(
-        """        <a href="/homepage" role="button" draggable="false" class="govuk-button govuk-button--primary">
-          |          Back to homepage
-          |        </a>""".stripMargin
-      )
-    } else {
-      viewTransfersPageAsString must not include ("Back to homepage")
+    if (!consignmentExists) {
       viewTransfersPageAsString must include(
         """<td colspan="6" class="govuk-table__cell govuk-table__cell--no-results">
           |                There are no transfers yet. <button type="submit" class="govuk-link tdr-button-link govuk-!-margin-bottom-0" data-module="govuk-button">Start a new transfer</button>

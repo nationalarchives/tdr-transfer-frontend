@@ -2,6 +2,7 @@ package auth
 
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
+import io.opentelemetry.api.trace.Span
 import org.pac4j.core.profile.{ProfileManager, UserProfile}
 import org.pac4j.play.PlayWebContext
 import play.api.i18n.I18nSupport
@@ -73,6 +74,10 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
       consignmentService
         .getConsignmentType(consignmentId, token.bearerAccessToken)
         .flatMap(consignmentType => {
+          // These are custom user annotation traces used in Xray
+          val current = Span.current()
+          current.setAttribute(consignmentIdKey, consignmentId.toString)
+          current.setAttribute(userIdKey, token.userId.toString)
           createResult(action, request, consignmentType == expectedConsignmentType)
         })
   }

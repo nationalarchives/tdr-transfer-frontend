@@ -4,7 +4,10 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLBackend._
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
+import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.Variables
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
+import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
+import graphql.codegen.types.ConsignmentStatusInput
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -12,7 +15,7 @@ import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import services.Statuses.{SeriesType, TransferAgreementType}
+import services.Statuses.{InProgressValue, SeriesType, TransferAgreementType}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
@@ -24,9 +27,12 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
 
   private val graphQLConfig = mock[GraphQLConfiguration]
   private val getConsignmentStatusClient = mock[GraphQLClient[gcs.Data, gcs.Variables]]
+  private val addConsignmentStatusClient = mock[GraphQLClient[acs.Data, acs.Variables]]
   private val token = new BearerAccessToken("some-token")
   private val consignmentId = UUID.fromString("e1ca3948-ee41-4e80-85e6-2123040c135d")
+  private val consignmentStatusId = UUID.randomUUID()
   when(graphQLConfig.getClient[gcs.Data, gcs.Variables]()).thenReturn(getConsignmentStatusClient)
+  when(graphQLConfig.getClient[acs.Data, acs.Variables]()).thenReturn(addConsignmentStatusClient)
 
   private val consignmentStatusService = new ConsignmentStatusService(graphQLConfig)
   private val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
@@ -120,6 +126,22 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
         .thenReturn(Future.successful(response))
       val statuses = consignmentStatusService.getConsignmentStatuses(consignmentId, token).futureValue
       statuses.size shouldBe 0
+    }
+  }
+
+  "addConsignmentStatus" should {
+    "correctly add status value for a given status type" in {
+      val data: Option[acs.Data] =
+        Option(acs.Data(acs.AddConsignmentStatus(consignmentStatusId, consignmentId, SeriesType.id, InProgressValue.value, ZonedDateTime.now(), None)))
+      val response = GraphQlResponse(data, Nil)
+      when(addConsignmentStatusClient.getResult(token, acs.document, Some(Variables(ConsignmentStatusInput(consignmentId, SeriesType.id, Some(InProgressValue.value))))))
+        .thenReturn(Future.successful(response))
+      val result = consignmentStatusService.addConsignmentStatus(consignmentId, SeriesType.id, InProgressValue.value, token).futureValue
+
+      result.consignmentId should equal(consignmentId)
+      result.consignmentStatusId should equal(consignmentStatusId)
+      result.statusType should equal(SeriesType.id)
+      result.value should equal(InProgressValue.value)
     }
   }
 }
