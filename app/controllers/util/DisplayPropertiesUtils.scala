@@ -84,7 +84,6 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
             property.alternativeName,
             property.description,
             Nil,
-            property.guidance,
             property.multiValue,
             customMetadata.definedInputs,
             customMetadata.defaultInput.map(List(_)),
@@ -113,7 +112,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
       case DataType.Integer => ("numeric", "number")
       case _                => ("text", "text")
     }
-    val inputName: String = property.guidance
+    val inputName: String = property.guidance.getOrElse("")
     TextField(
       property.propertyName,
       property.displayName,
@@ -124,7 +123,7 @@ class DisplayPropertiesUtils(displayProperties: List[DisplayProperty], customMet
       InputNameAndValue(inputName, customMetadata.defaultValue),
       inputMode,
       required,
-      addSuffixText = inputName.nonEmpty,
+      suffixText = property.guidance,
       inputType = inputType
     )
   }
