@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent
 import configuration.GraphQLConfiguration
 import controllers.util.MetadataProperty._
-import controllers.util.{DateField, FormField, InputNameAndValue, RadioButtonGroupField}
+import controllers.util._
 import errors.GraphQlException
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
@@ -113,7 +113,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val formTester = new FormTester(expectedDescriptiveDefaultOptions)
 
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer, fileHasMetadata = false)
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, fileHasMetadata = false)
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
 
@@ -198,6 +198,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
       checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
       formTester.checkHtmlForOptionAndItsAttributes(addAdditionalMetadataPageAsString, expectedDefaultForm.toMap)
+      formTester.verifyAdditionalFormElements(addAdditionalMetadataPageAsString)
     }
 
     "render the add additional metadata page, with the descriptive form updated with the file's additional metadata, for an authenticated standard user" in {
@@ -689,7 +690,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         val formField: FormField =
           RadioButtonGroupField(fieldId, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
-        val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+        val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata, "")
 
         val expectedField = RadioButtonGroupField(
           fieldId,
@@ -713,7 +714,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
         val formField: FormField =
           RadioButtonGroupField(fieldId, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
-        val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+        val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata, "")
 
         val expectedField = RadioButtonGroupField(
           fieldId,
@@ -737,7 +738,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         description -> List(FileMetadata(description, "some value"))
       )
       val formField: FormField = RadioButtonGroupField(closurePeriod, "name", "alternativeName", "description", Nil, "", false, Seq(InputNameAndValue("Yes", "Yes")), "Yes", false)
-      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata, "")
       actualFormField should equal(formField)
     }
 
@@ -759,7 +760,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           InputNameAndValue("Year", "1990", "YYYY"),
           isRequired = true
         )
-      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata, "")
 
       val expectedField = DateField(
         end_date,
@@ -800,7 +801,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           InputNameAndValue("Year", "1990", "YYYY"),
           isRequired = true
         )
-      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata, "")
 
       val expectedField = DateField(
         closureStartDate,
@@ -837,7 +838,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           InputNameAndValue("Year", "1990", "YYYY"),
           isRequired = true
         )
-      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata)
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(formField, fileMetadata, "")
 
       val expectedField = DateField(
         closureStartDate,
@@ -853,6 +854,30 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         InputNameAndValue("Year", "1990", "YYYY"),
         isRequired = true
       )
+      actualFormField should equal(expectedField)
+    }
+
+    "Override TitleAlternate field with file extension as a suffix" in {
+      val clientSideFileLastModifiedDateValue = LocalDateTime.of(2000, 2, 22, 2, 0)
+      val closureStartDateValue = LocalDateTime.of(1990, 12, 1, 10, 0)
+      val fileMetadata: Map[String, List[FileMetadata]] = Map(
+        clientSideFileLastModifiedDate -> List(FileMetadata(clientSideFileLastModifiedDate, Timestamp.valueOf(clientSideFileLastModifiedDateValue).toString)),
+        closureStartDate -> List(FileMetadata(closureStartDate, Timestamp.valueOf(closureStartDateValue).toString))
+      )
+      val textField: TextField = TextField(
+        titleAlternate,
+        "name",
+        "alternativename",
+        "desc",
+        Nil,
+        multiValue = false,
+        InputNameAndValue("Title", "value"),
+        "text",
+        isRequired = true
+      )
+      val actualFormField = AddAdditionalMetadataController.formFieldOverrides(textField, fileMetadata, ".docx")
+
+      val expectedField = textField.copy(suffixText = ".docx".some)
       actualFormField should equal(expectedField)
     }
   }

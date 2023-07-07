@@ -182,7 +182,6 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
         "alternativeName",
         "desc",
         Nil,
-        "guidance",
         multiValue = true,
         Seq(InputNameAndValue("Open", "Open"), InputNameAndValue("34", "34")),
         None,

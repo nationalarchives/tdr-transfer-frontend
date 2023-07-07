@@ -62,7 +62,7 @@ class DisplayPropertiesService @Inject() (val graphqlConfiguration: GraphQLConfi
 
     val group: String = attributes.find(_.attribute == "Group").getStringValue
 
-    val guidance: String = attributes.find(_.attribute == "Guidance").getStringValue
+    val guidance: Option[String] = attributes.find(_.attribute == "Guidance").flatMap(_.value)
 
     val unitType: String = attributes.find(_.attribute == "UnitType").getStringValue
 
@@ -139,7 +139,7 @@ case class DisplayProperty(
     displayName: String,
     editable: Boolean,
     group: String,
-    guidance: String,
+    guidance: Option[String],
     label: String,
     multiValue: Boolean,
     ordinal: Int,

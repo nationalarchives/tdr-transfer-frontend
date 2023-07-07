@@ -9,7 +9,7 @@ inputType: String,
 fieldErrors: Seq[String],
 attributes: Map[Symbol, Any] = Map(),
 inputTextDataType: String = "text",
-addSuffixText: Boolean)(implicit messages: Messages)
+suffixText: Option[String])(implicit messages: Messages)
 
 
 @isDynamicForm = @{attributes.getOrElse(Symbol("_dynamicForm"), false).asInstanceOf[Boolean]}
@@ -37,8 +37,8 @@ addSuffixText: Boolean)(implicit messages: Messages)
             placeholder="@input.placeHolder"
             inputmode="@inputTextDataType"
         >
-        @if(addSuffixText) {
-            <div class="govuk-input__suffix">@input.name.toLowerCase</div>
+        @if(suffixText.isDefined) {
+            <div class="govuk-input__suffix">@suffixText.get.toLowerCase</div>
         }
     </div>
 </div>
