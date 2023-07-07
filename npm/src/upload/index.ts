@@ -28,21 +28,21 @@ export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
 
 export class FileUploader {
   clientFileProcessing: ClientFileProcessing
-  updateConsignmentStatus: UpdateConsignmentStatus
+  // updateConsignmentStatus: UpdateConsignmentStatus
   stage: string
   goToNextPage: (formId: string) => void
   keycloak: IKeycloakInstance
   uploadUrl: string
 
-  triggerBackendChecks: TriggerBackendChecks
+  // triggerBackendChecks: TriggerBackendChecks
 
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
-    updateConsignmentStatus: UpdateConsignmentStatus,
+    // updateConsignmentStatus: UpdateConsignmentStatus,
     frontendInfo: IFrontEndInfo,
     goToNextPage: (formId: string) => void,
-    keycloak: KeycloakInstance,
-    triggerBackendChecks: TriggerBackendChecks
+    keycloak: KeycloakInstance
+    // triggerBackendChecks: TriggerBackendChecks
   ) {
     const requestTimeoutMs = 20 * 60 * 1000
     const config: S3ClientConfig = {
@@ -59,12 +59,12 @@ export class FileUploader {
       clientFileMetadataUpload,
       new S3Upload(client, frontendInfo.uploadUrl)
     )
-    this.updateConsignmentStatus = updateConsignmentStatus
+    // this.updateConsignmentStatus = updateConsignmentStatus
     this.stage = frontendInfo.stage
     this.goToNextPage = goToNextPage
     this.keycloak = keycloak as IKeycloakInstance
     this.uploadUrl = frontendInfo.uploadUrl
-    this.triggerBackendChecks = triggerBackendChecks
+    // this.triggerBackendChecks = triggerBackendChecks
   }
 
   uploadFiles: (
@@ -94,34 +94,48 @@ export class FileUploader {
         this.keycloak.tokenParsed?.sub
       )
 
-      const backendChecks =
-        await this.triggerBackendChecks.triggerBackendChecks(
-          uploadFilesInfo.consignmentId
-        )
+      // const backendChecks =
+      //   await this.triggerBackendChecks.triggerBackendChecks(
+      //     uploadFilesInfo.consignmentId
+      //   )
 
-      if (isError(backendChecks)) {
-        errors.push(backendChecks)
-      }
+      // if (isError(backendChecks)) {
+      //   errors.push(backendChecks)
+      // }
       if (isError(processResult)) {
         errors.push(processResult)
       }
     } else {
       errors.push(cookiesResponse)
     }
-    if (errors.length == 0) {
+    // if (errors.length == 0) {
+    //   window.removeEventListener("beforeunload", pageUnloadAction)
+    //   this.goToNextPage("#upload-data-form")
+    //   await this.updateConsignmentStatus.updateConsignmentStatus(
+    //     uploadFilesInfo,
+    //     "Upload",
+    //     "Completed"
+    //   )
+    // } else {
+    //   await this.updateConsignmentStatus.updateConsignmentStatus(
+    //     uploadFilesInfo,
+    //     "Upload",
+    //     "CompletedWithIssues"
+    //   )
+    //   errors.forEach((err) => handleUploadError(err))
+    // }
+    if(errors.length == 0) {
+      const consignmentId = uploadFilesInfo.consignmentId
+      const uploadFailed = errors.length > 0
+
       window.removeEventListener("beforeunload", pageUnloadAction)
+      //This selects the value of the fake form in upload.scala.html
       this.goToNextPage("#upload-data-form")
-      await this.updateConsignmentStatus.updateConsignmentStatus(
-        uploadFilesInfo,
-        "Upload",
-        "Completed"
-      )
+      //set the upload status in the controller instead of relying on client js.
+      //issue where updating consignment status if errors might failed in users session has timed out
+      location.assign(`/consignment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`)
     } else {
-      await this.updateConsignmentStatus.updateConsignmentStatus(
-        uploadFilesInfo,
-        "Upload",
-        "CompletedWithIssues"
-      )
+      //Displays error on the page. but we still need to update consignment status
       errors.forEach((err) => handleUploadError(err))
     }
   }

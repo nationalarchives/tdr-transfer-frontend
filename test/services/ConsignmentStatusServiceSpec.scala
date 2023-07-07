@@ -7,6 +7,7 @@ import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.
 import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.Variables
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
+import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import graphql.codegen.types.ConsignmentStatusInput
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -15,6 +16,7 @@ import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar.mock
 import services.Statuses.{InProgressValue, SeriesType, TransferAgreementType}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
@@ -142,6 +144,25 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
       result.consignmentStatusId should equal(consignmentStatusId)
       result.statusType should equal(SeriesType.id)
       result.value should equal(InProgressValue.value)
+    }
+  }
+
+  "updateConsignmentStatus" should {
+    "correctly update status value for a given status type" in {
+      val graphQlClientForUpdateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+      val graphQlConfig = mock[GraphQLConfiguration]
+
+      when(graphQlConfig.getClient[ucs.Data, ucs.Variables]())
+        .thenReturn(graphQlClientForUpdateConsignmentStatus)
+
+      val input = ConsignmentStatusInput(UUID.randomUUID(), "type", Some("value"))
+
+      val graphQlResponse =
+        GraphQlResponse(Some(ucs.Data(Option(1))), Nil)
+      when(graphQlClientForUpdateConsignmentStatus.getResult(token, ucs.document, Some(ucs.Variables(input))))
+        .thenReturn(Future.successful(graphQlResponse))
+
+      new ConsignmentStatusService(graphQlConfig).updateConsignmentStatus(input, token).futureValue should equal(1)
     }
   }
 }

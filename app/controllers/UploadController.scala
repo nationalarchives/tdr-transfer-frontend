@@ -31,20 +31,20 @@ class UploadController @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
-  def triggerBackendChecks(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
-    backendChecksService
-      .triggerBackendChecks(consignmentId, request.token.bearerAccessToken.getValue)
-      .map(res => Ok(res.toString))
-  }
+//  def triggerBackendChecks(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
+//    backendChecksService
+//      .triggerBackendChecks(consignmentId, request.token.bearerAccessToken.getValue)
+//      .map(res => Ok(res.toString))
+//  }
 
-  def updateConsignmentStatus(): Action[AnyContent] = secureAction.async { implicit request =>
-    request.body.asJson.flatMap(body => {
-      decode[ConsignmentStatusInput](body.toString).toOption
-    }) match {
-      case None        => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
-      case Some(input) => uploadService.updateConsignmentStatus(input, request.token.bearerAccessToken).map(_.toString).map(Ok(_))
-    }
-  }
+//  def updateConsignmentStatus(): Action[AnyContent] = secureAction.async { implicit request =>
+//    request.body.asJson.flatMap(body => {
+//      decode[ConsignmentStatusInput](body.toString).toOption
+//    }) match {
+//      case None        => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+//      case Some(input) => uploadService.updateConsignmentStatus(input, request.token.bearerAccessToken).map(_.toString).map(Ok(_))
+//    }
+//  }
 
   def startUpload(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {

@@ -128,7 +128,7 @@ class ViewTransfersController @Inject() (
     val checksUrl = if (judgmentType) {
       routes.FileChecksController.judgmentFileChecksPage(consignmentId).url
     } else {
-      routes.FileChecksController.fileChecksPage(consignmentId).url
+      routes.FileChecksController.fileChecksPage(consignmentId, None).url
     }
 
     val resultsUrl = if (judgmentType) {
@@ -159,7 +159,7 @@ class ViewTransfersController @Inject() (
     val checksUrl = if (judgmentType) {
       routes.FileChecksController.judgmentFileChecksPage(consignmentId).url
     } else {
-      routes.FileChecksController.fileChecksPage(consignmentId).url
+      routes.FileChecksController.fileChecksPage(consignmentId, None).url
     }
 
     val checkStatuses = statuses.filter(s => s.statusType == ClientChecksType.id || s.statusType == UploadType.id)

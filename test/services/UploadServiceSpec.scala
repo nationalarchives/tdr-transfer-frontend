@@ -57,7 +57,8 @@ class UploadServiceSpec extends AnyFlatSpec {
     response.head should equal(input)
   }
 
-  "updateConsignmentStatus" should "return the correct data" in {
+  //Move this to the consignmentstatusservicespec
+/*  "updateConsignmentStatus" should "return the correct data" in {
     val graphQlClientForUpdateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
 
     when(graphQlConfig.getClient[ucs.Data, ucs.Variables]())
@@ -71,5 +72,5 @@ class UploadServiceSpec extends AnyFlatSpec {
       .thenReturn(Future.successful(graphQlResponse))
 
     new UploadService(graphQlConfig).updateConsignmentStatus(input, token).futureValue should equal(1)
-  }
+  }*/
 }

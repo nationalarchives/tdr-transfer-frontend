@@ -16,15 +16,15 @@ class UploadService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(i
   private val addFilesAndMetadataClient = graphqlConfiguration.getClient[afam.Data, afam.Variables]()
   private val updateConsignmentStatusClient = graphqlConfiguration.getClient[ucs.Data, ucs.Variables]()
 
-  def updateConsignmentStatus(consignmentStatusInput: ConsignmentStatusInput, token: BearerAccessToken): Future[Int] = {
-    val variables = ucs.Variables(consignmentStatusInput)
-    sendApiRequest(updateConsignmentStatusClient, ucs.document, token, variables).map(data => {
-      data.updateConsignmentStatus match {
-        case Some(response) => response
-        case None           => throw new RuntimeException(s"No data returned when updating the consignment status for ${consignmentStatusInput.consignmentId}")
-      }
-    })
-  }
+//  def updateConsignmentStatus(consignmentStatusInput: ConsignmentStatusInput, token: BearerAccessToken): Future[Int] = {
+//    val variables = ucs.Variables(consignmentStatusInput)
+//    sendApiRequest(updateConsignmentStatusClient, ucs.document, token, variables).map(data => {
+//      data.updateConsignmentStatus match {
+//        case Some(response) => response
+//        case None           => throw new RuntimeException(s"No data returned when updating the consignment status for ${consignmentStatusInput.consignmentId}")
+//      }
+//    })
+//  }
 
   def startUpload(startUploadInput: StartUploadInput, token: BearerAccessToken): Future[String] = {
     val variables = su.Variables(startUploadInput)

@@ -76,17 +76,17 @@ export const renderModules = async () => {
           "./triggerbackendchecks"
         )
         const uploadModule = await import("./upload")
-        const updateConsignmentStatus =
-          new consignmentStatusModule.UpdateConsignmentStatus()
-        const triggerBackendChecks =
-          new triggerBackendChecksModule.TriggerBackendChecks()
+        // const updateConsignmentStatus =
+        //   new consignmentStatusModule.UpdateConsignmentStatus()
+        // const triggerBackendChecks =
+        //   new triggerBackendChecksModule.TriggerBackendChecks()
         new uploadModule.FileUploader(
           clientFileProcessing,
-          updateConsignmentStatus,
+          // updateConsignmentStatus,
           frontEndInfo,
           nextPageModule.goToNextPage,
-          keycloak,
-          triggerBackendChecks
+          keycloak
+          // triggerBackendChecks
         ).initialiseFormListeners()
       } else {
         errorHandlingModule.handleUploadError(keycloak)
