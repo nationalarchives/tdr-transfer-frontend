@@ -90,7 +90,7 @@
             </div>
         </form>
         <!--        Form to redirect user once upload has completed. It sends consignmentId to file checks placeholder page -->
-        @form(routes.FileChecksController.judgmentFileChecksPage(consignmentId), Symbol("id") -> "upload-data-form") { }
+        @* @form(routes.FileChecksController.judgmentFileChecksPage(consignmentId), Symbol("id") -> "upload-data-form") { } *@
     </div>
     @transferReference(consignmentRef, isJudgmentUser = true)
 </div>

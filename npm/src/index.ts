@@ -66,27 +66,13 @@ export const renderModules = async () => {
         const metadataUploadModule = await import("./clientfilemetadataupload")
         const clientFileProcessing =
           new metadataUploadModule.ClientFileMetadataUpload()
-        const consignmentStatusModule = await import(
-          "./updateconsignmentstatus"
-        )
-        const nextPageModule = await import(
-          "./nextpageredirect/next-page-redirect"
-        )
-        const triggerBackendChecksModule = await import(
-          "./triggerbackendchecks"
-        )
         const uploadModule = await import("./upload")
-        // const updateConsignmentStatus =
-        //   new consignmentStatusModule.UpdateConsignmentStatus()
-        // const triggerBackendChecks =
-        //   new triggerBackendChecksModule.TriggerBackendChecks()
+
         new uploadModule.FileUploader(
           clientFileProcessing,
           // updateConsignmentStatus,
           frontEndInfo,
-          nextPageModule.goToNextPage,
           keycloak
-          // triggerBackendChecks
         ).initialiseFormListeners()
       } else {
         errorHandlingModule.handleUploadError(keycloak)
@@ -121,9 +107,12 @@ export const renderModules = async () => {
     } else {
       errorHandlingModule.handleUploadError(frontEndInfo)
     }
-  } else if (timeoutDialog) {
-    const sessionTimeoutModule = await import("./auth/session-timeout")
-    await sessionTimeoutModule.initialiseSessionTimeout()
+  }
+  if(!uploadContainer && !fileChecksContainer) {
+    if (timeoutDialog) {
+      const sessionTimeoutModule = await import("./auth/session-timeout")
+      await sessionTimeoutModule.initialiseSessionTimeout()
+    }
   }
   if (fileSelectionTree) {
     const trees: NodeListOf<HTMLUListElement> =
