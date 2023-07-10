@@ -455,7 +455,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
       val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, Nil, Some(consignmentId)))))
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, Nil, consignmentId))))
       val deleteInput = deleteRequest.variables.deleteFileMetadataInput
       deleteInput.fileIds should be(fileIds)
       deleteInput.propertyNames should contain theSameElementsAs List("TitleAlternate", "DescriptionAlternate")
@@ -514,7 +514,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val deleteMetadataEvent = getServeEvent("deleteFileMetadata").get
       val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, Nil, Some(consignmentId)))))
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(fileIds, Nil, consignmentId))))
       val deleteInput = deleteRequest.variables.deleteFileMetadataInput
       deleteInput.fileIds should be(fileIds)
       deleteInput.propertyNames should contain theSameElementsAs List("DescriptionAlternate")
@@ -657,7 +657,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addRequest: AddBulkFileMetadataGraphqlRequestData = decode[AddBulkFileMetadataGraphqlRequestData](addMetadataEvent.getRequest.getBodyAsString)
         .getOrElse(AddBulkFileMetadataGraphqlRequestData("", abfm.Variables(UpdateBulkFileMetadataInput(consignmentId, Nil, Nil))))
       val deleteRequest: DeleteFileMetadataGraphqlRequestData = decode[DeleteFileMetadataGraphqlRequestData](deleteMetadataEvent.getRequest.getBodyAsString)
-        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(Nil, Nil, Some(consignmentId)))))
+        .getOrElse(DeleteFileMetadataGraphqlRequestData("", dfm.Variables(DeleteFileMetadataInput(Nil, Nil, consignmentId))))
 
       val addInput = addRequest.variables.updateBulkFileMetadataInput
       addInput.fileIds should equal(fileIds)
