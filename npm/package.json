@@ -43,11 +43,11 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.367.0",
     "@aws-sdk/lib-storage": "^3.85.0",
-    "@aws-sdk/querystring-builder": "^3.357.0",
+    "@aws-sdk/querystring-builder": "^3.369.0",
     "@aws-sdk/protocol-http": "^3.357.0",
     "@nationalarchives/file-information": "^1.0.505",
     "@nationalarchives/tdr-components": "1.0.36",
-    "@nationalarchives/tdr-generated-graphql": "1.0.411",
+    "@nationalarchives/tdr-generated-graphql": "1.0.413",
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
     "graphql": "^16.7.1",
