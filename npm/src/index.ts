@@ -70,7 +70,6 @@ export const renderModules = async () => {
 
         new uploadModule.FileUploader(
           clientFileProcessing,
-          // updateConsignmentStatus,
           frontEndInfo,
           keycloak
         ).initialiseFormListeners()
