@@ -187,7 +187,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           fileIds.map(fileId =>
             gcfm.GetConsignment.Files(
               fileId,
-              Some("FileName"),
+              Some("FileName.docx"),
               if (fileMetadata.nonEmpty) fileMetadata else defaultFileMetadata,
               fileStatuses
             )
@@ -586,7 +586,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         List(
           dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
-          dp.DisplayProperties.Attributes("ComponentType", Some("small text"), Text),
+          dp.DisplayProperties.Attributes("ComponentType", Some("large text"), Text),
           dp.DisplayProperties.Attributes("Description", Some("Description Alternate"), Text),
           dp.DisplayProperties.Attributes("Name", Some("Description Alternate"), Text),
           dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),

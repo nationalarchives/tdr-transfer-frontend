@@ -59,7 +59,7 @@
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true)
                 )
-                case TextField(fieldId, fieldName, _, fieldDescription, fieldInsetTexts, _, inputNameAndValue, inputMode, _, fieldErrors, addSuffixText, inputType, _) => inputText(
+                case TextField(fieldId, fieldName, _, fieldDescription, fieldInsetTexts, _, inputNameAndValue, inputMode, _, fieldErrors, suffixText, inputType, _) => inputText(
                   fieldId,
                   fieldName,
                   fieldDescription,
@@ -68,7 +68,7 @@
                   fieldErrors,
                   Map(Symbol("_dynamicForm") -> true),
                   inputMode,
-                  addSuffixText
+                  suffixText
                 )
                 case TextAreaField(fieldId, fieldName, _, fieldDescription, _, _, inputNameAndValue,  _, fieldErrors, rows, wrap, characterLimit, details, _) => inputTextArea(
                   fieldId,
@@ -82,12 +82,11 @@
                   characterLimit,
                   details
                 )
-                case MultiSelectField(fieldId, fieldName, _, fieldDescription, _, fieldGuidance, multiValue, options, selectedOptions, _, fieldErrors, _) =>
+                case MultiSelectField(fieldId, fieldName, _, fieldDescription, _, multiValue, options, selectedOptions, _, fieldErrors, _) =>
                   inputMultiSelect(
                     fieldId,
                     fieldName,
                     fieldDescription,
-                    fieldGuidance,
                     options,
                     selectedOptions,
                     multiValue,
