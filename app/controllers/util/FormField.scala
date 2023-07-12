@@ -57,7 +57,7 @@ case class TextField(
     inputMode: String,
     isRequired: Boolean,
     fieldErrors: List[String] = Nil,
-    addSuffixText: Boolean = true,
+    suffixText: Option[String] = None,
     inputType: String = "number",
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
@@ -105,7 +105,6 @@ case class MultiSelectField(
     fieldAlternativeName: String,
     fieldDescription: String,
     fieldInsetTexts: List[String],
-    fieldGuidance: String,
     multiValue: Boolean = true,
     options: Seq[InputNameAndValue],
     selectedOption: Option[List[InputNameAndValue]],
