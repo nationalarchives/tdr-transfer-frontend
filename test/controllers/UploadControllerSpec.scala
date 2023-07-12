@@ -312,7 +312,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "standard")
       checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, uploadStatus = uploadStatus)
       uploadPageAsString must include(
-        s"""      <a href="/consignment/$consignmentId/file-checks" role="button" draggable="false" class="govuk-button govuk-button--primary">
+        s"""      <a href="/consignment/$consignmentId/file-checks?uploadFailed=false" role="button" draggable="false" class="govuk-button govuk-button--primary">
            |        Continue
            |      </a>""".stripMargin
       )
@@ -464,7 +464,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       status(uploadPage) mustBe OK
       uploadPageAsString must include(
-        s"""      <a href="/judgment/$consignmentId/file-checks" role="button" draggable="false" class="govuk-button govuk-button--primary">
+        s"""      <a href="/judgment/$consignmentId/file-checks?uploadFailed=false" role="button" draggable="false" class="govuk-button govuk-button--primary">
            |        Continue
            |      </a>""".stripMargin
       )

@@ -99,6 +99,10 @@ export class FileUploader {
     } else {
       location.assign(`/consignment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`)
     }
+
+    //If there is an error we used to update the consignment status and then
+    //call handleUploadError(err) which un-hides the hidden error elements in the upload.scala.html depending on whether the user was on the upload or uploading stage
+    //if(errors > 0) {errors.forEach((err) => handleUploadError(err))}
   }
 
   initialiseFormListeners(): void {

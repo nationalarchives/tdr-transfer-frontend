@@ -65,7 +65,7 @@ POST        /judgment/homepage                                                  
 GET         /judgment/help                                                                  controllers.HelpController.judgmentHelp()
 GET         /judgment/:consignmentId/before-uploading                                       controllers.BeforeUploadingController.beforeUploading(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/upload                                                 controllers.UploadController.judgmentUploadPage(consignmentId: java.util.UUID)
-GET         /judgment/:consignmentId/file-checks                                            controllers.FileChecksController.judgmentFileChecksPage(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/file-checks                                            controllers.FileChecksController.judgmentFileChecksPage(consignmentId: java.util.UUID, uploadFailed: Option[String])
 POST        /judgment/:consignmentId/file-check-progress                                    controllers.FileChecksController.fileCheckProgress(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/file-checks-results                                    controllers.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId: java.util.UUID)
 POST        /judgment/:consignmentId/file-checks-results                                    controllers.ConfirmTransferController.finalJudgmentTransferConfirmationSubmit(consignmentId: java.util.UUID)

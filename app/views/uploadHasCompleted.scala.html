@@ -13,7 +13,7 @@
       <h1 class="govuk-heading-l">@pageHeading</h1>
       <p class="govuk-body">Your records have been uploaded and saved. You cannot add additional files or folders to this transfer.</p>
       <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>
-      <a href="@{if(isJudgmentUser) {routes.FileChecksController.judgmentFileChecksPage(consignmentId)}
+      <a href="@{if(isJudgmentUser) {routes.FileChecksController.judgmentFileChecksPage(consignmentId, uploadFailed = Some("false"))}
                 else {routes.FileChecksController.fileChecksPage(consignmentId, Some("false"))}}" role="button" draggable="false" class="govuk-button govuk-button--primary">
         Continue
       </a>
