@@ -4,7 +4,7 @@ import { S3Upload } from "../s3upload"
 import { UpdateConsignmentStatus } from "../updateconsignmentstatus"
 import { FileUploadInfo, UploadForm } from "./form/upload-form"
 import { IFrontEndInfo } from "../index"
-import { handleUploadError, isError } from "../errorhandling"
+import { handleUploadError, isError, LoggedOutError } from "../errorhandling";
 import { KeycloakInstance, KeycloakTokenParsed } from "keycloak-js"
 import { refreshOrReturnToken, scheduleTokenRefresh } from "../auth"
 import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
@@ -93,29 +93,46 @@ export class FileUploader {
         this.stage,
         this.keycloak.tokenParsed?.sub
       )
-
-      const backendChecks =
-        await this.triggerBackendChecks.triggerBackendChecks(
-          uploadFilesInfo.consignmentId
-        )
-
-      if (isError(backendChecks)) {
-        errors.push(backendChecks)
-      }
+      //Moved to the scala code
+      // const backendChecks =
+      //   await this.triggerBackendChecks.triggerBackendChecks(
+      //     uploadFilesInfo.consignmentId
+      //   )
+      //
+      // if (isError(backendChecks)) {
+      //   errors.push(backendChecks)
+      // }
       if (isError(processResult)) {
         errors.push(processResult)
       }
     } else {
       errors.push(cookiesResponse)
     }
+
+    const isJudgmentUser: boolean = this.keycloak.tokenParsed?.judgment_user === true
+    const consignmentId = uploadFilesInfo.consignmentId
+    // const loggedouterror = new LoggedOutError("", "Refresh token has expired: User is logged out")
+    // errors.push(loggedouterror)
     if (errors.length == 0) {
       window.removeEventListener("beforeunload", pageUnloadAction)
+      //Update consignment status on the scala side instead
+      // await this.updateConsignmentStatus.updateConsignmentStatus(
+      //   uploadFilesInfo,
+      //   "Upload",
+      //   "Completed"
+      // )
+
+      // Method 1
       this.goToNextPage("#upload-data-form")
-      await this.updateConsignmentStatus.updateConsignmentStatus(
-        uploadFilesInfo,
-        "Upload",
-        "Completed"
-      )
+
+      // Method 2
+      // if(isJudgmentUser) {
+      //   location.assign(`/judgment/${consignmentId}/file-checks`)
+      // } else {
+      //   location.assign(`/consignment/${consignmentId}/file-checks`)
+      // }
+
+      //Both methods will require checks on the scala side so that backend checks aren't retriggered
     } else {
       await this.updateConsignmentStatus.updateConsignmentStatus(
         uploadFilesInfo,

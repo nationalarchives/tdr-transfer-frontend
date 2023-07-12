@@ -26,7 +26,8 @@ class UploadController @Inject() (
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
     val fileStatusService: FileStatusService,
-    val backendChecksService: BackendChecksService
+    val backendChecksService: BackendChecksService,
+    val consignmentStatusService: ConsignmentStatusService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
@@ -42,7 +43,7 @@ class UploadController @Inject() (
       decode[ConsignmentStatusInput](body.toString).toOption
     }) match {
       case None        => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
-      case Some(input) => uploadService.updateConsignmentStatus(input, request.token.bearerAccessToken).map(_.toString).map(Ok(_))
+      case Some(input) => consignmentStatusService.updateConsignmentStatus(input, request.token.bearerAccessToken).map(_.toString).map(Ok(_))
     }
   }
 

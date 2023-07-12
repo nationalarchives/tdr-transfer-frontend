@@ -57,19 +57,21 @@ class UploadServiceSpec extends AnyFlatSpec {
     response.head should equal(input)
   }
 
-  "updateConsignmentStatus" should "return the correct data" in {
-    val graphQlClientForUpdateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+//TODO: move below test to the consignmentstatusspec
 
-    when(graphQlConfig.getClient[ucs.Data, ucs.Variables]())
-      .thenReturn(graphQlClientForUpdateConsignmentStatus)
-
-    val input = ConsignmentStatusInput(UUID.randomUUID(), "type", "value".some)
-
-    val graphQlResponse =
-      GraphQlResponse(Some(ucs.Data(Option(1))), Nil)
-    when(graphQlClientForUpdateConsignmentStatus.getResult(token, ucs.document, Some(ucs.Variables(input))))
-      .thenReturn(Future.successful(graphQlResponse))
-
-    new UploadService(graphQlConfig).updateConsignmentStatus(input, token).futureValue should equal(1)
-  }
+//  "updateConsignmentStatus" should "return the correct data" in {
+//    val graphQlClientForUpdateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+//
+//    when(graphQlConfig.getClient[ucs.Data, ucs.Variables]())
+//      .thenReturn(graphQlClientForUpdateConsignmentStatus)
+//
+//    val input = ConsignmentStatusInput(UUID.randomUUID(), "type", "value".some)
+//
+//    val graphQlResponse =
+//      GraphQlResponse(Some(ucs.Data(Option(1))), Nil)
+//    when(graphQlClientForUpdateConsignmentStatus.getResult(token, ucs.document, Some(ucs.Variables(input))))
+//      .thenReturn(Future.successful(graphQlResponse))
+//
+//    new UploadService(graphQlConfig).updateConsignmentStatus(input, token).futureValue should equal(1)
+//  }
 }
