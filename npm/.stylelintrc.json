@@ -1,5 +1,8 @@
 {
   "extends": "stylelint-config-sass-guidelines",
+  "plugins": [
+    "stylelint-order"
+  ],
   "rules": {
     "declaration-property-value-disallowed-list": {},
     "order/order": [
