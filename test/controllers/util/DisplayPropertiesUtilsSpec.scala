@@ -51,7 +51,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "Dropdown Display",
         editable = true,
         "group",
-        "guidance",
+        Some("guidance"),
         "label",
         multiValue = false,
         3,
@@ -103,7 +103,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "Dropdown Display",
         editable = true,
         "group",
-        "guidance",
+        Some("guidance"),
         "label",
         multiValue = true,
         3,
@@ -123,7 +123,6 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     multiSelectField.multiValue should equal(true)
     multiSelectField.fieldName should equal("Dropdown Display")
     multiSelectField.fieldDescription should equal("description")
-    multiSelectField.fieldGuidance should equal("guidance")
     multiSelectField.isRequired should equal(false)
     multiSelectField.fieldErrors should equal(Nil)
     multiSelectField.selectedOption.get should equal(List(InputNameAndValue("dropdownValue1", "dropdownValue1")))
@@ -155,7 +154,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "TextField Display",
         editable = true,
         "group",
-        "guidance",
+        Some("guidance"),
         "label",
         multiValue = false,
         3,
@@ -194,7 +193,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "Radial Display",
         editable = true,
         "group",
-        "guidance",
+        Some("guidance"),
         "yes|no",
         multiValue = false,
         3,
@@ -231,7 +230,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "Date Display",
         editable = true,
         "group",
-        "guidance",
+        Some("guidance"),
         "label",
         multiValue = false,
         3,
@@ -268,7 +267,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "Text Display",
         editable = true,
         "group",
-        "guidance",
+        Some("guidance"),
         "label",
         multiValue = false,
         3,
@@ -291,7 +290,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     textField.inputMode should equal("numeric")
     textField.isRequired should equal(false)
     textField.multiValue should equal(false)
-    textField.addSuffixText should equal(true)
+    textField.suffixText should equal(Some("guidance"))
     textField.inputType should equal("number")
   }
 
@@ -305,7 +304,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "Text Display",
         editable = true,
         "group",
-        "",
+        None,
         "label",
         multiValue = false,
         3,
@@ -328,7 +327,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
     textField.inputMode should equal("text")
     textField.isRequired should equal(false)
     textField.multiValue should equal(false)
-    textField.addSuffixText should equal(false)
+    textField.suffixText should be(None)
     textField.inputType should equal("text")
   }
 
@@ -358,7 +357,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
           "TextField Display",
           editable = true,
           "group",
-          "guidance",
+          Some("guidance"),
           "label",
           multiValue = false,
           3,
@@ -387,7 +386,7 @@ class DisplayPropertiesUtilsSpec extends AnyFlatSpec with MockitoSugar with Befo
         "Dropdown Display",
         editable = true,
         "group",
-        "guidance",
+        Some("guidance"),
         "label",
         multiValue = false,
         3,

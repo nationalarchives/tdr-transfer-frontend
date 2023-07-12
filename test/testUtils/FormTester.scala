@@ -64,6 +64,30 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
     }
   }
 
+  def verifyAdditionalFormElements(htmlAsString: String): Unit = {
+    htmlAsString must include("""
+        |    <div class="govuk-radios__conditional" id="conditional-inputradio-TitleClosed-yes">
+        |        <div class="govuk-form-group">
+        |            <label class="govuk-label" for="inputradio-TitleClosed-TitleAlternate-yes">
+        |                Alternative Title
+        |""".stripMargin)
+
+    htmlAsString must include(
+      """<input class="govuk-input govuk-input govuk-input--width-20" id="inputradio-TitleClosed-TitleAlternate-yes" name="inputradio-TitleClosed-TitleAlternate-yes" type="text" value="inputtext-TitleAlternate-TitleAlternate value" />""".stripMargin
+    )
+    htmlAsString must include("""<div class="govuk-input__suffix">.docx</div>""".stripMargin)
+
+    htmlAsString must include("""
+        |    <div class="govuk-radios__conditional" id="conditional-inputradio-DescriptionClosed-yes">
+        |        <label class="govuk-label" for="inputradio-DescriptionClosed-DescriptionAlternate-yes">
+        |            Description Alternate
+        |""".stripMargin)
+
+    htmlAsString must include(
+      """<textarea class="govuk-textarea" id="inputradio-DescriptionClosed-DescriptionAlternate-yes" name="inputradio-DescriptionClosed-DescriptionAlternate-yes" rows="5">inputtext-DescriptionAlternate-DescriptionAlternate value</textarea>""".stripMargin
+    )
+  }
+
   private def generateOptionStatus(option: MockInputOption, selectedValue: String): OptionStatus = {
     val optionWasSubmittedAndValueWasEnteredOrSelected = selectedValue != "OptionNotSubmitted" && selectedValue.nonEmpty
     val valueHasBeenEntered: Boolean = optionWasSubmittedAndValueWasEnteredOrSelected && option.value == ""

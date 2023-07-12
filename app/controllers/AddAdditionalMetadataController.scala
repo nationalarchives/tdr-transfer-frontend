@@ -46,7 +46,8 @@ class AddAdditionalMetadataController @Inject() (
           cache.set(s"$consignmentId-consignment", consignment, 1.hour)
           // Set the values to those of the first file's metadata until we decide what to do with multiple files.
           val metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
-          Future.successful(updateFormFields(formFields, metadataMap))
+          val fileExtension = consignment.files.getFileExtension
+          Future.successful(updateFormFields(formFields, metadataMap, fileExtension))
         }
       } yield {
         Ok(
@@ -75,13 +76,14 @@ class AddAdditionalMetadataController @Inject() (
               metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
             } yield {
               val files = consignment.files.toFiles
+              val fileExtension = consignment.files.getFileExtension
               BadRequest(
                 views.html.standard
                   .addAdditionalMetadata(
                     consignmentId,
                     consignment.consignmentReference,
                     metadataType,
-                    updatedFormFields.map(formFieldOverrides(_, metadataMap)),
+                    updatedFormFields.map(formFieldOverrides(_, metadataMap, fileExtension)),
                     request.token.name,
                     files
                   )
@@ -139,7 +141,7 @@ class AddAdditionalMetadataController @Inject() (
       case RadioButtonGroupField(fieldId, _, _, _, _, _, multiValue, _, selectedOption, _, _, _, dependencies) =>
         val fileMetadataInputs = dependencies.get(selectedOption).map(buildUpdateMetadataInput).getOrElse(Nil)
         UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, stringToBoolean(selectedOption).toString) :: fileMetadataInputs
-      case MultiSelectField(fieldId, _, _, _, _, _, multiValue, _, selectedOptions, _, _, _) if selectedOptions.isDefined =>
+      case MultiSelectField(fieldId, _, _, _, _, multiValue, _, selectedOptions, _, _, _) if selectedOptions.isDefined =>
         selectedOptions.getOrElse(Nil).map(p => UpdateFileMetadataInput(filePropertyIsMultiValue = multiValue, fieldId, p.value))
     }.flatten
   }
@@ -168,7 +170,7 @@ class AddAdditionalMetadataController @Inject() (
     }
   }
 
-  private def updateFormFields(orderedFieldsForForm: List[FormField], metadataMap: Map[String, List[FileMetadata]]): List[FormField] = {
+  private def updateFormFields(orderedFieldsForForm: List[FormField], metadataMap: Map[String, List[FileMetadata]], fileExtension: String): List[FormField] = {
     val updatedFormFields = orderedFieldsForForm.map {
       case dateField: DateField =>
         metadataMap
@@ -191,7 +193,7 @@ class AddAdditionalMetadataController @Inject() (
           .map(metadata =>
             RadioButtonGroupField
               .update(radioButtonGroupField, stringToBoolean(metadata.head.value))
-              .copy(dependencies = radioButtonGroupField.dependencies.map { case (key, formFields) => key -> updateFormFields(formFields, metadataMap) })
+              .copy(dependencies = radioButtonGroupField.dependencies.map { case (key, formFields) => key -> updateFormFields(formFields, metadataMap, fileExtension) })
           )
           .getOrElse(radioButtonGroupField)
       case textField: TextField =>
@@ -205,7 +207,7 @@ class AddAdditionalMetadataController @Inject() (
           .map(metadata => TextAreaField.update(textAreaField, metadata.head.value))
           .getOrElse(textAreaField)
     }
-    updatedFormFields.map(formFieldOverrides(_, metadataMap))
+    updatedFormFields.map(formFieldOverrides(_, metadataMap, fileExtension))
   }
 
   implicit class FileHelper(files: List[getConsignmentFilesMetadata.GetConsignment.Files]) {
@@ -213,6 +215,11 @@ class AddAdditionalMetadataController @Inject() (
       val filePath = file.fileMetadata.find(_.name == clientSideOriginalFilepath).map(_.value).getOrElse("")
       File(file.fileId, filePath)
     })
+
+    def getFileExtension: String = {
+      val pattern = """[.][a-zA-Z]+""".r
+      files.head.fileName.flatMap(f => pattern.findAllIn(f).toList.lastOption).getOrElse("")
+    }
   }
 }
 
@@ -221,12 +228,13 @@ object AddAdditionalMetadataController {
   private val dateModifiedInsetText =
     "The date the record was last modified was determined during upload. This date should be checked against your own records: <strong>%s</strong>"
 
-  def formFieldOverrides(formField: FormField, fileMetadata: Map[String, List[FileMetadata]]): FormField = {
+  def formFieldOverrides(formField: FormField, fileMetadata: Map[String, List[FileMetadata]], fileExtension: String): FormField = {
     formField.fieldId match {
       case `descriptionClosed` => overrideClosedText(formField, fileMetadata.get(description), description)
       case `titleClosed`       => overrideClosedText(formField, fileMetadata.get(fileName), title)
       case `end_date`          => overrideEndDate(formField, fileMetadata)
       case `closureStartDate`  => overrideClosureStartDate(formField, fileMetadata)
+      case `titleAlternate`    => overrideTitleAlternate(formField, fileExtension: String)
       case _                   => formField
     }
   }
@@ -270,6 +278,10 @@ object AddAdditionalMetadataController {
       List(s"The date of the last change to this record entered as descriptive metadata is <strong>$formattedEndDate</strong>")
     }
     formField.asInstanceOf[DateField].copy(fieldInsetTexts = insetTexts)
+  }
+
+  private def overrideTitleAlternate(formField: FormField, fileExtension: String): FormField = {
+    formField.asInstanceOf[TextField].copy(suffixText = Some(fileExtension))
   }
 
   private def dateFormatter(currentDateFormat: String, newDateFormat: String = "dd/MM/yyyy") = {
