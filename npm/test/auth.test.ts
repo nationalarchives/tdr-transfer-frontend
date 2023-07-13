@@ -149,7 +149,7 @@ test("'scheduleTokenRefresh' should not refresh tokens if the access token has n
 test("'scheduleTokenRefresh' should not refresh tokens if there is no refresh token", async () => {
   const mockUpdateToken = jest.fn()
   const isTokenExpired = true
-  const noRefreshToken = undefined
+  const noRefreshToken: any = undefined
   const mockKeycloak: KeycloakInstance = createMockKeycloakInstance(mockUpdateToken, isTokenExpired, noRefreshToken)
 
   jest.useFakeTimers()
