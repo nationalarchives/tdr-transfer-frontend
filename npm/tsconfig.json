@@ -9,7 +9,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "moduleResolution": "node",
-    "strict": true
+    "strictFunctionTypes": true
   },
   "include": ["src/*"],
   "exclude": ["dist/**"]
