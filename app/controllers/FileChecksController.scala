@@ -63,13 +63,9 @@ class FileChecksController @Inject() (
     }
   }
 
-  private def triggerBackendChecks(consignmentId: UUID, uploadStatus: Option[ConsignmentStatuses], token: BearerAccessToken): Future[Boolean] = {
+  private def triggerBackendChecks(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
     for {
-      backendChecksTriggered <- if (uploadStatus.isDefined && uploadStatus.get.value != CompletedWithIssuesValue.value) {
-        backendChecksService.triggerBackendChecks(consignmentId, token.getValue)
-      } else {
-        throw new IllegalStateException(s"Unexpected Upload state: for consignment $consignmentId")
-      }
+      backendChecksTriggered <- backendChecksService.triggerBackendChecks(consignmentId, token.getValue)
       uploadStatusUpdate = if (backendChecksTriggered) {
         CompletedValue
       } else {
@@ -114,7 +110,7 @@ class FileChecksController @Inject() (
       statuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
       uploadStatus = statuses.find(_.statusType == UploadType.id)
       alreadyTriggered = uploadStatus.isDefined && uploadStatus.get.value == CompletedValue.value || uploadStatus.get.value == CompletedWithIssuesValue.value
-      backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, uploadStatus, token)
+      backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, token)
       fileChecks <- if (backendChecksTriggered) {
         getFileChecksProgress(request, consignmentId)
       } else {
@@ -141,7 +137,6 @@ class FileChecksController @Inject() (
       }
     }).recover {
       case exception: Exception =>
-        println(exception.getMessage)
         Ok(views.html.uploadInProgress(consignmentId, reference, "Uploading your records", request.token.name, isJudgmentUser)).uncache()
     }
   }
