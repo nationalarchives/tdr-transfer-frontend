@@ -194,7 +194,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val ucsDataString = data.asJson.noSpaces
         when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(true))
         mockGetFileCheckProgress(dataString, userType)
-        mockUpdateConsignmentStatus(ucsDataString)
+        mockUpdateConsignmentStatus(ucsDataString, wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
 
@@ -290,7 +290,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val data = client.GraphqlData(Option(updateConsignmentStatus.Data(Option(1))), Nil)
         val ucsDataString = data.asJson.noSpaces
         mockGetFileCheckProgress(dataString, userType)
-        mockUpdateConsignmentStatus(ucsDataString)
+        mockUpdateConsignmentStatus(ucsDataString, wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
 
@@ -348,7 +348,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val ucsDataString = data.asJson.noSpaces
         when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(false))
         mockGetFileCheckProgress(dataString, userType)
-        mockUpdateConsignmentStatus(ucsDataString)
+        mockUpdateConsignmentStatus(ucsDataString, wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
 
@@ -453,14 +453,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getFileCheckProgress"))
-        .willReturn(okJson(dataString))
-    )
-  }
-
-  private def mockUpdateConsignmentStatus(dataString: String) = {
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .withRequestBody(containing("updateConsignmentStatus"))
         .willReturn(okJson(dataString))
     )
   }

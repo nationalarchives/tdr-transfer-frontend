@@ -196,7 +196,8 @@ export class MockUploadFormDom {
     return new FileUploader(
       uploadMetadata,
       frontendInfo,
-      mockKeycloakInstance
+      mockKeycloakInstance,
+      jest.fn()
     )
   }
 

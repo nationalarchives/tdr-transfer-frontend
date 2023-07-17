@@ -29,11 +29,13 @@ export class FileUploader {
   stage: string
   keycloak: IKeycloakInstance
   uploadUrl: string
+  goToNextPage: (consignmentId: string, uploadFailed: String, isJudgmentUser: Boolean) => void
 
   constructor(
     clientFileMetadataUpload: ClientFileMetadataUpload,
     frontendInfo: IFrontEndInfo,
-    keycloak: KeycloakInstance
+    keycloak: KeycloakInstance,
+    goToNextPage: (consignmentId: string, uploadFailed: String, isJudgmentUser: Boolean) => void
   ) {
     const requestTimeoutMs = 20 * 60 * 1000
     const config: S3ClientConfig = {
@@ -53,6 +55,7 @@ export class FileUploader {
     this.stage = frontendInfo.stage
     this.keycloak = keycloak as IKeycloakInstance
     this.uploadUrl = frontendInfo.uploadUrl
+    this.goToNextPage = goToNextPage
   }
 
   uploadFiles: (
@@ -95,15 +98,16 @@ export class FileUploader {
     const uploadFailed = errors.length > 0
 
     window.removeEventListener("beforeunload", pageUnloadAction)
-    if (isJudgmentUser) {
-      location.assign(
-        `/judgment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`
-      )
-    } else {
-      location.assign(
-        `/consignment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`
-      )
-    }
+    // if (isJudgmentUser) {
+    //   location.assign(
+    //     `/judgment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`
+    //   )
+    // } else {
+    //   location.assign(
+    //     `/consignment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`
+    //   )
+    // }
+    this.goToNextPage(consignmentId, uploadFailed.toString(), isJudgmentUser)
   }
 
   initialiseFormListeners(): void {

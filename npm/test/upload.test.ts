@@ -68,7 +68,9 @@ const mockUploadFailure: () => void = () => {
   })
 }
 
-test("upload function throws an error when upload fails", async () => {
+const mockGoToNextPage = jest.fn()
+
+test("upload function will redirect to the next page with uploadFailed set to true if the upload fails", async () => {
   mockUploadFailure()
 
   const uploadFiles = setUpFileUploader()
@@ -78,21 +80,13 @@ test("upload function throws an error when upload fails", async () => {
     parentFolder: "TEST PARENT FOLDER NAME",
     includeTopLevelFolder: false
   })
+
+  expect(mockGoToNextPage).lastCalledWith("12345", "true", false)
+
+  mockGoToNextPage.mockRestore()
 })
 
-test("upload function will not redirect to the next page if the upload fails", async () => {
-  mockUploadFailure()
-
-  const uploadFiles = setUpFileUploader()
-
-  await uploadFiles.uploadFiles([dummyFile], {
-    consignmentId: "12345",
-    parentFolder: "TEST PARENT FOLDER NAME",
-    includeTopLevelFolder: false
-  })
-})
-
-test("upload function redirects to the next page if the upload succeeds", async () => {
+test("upload function redirects to the next page with uploadFailed set to false if the upload succeeds", async () => {
   mockUploadSuccess()
 
   const uploadFiles = setUpFileUploader()
@@ -102,6 +96,10 @@ test("upload function redirects to the next page if the upload succeeds", async 
     parentFolder: "TEST PARENT FOLDER NAME",
     includeTopLevelFolder: false
   })
+
+  expect(mockGoToNextPage).lastCalledWith("12345", "false", false)
+
+  mockGoToNextPage.mockRestore()
 })
 
 test("upload function refreshes idle session", async () => {
@@ -156,5 +154,6 @@ function setUpFileUploader(mockKeycloak?: KeycloakInstance): FileUploader {
     uploadMetadata,
     frontendInfo,
     keycloakInstance,
+    mockGoToNextPage
   )
 }
