@@ -350,7 +350,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
     )
     page must include(
       """      <dd class="govuk-summary-list__value">
-        |      FileName
+        |      FileName.docx
         |      </dd>""".stripMargin
     )
     page must include(
@@ -428,7 +428,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
     )
     page must include(
       """      <dd class="govuk-summary-list__value">
-        |      FileName
+        |      FileName.docx
         |      </dd>""".stripMargin
     )
   }

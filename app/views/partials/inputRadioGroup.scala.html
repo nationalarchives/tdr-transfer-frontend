@@ -79,7 +79,12 @@
                     </div>
                 }
             </label>
-            <input class="govuk-input" id="@formFieldId-@textField.fieldId-@inputValue" name="@formFieldId-@textField.fieldId-@inputValue" type="text" value="@textField.nameAndValue.value" />
+            <div class="govuk-input__wrapper">
+                <input class="govuk-input govuk-input govuk-input--width-20" id="@formFieldId-@textField.fieldId-@inputValue" name="@formFieldId-@textField.fieldId-@inputValue" type="text" value="@textField.nameAndValue.value" />
+                @if(textField.suffixText.isDefined) {
+                    <div class="govuk-input__suffix">@textField.suffixText.get</div>
+                }
+            </div>
         </div>
     </div>
 }

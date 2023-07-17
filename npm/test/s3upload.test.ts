@@ -5,7 +5,7 @@ import {
   IFileWithPath,
   IProgressInformation
 } from "@nationalarchives/file-information"
-import { mockClient } from "aws-sdk-client-mock"
+import {AwsClientStub, mockClient} from "aws-sdk-client-mock"
 
 import {
   CreateMultipartUploadCommand,
@@ -31,7 +31,7 @@ interface ITdrFileWithPathAndBits extends ITdrFileWithPath {
   bits: Buffer
 }
 
-const s3Mock = mockClient(S3Client)
+const s3Mock: AwsClientStub<S3Client> = mockClient(S3Client)
 
 const userId = "b088d123-1280-4959-91ca-74858f7ba226"
 
