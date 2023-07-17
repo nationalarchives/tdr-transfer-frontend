@@ -107,7 +107,7 @@ export const renderModules = async () => {
       errorHandlingModule.handleUploadError(frontEndInfo)
     }
   }
-  if(!uploadContainer && !fileChecksContainer) {
+  if (!uploadContainer && !fileChecksContainer) {
     if (timeoutDialog) {
       const sessionTimeoutModule = await import("./auth/session-timeout")
       await sessionTimeoutModule.initialiseSessionTimeout()
