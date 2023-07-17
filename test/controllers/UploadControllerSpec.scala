@@ -1,17 +1,14 @@
 package controllers
 
-import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, serverError, urlEqualTo}
 import configuration.GraphQLConfiguration
 import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses
-import graphql.codegen.AddMultipleFileStatuses.addMultipleFileStatuses.AddMultipleFileStatuses
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata
 import graphql.codegen.AddFilesAndMetadata.addFilesAndMetadata.AddFilesAndMetadata
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.StartUpload.startUpload
-import graphql.codegen.UpdateConsignmentStatus.updateConsignmentStatus
-import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, AddMultipleFileStatusesInput, ClientSideMetadataInput, ConsignmentStatusInput, StartUploadInput}
+import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, AddMultipleFileStatusesInput, ClientSideMetadataInput, StartUploadInput}
 import io.circe.syntax._
 import io.circe.parser.decode
 import io.circe.generic.auto._
@@ -28,6 +25,7 @@ import scala.collection.immutable.TreeMap
 import scala.concurrent.ExecutionContext
 import org.scalatest.concurrent.ScalaFutures._
 import play.api.test.WsTestClient.InternalWSClient
+import services.Statuses.CompletedWithIssuesValue
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import scala.jdk.CollectionConverters._
@@ -316,6 +314,82 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |        Continue
            |      </a>""".stripMargin
       )
+    }
+
+    "render the 'upload in progress' page if a standard upload is in completedWithIssues" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val uploadService = new UploadService(graphQLConfiguration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = new UploadController(
+        getAuthorisedSecurityComponents,
+        graphQLConfiguration,
+        getValidStandardUserKeycloakConfiguration,
+        frontEndInfoConfiguration,
+        consignmentService,
+        uploadService,
+        fileStatusService,
+        backendChecksService
+      )
+
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", CompletedWithIssuesValue.value, someDateTime, None)
+      )
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val uploadPage = controller
+        .uploadPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
+
+      status(uploadPage) mustBe OK
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "standard")
+      checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, uploadStatus = CompletedWithIssuesValue.value)
+    }
+
+    "render the 'upload in progress error' page if a judgment file upload is in CompletedWithIssues" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val uploadService = new UploadService(graphQLConfiguration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = new UploadController(
+        getAuthorisedSecurityComponents,
+        graphQLConfiguration,
+        getValidJudgmentUserKeycloakConfiguration,
+        frontEndInfoConfiguration,
+        consignmentService,
+        uploadService,
+        fileStatusService,
+        backendChecksService
+      )
+
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", CompletedWithIssuesValue.value, someDateTime, None)
+      )
+
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val uploadPage = controller
+        .judgmentUploadPage(consignmentId)
+        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      val uploadPageAsString = contentAsString(uploadPage)
+
+      status(uploadPage) mustBe OK
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "judgment")
+      checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, userType = "judgment", uploadStatus = CompletedWithIssuesValue.value)
     }
 
     "show the judgment upload page for judgments" in {
@@ -924,189 +998,6 @@ class UploadControllerSpec extends FrontEndTestHelper {
       exception.getMessage must startWith("Unexpected response from GraphQL API")
     }
   }
-
-//  "UploadController updateConsignmentStatus" should {
-//    "call the updateConsignmentStatus endpoint" in {
-//      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-//      val client = graphQLConfiguration.getClient[updateConsignmentStatus.Data, updateConsignmentStatus.Variables]()
-//      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-//      val fileStatusService = new FileStatusService(graphQLConfiguration)
-//      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
-//      val uploadService = new UploadService(graphQLConfiguration)
-//      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-//      val updateConsignmentStatusInput = ConsignmentStatusInput(consignmentId, "type", "value".some)
-//
-//      val data = client.GraphqlData(Option(updateConsignmentStatus.Data(Option(1))), Nil)
-//      val dataString = data.asJson.noSpaces
-//
-//      wiremockServer.stubFor(
-//        post(urlEqualTo("/graphql"))
-//          .withRequestBody(containing("updateConsignmentStatus"))
-//          .willReturn(okJson(dataString))
-//      )
-//
-//      val controller = new UploadController(
-//        getAuthorisedSecurityComponents,
-//        graphQLConfiguration,
-//        getValidStandardUserKeycloakConfiguration,
-//        frontEndInfoConfiguration,
-//        consignmentService,
-//        uploadService,
-//        fileStatusService,
-//        backendChecksService
-//      )
-//      val saveMetadataResponse = controller
-//        .updateConsignmentStatus()
-//        .apply(
-//          FakeRequest(POST, s"/update-consignment-status")
-//            .withJsonBody(Json.parse(updateConsignmentStatusInput.asJson.noSpaces))
-//            .withCSRFToken
-//        )
-//      val response: String = contentAsString(saveMetadataResponse)
-//      response must be("1")
-//
-//      wiremockServer.getAllServeEvents.asScala.nonEmpty must be(true)
-//    }
-//
-//    "throw an error for invalid input data" in {
-//      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-//      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-//      val fileStatusService = new FileStatusService(graphQLConfiguration)
-//      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
-//      val uploadService = new UploadService(graphQLConfiguration)
-//      val controller = new UploadController(
-//        getAuthorisedSecurityComponents,
-//        graphQLConfiguration,
-//        getValidStandardUserKeycloakConfiguration,
-//        frontEndInfoConfiguration,
-//        consignmentService,
-//        uploadService,
-//        fileStatusService,
-//        backendChecksService
-//      )
-//      val saveMetadataResponse = controller
-//        .updateConsignmentStatus()
-//        .apply(
-//          FakeRequest(POST, s"/update-consignment-status")
-//            .withJsonBody(Json.parse("""{"bad": "data"}"""))
-//            .withCSRFToken
-//        )
-//      val exception: Throwable = saveMetadataResponse.failed.futureValue
-//      exception.getMessage must be("Incorrect data provided AnyContentAsJson({\"bad\":\"data\"})")
-//    }
-//
-//    "throw an error if the API returns an error" in {
-//      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-//      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-//      val fileStatusService = new FileStatusService(graphQLConfiguration)
-//      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
-//      val uploadService = new UploadService(graphQLConfiguration)
-//      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-//      val controller = new UploadController(
-//        getAuthorisedSecurityComponents,
-//        graphQLConfiguration,
-//        getValidStandardUserKeycloakConfiguration,
-//        frontEndInfoConfiguration,
-//        consignmentService,
-//        uploadService,
-//        fileStatusService,
-//        backendChecksService
-//      )
-//      val updateConsignmentStatusInput = ConsignmentStatusInput(consignmentId, "type", "value".some)
-//
-//      wiremockServer.stubFor(
-//        post(urlEqualTo("/graphql"))
-//          .withRequestBody(containing("updateConsignmentStatus"))
-//          .willReturn(serverError())
-//      )
-//
-//      val saveMetadataResponse = controller
-//        .updateConsignmentStatus()
-//        .apply(
-//          FakeRequest(POST, s"/save-metadata")
-//            .withJsonBody(Json.parse(updateConsignmentStatusInput.asJson.noSpaces))
-//            .withCSRFToken
-//        )
-//      val exception: Throwable = saveMetadataResponse.failed.futureValue
-//      exception.getMessage must startWith("Unexpected response from GraphQL API")
-//    }
-//  }
-
-//  "UploadController triggerBackendChecks" should {
-//    "call the triggerBackendChecks endpoint" in {
-//      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-//      val client = graphQLConfiguration.getClient[updateConsignmentStatus.Data, updateConsignmentStatus.Variables]()
-//      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-//      val fileStatusService = new FileStatusService(graphQLConfiguration)
-//      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
-//      val uploadService = new UploadService(graphQLConfiguration)
-//      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-//      val updateConsignmentStatusInput = ConsignmentStatusInput(consignmentId, "type", "value".some)
-//
-//      val data = client.GraphqlData(Option(updateConsignmentStatus.Data(Option(1))), Nil)
-//
-//      triggerBackendChecksServer.stubFor(
-//        post(urlEqualTo(s"/backend-checks/$consignmentId"))
-//          .willReturn(okJson("{}"))
-//      )
-//      val controller = new UploadController(
-//        getAuthorisedSecurityComponents,
-//        graphQLConfiguration,
-//        getValidStandardUserKeycloakConfiguration,
-//        frontEndInfoConfiguration,
-//        consignmentService,
-//        uploadService,
-//        fileStatusService,
-//        backendChecksService
-//      )
-//      val saveMetadataResponse = controller
-//        .triggerBackendChecks(consignmentId)
-//        .apply(
-//          FakeRequest(POST, s"/consignment/$consignmentId/trigger-backend-checks")
-//            .withJsonBody(Json.parse(updateConsignmentStatusInput.asJson.noSpaces))
-//            .withCSRFToken
-//        )
-//      val response: String = contentAsString(saveMetadataResponse)
-//      response must be("true")
-//
-//      triggerBackendChecksServer.getAllServeEvents.asScala.nonEmpty must be(true)
-//    }
-//
-//    "throw an error if the API returns an error" in {
-//      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-//      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-//      val fileStatusService = new FileStatusService(graphQLConfiguration)
-//      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
-//      val uploadService = new UploadService(graphQLConfiguration)
-//      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-//      val controller = new UploadController(
-//        getAuthorisedSecurityComponents,
-//        graphQLConfiguration,
-//        getValidStandardUserKeycloakConfiguration,
-//        frontEndInfoConfiguration,
-//        consignmentService,
-//        uploadService,
-//        fileStatusService,
-//        backendChecksService
-//      )
-//      val updateConsignmentStatusInput = ConsignmentStatusInput(consignmentId, "type", "value".some)
-//
-//      wiremockServer.stubFor(
-//        post(urlEqualTo(s"/backend-checks/$consignmentId"))
-//          .willReturn(serverError())
-//      )
-//
-//      val saveMetadataResponse = controller
-//        .triggerBackendChecks(consignmentId)
-//        .apply(
-//          FakeRequest(POST, s"/consignment/$consignmentId/trigger-backend-checks")
-//            .withJsonBody(Json.parse(updateConsignmentStatusInput.asJson.noSpaces))
-//            .withCSRFToken
-//        )
-//      val exception: Throwable = saveMetadataResponse.failed.futureValue
-//      exception.getMessage must startWith(s"Call to backend checks API has returned a non 200 response for consignment $consignmentId")
-//    }
-//  }
 
   private def checkForExpectedPageContentOnMainUploadPage(pageAsString: String): Unit = {
     pageAsString must include(
