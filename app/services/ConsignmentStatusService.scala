@@ -47,7 +47,7 @@ class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfi
     sendApiRequest(updateConsignmentStatusClient, ucs.document, token, variables).map(data => {
       data.updateConsignmentStatus match {
         case Some(response) => response
-        case None => throw new RuntimeException(s"No data returned when updating the consignment status for ${consignmentStatusInput.consignmentId}")
+        case None           => throw new RuntimeException(s"No data returned when updating the consignment status for ${consignmentStatusInput.consignmentId}")
       }
     })
   }

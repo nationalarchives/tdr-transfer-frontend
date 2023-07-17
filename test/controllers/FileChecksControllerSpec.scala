@@ -118,9 +118,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
         val uploadFailed = FALSE
         val fileChecksPage = if (userType == "judgment") {
-          fileChecksController.judgmentFileChecksPage(consignmentId, Some(uploadFailed)).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
+          fileChecksController
+            .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
         } else {
-          fileChecksController.fileChecksPage(consignmentId, Some(uploadFailed)).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
+          fileChecksController
+            .fileChecksPage(consignmentId, Some(uploadFailed))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
         }
 
         val fileChecksPageAsString = contentAsString(fileChecksPage)
@@ -162,7 +166,15 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
         val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
         val controller =
-          new FileChecksController(getUnauthorisedSecurityComponents, graphQLConfiguration, getValidKeycloakConfiguration, consignmentService, frontEndInfoConfiguration, backendChecksService, consignmentStatusService)
+          new FileChecksController(
+            getUnauthorisedSecurityComponents,
+            graphQLConfiguration,
+            getValidKeycloakConfiguration,
+            consignmentService,
+            frontEndInfoConfiguration,
+            backendChecksService,
+            consignmentStatusService
+          )
         val fileChecksPage = controller.fileChecksPage(consignmentId, None).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks"))
 
         playStatus(fileChecksPage) mustBe FOUND
@@ -197,9 +209,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
         val uploadFailed = FALSE
         val fileChecksPage = if (userType == "judgment") {
-          fileChecksController.judgmentFileChecksPage(consignmentId, Some(uploadFailed)).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
+          fileChecksController
+            .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
         } else {
-          fileChecksController.fileChecksPage(consignmentId, Some(uploadFailed)).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
+          fileChecksController
+            .fileChecksPage(consignmentId, Some(uploadFailed))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
         }
 
         val fileChecksCompletePageAsString = contentAsString(fileChecksPage)
@@ -258,7 +274,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
       }
 
-
       s"render the $userType error page if the user upload fails and ensure consignment status is updated" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -290,9 +305,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
         val uploadFailed = TRUE
         val fileChecksPage = if (userType == "judgment") {
-          fileChecksController.judgmentFileChecksPage(consignmentId, Some(uploadFailed)).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
+          fileChecksController
+            .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
         } else {
-          fileChecksController.fileChecksPage(consignmentId, Some(uploadFailed)).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
+          fileChecksController
+            .fileChecksPage(consignmentId, Some(uploadFailed))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
         }
 
         val fileChecksPageAsString = contentAsString(fileChecksPage)
@@ -311,7 +330,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         fileChecksPageAsString must include("""<p>Your upload was interrupted and could not be completed.</p>""")
         wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("updateConsignmentStatus")))
       }
-
 
       s"render the $userType error page if the user upload succeeds but backendChecks fails to trigger" in {
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
@@ -345,9 +363,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
         val uploadFailed = FALSE
         val fileChecksPage = if (userType == "judgment") {
-          fileChecksController.judgmentFileChecksPage(consignmentId, Some(uploadFailed)).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
+          fileChecksController
+            .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
         } else {
-          fileChecksController.fileChecksPage(consignmentId, Some(uploadFailed)).apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
+          fileChecksController
+            .fileChecksPage(consignmentId, Some(uploadFailed))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
         }
 
         val fileChecksPageAsString = contentAsString(fileChecksPage)

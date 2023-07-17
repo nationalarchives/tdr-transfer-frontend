@@ -66,11 +66,12 @@ class FileChecksController @Inject() (
   private def triggerBackendChecks(consignmentId: UUID, token: BearerAccessToken): Future[Boolean] = {
     for {
       backendChecksTriggered <- backendChecksService.triggerBackendChecks(consignmentId, token.getValue)
-      uploadStatusUpdate = if (backendChecksTriggered) {
-        CompletedValue
-      } else {
-        CompletedWithIssuesValue
-      }
+      uploadStatusUpdate =
+        if (backendChecksTriggered) {
+          CompletedValue
+        } else {
+          CompletedWithIssuesValue
+        }
       _ <- consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, UploadType.id, Some(uploadStatusUpdate.value)), token)
     } yield backendChecksTriggered
   }
@@ -88,7 +89,7 @@ class FileChecksController @Inject() (
       reference <- consignmentService.getConsignmentRef(consignmentId, token)
       result <- uploadFailed match {
         case Some(TRUE) => handleFailedUpload(consignmentId, reference, isJudgmentUser = false, token)
-        case _ => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = false)
+        case _          => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = false)
       }
     } yield result
   }
@@ -99,7 +100,7 @@ class FileChecksController @Inject() (
       reference <- consignmentService.getConsignmentRef(consignmentId, token)
       result <- uploadFailed match {
         case Some(TRUE) => handleFailedUpload(consignmentId, reference, isJudgmentUser = true, token)
-        case _ => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = true)
+        case _          => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = true)
       }
     } yield result
   }
@@ -111,11 +112,12 @@ class FileChecksController @Inject() (
       uploadStatus = statuses.find(_.statusType == UploadType.id)
       alreadyTriggered = uploadStatus.isDefined && uploadStatus.get.value == CompletedValue.value || uploadStatus.get.value == CompletedWithIssuesValue.value
       backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, token)
-      fileChecks <- if (backendChecksTriggered) {
-        getFileChecksProgress(request, consignmentId)
-      } else {
-        throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
-      }
+      fileChecks <-
+        if (backendChecksTriggered) {
+          getFileChecksProgress(request, consignmentId)
+        } else {
+          throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")
+        }
     } yield {
       if (fileChecks.isComplete) {
         Ok(
@@ -135,9 +137,8 @@ class FileChecksController @Inject() (
             .uncache()
         }
       }
-    }).recover {
-      case exception: Exception =>
-        Ok(views.html.uploadInProgress(consignmentId, reference, "Uploading your records", request.token.name, isJudgmentUser)).uncache()
+    }).recover { case exception: Exception =>
+      Ok(views.html.uploadInProgress(consignmentId, reference, "Uploading your records", request.token.name, isJudgmentUser)).uncache()
     }
   }
 }
