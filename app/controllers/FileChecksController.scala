@@ -3,7 +3,6 @@ package controllers
 import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.types.ConsignmentStatusInput
 import io.circe.syntax._
 import org.apache.commons.lang3.BooleanUtils.TRUE
@@ -42,16 +41,6 @@ class FileChecksController @Inject() (
           fileCheckProgress.fileChecks.ffidProgress.filesProcessed * 100 / fileCheckProgress.totalFiles
         )
       }
-  }
-
-  private def checkUploadStatus(consignmentId: UUID, uploadFailed: Option[String], token: BearerAccessToken) = {
-    if (uploadFailed.contains("true")) {
-      for {
-        _ <- consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, UploadType.id, Some(CompletedWithIssuesValue.value)), token)
-      } yield {
-        throw new Exception(s"Upload failed for consignment $consignmentId")
-      }
-    }
   }
 
   private def handleFailedUpload(consignmentId: UUID, consignmentRef: String, isJudgmentUser: Boolean, token: BearerAccessToken)(implicit request: Request[AnyContent]) = {
