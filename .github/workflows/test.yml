@@ -11,7 +11,7 @@ permissions:
   contents: read
 jobs:
   test:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@main
+    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@java-version-as-param
     with:
       repo-name: tdr-transfer-frontend
       test-command: |

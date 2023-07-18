@@ -5,7 +5,7 @@ on:
       - master
 jobs:
   pre-deploy:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@main
+    uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@java-version-as-param
     with:
       repo-name: tdr-transfer-frontend
       image-name: transfer-frontend
