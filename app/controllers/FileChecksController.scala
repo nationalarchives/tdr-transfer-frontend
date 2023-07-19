@@ -77,7 +77,7 @@ class FileChecksController @Inject() (
       reference <- consignmentService.getConsignmentRef(consignmentId, token)
       result <- uploadFailed match {
         case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = false, token)
-        case _          => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = false)
+        case _            => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = false)
       }
     } yield result
   }
@@ -88,7 +88,7 @@ class FileChecksController @Inject() (
       reference <- consignmentService.getConsignmentRef(consignmentId, token)
       result <- uploadFailed match {
         case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = true, token)
-        case _          => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = true)
+        case _            => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = true)
       }
     } yield result
   }
