@@ -5,7 +5,6 @@ import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.types.ConsignmentStatusInput
 import io.circe.syntax._
-import org.apache.commons.lang3.BooleanUtils.TRUE
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, RequestHeader}
@@ -77,7 +76,7 @@ class FileChecksController @Inject() (
     for {
       reference <- consignmentService.getConsignmentRef(consignmentId, token)
       result <- uploadFailed match {
-        case Some(TRUE) => handleFailedUpload(consignmentId, reference, isJudgmentUser = false, token)
+        case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = false, token)
         case _          => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = false)
       }
     } yield result
@@ -88,7 +87,7 @@ class FileChecksController @Inject() (
     for {
       reference <- consignmentService.getConsignmentRef(consignmentId, token)
       result <- uploadFailed match {
-        case Some(TRUE) => handleFailedUpload(consignmentId, reference, isJudgmentUser = true, token)
+        case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = true, token)
         case _          => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = true)
       }
     } yield result
@@ -102,7 +101,7 @@ class FileChecksController @Inject() (
       alreadyTriggered = uploadStatus.isDefined && uploadStatus.get.value == CompletedValue.value || uploadStatus.get.value == CompletedWithIssuesValue.value
       backendChecksTriggered <- if (alreadyTriggered) Future.successful(true) else triggerBackendChecks(consignmentId, token)
       fileChecks <-
-        if (backendChecksTriggered) {
+        if (backendChecksTriggered && uploadStatus.get.value != CompletedWithIssuesValue.value) {
           getFileChecksProgress(request, consignmentId)
         } else {
           throw new Exception(s"Backend checks trigger failure for consignment $consignmentId")

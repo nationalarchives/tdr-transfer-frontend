@@ -68,9 +68,9 @@ const mockUploadFailure: () => void = () => {
   })
 }
 
-const mockGoToNextPage = jest.fn()
+const mockGoToFileChecksPage = jest.fn()
 
-test("upload function will redirect to the next page with uploadFailed set to true if the upload fails", async () => {
+test("upload function will redirect to the file checks page with uploadFailed set to true if the upload fails", async () => {
   mockUploadFailure()
 
   const uploadFiles = setUpFileUploader()
@@ -81,12 +81,12 @@ test("upload function will redirect to the next page with uploadFailed set to tr
     includeTopLevelFolder: false
   })
 
-  expect(mockGoToNextPage).lastCalledWith("12345", "true", false)
+  expect(mockGoToFileChecksPage).lastCalledWith("12345", "true", false)
 
-  mockGoToNextPage.mockRestore()
+  mockGoToFileChecksPage.mockRestore()
 })
 
-test("upload function redirects to the next page with uploadFailed set to false if the upload succeeds", async () => {
+test("upload function redirects to the file checks page with uploadFailed set to false if the upload succeeds", async () => {
   mockUploadSuccess()
 
   const uploadFiles = setUpFileUploader()
@@ -97,9 +97,9 @@ test("upload function redirects to the next page with uploadFailed set to false 
     includeTopLevelFolder: false
   })
 
-  expect(mockGoToNextPage).lastCalledWith("12345", "false", false)
+  expect(mockGoToFileChecksPage).lastCalledWith("12345", "false", false)
 
-  mockGoToNextPage.mockRestore()
+  mockGoToFileChecksPage.mockRestore()
 })
 
 test("upload function refreshes idle session", async () => {
@@ -154,6 +154,6 @@ function setUpFileUploader(mockKeycloak?: KeycloakInstance): FileUploader {
     uploadMetadata,
     frontendInfo,
     keycloakInstance,
-    mockGoToNextPage
+    mockGoToFileChecksPage
   )
 }

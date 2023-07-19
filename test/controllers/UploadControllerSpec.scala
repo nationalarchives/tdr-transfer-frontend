@@ -316,7 +316,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       )
     }
 
-    "render the 'upload in progress' page if a standard upload is in completedWithIssues" in {
+    "render the 'upload in progress' error page if a standard upload has a 'completedWithIssues' status" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val uploadService = new UploadService(graphQLConfiguration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
@@ -354,7 +354,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, uploadStatus = CompletedWithIssuesValue.value)
     }
 
-    "render the 'upload in progress error' page if a judgment file upload is in CompletedWithIssues" in {
+    "render the 'upload in progress error' page if a judgment file upload has a 'completedWithIssues' status" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val uploadService = new UploadService(graphQLConfiguration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)

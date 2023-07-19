@@ -9,7 +9,6 @@ import graphql.codegen.UpdateConsignmentStatus.updateConsignmentStatus
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
-import org.apache.commons.lang3.BooleanUtils.{FALSE, TRUE}
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
@@ -18,7 +17,7 @@ import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import play.api.test.WsTestClient.InternalWSClient
-import services.Statuses.{CompletedValue, UploadType}
+import services.Statuses.{CompletedValue, CompletedWithIssuesValue, UploadType}
 import services.{BackendChecksService, ConsignmentService, ConsignmentStatusService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
@@ -116,7 +115,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           backendChecksService,
           consignmentStatusService
         )
-        val uploadFailed = FALSE
+        val uploadFailed = "false"
         val fileChecksPage = if (userType == "judgment") {
           fileChecksController
             .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
@@ -207,7 +206,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           backendChecksService,
           consignmentStatusService
         )
-        val uploadFailed = FALSE
+        val uploadFailed = "false"
         val fileChecksPage = if (userType == "judgment") {
           fileChecksController
             .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
@@ -303,7 +302,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           backendChecksService,
           consignmentStatusService
         )
-        val uploadFailed = TRUE
+        val uploadFailed = "true"
         val fileChecksPage = if (userType == "judgment") {
           fileChecksController
             .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
@@ -361,7 +360,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           backendChecksService,
           consignmentStatusService
         )
-        val uploadFailed = FALSE
+        val uploadFailed = "false"
         val fileChecksPage = if (userType == "judgment") {
           fileChecksController
             .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
@@ -387,6 +386,65 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         )
         fileChecksPageAsString must include("""<p>Your upload was interrupted and could not be completed.</p>""")
         wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("updateConsignmentStatus")))
+      }
+
+      s"render the $userType error page if the user upload status is 'CompletedWithIssues'" in {
+        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+        val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+        val backendChecksService = mock[BackendChecksService]
+        val filesProcessedWithAntivirus = 6
+
+        val filesProcessedWithChecksum = 12
+        val filesProcessedWithFFID = 8
+        val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
+
+        val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedWithIssuesValue.value, someDateTime, None))
+        val client = graphQLConfiguration.getClient[updateConsignmentStatus.Data, updateConsignmentStatus.Variables]()
+        val data = client.GraphqlData(Option(updateConsignmentStatus.Data(Option(1))), Nil)
+        val ucsDataString = data.asJson.noSpaces
+        when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(false))
+        mockGetFileCheckProgress(dataString, userType)
+        mockUpdateConsignmentStatus(ucsDataString, wiremockServer)
+        setConsignmentReferenceResponse(wiremockServer)
+        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
+
+        val fileChecksController = new FileChecksController(
+          getAuthorisedSecurityComponents,
+          graphQLConfiguration,
+          keycloakConfiguration,
+          consignmentService,
+          frontEndInfoConfiguration,
+          backendChecksService,
+          consignmentStatusService
+        )
+        val uploadFailed = "false"
+        val fileChecksPage = if (userType == "judgment") {
+          fileChecksController
+            .judgmentFileChecksPage(consignmentId, Some(uploadFailed))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
+        } else {
+          fileChecksController
+            .fileChecksPage(consignmentId, Some(uploadFailed))
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks?uploadFailed=$uploadFailed").withCSRFToken)
+        }
+
+        val fileChecksPageAsString = contentAsString(fileChecksPage)
+
+        playStatus(fileChecksPage) mustBe OK
+        contentType(fileChecksPage) mustBe Some("text/html")
+        headers(fileChecksPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(fileChecksPageAsString, userType = userType)
+
+        fileChecksPageAsString must include(
+          """<h2 class="govuk-error-summary__title" id="error-summary-title">
+            |              There is a problem
+            |            </h2>""".stripMargin
+        )
+        fileChecksPageAsString must include("""<p>Your upload was interrupted and could not be completed.</p>""")
+        wiremockServer.verify(0, postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("updateConsignmentStatus")))
+        wiremockServer.verify(0, postRequestedFor(urlEqualTo("/graphql")).withRequestBody(containing("getFileCheckProgress")))
       }
     }
   }
