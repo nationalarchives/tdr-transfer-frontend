@@ -7,7 +7,7 @@
 
                 <h2 id="getting-started" class="govuk-heading-m">Getting started</h2>
                 <p class="govuk-body">
-                    Before reading the TDR FAQs, we recommend that you read through the TDR User Guide first.
+                    Before reading the TDR FAQs, we recommend that you read through the TDR <a class="govuk-link" href="@routes.HelpController.help()"> User Guide</a> first.
                 </p>
 
                 <h3 class="govuk-heading-s">What is TDR?</h3>
@@ -15,7 +15,7 @@
                     Transfer Digital Records (TDR) is a secure digital transfer service from The National Archives (TNA) that enables Public Record Bodies to upload, prepare and then transfer selected digital Public Records to TNA for permanent preservation and publication.
                 </p>
                 <p class="govuk-body">
-                    TDR is a preparation area where records are uploaded to prepare for transfer. Whilst records remain uploaded in TDR, they continue to be the responsibility of and owned by the transferring body. For example, while records are in TDR the transferring body will still be accountable for any requests such as FOI. The custody of records is only transferred to TNA when exported during the final stage of the TDR process.
+                    TDR is a preparation area where records are uploaded to prepare for transfer. Whilst records remain uploaded in TDR, they continue to be the responsibility of and owned by the transferring body. For example, while records are in TDR the transferring body will still be accountable for any requests such as Freedom Of Information (FOI). The custody of records is only transferred to TNA when exported during the final stage of the TDR process.
                 </p>
 
                 <h3 class="govuk-heading-s">What are selected digital public records?</h3>
@@ -37,10 +37,10 @@
                 <p class="govuk-body">A digital records transfer using TDR involves the following steps:</p>
                 <ol class="govuk-list govuk-list--number">
                     <li>Users select the series reference for their transfer and confirm service agreement requirements.</li>
+                    <li>Users are asked to confirm that the records have been appraised, selected, and sensitivity reviewed, and meet TNA’s requirements for transfer via TDR.</li>
                     <li>Users upload selected digital records to TDR</li>
                     <li>TDR checks that the records are free of computer viruses or other malware</li>
                     <li>Users add, edit or delete descriptive and closure metadata.</li>
-                    <li>Users are asked to confirm that the records have been selected, sensitivity reviewed and meet TNA's requirements for transfer</li>
                     <li>If all checks have been passed, users can formally transfer custody of the records to TNA on the Confirm Transfer page by clicking 'Transfer your records'.</li>
                     <li>On successful transfer to TNA the user is informed that they have arrived securely for onwards processing at TNA.</li>
                 </ol>
@@ -56,19 +56,19 @@
                     TDR is being built using an agile approach. Beta is an early agile stage where the service is still being developed and does not yet offer the full range of features that we intend to support. For example, TDR can currently only accept records that are Crown Copyright.
                 </p>
                 <p class="govuk-body">
-                    At this development stage, the service is also only available to pre-approved users. Over time, we will make TDR available to more departments and will continue to develop the service in consultation with our users. If you would like to user TDR contact our transfer advisors on <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
-                    .
+                    At this development stage, the service is also only available to pre-approved users. Over time, we will make TDR available to more departments and will continue to develop the service in consultation with our users. If you would like to use TDR, contact our digital transfer advisors on <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.
                 </p>
 
                 <h2 id="accessing-tdr-account" class="govuk-heading-m">Accessing my TDR account</h2>
                 <h3 id="browsers-supported" class="govuk-heading-s">What browsers are supported?</h3>
                 <p class="govuk-body">
-                    We do not support Internet Explorer. We advise you to use latest browser version of Edge, Chrome, or Firefox to ensure you can use this service and all of its features.
+                    We do not support Internet Explorer. We advise you to use latest browser version of Edge, Chrome, or Firefox to ensure you can use this service and all its features.
                 </p>
 
                 <h3 id="sign-in-email" class="govuk-heading-s">Which email should I use to sign-in?</h3>
                 <p class="govuk-body">
                     Use the email that you used to create your account. If your email address changes, send full details of the change to <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.
+                    Further information on how to set up a new account can be found in TDR <a class="govuk-link" href="@routes.HelpController.help()"> User Guide</a>.
                 </p>
 
                 <h3 id="password-not-working" class="govuk-heading-s">My password does not work</h3>
@@ -78,28 +78,27 @@
 
                 <h3 id="what-is-mfa" class="govuk-heading-s">What is Multi-Factor Authentication (MFA)?</h3>
                 <p class="govuk-body">
-                    To keep the service and your account secure, you are required to sign-in each time using Multi-Factor Authentication (MFA). This uses two separate pieces of information to authenticate and grant access to the service. In TDR you must sign in each time using your password and a unique generated 'one-time password' (OTP) code that confirms who you are. This can be set up with a free-to-download authenticator app on your smartphone device, such as Google Authenticator, Microsoft Authenticator, or FreeOTP. Other authenticators are also available.
+                    To keep the service and your account secure, you are required to sign-in each time using Multi-Factor Authentication (MFA). This uses two separate pieces of information to authenticate and grant access to the service. In TDR you must sign in each time using your password and a unique generated 'one-time passcode' (OTP) that confirms who you are. This can be set up with a free-to-download authenticator app on your smartphone device, such as Google Authenticator, Microsoft Authenticator, or FreeOTP. Other authenticators are also available.
                 </p>
                 <p class="govuk-body">
-                    Free-to-download apps are available from the App Store for iPhone, or 'Google Play' and 'Play Store' for Android.
+                    Free-to-download authenticator apps are available from the App Store for iPhone, or 'Google Play' and 'Play Store' for Android.
                 </p>
 
                 <h3 id="set-up-mfa-otp" class="govuk-heading-s">How do I set up MFA and my one-time password (OTP)?</h3>
                 <p class="govuk-body">
-                    When you register as a new TDR user, follow the registration steps in the TDR <a class="govuk-link" href="@routes.HelpController.help()">
-                    User Guide</a>
-                    in order to set up a TDR account in the authenticator app on a smartphone device that you have access to. You only need to configure this once for it to generate a code for each time you sign in.
+                    When you register as a new TDR user, follow the registration steps in the TDR <a class="govuk-link" href="@routes.HelpController.help()">User Guide</a>
+                    in order to scan a QR code which will link TDR to the authenticator app on your smartphone. You only need to configure this once for it to generate a code for each time you sign in.
                 </p>
 
                 <h3 id="where-to-get-otp-code" class="govuk-heading-s">Where do I get my OTP code?</h3>
                 <p class="govuk-body">
-                    Click on the TDR account that you set up in the authenticator app to see a one-time passcode being generated every 30 to 60 seconds. Ensure you have enough time to use the code to complete the sign-in process before the code refreshes.
+                    In the authenticator app on your smartphone, click on the Transfer Digital Record linked account that you set up at registration to see the one-time passcode being generated. The one-time passcode gets refreshed every 30 to 60 seconds, so you need to ensure you have enough time to use the code to complete the sign-in process before it refreshes.
                 </p>
 
                 <h3 class="govuk-heading-s">
-                    When setting up the authenticator app, my configuration has failed - what should I do?</h3>
+                    When setting up the authenticator app, my configuration failed - what should I do?</h3>
                 <p class="govuk-body">
-                    If the authentication app fails to configure when adding a new account for TDR on your device, delete the failed TDR account within the app and try again. For guidance on how to do this on each device, follow the instructions below.
+                    If the authentication app fails to configure when adding a new linked account for TDR on your smartphone, delete the failed TDR account within the app and try again. For guidance on how to do this on each device, follow the instructions below.
                 </p>
                 <p class="govuk-body">
                     For Android:
@@ -123,22 +122,22 @@
 
                 <h3 class="govuk-heading-s">I can’t use my phone camera to scan the QR code</h3>
                 <p class="govuk-body">
-                    Some device users may need to enable access to the camera in Settings.
+                    Some smartphones may need to have access enabled to the camera in Settings.
                 </p>
                 <p class="govuk-body">
                     Alternatively, a 9-digit key code, can be manually entered into the app. You can find guidance on how to get a 9-digit key code in 'Part 2: Step 2' of the TDR User Guide. Once you have the code, you can enter it into the app. To do this:
                 </p>
                 <ol class="govuk-list govuk-list--number">
-                    <li>First generate a code, by clicking on the 'I want to enter a key instead' link underneath the QR code displayed on the page.</li>
+                    <li>First generate a code, by clicking on the 'I want to enter a key instead' link below the QR code displayed on the page.</li>
                     <li>Within your authenticator app click the 'Enter a setup key' option.</li>
                     <li>Enter the key code as shown into the app and it should create your unique OTP account for TDR sign-in.</li>
                     <li>You should now be able to see a 6-digit code that will refresh at regular intervals.</li>
-                    <li>Continue to follow instructions from 'Part 2: Step 3' of the TDR User Guide.</li>
+                    <li>Continue to follow instructions from 'Part 2: Step 3' of the TDR <a class="govuk-link" href="@routes.HelpController.help()">User Guide</a>.</li>
                 </ol>
 
                 <h3 class="govuk-heading-s">My link has expired</h3>
                 <p class="govuk-body">
-                    If your link has expired before use, email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+                    If your ‘Update Your Account’ link has expired before use, email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
                     from your work email account and ask for a new link. Allow up to two working days for your request to be processed.
                 </p>
 
@@ -149,10 +148,10 @@
                 <h2 id="upload-process" class="govuk-heading-m">The upload process</h2>
                 <h3 class="govuk-heading-s">What is a series reference?</h3>
                 <p class="govuk-body">
-                    A series reference is a label assigned to a set of archived records. Series references generally contain letters that indicate the creating department followed by numbers referring to the series, for example 'DCMS-1234'. The Cataloguing Department at The National Archives allocates the series references.
+                    A series reference is a reference assigned to a set of archived records. Series references generally contain letters that indicate the creating department followed by numbers referring to the series, for example 'DCMS-1234'. The Cataloguing Department at The National Archives allocates the series reference which you will find in the dropdown list on the ‘Series reference’ page in TDR.
                 </p>
 
-                <h3 class="govuk-heading-s">I cannot choose my series reference</h3>
+                <h3 class="govuk-heading-s">I cannot find my series reference in the dropdown list</h3>
                 <p class="govuk-body">
                     If you cannot find your series reference in the dropdown list on the ‘Series reference’ page, or you are unsure what your series reference should be when you begin the transfer process, contact <a href="mailto:@Messages("nationalArchives.email")">
                 @Messages("nationalArchives.email")</a>.
@@ -160,7 +159,7 @@
 
                 <h3 class="govuk-heading-s">What is a consignment reference?</h3>
                 <p class="govuk-body">
-                    A consignment reference is a unique label assigned to each consignment (batch) of digital records that have been uploaded to TDR, for example 'MOCK-123-TDR'. The View Transfers page will show you your consignment reference. It will also be displayed in the top right-hand corner of your screen once you have begun a transfer.
+                    A Consignment reference is a unique reference assigned to each transfer (or batch) of digital records that have been uploaded to TDR, for example 'TDR-2020-ABC'. The View transfers page will list your corresponding Consignment reference against each transfer. It will also be displayed in the top right-hand corner of your screen once you have signed into TDR and begin a transfer.
                 </p>
 
                 <h3 class="govuk-heading-s">What are Public Records?</h3>
@@ -170,16 +169,20 @@
 
                 <h3 class="govuk-heading-s">How do I know if my records are Crown Copyright?</h3>
                 <p class="govuk-body">
-                    Works created by officers or servants of the Crown during the course of their duties are Crown Copyright. This includes material created by ministers, civil servants, government departments and agencies. In the future The National Archives will accept Public Records that are not Crown Copyright, however during this initial development stage, you cannot use TDR to transfer them to us.
+                    Works created by officers or servants of the Crown, during the course of their duties are Crown Copyright. This includes material created by ministers, civil servants, government departments and agencies. In the future The National Archives will accept Public Records that are not Crown Copyright, however during this initial development stage, you cannot use TDR to transfer them to us.
                 </p>
 
                 <h3 id="other-languages" class="govuk-heading-s">
                     The records I wish to transfer are in another language (for example, Welsh)</h3>
                 <p class="govuk-body">
+                    TDR currently only accepts records that are in English and Welsh. If your records are in a different language, contact <a href="mailto:@Messages("nationalArchives.email")">
+                    @Messages("nationalArchives.email")</a> prior to transfer to discuss next steps.
+                </p>
+                <p class="govuk-body">
                     The National Archives accepts records in any language.
                 </p>
 
-                <h3 class="govuk-heading-s">What file formats are accepted?</h3>
+                <h3 class="govuk-heading-s" id="file-formats-not-accepted">What file formats are not accepted?</h3>
                 <p class="govuk-body">We cannot accept files that are password protected or encrypted.</p>
                 <p class="govuk-body">We cannot accept files with slashes (/ and \) in the name.</p>
                 <p class="govuk-body">
@@ -191,8 +194,12 @@
                 <h3 class="govuk-heading-s">
                     Do you accept system files, password protected files, executable files, or zip files and folders and how do I identify them?</h3>
                 <p class="govuk-body">
-                    System files, including 'thumbs.db' files, ds_store files, and .lnk files are not usually selected for permanent preservation. We advise you to remove these from your consignment.
+                    Before you begin a transfer, you can identify file formats by searching your folder for the file extensions (thumbs.db, .exe and .zip). For password protected files, click to view folder options and select 'hidden files and folders'. These files are usually identified as part of your selection and sensitivity review process.
                 </p>
+                <p class="govuk-body">
+                    System files, including 'thumbs.db' files, ds_store files, and .lnk files are not usually selected for permanent preservation. We advise you to remove these from your transfer.
+                </p>
+
                 <p class="govuk-body">Password protected files are not accepted and must be removed prior to transfer.</p>
                 <p class="govuk-body">
                     Executable files, such as those with a .exe or .msi extension are not usually selected for transfer but there may be a good reason for selecting them. Ensure you are certain that you wish to upload such files prior to transfer.
@@ -203,12 +210,8 @@
                 <p class="govuk-body">
                     File format extensions can also be useful for determining file types, however this can be an unreliable approach, since they can be changed easily. Extensions are the end part of a filename that typically look similar to '.jpg' or '.docx'. They are often hidden by default, but can usually be made visible to help with determining file type. Speak with your local IT Support team if you require assistance with this.
                 </p>
-                <p class="govuk-body">
-                    To identify file formats, search you folder for the file extensions (thumbs.db, .exe and .zip). For password protected files, click to view folder options and select 'hidden files and folders'. These files are usually identified as part of your selection and sensitivity review process.
-                </p>
-                <p class="govuk-body">Contact <a href="mailto:@Messages("nationalArchives.email")">
-                @Messages("nationalArchives.email")</a>
-                    if you have any uncertainty about the file formats you have selected for transfer.
+                <p class="govuk-body">Contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
+                    if you are uncertain about the file formats you have selected for transfer.
                 </p>
 
                 <h3 class="govuk-heading-s">Why can’t I drag and drop or upload my records?</h3>
@@ -219,12 +222,12 @@
 
                 <h3 class="govuk-heading-s">Can I upload multiple folders?</h3>
                 <p class="govuk-body">
-                    You can only upload one content folder per consignment. However, that folder can contain multiple files and sub-folders.
+                    You can only upload one top-level content folder per transfer. However, that folder can contain multiple files and sub-folders of files.
                 </p>
 
                 <h3 class="govuk-heading-s">Is there an upload limit?</h3>
                 <p class="govuk-body">
-                    We recommend that each file is no more than 2GB and that you upload no more than 500 files per consignment.
+                    We recommend that each file is no more than 2GB and that you upload no more than 500 files per transfer.
                     Uploading more than the recommended size increases the likelihood of errors occurring and may take longer
                     to be uploaded and checked. If your files are very large and cannot be uploaded, contact
                     <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.
@@ -237,14 +240,14 @@
                     to discuss the best way to transfer records if they are not stored on a physical or networked drive.
                 </p>
                 <p class="govuk-body">
-                    In the future, TDR will accept consignments transferred directly from the cloud.
+                    In the future, TDR will accept transfers directly from the cloud.
                 </p>
 
                 <h3 class="govuk-heading-s">I’ve uploaded files or sub-folders that I do not wish to be transferred</h3>
                 <p class="govuk-body">
-                    Currently, if you upload files or sub-folders you do not wish to transfer you will need to contact <a href="mailto:@Messages("nationalArchives.email")">
-                @Messages("nationalArchives.email")</a>
-                    and begin the process again. Prior to upload, check that each of the files and sub-folders are intended to be uploaded and transferred. TDR does not currently allow you to amend your files once the transfer process has begun.
+                    TDR does not currently allow you to amend your files once the transfer process has begun.
+                    Prior to upload, check that each of the files and sub-folders are intended to be uploaded and transferred.
+                    If you upload files or sub-folders you do not wish to transfer you will need to contact <a href="mailto:@Messages("nationalArchives.email")">Messages("nationalArchives.email")</a> and begin the process again.
                 </p>
 
                 <h3 class="govuk-heading-s">The session timed out before I completed the upload process</h3>
@@ -268,7 +271,7 @@
                     </p>
                     <li>File format identification</li>
                     <p class="govuk-body">
-                        A check performed to identify the file format and confirm that the file is suitable for transfer. We accept most types of formats, but ones we haven’t seen before may need further investigation. You may be contacted if your transfer contains unidentified file formats. See 'What file formats are accepted' for guidance on what types of files we can accept.
+                        A check performed to identify the file format and confirm that the file is suitable for transfer. We accept most types of formats, but ones we haven’t seen before may need further investigation. You may be contacted if your transfer contains unidentified file formats. See <a href="#file-formats-not-accepted">'What file formats are accepted'</a> for guidance on what types of files we can accept.
                     </p>
                     <li>Data integrity validation</li>
                     <p class="govuk-body">
@@ -286,31 +289,31 @@
                 </p>
                 <ul class="govuk-list govuk-list--bullet">
                     <li>Your internet connection is stable and strong</li>
-                    <li>That your consignment does not contain records we cannot accept.</li>
+                    <li>That your transfer does not contain records we cannot accept.</li>
                 </ul>
                 <p class="govuk-body">
-                    If you can confirm the above then try again. If your consignment has still failed, contact <a href="mailto:@Messages("nationalArchives.email")">
+                    If you can confirm the above then try again. If your transfer has still failed, contact <a href="mailto:@Messages("nationalArchives.email")">
                 @Messages("nationalArchives.email")</a>.
                 </p>
 
                 <h3 class="govuk-heading-s">Once I have uploaded my records does that mean TNA now has them?</h3>
                 <p class="govuk-body">
-                    Upload and export are two completely different stages within the transfer process. Uploading records into TDR <span class="govuk-!-font-weight-bold">
+                    Upload and the final step of clicking ‘Transfer’ are two completely different stages within the transfer process. Uploading records into TDR <span class="govuk-!-font-weight-bold">
                     does not</span>
-                    mean that The National Archives has them. When files have only been uploaded, checks are carried out on your records to help you confirm that they are suitable for transfer. At this point you are still responsible for them, including responsibility for FOI requests.
+                    mean that The National Archives has them. When files have only been uploaded, checks are carried out on your records to help you confirm that they are suitable for transfer. At this point you are still responsible for them, including responsibility for Freedom Of Information (FOI) requests.
                 </p>
                 <p class="govuk-body">
-                    Once the checks are completed, you will be prompted to confirm that you wish to transfer custody of the records to The National Archives. This is the export stage. We only take custody of your records once you confirm the transfer of custody at the export and final stage of the process.
+                    Once the checks are completed, you will be prompted to confirm that you wish to transfer custody of the records to The National Archives. This is the final step to transfer your records to The National Archives. We only take custody of your records once you confirm the transfer of custody at the final stage of the process.
                 </p>
 
                 <h3 class="govuk-heading-s">At what point have I transferred the records?</h3>
                 <p class="govuk-body">
-                    Once your records have been uploaded and checked, you will be prompted to confirm that you wish to transfer them to The National Archives. You should keep a copy of your records until we confirm preservation at The National Archives. We will endeavour to complete this within 90 days, however it could take longer. We will also notify you when your records have been released to the public.
+                    You will only have transferred your records once they have been uploaded and checked, you have confirmed that you wish to transfer them to The National Archives, and you have clicked ‘Transfer’ to complete the process. You should keep a copy of your records until we confirm preservation at The National Archives. We will endeavour to complete this within 90 days, however it could take longer. We will also notify you when your records have been released to the public.
                 </p>
 
                 <h3 id="metadata-captured" class="govuk-heading-s">What metadata will be captured in TDR?</h3>
                 <p class="govuk-body">
-                    During the upload process, TDR  captures the following metadata from the consignment:
+                    During the upload process, TDR  captures the following metadata from the transfer:
                 </p>
                 <ul class="govuk-list govuk-list--bullet">
                     <li>File path</li>
@@ -337,8 +340,8 @@
                 </p>
                 <ul class="govuk-list govuk-list--bullet">
                     <li>Redact - remove the sensitive words. For example: 'Correspondence with [name withheld]'.</li>
-                    <li>Sanitise - replace the sensitive word. For example: 'UK military exercises in xx' (where 'military' has replaced 'Special Forces').</li>
-                    <li>Withhold the title or description without providing an alternative. For example: '[Title withheld]' and or '[description withheld]'</li>
+                    <li>Sanitise - replace the sensitive word. For example: 'UK military exercises in...' (where 'military' has replaced 'Special Forces').</li>
+                    <li>Withhold the title or description without providing an alternative. For example, you can replace with '[Title withheld]' and or '[description withheld]'</li>
                 </ul>
 
                 <h3 class="govuk-heading-s">Can I include Redacted records?</h3>
@@ -346,7 +349,7 @@
                     If redacted files are included within your transfer, to avoid failing checks, you must ensure that:
                 </p>
                 <ul class="govuk-list govuk-list--bullet">
-                    <li>They are in the same subfolder as their parent document</li>
+                    <li>They are in the same subfolder as their parent record</li>
                     <li>They have the same name as their parent (excluding file extension) with '<b>_R</b>' added to the filename before the file extension e.g. <b>Parent</b>.docx and <b>Parent_R</b>.pdf</li>
                     <li>There is no other file type with the same name in the same subfolder as the parent and redacted version</li>
                 </ul>
@@ -354,22 +357,22 @@
                     If your redacted records cannot conform to the above, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>to arrange an alternative delivery method.
                 </p>
                 <h3 class="govuk-heading-s">
-                    Why do I need to export my records when I have already uploaded them to TDR?</h3>
+                    Why do I need to transfer my records once I have already uploaded them to TDR?</h3>
                 <p class="govuk-body">
-                    TDR is a service that prepares records to be transferred. When you upload your records, you still have legal custody over them and are still responsible for any requests such as FOI. At the final stage of TDR you will be asked to confirm that you wish to transfer custody of your records to TNA. When confirmed, both the records and legal custody will be exported to TNA.
+                    TDR is a service that prepares records to be transferred. When you upload your records, you still have legal custody over them and are still responsible for any requests such as Freedom Of Information (FOI). At the final stage of the process within TDR, you will be asked to confirm that you wish to transfer custody of your records to TNA. When confirmed, both the records and legal custody will be exported out of TDR and transferred to TNA.
                 </p>
                 <p class="govuk-body">
                     Until you are notified that your records have been successfully preserved and are live on the public catalogue, it is important that you keep your records safe and do not delete them or alternatively, keep a copy of your records.
                 </p>
 
                 <h3 class="govuk-heading-s">
-                    Do I need to wait for a notification before I can transfer another consignment?
+                    Do I need to wait for a notification before I can make another transfer?
                 </h3>
-                <p class="govuk-body">No, consignments can be uploaded back to back.</p>
+                <p class="govuk-body">No, you do not need to wait. A new folder for transfer can be uploaded back to back.</p>
 
                 <h2 id="general" class="govuk-heading-m">General</h2>
                 <h3 class="govuk-heading-s">Who can I contact if I have a query?</h3>
-                <p class="govuk-body">Contact <a href="mailto:@Messages("nationalArchives.email")">
+                <p class="govuk-body">Contact us via <a href="mailto:@Messages("nationalArchives.email")">
                 @Messages("nationalArchives.email")</a>
                     if your query is regarding the transfer process, the status of your transfer or to report an error or issue you have encountered. You can also contact us if you have more general queries regarding the suitability of records for transfer, file format or transfer agreement criteria.
                 </p>
@@ -393,9 +396,9 @@
                 @Messages("nationalArchives.email")</a>
                 </p>
 
-                <h3 class="govuk-heading-s">Can I view the progress of my transfers and my consignment history?</h3>
+                <h3 class="govuk-heading-s">Can I view the progress of my transfers and their history?</h3>
                 <p class="govuk-body">
-                    You can view your consignment history and the process of record transfers at any time by visiting the View transfers page. You can access this page via the homepage. On this page you can see the following information:
+                    You can view your transfer history and the progress of record transfers at any time by visiting the View transfers page. You can access this page via the homepage. On this page you can see the following information:
                 </p>
                 <ul class="govuk-list govuk-list--bullet">
                     <li>Consignment reference.</li>
