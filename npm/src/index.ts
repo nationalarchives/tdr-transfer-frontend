@@ -111,11 +111,10 @@ export const renderModules = async () => {
       errorHandlingModule.handleUploadError(frontEndInfo)
     }
   }
-  if (!uploadContainer && !fileChecksContainer) {
-    if (timeoutDialog) {
-      const sessionTimeoutModule = await import("./auth/session-timeout")
-      await sessionTimeoutModule.initialiseSessionTimeout()
-    }
+
+  if (timeoutDialog) {
+    const sessionTimeoutModule = await import("./auth/session-timeout")
+    await sessionTimeoutModule.initialiseSessionTimeout()
   }
   if (fileSelectionTree) {
     const trees: NodeListOf<HTMLUListElement> =
