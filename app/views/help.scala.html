@@ -81,7 +81,7 @@
 
             <h2 class="govuk-heading-m" id="before-you-begin">Before you begin</h2>
             <p class="govuk-body">
-                Currently we can only accept records that are Crown Copyright, Public Records and from shared drives.
+                Currently we can only accept records that are Crown Copyright, Public Records and from network shared drives.
             </p>
             <p class="govuk-body">
                 Over time, we will extend the service to accept a wider range of records.
@@ -122,21 +122,24 @@
             <h3 class="govuk-heading-s" id="secured-access">Secured access</h3>
             <p class="govuk-body">
                 In order to keep the service and your account secure, TDR uses Multi-Factor Authentication (MFA).
-                This means you must sign in each time using a unique generated 'one-time password' (OTP) code that confirms who you are.
+                This means you must sign in each time using a unique generated 'one-time passcode' (OTP) that confirms your identity.
                 This can be set up using a free-to-download authenticator app on your smartphone, such as Google Authenticator, Microsoft Authenticator, or FreeOTP.
                 Other authenticators are also available.
             </p>
             <p class="govuk-body">
                 Free-to-download apps are available from the App Store for iPhone, or 'Google Play' and 'Play Store' for Android.
             </p>
+            <p class="govuk-body">
+                (See section below on <a href="#set-up-two-step-auth">setting up an OTP account for MFA</a> for more information)
+            </p>
 
             <h3 class="govuk-heading-s" id="file-formats">File formats</h3>
             <p class="govuk-body">
-                To ensure that records can be successfully uploaded and pass TDR validation checks, read the following information about the file formats we accept before proceeding to upload your records:
+                To ensure that records can be successfully uploaded and pass TDR validation checks, read the following information about the file formats we do not accept before proceeding to upload your records:
             </p>
             <ul class="govuk-list govuk-list--bullet">
                 <li>We cannot accept files that are password protected or encrypted</li>
-                <li>During beta, we cannot accept zip files</li>
+                <li>During beta (early stage of development), we cannot accept zip files</li>
                 <li>We cannot accept files that contain slashes (/ and \) in the name</li>
                 <li>Files such as thumbnail images (thumbs.db), executable files (.exe) and system files are not usually selected for permanent preservation.
                     We will accept these but strongly advise that you remove them prior to upload.</li>
@@ -179,7 +182,7 @@
                     <span class="govuk-!-font-weight-bold">If your link has expired before you could use it, email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> and request a new registration link.</span></li>
                 <li>The link will take you to this page:</li>
                 <img src="@routes.Assets.versioned("images/configure-otp-password-page.png")" class="screenshots" alt="Sign in page with a link to setup MFA and password" />
-                <li>Click on the 'Configure OTP, Update Password' link to set up using a 'One-time password' (OTP), sometimes referred to as 'One-time PIN', for secure sign in using Multi-Factor Authentication (MFA).</li>
+                <li>Click on the 'Configure OTP, Update Password' link to set up using a 'One-time passcode' (OTP), sometimes referred to as 'One-time PIN', for secure sign in using Multi-Factor Authentication (MFA).</li>
             </ol>
 
             <h3 class="govuk-heading-s" id="set-up-two-step-auth">Part 2: Set up your OTP account for Multi-Factor Authentication</h3>
@@ -191,7 +194,7 @@
                 First, you must ensure you have installed an authenticator app onto a smartphone that is available to you before proceeding.
             </p>
             <p class="govuk-body">
-                To set up your app for use with TDR, open your authenticator app on your mobile and create a new TDR account using the QR displayed on your screen.
+                To set up your app for use with TDR, open your authenticator app on your smartphone to create a new TDR account using the QR displayed on your screen.
             </p>
             <ul class="govuk-list govuk-list--bullet">
                 <li>For Google Authenticator, click on the first option 'Scan a QR code'.</li>
@@ -234,7 +237,7 @@
 
             <h3 class="govuk-heading-s" id="sign-in-mfa">Sign in to your account using Multi-Factor Authentication</h3>
             <p class="govuk-body">
-                Before you can use the service, you must sign in using Multi-Factor Authentication (MFA) with the authenticator app that you set up on a smartphone that is available to you, which generates your unique 'one-time password' (OTP) code.
+                Before you can use the service, you must sign in using Multi-Factor Authentication (MFA) with the authenticator app that you set up on a smartphone that is available to you, which generates your unique 'one-time passcode' (OTP).
             </p>
             <img src="@routes.Assets.versioned("images/sign-in.png")" class="screenshots" alt="Form to enter an email and password" />
             <ol class="govuk-body">
@@ -252,21 +255,20 @@
             </ol>
 
             <h2 class="govuk-heading-m" id="step-by-step-guide">A step-by-step guide to transferring your records</h2>
-            <h3 class="govuk-heading-s" id="select-series">Step 1: Select series reference</h3>
             <p class="govuk-body">
-                A 'Consignment reference', which is a unique identifier assigned at the beginning of your transfer, will be visible in the top right corner on every page throughout the process.
-                Quote this reference if you need to contact us about your transfer.
+                A 'Consignment reference' is a unique identifier assigned at the beginning of your transfer. This will be displayed in the top right corner of every page throughout the process. Quote this reference if you need to contact us about your transfer.
             </p>
-            <p class="govuk-body">You can hide the reference and make it visible again by clicking the blue arrow next to 'Consignment reference'.</p>
+            <p class="govuk-body">
+                You can hide the reference and make it visible again by clicking the blue arrow next to 'Consignment reference'.
+            </p>
             <img src="@routes.Assets.versioned("images/standard-select-series-page.png")" class="screenshots" alt="TDR select series page" />
+            <h3 class="govuk-heading-s" id="select-series">Step 1: Select series reference</h3>
             <ol class="govuk-body">
                 <li>Your series reference during beta will be pre-populated and will appear in the drop-down list.
                     You should select the correct series reference from the drop-down menu and click 'Continue'.</li>
+                <li>If you cannot see the correct series reference or you need to add a new one, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.</li>
                 <img src="@routes.Assets.versioned("images/standard-selected-series-page.png")" class="screenshots" alt="TDR series selected page" />
             </ol>
-            <p class="govuk-body">
-                If you cannot see the correct series reference or you need to add a new one, contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>.
-            </p>
 
             <h3 class="govuk-heading-s" id="transfer-agreement">Step 2: Transfer agreement</h3>
             <p class="govuk-body">
@@ -302,9 +304,9 @@
             </p>
             <ol class="govuk-body">
                 <img src="@routes.Assets.versioned("images/standard-upload-records.png")" class="screenshots" alt="Upload records page" />
-                <li>To upload your records, you must put all files into a single top-level folder. You can then either drag and drop a folder or click 'Choose Folder' to browse and select the correct top-level folder for upload.
-                    <p>Confirmation is required when the top-level folder title has been named intentionally for inclusion in the public catalogue as part of the system of arrangement. Failure to clarify this will mean that the top-level folder will be omitted from the transfer's Public Record.</p>
-                    <p>If the top-level folder title is to be included within the system of arrangement, check the box before you continue with your transfer.</p>
+                <li>To upload your records, you must put all files into a single top-level folder. This top-level folder may contain multiple files and sub-folders. You can then either drag and drop the folder or click 'Choose Folder' to browse and select the correct top-level folder for upload.
+                    <p>Confirmation is required if you want the name of the top-level folder to be displayed in the public catalogue as part of the system of arrangement.</p>
+                    <p>If the top-level folder title is to be included within the system of arrangement, check the box before you continue with your transfer. Failure to select the check box to clarify this will mean that the top-level folder will be omitted from the transfer's Public Record in the catalogue.</p>
                     Before uploading, consider the following information:</li>
                 <ul class="govuk-list govuk-list--bullet">
                     <li>You can upload one top-level folder per transfer, which can contain multiple files and sub-folders</li>
@@ -314,7 +316,7 @@
                 <li>If you need to change the folder selected, click the blue 'Remove selected records' link next to the line confirming which folder has been selected and then start the selection again.</li>
             </ol>
             <p class="govuk-body">
-                At this stage, you still have legal custody of your records and are still responsible for any requests such as FOI, until they have been acknowledged as received by TNA.
+                At this stage, you still have legal custody of your records and are still responsible for any requests such as Freedom Of Information (FOI), until they have been acknowledged as received by TNA.
             </p>
             <ol class="govuk-body" start="3">
                 <li>Then click 'Start upload' to begin the upload into TDR.</li>
@@ -426,8 +428,8 @@
             <ol class="govuk-body">
                 <li>If you wish to proceed, you must confirm that you understand you are transferring legal custody of your records to The National Archives.</li>
                 <img src="@routes.Assets.versioned("images/standard-confirm-transfer.png")" class="screenshots" alt="Confirm transfer page" />
-                <li>Once confirmed, both the records and their legal custody can be exported to TNA.
-                    Click 'Transfer your records' to complete the transfer to TNA.</li>
+                <li>Once confirmed, both the records and their legal custody can be exported to TNA to complete your transfer.
+                    Click 'Transfer your records' send your transfer to TNA.</li>
             </ol>
 
             <h3 class="govuk-heading-s" id="transfer-complete">Transfer complete</h3>
@@ -444,7 +446,7 @@
 
             <h2 class="govuk-heading-m" id="transfer-history">View the progress of your transfers and transfer history</h2>
             <p class="govuk-body">
-                You can view your consignment history and the progress of record transfers at any time by visiting the View transfers page.
+                You can view your transfer history and the progress of record transfers at any time by visiting the View transfers page.
                 You can access this page via the homepage. On this page you can see the following information:
             </p>
             <ul class="govuk-list govuk-list--bullet">
@@ -484,7 +486,7 @@
             </p>
             <h3 class="govuk-heading-s" id="glossary-consignment-reference">Consignment reference </h3>
             <p class="govuk-body">
-                Each consignment of digital records uploaded to TDR for transfer to The National Archives is assigned a consignment reference which can be identified as a series of letters and numbers.
+                Each consignment (or batch) of digital records uploaded to TDR for transfer to The National Archives is assigned a Consignment reference which can be identified as a series of letters and numbers.
                 Quote this reference if you need to contact us about your records transfer.
             </p>
             <h3 class="govuk-heading-s" id="glossary-creating-body">Creating body</h3>
