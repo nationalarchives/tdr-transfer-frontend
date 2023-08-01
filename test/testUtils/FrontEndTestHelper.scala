@@ -257,6 +257,14 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
+  def mockUpdateConsignmentStatus(dataString: String, wiremockServer: WireMockServer): StubMapping = {
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("updateConsignmentStatus"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
   def setDeleteFileMetadataResponse(wiremockServer: WireMockServer, fileIds: List[UUID] = List(), filePropertyNames: List[String] = List()): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[dfm.Data, dfm.Variables]()
     val deleteFileMetadataResponse = dfm.Data(DeleteFileMetadata(fileIds, filePropertyNames))
