@@ -1,16 +1,15 @@
 package controllers
 
 import auth.TokenSecurity
-import com.typesafe.config.{Config, ConfigFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, ConsignmentStatusInput, StartUploadInput}
+import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.Statuses.{CompletedValue, InProgressValue, TransferAgreementType, UploadType}
-import services.{BackendChecksService, ConsignmentService, ConsignmentStatusService, FileStatusService, UploadService}
+import services.Statuses._
+import services._
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -30,21 +29,6 @@ class UploadController @Inject() (
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {
-
-  def triggerBackendChecks(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
-    backendChecksService
-      .triggerBackendChecks(consignmentId, request.token.bearerAccessToken.getValue)
-      .map(res => Ok(res.toString))
-  }
-
-  def updateConsignmentStatus(): Action[AnyContent] = secureAction.async { implicit request =>
-    request.body.asJson.flatMap(body => {
-      decode[ConsignmentStatusInput](body.toString).toOption
-    }) match {
-      case None        => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
-      case Some(input) => uploadService.updateConsignmentStatus(input, request.token.bearerAccessToken).map(_.toString).map(Ok(_))
-    }
-  }
 
   def startUpload(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {
@@ -90,7 +74,7 @@ class UploadController @Inject() (
       transferAgreementStatus match {
         case Some(CompletedValue.value) =>
           uploadStatus match {
-            case Some(InProgressValue.value) =>
+            case Some(InProgressValue.value) | Some(CompletedWithIssuesValue.value) =>
               Ok(views.html.uploadInProgress(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = false))
                 .uncache()
             case Some(CompletedValue.value) =>
@@ -124,7 +108,7 @@ class UploadController @Inject() (
       val pageHeadingUploading = "Uploading judgment"
 
       uploadStatus match {
-        case Some(InProgressValue.value) =>
+        case Some(InProgressValue.value) | Some(CompletedWithIssuesValue.value) =>
           Ok(views.html.uploadInProgress(consignmentId, reference, pageHeadingUploading, request.token.name, isJudgmentUser = true))
             .uncache()
         case Some(CompletedValue.value) =>
