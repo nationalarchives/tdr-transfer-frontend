@@ -5,3 +5,19 @@ export const goToNextPage: (formId: string) => void = (formId: string) => {
     uploadDataFormRedirect.submit()
   }
 }
+
+export const goToFileChecksPage = (
+  consignmentId: string,
+  uploadFailed: String,
+  isJudgmentUser: Boolean
+): void => {
+  if (isJudgmentUser) {
+    location.assign(
+      `/judgment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`
+    )
+  } else {
+    location.assign(
+      `/consignment/${consignmentId}/file-checks?uploadFailed=${uploadFailed.toString()}`
+    )
+  }
+}
