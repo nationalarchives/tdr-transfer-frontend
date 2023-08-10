@@ -3,21 +3,25 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.AdditionalMetadataController._
+import controllers.inputvalidation.{DataType, MetadataPropertyCriteria, Validation}
+import controllers.util.CsvUtils
 import graphql.codegen.GetConsignment.getConsignment.GetConsignment
 import graphql.codegen.GetConsignmentFiles
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
-import services.{ConsignmentService, ConsignmentStatusService, DisplayPropertiesService, DisplayProperty}
+import services._
 import uk.gov.nationalarchives.tdr.keycloak.Token
 
 import java.util.UUID
 import javax.inject.Inject
+import scala.concurrent.Future
 
 class AdditionalMetadataController @Inject() (
     val consignmentService: ConsignmentService,
     val displayPropertiesService: DisplayPropertiesService,
+    val customMetadataService: CustomMetadataService,
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents,
     val consignmentStatusService: ConsignmentStatusService
@@ -43,6 +47,52 @@ class AdditionalMetadataController @Inject() (
       logger.error(err.getMessage, err)
       Forbidden(views.html.forbiddenError(request.token.name, isLoggedIn = true, isJudgmentUser = false))
     })
+  }
+  def createMetadataPropertyCriteria(dp: DisplayProperty, dependencies: Option[Map[String, List[MetadataPropertyCriteria]]] = None): MetadataPropertyCriteria = {
+    MetadataPropertyCriteria(
+      dp.propertyName,
+      dp.displayName,
+      dp.active,
+      DataType.get(dp.dataType.toString),
+      dp.editable,
+      dp.propertyType,
+      dp.required,
+      dependencies = dependencies
+    )
+  }
+
+  def uploadAdditionalMetadata(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    {
+      val body = request.body.asMultipartFormData
+      val fileP = body.flatMap(_.file("file-upload"))
+      val result = if (fileP.isDefined) {
+        val file = fileP.get
+
+        for {
+          displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some("closure"))
+          customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
+        } yield {
+          val metadataPropertyCriteria = displayProperties.map(dp => {
+            val dependencies = customMetadata
+              .find(_.name == dp.propertyName)
+              .get
+              .values
+              .map(v => v.value -> v.dependencies.map(d => createMetadataPropertyCriteria(displayProperties.find(_.propertyName == d.name).get)))
+              .toMap
+            createMetadataPropertyCriteria(dp, Some(dependencies))
+          })
+
+          val data = CsvUtils.readCsv(fileP.get.ref.toFile)
+          val updatedData =
+            data.map(
+              _.filter(row => metadataPropertyCriteria.exists(_.displayName == row._1)).map(row => metadataPropertyCriteria.find(_.displayName == row._1).get.name -> row._2).toMap
+            )
+          val error = updatedData.map(row => Validation.validateClosure(row, metadataPropertyCriteria))
+          Ok(error.toString)
+        }
+      } else Future(BadRequest("Upload Error"))
+      result
+    }
   }
 
   private def getStartPageDetails(consignmentId: UUID, token: Token) = {

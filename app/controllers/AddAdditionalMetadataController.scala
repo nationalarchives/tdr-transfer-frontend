@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddAdditionalMetadataController.{File, formFieldOverrides}
+import controllers.inputvalidation.{DataType, MetadataPropertyCriteria}
 import controllers.util.MetadataProperty._
 import controllers.util._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata
@@ -13,7 +14,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService, DisplayProperty}
 import viewsapi.Caching.preventCaching
 
 import java.sql.Timestamp
@@ -57,26 +58,50 @@ class AddAdditionalMetadataController @Inject() (
       }
   }
 
+  def createMetadataPropertyCriteria(dp: DisplayProperty, dependencies: Option[Map[String, List[MetadataPropertyCriteria]]] = None): MetadataPropertyCriteria = {
+    MetadataPropertyCriteria(
+      dp.propertyName,
+      dp.displayName,
+      dp.active,
+      DataType.get(dp.dataType.toString),
+      dp.editable,
+      dp.propertyType,
+      dp.required,
+      dependencies = dependencies
+    )
+  }
+
   def addAdditionalMetadataSubmit(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
         formFields <- cache.getOrElseUpdate[List[FormField]]("formFields") {
           getFormFields(consignmentId, request, metadataType)
         }
+        displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some(metadataType))
         dynamicFormUtils = new DynamicFormUtils(request, formFields)
         formAnswers: Map[String, Seq[String]] = dynamicFormUtils.formAnswersWithValidInputNames
 
         result <- {
-          val updatedFormFields: List[FormField] = dynamicFormUtils.convertSubmittedValuesToFormFields(formAnswers)
-          if (updatedFormFields.exists(_.fieldErrors.nonEmpty)) {
-            for {
-              consignment <- cache.getOrElseUpdate[GetConsignment](s"$consignmentId-consignment") {
-                getConsignmentFileMetadata(consignmentId, metadataType, fileIds)
-              }
-              metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
-            } yield {
-              val files = consignment.files.toFiles
-              val fileExtension = consignment.files.getFileExtension
+          for {
+            consignment <- cache.getOrElseUpdate[GetConsignment](s"$consignmentId-consignment") {
+              getConsignmentFileMetadata(consignmentId, metadataType, fileIds)
+            }
+            customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
+            metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
+          } yield {
+            val metadataPropertyCriteria = displayProperties.map(dp => {
+              val dependencies = customMetadata
+                .find(_.name == dp.propertyName)
+                .get
+                .values
+                .map(v => v.value -> v.dependencies.map(d => createMetadataPropertyCriteria(displayProperties.find(_.propertyName == d.name).get)))
+                .toMap
+              createMetadataPropertyCriteria(dp, Some(dependencies))
+            })
+            val files = consignment.files.toFiles
+            val fileExtension = consignment.files.getFileExtension
+            val updatedFormFields: List[FormField] = dynamicFormUtils.convertSubmittedValuesToFormFields(formAnswers, metadataMap, metadataPropertyCriteria, metadataType)
+            if (updatedFormFields.exists(_.fieldErrors.nonEmpty)) {
               BadRequest(
                 views.html.standard
                   .addAdditionalMetadata(
@@ -88,9 +113,8 @@ class AddAdditionalMetadataController @Inject() (
                     files
                   )
               ).uncache()
-            }
-          } else {
-            updateMetadata(updatedFormFields, consignmentId, fileIds).map { _ =>
+            } else {
+              updateMetadata(updatedFormFields, consignmentId, fileIds)
               Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, Some("review")))
             }
           }

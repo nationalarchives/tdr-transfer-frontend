@@ -19,6 +19,7 @@ abstract class FormField {
   val fieldErrors: List[String]
   val dependencies: Map[String, List[FormField]] = Map.empty
   def selectedOptionNames(): List[String]
+  def selectedOptions(): String
 
   def getAlternativeName: String = {
     if (fieldAlternativeName.nonEmpty) fieldAlternativeName else fieldName
@@ -44,6 +45,8 @@ case class RadioButtonGroupField(
 ) extends FormField {
   override def selectedOptionNames(): List[String] =
     List(selectedOption)
+
+  override def selectedOptions(): String = selectedOption
 }
 
 case class TextField(
@@ -62,6 +65,8 @@ case class TextField(
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = List(nameAndValue.name)
+
+  override def selectedOptions(): String = nameAndValue.value
 }
 
 case class TextAreaField(
@@ -81,6 +86,8 @@ case class TextAreaField(
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = List(nameAndValue.name)
+
+  override def selectedOptions(): String = nameAndValue.value
 }
 
 case class DropdownField(
@@ -97,6 +104,8 @@ case class DropdownField(
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = selectedOption.map(_.name).toList
+
+  override def selectedOptions(): String = selectedOption.map(_.value).getOrElse("")
 }
 
 case class MultiSelectField(
@@ -113,6 +122,8 @@ case class MultiSelectField(
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = selectedOption.getOrElse(Nil).map(_.name)
+
+  override def selectedOptions(): String = selectedOption.map(_.map(_.value).mkString(",")).getOrElse("")
 }
 
 case class DateField(
@@ -131,6 +142,8 @@ case class DateField(
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = List(fieldName)
+
+  override def selectedOptions(): String = s"${year.value}:${month.value}:${day.value}T00:00:00"
 }
 
 object FormField {

@@ -1,5 +1,8 @@
 package controllers.util
 
+import controllers.inputvalidation.ErrorCode._
+import controllers.inputvalidation.{MetadataPropertyCriteria, Validation}
+import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import play.api.mvc.{AnyContent, Request}
 
 class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[FormField]) {
@@ -19,13 +22,18 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
     case (inputName, _)                                           => throw new IllegalArgumentException(s"${inputName.split("-").head} is not a supported field type.")
   }
 
-  def convertSubmittedValuesToFormFields(submittedValues: Map[InputName, Seq[OptionSelected]]): List[FormField] = {
+  def convertSubmittedValuesToFormFields(
+      submittedValues: Map[InputName, Seq[OptionSelected]],
+      metadataMap: Map[InputName, List[Files.FileMetadata]],
+      metadataPropertyCriteria: List[MetadataPropertyCriteria],
+      metadataType: String
+  ): List[FormField] = {
     val submittedValuesTrimmed: List[SubmittedValue] = convertToSubmittedValues(submittedValues)
     val excludeFields: List[String] = submittedValuesTrimmed.collect {
       case submittedValue if submittedValue.optionsSelected.contains("exclude") => submittedValue.inputName
     }
 
-    defaultFieldValues.map { formField =>
+    val updatedField = defaultFieldValues.map { formField =>
       val matchingFieldValue: List[SubmittedValue] = getSubmittedFieldValue(formField.fieldId, submittedValuesTrimmed)
       if (excludeFields.contains(matchingFieldValue.head.inputName)) {
         formField
@@ -33,6 +41,31 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
         validateFormFields(formField, matchingFieldValue)
       }
     }
+    val fields = if (metadataType == "closure") {
+      val closureStatus = "ClosureType" -> metadataMap("ClosureType").headOption.map(_.value).getOrElse("")
+      val error = Validation.validateClosure(
+        updatedField.flatMap(p => p.dependencies.values.flatten.map(d => d.fieldId -> d.selectedOptions()).toMap + (p.fieldId -> p.selectedOptions())).toMap + closureStatus,
+        metadataPropertyCriteria
+      )
+      updatedField.map(f => {
+        error.get(f.fieldId) match {
+          case Some(error) =>
+            error match {
+              case EMPTY_VALUE_ERROR =>
+                f match {
+                  case field: MultiSelectField      => field.copy(fieldErrors = List("2.Select at least one value"))
+                  case field: TextField             => field.copy(fieldErrors = List("2.Enter the number of years the record is closed from the closure start date"))
+                  case field: RadioButtonGroupField => field.copy(fieldErrors = List("2.Enter alternate title"))
+                }
+              case NUMBER_ONLY_ERROR => f.asInstanceOf[TextField].copy(fieldErrors = List(s"2.The ${f.fieldName} must be a whole number, like 5, 12, 3"))
+            }
+          case None => f
+        }
+      })
+    } else {
+      updatedField
+    }
+    fields
   }
 
   private def validateFormFields(formField: FormField, fieldValue: List[SubmittedValue]): FormField = {

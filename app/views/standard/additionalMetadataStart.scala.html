@@ -46,6 +46,20 @@
                   @warningMessage(Messages("additionalMetadata.warningMessage"))
                   <button type="submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Next</button>
                 }
+              @form(
+                routes.AdditionalMetadataController.uploadAdditionalMetadata(pageArgs.consignmentId),
+                Symbol("enctype") -> "multipart/form-data"
+              ) {
+                @CSRF.formField
+                <div class="govuk-form-group">
+                  <label class="govuk-label" for="file-upload">
+                    Upload metadata csv file
+                  </label>
+                  <input class="govuk-file-upload" id="file-upload" name="file-upload" type="file">
+                </div>
+                <button type="submit" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Upload</button>
+
+              }
             </div>
             @transferReference(pageArgs.consignmentRef, isJudgmentUser = false)
         </div>
