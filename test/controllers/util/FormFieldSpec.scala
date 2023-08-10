@@ -1,6 +1,7 @@
 package controllers.util
 
 import cats.implicits.catsSyntaxOptionId
+import org.apache.commons.lang3.NotImplementedException
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
@@ -32,6 +33,30 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
         "no",
         isRequired = true
       )
+    val textField = TextField("AlternateTitle", "name", "alternativeName", "desc", Nil, multiValue = false, InputNameAndValue("AlternativeTitle", ""), "text", isRequired = false)
+    val textAreaField = TextAreaField(
+      "AlternateDescription",
+      "name",
+      "alternativeDesc",
+      "desc",
+      Nil,
+      multiValue = false,
+      InputNameAndValue("AlternativeDesc", ""),
+      isRequired = false,
+      details = None
+    )
+    val dateField = DateField(
+      "id",
+      "name",
+      "alternativename",
+      "desc",
+      Nil,
+      multiValue = false,
+      InputNameAndValue("Day", "1", "DD"),
+      InputNameAndValue("Month", "12", "MM"),
+      InputNameAndValue("Year", "1990", "YYYY"),
+      isRequired = true
+    )
 
     "update should set selectedOption as 'yes' for the field" in {
       val updatedField = RadioButtonGroupField.update(radioButtonGroupField, value = true)
@@ -53,6 +78,32 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       List("agreed", "disagree").foreach { validValue =>
         RadioButtonGroupField.validate(validValue, Map.empty, radioButtonGroupField) shouldBe List(s"Option '$validValue' was not an option provided to the user.")
       }
+    }
+
+    "validate should return an error when the dependent field is empty" in {
+
+      RadioButtonGroupField.validate("yes", Map(textField.fieldId -> ""), radioButtonGroupField.copy(dependencies = Map("yes" -> List(textField)))) shouldBe List(
+        "Add an alternativename for this record"
+      )
+      RadioButtonGroupField.validate("yes", Map(textAreaField.fieldId -> ""), radioButtonGroupField.copy(dependencies = Map("yes" -> List(textAreaField)))) shouldBe List(
+        "Add an alternativedesc for this record"
+      )
+    }
+
+    "validate should not return an error when the dependent field has some value" in {
+
+      RadioButtonGroupField.validate("yes", Map(textField.fieldId -> "ok"), radioButtonGroupField.copy(dependencies = Map("yes" -> List(textField)))) shouldBe List.empty
+      RadioButtonGroupField.validate("yes", Map(textAreaField.fieldId -> "ok"), radioButtonGroupField.copy(dependencies = Map("yes" -> List(textAreaField)))) shouldBe List.empty
+    }
+
+    "validate should return an error when the implementation is missing for the dependent field" in {
+
+      val thrownException = the[NotImplementedException] thrownBy RadioButtonGroupField.validate(
+        "yes",
+        Map(dateField.fieldId -> ""),
+        radioButtonGroupField.copy(dependencies = Map("yes" -> List(dateField)))
+      )
+      thrownException.getMessage should equal(s"Implement for ${dateField.fieldId}")
     }
 
     "validate should not return an error if the value is empty and the field is optional" in {
