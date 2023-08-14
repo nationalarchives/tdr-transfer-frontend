@@ -99,40 +99,40 @@
                             @if(isLoggedIn) {
                                 @if(isJudgmentUser) {
                                     <li class="govuk-footer__inline-list-item">
-                                        <a class="govuk-footer__link" href="@routes.HelpController.judgmentHelp()">
+                                        <a class="govuk-footer__link" target="_blank" href="@routes.HelpController.judgmentHelp()">
                                             Help
                                         </a>
                                     </li>
                                     <li class="govuk-footer__inline-list-item">
-                                        <a class="govuk-footer__link" href="@routes.FaqController.judgmentFaq()">
+                                        <a class="govuk-footer__link" target="_blank" href="@routes.FaqController.judgmentFaq()">
                                             FAQ
                                         </a>
                                     </li>
                                 } else {
                                     <li class="govuk-footer__inline-list-item">
-                                        <a class="govuk-footer__link" href="@routes.HelpController.help()">
+                                        <a class="govuk-footer__link" target="_blank" href="@routes.HelpController.help()">
                                             Help
                                         </a>
                                     </li>
                                     <li class="govuk-footer__inline-list-item">
-                                        <a class="govuk-footer__link" href="@routes.FaqController.faq()">
+                                        <a class="govuk-footer__link" target="_blank" href="@routes.FaqController.faq()">
                                             FAQ
                                         </a>
                                     </li>
                                 }
                             }
                             <li class="govuk-footer__inline-list-item">
-                                <a class="govuk-footer__link" href="@routes.ContactController.contact()">
+                                <a class="govuk-footer__link" target="_blank" href="@routes.ContactController.contact()">
                                     Contact
                                 </a>
                             </li>
                             <li class="govuk-footer__inline-list-item">
-                                <a class="govuk-footer__link" href="@routes.CookiesController.cookies()">
+                                <a class="govuk-footer__link" target="_blank" href="@routes.CookiesController.cookies()">
                                   Cookies
                                 </a>
                             </li>
                             <li class="govuk-footer__inline-list-item">
-                                <a class="govuk-footer__link" href="@routes.AccessibilityController.accessibilityStatement()">
+                                <a class="govuk-footer__link" target="_blank" href="@routes.AccessibilityController.accessibilityStatement()">
                                       Accessibility statement
                                 </a>
                             </li>
