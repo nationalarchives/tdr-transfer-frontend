@@ -164,7 +164,7 @@ object RadioButtonGroupField {
     def dependenciesError: Option[String] = radioButtonGroupField.dependencies
       .get(option)
       .flatMap(_.flatMap {
-        case textField: TextField         => TextField.validate(dependencies(textField.fieldId), textField)
+        case textField: TextField         => TextField.validate(dependencies(textField.fieldId), textField.copy(isRequired = true))
         case textAreaField: TextAreaField => TextAreaField.validate(dependencies(textAreaField.fieldId), textAreaField.copy(isRequired = true))
         case formField: FormField         => throw new NotImplementedException(s"Implement for ${formField.fieldId}")
       }.headOption)
