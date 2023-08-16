@@ -65,7 +65,7 @@ class CheckPageForStaticElements() {
                          |            </div>
                          |        </dialog>""".stripMargin)
     if (userType == "judgment") {
-      page must not include("View transfers")
+      page must not include ("View transfers")
       page must include("""href="/judgment/faq">""")
       page must include("""href="/judgment/help">""")
       if (consignmentExists) {
