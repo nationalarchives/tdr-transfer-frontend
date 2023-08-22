@@ -48,8 +48,9 @@ class CheckPageForStaticElements() {
       pageRequiresAwsServices: Boolean
   ) = {
     page must include(
-      """    <a href="/sign-out" class="govuk-header__link">
-        |                                Sign out""".stripMargin
+      """<a class="govuk-header__link" href="/sign-out">
+        |                                        Sign out
+        |                                    </a>""".stripMargin
     )
     page must include("""    <dialog class="timeout-dialog">
                          |            <div>
@@ -64,7 +65,7 @@ class CheckPageForStaticElements() {
                          |            </div>
                          |        </dialog>""".stripMargin)
     if (userType == "judgment") {
-      page must include("Judgment Username")
+      page must not include ("View transfers")
       page must include("""href="/judgment/faq">""")
       page must include("""href="/judgment/help">""")
       if (consignmentExists) {
@@ -76,7 +77,7 @@ class CheckPageForStaticElements() {
         }
       }
     } else if (userType == "standard") {
-      page must include("Standard Username")
+      page must include("View transfers")
       page must include("""href="/faq">""")
       page must include("""href="/help">""")
       if (consignmentExists) {
