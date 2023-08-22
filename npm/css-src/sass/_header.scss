@@ -4,58 +4,8 @@
 
 $govuk-header-link: govuk-colour('white');
 
-.govuk-header__tna-logo {
-  width: 220px;
-}
-
-.govuk-header__tna-logo-image {
-  width: 220px;
-}
-
-.govuk-header__tna-content {
-  margin: 0 auto;
-  position: relative;
-}
-
 .tna-header {
   display: flex;
-}
-
-.govuk-header__tna_link {
-  text-decoration: none;
-
-  &:link,
-  &:visited {
-    color: $govuk-header-link;
-  }
-
-  &:focus {
-    @include govuk-focused-text;
-  }
-
-  // alphagov/govuk_template includes a specific a:link:focus selector
-  // designed to make unvisited links a slightly darker blue when focussed, so
-  // we need to override the text colour for that combination of selectors.
-  @include govuk-compatibility(govuk_template) {
-    &:link:focus {
-      @include govuk-text-colour;
-    }
-  }
-}
-
-.govuk-header__tna_link--homepage {
-  // Font size needs to be set on the link so that the box sizing is correct
-  // in Firefox
-  @include govuk-font($size: false, $weight: bold);
-
-  display: inline-block;
-  font-size: 30px; // We don't have a mixin that produces 30px font size
-  line-height: 1;
-
-  &:link,
-  &:visited {
-    text-decoration: none;
-  }
 }
 
 @media (max-width: 48.06249em) {
