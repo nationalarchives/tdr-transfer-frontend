@@ -68,9 +68,8 @@ export class ClientFileProcessing {
     stage: string,
     userId: string | undefined
   ): Promise<void | Error> {
-    const uploadResult = await this.clientFileMetadataUpload.startUpload(
-      uploadFilesInfo
-    )
+    const uploadResult =
+      await this.clientFileMetadataUpload.startUpload(uploadFilesInfo)
     if (!isError(uploadResult)) {
       const emptyFolders = files
         .filter((f) => isDirectory(f))
