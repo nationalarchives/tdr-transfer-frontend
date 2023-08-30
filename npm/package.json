@@ -45,7 +45,7 @@
     "@aws-sdk/lib-storage": "^3.85.0",
     "@aws-sdk/querystring-builder": "^3.374.0",
     "@aws-sdk/protocol-http": "^3.374.0",
-    "@nationalarchives/file-information": "^1.0.526",
+    "@nationalarchives/file-information": "^1.0.528",
     "@nationalarchives/tdr-components": "1.0.37",
     "@nationalarchives/tdr-generated-graphql": "1.0.422",
     "copyfiles": "^2.4.1",
