@@ -11,20 +11,23 @@ export const addFolderSelectionSuccessMessage = (
   folderName: string,
   folderSize: number
 ) => {
-  // eslint-disable-next-line no-undef
-  const folderNameElements: NodeListOf<Element> =
-    document.querySelectorAll(".folder-name")
-  // eslint-disable-next-line no-undef
-  const folderSizeElements: NodeListOf<Element> =
-    document.querySelectorAll(".folder-size")
+  const selectedContainers: NodeListOf<Element> = document.querySelectorAll(
+    ".js-drag-and-drop-selected"
+  )
 
-  if (folderNameElements && folderSizeElements) {
-    folderNameElements.forEach((e) => (e.textContent = folderName))
-    folderSizeElements.forEach(
-      (e) =>
-        (e.textContent = `${folderSize} ${folderSize === 1 ? "file" : "files"}`)
-    )
-  }
+  selectedContainers.forEach((e) => {
+    const selectedContentFragment = document
+      .createRange()
+      .createContextualFragment(e.firstElementChild.innerHTML)
+    selectedContentFragment.querySelector(".folder-name").textContent =
+      folderName
+    selectedContentFragment.querySelector(
+      ".folder-size"
+    ).textContent = `${folderSize} ${folderSize === 1 ? "file" : "files"}`
+
+    e.firstElementChild.innerHTML = ""
+    e.firstElementChild.appendChild(selectedContentFragment)
+  })
 }
 
 export const displaySelectionSuccessMessage = (
