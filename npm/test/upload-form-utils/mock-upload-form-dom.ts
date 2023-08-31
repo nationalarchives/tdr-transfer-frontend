@@ -215,8 +215,8 @@ export class MockUploadFormDom {
 
   fileNameElement: HTMLElement | null = document.querySelector(".file-name")
 
-  folderNameElement: HTMLElement | null = document.querySelector(".folder-name")
-  folderSizeElement: HTMLElement | null = document.querySelector(".folder-size")
+  folderNameElement: () => HTMLElement | null = () => document.querySelector(".folder-name")
+  folderSizeElement: () => HTMLElement | null = () => document.querySelector(".folder-size")
 
   warningMessages: {
     [warningName: string]: { [s: string]: HTMLElement | null }
