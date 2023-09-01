@@ -25,8 +25,8 @@ libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
   "org.pac4j" % "pac4j-http" % pac4jVersion exclude ("com.fasterxml.jackson.core", "jackson-databind"),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude ("commons-io", "commons-io") exclude ("com.fasterxml.jackson.core", "jackson-databind"),
-  "io.circe" %% "circe-core" % "0.14.5",
-  "io.circe" %% "circe-generic" % "0.14.5",
+  "io.circe" %% "circe-core" % "0.14.6",
+  "io.circe" %% "circe-generic" % "0.14.6",
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
@@ -43,7 +43,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.29.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
-  "com.github.tomakehurst" % "wiremock-jre8" % "2.35.0" % Test,
+  "com.github.tomakehurst" % "wiremock-standalone" % "3.0.0" % Test,
   "org.mockito" % "mockito-core" % "5.5.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
