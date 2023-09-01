@@ -80,8 +80,8 @@ test("input button updates the page with correct folder information if there are
   )
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
-  expect(mockDom.folderNameElement!.textContent).toStrictEqual("Parent_Folder")
-  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("1 file")
+  expect(mockDom.folderNameElement()!.textContent).toStrictEqual("Parent_Folder")
+  expect(mockDom.folderSizeElement()!.textContent).toStrictEqual("1 file")
 })
 
 test("dropzone updates the page with correct folder information if there are 1 or more files in folder", async () => {
@@ -101,8 +101,8 @@ test("dropzone updates the page with correct folder information if there are 1 o
   )
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
-  expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
-  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
+  expect(mockDom.folderNameElement()!.textContent).toStrictEqual("Mock Folder")
+  expect(mockDom.folderSizeElement()!.textContent).toStrictEqual("2 files")
 })
 
 test("dropzone updates the page with an error if there are no files in folder", async () => {
@@ -128,8 +128,8 @@ test("dropzone updates the page with an error if there are no files in folder", 
     false
   )
 
-  expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
-  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
+  expect(mockDom.folderNameElement()!.textContent).toStrictEqual("")
+  expect(mockDom.folderSizeElement()!.textContent).toStrictEqual("")
 })
 
 test("dropzone updates the page with correct folder information if there is a nested folder of files in the main folder", async () => {
@@ -172,8 +172,8 @@ test("dropzone updates the page with correct folder information if there is a ne
   )
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
-  expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
-  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
+  expect(mockDom.folderNameElement()!.textContent).toStrictEqual("Mock Folder")
+  expect(mockDom.folderSizeElement()!.textContent).toStrictEqual("2 files")
 })
 
 test("dropzone updates the page with correct folder information if there are valid files and an empty folder", async () => {
@@ -235,8 +235,8 @@ test("dropzone updates the page with correct folder information if there are val
   )
   verifyVisibilityOfWarningMessages(mockDom.warningMessages)
 
-  expect(mockDom.folderNameElement!.textContent).toStrictEqual("Mock Folder")
-  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("2 files")
+  expect(mockDom.folderNameElement()!.textContent).toStrictEqual("Mock Folder")
+  expect(mockDom.folderSizeElement()!.textContent).toStrictEqual("2 files")
 })
 
 test("dropzone updates the page with an error if there is an empty nested folder", async () => {
@@ -280,8 +280,8 @@ test("dropzone updates the page with an error if there is an empty nested folder
     "govuk-visually-hidden"
   )
 
-  expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
-  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
+  expect(mockDom.folderNameElement()!.textContent).toStrictEqual("")
+  expect(mockDom.folderSizeElement()!.textContent).toStrictEqual("")
 })
 
 test("dropzone updates the page with an error if more than 1 item (2 folders) has been dropped", async () => {
@@ -308,8 +308,8 @@ test("dropzone updates the page with an error if more than 1 item (2 folders) ha
     false
   )
 
-  expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
-  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
+  expect(mockDom.folderNameElement()!.textContent).toStrictEqual("")
+  expect(mockDom.folderSizeElement()!.textContent).toStrictEqual("")
 })
 
 test("dropzone updates the page with an error if more than 1 item (folder and file) has been dropped", async () => {
@@ -336,8 +336,8 @@ test("dropzone updates the page with an error if more than 1 item (folder and fi
     false
   )
 
-  expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
-  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
+  expect(mockDom.folderNameElement()!.textContent).toStrictEqual("")
+  expect(mockDom.folderSizeElement()!.textContent).toStrictEqual("")
 })
 
 test("dropzone updates the page with an error if 1 file has been dropped", async () => {
@@ -362,8 +362,8 @@ test("dropzone updates the page with an error if 1 file has been dropped", async
     false
   )
 
-  expect(mockDom.folderNameElement!.textContent).toStrictEqual("")
-  expect(mockDom.folderSizeElement!.textContent).toStrictEqual("")
+  expect(mockDom.folderNameElement()!.textContent).toStrictEqual("")
+  expect(mockDom.folderSizeElement()!.textContent).toStrictEqual("")
 })
 
 test("dropzone clears selected files if an invalid file is dropped after a valid one", async () => {
