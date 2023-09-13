@@ -47,6 +47,14 @@ export class TdrFetchHandler implements HttpHandler {
     }
   }
 
+  updateHttpClientConfig(key: never, value: never): void {
+    //
+  }
+
+  httpHandlerConfigs(): any {
+    //
+  }
+
   destroy(): void {
     // Do nothing. TLS and HTTP/2 connection pooling is handled by the browser.
   }
@@ -58,7 +66,12 @@ export class TdrFetchHandler implements HttpHandler {
     if (!this.config && this.configProvider) {
       this.config = await this.configProvider()
     }
+
+    //let requestTimeoutInMs = 0
+
+    //if ("requestTimeoutMs" in this.config) {
     const requestTimeoutInMs = this.config!.requestTimeoutMs
+    //}
 
     // if the request was already aborted, prevent doing extra work
     if (abortSignal?.aborted) {
