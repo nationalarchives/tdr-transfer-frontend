@@ -51,6 +51,14 @@ export class TdrFetchHandler implements HttpHandler {
     // Do nothing. TLS and HTTP/2 connection pooling is handled by the browser.
   }
 
+  updateHttpClientConfig(key: never, value: never): void {
+    // Added to fix compilation issue
+  }
+
+  httpHandlerConfigs(): any {
+    // Added to fix compilation issue
+  }
+
   async handle(
     request: HttpRequest,
     { abortSignal }: HttpHandlerOptions = {}
