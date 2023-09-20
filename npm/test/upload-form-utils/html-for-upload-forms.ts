@@ -7,6 +7,11 @@ export const htmlForFolderUploadForm = `
                       <div class="drag-and-drop">
                             <div class="govuk-form-group">
                                 <div id="selection-area">
+                                    <div id="empty-folder-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="empty-folder-selected-message-text">
+                                        <p id="empty-folder-selected-message-text" class="govuk-error-message">
+                                            <span class="govuk-visually-hidden">Error:</span> You cannot upload an empty folder.
+                                        </p>
+                                    </div>
                                     <div id="multiple-folder-selection-failure" class="govuk-form-group govuk-form-group--error error-messages" hidden="true" tabindex="-1" role="alert" aria-describedby="multiple-folder-selected-message-text">
                                         <p id="multiple-folder-selected-message-text" class="govuk-error-message">
                                             <span class="govuk-visually-hidden">Error:</span> You can only upload one top-level folder per consignment. However, that folder can contain multiple files and sub folders.
