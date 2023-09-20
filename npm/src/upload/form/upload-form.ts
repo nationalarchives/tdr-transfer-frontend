@@ -260,6 +260,9 @@ export class UploadForm {
     incorrectItemSelectedMessage: document.querySelector(
       "#item-selection-failure"
     ),
+    emptyFolderSelectedMessage: document.querySelector(
+      "#empty-folder-selection-failure"
+    ),
     multipleItemSelectedMessage: document.querySelector(
       "#multiple-selection-failure"
     ),
@@ -300,7 +303,7 @@ export class UploadForm {
     if (files === null || files.length === 0) {
       this.removeFilesAndDragOver()
       return rejectUserItemSelection(
-        this.warningMessages?.incorrectItemSelectedMessage,
+        this.warningMessages?.emptyFolderSelectedMessage,
         this.warningMessages,
         this.successAndRemovalMessageContainer,
         "The folder is empty"

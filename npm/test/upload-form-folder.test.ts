@@ -120,8 +120,8 @@ test("dropzone updates the page with an error if there are no files in folder", 
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
-    expectedWarningMessageText: "You can only drop a single folder."
+    warningMessageElements: mockDom.warningMessages.emptyItemSelected!,
+    expectedWarningMessageText: "You cannot upload an empty folder."
   })
   verifyVisibilityOfSuccessAndRemovalMessage(
     mockDom.successAndRemovalMessageContainer!,
@@ -273,8 +273,8 @@ test("dropzone updates the page with an error if there is an empty nested folder
   )
 
   verifyVisibilityOfWarningMessages(mockDom.warningMessages, {
-    warningMessageElements: mockDom.warningMessages.incorrectItemSelected!,
-    expectedWarningMessageText: "You can only drop a single folder."
+    warningMessageElements: mockDom.warningMessages.emptyItemSelected!,
+    expectedWarningMessageText: "You cannot upload an empty folder."
   })
   expect(mockDom.successAndRemovalMessageContainer).toHaveClass(
     "govuk-visually-hidden"

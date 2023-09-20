@@ -221,6 +221,12 @@ export class MockUploadFormDom {
   warningMessages: {
     [warningName: string]: { [s: string]: HTMLElement | null }
   } = {
+    emptyItemSelected: {
+      messageElement: document.querySelector("#empty-folder-selection-failure"),
+      messageElementText: document.querySelector(
+        "#empty-folder-selected-message-text"
+      )
+    },
     incorrectItemSelected: {
       messageElement: document.querySelector("#item-selection-failure"),
       messageElementText: document.querySelector(
