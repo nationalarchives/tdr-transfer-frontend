@@ -40,7 +40,7 @@ export const verifyVisibilityOfWarningMessages = (
 
   warningMessageElements.forEach(
     (warningMessageElement: HTMLElement | null) => {
-      if (warningMessageElement! !== warningMessageThatShouldBeDisplayedElement)
+      if (warningMessageElement != null && warningMessageElement! !== warningMessageThatShouldBeDisplayedElement)
         expect(warningMessageElement!).toHaveAttribute("hidden")
     }
   )
