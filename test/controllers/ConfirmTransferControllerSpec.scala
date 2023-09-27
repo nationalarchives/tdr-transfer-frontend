@@ -113,7 +113,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       confirmTransferPageAsString must include(
         s"""                    <dd class="govuk-summary-list__value">
-           |                        ${consignmentSummaryResponse.series.get.code}
+           |                        ${consignmentSummaryResponse.seriesName.get}
            |                    </dd>""".stripMargin
       )
 
@@ -137,7 +137,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       confirmTransferPageAsString must include(
         s"""                    <dd class="govuk-summary-list__value">
-           |                        ${consignmentSummaryResponse.transferringBody.get.name}
+           |                        ${consignmentSummaryResponse.transferringBodyName.get}
            |                    </dd>""".stripMargin
       )
 
@@ -676,8 +676,9 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   }
 
   private def getConsignmentSummaryResponse: gcs.GetConsignment = {
-    val seriesCode = Some(gcs.GetConsignment.Series("Mock Series 2"))
-    val transferringBodyName = Some(gcs.GetConsignment.TransferringBody("MockBody 2"))
+
+    val seriesCode = Some("Mock Series 2")
+    val transferringBodyName = Some("MockBody 2")
     val totalFiles: Int = 4
     val consignmentReference = "TEST-TDR-2021-GB"
     new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
