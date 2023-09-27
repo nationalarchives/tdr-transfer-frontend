@@ -70,7 +70,7 @@ class SeriesDetailsController @Inject() (
       result <- seriesStatus match {
         case Some(CompletedValue.value) =>
           val seriesOption: InputNameAndValue = consignmentStatus
-            .map(series => InputNameAndValue(series.seriesName.getOrElse(""), series.seriesid.toString))
+            .map(c => InputNameAndValue(c.seriesName.getOrElse(""), c.seriesid.getOrElse("").toString))
             .get
 
           Future(

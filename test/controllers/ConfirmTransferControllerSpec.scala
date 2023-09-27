@@ -676,7 +676,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
   }
 
   private def getConsignmentSummaryResponse: gcs.GetConsignment = {
-
     val seriesCode = Some("Mock Series 2")
     val transferringBodyName = Some("MockBody 2")
     val totalFiles: Int = 4
