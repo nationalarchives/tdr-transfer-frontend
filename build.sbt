@@ -36,15 +36,15 @@ libraryDependencies ++= Seq(
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.4.11",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.30.1",
-  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.30.1",
-  "io.opentelemetry" % "opentelemetry-sdk" % "1.30.1",
+  "io.opentelemetry" % "opentelemetry-api" % "1.31.0",
+  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.31.0",
+  "io.opentelemetry" % "opentelemetry-sdk" % "1.31.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.30.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "org.mockito" % "mockito-core" % "5.5.0" % Test,
+  "org.mockito" % "mockito-core" % "5.6.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
 
