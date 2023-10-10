@@ -41,7 +41,7 @@ class ConfirmTransferController @Inject() (
     consignmentService
       .getConsignmentConfirmTransfer(consignmentId, request.token.bearerAccessToken)
       .map { summary =>
-        ConsignmentSummaryData(summary.series.get.code, summary.transferringBody.get.name, summary.totalFiles, summary.consignmentReference)
+        ConsignmentSummaryData(summary.seriesName.get, summary.transferringBodyName.get, summary.totalFiles, summary.consignmentReference)
       }
   }
 

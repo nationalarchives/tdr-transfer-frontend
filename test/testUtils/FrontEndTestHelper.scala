@@ -17,9 +17,8 @@ import graphql.codegen.GetAllDescendants.getAllDescendantIds
 import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.{FileMetadata, FileStatuses}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.{ConsignmentStatuses, Series}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
@@ -69,6 +68,7 @@ import play.api.{Application, Configuration}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import services.Statuses.{InProgressValue, SeriesType}
 import viewsapi.FrontEndInfo
 
@@ -242,7 +242,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val consignmentResponse = gcs.Data(
       Option(
         GetConsignment(
-          Some(Series(seriesId.getOrElse(UUID.randomUUID()), "MOCK1")),
+          seriesId,
+          Some("MOCK1"),
           consignmentStatuses
         )
       )

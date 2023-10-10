@@ -85,6 +85,7 @@ class ConsignmentStatusServiceSpec extends AnyWordSpec with MockitoSugar with Be
           Option(
             gcs.GetConsignment(
               None,
+              None,
               statuses
             )
           )
