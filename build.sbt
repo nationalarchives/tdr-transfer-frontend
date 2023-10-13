@@ -31,7 +31,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.132",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.168",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.170",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.350",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.4.11",
