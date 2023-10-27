@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddAdditionalMetadataController.{File, formFieldOverrides}
 import controllers.util.MetadataProperty._
 import controllers.util._
@@ -14,6 +14,7 @@ import play.api.cache._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import uk.gov.nationalarchives.tdr.validation.MetadataValidation
 import viewsapi.Caching.preventCaching
 
 import java.sql.Timestamp
@@ -32,6 +33,7 @@ class AddAdditionalMetadataController @Inject() (
     val consignmentService: ConsignmentService,
     val customMetadataService: CustomMetadataService,
     val displayPropertiesService: DisplayPropertiesService,
+    val applicationConfig: ApplicationConfig,
     val cache: AsyncCacheApi
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
@@ -63,20 +65,16 @@ class AddAdditionalMetadataController @Inject() (
         formFields <- cache.getOrElseUpdate[List[FormField]]("formFields") {
           getFormFields(consignmentId, request, metadataType)
         }
-        dynamicFormUtils = new DynamicFormUtils(request, formFields)
-        formAnswers: Map[String, Seq[String]] = dynamicFormUtils.formAnswersWithValidInputNames
-
+        consignment <- cache.getOrElseUpdate[GetConsignment](s"$consignmentId-consignment") {
+          getConsignmentFileMetadata(consignmentId, metadataType, fileIds)
+        }
+        metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
+        updatedFormFields <- updateAndValidateFormFields(consignmentId, formFields, metadataMap, metadataType)(request)
         result <- {
-          val updatedFormFields: List[FormField] = dynamicFormUtils.convertSubmittedValuesToFormFields(formAnswers)
           if (updatedFormFields.exists(_.fieldErrors.nonEmpty)) {
-            for {
-              consignment <- cache.getOrElseUpdate[GetConsignment](s"$consignmentId-consignment") {
-                getConsignmentFileMetadata(consignmentId, metadataType, fileIds)
-              }
-              metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
-            } yield {
-              val files = consignment.files.toFiles
-              val fileExtension = consignment.files.getFileExtension
+            val files = consignment.files.toFiles
+            val fileExtension = consignment.files.getFileExtension
+            Future.successful(
               BadRequest(
                 views.html.standard
                   .addAdditionalMetadata(
@@ -88,14 +86,16 @@ class AddAdditionalMetadataController @Inject() (
                     files
                   )
               ).uncache()
-            }
+            )
           } else {
-            updateMetadata(updatedFormFields, consignmentId, fileIds).map { _ =>
+            updateMetadata(updatedFormFields, consignmentId, fileIds).map(_ =>
               Redirect(routes.AdditionalMetadataSummaryController.getSelectedSummaryPage(consignmentId, metadataType, fileIds, Some("review")))
-            }
+            )
           }
         }
-      } yield result
+      } yield {
+        result
+      }
   }
 
   private def getDependenciesOfNonSelectedOptions(dependencies: Map[String, List[FormField]], nameOfOptionSelected: List[String]) =
@@ -127,6 +127,33 @@ class AddAdditionalMetadataController @Inject() (
       case _         => None
     }
     consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds), additionalProperties)
+  }
+
+  private def getMetadataValidation(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[MetadataValidation] = {
+    for {
+      displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, None)
+      customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      MetadataValidationUtils.createMetadataValidation(displayProperties, customMetadata)
+    }
+  }
+
+  private def updateAndValidateFormFields(consignmentId: UUID, defaultFieldValues: List[FormField], metadataMap: Map[String, List[FileMetadata]], metadataType: String)(
+      request: Request[AnyContent]
+  ): Future[List[FormField]] = {
+    if (applicationConfig.blockValidationLibrary) {
+      val dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues, None)
+      Future.successful(dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames))
+    } else {
+      for {
+        metadataValidation <- cache.getOrElseUpdate[MetadataValidation]("metadataValidation") {
+          getMetadataValidation(consignmentId)(request)
+        }
+      } yield {
+        val dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues, Some(metadataValidation))
+        dynamicFormUtils.updateAndValidateFormFields(dynamicFormUtils.formAnswersWithValidInputNames, metadataMap, metadataType)
+      }
+    }
   }
 
   private def buildUpdateMetadataInput(updatedFormFields: List[FormField]): List[UpdateFileMetadataInput] = {
