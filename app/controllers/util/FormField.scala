@@ -1,8 +1,10 @@
 package controllers.util
 
 import controllers.util.FormField._
+import controllers.util.MetadataProperty.closurePeriod
 import org.apache.commons.lang3.NotImplementedException
 import services.Details
+import uk.gov.nationalarchives.tdr.validation.ErrorCode._
 
 import java.time.{LocalDateTime, Year}
 import scala.util.control.Exception.allCatch
@@ -19,6 +21,7 @@ abstract class FormField {
   val fieldErrors: List[String]
   val dependencies: Map[String, List[FormField]] = Map.empty
   def selectedOptionNames(): List[String]
+  def selectedOptions(): String
 
   def getAlternativeName: String = {
     if (fieldAlternativeName.nonEmpty) fieldAlternativeName else fieldName
@@ -44,6 +47,8 @@ case class RadioButtonGroupField(
 ) extends FormField {
   override def selectedOptionNames(): List[String] =
     List(selectedOption)
+
+  override def selectedOptions(): String = selectedOption
 }
 
 case class TextField(
@@ -62,6 +67,7 @@ case class TextField(
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = List(nameAndValue.name)
+  override def selectedOptions(): String = nameAndValue.value
 }
 
 case class TextAreaField(
@@ -81,6 +87,7 @@ case class TextAreaField(
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = List(nameAndValue.name)
+  override def selectedOptions(): String = nameAndValue.value
 }
 
 case class DropdownField(
@@ -97,6 +104,7 @@ case class DropdownField(
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = selectedOption.map(_.name).toList
+  override def selectedOptions(): String = selectedOption.map(_.value).getOrElse("")
 }
 
 case class MultiSelectField(
@@ -113,6 +121,7 @@ case class MultiSelectField(
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = selectedOption.getOrElse(Nil).map(_.name)
+  override def selectedOptions(): String = selectedOption.map(_.map(_.value).mkString(",")).getOrElse("")
 }
 
 case class DateField(
@@ -131,6 +140,7 @@ case class DateField(
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
   override def selectedOptionNames(): List[String] = List(fieldName)
+  override def selectedOptions(): String = s"${year.value}:${month.value}:${day.value}T00:00:00"
 }
 
 object FormField {
@@ -154,6 +164,15 @@ object FormField {
 }
 
 object RadioButtonGroupField {
+
+  def updateError(field: RadioButtonGroupField, errorCode: String): RadioButtonGroupField = {
+    errorCode match {
+      case NO_OPTION_SELECTED_ERROR => field.copy(fieldErrors = List(radioOptionNotSelectedError.format(field.fieldName)))
+      case UNDEFINED_VALUE_ERROR    => field.copy(fieldErrors = List(invalidRadioOptionSelectedError.format(field.selectedOption)))
+      case EMPTY_VALUE_ERROR        => field.copy(fieldErrors = List(dependencyNotEntered.format(field.dependencies(field.selectedOption).head.getAlternativeName.toLowerCase)))
+      case _                        => field.copy(fieldErrors = List(errorCode))
+    }
+  }
 
   def validate(option: String, dependencies: Map[String, String], radioButtonGroupField: RadioButtonGroupField): List[String] = {
     val optionErrors = Option(option).filter(_.nonEmpty) match {
@@ -195,6 +214,13 @@ object RadioButtonGroupField {
 }
 
 object MultiSelectField {
+  def updateError(multiSelectField: MultiSelectField, errorCode: String): MultiSelectField = {
+    errorCode match {
+      case EMPTY_VALUE_ERROR     => multiSelectField.copy(fieldErrors = List(dropdownOptionNotSelectedError.format(multiSelectField.fieldName)))
+      case UNDEFINED_VALUE_ERROR => multiSelectField.copy(fieldErrors = List(invalidDropdownOptionSelectedError.format(multiSelectField.selectedOptions())))
+      case _                     => multiSelectField.copy(fieldErrors = List(errorCode))
+    }
+  }
 
   def validate(selectedOptions: Seq[String], multiSelectField: MultiSelectField): Option[String] =
     selectedOptions match {
@@ -210,6 +236,14 @@ object MultiSelectField {
 }
 
 object DropdownField {
+
+  def updateError(dropdownField: DropdownField, errorCode: String): DropdownField = {
+    errorCode match {
+      case EMPTY_VALUE_ERROR     => dropdownField.copy(fieldErrors = List(dropdownOptionNotSelectedError.format(dropdownField.fieldName)))
+      case UNDEFINED_VALUE_ERROR => dropdownField.copy(fieldErrors = List(invalidDropdownOptionSelectedError.format(dropdownField.selectedOptions())))
+      case _                     => dropdownField.copy(fieldErrors = List(errorCode))
+    }
+  }
 
   def validate(selectedOption: Option[String], dropdownField: DropdownField): Option[String] = {
     selectedOption match {
@@ -227,13 +261,24 @@ object DropdownField {
 
 object TextField {
 
+  def updateError(textField: TextField, errorCode: String): TextField = {
+    errorCode match {
+      case EMPTY_VALUE_ERROR =>
+        val error = if (textField.fieldId == closurePeriod) closurePeriodNotEnteredError else dateNotEnteredError.format(textField.fieldName)
+        textField.copy(fieldErrors = List(error))
+      case NUMBER_ONLY_ERROR     => textField.copy(fieldErrors = List(wholeNumberError.format(textField.fieldName.toLowerCase, wholeNumberExample)))
+      case NEGATIVE_NUMBER_ERROR => textField.copy(fieldErrors = List(negativeNumberError.format(textField.fieldName.toLowerCase)))
+      case _                     => textField.copy(fieldErrors = List(errorCode))
+    }
+  }
+
   def validate(text: String, textField: TextField): Option[String] = {
 
     if (text.isEmpty) {
       textField.isRequired match {
-        case true if textField.fieldId == "ClosurePeriod" => Some(closurePeriodNotEnteredError.format(textField))
-        case true                                         => Some(dependencyNotEntered.format(textField.getAlternativeName.toLowerCase))
-        case _                                            => None
+        case true if textField.fieldId == closurePeriod => Some(closurePeriodNotEnteredError)
+        case true                                       => Some(dependencyNotEntered.format(textField.getAlternativeName.toLowerCase))
+        case _                                          => None
       }
     } else if (textField.inputMode.equals("numeric")) {
       text match {
@@ -250,6 +295,14 @@ object TextField {
 }
 
 object TextAreaField {
+  def updateError(textAreaField: TextAreaField, errorCode: String): TextAreaField = {
+    errorCode match {
+      case EMPTY_VALUE_ERROR               => textAreaField.copy(fieldErrors = List(dependencyNotEntered.format(textAreaField.getAlternativeName.toLowerCase)))
+      case MAX_CHARACTER_LIMIT_INPUT_ERROR => textAreaField.copy(fieldErrors = List(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit)))
+      case _                               => textAreaField.copy(fieldErrors = List(errorCode))
+    }
+  }
+
   def update(textAreaField: TextAreaField, value: String): TextAreaField = textAreaField.copy(nameAndValue = textAreaField.nameAndValue.copy(value = value))
   def validate(text: String, textAreaField: TextAreaField): Option[String] = {
     val fieldName = textAreaField.getAlternativeName
@@ -262,6 +315,32 @@ object TextAreaField {
 }
 
 object DateField {
+
+  def updateError(dateField: DateField, errorCode: String): DateField = {
+    val fieldName = if (dateField.getAlternativeName == "Advisory Council Approval") dateField.fieldAlternativeName else dateField.getAlternativeName.toLowerCase
+
+    errorCode match {
+      case EMPTY_VALUE_ERROR_FOR_DAY | EMPTY_VALUE_ERROR => dateField.copy(fieldErrors = List(emptyValueError.format(fieldName, "day")))
+      case NUMBER_ERROR_FOR_DAY                          => dateField.copy(fieldErrors = List(wholeNumberError2.format("day", fieldName, wholeNumberExample)))
+      case NEGATIVE_NUMBER_ERROR_FOR_DAY                 => dateField.copy(fieldErrors = List(negativeNumberError.format("day")))
+      case INVALID_NUMBER_ERROR_FOR_DAY                  => dateField.copy(fieldErrors = List(invalidDateError.format("day", fieldName, "31")))
+      case EMPTY_VALUE_ERROR_FOR_MONTH                   => dateField.copy(fieldErrors = List(emptyValueError.format(fieldName, "month")))
+      case NUMBER_ERROR_FOR_MONTH                        => dateField.copy(fieldErrors = List(wholeNumberError2.format("month", fieldName, "3, 9, 12")))
+      case NEGATIVE_NUMBER_ERROR_FOR_MONTH               => dateField.copy(fieldErrors = List(negativeNumberError.format("month")))
+      case INVALID_NUMBER_ERROR_FOR_MONTH                => dateField.copy(fieldErrors = List(invalidDateError.format("month", fieldName, "12")))
+      case EMPTY_VALUE_ERROR_FOR_YEAR                    => dateField.copy(fieldErrors = List(emptyValueError.format(fieldName, "year")))
+      case NUMBER_ERROR_FOR_YEAR                         => dateField.copy(fieldErrors = List(wholeNumberError2.format("year", fieldName, "1994, 2000, 2023")))
+      case NEGATIVE_NUMBER_ERROR_FOR_YEAR                => dateField.copy(fieldErrors = List(negativeNumberError.format("year")))
+      case INVALID_NUMBER_ERROR_FOR_YEAR                 => dateField.copy(fieldErrors = List(invalidYearError.format(fieldName)))
+      case INVALID_DAY_FOR_MONTH_ERROR =>
+        val day = dateField.day.value.toInt
+        val month = dateField.month.value.toInt
+        val monthName = monthsWithLessThan31Days(month)
+        dateField.copy(fieldErrors = List(invalidDayError.format(monthName, day, fieldName, if (month == 2) 28 else 30)))
+      case FUTURE_DATE_ERROR => dateField.copy(fieldErrors = List(futureDateError.format(fieldName)))
+      case _                 => dateField.copy(fieldErrors = List(errorCode))
+    }
+  }
 
   val invalidDayValidation: Int => Boolean = (day: Int) => day < 1 || day > 31
   val invalidMonthValidation: Int => Boolean = (month: Int) => month < 1 || month > 12

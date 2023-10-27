@@ -16,4 +16,5 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
   )
 
   val numberOfItemsOnViewTransferPage: Int = configuration.get[Int]("viewTransfers.numberOfItemsPerPage")
+  val blockValidationLibrary: Boolean = configuration.get[Boolean]("featureAccessBlock.blockValidationLibrary")
 }
