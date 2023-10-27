@@ -181,7 +181,9 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "updateError should set an error message as per the given error code" in {
       TextField.updateError(textField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Enter the name for this record")
-      TextField.updateError(textField.copy(fieldId = closurePeriod), EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Enter the number of years the record is closed from the closure start date")
+      TextField.updateError(textField.copy(fieldId = closurePeriod), EMPTY_VALUE_ERROR).fieldErrors shouldBe List(
+        "Enter the number of years the record is closed from the closure start date"
+      )
       TextField.updateError(textField, NUMBER_ONLY_ERROR).fieldErrors shouldBe List("The name must be a whole number, like 3, 15, 21")
       TextField.updateError(textField, NEGATIVE_NUMBER_ERROR).fieldErrors shouldBe List("The name cannot be a negative number")
       TextField.updateError(textField, CLOSURE_STATUS_IS_MISSING).fieldErrors shouldBe List("CLOSURE_STATUS_IS_MISSING")
@@ -572,7 +574,8 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       DateField.updateError(mandatoryDateField, NUMBER_ERROR_FOR_YEAR).fieldErrors shouldBe List("The year of the alternativename must be a whole number, like 1994, 2000, 2023")
       DateField.updateError(mandatoryDateField, NEGATIVE_NUMBER_ERROR_FOR_YEAR).fieldErrors shouldBe List("The year cannot be a negative number")
       DateField.updateError(mandatoryDateField, INVALID_NUMBER_ERROR_FOR_YEAR).fieldErrors shouldBe List("The year of the alternativename must contain 4 digits")
-      DateField.updateError(mandatoryDateField.copy(day = InputNameAndValue("31", "31"), month = InputNameAndValue("6", "6")), INVALID_DAY_FOR_MONTH_ERROR)
+      DateField
+        .updateError(mandatoryDateField.copy(day = InputNameAndValue("31", "31"), month = InputNameAndValue("6", "6")), INVALID_DAY_FOR_MONTH_ERROR)
         .fieldErrors shouldBe List("June does not have 31 days in it. Enter the day for the alternativename between 1 and 30")
       DateField.updateError(mandatoryDateField, FUTURE_DATE_ERROR).fieldErrors shouldBe List("The date of the alternativename must be in the past")
       DateField.updateError(mandatoryDateField, CLOSURE_STATUS_IS_MISSING).fieldErrors shouldBe List("CLOSURE_STATUS_IS_MISSING")

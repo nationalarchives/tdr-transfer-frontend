@@ -466,7 +466,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
           dp.DisplayProperties.Attributes("Group", Some("1"), Text)
-      )
+        )
       ),
       dp.DisplayProperties(
         "FoiExemptionAsserted",
