@@ -41,13 +41,13 @@
   },
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.417.0",
+    "@aws-sdk/client-s3": "^3.437.0",
     "@aws-sdk/lib-storage": "^3.85.0",
     "@aws-sdk/querystring-builder": "^3.374.0",
     "@aws-sdk/protocol-http": "^3.374.0",
     "@nationalarchives/file-information": "^1.0.554",
     "@nationalarchives/tdr-components": "1.0.37",
-    "@nationalarchives/tdr-generated-graphql": "1.0.431",
+    "@nationalarchives/tdr-generated-graphql": "1.0.432",
     "copyfiles": "^2.4.1",
     "events": "^3.3.0",
     "graphql": "^16.8.1",
@@ -64,8 +64,8 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.1.4",
     "@types/jest": "^28.1.8",
-    "@typescript-eslint/eslint-plugin": "^6.8.0",
-    "@typescript-eslint/parser": "^6.8.0",
+    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/parser": "^6.9.0",
     "aws-sdk-client-mock": "^3.0.0",
     "copyfiles": "^2.4.1",
     "eslint": "^8.52.0",
@@ -89,7 +89,8 @@
     "ts-loader": "^9.5.0",
     "typescript": "5.2.2",
     "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "@smithy/types" : "2.4.0"
   },
   "lint-staged": {
     "./**/*.{ts,md}": "eslint",
