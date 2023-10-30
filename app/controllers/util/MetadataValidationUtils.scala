@@ -27,7 +27,7 @@ object MetadataValidationUtils {
         case _       => List()
       }
       val requiredField: Boolean = cm match {
-        case Some(cm) => cm.propertyGroup.contains("MandatoryClosure") || cm.propertyGroup.contains("MandatoryMetadata")
+        case Some(cm) => cm.propertyGroup.contains("MandatoryClosure") || cm.propertyGroup.contains("MandatoryMetadata") || dp.required
         case _        => dp.required
       }
       MetadataCriteria(

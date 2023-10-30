@@ -82,7 +82,7 @@ case class TextAreaField(
     fieldErrors: List[String] = Nil,
     rows: String = "5",
     wrap: String = "soft",
-    characterLimit: Int = 8000,
+    characterLimit: Int = maxCharacterLimit,
     details: Option[Details],
     override val dependencies: Map[String, List[FormField]] = Map.empty
 ) extends FormField {
@@ -161,6 +161,7 @@ object FormField {
   val dependencyNotEntered = "Add an %s for this record"
   val dateNotEnteredError = "Enter the %s for this record"
   val wholeNumberExample = "3, 15, 21"
+  val maxCharacterLimit = 8000
 }
 
 object RadioButtonGroupField {
@@ -170,7 +171,9 @@ object RadioButtonGroupField {
       case NO_OPTION_SELECTED_ERROR => field.copy(fieldErrors = List(radioOptionNotSelectedError.format(field.fieldName)))
       case UNDEFINED_VALUE_ERROR    => field.copy(fieldErrors = List(invalidRadioOptionSelectedError.format(field.selectedOption)))
       case EMPTY_VALUE_ERROR        => field.copy(fieldErrors = List(dependencyNotEntered.format(field.dependencies(field.selectedOption).head.getAlternativeName.toLowerCase)))
-      case _                        => field.copy(fieldErrors = List(errorCode))
+      case MAX_CHARACTER_LIMIT_INPUT_ERROR =>
+        field.copy(fieldErrors = List(tooLongInputError.format(field.dependencies(field.selectedOption).head.getAlternativeName, maxCharacterLimit)))
+      case _ => field.copy(fieldErrors = List(errorCode))
     }
   }
 
