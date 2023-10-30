@@ -78,6 +78,9 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       RadioButtonGroupField
         .updateError(radioButtonGroupField.copy(selectedOption = "yes", dependencies = Map("yes" -> List(textAreaField))), EMPTY_VALUE_ERROR)
         .fieldErrors shouldBe List("Add an alternativedesc for this record")
+      RadioButtonGroupField
+        .updateError(radioButtonGroupField.copy(selectedOption = "yes", dependencies = Map("yes" -> List(textAreaField))), MAX_CHARACTER_LIMIT_INPUT_ERROR)
+        .fieldErrors shouldBe List("alternativeDesc must be 8000 characters or less")
       RadioButtonGroupField.updateError(radioButtonGroupField, CLOSURE_STATUS_IS_MISSING).fieldErrors shouldBe List("CLOSURE_STATUS_IS_MISSING")
     }
 
