@@ -155,7 +155,7 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
     validatedForm.foreach {
       case multiSelectField: MultiSelectField =>
-        multiSelectField.fieldErrors should equal(List(s"Search for and select at least one ${multiSelectField.fieldName}"))
+        multiSelectField.fieldErrors should equal(List(s"Select at least one ${multiSelectField.fieldName}"))
       case _ =>
     }
   }

@@ -134,7 +134,7 @@ case class DateField(
 }
 
 object FormField {
-  val dropdownOptionNotSelectedError = "Search for and select at least one %s"
+  val dropdownOptionNotSelectedError = "Select at least one %s"
   val invalidDropdownOptionSelectedError = "Option '%s' was not an option provided to the user."
   val emptyValueError = "The %s must contain a %s"
   val wholeNumberError = "The %s must be a whole number, like %s"

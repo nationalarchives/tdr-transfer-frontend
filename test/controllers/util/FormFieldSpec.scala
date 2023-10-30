@@ -214,7 +214,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "validate should return an error when the given value is empty" in {
 
-      DropdownField.validate(None, dropdownField) shouldBe Some("Search for and select at least one name")
+      DropdownField.validate(None, dropdownField) shouldBe Some("Select at least one name")
     }
 
     "validate should return an error when the given value is not a valid option" in {
@@ -254,7 +254,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "validate should return an error when the given value is empty" in {
 
-      MultiSelectField.validate(Nil, multiSelectField) shouldBe Some("Search for and select at least one name")
+      MultiSelectField.validate(Nil, multiSelectField) shouldBe Some("Select at least one name")
     }
 
     "validate should return an error when the given value is not a valid option" in {
