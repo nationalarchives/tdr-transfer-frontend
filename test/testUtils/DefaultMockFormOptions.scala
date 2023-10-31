@@ -155,7 +155,7 @@ object DefaultMockFormOptions {
       label = "mock code1",
       value = "mock code1",
       fieldType = "inputmultiselect",
-      errorMessage = "Select at least one FOI exemption code(s)"
+      errorMessage = "Select at least one FOI exemption code"
     ),
     MockInputOption(
       name = "inputmultiselect-FoiExemptionCode",
@@ -163,7 +163,7 @@ object DefaultMockFormOptions {
       label = "mock code2",
       value = "mock code2",
       fieldType = "inputmultiselect",
-      errorMessage = "Select at least one FOI exemption code(s)"
+      errorMessage = "Select at least one FOI exemption code"
     ),
     MockInputOption(
       name = "inputradio-TitleClosed",
