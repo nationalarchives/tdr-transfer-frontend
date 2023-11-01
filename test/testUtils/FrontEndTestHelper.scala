@@ -464,7 +464,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         List(
           dp.DisplayProperties.Attributes("Active", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Datatype", Some("text"), Text),
-          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
+          dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+          dp.DisplayProperties.Attributes("Group", Some("1"), Text)
         )
       ),
       dp.DisplayProperties(
@@ -481,6 +482,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Ordinal", Some("5"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
           dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime),
+          dp.DisplayProperties.Attributes("Required", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Summary", Some("FOI decision asserted, this is the date of the Advisory Council approval"), Text)
         )
       ),
@@ -498,6 +500,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Ordinal", Some("10"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
           dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime),
+          dp.DisplayProperties.Attributes("Required", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Summary", Some("Closure start date"), Text)
         )
       ),
@@ -515,6 +518,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("UnitType", Some("Years"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
           dp.DisplayProperties.Attributes("ComponentType", Some("small text"), DateTime),
+          dp.DisplayProperties.Attributes("Required", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Summary", Some("Closure period"), Text),
           dp.DisplayProperties.Attributes("Guidance", Some("years"), Text)
         )
@@ -539,6 +543,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Ordinal", Some("20"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
           dp.DisplayProperties.Attributes("ComponentType", Some("select"), DateTime),
+          dp.DisplayProperties.Attributes("Required", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Summary", Some("FOI exemption code"), Text)
         )
       ),
@@ -555,6 +560,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("Group", Some("2"), Text),
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("25"), Integer),
+          dp.DisplayProperties.Attributes("Required", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text)
         )
       ),
@@ -587,6 +593,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
           dp.DisplayProperties.Attributes("MultiValue", Some("false"), Boolean),
           dp.DisplayProperties.Attributes("Ordinal", Some("30"), Integer),
           dp.DisplayProperties.Attributes("PropertyType", Some("Closure"), Text),
+          dp.DisplayProperties.Attributes("Required", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("ComponentType", Some("date"), DateTime)
         )
       ),
@@ -609,7 +616,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     dp.Data(descriptiveDisplayProperties ++ closureDisplayProperties)
   }
 
-  private def getCustomMetadataDataObject: cm.Data = {
+  def getCustomMetadataDataObject: cm.Data = {
     cm.Data(
       List(
         cm.CustomMetadata(

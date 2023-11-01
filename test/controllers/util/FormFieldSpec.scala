@@ -1,11 +1,13 @@
 package controllers.util
 
 import cats.implicits.catsSyntaxOptionId
+import controllers.util.MetadataProperty.closurePeriod
 import org.apache.commons.lang3.NotImplementedException
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
+import uk.gov.nationalarchives.tdr.validation.ErrorCode._
 
 import java.time.{LocalDateTime, Month}
 
@@ -66,6 +68,20 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     "update should set selectedOption as 'no' for the field" in {
       val updatedField = RadioButtonGroupField.update(radioButtonGroupField, value = false)
       updatedField shouldBe radioButtonGroupField.copy(selectedOption = "no")
+    }
+
+    "updateError should set an error message as per the given error code" in {
+      RadioButtonGroupField.updateError(radioButtonGroupField, NO_OPTION_SELECTED_ERROR).fieldErrors shouldBe List("Select if the name is sensitive to the public")
+      RadioButtonGroupField
+        .updateError(radioButtonGroupField.copy(selectedOption = "agreed"), UNDEFINED_VALUE_ERROR)
+        .fieldErrors shouldBe List("Option 'agreed' was not an option provided to the user.")
+      RadioButtonGroupField
+        .updateError(radioButtonGroupField.copy(selectedOption = "yes", dependencies = Map("yes" -> List(textAreaField))), EMPTY_VALUE_ERROR)
+        .fieldErrors shouldBe List("Add an alternativedesc for this record")
+      RadioButtonGroupField
+        .updateError(radioButtonGroupField.copy(selectedOption = "yes", dependencies = Map("yes" -> List(textAreaField))), MAX_CHARACTER_LIMIT_INPUT_ERROR)
+        .fieldErrors shouldBe List("alternativeDesc must be 8000 characters or less")
+      RadioButtonGroupField.updateError(radioButtonGroupField, CLOSURE_STATUS_IS_MISSING).fieldErrors shouldBe List("CLOSURE_STATUS_IS_MISSING")
     }
 
     "validate should not return any error when the given value is valid" in {
@@ -165,13 +181,24 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
         }
       })
     }
+
+    "updateError should set an error message as per the given error code" in {
+      TextField.updateError(textField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Enter the name for this record")
+      TextField.updateError(textField.copy(fieldId = closurePeriod), EMPTY_VALUE_ERROR).fieldErrors shouldBe List(
+        "Enter the number of years the record is closed from the closure start date"
+      )
+      TextField.updateError(textField, NUMBER_ONLY_ERROR).fieldErrors shouldBe List("The name must be a whole number, like 3, 15, 21")
+      TextField.updateError(textField, NEGATIVE_NUMBER_ERROR).fieldErrors shouldBe List("The name cannot be a negative number")
+      TextField.updateError(textField, CLOSURE_STATUS_IS_MISSING).fieldErrors shouldBe List("CLOSURE_STATUS_IS_MISSING")
+    }
   }
 
   "TextAreaField" should {
 
+    val updatedField =
+      TextAreaField("id", "name", "alternativeName", "desc", Nil, multiValue = false, InputNameAndValue("name", "old inputted value"), isRequired = false, details = None)
+
     "update should set value for the field" in {
-      val updatedField =
-        TextAreaField("id", "name", "alternativeName", "desc", Nil, multiValue = false, InputNameAndValue("name", "old inputted value"), isRequired = false, details = None)
       TextAreaField.update(updatedField, "new inputted value") shouldBe updatedField.copy(nameAndValue = InputNameAndValue("name", "new inputted value", ""))
     }
 
@@ -189,6 +216,12 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       val tooLargeValueField =
         TextAreaField("id", "FieldName", "alternativeName", "desc", Nil, multiValue = false, InputNameAndValue("name", ""), isRequired = false, characterLimit = 5, details = None)
       TextAreaField.validate("more than character limit", tooLargeValueField) shouldBe Some("FieldName must be 5 characters or less")
+    }
+
+    "updateError should set an error message as per the given error code" in {
+      TextAreaField.updateError(updatedField, MAX_CHARACTER_LIMIT_INPUT_ERROR).fieldErrors shouldBe List("name must be 8000 characters or less")
+      TextAreaField.updateError(updatedField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Add an alternativename for this record")
+      TextAreaField.updateError(updatedField, CLOSURE_STATUS_IS_MISSING).fieldErrors shouldBe List("CLOSURE_STATUS_IS_MISSING")
     }
   }
 
@@ -222,6 +255,14 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       List(dropdownField, optionalDropdownField).foreach(formField =>
         DropdownField.validate("ABC".some, formField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
       )
+    }
+
+    "updateError should set an error message as per the given error code" in {
+      DropdownField.updateError(dropdownField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Search for and select at least one name")
+      DropdownField
+        .updateError(dropdownField.copy(selectedOption = InputNameAndValue("Test", "Test").some), UNDEFINED_VALUE_ERROR)
+        .fieldErrors shouldBe List("Option 'Test' was not an option provided to the user.")
+      DropdownField.updateError(dropdownField, CLOSURE_STATUS_IS_MISSING).fieldErrors shouldBe List("CLOSURE_STATUS_IS_MISSING")
     }
   }
 
@@ -260,6 +301,14 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     "validate should return an error when the given value is not a valid option" in {
 
       MultiSelectField.validate(Seq("ABC"), multiSelectField) shouldBe Some("Option 'ABC' was not an option provided to the user.")
+    }
+
+    "updateError should set an error message as per the given error code" in {
+      MultiSelectField.updateError(multiSelectField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Search for and select at least one name")
+      MultiSelectField
+        .updateError(multiSelectField.copy(selectedOption = List(InputNameAndValue("Test", "Test")).some), UNDEFINED_VALUE_ERROR)
+        .fieldErrors shouldBe List("Option 'Test' was not an option provided to the user.")
+      MultiSelectField.updateError(multiSelectField, CLOSURE_STATUS_IS_MISSING).fieldErrors shouldBe List("CLOSURE_STATUS_IS_MISSING")
     }
   }
 
@@ -511,6 +560,28 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
           DateField.validate(day, month, year, dateField.copy(isFutureDateAllowed = true)) shouldBe None
         }
       })
+    }
+
+    "updateError should set an error message as per the given error code" in {
+
+      DateField.updateError(mandatoryDateField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("The alternativename must contain a day")
+      DateField.updateError(mandatoryDateField, EMPTY_VALUE_ERROR_FOR_DAY).fieldErrors shouldBe List("The alternativename must contain a day")
+      DateField.updateError(mandatoryDateField, NUMBER_ERROR_FOR_DAY).fieldErrors shouldBe List("The day of the alternativename must be a whole number, like 3, 15, 21")
+      DateField.updateError(mandatoryDateField, NEGATIVE_NUMBER_ERROR_FOR_DAY).fieldErrors shouldBe List("The day cannot be a negative number")
+      DateField.updateError(mandatoryDateField, INVALID_NUMBER_ERROR_FOR_DAY).fieldErrors shouldBe List("The day of the alternativename must be between 1 and 31")
+      DateField.updateError(mandatoryDateField, EMPTY_VALUE_ERROR_FOR_MONTH).fieldErrors shouldBe List("The alternativename must contain a month")
+      DateField.updateError(mandatoryDateField, NUMBER_ERROR_FOR_MONTH).fieldErrors shouldBe List("The month of the alternativename must be a whole number, like 3, 9, 12")
+      DateField.updateError(mandatoryDateField, NEGATIVE_NUMBER_ERROR_FOR_MONTH).fieldErrors shouldBe List("The month cannot be a negative number")
+      DateField.updateError(mandatoryDateField, INVALID_NUMBER_ERROR_FOR_MONTH).fieldErrors shouldBe List("The month of the alternativename must be between 1 and 12")
+      DateField.updateError(mandatoryDateField, EMPTY_VALUE_ERROR_FOR_YEAR).fieldErrors shouldBe List("The alternativename must contain a year")
+      DateField.updateError(mandatoryDateField, NUMBER_ERROR_FOR_YEAR).fieldErrors shouldBe List("The year of the alternativename must be a whole number, like 1994, 2000, 2023")
+      DateField.updateError(mandatoryDateField, NEGATIVE_NUMBER_ERROR_FOR_YEAR).fieldErrors shouldBe List("The year cannot be a negative number")
+      DateField.updateError(mandatoryDateField, INVALID_NUMBER_ERROR_FOR_YEAR).fieldErrors shouldBe List("The year of the alternativename must contain 4 digits")
+      DateField
+        .updateError(mandatoryDateField.copy(day = InputNameAndValue("31", "31"), month = InputNameAndValue("6", "6")), INVALID_DAY_FOR_MONTH_ERROR)
+        .fieldErrors shouldBe List("June does not have 31 days in it. Enter the day for the alternativename between 1 and 30")
+      DateField.updateError(mandatoryDateField, FUTURE_DATE_ERROR).fieldErrors shouldBe List("The date of the alternativename must be in the past")
+      DateField.updateError(mandatoryDateField, CLOSURE_STATUS_IS_MISSING).fieldErrors shouldBe List("CLOSURE_STATUS_IS_MISSING")
     }
 
     def getDate(dateTime: LocalDateTime): (String, String, String) =
