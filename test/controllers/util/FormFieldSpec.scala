@@ -258,7 +258,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "updateError should set an error message as per the given error code" in {
-      DropdownField.updateError(dropdownField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Search for and select at least one name")
+      DropdownField.updateError(dropdownField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Select at least one name")
       DropdownField
         .updateError(dropdownField.copy(selectedOption = InputNameAndValue("Test", "Test").some), UNDEFINED_VALUE_ERROR)
         .fieldErrors shouldBe List("Option 'Test' was not an option provided to the user.")
@@ -304,7 +304,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
     }
 
     "updateError should set an error message as per the given error code" in {
-      MultiSelectField.updateError(multiSelectField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Search for and select at least one name")
+      MultiSelectField.updateError(multiSelectField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Select at least one name")
       MultiSelectField
         .updateError(multiSelectField.copy(selectedOption = List(InputNameAndValue("Test", "Test")).some), UNDEFINED_VALUE_ERROR)
         .fieldErrors shouldBe List("Option 'Test' was not an option provided to the user.")
