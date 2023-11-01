@@ -564,7 +564,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "updateError should set an error message as per the given error code" in {
 
-      DateField.updateError(mandatoryDateField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("The alternativename must contain a day")
+      DateField.updateError(mandatoryDateField, EMPTY_VALUE_ERROR).fieldErrors shouldBe List("Enter the alternativename for this record")
       DateField.updateError(mandatoryDateField, EMPTY_VALUE_ERROR_FOR_DAY).fieldErrors shouldBe List("The alternativename must contain a day")
       DateField.updateError(mandatoryDateField, NUMBER_ERROR_FOR_DAY).fieldErrors shouldBe List("The day of the alternativename must be a whole number, like 3, 15, 21")
       DateField.updateError(mandatoryDateField, NEGATIVE_NUMBER_ERROR_FOR_DAY).fieldErrors shouldBe List("The day cannot be a negative number")
