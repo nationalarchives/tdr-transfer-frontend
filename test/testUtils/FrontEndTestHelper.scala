@@ -535,7 +535,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
             ),
             Text
           ),
-          dp.DisplayProperties.Attributes("Name", Some("FOI exemption code(s)"), Text),
+          dp.DisplayProperties.Attributes("Name", Some("FOI exemption code"), Text),
           dp.DisplayProperties.Attributes("Guidance", Some("Search by typing an FOI Exemption code"), Text),
           dp.DisplayProperties.Attributes("Editable", Some("true"), Boolean),
           dp.DisplayProperties.Attributes("Group", Some("2"), Text),
