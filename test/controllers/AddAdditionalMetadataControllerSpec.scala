@@ -301,7 +301,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
       addAdditionalMetadataPageAsString should include("""    <p class="govuk-error-message" id="error-FoiExemptionCode">
           |        <span class="govuk-visually-hidden">Error:</span>
-          |        Search for and select at least one FOI exemption code(s)
+          |        Select at least one FOI exemption code
           |    </p>""".stripMargin)
     }
 
