@@ -29,7 +29,7 @@ class CheckFormPageElements() {
       |        Number of years the record is closed from the closure start date
       |    </div>""",
     """        <label class="govuk-label govuk-label--m" for="inputmultiselect-FoiExemptionCode">
-      |           FOI exemption code(s)
+      |           FOI exemption code
       |         </label>""",
     """        <div id="inputmultiselect-FoiExemptionCode-hint" class="govuk-hint">
       |        Add one or more exemption code to this closure. Here is a <a target="_blank" href="https://www.legislation.gov.uk/ukpga/2000/36/contents">full list of FOI codes and their designated exemptions</a>
