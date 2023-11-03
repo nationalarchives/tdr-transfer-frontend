@@ -79,7 +79,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         ("Is the title closed?", "Yes"),
         ("Closure Period", "4 years"),
         ("Closure Start Date", "01/12/1990"),
-        ("FOI exemption code(s)", "1, 2 "),
+        ("FOI exemption code", "1, 2 "),
         ("Alternative Title2", "An alternative title ")
       )
 
