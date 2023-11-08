@@ -18,7 +18,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.4" % Test
 
 val playPac4jVersion = "11.1.0-PLAY2.8"
-val pac4jVersion = "5.7.1"
+val pac4jVersion = "5.7.2"
 val sttpVersion = "2.3.0"
 
 libraryDependencies ++= Seq(
