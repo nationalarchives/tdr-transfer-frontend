@@ -90,7 +90,7 @@
     "typescript": "5.2.2",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
-    "@smithy/types" : "2.4.0"
+    "@smithy/types" : "2.5.0"
   },
   "lint-staged": {
     "./**/*.{ts,md}": "eslint",
