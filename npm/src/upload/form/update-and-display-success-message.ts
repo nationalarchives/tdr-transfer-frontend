@@ -21,9 +21,8 @@ export const addFolderSelectionSuccessMessage = (
       .createContextualFragment(e.firstElementChild.innerHTML)
     selectedContentFragment.querySelector(".folder-name").textContent =
       folderName
-    selectedContentFragment.querySelector(
-      ".folder-size"
-    ).textContent = `${folderSize} ${folderSize === 1 ? "file" : "files"}`
+    selectedContentFragment.querySelector(".folder-size").textContent =
+      `${folderSize} ${folderSize === 1 ? "file" : "files"}`
 
     e.firstElementChild.innerHTML = ""
     e.firstElementChild.appendChild(selectedContentFragment)
