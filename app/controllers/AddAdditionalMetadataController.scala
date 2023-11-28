@@ -12,7 +12,7 @@ import graphql.codegen.types.UpdateFileMetadataInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request}
+import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 import uk.gov.nationalarchives.tdr.validation.MetadataValidation
 import viewsapi.Caching.preventCaching
@@ -43,20 +43,32 @@ class AddAdditionalMetadataController @Inject() (
     implicit request: Request[AnyContent] =>
       for {
         consignment <- getConsignmentFileMetadata(consignmentId, metadataType, fileIds)
-        formFields <- getFormFields(consignmentId, request, metadataType)
-        updatedFormFields <- {
-          cache.set(s"$consignmentId-consignment", consignment, 1.hour)
-          // Set the values to those of the first file's metadata until we decide what to do with multiple files.
-          val metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
-          val fileExtension = consignment.files.getFileExtension
-          Future.successful(updateFormFields(formFields, metadataMap, fileExtension))
-        }
-      } yield {
-        Ok(
-          views.html.standard
-            .addAdditionalMetadata(consignmentId, consignment.consignmentReference, metadataType, updatedFormFields, request.token.name, consignment.files.toFiles)
-        ).uncache()
+        isOpen = consignment.files.flatMap(files => files.fileMetadata.find(fmetadata => fmetadata.name == "ClosureType" && fmetadata.value == "Open")).nonEmpty
+        result <-
+          if (isOpen) {
+            Future(Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, metadataType, fileIds)))
+          } else {
+            updateFormFields(consignmentId, metadataType, consignment)
+          }
+      } yield result
+  }
+
+  private def updateFormFields(consignmentId: UUID, metadataType: String, consignment: GetConsignment)(implicit request: Request[AnyContent]): Future[Result] = {
+    for {
+      formFields <- getFormFields(consignmentId, request, metadataType)
+      updatedFormFields <- {
+        cache.set(s"$consignmentId-consignment", consignment, 1.hour)
+        // Set the values to those of the first file's metadata until we decide what to do with multiple files.
+        val metadataMap = consignment.files.headOption.map(_.fileMetadata).getOrElse(Nil).groupBy(_.name).view.mapValues(_.toList).toMap
+        val fileExtension = consignment.files.getFileExtension
+        Future.successful(updateFormFields(formFields, metadataMap, fileExtension))
       }
+    } yield {
+      Ok(
+        views.html.standard
+          .addAdditionalMetadata(consignmentId, consignment.consignmentReference, metadataType, updatedFormFields, request.token.name, consignment.files.toFiles)
+      ).uncache()
+    }
   }
 
   def addAdditionalMetadataSubmit(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {

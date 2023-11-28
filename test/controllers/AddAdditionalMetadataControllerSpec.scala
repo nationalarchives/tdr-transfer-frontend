@@ -151,7 +151,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
 
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
 
@@ -212,7 +212,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val formTester = new FormTester(expectedDescriptiveDefaultOptions)
 
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
 
@@ -243,6 +243,21 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
       redirectLocation(addAdditionalMetadataPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(addAdditionalMetadataPage) mustBe FOUND
+    }
+
+    "return a redirect to the additionalMetadataClosureStatus page if the closure status isn't closed" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+
+      val addAdditionalMetadataPage = addAdditionalMetadataController
+        .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
+
+      redirectLocation(addAdditionalMetadataPage) must be(Some(s"/consignment/$consignmentId/additional-metadata/status/$closureMetadataType?fileIds=${fileIds.head}"))
+      playStatus(addAdditionalMetadataPage) mustBe SEE_OTHER
     }
 
     "render an error if the api returns errors" in {
