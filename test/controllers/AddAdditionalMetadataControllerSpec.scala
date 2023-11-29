@@ -260,6 +260,27 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       playStatus(addAdditionalMetadataPage) mustBe SEE_OTHER
     }
 
+    "direct the user to the add additional metadata page if the closure status is set to 'Closed'" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
+      setCustomMetadataResponse(wiremockServer)
+      setDisplayPropertiesResponse(wiremockServer)
+
+      val addAdditionalMetadataPage = addAdditionalMetadataController
+        .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
+      val addAdditionalMetadataPageAsString = contentAsString(addAdditionalMetadataPage)
+
+      playStatus(addAdditionalMetadataPage) mustBe OK
+      contentType(addAdditionalMetadataPage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(addAdditionalMetadataPageAsString, userType = "standard")
+      checkFormElements.checkFormContent(closureMetadataType, addAdditionalMetadataPageAsString)
+    }
+
     "render an error if the api returns errors" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val client = new GraphQLConfiguration(app.configuration).getClient[cm.Data, cm.Variables]()

@@ -43,9 +43,9 @@ class AddAdditionalMetadataController @Inject() (
     implicit request: Request[AnyContent] =>
       for {
         consignment <- getConsignmentFileMetadata(consignmentId, metadataType, fileIds)
-        isClosureOpen = consignment.files.flatMap(files => files.fileMetadata.find(fmetadata => fmetadata.name == closureType.name && fmetadata.value == "Open")).nonEmpty
+        closureStatusOpen = consignment.files.flatMap(files => files.fileMetadata.find(fmetadata => fmetadata.name == closureType.name && fmetadata.value == "Open")).nonEmpty
         result <-
-          if (isClosureOpen) {
+          if (closureStatusOpen) {
             Future(Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, metadataType, fileIds)))
           } else {
             updateFormFields(consignmentId, metadataType, consignment)
