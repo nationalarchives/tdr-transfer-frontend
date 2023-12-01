@@ -150,6 +150,7 @@ object FormField {
   val wholeNumberError = "The %s must be a whole number, like %s"
   val wholeNumberError2 = "The %s of the %s must be a whole number, like %s"
   val negativeNumberError = "The %s cannot be a negative number"
+  val zeroNumberError = "The %s cannot be 0"
   val invalidYearError = "The year of the %s must contain 4 digits"
   val futureDateError = "The date of the %s must be in the past"
   val invalidDateError = "The %s of the %s must be between 1 and %s"
@@ -269,9 +270,10 @@ object TextField {
       case EMPTY_VALUE_ERROR =>
         val error = if (textField.fieldId == closurePeriod) closurePeriodNotEnteredError else dateNotEnteredError.format(textField.fieldName)
         textField.copy(fieldErrors = List(error))
-      case NUMBER_ONLY_ERROR     => textField.copy(fieldErrors = List(wholeNumberError.format(textField.fieldName.toLowerCase, wholeNumberExample)))
+      case NUMBER_ONLY_ERROR => textField.copy(fieldErrors = List(wholeNumberError.format(textField.fieldName.toLowerCase, wholeNumberExample)))
       case NEGATIVE_NUMBER_ERROR => textField.copy(fieldErrors = List(negativeNumberError.format(textField.fieldName.toLowerCase)))
-      case _                     => textField.copy(fieldErrors = List(errorCode))
+      case ZERO_NUMBER_ERROR => textField.copy(fieldErrors = List(zeroNumberError.format(textField.fieldName.toLowerCase)))
+      case _ => textField.copy(fieldErrors = List(errorCode))
     }
   }
 
