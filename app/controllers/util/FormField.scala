@@ -270,10 +270,10 @@ object TextField {
       case EMPTY_VALUE_ERROR =>
         val error = if (textField.fieldId == closurePeriod) closurePeriodNotEnteredError else dateNotEnteredError.format(textField.fieldName)
         textField.copy(fieldErrors = List(error))
-      case NUMBER_ONLY_ERROR => textField.copy(fieldErrors = List(wholeNumberError.format(textField.fieldName.toLowerCase, wholeNumberExample)))
+      case NUMBER_ONLY_ERROR     => textField.copy(fieldErrors = List(wholeNumberError.format(textField.fieldName.toLowerCase, wholeNumberExample)))
       case NEGATIVE_NUMBER_ERROR => textField.copy(fieldErrors = List(negativeNumberError.format(textField.fieldName.toLowerCase)))
-      case ZERO_NUMBER_ERROR => textField.copy(fieldErrors = List(zeroNumberError.format(textField.fieldName.toLowerCase)))
-      case _ => textField.copy(fieldErrors = List(errorCode))
+      case ZERO_NUMBER_ERROR     => textField.copy(fieldErrors = List(zeroNumberError.format(textField.fieldName.toLowerCase)))
+      case _                     => textField.copy(fieldErrors = List(errorCode))
     }
   }
 
