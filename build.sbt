@@ -31,11 +31,11 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.140",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.180",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.181",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.353",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.9",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
-  "ch.qos.logback" % "logback-classic" % "1.4.13",
+  "ch.qos.logback" % "logback-classic" % "1.4.14",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.32.0",
   "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.32.0",
@@ -45,7 +45,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.32.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "org.mockito" % "mockito-core" % "5.7.0" % Test,
+  "org.mockito" % "mockito-core" % "5.8.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
 
