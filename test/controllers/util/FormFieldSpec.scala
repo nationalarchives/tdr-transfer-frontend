@@ -189,6 +189,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       )
       TextField.updateError(textField, NUMBER_ONLY_ERROR).fieldErrors shouldBe List("The name must be a whole number, like 3, 15, 21")
       TextField.updateError(textField, NEGATIVE_NUMBER_ERROR).fieldErrors shouldBe List("The name cannot be a negative number")
+      TextField.updateError(textField, ZERO_NUMBER_ERROR).fieldErrors shouldBe List("The name cannot be 0")
       TextField.updateError(textField, CLOSURE_STATUS_IS_MISSING).fieldErrors shouldBe List("CLOSURE_STATUS_IS_MISSING")
     }
   }
