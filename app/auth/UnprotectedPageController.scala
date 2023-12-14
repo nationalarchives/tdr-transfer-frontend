@@ -2,9 +2,10 @@ package auth
 
 import com.nimbusds.jwt.SignedJWT
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import org.pac4j.core.profile.{CommonProfile, ProfileManager}
+import org.pac4j.core.profile.{CommonProfile, ProfileManager, UserProfile}
 import org.pac4j.play.PlayWebContext
-import org.pac4j.play.scala.{Security, SecurityComponents}
+import org.pac4j.play.context.PlayFrameworkParameters
+import org.pac4j.play.scala.{Pac4jScalaTemplateHelper, Security, SecurityComponents}
 import play.api.mvc.{AnyContent, Request}
 
 import javax.inject.Inject
@@ -12,6 +13,8 @@ import javax.inject.Inject
 class UnprotectedPageController @Inject() (val controllerComponents: SecurityComponents) extends Security[CommonProfile] {
 
   private def getProfile(request: Request[AnyContent]): ProfileManager = {
+    val parameters = new PlayFrameworkParameters(request)
+    val sessionStore = config.getSessionStoreFactory.newSessionStore(parameters)
     val webContext = new PlayWebContext(request)
     new ProfileManager(webContext, sessionStore)
   }

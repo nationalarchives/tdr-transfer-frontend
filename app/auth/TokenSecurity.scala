@@ -3,8 +3,10 @@ package auth
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
 import io.opentelemetry.api.trace.Span
+import org.pac4j.core.context.session.SessionStore
 import org.pac4j.core.profile.{ProfileManager, UserProfile}
 import org.pac4j.play.PlayWebContext
+import org.pac4j.play.context.PlayFrameworkParameters
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ConsignmentService
@@ -24,6 +26,8 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   val userIdKey = "UserId"
 
   def getProfile(request: Request[AnyContent]): Optional[UserProfile] = {
+    val parameters = new PlayFrameworkParameters(request)
+    val sessionStore = config.getSessionStoreFactory.newSessionStore(parameters)
     val webContext = new PlayWebContext(request)
     val profileManager = new ProfileManager(webContext, sessionStore)
     profileManager.getProfile
