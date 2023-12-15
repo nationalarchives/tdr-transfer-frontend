@@ -69,6 +69,7 @@ import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
+import org.pac4j.core.context.CallContext
 import services.Statuses.{InProgressValue, SeriesType}
 import viewsapi.FrontEndInfo
 
@@ -948,7 +949,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     override def config: Config = testConfig
 
-    override def sessionStore: SessionStore = playCacheSessionStore
+    def sessionStore: SessionStore = playCacheSessionStore
 
     // scalastyle:off null
     override def parser: BodyParsers.Default = null
@@ -977,10 +978,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     doReturn(true).when(configuration).isUseNonce
     val providerMetadata = mock[OIDCProviderMetadata]
     doReturn(URI.create("/auth/realms/tdr/protocol/openid-connect/auth")).when(providerMetadata).getAuthorizationEndpointURI
-    doReturn(providerMetadata).when(configuration).getProviderMetadata
+    //doReturn(providerMetadata).when(configuration).getProviderMetadata
 
     val resolver = mock[AjaxRequestResolver]
-    doReturn(false).when(resolver).isAjax(any[PlayWebContext], any[SessionStore])
+    doReturn(false).when(resolver).isAjax(any[CallContext])
 
     // Create a concrete client
     val client = new OidcClient(configuration)
@@ -999,7 +1000,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
       override def config: Config = testConfig
 
-      override def sessionStore: SessionStore = mock[SessionStore]
+      def sessionStore: SessionStore = mock[SessionStore]
 
       // scalastyle:off null
       override def parser: BodyParsers.Default = null

@@ -5,6 +5,7 @@ import auth.OidcSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import org.pac4j.core.profile.{ProfileManager, UserProfile}
 import org.pac4j.play.PlayWebContext
+import org.pac4j.play.context.PlayFrameworkParameters
 import org.pac4j.play.scala.{Pac4jScalaTemplateHelper, SecurityComponents}
 import play.api.Logging
 import play.api.mvc.{Filter, RequestHeader, Result}
@@ -17,8 +18,7 @@ class AccessLoggingFilter @Inject() (implicit
     val mat: Materializer,
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents,
-    executionContext: ExecutionContext,
-    pac4jScalaTemplateHelper: Pac4jScalaTemplateHelper[UserProfile]
+    executionContext: ExecutionContext
 ) extends OidcSecurity
     with Filter
     with Logging {
@@ -30,9 +30,10 @@ class AccessLoggingFilter @Inject() (implicit
       nextFilter(request)
     } else {
       nextFilter(request).map { result =>
-        //val webContext = new PlayWebContext(request)
-        val profileManager = pac4jScalaTemplateHelper.createProfileManager(request)
-        //val profileManager = new ProfileManager(webContext, sessionStore)
+        val parameters = new PlayFrameworkParameters(request)
+        val webContext = controllerComponents.config.getWebContextFactory.newContext(parameters)
+        val sessionStore = controllerComponents.config.getSessionStoreFactory.newSessionStore(parameters)
+        val profileManager = controllerComponents.config.getProfileManagerFactory.apply(webContext, sessionStore)
         val userId: String = profileManager.getProfile.asScala
           .map(_.getAttribute("access_token").asInstanceOf[BearerAccessToken])
           .flatMap(token => keycloakConfiguration.token(token.getValue))
