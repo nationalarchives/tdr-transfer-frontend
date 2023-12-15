@@ -38,7 +38,7 @@ const showModal = async (keycloak: Keycloak): Promise<void> => {
 
 const refreshToken = async (keycloak: Keycloak): Promise<void> => {
   //Set min validity to the length of the access token, so it will always get a new one.
-  const minValiditySec = 18000 //temp increase in user session timeout to 5 hours for TDR-3571
+  const minValiditySec = 3600
   const errorHandlingModule = await import("../errorhandling")
   if (!errorHandlingModule.isError(keycloak)) {
     const updateSuccessful = await keycloak.updateToken(minValiditySec)
