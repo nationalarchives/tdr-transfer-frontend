@@ -31,9 +31,9 @@ class AccessLoggingFilter @Inject() (implicit
     } else {
       nextFilter(request).map { result =>
         val parameters = new PlayFrameworkParameters(request)
-        val webContext = controllerComponents.config.getWebContextFactory.newContext(parameters)
-        val sessionStore = controllerComponents.config.getSessionStoreFactory.newSessionStore(parameters)
-        val profileManager = controllerComponents.config.getProfileManagerFactory.apply(webContext, sessionStore)
+        val sessionStore = config.getSessionStoreFactory.newSessionStore(parameters)
+        val webContext = new PlayWebContext(request)
+        val profileManager = new ProfileManager(webContext, sessionStore)
         val userId: String = profileManager.getProfile.asScala
           .map(_.getAttribute("access_token").asInstanceOf[BearerAccessToken])
           .flatMap(token => keycloakConfiguration.token(token.getValue))
