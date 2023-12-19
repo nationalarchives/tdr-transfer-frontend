@@ -66,8 +66,8 @@ class ViewTransfersController @Inject() (
         userAction.transferStatus,
         statusColours(userAction.transferStatus),
         userAction,
-        edge.node.exportDatetime.map(DateUtils.format(_)).getOrElse("N/A"),
-        edge.node.createdDatetime.map(DateUtils.format(_)).getOrElse(""),
+        edge.node.exportDatetime.map(edt => DateUtils.format(edt, "dd/MM/yyyy HH:mm")).getOrElse("N/A"),
+        edge.node.createdDatetime.map(cdt => DateUtils.format(cdt, "dd/MM/yyyy HH:mm")).getOrElse(""),
         edge.node.totalFiles
       )
     }
