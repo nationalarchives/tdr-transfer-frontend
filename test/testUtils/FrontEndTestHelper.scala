@@ -978,7 +978,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     doReturn(true).when(configuration).isUseNonce
     val providerMetadata = mock[OIDCProviderMetadata]
     doReturn(URI.create("/auth/realms/tdr/protocol/openid-connect/auth")).when(providerMetadata).getAuthorizationEndpointURI
-    //doReturn(providerMetadata).when(configuration).getProviderMetadata
+    doReturn(providerMetadata).when(configuration)
 
     val resolver = mock[AjaxRequestResolver]
     doReturn(false).when(resolver).isAjax(any[CallContext])

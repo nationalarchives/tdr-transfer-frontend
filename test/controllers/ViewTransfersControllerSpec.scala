@@ -35,7 +35,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
 
   val checkPageForStaticElements = new CheckPageForStaticElements
 
-  private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+  private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
   private val standardType = "standard"
   private val judgmentType = "judgment"
 
