@@ -1,12 +1,12 @@
 package configuration
 
-import akka.stream.Materializer
 import auth.OidcSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import org.pac4j.core.profile.{ProfileManager, UserProfile}
+import org.apache.pekko.stream.Materializer
+import org.pac4j.core.profile.ProfileManager
 import org.pac4j.play.PlayWebContext
 import org.pac4j.play.context.PlayFrameworkParameters
-import org.pac4j.play.scala.{Pac4jScalaTemplateHelper, SecurityComponents}
+import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
 import play.api.mvc.{Filter, RequestHeader, Result}
 

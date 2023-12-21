@@ -13,17 +13,14 @@ scalaVersion := "2.13.12"
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 
-//Needed to run the tests. Prevents incompatible databind version errors.
-//More details on a similar error here: https://stackoverflow.com/questions/43841091/spark2-1-0-incompatible-jackson-versions-2-7-6
-dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2" % Test
-
+val playVersion = "3.0.0"
 val playPac4jVersion = "12.0.0-PLAY3.0"
 val pac4jVersion = "6.0.0"
 val sttpVersion = "2.3.0"
 
 libraryDependencies ++= Seq(
-  "org.pac4j" %% "play-pac4j" % playPac4jVersion,
-  "org.pac4j" % "pac4j-http" % pac4jVersion,
+  "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll(ExclusionRule("commons-io" , "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
+  "org.pac4j" % "pac4j-http" % pac4jVersion excludeAll(ExclusionRule(organization = "com.fasterxml.jackson.core")),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,
   "io.circe" %% "circe-core" % "0.14.6",
   "io.circe" %% "circe-generic" % "0.14.6",
@@ -46,13 +43,14 @@ libraryDependencies ++= Seq(
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.8.0" % Test,
-  "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
+  "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
+  "org.playframework" %% "play-cache" % playVersion
 )
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
-libraryDependencies += "com.github.karelcemus" %% "play-redis" % "2.7.0"
+libraryDependencies += "com.github.karelcemus" %% "play-redis" % "3.0.0-M1"
 
 pipelineStages := Seq(digest)
