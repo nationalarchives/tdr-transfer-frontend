@@ -12,15 +12,7 @@ import uk.gov.nationalarchives.tdr.validation.ErrorCode._
 import java.time.{LocalDateTime, Month}
 
 class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEach {
-
-  private val monthsWithLessThan31Days = Map(
-    2 -> "February",
-    4 -> "April",
-    6 -> "June",
-    9 -> "September",
-    11 -> "November"
-  )
-
+  
   "RadioButtonGroupField" should {
     val radioButtonGroupField =
       RadioButtonGroupField(
@@ -432,14 +424,13 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       })
     }
 
-    "validate should return an error if 31 days was input for the day and the month entered does not have 31 days" in {
+    "validate should return an error with the correct suggested range if 31 days was input for the day and the month entered has only 30 days" in {
       List(mandatoryDateField, optionalDateField).foreach(dateField => {
-        List("02", "04", "06", "09", "11").foreach { monthWithLessThan31Days =>
-          DateField.validate("31", monthWithLessThan31Days, "1990", dateField) shouldBe
-            Some(s"${monthsWithLessThan31Days(monthWithLessThan31Days.toInt)} does not have 31 days in it. Enter the day for the alternativename between 1 and 30")
+        List(("04", "April"), ("06", "June"), ("09", "September"), ("11", "November")).foreach { case (monthNumber, monthName) =>
+          DateField.validate("31", monthNumber, "1990", dateField) shouldBe
+            Some(s"$monthName does not have 31 days in it. Enter the day for the alternativename between 1 and 30")
         }
       })
-
     }
 
     "validate should not return an error if 30 days was input for the day and the month entered has 30 days" in {
@@ -450,13 +441,16 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       })
     }
 
-    "validate should return an error if 30 days was input for the day and the month entered was February" in {
+    "validate should return an error with the correct suggested range if 30 days was input for the day and the month entered was February" in {
       List(mandatoryDateField, optionalDateField).foreach(dateField => {
-        DateField.validate("30", "02", "1990", dateField) shouldBe Some(s"February does not have 30 days in it. Enter the day for the alternativename between 1 and 30")
+        DateField.validate("30", "02", "1990", dateField) shouldBe Some(s"February does not have 30 days in it. Enter the day for the alternativename between 1 and 28")
+      })
+      List(mandatoryDateField, optionalDateField).foreach(dateField => {
+        DateField.validate("30", "02", "2000"/* Leap year */, dateField) shouldBe Some(s"February does not have 30 days in it. Enter the day for the alternativename between 1 and 29")
       })
     }
 
-    "validate should return no errors if February does have 29 days that year (leap year)" in {
+    "validate should return no errors if 29 days was input for a year where February does have 29 days " in {
       List(mandatoryDateField, optionalDateField).foreach(dateField => {
         List("2000", "2008", "2012", "2016", "2020").foreach { leapYear =>
           DateField.validate("29", "02", leapYear, dateField) shouldBe None
@@ -505,10 +499,23 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       })
     }
 
-    "monthsWithLessThan31Days should only contain months with less than 31 days" in {
-      // This is here to ensure that monthsWithLessThan31Days does not accidentally change
-
-      DateField.monthsWithLessThan31Days should equal(monthsWithLessThan31Days)
+    "monthStringFromNumber should returned the expected string representations" in {
+      List(
+        (1, "January"), 
+        (2, "February"), 
+        (3, "March"), 
+        (4, "April"), 
+        (5, "May"), 
+        (6, "June"), 
+        (7, "July"), 
+        (8, "August"), 
+        (9, "September"), 
+        (10, "October"), 
+        (11, "November"), 
+        (12, "December")
+      ).foreach { case (number, expectedString) =>
+        DateField.monthStringFromNumber(number) shouldBe expectedString
+      }
     }
 
     "validate should return an error when future date is not allowed but the given date is in future" in {

@@ -6,7 +6,7 @@ import org.apache.commons.lang3.NotImplementedException
 import services.Details
 import uk.gov.nationalarchives.tdr.validation.ErrorCode._
 
-import java.time.{LocalDateTime, Year}
+import java.time.{LocalDateTime, Month, YearMonth}
 import scala.util.control.Exception.allCatch
 
 abstract class FormField {
@@ -338,11 +338,14 @@ object DateField {
       case NUMBER_ERROR_FOR_YEAR           => dateField.copy(fieldErrors = List(wholeNumberError2.format("year", fieldName, "1994, 2000, 2023")))
       case NEGATIVE_NUMBER_ERROR_FOR_YEAR  => dateField.copy(fieldErrors = List(negativeNumberError.format("year")))
       case INVALID_NUMBER_ERROR_FOR_YEAR   => dateField.copy(fieldErrors = List(invalidYearError.format(fieldName)))
-      case INVALID_DAY_FOR_MONTH_ERROR =>
-        val day = dateField.day.value.toInt
-        val month = dateField.month.value.toInt
-        val monthName = monthsWithLessThan31Days(month)
-        dateField.copy(fieldErrors = List(invalidDayError.format(monthName, day, fieldName, if (month == 2) 28 else 30)))
+      case INVALID_DAY_FOR_MONTH_ERROR => dateField.copy(
+        fieldErrors = checkDayForTheMonthAndYear(
+          dayNumber = dateField.day.value.toInt, 
+          monthNumber = dateField.month.value.toInt,
+          yearNumber = dateField.year.value.toInt, 
+          fieldName = fieldName
+        ).toList
+      )
       case FUTURE_DATE_ERROR => dateField.copy(fieldErrors = List(futureDateError.format(fieldName)))
       case _                 => dateField.copy(fieldErrors = List(errorCode))
     }
@@ -351,15 +354,6 @@ object DateField {
   val invalidDayValidation: Int => Boolean = (day: Int) => day < 1 || day > 31
   val invalidMonthValidation: Int => Boolean = (month: Int) => month < 1 || month > 12
   val invalidYearValidation: Int => Boolean = (year: Int) => year.toString.length != 4
-  val isALeapYear: Int => Boolean = (year: Int) => Year.of(year).isLeap
-
-  lazy val monthsWithLessThan31Days: Map[Int, String] = Map(
-    2 -> "February",
-    4 -> "April",
-    6 -> "June",
-    9 -> "September",
-    11 -> "November"
-  )
 
   def validate(day: String, month: String, year: String, dateField: DateField): Option[String] = {
     val fieldName = if (dateField.getAlternativeName == "Advisory Council Approval") dateField.fieldAlternativeName else dateField.getAlternativeName.toLowerCase
@@ -376,7 +370,12 @@ object DateField {
     val dayError = validateValue(day, "Day", invalidDayValidation, wholeNumberExample, "31", fieldName)
     val monthError = if (dayError.isEmpty) validateValue(month, "Month", invalidMonthValidation, "3, 9, 12", "12", fieldName) else dayError
     val yearError = if (monthError.isEmpty) validateValue(year, "Year", invalidYearValidation, "1994, 2000, 2023", "", fieldName) else monthError
-    val dayForMonthAndYearError = if (yearError.isEmpty) checkDayForTheMonthAndYear(day.toInt, month.toInt, year.toInt, fieldName) else yearError
+    val dayForMonthAndYearError = if (yearError.isEmpty) checkDayForTheMonthAndYear(
+      dayNumber = day.toInt, 
+      monthNumber = month.toInt, 
+      yearNumber = year.toInt, 
+      fieldName = fieldName
+    ) else yearError
     if (dayForMonthAndYearError.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField, fieldName) else dayForMonthAndYearError
   }
 
@@ -413,17 +412,11 @@ object DateField {
   }
 
   private def checkDayForTheMonthAndYear(dayNumber: Int, monthNumber: Int, yearNumber: Int, fieldName: String): Option[String] = {
-    val monthHasLessThan31Days = monthsWithLessThan31Days.contains(monthNumber)
-
-    if (dayNumber > 30 && monthHasLessThan31Days || dayNumber == 30 && monthNumber == 2) {
-      Some(invalidDayError.format(monthsWithLessThan31Days(monthNumber), dayNumber, fieldName, 30))
-    } else if (dayNumber == 29 && monthNumber == 2 && !isALeapYear(yearNumber)) {
-      Some(invalidDayError.format(monthsWithLessThan31Days(monthNumber), dayNumber, fieldName, 28))
-    } else {
-      None
-    }
+    val daysInMonth = YearMonth.of(yearNumber, monthNumber).lengthOfMonth()
+    if (dayNumber > daysInMonth) Some(invalidDayError.format(monthStringFromNumber(monthNumber), dayNumber, fieldName, daysInMonth)) else None
   }
-
+  def monthStringFromNumber(monthNumber: Int): String = Month.of(monthNumber).toString.toLowerCase.capitalize
+  
   private def checkIfFutureDateIsAllowed(day: Int, month: Int, year: Int, dateField: DateField, fieldName: String): Option[String] =
     if (!dateField.isFutureDateAllowed && LocalDateTime.now().isBefore(LocalDateTime.of(year, month, day, 0, 0))) {
       Some(futureDateError.format(fieldName))
