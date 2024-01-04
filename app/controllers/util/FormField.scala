@@ -1,6 +1,6 @@
 package controllers.util
 
-import controllers.util.FormField._
+import controllers.util.FormField.{invalidDateError, _}
 import controllers.util.MetadataProperty.closurePeriod
 import org.apache.commons.lang3.NotImplementedException
 import services.Details
@@ -142,7 +142,6 @@ case class DateField(
   override def selectedOptionNames(): List[String] = List(fieldName)
   override def selectedOptions(): String = s"${year.value}:${month.value}:${day.value}T00:00:00"
 }
-
 object FormField {
   val dropdownOptionNotSelectedError = "Select at least one %s"
   val invalidDropdownOptionSelectedError = "Option '%s' was not an option provided to the user."
@@ -351,7 +350,6 @@ object DateField {
     }
   }
 
-  val invalidDayValidation: Int => Boolean = (day: Int) => day < 1 || day > 31
   val invalidMonthValidation: Int => Boolean = (month: Int) => month < 1 || month > 12
   val invalidYearValidation: Int => Boolean = (year: Int) => year.toString.length != 4
 
@@ -367,18 +365,34 @@ object DateField {
   }
 
   private def validateDateValues(day: String, month: String, year: String, fieldName: String, dateField: DateField): Option[String] = {
-    val dayError = validateValue(day, "Day", invalidDayValidation, wholeNumberExample, "31", fieldName)
-    val monthError = if (dayError.isEmpty) validateValue(month, "Month", invalidMonthValidation, "3, 9, 12", "12", fieldName) else dayError
-    val yearError = if (monthError.isEmpty) validateValue(year, "Year", invalidYearValidation, "1994, 2000, 2023", "", fieldName) else monthError
-    val dayForMonthAndYearError = if (yearError.isEmpty) checkDayForTheMonthAndYear(
-      dayNumber = day.toInt, 
-      monthNumber = month.toInt, 
-      yearNumber = year.toInt, 
-      fieldName = fieldName
-    ) else yearError
-    if (dayForMonthAndYearError.isEmpty) checkIfFutureDateIsAllowed(day.toInt, month.toInt, year.toInt, dateField, fieldName) else dayForMonthAndYearError
+    val input = for {
+      year <- validatePositiveInteger(year, fieldName, "Year", "1994, 2000, 2023")
+      month <- validatePositiveInteger(month, fieldName, "Month", "3, 9, 12")
+      day <- validatePositiveInteger(day, fieldName, "Day", wholeNumberExample)
+    } yield (day, month, year)
+
+    input match {
+      case Right((day, month, year)) =>
+        lazy val yearValidation = if (invalidYearValidation(year)) Some(invalidYearError.format(fieldName)) else None
+        lazy val monthValidation = if (invalidMonthValidation(month)) Some(invalidDateError.format("month", fieldName, "12")) else None
+        lazy val dayValidation = checkDayForTheMonthAndYear(dayNumber = day, monthNumber = month, yearNumber = year, fieldName = fieldName)
+        lazy val futureValidation = checkIfFutureDateIsAllowed(day = day, month = month, year = year, dateField = dateField, fieldName = fieldName)
+        yearValidation orElse monthValidation orElse dayValidation orElse futureValidation
+      case Left(inputValidationError) => Some(inputValidationError)  
+    }
   }
 
+  def validatePositiveInteger(value: String, fieldName: String, unitType: String, wholeNumberExample: String): Either[String, Int] = {
+    val nonEmpty: String => Either[String, String] = value => if (value.isEmpty) Left(emptyValueError.format(fieldName, unitType.toLowerCase)) else Right(value)
+    val isInt: String => Either[String, Int] = value => value.toIntOption.toRight(wholeNumberError2.format(unitType.toLowerCase, fieldName, wholeNumberExample))
+    val nonNegative: Int => Either[String, Int] = value => if (value < 0) Left(negativeNumberError.format(unitType.toLowerCase)) else Right(value)
+    for {
+      nonEmptyValue <- nonEmpty(value)
+      intValue <- isInt(nonEmptyValue)
+      positiveInt <- nonNegative(intValue)
+    } yield positiveInt
+  }
+  
   def update(dateField: DateField, localDateTime: LocalDateTime): DateField =
     dateField.copy(
       day = dateField.day.copy(value = localDateTime.getDayOfMonth.toString),
@@ -388,33 +402,14 @@ object DateField {
 
   def update(dateField: DateField, day: String, month: String, year: String): DateField =
     dateField.copy(day = dateField.day.copy(value = day), month = dateField.month.copy(value = month), year = dateField.year.copy(value = year))
-
-  private def validateValue(
-      value: String,
-      unitType: String,
-      isInvalidDate: Int => Boolean,
-      wholeNumberError: String,
-      incorrectDateError: String,
-      fieldName: String
-  ): Option[String] = {
-    value match {
-      case v if v.isEmpty                     => Some(emptyValueError.format(fieldName, unitType.toLowerCase))
-      case v if allCatch.opt(v.toInt).isEmpty => Some(wholeNumberError2.format(unitType.toLowerCase, fieldName, wholeNumberError))
-      case v if v.toInt < 0                   => Some(negativeNumberError.format(unitType.toLowerCase))
-      case v if isInvalidDate(v.toInt) =>
-        if (unitType.equals("Year")) {
-          Some(invalidYearError.format(fieldName))
-        } else {
-          Some(invalidDateError.format(unitType.toLowerCase, fieldName, incorrectDateError))
-        }
-      case _ => None
-    }
-  }
-
+  
   private def checkDayForTheMonthAndYear(dayNumber: Int, monthNumber: Int, yearNumber: Int, fieldName: String): Option[String] = {
     val daysInMonth = YearMonth.of(yearNumber, monthNumber).lengthOfMonth()
-    if (dayNumber > daysInMonth) Some(invalidDayError.format(monthStringFromNumber(monthNumber), dayNumber, fieldName, daysInMonth)) else None
+    if (dayNumber < 1 ) Some(invalidDateError.format("day", fieldName, daysInMonth))
+      else if (dayNumber > daysInMonth) Some(invalidDayError.format(monthStringFromNumber(monthNumber), dayNumber, fieldName, daysInMonth)) 
+      else None
   }
+  
   def monthStringFromNumber(monthNumber: Int): String = Month.of(monthNumber).toString.toLowerCase.capitalize
   
   private def checkIfFutureDateIsAllowed(day: Int, month: Int, year: Int, dateField: DateField, fieldName: String): Option[String] =
