@@ -90,15 +90,25 @@
 }
 
 @displayLargeText(formId: String, inputValue: String, textAreaField: TextAreaField) = {
-    <div class="govuk-radios__conditional" id="conditional-@formFieldId-@inputValue">
-        <label class="govuk-label" for="@formFieldId-@textAreaField.fieldId-@inputValue">
-            @textAreaField.fieldName
-            @if(textAreaField.fieldDescription.nonEmpty) {
-                <div id="hint-@formFieldId-@inputValue" class="govuk-hint">
-                @textAreaField.fieldDescription
-                </div>
-            }
-        </label>
-        <textarea class="govuk-textarea" id="@formFieldId-@textAreaField.fieldId-@inputValue" name="@formFieldId-@textAreaField.fieldId-@inputValue" rows="5">@textAreaField.nameAndValue.value</textarea>
+    <div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="@textAreaField.characterLimit">
+        <div class="govuk-radios__conditional" id="conditional-@formFieldId-@inputValue">
+            <label class="govuk-label" for="@formFieldId-@textAreaField.fieldId-@inputValue">
+                @textAreaField.fieldName
+                @if(textAreaField.fieldDescription.nonEmpty) {
+                    <div id="hint-@formFieldId-@inputValue" class="govuk-hint">
+                    @textAreaField.fieldDescription
+                    </div>
+                }
+            </label>
+            <textarea class="govuk-textarea govuk-js-character-count"
+            id="@formFieldId-@textAreaField.fieldId-@inputValue"
+            name="@formFieldId-@textAreaField.fieldId-@inputValue"
+            rows="5"
+            aria-describedby="@formFieldId-@textAreaField.fieldId-@inputValue-info">@textAreaField.nameAndValue.value</textarea>
+
+            <div id="@formFieldId-@textAreaField.fieldId-@inputValue-info" class="govuk-hint govuk-character-count__message">
+                You can enter up to @textAreaField.characterLimit characters
+            </div>
+        </div>
     </div>
 }
