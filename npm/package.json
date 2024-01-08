@@ -41,7 +41,7 @@
   },
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.484.0",
+    "@aws-sdk/client-s3": "^3.485.0",
     "@aws-sdk/lib-storage": "^3.85.0",
     "@aws-sdk/querystring-builder": "^3.374.0",
     "@aws-sdk/protocol-http": "^3.374.0",
@@ -62,7 +62,7 @@
     "webpack-cli": "^5.1.4"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.1.6",
+    "@testing-library/jest-dom": "^6.2.0",
     "@types/jest": "^28.1.8",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
