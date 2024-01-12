@@ -337,14 +337,15 @@ object DateField {
       case NUMBER_ERROR_FOR_YEAR           => dateField.copy(fieldErrors = List(wholeNumberError2.format("year", fieldName, "1994, 2000, 2023")))
       case NEGATIVE_NUMBER_ERROR_FOR_YEAR  => dateField.copy(fieldErrors = List(negativeNumberError.format("year")))
       case INVALID_NUMBER_ERROR_FOR_YEAR   => dateField.copy(fieldErrors = List(invalidYearError.format(fieldName)))
-      case INVALID_DAY_FOR_MONTH_ERROR => dateField.copy(
-        fieldErrors = checkDayForTheMonthAndYear(
-          dayNumber = dateField.day.value.toInt, 
-          monthNumber = dateField.month.value.toInt,
-          yearNumber = dateField.year.value.toInt, 
-          fieldName = fieldName
-        ).toList
-      )
+      case INVALID_DAY_FOR_MONTH_ERROR =>
+        dateField.copy(
+          fieldErrors = checkDayForTheMonthAndYear(
+            dayNumber = dateField.day.value.toInt,
+            monthNumber = dateField.month.value.toInt,
+            yearNumber = dateField.year.value.toInt,
+            fieldName = fieldName
+          ).toList
+        )
       case FUTURE_DATE_ERROR => dateField.copy(fieldErrors = List(futureDateError.format(fieldName)))
       case _                 => dateField.copy(fieldErrors = List(errorCode))
     }
@@ -378,7 +379,7 @@ object DateField {
         lazy val dayValidation = checkDayForTheMonthAndYear(dayNumber = day, monthNumber = month, yearNumber = year, fieldName = fieldName)
         lazy val futureValidation = checkIfFutureDateIsAllowed(day = day, month = month, year = year, dateField = dateField, fieldName = fieldName)
         yearValidation orElse monthValidation orElse dayValidation orElse futureValidation
-      case Left(inputValidationError) => Some(inputValidationError)  
+      case Left(inputValidationError) => Some(inputValidationError)
     }
   }
 
@@ -392,7 +393,7 @@ object DateField {
       positiveInt <- nonNegative(intValue)
     } yield positiveInt
   }
-  
+
   def update(dateField: DateField, localDateTime: LocalDateTime): DateField =
     dateField.copy(
       day = dateField.day.copy(value = localDateTime.getDayOfMonth.toString),
@@ -402,16 +403,16 @@ object DateField {
 
   def update(dateField: DateField, day: String, month: String, year: String): DateField =
     dateField.copy(day = dateField.day.copy(value = day), month = dateField.month.copy(value = month), year = dateField.year.copy(value = year))
-  
+
   private def checkDayForTheMonthAndYear(dayNumber: Int, monthNumber: Int, yearNumber: Int, fieldName: String): Option[String] = {
     val daysInMonth = YearMonth.of(yearNumber, monthNumber).lengthOfMonth()
-    if (dayNumber < 1 ) Some(invalidDateError.format("day", fieldName, daysInMonth))
-      else if (dayNumber > daysInMonth) Some(invalidDayError.format(monthStringFromNumber(monthNumber), dayNumber, fieldName, daysInMonth)) 
-      else None
+    if (dayNumber < 1) Some(invalidDateError.format("day", fieldName, daysInMonth))
+    else if (dayNumber > daysInMonth) Some(invalidDayError.format(monthStringFromNumber(monthNumber), dayNumber, fieldName, daysInMonth))
+    else None
   }
-  
+
   def monthStringFromNumber(monthNumber: Int): String = Month.of(monthNumber).toString.toLowerCase.capitalize
-  
+
   private def checkIfFutureDateIsAllowed(day: Int, month: Int, year: Int, dateField: DateField, fieldName: String): Option[String] =
     if (!dateField.isFutureDateAllowed && LocalDateTime.now().isBefore(LocalDateTime.of(year, month, day, 0, 0))) {
       Some(futureDateError.format(fieldName))

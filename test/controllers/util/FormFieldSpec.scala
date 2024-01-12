@@ -12,7 +12,7 @@ import uk.gov.nationalarchives.tdr.validation.ErrorCode._
 import java.time.{LocalDateTime, Month}
 
 class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEach {
-  
+
   "RadioButtonGroupField" should {
     val radioButtonGroupField =
       RadioButtonGroupField(
@@ -410,7 +410,9 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
         DateField.validate("12", "0", "1990", dateField) shouldBe Some("The month of the alternativename must be between 1 and 12")
         DateField.validate("12", "-0", "1990", dateField) shouldBe Some("The month of the alternativename must be between 1 and 12")
         List(("32", "13"), ("54", "31"), ("100", "64")).foreach { case (invalidDay, invalidMonth) =>
-          DateField.validate(invalidDay, "1", "1990", dateField) shouldBe Some(s"January does not have $invalidDay days in it. Enter the day for the alternativename between 1 and 31")
+          DateField.validate(invalidDay, "1", "1990", dateField) shouldBe Some(
+            s"January does not have $invalidDay days in it. Enter the day for the alternativename between 1 and 31"
+          )
           DateField.validate("12", invalidMonth, "1990", dateField) shouldBe Some(s"The month of the alternativename must be between 1 and 12")
         }
       })
@@ -446,7 +448,9 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
         DateField.validate("30", "02", "1990", dateField) shouldBe Some(s"February does not have 30 days in it. Enter the day for the alternativename between 1 and 28")
       })
       List(mandatoryDateField, optionalDateField).foreach(dateField => {
-        DateField.validate("30", "02", "2000"/* Leap year */, dateField) shouldBe Some(s"February does not have 30 days in it. Enter the day for the alternativename between 1 and 29")
+        DateField.validate("30", "02", "2000" /* Leap year */, dateField) shouldBe Some(
+          s"February does not have 30 days in it. Enter the day for the alternativename between 1 and 29"
+        )
       })
     }
 
@@ -522,17 +526,17 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
 
     "monthStringFromNumber should returned the expected string representations" in {
       List(
-        (1, "January"), 
-        (2, "February"), 
-        (3, "March"), 
-        (4, "April"), 
-        (5, "May"), 
-        (6, "June"), 
-        (7, "July"), 
-        (8, "August"), 
-        (9, "September"), 
-        (10, "October"), 
-        (11, "November"), 
+        (1, "January"),
+        (2, "February"),
+        (3, "March"),
+        (4, "April"),
+        (5, "May"),
+        (6, "June"),
+        (7, "July"),
+        (8, "August"),
+        (9, "September"),
+        (10, "October"),
+        (11, "November"),
         (12, "December")
       ).foreach { case (number, expectedString) =>
         DateField.monthStringFromNumber(number) shouldBe expectedString
