@@ -96,7 +96,7 @@ object DefaultMockFormOptions {
       id = "date-input-ClosureStartDate-year",
       placeholder = "yyyy",
       fieldType = "inputDate",
-      errorMessage = s"The closure start date must contain a year",
+      errorMessage = s"The closure start date must contain a year"
     ),
     MockInputOption(
       name = "inputdate-ClosureStartDate-month",
