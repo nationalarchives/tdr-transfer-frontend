@@ -328,7 +328,6 @@ object DateField {
       case EMPTY_VALUE_ERROR_FOR_DAY       => dateField.copy(fieldErrors = List(emptyValueError.format(fieldName, "day")))
       case NUMBER_ERROR_FOR_DAY            => dateField.copy(fieldErrors = List(wholeNumberError2.format("day", fieldName, wholeNumberExample)))
       case NEGATIVE_NUMBER_ERROR_FOR_DAY   => dateField.copy(fieldErrors = List(negativeNumberError.format("day")))
-      case INVALID_NUMBER_ERROR_FOR_DAY    => dateField.copy(fieldErrors = List(invalidDateError.format("day", fieldName, "31")))
       case EMPTY_VALUE_ERROR_FOR_MONTH     => dateField.copy(fieldErrors = List(emptyValueError.format(fieldName, "month")))
       case NUMBER_ERROR_FOR_MONTH          => dateField.copy(fieldErrors = List(wholeNumberError2.format("month", fieldName, "3, 9, 12")))
       case NEGATIVE_NUMBER_ERROR_FOR_MONTH => dateField.copy(fieldErrors = List(negativeNumberError.format("month")))
@@ -337,7 +336,7 @@ object DateField {
       case NUMBER_ERROR_FOR_YEAR           => dateField.copy(fieldErrors = List(wholeNumberError2.format("year", fieldName, "1994, 2000, 2023")))
       case NEGATIVE_NUMBER_ERROR_FOR_YEAR  => dateField.copy(fieldErrors = List(negativeNumberError.format("year")))
       case INVALID_NUMBER_ERROR_FOR_YEAR   => dateField.copy(fieldErrors = List(invalidYearError.format(fieldName)))
-      case INVALID_DAY_FOR_MONTH_ERROR =>
+      case INVALID_NUMBER_ERROR_FOR_DAY | INVALID_DAY_FOR_MONTH_ERROR =>
         dateField.copy(
           fieldErrors = checkDayForTheMonthAndYear(
             dayNumber = dateField.day.value.toInt,
