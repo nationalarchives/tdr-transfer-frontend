@@ -91,12 +91,12 @@ object DefaultMockFormOptions {
 
   val expectedClosureDefaultOptions: List[MockInputOption] = List(
     MockInputOption(
-      name = "inputdate-ClosureStartDate-day",
-      label = "Day",
-      id = "date-input-ClosureStartDate-day",
-      placeholder = "dd",
+      name = "inputdate-ClosureStartDate-year",
+      label = "Year",
+      id = "date-input-ClosureStartDate-year",
+      placeholder = "yyyy",
       fieldType = "inputDate",
-      errorMessage = s"The closure start date must contain a day"
+      errorMessage = s"The closure start date must contain a year",
     ),
     MockInputOption(
       name = "inputdate-ClosureStartDate-month",
@@ -105,15 +105,15 @@ object DefaultMockFormOptions {
       placeholder = "mm",
       fieldType = "inputDate",
       errorMessage = s"The closure start date must contain a month",
-      errorMessageDependency = "inputdate-ClosureStartDate-day"
+      errorMessageDependency = "inputdate-ClosureStartDate-year"
     ),
     MockInputOption(
-      name = "inputdate-ClosureStartDate-year",
-      label = "Year",
-      id = "date-input-ClosureStartDate-year",
-      placeholder = "yyyy",
+      name = "inputdate-ClosureStartDate-day",
+      label = "Day",
+      id = "date-input-ClosureStartDate-day",
+      placeholder = "dd",
       fieldType = "inputDate",
-      errorMessage = s"There was no number entered for the Year.",
+      errorMessage = s"The closure start date must contain a day",
       errorMessageDependency = "inputdate-ClosureStartDate-month"
     ),
     MockInputOption(
