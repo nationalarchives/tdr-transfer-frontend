@@ -601,7 +601,6 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       DateField.updateError(mandatoryDateField, EMPTY_VALUE_ERROR_FOR_DAY).fieldErrors shouldBe List("The alternativename must contain a day")
       DateField.updateError(mandatoryDateField, NUMBER_ERROR_FOR_DAY).fieldErrors shouldBe List("The day of the alternativename must be a whole number, like 3, 15, 21")
       DateField.updateError(mandatoryDateField, NEGATIVE_NUMBER_ERROR_FOR_DAY).fieldErrors shouldBe List("The day cannot be a negative number")
-      DateField.updateError(mandatoryDateField, INVALID_NUMBER_ERROR_FOR_DAY).fieldErrors shouldBe List("The day of the alternativename must be between 1 and 31")
       DateField.updateError(mandatoryDateField, EMPTY_VALUE_ERROR_FOR_MONTH).fieldErrors shouldBe List("The alternativename must contain a month")
       DateField.updateError(mandatoryDateField, NUMBER_ERROR_FOR_MONTH).fieldErrors shouldBe List("The month of the alternativename must be a whole number, like 3, 9, 12")
       DateField.updateError(mandatoryDateField, NEGATIVE_NUMBER_ERROR_FOR_MONTH).fieldErrors shouldBe List("The month cannot be a negative number")
@@ -610,6 +609,9 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       DateField.updateError(mandatoryDateField, NUMBER_ERROR_FOR_YEAR).fieldErrors shouldBe List("The year of the alternativename must be a whole number, like 1994, 2000, 2023")
       DateField.updateError(mandatoryDateField, NEGATIVE_NUMBER_ERROR_FOR_YEAR).fieldErrors shouldBe List("The year cannot be a negative number")
       DateField.updateError(mandatoryDateField, INVALID_NUMBER_ERROR_FOR_YEAR).fieldErrors shouldBe List("The year of the alternativename must contain 4 digits")
+      DateField
+        .updateError(mandatoryDateField.copy(day = InputNameAndValue("32", "32"), month = InputNameAndValue("2", "2")), INVALID_NUMBER_ERROR_FOR_DAY)
+        .fieldErrors shouldBe List("February does not have 32 days in it. Enter the day for the alternativename between 1 and 28") 
       DateField
         .updateError(mandatoryDateField.copy(day = InputNameAndValue("31", "31"), month = InputNameAndValue("6", "6")), INVALID_DAY_FOR_MONTH_ERROR)
         .fieldErrors shouldBe List("June does not have 31 days in it. Enter the day for the alternativename between 1 and 30")
