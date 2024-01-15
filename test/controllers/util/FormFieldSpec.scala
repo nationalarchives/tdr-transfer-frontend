@@ -611,7 +611,7 @@ class FormFieldSpec extends AnyWordSpec with MockitoSugar with BeforeAndAfterEac
       DateField.updateError(mandatoryDateField, INVALID_NUMBER_ERROR_FOR_YEAR).fieldErrors shouldBe List("The year of the alternativename must contain 4 digits")
       DateField
         .updateError(mandatoryDateField.copy(day = InputNameAndValue("32", "32"), month = InputNameAndValue("2", "2")), INVALID_NUMBER_ERROR_FOR_DAY)
-        .fieldErrors shouldBe List("February does not have 32 days in it. Enter the day for the alternativename between 1 and 28") 
+        .fieldErrors shouldBe List("February does not have 32 days in it. Enter the day for the alternativename between 1 and 28")
       DateField
         .updateError(mandatoryDateField.copy(day = InputNameAndValue("31", "31"), month = InputNameAndValue("6", "6")), INVALID_DAY_FOR_MONTH_ERROR)
         .fieldErrors shouldBe List("June does not have 31 days in it. Enter the day for the alternativename between 1 and 30")
