@@ -158,9 +158,7 @@ class AddAdditionalMetadataController @Inject() (
       Future.successful(dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames))
     } else {
       for {
-        metadataValidation <- cache.getOrElseUpdate[MetadataValidation]("metadataValidation") {
-          getMetadataValidation(consignmentId)(request)
-        }
+        metadataValidation <- getMetadataValidation(consignmentId)(request)
       } yield {
         val dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues, Some(metadataValidation))
         dynamicFormUtils.updateAndValidateFormFields(dynamicFormUtils.formAnswersWithValidInputNames, metadataMap, metadataType)
