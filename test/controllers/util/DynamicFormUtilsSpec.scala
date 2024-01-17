@@ -314,14 +314,14 @@ class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndA
 
   "convertSubmittedValuesToFormFields" should "return a 'whole number'-related error for the numeric fields that are missing values" in {
     val (_, dynamicFormUtils): (ListMap[String, List[String]], DynamicFormUtils) = generateFormAndSendRequest(
-      MockFormValues(month = List("b4"), year = List("2r"), numericTextBoxValue = List("1.5"), day2 = List("000"), month2 = List("e"), year2 = List("-"))
+      MockFormValues(month = List("b4"), year = List("2r"), numericTextBoxValue = List("1.5"), day2 = List("000"), month2 = List("e"), year2 = List("2000"))
     )
 
     val validatedForm = dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames)
 
     val dateField = validatedForm.filter(_.isInstanceOf[DateField])
-    dateField.head.fieldErrors should equal(List(s"The month of the alternativename must be a whole number, like 3, 9, 12"))
-    dateField(1).fieldErrors should equal(List(s"The day of the alternativename must be between 1 and 31"))
+    dateField.head.fieldErrors should equal(List(s"The year of the alternativename must be a whole number, like 1994, 2000, 2023"))
+    dateField(1).fieldErrors should equal(List(s"The month of the alternativename must be a whole number, like 3, 9, 12"))
 
     val textField = validatedForm.find(_.isInstanceOf[TextField]).get
     textField.fieldErrors should equal(List(s"The small text display must be a whole number, like 3, 15, 21"))
