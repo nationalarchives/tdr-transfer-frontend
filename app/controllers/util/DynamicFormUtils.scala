@@ -22,22 +22,6 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
     case (inputName, _)                                           => throw new IllegalArgumentException(s"${inputName.split("-").head} is not a supported field type.")
   }
 
-  def convertSubmittedValuesToFormFields(submittedValues: Map[InputName, Seq[OptionSelected]]): List[FormField] = {
-    val submittedValuesTrimmed: List[SubmittedValue] = convertToSubmittedValues(submittedValues)
-    val excludeFields: List[String] = submittedValuesTrimmed.collect {
-      case submittedValue if submittedValue.optionsSelected.contains("exclude") => submittedValue.inputName
-    }
-
-    defaultFieldValues.map { formField =>
-      val matchingFieldValue: List[SubmittedValue] = getSubmittedFieldValue(formField.fieldId, submittedValuesTrimmed)
-      if (excludeFields.contains(matchingFieldValue.head.inputName)) {
-        formField
-      } else {
-        validateFormFields(formField, matchingFieldValue)
-      }
-    }
-  }
-
   def updateAndValidateFormFields(submittedValues: Map[InputName, Seq[OptionSelected]], metadataMap: Map[String, List[FileMetadata]], metadataType: String): List[FormField] = {
 
     val submittedValuesTrimmed: List[SubmittedValue] = convertToSubmittedValues(submittedValues)
@@ -89,52 +73,6 @@ class DynamicFormUtils(request: Request[AnyContent], defaultFieldValues: List[Fo
           )
           .getOrElse(formField)
       })
-    }
-  }
-
-  private def validateFormFields(formField: FormField, fieldValue: List[SubmittedValue]): FormField = {
-    val optionsSelected: Seq[InputName] = fieldValue.head.optionsSelected
-
-    formField match {
-      case dateField: DateField =>
-        val (day, month, year) = fieldValue.toDate
-        DateField
-          .update(dateField, day, month, year)
-          .copy(fieldErrors = DateField.validate(day, month, year, dateField).map(List(_)).getOrElse(Nil))
-
-      case radioButtonGroupField: RadioButtonGroupField =>
-        val selectedOption = fieldValue.getValue(radioButtonGroupField.fieldId)
-        val dependencies = radioButtonGroupField.dependencies
-          .get(selectedOption)
-          .map(_.map(formField => formField.fieldId -> fieldValue.getValue(s"${radioButtonGroupField.fieldId}-${formField.fieldId}-$selectedOption")).toMap)
-          .getOrElse(Map.empty)
-        RadioButtonGroupField
-          .update(radioButtonGroupField, selectedOption, dependencies)
-          .copy(fieldErrors = RadioButtonGroupField.validate(selectedOption, dependencies, radioButtonGroupField))
-
-      case textField: TextField =>
-        val text = optionsSelected.head
-        TextField
-          .update(textField, text)
-          .copy(fieldErrors = TextField.validate(text, textField).map(List(_)).getOrElse(Nil))
-
-      case textAreaField: TextAreaField =>
-        val text = optionsSelected.head
-        TextAreaField
-          .update(textAreaField, text)
-          .copy(fieldErrors = TextAreaField.validate(text, textAreaField).map(List(_)).getOrElse(Nil))
-
-      case dropdownField: DropdownField =>
-        val selectedValue = optionsSelected.headOption
-        DropdownField
-          .update(dropdownField, selectedValue)
-          .copy(fieldErrors = DropdownField.validate(selectedValue, dropdownField).map(List(_)).getOrElse(Nil))
-
-      case multiSelectField: MultiSelectField =>
-        val selectedValues = optionsSelected
-        MultiSelectField
-          .update(multiSelectField, selectedValues)
-          .copy(fieldErrors = MultiSelectField.validate(selectedValues, multiSelectField).map(List(_)).getOrElse(Nil))
     }
   }
 
