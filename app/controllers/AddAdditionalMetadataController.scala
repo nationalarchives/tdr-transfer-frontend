@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddAdditionalMetadataController.{File, formFieldOverrides}
 import controllers.util.MetadataProperty._
 import controllers.util._
@@ -154,12 +154,12 @@ class AddAdditionalMetadataController @Inject() (
   private def updateAndValidateFormFields(consignmentId: UUID, defaultFieldValues: List[FormField], metadataMap: Map[String, List[FileMetadata]], metadataType: String)(
       request: Request[AnyContent]
   ): Future[List[FormField]] = {
-      for {
-        metadataValidation <- getMetadataValidation(consignmentId)(request)
-      } yield {
-        val dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues, Some(metadataValidation))
-        dynamicFormUtils.updateAndValidateFormFields(dynamicFormUtils.formAnswersWithValidInputNames, metadataMap, metadataType)
-      }
+    for {
+      metadataValidation <- getMetadataValidation(consignmentId)(request)
+    } yield {
+      val dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues, Some(metadataValidation))
+      dynamicFormUtils.updateAndValidateFormFields(dynamicFormUtils.formAnswersWithValidInputNames, metadataMap, metadataType)
+    }
   }
 
   private def buildUpdateMetadataInput(updatedFormFields: List[FormField]): List[UpdateFileMetadataInput] = {
