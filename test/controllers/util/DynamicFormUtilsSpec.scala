@@ -9,7 +9,6 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.POST
 import testUtils.FormTestData
 
-import java.time.LocalDateTime
 import scala.collection.immutable.ListMap
 
 class DynamicFormUtilsSpec extends AnyFlatSpec with MockitoSugar with BeforeAndAfterEach {
