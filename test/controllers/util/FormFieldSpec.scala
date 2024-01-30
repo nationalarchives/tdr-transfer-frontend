@@ -2,7 +2,6 @@ package controllers.util
 
 import cats.implicits.catsSyntaxOptionId
 import controllers.util.MetadataProperty.closurePeriod
-import org.apache.commons.lang3.NotImplementedException
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
