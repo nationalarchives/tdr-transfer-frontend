@@ -1,7 +1,7 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.AddAdditionalMetadataController.{File, formFieldOverrides}
 import controllers.util.MetadataProperty._
 import controllers.util._
@@ -33,7 +33,6 @@ class AddAdditionalMetadataController @Inject() (
     val consignmentService: ConsignmentService,
     val customMetadataService: CustomMetadataService,
     val displayPropertiesService: DisplayPropertiesService,
-    val applicationConfig: ApplicationConfig,
     val cache: AsyncCacheApi
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
@@ -144,7 +143,9 @@ class AddAdditionalMetadataController @Inject() (
   private def getMetadataValidation(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[MetadataValidation] = {
     for {
       displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, None)
-      customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
+      customMetadata <- cache.getOrElseUpdate("customMetadata") {
+        customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
+      }
     } yield {
       MetadataValidationUtils.createMetadataValidation(displayProperties, customMetadata)
     }
@@ -153,16 +154,11 @@ class AddAdditionalMetadataController @Inject() (
   private def updateAndValidateFormFields(consignmentId: UUID, defaultFieldValues: List[FormField], metadataMap: Map[String, List[FileMetadata]], metadataType: String)(
       request: Request[AnyContent]
   ): Future[List[FormField]] = {
-    if (applicationConfig.blockValidationLibrary) {
-      val dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues, None)
-      Future.successful(dynamicFormUtils.convertSubmittedValuesToFormFields(dynamicFormUtils.formAnswersWithValidInputNames))
-    } else {
-      for {
-        metadataValidation <- getMetadataValidation(consignmentId)(request)
-      } yield {
-        val dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues, Some(metadataValidation))
-        dynamicFormUtils.updateAndValidateFormFields(dynamicFormUtils.formAnswersWithValidInputNames, metadataMap, metadataType)
-      }
+    for {
+      metadataValidation <- getMetadataValidation(consignmentId)(request)
+    } yield {
+      val dynamicFormUtils = new DynamicFormUtils(request, defaultFieldValues, Some(metadataValidation))
+      dynamicFormUtils.updateAndValidateFormFields(dynamicFormUtils.formAnswersWithValidInputNames, metadataMap, metadataType)
     }
   }
 
