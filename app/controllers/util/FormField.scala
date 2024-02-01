@@ -1,13 +1,11 @@
 package controllers.util
 
-import controllers.util.FormField.{invalidDateError, _}
+import controllers.util.FormField._
 import controllers.util.MetadataProperty.closurePeriod
-import org.apache.commons.lang3.NotImplementedException
 import services.Details
 import uk.gov.nationalarchives.tdr.validation.ErrorCode._
 
 import java.time.{LocalDateTime, Month, YearMonth}
-import scala.util.control.Exception.allCatch
 
 abstract class FormField {
   val fieldId: String
@@ -177,23 +175,6 @@ object RadioButtonGroupField {
     }
   }
 
-  def validate(option: String, dependencies: Map[String, String], radioButtonGroupField: RadioButtonGroupField): List[String] = {
-    val optionErrors = Option(option).filter(_.nonEmpty) match {
-      case None if radioButtonGroupField.isRequired                               => Some(radioOptionNotSelectedError.format(radioButtonGroupField.fieldName))
-      case Some(value) if !radioButtonGroupField.options.exists(_.value == value) => Some(invalidRadioOptionSelectedError.format(value))
-      case _                                                                      => None
-    }
-    def dependenciesError: Option[String] = radioButtonGroupField.dependencies
-      .get(option)
-      .flatMap(_.flatMap {
-        case textField: TextField         => TextField.validate(dependencies(textField.fieldId), textField.copy(isRequired = true))
-        case textAreaField: TextAreaField => TextAreaField.validate(dependencies(textAreaField.fieldId), textAreaField.copy(isRequired = true))
-        case formField: FormField         => throw new NotImplementedException(s"Implement for ${formField.fieldId}")
-      }.headOption)
-
-    optionErrors.orElse(dependenciesError).map(List(_)).getOrElse(Nil)
-  }
-
   def update(radioButtonGroupField: RadioButtonGroupField, value: Boolean): RadioButtonGroupField =
     radioButtonGroupField.copy(selectedOption = if (value) "yes" else "no")
 
@@ -225,13 +206,6 @@ object MultiSelectField {
     }
   }
 
-  def validate(selectedOptions: Seq[String], multiSelectField: MultiSelectField): Option[String] =
-    selectedOptions match {
-      case Nil                                                                      => Some(dropdownOptionNotSelectedError.format(multiSelectField.fieldName))
-      case values if !values.forall(multiSelectField.options.map(_.value).contains) => Some(invalidDropdownOptionSelectedError.format(values.mkString(", ")))
-      case _                                                                        => None
-    }
-
   def update(multiSelectField: MultiSelectField, selectedValues: Seq[String]): MultiSelectField = {
     val selectedOptions: List[InputNameAndValue] = multiSelectField.options.filter(v => selectedValues.contains(v.value)).toList
     multiSelectField.copy(selectedOption = Some(selectedOptions))
@@ -245,14 +219,6 @@ object DropdownField {
       case EMPTY_VALUE_ERROR     => dropdownField.copy(fieldErrors = List(dropdownOptionNotSelectedError.format(dropdownField.fieldName)))
       case UNDEFINED_VALUE_ERROR => dropdownField.copy(fieldErrors = List(invalidDropdownOptionSelectedError.format(dropdownField.selectedOptions())))
       case _                     => dropdownField.copy(fieldErrors = List(errorCode))
-    }
-  }
-
-  def validate(selectedOption: Option[String], dropdownField: DropdownField): Option[String] = {
-    selectedOption match {
-      case None if dropdownField.isRequired                               => Some(dropdownOptionNotSelectedError.format(dropdownField.fieldName))
-      case Some(value) if !dropdownField.options.exists(_.value == value) => Some(invalidDropdownOptionSelectedError.format(value))
-      case _                                                              => None
     }
   }
 
@@ -276,25 +242,6 @@ object TextField {
     }
   }
 
-  def validate(text: String, textField: TextField): Option[String] = {
-
-    if (text.isEmpty) {
-      textField.isRequired match {
-        case true if textField.fieldId == closurePeriod => Some(closurePeriodNotEnteredError)
-        case true                                       => Some(dependencyNotEntered.format(textField.getAlternativeName.toLowerCase))
-        case _                                          => None
-      }
-    } else if (textField.inputMode.equals("numeric")) {
-      text match {
-        case t if allCatch.opt(t.toInt).isEmpty => Some(wholeNumberError.format(textField.fieldName.toLowerCase, wholeNumberExample))
-        case t if t.toInt < 0                   => Some(negativeNumberError.format(textField.fieldName.toLowerCase))
-        case _                                  => None
-      }
-    } else {
-      None
-    }
-  }
-
   def update(textField: TextField, value: String): TextField = textField.copy(nameAndValue = textField.nameAndValue.copy(value = value))
 }
 
@@ -308,14 +255,6 @@ object TextAreaField {
   }
 
   def update(textAreaField: TextAreaField, value: String): TextAreaField = textAreaField.copy(nameAndValue = textAreaField.nameAndValue.copy(value = value))
-  def validate(text: String, textAreaField: TextAreaField): Option[String] = {
-    val fieldName = textAreaField.getAlternativeName
-    text match {
-      case t if t == "" && textAreaField.isRequired     => Some(dependencyNotEntered.format(fieldName.toLowerCase))
-      case t if t.length > textAreaField.characterLimit => Some(tooLongInputError.format(textAreaField.fieldName, textAreaField.characterLimit))
-      case _                                            => None
-    }
-  }
 }
 
 object DateField {
@@ -350,48 +289,14 @@ object DateField {
     }
   }
 
-  val invalidMonthValidation: Int => Boolean = (month: Int) => month < 1 || month > 12
-  val invalidYearValidation: Int => Boolean = (year: Int) => year.toString.length != 4
-
-  def validate(day: String, month: String, year: String, dateField: DateField): Option[String] = {
-    val fieldName = if (dateField.getAlternativeName == "Advisory Council Approval") dateField.fieldAlternativeName else dateField.getAlternativeName.toLowerCase
-    val emptyDate: Boolean = day.isEmpty && month.isEmpty && year.isEmpty
-
-    emptyDate match {
-      case false                        => validateDateValues(day, month, year, fieldName, dateField)
-      case true if dateField.isRequired => Some(dateNotEnteredError.format(fieldName))
-      case _                            => None
-    }
+  private def checkDayForTheMonthAndYear(dayNumber: Int, monthNumber: Int, yearNumber: Int, fieldName: String): Option[String] = {
+    val daysInMonth = YearMonth.of(yearNumber, monthNumber).lengthOfMonth()
+    if (dayNumber < 1) Some(invalidDateError.format("day", fieldName, daysInMonth))
+    else if (dayNumber > daysInMonth) Some(invalidDayError.format(monthStringFromNumber(monthNumber), dayNumber, fieldName, daysInMonth))
+    else None
   }
 
-  private def validateDateValues(day: String, month: String, year: String, fieldName: String, dateField: DateField): Option[String] = {
-    val input = for {
-      year <- validatePositiveInteger(year, fieldName, "Year", "1994, 2000, 2023")
-      month <- validatePositiveInteger(month, fieldName, "Month", "3, 9, 12")
-      day <- validatePositiveInteger(day, fieldName, "Day", wholeNumberExample)
-    } yield (day, month, year)
-
-    input match {
-      case Right((day, month, year)) =>
-        lazy val yearValidation = if (invalidYearValidation(year)) Some(invalidYearError.format(fieldName)) else None
-        lazy val monthValidation = if (invalidMonthValidation(month)) Some(invalidDateError.format("month", fieldName, "12")) else None
-        lazy val dayValidation = checkDayForTheMonthAndYear(dayNumber = day, monthNumber = month, yearNumber = year, fieldName = fieldName)
-        lazy val futureValidation = checkIfFutureDateIsAllowed(day = day, month = month, year = year, dateField = dateField, fieldName = fieldName)
-        yearValidation orElse monthValidation orElse dayValidation orElse futureValidation
-      case Left(inputValidationError) => Some(inputValidationError)
-    }
-  }
-
-  def validatePositiveInteger(value: String, fieldName: String, unitType: String, wholeNumberExample: String): Either[String, Int] = {
-    val nonEmpty: String => Either[String, String] = value => if (value.isEmpty) Left(emptyValueError.format(fieldName, unitType.toLowerCase)) else Right(value)
-    val isInt: String => Either[String, Int] = value => value.toIntOption.toRight(wholeNumberError2.format(unitType.toLowerCase, fieldName, wholeNumberExample))
-    val nonNegative: Int => Either[String, Int] = value => if (value < 0) Left(negativeNumberError.format(unitType.toLowerCase)) else Right(value)
-    for {
-      nonEmptyValue <- nonEmpty(value)
-      intValue <- isInt(nonEmptyValue)
-      positiveInt <- nonNegative(intValue)
-    } yield positiveInt
-  }
+  def monthStringFromNumber(monthNumber: Int): String = Month.of(monthNumber).toString.toLowerCase.capitalize
 
   def update(dateField: DateField, localDateTime: LocalDateTime): DateField =
     dateField.copy(
@@ -402,20 +307,4 @@ object DateField {
 
   def update(dateField: DateField, day: String, month: String, year: String): DateField =
     dateField.copy(day = dateField.day.copy(value = day), month = dateField.month.copy(value = month), year = dateField.year.copy(value = year))
-
-  private def checkDayForTheMonthAndYear(dayNumber: Int, monthNumber: Int, yearNumber: Int, fieldName: String): Option[String] = {
-    val daysInMonth = YearMonth.of(yearNumber, monthNumber).lengthOfMonth()
-    if (dayNumber < 1) Some(invalidDateError.format("day", fieldName, daysInMonth))
-    else if (dayNumber > daysInMonth) Some(invalidDayError.format(monthStringFromNumber(monthNumber), dayNumber, fieldName, daysInMonth))
-    else None
-  }
-
-  def monthStringFromNumber(monthNumber: Int): String = Month.of(monthNumber).toString.toLowerCase.capitalize
-
-  private def checkIfFutureDateIsAllowed(day: Int, month: Int, year: Int, dateField: DateField, fieldName: String): Option[String] =
-    if (!dateField.isFutureDateAllowed && LocalDateTime.now().isBefore(LocalDateTime.of(year, month, day, 0, 0))) {
-      Some(futureDateError.format(fieldName))
-    } else {
-      None
-    }
 }
