@@ -16,6 +16,6 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
   )
 
   val numberOfItemsOnViewTransferPage: Int = configuration.get[Int]("viewTransfers.numberOfItemsPerPage")
-  
+
   val blockDraftMetadataUpload: Boolean = configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")
 }
