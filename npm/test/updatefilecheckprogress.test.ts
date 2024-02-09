@@ -12,24 +12,24 @@ const mockDisplayChecksCompletedBanner = {
   displayChecksCompletedBanner: jest.fn()
 }
 
-import { FileChecks } from "../src/filechecks"
-import { haveFileChecksCompleted } from "../src/filechecks/verify-checks-have-completed"
-import { displayChecksCompletedBanner } from "../src/filechecks/display-checks-completed-banner"
+import { Checks } from "../src/checks"
+import { haveFileChecksCompleted } from "../src/checks/verify-checks-have-completed"
+import { displayChecksCompletedBanner } from "../src/checks/display-checks-completed-banner"
 
 jest.mock('uuid', () => 'eb7b7961-395d-4b4c-afc6-9ebcadaf0150')
 
 jest.mock(
-  "../src/filechecks/get-file-check-progress",
+  "../src/checks/get-checks-progress",
   () => mockGetFileCheckProgress
 )
 
 jest.mock(
-  "../src/filechecks/verify-checks-have-completed",
+  "../src/checks/verify-checks-have-completed",
   () => mockVerifyChecksHaveCompleted
 )
 
 jest.mock(
-  "../src/filechecks/display-checks-completed-banner",
+  "../src/checks/display-checks-completed-banner",
   () => mockDisplayChecksCompletedBanner
 )
 const mockGoToNextPage = jest.fn()
@@ -58,7 +58,7 @@ const typesOfProgress: {
     totalFiles: 2
   }
 }
-const fileChecks = new FileChecks()
+const checks = new Checks()
 
 const mockGetFileChecksProgress: (progressType: string) => void = (
   progressType: string
@@ -75,7 +75,7 @@ const mockDisplayChecksHaveCompletedBanner: () => void = () =>
 
 test("updateFileCheckProgress calls setInterval correctly", async () => {
   jest.spyOn(global, "setInterval")
-  await fileChecks.updateFileCheckProgress(false, mockGoToNextPage)
+  await checks.updateFileCheckProgress(false, mockGoToNextPage)
   jest.runOnlyPendingTimers()
   expect(setInterval).toBeCalledTimes(1)
 })
@@ -96,7 +96,7 @@ test("updateFileCheckProgress shows a standard user, the notification banner and
 
   mockDisplayChecksHaveCompletedBanner()
 
-  fileChecks.updateFileCheckProgress(false, mockGoToNextPage)
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toBeCalled()
@@ -117,7 +117,7 @@ test("updateFileCheckProgress shows a standard user, no banner and a disabled co
   )
   mockDisplayChecksHaveCompletedBanner()
 
-  fileChecks.updateFileCheckProgress(false, mockGoToNextPage)
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toBeCalled()
@@ -138,7 +138,7 @@ test("updateFileCheckProgress shows a standard user, no banner and a disabled co
   )
   mockDisplayChecksHaveCompletedBanner()
 
-  fileChecks.updateFileCheckProgress(false, mockGoToNextPage)
+  checks.updateFileCheckProgress(false, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toBeCalled()
@@ -157,7 +157,7 @@ test("updateFileCheckProgress calls goToNextPage for a judgment user, if all che
     () => true
   )
 
-  fileChecks.updateFileCheckProgress(true, mockGoToNextPage)
+  checks.updateFileCheckProgress(true, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toBeCalled()
@@ -175,7 +175,7 @@ test("updateFileCheckProgress does not call goToNextPage for a judgment user if 
     () => false
   )
 
-  fileChecks.updateFileCheckProgress(true, mockGoToNextPage)
+  checks.updateFileCheckProgress(true, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toBeCalled()
@@ -193,7 +193,7 @@ test("updateFileCheckProgress does not call goToNextPage for a judgment user if 
     () => false
   )
 
-  fileChecks.updateFileCheckProgress(true, mockGoToNextPage)
+  checks.updateFileCheckProgress(true, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
   expect(haveFileChecksCompleted).toBeCalled()

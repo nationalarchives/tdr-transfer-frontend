@@ -2,7 +2,7 @@ import {
   getConsignmentId,
   getFileChecksProgress,
   IFileCheckProgress
-} from "../src/filechecks/get-file-check-progress"
+} from "../src/checks/get-checks-progress"
 import {
   GetFileCheckProgressQuery
 } from "@nationalarchives/tdr-generated-graphql"
@@ -66,7 +66,7 @@ test("getFileChecksProgress throws a exception after errors from a successful ap
     <input name="csrfToken" value="abcde">
     `
 
-  await expect(getFileChecksProgress()).resolves.toEqual(Error("Add client file metadata failed: There was an error"))
+  await expect(getFileChecksProgress()).resolves.toEqual(Error("Failed: There was an error"))
 })
 
 test("getConsignmentId returns the correct id when the hidden input is present", () => {

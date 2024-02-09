@@ -1,11 +1,11 @@
-import { displayChecksCompletedBanner } from "../src/filechecks/display-checks-completed-banner"
+import { displayChecksCompletedBanner } from "../src/checks/display-checks-completed-banner"
 
 test("displayChecksCompletedBanner unhides the button removes the disabled reason and displays banner when called", () => {
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
                             <a id="file-checks-continue" class="govuk-button--disabled" aria-describedby="reason-disabled" aria-disabled="true"></a>
                             <p id="reason-disabled"></p>
                             `
-  displayChecksCompletedBanner()
+  displayChecksCompletedBanner("file-checks", "file-checks")
 
   const notificationBanner = document.querySelector(
     "#file-checks-completed-banner"
@@ -24,7 +24,7 @@ test("displayChecksCompletedBanner unhides the button removes the disabled reaso
 
 test("displayChecksCompletedBanner doesn't display banner if 'continue' button is missing", () => {
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>`  // no button exists in the HTML
-  displayChecksCompletedBanner()
+  displayChecksCompletedBanner("file-checks", "file-checks")
 
   const notificationBanner = document.querySelector(
     "#file-checks-completed-banner"
@@ -39,7 +39,7 @@ test("displayChecksCompletedBanner doesn't display banner if 'continue' button i
 
 test("displayChecksCompletedBanner doesn't enable 'continue' button if display banner is missing", () => {
   document.body.innerHTML = `<a id="file-checks-continue" class="govuk-button--disabled" aria-disabled="true"></a>`  // no banner exists in the HTML
-  displayChecksCompletedBanner()
+  displayChecksCompletedBanner("file-checks", "file-checks")
 
   const notificationBanner = document.querySelector(
     "#file-checks-completed-banner"

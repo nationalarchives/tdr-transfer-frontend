@@ -92,15 +92,14 @@ export const renderModules = async () => {
       const keycloak = await authModule.getKeycloakInstance()
       if (!errorHandlingModule.isError(keycloak)) {
         const isJudgmentUser = keycloak.tokenParsed?.judgment_user
-        const fileChecksModule = await import("./filechecks")
+        const checksModule = await import("./checks")
         const nextPageModule = await import(
           "./nextpageredirect/next-page-redirect"
         )
-        const resultOrError =
-          new fileChecksModule.FileChecks().updateFileCheckProgress(
-            isJudgmentUser,
-            nextPageModule.goToNextPage
-          )
+        const resultOrError = new checksModule.Checks().updateFileCheckProgress(
+          isJudgmentUser,
+          nextPageModule.goToNextPage
+        )
         if (errorHandlingModule.isError(resultOrError)) {
           errorHandlingModule.handleUploadError(resultOrError)
         }
