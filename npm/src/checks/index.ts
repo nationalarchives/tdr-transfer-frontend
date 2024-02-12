@@ -28,7 +28,7 @@ export class Checks {
           clearInterval(intervalId)
           isJudgmentUser
             ? goToNextPage("#file-checks-form")
-            : displayChecksCompletedBanner("file-checks", "file-check")
+            : displayChecksCompletedBanner("file-checks")
         }
       } else {
         return fileChecksProgress
@@ -46,10 +46,7 @@ export class Checks {
         )
         if (checksCompleted) {
           clearInterval(intervalId)
-          displayChecksCompletedBanner(
-            "draft-metadata-check",
-            "draft-metadata-check"
-          )
+          displayChecksCompletedBanner("draft-metadata-check")
         }
       } else {
         return validationChecksProgress
