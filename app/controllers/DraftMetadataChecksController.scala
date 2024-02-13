@@ -7,6 +7,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services._
 import viewsapi.Caching.preventCaching
+import io.circe.syntax._
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -18,6 +19,7 @@ class DraftMetadataChecksController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val frontEndInfoConfiguration: ApplicationConfig,
     val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService,
     val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
@@ -34,5 +36,11 @@ class DraftMetadataChecksController @Inject() (
           .uncache()
       }
     }
+  }
+
+  def draftMetadataValidationProgress(consignmentId: UUID): Action[AnyContent] = secureAction.async { implicit request =>
+    consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+      .map(_.asJson.noSpaces)
+      .map(Ok(_))
   }
 }

@@ -31,11 +31,12 @@ export const getConsignmentId: () => string | Error = () => {
 export const getDraftMetadataValidationProgress: () => Promise<
   IDraftMetadataValidationProgress | Error
 > = async () => {
-  const progress = await getProgress("draft-metadata-validation-progress")
+
+  const progress = await getProgress("validation-progress")
   if (!isError(progress)) {
-    const response = progress as Consignment
+    const response = progress as [ConsignmentStatus]
     if (response) {
-      const draftMetadataStatus = response.consignmentStatuses.find(
+      const draftMetadataStatus = response.find(
         (e) => e.statusType === "DraftMetadata"
       )
 

@@ -44,6 +44,9 @@ export const renderModules = async () => {
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
+  const draftMetadataValidationContainer: HTMLDivElement | null = document.querySelector(
+      ".draft-metadata-validation-progress"
+  )
   const fileSelectionTree = document.querySelector(".tna-tree")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
@@ -100,6 +103,26 @@ export const renderModules = async () => {
           isJudgmentUser,
           nextPageModule.goToNextPage
         )
+        if (errorHandlingModule.isError(resultOrError)) {
+          errorHandlingModule.handleUploadError(resultOrError)
+        }
+      } else {
+        errorHandlingModule.handleUploadError(keycloak)
+      }
+    } else {
+      errorHandlingModule.handleUploadError(frontEndInfo)
+    }
+  }
+
+  if (draftMetadataValidationContainer) {
+    const frontEndInfo = getFrontEndInfo()
+    const errorHandlingModule = await import("./errorhandling")
+    if (!errorHandlingModule.isError(frontEndInfo)) {
+      const authModule = await import("./auth")
+      const keycloak = await authModule.getKeycloakInstance()
+      if (!errorHandlingModule.isError(keycloak)) {
+        const checksModule = await import("./checks")
+        const resultOrError = new checksModule.Checks().updateDraftMetadataValidationProgress()
         if (errorHandlingModule.isError(resultOrError)) {
           errorHandlingModule.handleUploadError(resultOrError)
         }
