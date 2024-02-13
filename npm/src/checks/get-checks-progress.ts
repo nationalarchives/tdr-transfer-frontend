@@ -31,7 +31,6 @@ export const getConsignmentId: () => string | Error = () => {
 export const getDraftMetadataValidationProgress: () => Promise<
   IDraftMetadataValidationProgress | Error
 > = async () => {
-
   const progress = await getProgress("validation-progress")
   if (!isError(progress)) {
     const response = progress as [ConsignmentStatus]

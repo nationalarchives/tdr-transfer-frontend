@@ -44,9 +44,8 @@ export const renderModules = async () => {
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
-  const draftMetadataValidationContainer: HTMLDivElement | null = document.querySelector(
-      ".draft-metadata-validation-progress"
-  )
+  const draftMetadataValidationContainer: HTMLDivElement | null =
+    document.querySelector(".draft-metadata-validation-progress")
   const fileSelectionTree = document.querySelector(".tna-tree")
   const timeoutDialog: HTMLDialogElement | null =
     document.querySelector(".timeout-dialog")
@@ -122,7 +121,8 @@ export const renderModules = async () => {
       const keycloak = await authModule.getKeycloakInstance()
       if (!errorHandlingModule.isError(keycloak)) {
         const checksModule = await import("./checks")
-        const resultOrError = new checksModule.Checks().updateDraftMetadataValidationProgress()
+        const resultOrError =
+          new checksModule.Checks().updateDraftMetadataValidationProgress()
         if (errorHandlingModule.isError(resultOrError)) {
           errorHandlingModule.handleUploadError(resultOrError)
         }

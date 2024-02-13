@@ -4,6 +4,7 @@ import {
   IFileCheckProgress
 } from "../src/checks/get-checks-progress"
 import {
+  ConsignmentStatus,
   GetConsignmentStatusQuery,
   GetFileCheckProgressQuery
 } from "@nationalarchives/tdr-generated-graphql"
@@ -28,30 +29,24 @@ const data: GetFileCheckProgressQuery = {
   }
 }
 
-const consignmentStatusData: GetConsignmentStatusQuery = {
-  getConsignment: {
-    consignmentStatuses: [
-      {
-          consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
-          consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
-          statusType: "StatusType",
-          value: "StatusValue",
-          createdDatetime: "CreatedDateTime"
-      },
-      {
-        consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
-        consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
-        statusType: "DraftMetadata",
-        value: "InProgress",
-        createdDatetime: "CreatedDateTime"
-      }
-    ]
-  }
-}
+const consignmentStatusData: ConsignmentStatus[] = [
+    {
+      consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
+      consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
+      statusType: "StatusType",
+      value: "StatusValue",
+      createdDatetime: "CreatedDateTime"
+    },
+    {
+      consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
+      consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
+      statusType: "DraftMetadata",
+      value: "InProgress",
+      createdDatetime: "CreatedDateTime"
+    }
+  ]
 
-const consignmentStatusNoDraftMetadataData: GetConsignmentStatusQuery = {
-  getConsignment: {
-    consignmentStatuses: [
+const consignmentStatusNoDraftMetadataData: ConsignmentStatus[] = [
       {
         consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
         consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
@@ -60,12 +55,9 @@ const consignmentStatusNoDraftMetadataData: GetConsignmentStatusQuery = {
         createdDatetime: "CreatedDateTime"
       }
     ]
-  }
-}
 
-const consignmentStatusFailedDraftMetadataData: GetConsignmentStatusQuery = {
-  getConsignment: {
-    consignmentStatuses: [
+
+const consignmentStatusFailedDraftMetadataData: ConsignmentStatus[] = [
       {
         consignmentStatusId: "eb7b7961-395d-4b4c-afc6-9ebcadaf0150",
         consignmentId: "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c",
@@ -74,8 +66,6 @@ const consignmentStatusFailedDraftMetadataData: GetConsignmentStatusQuery = {
         createdDatetime: "CreatedDateTime"
       }
     ]
-  }
-}
 
 test("'getFileChecksProgress' returns the correct consignment data with a successful api call", async () => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
@@ -102,7 +92,7 @@ test("'getDraftMetadataValidationProgress' returns the correct consignment data 
     <input id="consignmentId" type="hidden" value="${consignmentId}">
     <input name="csrfToken" value="abcde">
     `
-  fetchMock.mockResponse(JSON.stringify(consignmentStatusData.getConsignment))
+  fetchMock.mockResponse(JSON.stringify(consignmentStatusData))
 
   const validationProgress: IDraftMetadataValidationProgress | Error =
       await getDraftMetadataValidationProgress()
@@ -118,7 +108,7 @@ test("'getDraftMetadataValidationProgress' throws an exception when 'DraftMetada
     <input id="consignmentId" type="hidden" value="${consignmentId}">
     <input name="csrfToken" value="abcde">
     `
-  fetchMock.mockResponse(JSON.stringify(consignmentStatusFailedDraftMetadataData.getConsignment))
+  fetchMock.mockResponse(JSON.stringify(consignmentStatusFailedDraftMetadataData))
 
   const validationProgress: IDraftMetadataValidationProgress | Error =
       await getDraftMetadataValidationProgress()
@@ -133,7 +123,7 @@ test("'getDraftMetadataValidationProgress' throws an exception when no 'DraftMet
     <input id="consignmentId" type="hidden" value="${consignmentId}">
     <input name="csrfToken" value="abcde">
     `
-  fetchMock.mockResponse(JSON.stringify(consignmentStatusNoDraftMetadataData.getConsignment))
+  fetchMock.mockResponse(JSON.stringify(consignmentStatusNoDraftMetadataData))
 
   const validationProgress: IDraftMetadataValidationProgress | Error =
       await getDraftMetadataValidationProgress()
