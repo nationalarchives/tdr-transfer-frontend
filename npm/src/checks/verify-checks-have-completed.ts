@@ -22,6 +22,6 @@ export const hasDraftMetadataValidationCompleted: (
   const { progressStatus } = validationProgress
 
   return (
-    progressStatus === "Completed" || progressStatus == "CompletedWithIssues"
+    progressStatus === "Completed" || progressStatus === "CompletedWithIssues"
   )
 }

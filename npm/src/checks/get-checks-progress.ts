@@ -1,5 +1,6 @@
 import {
   Consignment,
+  ConsignmentStatus,
   GetFileCheckProgressQuery,
   GetFileCheckProgressQueryVariables
 } from "@nationalarchives/tdr-generated-graphql"
@@ -15,7 +16,7 @@ export interface IFileCheckProgress extends IProgress {
 }
 
 export interface IDraftMetadataValidationProgress extends IProgress {
-  progressStatus: string
+  progressStatus: string | undefined
 }
 
 export const getConsignmentId: () => string | Error = () => {
@@ -32,8 +33,31 @@ export const getDraftMetadataValidationProgress: () => Promise<
 > = async () => {
   const progress = await getProgress("draft-metadata-validation-progress")
   if (!isError(progress)) {
-    return progress as IDraftMetadataValidationProgress
-  } else return progress
+    const response = progress as Consignment
+    if (response) {
+      const draftMetadataStatus = response.consignmentStatuses.find(
+        (e) => e.statusType === "DraftMetadata"
+      )
+
+      if (draftMetadataStatus === undefined) {
+        return Error("No 'DraftMetadata' status set")
+      } else {
+        const statusValue = draftMetadataStatus.value
+        return statusValue === "Failed"
+          ? Error("Draft metadata validation failed")
+          : {
+              progressStatus: statusValue
+            }
+      }
+    } else {
+      return Error(
+        `No metadata validation status found for consignment: ${response}`
+      )
+    }
+  } else
+    return Error(
+      `Failed to retrieve progress for draft metadata validation: ${progress.message}`
+    )
 }
 
 export const getFileChecksProgress: () => Promise<
@@ -51,9 +75,14 @@ export const getFileChecksProgress: () => Promise<
         totalFiles: response.totalFiles
       }
     } else {
-      return Error(`No progress metadata found for consignment: ${response}`)
+      return Error(
+        `No file checks progress metadata found for consignment: ${response}`
+      )
     }
-  } else return progress
+  } else
+    return Error(
+      `Failed to retrieve progress for file checks: ${progress.message}`
+    )
 }
 
 const getProgress: (
@@ -80,11 +109,11 @@ const getProgress: (
     if (isError(result)) {
       return result
     } else if (result.status != 200) {
-      return Error(`Failed: ${result.statusText}`)
+      return Error(`Retrieving progress failed: ${result.statusText}`)
     } else {
       return await result.json()
     }
   } else {
-    return Error(`${consignmentId}`)
+    return Error(`Failed to retrieve consignment id: ${consignmentId.message}`)
   }
 }
