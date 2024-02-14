@@ -86,6 +86,8 @@ This should allow the Keycloak cookies on localhost.
 
 ### Full stack local development
 
+**NOTE: These instructions are out of date. Ask for assistance from a colleague if require setting up full stack development**
+
 Follow these instructions if you want to make changes to the API, database and/or auth system at the same time as
 updating the frontend.
 
