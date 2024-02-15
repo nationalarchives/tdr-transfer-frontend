@@ -1,6 +1,6 @@
 package services
 
-import configuration.GraphQLConfiguration
+import configuration.ApplicationConfig
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
@@ -16,6 +16,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class ValidateMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
+  private val configuration: Configuration = mock[Configuration]
+
   "triggerMetadataValidation" should {
     "return the correct value when the api is available" in {
       triggerValidateMetadata(200, UUID.randomUUID()).futureValue should be(true)
@@ -28,17 +30,17 @@ class ValidateMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
   }
 
   private def triggerValidateMetadata(responseCode: Int, consignmentId: UUID): Future[Boolean] = {
-    val graphQLConfiguration = mock[GraphQLConfiguration]
+    when(configuration.get[String]("metadatavalidation.baseUrl")).thenReturn("http://localhost:9009")
+    val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val wsClient = mock[WSClient]
     val request = mock[WSRequest]
-    val config = mock[Configuration]
     val response = mock[WSResponse]
     when(wsClient.url(any[String])).thenReturn(request)
     when(request.addHttpHeaders(any[(String, String)])).thenReturn(request)
     when(response.status).thenReturn(responseCode)
     when(request.post[String]("{}")).thenReturn(Future(response))
 
-    val service = new ValidateMetadataService(wsClient, config, graphQLConfiguration)
+    val service = new ValidateMetadataService(wsClient, applicationConfig)
     service.triggerMetadataValidation(consignmentId, "token")
   }
 }
