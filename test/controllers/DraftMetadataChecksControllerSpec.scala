@@ -26,7 +26,7 @@ import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 
-class DraftMetadataChecksControllerSpec extends FrontEndTestHelper with TableDrivenPropertyChecks {
+class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val wiremockServer = new WireMockServer(9006)
