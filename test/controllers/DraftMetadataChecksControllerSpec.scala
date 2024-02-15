@@ -10,7 +10,7 @@ import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.ConsignmentService
 import testUtils.FrontEndTestHelper
 
 import java.util.UUID
@@ -72,8 +72,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
-    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
-    new DraftMetadataChecksController(securityComponents, keycloakConfiguration, frontEndInfoConfiguration, consignmentService, consignmentStatusService, applicationConfig)
+    new DraftMetadataChecksController(securityComponents, keycloakConfiguration, frontEndInfoConfiguration, consignmentService, applicationConfig)
   }
 }
