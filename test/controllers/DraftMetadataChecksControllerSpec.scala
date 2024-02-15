@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import errors.AuthorisationException
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import io.circe.Printer
@@ -33,6 +32,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper with TableDri
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.fromString("b5bbe4d6-01a7-4305-99ef-9fce4a67917a")
+  val zoneId = ZoneId.systemDefault()
 
   private val configuration: Configuration = mock[Configuration]
   private val expectedTitle: String = "<title>Checking your metadata CSV - Transfer Digital Records - GOV.UK</title>"
@@ -66,7 +66,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper with TableDri
       |""".stripMargin
 
   private val expectedResponse =
-    """[{"consignmentStatusId":"f3d9bab1-ac65-441b-8516-81a1590ed98e","consignmentId":"b5bbe4d6-01a7-4305-99ef-9fce4a67917a","statusType":"DraftMetadata","value":"Completed","createdDatetime":"2022-03-10T01:00:00Z[Europe/London]","modifiedDatetime":null}]""".stripMargin
+    s"""[{"consignmentStatusId":"f3d9bab1-ac65-441b-8516-81a1590ed98e","consignmentId":"b5bbe4d6-01a7-4305-99ef-9fce4a67917a","statusType":"DraftMetadata","value":"Completed","createdDatetime":"2022-03-10T01:00:00Z[${zoneId.toString}]","modifiedDatetime":null}]""".stripMargin
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -205,7 +205,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper with TableDri
 
   private def progressData(draftMetadataStatusValue: String, consignmentId: UUID = consignmentId): String = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
-    val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+    val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), zoneId)
 
     val draftMetadataStatus: ConsignmentStatuses = ConsignmentStatuses(
       UUID.fromString("f3d9bab1-ac65-441b-8516-81a1590ed98e"),
