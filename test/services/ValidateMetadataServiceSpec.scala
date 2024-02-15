@@ -22,6 +22,7 @@ class ValidateMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
     "return the correct value when the api is available" in {
       triggerValidateMetadata(200, UUID.randomUUID()).futureValue should be(true)
     }
+    
     "return the correct value when the api is not available" in {
       val consignmentId = UUID.randomUUID()
       val message = s"Call to validate draft metadata API has returned a non 200 response for consignment $consignmentId"
