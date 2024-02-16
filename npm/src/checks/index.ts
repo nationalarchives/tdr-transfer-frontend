@@ -1,9 +1,6 @@
 import { haveFileChecksCompleted } from "./verify-checks-have-completed"
 import { displayChecksCompletedBanner } from "./display-checks-completed-banner"
-import {
-  getFileChecksProgress,
-  IFileCheckProgress
-} from "./get-file-check-progress"
+import { getFileChecksProgress, IFileCheckProgress } from "./get-check-progress"
 import { isError } from "../errorhandling"
 
 export class FileChecks {

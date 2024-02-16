@@ -92,7 +92,7 @@ export const renderModules = async () => {
       const keycloak = await authModule.getKeycloakInstance()
       if (!errorHandlingModule.isError(keycloak)) {
         const isJudgmentUser = keycloak.tokenParsed?.judgment_user
-        const fileChecksModule = await import("./filechecks")
+        const fileChecksModule = await import("./checks")
         const nextPageModule = await import(
           "./nextpageredirect/next-page-redirect"
         )

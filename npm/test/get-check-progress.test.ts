@@ -2,7 +2,7 @@ import {
   getConsignmentId,
   getFileChecksProgress,
   IFileCheckProgress
-} from "../src/filechecks/get-file-check-progress"
+} from "../src/checks/get-check-progress"
 import {
   GetFileCheckProgressQuery
 } from "@nationalarchives/tdr-generated-graphql"

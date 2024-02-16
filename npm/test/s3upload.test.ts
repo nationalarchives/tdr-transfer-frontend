@@ -15,7 +15,7 @@ import {
   ServiceOutputTypes,
   UploadPartCommand
 } from "@aws-sdk/client-s3"
-import { getFileChecksProgress } from "../src/filechecks/get-file-check-progress"
+import { getFileChecksProgress } from "../src/checks/get-check-progress"
 
 enableFetchMocks()
 jest.mock("uuid", () => "eb7b7961-395d-4b4c-afc6-9ebcadaf0150")

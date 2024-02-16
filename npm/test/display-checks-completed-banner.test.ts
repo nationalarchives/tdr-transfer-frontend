@@ -1,4 +1,4 @@
-import { displayChecksCompletedBanner } from "../src/filechecks/display-checks-completed-banner"
+import { displayChecksCompletedBanner } from "../src/checks/display-checks-completed-banner"
 
 test("displayChecksCompletedBanner unhides the button removes the disabled reason and displays banner when called", () => {
   document.body.innerHTML = `<div id="file-checks-completed-banner" hidden></div>
