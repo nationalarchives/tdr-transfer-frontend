@@ -50,9 +50,9 @@ test("'hasDraftMetadataValidationCompleted' returns true if status is 'Completed
   expect(checksCompleted).toBe(true)
 })
 
-test("'hasDraftMetadataValidationCompleted' returns false if status is not 'Completed' or 'CompletedWithIssues'", () => {
+test("'hasDraftMetadataValidationCompleted' returns false if status is 'InProgress'", () => {
   const mockStatusResponse = {
-    progressStatus: "SomeOtherValue"
+    progressStatus: "InProgress"
   }
 
   const checksCompleted: boolean = hasDraftMetadataValidationCompleted(

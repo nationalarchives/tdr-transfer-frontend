@@ -43,11 +43,9 @@ export const getDraftMetadataValidationProgress: () => Promise<
         return Error("No 'DraftMetadata' status set")
       } else {
         const statusValue = draftMetadataStatus.value
-        return statusValue === "Failed"
-          ? Error("Draft metadata validation failed")
-          : {
-              progressStatus: statusValue
-            }
+        return {
+          progressStatus: statusValue
+        }
       }
     } else {
       return Error(

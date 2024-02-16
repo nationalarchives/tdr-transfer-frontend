@@ -102,21 +102,6 @@ test("'getDraftMetadataValidationProgress' returns the correct consignment data 
   }
 })
 
-test("'getDraftMetadataValidationProgress' throws an exception when 'DraftMetadata' status is 'Failed'", async () => {
-  const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
-  document.body.innerHTML = `
-    <input id="consignmentId" type="hidden" value="${consignmentId}">
-    <input name="csrfToken" value="abcde">
-    `
-  fetchMock.mockResponse(JSON.stringify(consignmentStatusFailedDraftMetadataData))
-
-  const validationProgress: IDraftMetadataValidationProgress | Error =
-      await getDraftMetadataValidationProgress()
-  expect(isError(validationProgress)).toBe(true)
-
-  await expect(getDraftMetadataValidationProgress()).resolves.toEqual(Error("Draft metadata validation failed"))
-})
-
 test("'getDraftMetadataValidationProgress' throws an exception when no 'DraftMetadata' status present", async () => {
   const consignmentId = "7d4ae1dd-caeb-496d-b503-ab0e8d82a12c"
   document.body.innerHTML = `
