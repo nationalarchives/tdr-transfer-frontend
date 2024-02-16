@@ -49,6 +49,7 @@ export class Checks {
           displayChecksCompletedBanner("draft-metadata-check")
         }
       } else {
+        clearInterval(intervalId)
         return validationChecksProgress
       }
     }, 5000)
