@@ -1,4 +1,7 @@
-import { IFileCheckProgress } from "./get-check-progress"
+import {
+  IDraftMetadataValidationProgress,
+  IFileCheckProgress
+} from "./get-checks-progress"
 
 export const haveFileChecksCompleted: (
   fileChecksProgress: IFileCheckProgress
@@ -11,4 +14,12 @@ export const haveFileChecksCompleted: (
     checksumProcessed == totalFiles &&
     ffidProcessed == totalFiles
   )
+}
+
+export const hasDraftMetadataValidationCompleted: (
+  validationProgress: IDraftMetadataValidationProgress
+) => boolean = (validationProgress: IDraftMetadataValidationProgress) => {
+  const { progressStatus } = validationProgress
+
+  return progressStatus !== "InProgress"
 }
