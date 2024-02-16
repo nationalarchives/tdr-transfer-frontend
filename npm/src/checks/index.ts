@@ -1,9 +1,17 @@
-import { haveFileChecksCompleted } from "./verify-checks-have-completed"
+import {
+  hasDraftMetadataValidationCompleted,
+  haveFileChecksCompleted
+} from "./verify-checks-have-completed"
 import { displayChecksCompletedBanner } from "./display-checks-completed-banner"
-import { getFileChecksProgress, IFileCheckProgress } from "./get-check-progress"
+import {
+  getDraftMetadataValidationProgress,
+  getFileChecksProgress,
+  IDraftMetadataValidationProgress,
+  IFileCheckProgress
+} from "./get-checks-progress"
 import { isError } from "../errorhandling"
 
-export class FileChecks {
+export class Checks {
   updateFileCheckProgress: (
     isJudgmentUser: boolean,
     goToNextPage: (formId: string) => void
@@ -20,10 +28,28 @@ export class FileChecks {
           clearInterval(intervalId)
           isJudgmentUser
             ? goToNextPage("#file-checks-form")
-            : displayChecksCompletedBanner()
+            : displayChecksCompletedBanner("file-checks")
         }
       } else {
         return fileChecksProgress
+      }
+    }, 5000)
+  }
+
+  updateDraftMetadataValidationProgress: () => void | Error = () => {
+    const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
+      const validationChecksProgress: IDraftMetadataValidationProgress | Error =
+        await getDraftMetadataValidationProgress()
+      if (!isError(validationChecksProgress)) {
+        const checksCompleted = hasDraftMetadataValidationCompleted(
+          validationChecksProgress
+        )
+        if (checksCompleted) {
+          clearInterval(intervalId)
+          displayChecksCompletedBanner("draft-metadata-check")
+        }
+      } else {
+        return validationChecksProgress
       }
     }, 5000)
   }
