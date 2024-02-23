@@ -1,9 +1,11 @@
-export const displayChecksCompletedBanner: () => void = () => {
+export const displayChecksCompletedBanner: (prefixId: string) => void = (
+  prefixId
+) => {
   const checksCompletedBanner: HTMLDivElement | null = document.querySelector(
-    "#file-checks-completed-banner"
+    `#${prefixId}-completed-banner`
   )
   const continueButton: HTMLDivElement | null = document.querySelector(
-    "#file-checks-continue"
+    `#${prefixId}-continue`
   )
 
   const reasonDisabled: HTMLParagraphElement | null =
