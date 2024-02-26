@@ -5,12 +5,28 @@
 @import java.util.UUID
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
-@main("[WIP] Draft Metadata Upload", name = name) {
+@main("[WIP] Draft Metadata Upload", name = name, backLink = Some(backLink(routes.HomepageController.homepage().url, "How would you like to enter metadata?"))) {
     <div id="draft-metadata-upload" class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            <h1 class="govuk-heading-l">[WIP] Draft Metadata Upload</h1>
-            <p class="govuk-body">Work in progress</p>
+            <h1 class="govuk-heading-l">Upload a CSV with record metadata</h1>
+            <p class="govuk-body">Upload a metadata CSV with a row for every record in your consignment.</p>
+            <p class="govuk-body">The CSV must contain specific populated columns for a successful upload.</p>
+            <p></p>
+            <p class="govuk-body">For more inforamtion on the CSV structure and content, visit the metadata guidance page.</p>
         </div>
         @transferReference(consignmentRef, isJudgmentUser = false)
+
+        <form id="metadata-upload-form" data-consignment-id="@consignmentId">
+
+
+        <div class="govuk-form-group">
+            <input class="govuk-file-upload" id="metadata-file-selection" name="file-upload-1" content="GOOD" type="file" aria-describedby="file-upload-1-hint">
+        </div>
+
+        <button id="start-upload-button" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+            Upload
+        </button>
+
+        </form>
     </div>
 }
