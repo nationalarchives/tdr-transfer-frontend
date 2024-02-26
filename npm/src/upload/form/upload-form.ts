@@ -213,7 +213,8 @@ export class UploadForm {
   ) => {
     ev.preventDefault()
     const itemSelected: IEntryWithPath = this.selectedFiles[0]
-
+    console.error("hello")
+    debugger;
     if (itemSelected) {
       this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
       this.disableSubmitButtonAndDropzone()
@@ -248,6 +249,12 @@ export class UploadForm {
   addSubmitListener() {
     this.formElement.addEventListener("submit", this.handleFormSubmission, {
       once: true
+    })
+  }
+
+  addASubmitListener() {
+    this.formElement.addEventListener("submit", this.handleFormSubmission, {
+      once: false
     })
   }
 

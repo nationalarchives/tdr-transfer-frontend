@@ -41,6 +41,10 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
 export const renderModules = async () => {
   const uploadContainer: HTMLDivElement | null =
     document.querySelector("#file-upload")
+
+  const  draftMetadataFileUploadContainer: HTMLDivElement | null =
+      document.querySelector("#metadata-file-upload")
+
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
@@ -56,6 +60,12 @@ export const renderModules = async () => {
   const buttonDisabled: NodeListOf<HTMLElement> = document.querySelectorAll(
     '[data-tdr-module="button-disabled"]'
   )
+
+  if (draftMetadataFileUploadContainer) {
+    uploadContainer.removeAttribute("hidden")
+    const frontEndInfo = getFrontEndInfo()
+    const errorHandlingModule = await import("./errorhandling")
+  }
 
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
