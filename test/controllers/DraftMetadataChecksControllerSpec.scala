@@ -35,9 +35,9 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
   val zoneId = ZoneId.systemDefault()
 
   private val configuration: Configuration = mock[Configuration]
-  private val expectedTitle: String = "<title>Checking your metadata CSV - Transfer Digital Records - GOV.UK</title>"
-  private val expectedHeading: String = """<h1 class="govuk-heading-l">Checking your metadata CSV</h1>"""
-  private val expectedInstruction: String = """<p class="govuk-body">Please wait while we check your CSV against the uploaded records. This may take a few minutes.</p>"""
+  private val expectedTitle: String = "<title>Checking your metadata - Transfer Digital Records - GOV.UK</title>"
+  private val expectedHeading: String = """<h1 class="govuk-heading-l">Checking your metadata</h1>"""
+  private val expectedInstruction: String = """<p class="govuk-body">Please wait while we check your metadata against the uploaded records. This may take a few minutes.</p>"""
   private val expectedInput: String = s"""<input id="consignmentId" type="hidden" value="${consignmentId}">"""
 
   val expectedNotificationBanner =
@@ -48,7 +48,7 @@ class DraftMetadataChecksControllerSpec extends FrontEndTestHelper {
       |                        </h2>
       |                    </div>
       |                    <div class="govuk-notification-banner__content">
-      |                        <p class="govuk-notification-banner__heading">Your CSV has been checked.</p>
+      |                        <h3 class="govuk-notification-banner__heading">Your metadata has been checked.</h3>
       |                        <p class="govuk-body">Please click 'Continue' to see your results.</p>
       |                    </div>
       |""".stripMargin
