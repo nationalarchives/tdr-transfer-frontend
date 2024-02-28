@@ -64,8 +64,9 @@ class AdditionalMetadataEntryMethodController @Inject() (
         formData.metadataRoute match {
           case Some("manual") => Future.successful(Redirect(routes.AdditionalMetadataController.start(consignmentId)))
           case Some("csv") =>
-            consignmentStatusService.addConsignmentStatus(consignmentId, "DraftMetadata", InProgressValue.value, request.token.bearerAccessToken)
-            .map(_ => Redirect(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)))
+            consignmentStatusService
+              .addConsignmentStatus(consignmentId, "DraftMetadata", InProgressValue.value, request.token.bearerAccessToken)
+              .map(_ => Redirect(routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)))
           case _ => Future.successful(Redirect(routes.DownloadMetadataController.downloadMetadataPage(consignmentId)))
         }
       }

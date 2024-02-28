@@ -77,9 +77,11 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
 
       val additionalMetadataEntryMethodPage = controller
         .submitAdditionalMetadataEntryMethod(consignmentId)
-        .apply(FakeRequest(POST, "/additional-metadata/entry-method")
-          .withFormUrlEncodedBody(Seq(): _*)
-          .withCSRFToken)
+        .apply(
+          FakeRequest(POST, "/additional-metadata/entry-method")
+            .withFormUrlEncodedBody(Seq(): _*)
+            .withCSRFToken
+        )
 
       val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
       verifyForm(pageAsString, true)
@@ -93,11 +95,12 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
 
       val additionalMetadataEntryMethodPage: Result = controller
         .submitAdditionalMetadataEntryMethod(consignmentId)
-        .apply(FakeRequest(POST, "/additional-metadata/entry-method")
-          .withFormUrlEncodedBody(Seq(("metadataRoute", "manual")): _*)
-          .withCSRFToken)
+        .apply(
+          FakeRequest(POST, "/additional-metadata/entry-method")
+            .withFormUrlEncodedBody(Seq(("metadataRoute", "manual")): _*)
+            .withCSRFToken
+        )
         .futureValue
-
 
       val redirectLocation = additionalMetadataEntryMethodPage.header.headers.getOrElse("Location", "")
 
@@ -113,11 +116,12 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
 
       val additionalMetadataEntryMethodPage: Result = controller
         .submitAdditionalMetadataEntryMethod(consignmentId)
-        .apply(FakeRequest(POST, "/additional-metadata/entry-method")
-          .withFormUrlEncodedBody(Seq(("metadataRoute", "none")): _*)
-          .withCSRFToken)
+        .apply(
+          FakeRequest(POST, "/additional-metadata/entry-method")
+            .withFormUrlEncodedBody(Seq(("metadataRoute", "none")): _*)
+            .withCSRFToken
+        )
         .futureValue
-
 
       val redirectLocation = additionalMetadataEntryMethodPage.header.headers.getOrElse("Location", "")
 
@@ -134,11 +138,12 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
 
       val additionalMetadataEntryMethodPage: Result = controller
         .submitAdditionalMetadataEntryMethod(consignmentId)
-        .apply(FakeRequest(POST, "/additional-metadata/entry-method")
-          .withFormUrlEncodedBody(Seq(("metadataRoute", "csv")): _*)
-          .withCSRFToken)
+        .apply(
+          FakeRequest(POST, "/additional-metadata/entry-method")
+            .withFormUrlEncodedBody(Seq(("metadataRoute", "csv")): _*)
+            .withCSRFToken
+        )
         .futureValue
-
 
       val redirectLocation = additionalMetadataEntryMethodPage.header.headers.getOrElse("Location", "")
 
@@ -177,8 +182,12 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
                                 |                            How would you like to enter record metadata?
                                 |                        </h1>""".stripMargin)
     pageAsString must include(s"""<form action="/consignment/$consignmentId/additional-metadata/entry-method" method="POST" novalidate="">""".stripMargin)
-    pageAsString must include("""<input class="govuk-radios__input" id="metadata-route-manual" name="metadataRoute" type="radio" value="manual" aria-describedby="metadata-route-manual-hint">""")
-    pageAsString must include("""<input class="govuk-radios__input" id="metadata-route-csv" name="metadataRoute" type="radio" value="csv" aria-describedby="metadata-route-csv-hint">""")
+    pageAsString must include(
+      """<input class="govuk-radios__input" id="metadata-route-manual" name="metadataRoute" type="radio" value="manual" aria-describedby="metadata-route-manual-hint">"""
+    )
+    pageAsString must include(
+      """<input class="govuk-radios__input" id="metadata-route-csv" name="metadataRoute" type="radio" value="csv" aria-describedby="metadata-route-csv-hint">"""
+    )
     pageAsString must include("""<input class="govuk-radios__input" id="metadata-route-none" name="metadataRoute" type="radio" value="none">""")
     pageAsString must include("""<button class="govuk-button" data-module="govuk-button">
                                 |                Continue
