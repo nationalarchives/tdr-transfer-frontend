@@ -1,15 +1,59 @@
 @import helper._
 @import views.html.partials._
-@import viewsapi.FrontEndInfo
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentRef: String, entryForm: Form[AdditionalMetadataEntryData], name: String)(implicit request: RequestHeader, messages: Messages)
 
-@main("[WIP] Draft Metadata", name = name) {
-    <div id="draft-metadata-upload" class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-            <h1 class="govuk-heading-l">[WIP] Draft Metadata</h1>
-            <p class="govuk-body">Work in progress</p>
+@inputName = @{entryForm("metadataRoute").id}
+@main("How would you like to enter record metadata?", name = name) {
+    <div id="additional-metadata-entry-method" class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds-from-desktop">
+        @errorSummary(
+            List(
+                entryForm("metadataRoute").id -> entryForm("metadataRoute").errors.headOption
+            ).collect { case (id, Some(formError)) => id -> formError.messages}
+        )
+        @form(routes.AdditionalMetadataEntryMethodController.submitAdditionalMetadataEntryMethod(consignmentId), (Symbol("novalidate"), "")) {
+            @CSRF.formField
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset" aria-describedby="metadata-route-hint">
+                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+                        <h1 class="govuk-fieldset__heading">
+                            How would you like to enter record metadata?
+                        </h1>
+                    </legend>
+                    <div class="govuk-radios" data-module="govuk-radios">
+                        <div class="govuk-radios__item">
+                            <input class="govuk-radios__input" id="metadata-route-manual" name="@inputName" type="radio" value="manual" aria-describedby="metadata-route-manual-hint">
+                            <label class="govuk-label govuk-radios__label" for="metadata-route-manual">
+                                Select records and add metadata
+                            </label>
+                            <div id="metadata-route-manual-hint" class="govuk-hint govuk-radios__hint">
+                                Better for small amounts of metadata
+                            </div>
+                        </div>
+                        <div class="govuk-radios__item">
+                            <input class="govuk-radios__input" id="metadata-route-csv" name="@inputName" type="radio" value="csv" aria-describedby="metadata-route-csv-hint">
+                            <label class="govuk-label govuk-radios__label" for="metadata-route-csv">
+                                Add metadata to a CSV and upload
+                            </label>
+                            <div id="metadata-route-csv-hint" class="govuk-hint govuk-radios__hint">
+                                Better for large amounts of metadata
+                            </div>
+                        </div>
+                        <div class="govuk-radios__item">
+                            <input class="govuk-radios__input" id="metadata-route-none" name="@inputName" type="radio" value="none">
+                            <label class="govuk-label govuk-radios__label" for="metadata-route-none">
+                                I don't have any metadata
+                            </label>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <button class="govuk-button" data-module="govuk-button">
+                Continue
+            </button>
+        }
         </div>
         @transferReference(consignmentRef, isJudgmentUser = false)
     </div>
