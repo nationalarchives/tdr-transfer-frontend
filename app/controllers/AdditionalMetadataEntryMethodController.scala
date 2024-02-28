@@ -28,7 +28,7 @@ class AdditionalMetadataEntryMethodController @Inject() (
 
   val additionalMetadataEntryForm: Form[AdditionalMetadataEntryData] = Form(
     mapping(
-      "metadataRoute" -> optional(text).verifying("Please choose an option", t => t.nonEmpty)
+      "metadataRoute" -> optional(text).verifying("Choose a way of entering metadata", t => t.nonEmpty)
     )(AdditionalMetadataEntryData.apply)(AdditionalMetadataEntryData.unapply)
   )
 
