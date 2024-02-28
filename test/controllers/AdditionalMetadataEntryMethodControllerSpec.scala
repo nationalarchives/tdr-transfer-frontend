@@ -176,7 +176,7 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
 
     if (hasError) {
       pageAsString must include("""<div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">""")
-      pageAsString must include("""<a href="#error-metadataRoute">Please choose an option</a>""".stripMargin)
+      pageAsString must include("""<a href="#error-metadataRoute">Choose a way of entering metadata</a>""".stripMargin)
     }
     pageAsString must include("""<h1 class="govuk-fieldset__heading">
                                 |                            How would you like to enter record metadata?
