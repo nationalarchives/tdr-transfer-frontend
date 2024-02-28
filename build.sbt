@@ -17,7 +17,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0
 //More details on a similar error here: https://stackoverflow.com/questions/43841091/spark2-1-0-incompatible-jackson-versions-2-7-6
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.11.4" % Test
 
-val playPac4jVersion = "11.1.0-PLAY2.8"
+val playPac4jVersion = "12.0.0-PLAY3.0"
 val pac4jVersion = "6.0.1"
 val sttpVersion = "2.3.0"
 
