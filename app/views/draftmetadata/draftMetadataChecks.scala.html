@@ -5,14 +5,14 @@
 @import java.util.UUID
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
-    @main("Checking your metadata CSV", name = name) {
+    @main("Checking your metadata", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
             <div class="govuk-grid-row draft-metadata-validation-progress">
                 <div class="govuk-grid-column-two-thirds">
                     @frontEndInputs(frontEndInfo)
-                <h1 class="govuk-heading-l">Checking your metadata CSV</h1>
+                <h1 class="govuk-heading-l">Checking your metadata</h1>
                 <input id="consignmentId" type="hidden" value="@consignmentId">
-                <p class="govuk-body">Please wait while we check your CSV against the uploaded records. This may take a few minutes.</p>
+                <p class="govuk-body">Please wait while we check your metadata against the uploaded records. This may take a few minutes.</p>
                 <div class="govuk-notification-banner" id="draft-metadata-checks-completed-banner" tabindex="-1" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner" hidden>
                     <div class="govuk-notification-banner__header">
                         <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
@@ -20,7 +20,7 @@
                         </h2>
                     </div>
                     <div class="govuk-notification-banner__content">
-                        <p class="govuk-notification-banner__heading">Your CSV has been checked.</p>
+                        <h3 class="govuk-notification-banner__heading">Your metadata has been checked.</h3>
                         <p class="govuk-body">Please click 'Continue' to see your results.</p>
                     </div>
                 </div>
