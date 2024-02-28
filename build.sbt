@@ -8,7 +8,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
-scalaVersion := "2.13.12"
+scalaVersion := "2.13.13"
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
@@ -31,9 +31,9 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.148",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.190",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.191",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.361",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.14",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.16",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.5.0",
   ws,
