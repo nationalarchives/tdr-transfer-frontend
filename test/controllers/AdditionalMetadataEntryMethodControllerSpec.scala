@@ -176,12 +176,17 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
 
     if (hasError) {
       pageAsString must include("""<div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">""")
-      pageAsString must include("""<a href="#error-metadataRoute">Choose a way of entering metadata</a>""".stripMargin)
+      pageAsString must include("""<a href="#error-metadataRoute">Choose a way of entering metadata</a>""")
+      pageAsString must include("""    <p class="govuk-error-message" id="error-metadataRoute">
+                                  |        <span class="govuk-visually-hidden">Error:</span>
+                                  |        Choose a way of entering metadata
+                                  |    </p>""".stripMargin)
     }
+    pageAsString must include(s"""<a href="/consignment/$consignmentId/draft-metadata/checks-results" class="govuk-back-link">Results of your record checks</a>""")
     pageAsString must include("""<h1 class="govuk-fieldset__heading">
                                 |                            How would you like to enter record metadata?
                                 |                        </h1>""".stripMargin)
-    pageAsString must include(s"""<form action="/consignment/$consignmentId/additional-metadata/entry-method" method="POST" novalidate="">""".stripMargin)
+    pageAsString must include(s"""<form action="/consignment/$consignmentId/additional-metadata/entry-method" method="POST" novalidate="">""")
     pageAsString must include(
       """<input class="govuk-radios__input" id="metadata-route-manual" name="metadataRoute" type="radio" value="manual" aria-describedby="metadata-route-manual-hint">"""
     )

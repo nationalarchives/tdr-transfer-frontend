@@ -4,27 +4,28 @@
 @import java.util.UUID
 @(consignmentId: UUID, consignmentRef: String, entryForm: Form[AdditionalMetadataEntryData], name: String)(implicit request: RequestHeader, messages: Messages)
 
-@inputName = @{entryForm("metadataRoute").id}
-@main("How would you like to enter record metadata?", name = name) {
+@metadataRoute = @{entryForm("metadataRoute")}
+@main("How would you like to enter record metadata?", name = name, backLink = Some(backLink(routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId).url, "Results of your record checks")) ) {
     <div id="additional-metadata-entry-method" class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds-from-desktop">
         @errorSummary(
             List(
-                entryForm("metadataRoute").id -> entryForm("metadataRoute").errors.headOption
+                metadataRoute.id -> metadataRoute.errors.headOption
             ).collect { case (id, Some(formError)) => id -> formError.messages}
         )
         @form(routes.AdditionalMetadataEntryMethodController.submitAdditionalMetadataEntryMethod(consignmentId), (Symbol("novalidate"), "")) {
             @CSRF.formField
-            <div class="govuk-form-group">
+            <div class="govuk-form-group @{if(metadataRoute.errors.nonEmpty) "govuk-form-group--error" else ""}">
                 <fieldset class="govuk-fieldset" aria-describedby="metadata-route-hint">
                     <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
                         <h1 class="govuk-fieldset__heading">
                             How would you like to enter record metadata?
                         </h1>
                     </legend>
+                    @errorMessage(metadataRoute.id, metadataRoute.errors.flatMap(_.messages))
                     <div class="govuk-radios" data-module="govuk-radios">
                         <div class="govuk-radios__item">
-                            <input class="govuk-radios__input" id="metadata-route-manual" name="@inputName" type="radio" value="manual" aria-describedby="metadata-route-manual-hint">
+                            <input class="govuk-radios__input" id="metadata-route-manual" name="@metadataRoute.id" type="radio" value="manual" aria-describedby="metadata-route-manual-hint">
                             <label class="govuk-label govuk-radios__label" for="metadata-route-manual">
                                 Select records and add metadata
                             </label>
@@ -33,7 +34,7 @@
                             </div>
                         </div>
                         <div class="govuk-radios__item">
-                            <input class="govuk-radios__input" id="metadata-route-csv" name="@inputName" type="radio" value="csv" aria-describedby="metadata-route-csv-hint">
+                            <input class="govuk-radios__input" id="metadata-route-csv" name="@metadataRoute.id" type="radio" value="csv" aria-describedby="metadata-route-csv-hint">
                             <label class="govuk-label govuk-radios__label" for="metadata-route-csv">
                                 Add metadata to a CSV and upload
                             </label>
@@ -42,7 +43,7 @@
                             </div>
                         </div>
                         <div class="govuk-radios__item">
-                            <input class="govuk-radios__input" id="metadata-route-none" name="@inputName" type="radio" value="none">
+                            <input class="govuk-radios__input" id="metadata-route-none" name="@metadataRoute.id" type="radio" value="none">
                             <label class="govuk-label govuk-radios__label" for="metadata-route-none">
                                 I don't have any metadata
                             </label>
