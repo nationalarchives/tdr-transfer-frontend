@@ -10,7 +10,7 @@ import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
 import { TdrFetchHandler } from "../s3upload/tdr-fetch-handler"
 import { S3Client } from "@aws-sdk/client-s3"
 import { IEntryWithPath } from "./form/get-files-from-drag-event"
-import {UploadSingleItemForm} from "./singleitemform/upload-form";
+
 
 export interface IKeycloakInstance extends KeycloakInstance {
   tokenParsed: IKeycloakTokenParsed
@@ -140,29 +140,4 @@ export class FileUploader {
     }
   }
 
-  initialiseMetadataFormListeners(): void {
-
-    const uploadForm: HTMLFormElement | null =
-        document.querySelector("#metadata-upload-form")
-
-    const itemRetriever: HTMLInputElement | null =
-        document.querySelector("#metadata-file-selection")
-
-    // const dropzone: HTMLElement | null = document.querySelector(
-    //     ".drag-and-drop__dropzone"
-    // )
-
-    if (uploadForm && itemRetriever) {
-      const form = new UploadSingleItemForm(
-          uploadForm,
-          itemRetriever,
-          this.uploadFiles
-      )
-      // form.addFolderListener()
-      form.addASubmitListener()
-      // form.addButtonHighlighter()
-      // form.addDropzoneHighlighter()
-      // form.addRemoveSelectedItemListener()
-    }
-  }
 }
