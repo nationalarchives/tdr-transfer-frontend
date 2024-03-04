@@ -44,6 +44,7 @@ judgmentCheckingRecords.progress=3
 judgmentFileChecksResults.progress=3
 checkingRecords.progress=4
 fileChecksResults.progress=4
+draftMetadataChecksResults.progress=5
 additionalMetadataStart.progress=5
 downloadMetadata.progress=6
 confirmTransfer.progress=7

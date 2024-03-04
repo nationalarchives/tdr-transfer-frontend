@@ -1,15 +1,36 @@
-@import helper._
+@import controllers.DraftMetadataChecksResultsController.DraftMetadataProgress
 @import views.html.partials._
 @import viewsapi.FrontEndInfo
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
-@main("[WIP] Draft Metadata", name = name) {
-    <div id="draft-metadata-upload" class="govuk-grid-row">
+@(consignmentId: UUID, consignmentRef: String, draftMetadataProgress: DraftMetadataProgress, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
+
+@main("Results of CSV Checks", name = name) {
+    <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            <h1 class="govuk-heading-l">[WIP] Draft Metadata</h1>
-            <p class="govuk-body">Work in progress</p>
+            @progressIndicator(Messages("draftMetadataChecksResults.progress"))
+            <h1 class="govuk-heading-l">
+                Results of your metadata checks
+            </h1>
+            <p class="govuk-body">Your CSV has been successfully uploaded and the metadata has been imported.</p>
+            <dl class="govuk-summary-list">
+                <div class="govuk-summary-list__row">
+                    <dt class="govuk-summary-list__key">
+                        Status
+                    </dt>
+                    <dd class="govuk-summary-list__value">
+                        <strong class="govuk-tag govuk-tag--@draftMetadataProgress.colour">
+                            @draftMetadataProgress.value
+                        </strong>
+                    </dd>
+                </div>
+            </dl>
+            <div class="govuk-button-group">
+                <a href="@routes.DownloadMetadataController.downloadMetadataPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+                    Next
+                </a>
+            </div>
         </div>
         @transferReference(consignmentRef, isJudgmentUser = false)
     </div>
