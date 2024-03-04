@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.367",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.17",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
-  "ch.qos.logback" % "logback-classic" % "1.5.1",
+  "ch.qos.logback" % "logback-classic" % "1.5.2",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.35.0",
   "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.35.0",
@@ -45,7 +45,7 @@ libraryDependencies ++= Seq(
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.33.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "org.mockito" % "mockito-core" % "5.10.0" % Test,
+  "org.mockito" % "mockito-core" % "5.11.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
 
