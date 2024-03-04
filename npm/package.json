@@ -41,7 +41,7 @@
   },
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.515.0",
+    "@aws-sdk/client-s3": "^3.521.0",
     "@aws-sdk/lib-storage": "^3.85.0",
     "@aws-sdk/querystring-builder": "^3.374.0",
     "@aws-sdk/protocol-http": "^3.374.0",
@@ -68,7 +68,7 @@
     "@typescript-eslint/parser": "^7.1.0",
     "aws-sdk-client-mock": "^3.0.0",
     "copyfiles": "^2.4.1",
-    "eslint": "^8.56.0",
+    "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jest": "^27.9.0",
