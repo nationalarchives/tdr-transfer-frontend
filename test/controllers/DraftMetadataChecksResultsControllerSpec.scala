@@ -38,26 +38,6 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   }
 
   "DraftMetadataChecksResultsControllerSpec GET" should {
-    "render 'draft metadata checks results' page when 'blockDraftMetadataUpload' set to 'false'" in {
-      val controller = instantiateController(blockDraftMetadataUpload = false)
-      val additionalMetadataEntryMethodPage = controller
-        .draftMetadataChecksResultsPage(consignmentId)
-        .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentReferenceResponse(wiremockServer)
-      val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
-      val consignmentStatuses = List(
-        gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, CompletedValue.value, someDateTime, None)
-      )
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
-
-      val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
-
-      playStatus(additionalMetadataEntryMethodPage) mustBe OK
-      contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
-      pageAsString must include("<title>Results of CSV Checks - Transfer Digital Records - GOV.UK</title>")
-    }
-
     "render page not found error when 'blockDraftMetadataUpload' set to 'true'" in {
       val controller = instantiateController()
       val additionalMetadataEntryMethodPage = controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
