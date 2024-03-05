@@ -10,7 +10,8 @@ import { S3ClientConfig } from "@aws-sdk/client-s3/dist-types/S3Client"
 import { TdrFetchHandler } from "../s3upload/tdr-fetch-handler"
 import { S3Client } from "@aws-sdk/client-s3"
 import { IEntryWithPath } from "./form/get-files-from-drag-event"
-
+import {DraftMetaDataUploadForm} from "./form/draft-metadata-upload-form";
+import {DraftMetadataFileUpload} from "../draftmetadatafileupload";
 
 export interface IKeycloakInstance extends KeycloakInstance {
   tokenParsed: IKeycloakTokenParsed
@@ -23,6 +24,37 @@ export interface IKeycloakTokenParsed extends KeycloakTokenParsed {
 export const pageUnloadAction: (e: BeforeUnloadEvent) => void = (e) => {
   e.preventDefault()
   e.returnValue = ""
+}
+
+
+export class DraftMetaDataFileUploader {
+  draftMetadataFileUpload: DraftMetadataFileUpload
+  constructor( draftMetadataFileUpload: DraftMetadataFileUpload) {
+    this.draftMetadataFileUpload = draftMetadataFileUpload
+  }
+  initialiseFormListeners(): void {
+    debugger
+
+    const uploadForm: HTMLFormElement | null =
+        document.querySelector("#draft-metadata-upload-form")
+
+    const itemRetriever: HTMLInputElement | null =
+        document.querySelector("#file-selection")
+
+    if (uploadForm &&  itemRetriever ) {
+      const form = new DraftMetaDataUploadForm(
+          uploadForm,
+          itemRetriever,
+          this.draftMetadataFileUpload
+      )
+      form.addSubmitListener()
+      form.addFolderListener()
+      //form.addButtonHighlighter()
+      // form.addDropzoneHighlighter()
+      //form.addRemoveSelectedItemListener()
+    }
+  }
+
 }
 
 export class FileUploader {
@@ -118,7 +150,7 @@ export class FileUploader {
       document.querySelector("#file-upload-form")
 
     const itemRetriever: HTMLInputElement | null =
-      document.querySelector("#metadata-file-selection")
+      document.querySelector("#file-selection")
 
     const dropzone: HTMLElement | null = document.querySelector(
       ".drag-and-drop__dropzone"
@@ -139,5 +171,7 @@ export class FileUploader {
       form.addRemoveSelectedItemListener()
     }
   }
+
+
 
 }

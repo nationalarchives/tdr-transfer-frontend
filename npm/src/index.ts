@@ -62,9 +62,28 @@ export const renderModules = async () => {
   )
 
   if (draftMetadataFileUploadContainer) {
-    uploadContainer.removeAttribute("hidden")
+
+    draftMetadataFileUploadContainer.removeAttribute("hidden")
     const frontEndInfo = getFrontEndInfo()
     const errorHandlingModule = await import("./errorhandling")
+    if (!errorHandlingModule.isError(frontEndInfo)) {
+      const authModule = await import("./auth")
+      const keycloak = await authModule.getKeycloakInstance()
+       if (!errorHandlingModule.isError(keycloak)) {
+        const draftMetadataUploadModule = await import("./draftmetadatafileupload")
+        const draftMetadataFileUpload =
+            new draftMetadataUploadModule.DraftMetadataFileUpload()
+        const uploadModule = await import("./upload")
+      
+        new uploadModule.DraftMetaDataFileUploader(
+            draftMetadataFileUpload
+        ).initialiseFormListeners()
+      } else {
+        errorHandlingModule.handleUploadError(keycloak)
+      }
+    } else {
+      errorHandlingModule.handleUploadError(frontEndInfo)
+    }
   }
 
   if (uploadContainer) {
@@ -145,8 +164,8 @@ export const renderModules = async () => {
   }
 
   if (timeoutDialog) {
-    const sessionTimeoutModule = await import("./auth/session-timeout")
-    await sessionTimeoutModule.initialiseSessionTimeout()
+    // const sessionTimeoutModule = await import("./auth/session-timeout")
+    // await sessionTimeoutModule.initialiseSessionTimeout()
   }
   if (fileSelectionTree) {
     const trees: NodeListOf<HTMLUListElement> =

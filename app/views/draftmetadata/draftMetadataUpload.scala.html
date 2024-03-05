@@ -6,41 +6,37 @@
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
 @main("[WIP] Draft Metadata Upload", name = name, backLink = Some(backLink(routes.HomepageController.homepage().url, "How would you like to enter metadata?"))) {
-    <div id="file-upload" class="govuk-grid-row">
+    <div id="metadata-file-upload" class="govuk-grid-row" hidden>
+
         <div class="govuk-grid-column-two-thirds">
             <h1 class="govuk-heading-l">Upload a CSV with record metadata</h1>
             <div class="govuk-body">
-            <p> Upload a metadata CSV with a row for every record in your consignment.</p>
-            <p> The CSV must contain specific populated columns for a successful upload.</p>
-            <p>For more information on the CSV structure and content, visit the metadata guidance page.</p>
+                <p> Upload a metadata CSV with a row for every record in your consignment.</p>
+                <p> The CSV must contain specific populated columns for a successful upload.</p>
+                <p>For more information on the CSV structure and content, visit the metadata guidance page.</p>
             </div>
 
+            <div class="govuk-form-group">
+                <div id="selection-area">
+                    @loggedOutErrorMessage("file-upload")
+                    @frontEndInputs(frontEndInfo)
+                    @CSRF.formField
+                    <form id="draft-metadata-upload-form" data-consignment-id="@consignmentId">
+                        <div >
+
+                            <input class="govuk-file-upload" type="file" id="file-selection" name="files"
+                            accept=".csv" about="sgfgdsfggdfgdfsg">
 
 
-        <div class="govuk-form-group">
-        @loggedOutErrorMessage("file-upload")
-        <form id="file-upload-form1" data-consignment-id="@consignmentId">
-
-
-
-            <div >
-                <input class="govuk-file-upload" type="file" id="file-selection1" name="files"
-                 accept=".csv">
-
+                        </div>
+                        <div>
+                            <button id="start-upload-button1" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                                Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-
-
-@*            <input class="govuk-file-upload" id="metadata-file-selection" name="file-upload-1" content="GOOD" type="file" aria-describedby="file-upload-1-hint">*@
-
-        <div>
-        <button id="start-upload-button1" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-            Upload
-        </button>
-        </div>
-
-        </form>
-        </div>
         </div>
         @transferReference(consignmentRef, isJudgmentUser = false)
 
