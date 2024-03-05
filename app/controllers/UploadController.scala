@@ -1,5 +1,6 @@
 package controllers
 
+import akka.util.ByteString
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
@@ -7,7 +8,7 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request}
+import play.api.mvc.{Action, AnyContent, Request, ResponseHeader}
 import services.Statuses._
 import services._
 import viewsapi.Caching.preventCaching
@@ -37,6 +38,17 @@ class UploadController @Inject() (
       case None        => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
       case Some(input) => uploadService.startUpload(input, request.token.bearerAccessToken).map(Ok(_))
     }
+  }
+
+  def saveDraftMetadata(consignmentId: java.util.UUID): Action[AnyContent] = secureAction.async { implicit request =>
+     println("OKay Okay")
+     Future(Ok("yes"))
+    //    request.body.asJson.flatMap(body => {
+//      decode[StartUploadInput](body.toString).toOption
+//    }) match {
+//      case None        => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
+//      case Some(input) => uploadService.startUpload(input, request.token.bearerAccessToken).map(Ok(_))
+//    }
   }
 
   def saveClientMetadata(): Action[AnyContent] = secureAction.async { implicit request =>
