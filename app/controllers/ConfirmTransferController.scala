@@ -47,33 +47,36 @@ class ConfirmTransferController @Inject() (
   }
 
   private def loadStandardPageBasedOnCtStatus(consignmentId: UUID, httpStatus: Status, finalTransferForm: Form[FinalTransferConfirmationData] = finalTransferConfirmationForm)(
-    implicit request: Request[AnyContent]
+      implicit request: Request[AnyContent]
   ): Future[Result] = {
     consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken).flatMap { consignmentStatuses =>
-
-      val consignmentStatusValues: Map[Statuses.StatusType, Option[String]] = consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType, TransferAgreementType, UploadType, ClientChecksType)
+      val consignmentStatusValues: Map[Statuses.StatusType, Option[String]] =
+        consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType, TransferAgreementType, UploadType, ClientChecksType)
       val exportTransferStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
       val incompleteStatuses = consignmentStatusValues.filter(s => !s._2.contains(CompletedValue.value) || s._2.contains(None))
 
-      Seq(SeriesType, TransferAgreementType, UploadType, ClientChecksType).find( statusType => incompleteStatuses.contains(statusType)).map {
-        case SeriesType => Future(Redirect(routes.SeriesDetailsController.seriesDetails(consignmentId)))
-        case TransferAgreementType => Future(Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId)))
-        case UploadType => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
-        case ClientChecksType => Future(Redirect(routes.FileChecksController.fileChecksPage(consignmentId, Some("false"))))
-      }.getOrElse(
-        exportTransferStatus match {
-          case Some (InProgressValue.value) | Some (CompletedValue.value) | Some (FailedValue.value) =>
-            consignmentService.getConsignmentRef (consignmentId, request.token.bearerAccessToken).map {consignmentRef =>
-              Ok (views.html.transferAlreadyCompleted (consignmentId, consignmentRef, request.token.name)).uncache ()
-            }
-          case None =>
-            getConsignmentSummary (request, consignmentId).map {consignmentSummary =>
-              httpStatus (views.html.standard.confirmTransfer (consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache ()
-            }
-          case _ =>
-            throw new IllegalStateException (s"Unexpected Export status: $exportTransferStatus for consignment $consignmentId")
+      Seq(SeriesType, TransferAgreementType, UploadType, ClientChecksType)
+        .find(statusType => incompleteStatuses.contains(statusType))
+        .map {
+          case SeriesType            => Future(Redirect(routes.SeriesDetailsController.seriesDetails(consignmentId)))
+          case TransferAgreementType => Future(Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId)))
+          case UploadType            => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
+          case ClientChecksType      => Future(Redirect(routes.FileChecksController.fileChecksPage(consignmentId, Some("false"))))
+        }
+        .getOrElse(
+          exportTransferStatus match {
+            case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) =>
+              consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map { consignmentRef =>
+                Ok(views.html.transferAlreadyCompleted(consignmentId, consignmentRef, request.token.name)).uncache()
+              }
+            case None =>
+              getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
+                httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
+              }
+            case _ =>
+              throw new IllegalStateException(s"Unexpected Export status: $exportTransferStatus for consignment $consignmentId")
           }
-      )
+        )
     }
   }
 
