@@ -21,16 +21,13 @@
                     @loggedOutErrorMessage("file-upload")
                     @frontEndInputs(frontEndInfo)
                     @CSRF.formField
-                    <form id="draft-metadata-upload-form" data-consignment-id="@consignmentId">
+                    <form action="@routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId)" id="draft-metadata-upload-form" data-consignment-id="@consignmentId">
                         <div >
-
                             <input class="govuk-file-upload" type="file" id="file-selection" name="files"
-                            accept=".csv" about="sgfgdsfggdfgdfsg">
-
-
+                            accept=".csv">
                         </div>
                         <div>
-                            <button id="start-upload-button1" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                            <button id="to-draft-metadata-checks" class="govuk-button" type="submit" data-module="govuk-button"  role="button">
                                 Upload
                             </button>
                         </div>

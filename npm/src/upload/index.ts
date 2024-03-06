@@ -47,11 +47,7 @@ export class DraftMetaDataFileUploader {
           itemRetriever,
           this.draftMetadataFileUpload
       )
-      form.addSubmitListener()
-      form.addFolderListener()
-      //form.addButtonHighlighter()
-      // form.addDropzoneHighlighter()
-      //form.addRemoveSelectedItemListener()
+      form.addDraftMetadataItemListener()
     }
   }
 
