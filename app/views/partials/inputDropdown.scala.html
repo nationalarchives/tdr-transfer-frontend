@@ -7,7 +7,8 @@ options: Seq[InputNameAndValue],
 selectedOption: Option[InputNameAndValue],
 multiValue: Boolean=false,
 attributes: Map[Symbol, Any],
-fieldErrors: List[String] = Nil
+fieldErrors: List[String] = Nil,
+defaultOptionText: String = "Please choose...",
 )(implicit messages: Messages)
 
 @import viewsapi.FormFunctions._
@@ -44,7 +45,7 @@ fieldErrors: List[String] = Nil
         @if(disabledStatus.toString() != "disabled") {
             @if(selectedOption.isEmpty) {
                 <option value="" selected>
-                    Please choose...
+                    @defaultOptionText
                 </option>
             }
             @for(dropdownOption <- options) {

@@ -1,6 +1,5 @@
 @(isLoggedIn: Boolean, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
-@defining("The National Archives") { title =>
-  @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
+  @main("The National Archives", isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
     @defining(play.core.PlayVersion.current) { version =>
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
@@ -25,4 +24,3 @@
       </div>
     }
   }
-}
