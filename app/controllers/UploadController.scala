@@ -1,7 +1,8 @@
 package controllers
 
-import akka.util.ByteString
+
 import auth.TokenSecurity
+import com.typesafe.config.ConfigException.IO
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
 import io.circe.parser.decode
@@ -11,11 +12,14 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, ResponseHeader}
 import services.Statuses._
 import services._
-import viewsapi.Caching.preventCaching
+import uk.gov.nationalarchives.DAS3Client
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody
+import viewsapi.Caching.preventCaching
+
 
 @Singleton
 class UploadController @Inject() (
@@ -41,6 +45,14 @@ class UploadController @Inject() (
   }
 
   def saveDraftMetadata(consignmentId: java.util.UUID): Action[AnyContent] = secureAction.async { implicit request =>
+
+    import cats.effect.IO
+    import cats.effect.unsafe.implicits.global
+    val s3: DAS3Client[IO] = DAS3Client[IO]()
+    val bytes = request.body.asText.get.getBytes
+    val publisher = ByteBuffersAsyncRequestBody.from("application/octet-stream", bytes)
+    val response = s3.upload("twickenham-ian", "test.csv", bytes.size, publisher).unsafeRunSync()
+     println(response)
      println("OKay Okay")
      Future(Ok("yes"))
     //    request.body.asJson.flatMap(body => {
