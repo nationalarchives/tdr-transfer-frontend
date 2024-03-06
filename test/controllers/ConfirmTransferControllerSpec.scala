@@ -141,7 +141,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       val consignmentStatuses = List(
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
         ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None)
       )
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
@@ -679,13 +679,13 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         s"render the confirm transfer 'already confirmed' page with an authenticated user if the $userType user navigates back to the " +
           s"confirmTransfer after previously successfully submitting the transfer and the export status is '$consignmentStatus'" in {
             val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-          val consignmentStatuses = List(
-            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
-            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
-            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
-            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None)
-          )
+            val consignmentStatuses = List(
+              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
+              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
+              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None)
+            )
             setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
             setConsignmentReferenceResponse(wiremockServer)
             setConsignmentTypeResponse(wiremockServer, "standard")
