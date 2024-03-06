@@ -49,7 +49,7 @@ export class DraftMetaDataUploadForm {
         this.selectedFiles = this.convertFilesToIfilesWithPath(form!.files!.files!)
     }
 
-    addFolderListener() {
+    addDraftMetadataItemListener() {
         this.itemRetriever.addEventListener("change", this.handleSelectedItems)
     }
 
@@ -63,9 +63,13 @@ export class DraftMetaDataUploadForm {
             const fileName = fileWithPath.file.name
             const checkOrError = this.checkForCorrectDraftMetadataFileExtension(fileName)
             if (!isError(checkOrError)) {
-                addFileSelectionSuccessMessage(fileName)
+                const consignmentIdOrError = this.consignmentId()
+                if (!isError(consignmentIdOrError)) {
+                    const me :Promise< String | Error> = this.draftMetadataFileUpload.saveDraftMetadataFile(consignmentIdOrError, fileWithPath)
+                    //this.disableSubmitButtonAndDropzone()
+                }
             } else {
-                return checkOrError
+
             }
         }
     }
@@ -77,43 +81,6 @@ export class DraftMetaDataUploadForm {
         return this.formElement.includeTopLevelFolder?.checked
     }
 
-    handleFormSubmission: (ev: Event) => Promise<void | Error> = async (
-        ev: Event
-    ) => {
-        ev.preventDefault()
-        const itemSelected: IEntryWithPath = this.selectedFiles[0]
-        const fileWithPath = this.selectedFiles[0] as IFileWithPath
-        debugger;
-        if (itemSelected) {
-            this.formElement.addEventListener("submit", (ev) => ev.preventDefault()) // adding new event listener, in order to prevent default submit button behaviour
-            this.disableSubmitButtonAndDropzone()
-
-            const consignmentIdOrError = this.consignmentId()
-            if (!isError(consignmentIdOrError)) {
-                this.draftMetadataFileUpload.saveDraftMetadataFile(consignmentIdOrError, fileWithPath).then(
-                    //Send a 301
-
-                ).catch()
-
-            } else {
-                return consignmentIdOrError
-            }
-        } else {
-            this.addSubmitListener() // Add submit listener back as we've set it to be removed after one form submission
-            return rejectUserItemSelection(
-                this.warningMessages?.submissionWithoutSelectionMessage,
-                this.warningMessages,
-                this.successAndRemovalMessageContainer,
-                "A submission was made without an item being selected"
-            )
-        }
-    }
-
-    addSubmitListener() {
-        this.formElement.addEventListener("submit", this.handleFormSubmission, {
-            once: true
-        })
-    }
 
     readonly warningMessages: {
         [s: string]: HTMLElement | null
@@ -146,11 +113,11 @@ export class DraftMetaDataUploadForm {
 
 
     private disableSubmitButtonAndDropzone() {
-        const submitButton = document.querySelector("#start-upload-button")
-        submitButton?.setAttribute("disabled", "true")
+        const submitButton = document.querySelector("#to-draft-metadata-checks")
+        submitButton?.setAttribute("disabled", "false")
 
-        const hiddenInputButton = document.querySelector("#file-selection")
-        hiddenInputButton?.setAttribute("disabled", "true")
+        // const hiddenInputButton = document.querySelector("#file-selection")
+        // hiddenInputButton?.setAttribute("disabled", "true")
 
     }
 

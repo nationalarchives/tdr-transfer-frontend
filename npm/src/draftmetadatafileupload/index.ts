@@ -1,6 +1,7 @@
  import {
    IFileWithPath
  } from "@nationalarchives/file-information"
+ import {isError} from "../errorhandling";
 
 
 export class DraftMetadataFileUpload{
@@ -10,7 +11,7 @@ export class DraftMetadataFileUpload{
     consignmentId: string,
     iEntryWithPath : IFileWithPath
 
-  ): Promise< Error> {
+  ): Promise< String | Error> {
 
     const csrfInput: HTMLInputElement = document.querySelector(
       "input[name='csrfToken']"
@@ -29,7 +30,12 @@ export class DraftMetadataFileUpload{
     }).catch((err) => {
       return Error(err)
     })
-    return Error("no")
+    if( isError(result)){
+       return result
+    } else {
+      return "Hello"
+    }
+
   }
 
 }
