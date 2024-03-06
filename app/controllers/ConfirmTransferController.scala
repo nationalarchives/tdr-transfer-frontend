@@ -61,8 +61,7 @@ class ConfirmTransferController @Inject() (
         case UploadType => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
         case ClientChecksType => Future(Redirect(routes.FileChecksController.fileChecksPage(consignmentId, Some("false"))))
       }.getOrElse(
-        for {
-          result <- exportTransferStatus match {
+        exportTransferStatus match {
           case Some (InProgressValue.value) | Some (CompletedValue.value) | Some (FailedValue.value) =>
             consignmentService.getConsignmentRef (consignmentId, request.token.bearerAccessToken).map {consignmentRef =>
               Ok (views.html.transferAlreadyCompleted (consignmentId, consignmentRef, request.token.name)).uncache ()
@@ -74,7 +73,6 @@ class ConfirmTransferController @Inject() (
           case _ =>
             throw new IllegalStateException (s"Unexpected Export status: $exportTransferStatus for consignment $consignmentId")
           }
-        }yield result
       )
     }
   }
