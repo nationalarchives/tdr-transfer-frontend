@@ -26,6 +26,7 @@ object MetadataProperty {
   val closureStartDate = "ClosureStartDate"
   val closurePeriod = "ClosurePeriod"
   val foiExemptionCode = "FoiExemptionCode"
+  val fileUUID = "UUID"
   val fileName = "Filename"
   val titleClosed = "TitleClosed"
   val descriptionClosed = "DescriptionClosed"

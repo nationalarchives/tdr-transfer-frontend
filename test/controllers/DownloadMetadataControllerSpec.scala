@@ -4,7 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tototoshi.csv.CSVReader
 import configuration.GraphQLConfiguration
-import controllers.util.MetadataProperty.{clientSideFileLastModifiedDate, clientSideOriginalFilepath, fileName}
+import controllers.util.MetadataProperty.{clientSideFileLastModifiedDate, clientSideOriginalFilepath, fileName, fileUUID}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
@@ -66,10 +66,13 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   "DownloadMetadataController downloadMetadataCsv GET" should {
     "download the csv for a multiple properties and rows" in {
       val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
+      val uuid1 = UUID.randomUUID().toString
+      val uuid2 = UUID.randomUUID().toString
       val displayProperties = List(
         displayProperty("TestProperty1", "Test Property 1 Name"),
         displayProperty("TestProperty2", "Test Property 2 Name"),
         displayProperty("DateTimeProperty", "Date Time Property Name", DataType.DateTime),
+        displayProperty(fileUUID, "UUID"),
         displayProperty(fileName, "File Name"),
         displayProperty(clientSideOriginalFilepath, "Filepath"),
         displayProperty(clientSideFileLastModifiedDate, "Date last modified", DataType.DateTime)
@@ -78,6 +81,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         customMetadata("TestProperty1", "TestProperty1"),
         customMetadata("TestProperty2", "TestProperty2"),
         customMetadata("DateTimeProperty", "DateTimeProperty"),
+        customMetadata(fileUUID, "UUID"),
         customMetadata(fileName, "FileName"),
         customMetadata(clientSideOriginalFilepath, "Filepath"),
         customMetadata(clientSideFileLastModifiedDate, "Date last modified")
@@ -86,6 +90,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         FileMetadata("TestProperty1", "TestValue1File1"),
         FileMetadata("TestProperty2", "TestValue2File1"),
         FileMetadata("DateTimeProperty", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+        FileMetadata(fileUUID, uuid1),
         FileMetadata(fileName, "FileName1"),
         FileMetadata(clientSideOriginalFilepath, "test/path1"),
         FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME))
@@ -93,6 +98,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val metadataFileTwo = List(
         FileMetadata("TestProperty1", "TestValue1File2"),
         FileMetadata("TestProperty2", "TestValue2File2"),
+        FileMetadata(fileUUID, uuid2),
         FileMetadata(fileName, "FileName2"),
         FileMetadata(clientSideOriginalFilepath, "test/path2"),
         FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME))
@@ -108,14 +114,16 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       csvList.head("Test Property 1 Name") must equal("TestValue1File1")
       csvList.head("Test Property 2 Name") must equal("TestValue2File1")
       csvList.head("Date Time Property Name") must equal("2021-02-03")
+      csvList.head("UUID") must equal(uuid1)
       csvList.head("File Name") must equal("FileName1")
       csvList.head("Filepath") must equal("test/path1")
       csvList.head("Date last modified") must equal("2021-02-03")
       csvList.last("Test Property 1 Name") must equal("TestValue1File2")
       csvList.last("Test Property 2 Name") must equal("TestValue2File2")
+      csvList.last("UUID") must equal(uuid2)
       csvList.last("File Name") must equal("FileName2")
       csvList.last("Filepath") must equal("test/path2")
-      csvList.head("Date last modified") must equal("2021-02-03")
+      csvList.last("Date last modified") must equal("2021-02-03")
     }
 
     "download the csv for rows with different numbers of metadata" in {
