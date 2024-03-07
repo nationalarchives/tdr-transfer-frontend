@@ -1,28 +1,27 @@
 package controllers
 
+
 import auth.TokenSecurity
-import cats.data.OptionT
-import cats.effect.IO
-import cats.effect.IO.raiseError
-import com.github.tototoshi.csv
-import com.typesafe.config.ConfigException.IO
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
 import io.circe.parser.decode
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request, ResponseHeader, Result}
+import play.api.mvc.MultipartFormData.FilePart
+import play.api.mvc.{Action, AnyContent, MultipartFormData, Request}
+import play.api.libs.Files
 import services.Statuses._
 import services._
-import uk.gov.nationalarchives.DAS3Client
+
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody
-import software.amazon.awssdk.transfer.s3.model.CompletedUpload
+
 import viewsapi.Caching.preventCaching
+
+import scala.util.Using
 
 @Singleton
 class UploadController @Inject() (
@@ -48,17 +47,17 @@ class UploadController @Inject() (
     }
   }
 
-  def saveDraftMetadata(consignmentId: java.util.UUID): Action[AnyContent] = secureAction.async { implicit request =>
+
+  def saveDraftMetadata(consignmentId: java.util.UUID): Action[MultipartFormData[Files.TemporaryFile]] = secureAction.async(parse.multipartFormData) { implicit request: AuthenticatedRequest[MultipartFormData[Files.TemporaryFile]] =>
     import cats.effect.unsafe.implicits.global
 
-    val body = IO(request.body.asText)
     def uploadMetaData = for {
-      draftMetadata <- body
+      draftMetadata <- extractFormDataAsString(request)
       result <- uploadService.uploadDraftMetadata("twickenham-ian", "test.csv" ,draftMetadata)
     } yield result
     uploadMetaData.unsafeRunSync()
-    println(uploadMetaData.map(_.toString))
-    Future(Ok("yes"))
+
+    Future(play.api.mvc.Results.Redirect(routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId)))
   }
 
 
@@ -143,6 +142,13 @@ class UploadController @Inject() (
         case _ =>
           throw new IllegalStateException(s"Unexpected Upload status: $uploadStatus for consignment $consignmentId")
       }
+    }
+  }
+  private def extractFormDataAsString(request:AuthenticatedRequest[MultipartFormData[Files.TemporaryFile]]) = {
+    IO {
+      val filename: Option[FilePart[Files.TemporaryFile]] = request.body.files.headOption
+      val requestFile: Option[FilePart[Files.TemporaryFile]] = filename.flatMap(x => request.body.file(x.key))
+      Using(scala.io.Source.fromFile(requestFile.get.ref.getAbsoluteFile))(_.mkString)
     }
   }
 }

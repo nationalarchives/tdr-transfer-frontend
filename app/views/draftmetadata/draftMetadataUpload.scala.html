@@ -20,8 +20,9 @@
                 <div id="selection-area">
                     @loggedOutErrorMessage("file-upload")
                     @frontEndInputs(frontEndInfo)
-                    @CSRF.formField
-                    <form action="@routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId)" id="draft-metadata-upload-form" data-consignment-id="@consignmentId">
+
+                    <form action="@routes.UploadController.saveDraftMetadata(consignmentId)" id="draft-metadata-upload-forms" enctype="multipart/form-data" method="post" >
+                        @CSRF.formField
                         <div >
                             <input class="govuk-file-upload" type="file" id="file-selection" name="files"
                             accept=".csv">
