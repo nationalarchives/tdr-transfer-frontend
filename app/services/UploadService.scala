@@ -14,6 +14,7 @@ import uk.gov.nationalarchives.DAS3Client
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 class UploadService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val startUploadClient = graphqlConfiguration.getClient[su.Data, su.Variables]()
@@ -29,14 +30,14 @@ class UploadService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(i
     sendApiRequest(addFilesAndMetadataClient, afam.document, token, variables).map(data => data.addFilesAndMetadata)
   }
 
-   def uploadDraftMetadata(bucket:String, key:String, draftMetadata: Option[String]): IO[CompletedUpload] = {
-      draftMetadata match {
-      case Some(csv) =>
+   def uploadDraftMetadata(bucket:String, key:String, draftMetadata: Try[String]): IO[CompletedUpload] = {
+      if (draftMetadata.isSuccess) {
         val s3: DAS3Client[IO] = DAS3Client[IO]()
-        val bytes = csv.getBytes
+        val bytes = draftMetadata.get.getBytes
         val publisher = ByteBuffersAsyncRequestBody.from("application/octet-stream", bytes)
-        s3.upload( bucket, key, bytes.size, publisher)
-      case None => raiseError(new Exception())
-    }
+        s3.upload(bucket, key, bytes.size, publisher)
+      }
+      else raiseError(new Exception())
+
   }
 }
