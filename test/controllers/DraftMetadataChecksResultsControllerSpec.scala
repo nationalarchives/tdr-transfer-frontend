@@ -2,7 +2,6 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import controllers.DraftMetadataChecksResultsController.DraftMetadataProgress
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment => gcs}
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
@@ -37,7 +36,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  "DraftMetadataChecksResultsControllerSpec GET" should {
+  "DraftMetadataChecksResultsController GET" should {
     "render page not found error when 'blockDraftMetadataUpload' set to 'true'" in {
       val controller = instantiateController()
       val additionalMetadataEntryMethodPage = controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
@@ -118,6 +117,6 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
-    new DraftMetadataChecksResultsController(securityComponents, keycloakConfiguration, frontEndInfoConfiguration, consignmentService, applicationConfig, consignmentStatusService)
+    new DraftMetadataChecksResultsController(securityComponents, keycloakConfiguration, consignmentService, applicationConfig, consignmentStatusService)
   }
 }

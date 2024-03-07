@@ -2,7 +2,6 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
-import controllers.DraftMetadataChecksResultsController.DraftMetadataProgress
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
@@ -19,7 +18,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class DraftMetadataChecksResultsController @Inject() (
     val controllerComponents: SecurityComponents,
     val keycloakConfiguration: KeycloakConfiguration,
-    val frontEndInfoConfiguration: ApplicationConfig,
     val consignmentService: ConsignmentService,
     val applicationConfig: ApplicationConfig,
     val consignmentStatusService: ConsignmentStatusService
@@ -38,7 +36,7 @@ class DraftMetadataChecksResultsController @Inject() (
       } yield {
         Ok(
           views.html.draftmetadata
-            .draftMetadataChecksResults(consignmentId, reference, getValue(consignmentStatuses, DraftMetadataType), frontEndInfoConfiguration.frontEndInfo, request.token.name)
+            .draftMetadataChecksResults(consignmentId, reference, getValue(consignmentStatuses, DraftMetadataType), request.token.name)
         )
           .uncache()
       }
@@ -56,6 +54,4 @@ class DraftMetadataChecksResultsController @Inject() (
   }
 }
 
-object DraftMetadataChecksResultsController {
-  case class DraftMetadataProgress(value: String, colour: String)
-}
+case class DraftMetadataProgress(value: String, colour: String)
