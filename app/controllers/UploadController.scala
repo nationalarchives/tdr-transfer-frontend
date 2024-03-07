@@ -48,28 +48,15 @@ class UploadController @Inject() (
     }
   }
 
-
-  private def uploadCSV(csv: Option[String]): IO[CompletedUpload] = {
-    csv match {
-      case Some(csv) =>
-        val s3: DAS3Client[IO] = DAS3Client[IO]()
-        val bytes = csv.getBytes
-        val publisher = ByteBuffersAsyncRequestBody.from("application/octet-stream", bytes)
-        s3.upload("twickenham-ian", "test.csv", bytes.size, publisher)
-      case None => raiseError(new Exception())
-    }
-  }
   def saveDraftMetadata(consignmentId: java.util.UUID): Action[AnyContent] = secureAction.async { implicit request =>
     import cats.effect.unsafe.implicits.global
 
-
     val body = IO(request.body.asText)
     def uploadMetaData = for {
-      csv <- body
-      result <- uploadCSV(csv)
+      draftMetadata <- body
+      result <- uploadService.uploadDraftMetadata("twickenham-ian", "test.csv" ,draftMetadata)
     } yield result
     uploadMetaData.unsafeRunSync()
-
     println(uploadMetaData.map(_.toString))
     Future(Ok("yes"))
   }
