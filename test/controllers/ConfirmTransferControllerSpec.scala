@@ -86,7 +86,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/series")
     }
 
-    "redirect to the transfer agreement page if the transfer agreement for that consignment has not been signed or agreed to" in {
+    "redirect to the transfer agreement page with an authenticated user if the transfer agreement for that consignment has not been signed or agreed to" in {
       val consignmentId = UUID.randomUUID()
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
@@ -109,7 +109,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/transfer-agreement")
     }
 
-    "redirect to the upload page if the upload status is not 'Completed'" in {
+    "redirect to the upload page with an authenticated user if the upload status is not 'Completed'" in {
       val consignmentId = UUID.randomUUID()
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
@@ -133,7 +133,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/upload")
     }
 
-    "redirect to the file checks page if the file checks status is not 'Completed'" in {
+    "redirect to the file checks page with an authenticated user if the file checks status is not 'Completed'" in {
       val consignmentId = UUID.randomUUID()
 
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
@@ -158,7 +158,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must equal(s"/consignment/$consignmentId/file-checks?uploadFailed=false")
     }
 
-    "render the confirm transfer page with an authenticated user" in {
+    "render the confirm transfer page with an authenticated user when all relevant statuses are 'Completed'" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
       val consignmentStatuses = List(
@@ -653,14 +653,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       forAll(consignmentStatuses) { consignmentStatus =>
         s"render the confirm transfer 'already confirmed' page with an authenticated $userType user if export status is '$consignmentStatus'" in {
           val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-          val consignmentStatuses = List(
-            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
-            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
-            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
-            ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None)
-          )
-          setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+          setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = getMockConsignmentStatuses(consignmentStatus))
           setConsignmentReferenceResponse(wiremockServer)
           setConsignmentTypeResponse(wiremockServer, "standard")
 
@@ -679,14 +673,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         s"render the confirm transfer 'already confirmed' page with an authenticated user if the $userType user navigates back to the " +
           s"confirmTransfer after previously successfully submitting the transfer and the export status is '$consignmentStatus'" in {
             val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
-            val consignmentStatuses = List(
-              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
-              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
-              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
-              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None)
-            )
-            setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+            setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = getMockConsignmentStatuses(consignmentStatus))
             setConsignmentReferenceResponse(wiremockServer)
             setConsignmentTypeResponse(wiremockServer, "standard")
 
@@ -706,14 +694,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
           s"confirmTransfer after previously submitting an incorrect form and the export status is '$consignmentStatus'" in {
             val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents)
             val incompleteTransferConfirmationForm = Seq()
-            val consignmentStatuses = List(
-              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
-              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
-              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
-              ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", consignmentStatus, someDateTime, None)
-            )
-            setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+            setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = getMockConsignmentStatuses(consignmentStatus))
             setConsignmentReferenceResponse(wiremockServer)
             setConsignmentTypeResponse(wiremockServer, "standard")
 
@@ -803,6 +784,16 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     val totalFiles: Int = 4
     val consignmentReference = "TEST-TDR-2021-GB"
     new gcs.GetConsignment(seriesCode, transferringBodyName, totalFiles, consignmentReference)
+  }
+
+  private def getMockConsignmentStatuses(exportStatus: String): List[ConsignmentStatuses] = {
+    List(
+      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Series", "Completed", someDateTime, None),
+      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None),
+      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "ClientChecks", "Completed", someDateTime, None),
+      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", exportStatus, someDateTime, None)
+    )
   }
 
   private def createFinalTransferConfirmationResponse = new aftc.AddFinalTransferConfirmation(
