@@ -1,7 +1,10 @@
 package controllers
 
-
 import auth.TokenSecurity
+import cats.data.OptionT
+import cats.effect.IO
+import cats.effect.IO.raiseError
+import com.github.tototoshi.csv
 import com.typesafe.config.ConfigException.IO
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.types.{AddFileAndMetadataInput, AddMultipleFileStatusesInput, StartUploadInput}
@@ -9,7 +12,7 @@ import io.circe.parser.decode
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, Request, ResponseHeader}
+import play.api.mvc.{Action, AnyContent, Request, ResponseHeader, Result}
 import services.Statuses._
 import services._
 import uk.gov.nationalarchives.DAS3Client
@@ -18,8 +21,8 @@ import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody
+import software.amazon.awssdk.transfer.s3.model.CompletedUpload
 import viewsapi.Caching.preventCaching
-
 
 @Singleton
 class UploadController @Inject() (
@@ -35,6 +38,7 @@ class UploadController @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
+  import cats.effect.IO
   def startUpload(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {
       decode[StartUploadInput](body.toString).toOption
@@ -44,24 +48,32 @@ class UploadController @Inject() (
     }
   }
 
-  def saveDraftMetadata(consignmentId: java.util.UUID): Action[AnyContent] = secureAction.async { implicit request =>
 
-    import cats.effect.IO
-    import cats.effect.unsafe.implicits.global
-    val s3: DAS3Client[IO] = DAS3Client[IO]()
-    val bytes = request.body.asText.get.getBytes
-    val publisher = ByteBuffersAsyncRequestBody.from("application/octet-stream", bytes)
-    val response = s3.upload("twickenham-ian", "test.csv", bytes.size, publisher).unsafeRunSync()
-     println(response)
-     println("OKay Okay")
-     Future(Ok("yes"))
-    //    request.body.asJson.flatMap(body => {
-//      decode[StartUploadInput](body.toString).toOption
-//    }) match {
-//      case None        => Future.failed(new Exception(s"Incorrect data provided ${request.body}"))
-//      case Some(input) => uploadService.startUpload(input, request.token.bearerAccessToken).map(Ok(_))
-//    }
+  private def uploadCSV(csv: Option[String]): IO[CompletedUpload] = {
+    csv match {
+      case Some(csv) =>
+        val s3: DAS3Client[IO] = DAS3Client[IO]()
+        val bytes = csv.getBytes
+        val publisher = ByteBuffersAsyncRequestBody.from("application/octet-stream", bytes)
+        s3.upload("twickenham-ian", "test.csv", bytes.size, publisher)
+      case None => raiseError(new Exception())
+    }
   }
+  def saveDraftMetadata(consignmentId: java.util.UUID): Action[AnyContent] = secureAction.async { implicit request =>
+    import cats.effect.unsafe.implicits.global
+
+
+    val body = IO(request.body.asText)
+    def uploadMetaData = for {
+      csv <- body
+      result <- uploadCSV(csv)
+    } yield result
+    uploadMetaData.unsafeRunSync()
+
+    println(uploadMetaData.map(_.toString))
+    Future(Ok("yes"))
+  }
+
 
   def saveClientMetadata(): Action[AnyContent] = secureAction.async { implicit request =>
     request.body.asJson.flatMap(body => {
