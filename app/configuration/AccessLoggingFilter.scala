@@ -13,6 +13,7 @@ import play.api.mvc.{Filter, RequestHeader, Result}
 import javax.inject.Inject
 import scala.compat.java8.OptionConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.OptionConverters.RichOptional
 
 class AccessLoggingFilter @Inject() (implicit
     val mat: Materializer,
@@ -34,9 +35,9 @@ class AccessLoggingFilter @Inject() (implicit
         val sessionStore = config.getSessionStoreFactory.newSessionStore(parameters)
         val webContext = new PlayWebContext(request)
         val profileManager = new ProfileManager(webContext, sessionStore)
-        val userId: String = profileManager.getProfile.asScala
-          .map(_.getAttribute("access_token").asInstanceOf[BearerAccessToken])
-          .flatMap(token => keycloakConfiguration.token(token.getValue))
+        val userId: String = profileManager.getProfile.toScala
+          .map(_.getAttribute("access_token").asInstanceOf[String])
+          .flatMap(token => keycloakConfiguration.token(token))
           .map(_.userId.toString)
           .getOrElse("user-logged-out")
 

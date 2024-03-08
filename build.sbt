@@ -44,13 +44,17 @@ libraryDependencies ++= Seq(
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.8.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test,
-  "org.playframework" %% "play-cache" % playVersion
+//  "org.playframework" %% "play-cache" % playVersion
 )
+libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
+
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.0"
+dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-core" % "2.14.0"
 
 disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
-libraryDependencies += "com.github.karelcemus" %% "play-redis" % "3.0.0-M1"
+libraryDependencies += "com.github.karelcemus" %% "play-redis" % "4.0.0"
 
 pipelineStages := Seq(digest)
