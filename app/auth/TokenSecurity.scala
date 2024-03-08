@@ -27,9 +27,9 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
 
   def getProfile(request: Request[AnyContent]): Optional[UserProfile] = {
     val parameters = new PlayFrameworkParameters(request)
+    val webContext = controllerComponents.config.getWebContextFactory.newContext(parameters).asInstanceOf[PlayWebContext]
     val sessionStore = config.getSessionStoreFactory.newSessionStore(parameters)
-    val webContext = new PlayWebContext(request)
-    val profileManager = new ProfileManager(webContext, sessionStore)
+    val profileManager = controllerComponents.config.getProfileManagerFactory.apply(webContext, sessionStore)
     profileManager.getProfile
   }
 
