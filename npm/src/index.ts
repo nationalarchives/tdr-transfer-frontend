@@ -41,10 +41,6 @@ const getFrontEndInfo: () => IFrontEndInfo | Error = () => {
 export const renderModules = async () => {
   const uploadContainer: HTMLDivElement | null =
     document.querySelector("#file-upload")
-
-  const  draftMetadataFileUploadContainer: HTMLDivElement | null =
-      document.querySelector("#metadata-file-upload")
-
   const fileChecksContainer: HTMLDivElement | null = document.querySelector(
     ".file-check-progress"
   )
@@ -60,31 +56,6 @@ export const renderModules = async () => {
   const buttonDisabled: NodeListOf<HTMLElement> = document.querySelectorAll(
     '[data-tdr-module="button-disabled"]'
   )
-
-  if (draftMetadataFileUploadContainer) {
-
-    draftMetadataFileUploadContainer.removeAttribute("hidden")
-    const frontEndInfo = getFrontEndInfo()
-    const errorHandlingModule = await import("./errorhandling")
-    if (!errorHandlingModule.isError(frontEndInfo)) {
-      const authModule = await import("./auth")
-      const keycloak = await authModule.getKeycloakInstance()
-       if (!errorHandlingModule.isError(keycloak)) {
-        const draftMetadataUploadModule = await import("./draftmetadatafileupload")
-        const draftMetadataFileUpload =
-            new draftMetadataUploadModule.DraftMetadataFileUpload()
-        const uploadModule = await import("./upload")
-      
-        new uploadModule.DraftMetaDataFileUploader(
-            draftMetadataFileUpload
-        ).initialiseFormListeners()
-      } else {
-        errorHandlingModule.handleUploadError(keycloak)
-      }
-    } else {
-      errorHandlingModule.handleUploadError(frontEndInfo)
-    }
-  }
 
   if (uploadContainer) {
     uploadContainer.removeAttribute("hidden")
@@ -164,8 +135,8 @@ export const renderModules = async () => {
   }
 
   if (timeoutDialog) {
-    // const sessionTimeoutModule = await import("./auth/session-timeout")
-    // await sessionTimeoutModule.initialiseSessionTimeout()
+    const sessionTimeoutModule = await import("./auth/session-timeout")
+    await sessionTimeoutModule.initialiseSessionTimeout()
   }
   if (fileSelectionTree) {
     const trees: NodeListOf<HTMLUListElement> =

@@ -24,7 +24,7 @@ POST        /consignment/:consignmentId/transfer-agreement-continued            
 GET         /consignment/:consignmentId/upload                                                    controllers.UploadController.uploadPage(consignmentId: java.util.UUID)
 POST        /start-upload                                                                         controllers.UploadController.startUpload()
 POST        /save-metadata                                                                        controllers.UploadController.saveClientMetadata()
-POST        /consignment/:consignmentId/metadata                                                  controllers.UploadController.saveDraftMetadata(consignmentId: java.util.UUID)
+POST        /consignment/:consignmentId/draft-metadata                                                  controllers.DraftMetadataUploadController.saveDraftMetadata(consignmentId: java.util.UUID)
 POST        /add-file-status                                                                      controllers.UploadController.addFileStatus()
 POST        /consignment/:consignmentId/file-check-progress                                       controllers.FileChecksController.fileCheckProgress(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/file-checks                                               controllers.FileChecksController.fileChecksPage(consignmentId: java.util.UUID, uploadFailed: Option[String])
