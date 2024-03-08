@@ -54,7 +54,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
   val langs: Langs = new EnglishLang
 
-  val formTester = new FormTester(expectedConfirmTransferOptions)
+  val formTester = new FormTester(expectedConfirmTransferOptions, "")
   val checkPageForStaticElements = new CheckPageForStaticElements
   val consignmentId: UUID = UUID.randomUUID()
   private val completedConfirmTransferForm: Seq[(String, String)] = Seq(("transferLegalCustody", "true"))
