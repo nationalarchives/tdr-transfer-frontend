@@ -25,8 +25,7 @@ export const getKeycloakInstance: () => Promise<
       }
     }
   } catch (e) {
-    return keycloakInstance
-
+    return Error(errorHandlingModule.getErrorMessage(e))
   }
   return keycloakInstance
 }
