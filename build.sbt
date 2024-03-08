@@ -36,8 +36,6 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.14",
   "uk.gov.nationalarchives" %% "da-s3-client" % "0.1.38",
   "software.amazon.awssdk.crt" % "aws-crt" % "0.29.11",
-  "co.fs2" %% "fs2-reactive-streams" % "3.9.4",
-  "co.fs2" %% "fs2-io" % "3.9.4",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.5.0",
   ws,
