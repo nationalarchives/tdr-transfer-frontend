@@ -30,7 +30,7 @@ class UploadService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(i
     sendApiRequest(addFilesAndMetadataClient, afam.document, token, variables).map(data => data.addFilesAndMetadata)
   }
 
-   def uploadDraftMetadata(bucket:String, key:String, draftMetadata: String): IO[CompletedUpload] = {
+   def uploadDraftMetadata(bucket:String, key:String, draftMetadata: String): IO[Any] = {
         val s3: DAS3Client[IO] = DAS3Client[IO]()
         val bytes = draftMetadata.getBytes
         val publisher = ByteBuffersAsyncRequestBody.from("application/octet-stream", bytes)
