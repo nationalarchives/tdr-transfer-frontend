@@ -81,8 +81,8 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
     "render next page when upload successful" in {
       val uploadServiceMock = mock[UploadService]
-      val r: SdkHttpFullResponse = SdkHttpResponse.builder().statusCode(500).build()
-      val putObjectResponse = PutObjectResponse.builder().eTag("testEtag"). .build()
+
+      val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       val completedUpload = IO(CompletedUpload.builder().response(putObjectResponse).build())
 
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(completedUpload)
