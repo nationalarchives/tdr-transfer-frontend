@@ -84,24 +84,23 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       val completedUpload = IO(CompletedUpload.builder().response(putObjectResponse).build())
-
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(completedUpload)
 
-      val controller = instantiateDraftMetadataUploadController(blockDraftMetadataUpload = false, uploadService = uploadServiceMock)
-
-      val csvUploadFile = new File("my_csv.csv")
-      val fileWriter = new BufferedWriter(new FileWriter(csvUploadFile))
-      fileWriter.write("yo,ho\n1,2")
-      fileWriter.close()
-      val tempFile = SingletonTemporaryFileCreator.create(csvUploadFile.toPath)
-      csvUploadFile.deleteOnExit()
-      val file = FilePart("upload", "hello.txt", Option("text/plain"), tempFile)
-      val formData = MultipartFormData(dataParts = Map("" -> Seq("dummydata")), files = Seq(file), badParts = Seq())
-
-      val request = FakeRequest(POST, "/consignment/1234567/draft-metadata").withBody(formData).withHeaders(FakeHeaders())
-      val responseStatus  = playStatus(controller.saveDraftMetadata(UUID.randomUUID()).apply(request))
+      val response = requestFileUpload(uploadServiceMock)
+      val responseStatus  = playStatus(response)
 
       responseStatus mustBe 303
+
+    }
+
+    "render error page when upload unsuccessful" in {
+      val uploadServiceMock = mock[UploadService]
+
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(IO.raiseError[Int](new RuntimeException("I have failed")))
+      val response = requestFileUpload(uploadServiceMock)
+      val responseStatus  = playStatus(response)
+
+      responseStatus mustBe 500
 
     }
   }
@@ -118,5 +117,21 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 
     new DraftMetadataUploadController(securityComponents, keycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, applicationConfig)
+  }
+
+ private  def requestFileUpload(uploadServiceMock: UploadService) = {
+    val controller = instantiateDraftMetadataUploadController(blockDraftMetadataUpload = false, uploadService = uploadServiceMock)
+
+    val csvUploadFile = new File("my_csv.csv")
+    val fileWriter = new BufferedWriter(new FileWriter(csvUploadFile))
+    fileWriter.write("yo,ho\n1,2")
+    fileWriter.close()
+    val tempFile = SingletonTemporaryFileCreator.create(csvUploadFile.toPath)
+    csvUploadFile.deleteOnExit()
+    val file = FilePart("upload", "hello.txt", Option("text/plain"), tempFile)
+    val formData = MultipartFormData(dataParts = Map("" -> Seq("dummydata")), files = Seq(file), badParts = Seq())
+
+    val request = FakeRequest(POST, "/consignment/1234567/draft-metadata").withBody(formData).withHeaders(FakeHeaders())
+    controller.saveDraftMetadata(UUID.randomUUID()).apply(request)
   }
 }
