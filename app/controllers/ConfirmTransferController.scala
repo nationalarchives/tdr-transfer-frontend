@@ -8,8 +8,9 @@ import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.i18n.{I18nSupport, Lang, Langs}
 import play.api.mvc._
-import services.Statuses.{CompletedValue, ExportType, FailedValue, InProgressValue}
-import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import play.api.mvc.Results._
+import services.Statuses.{ClientChecksType, CompletedValue, ExportType, FailedValue, InProgressValue, SeriesType, TransferAgreementType, UploadType}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService, Statuses}
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -49,19 +50,33 @@ class ConfirmTransferController @Inject() (
       implicit request: Request[AnyContent]
   ): Future[Result] = {
     consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken).flatMap { consignmentStatuses =>
-      val exportTransferStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
-      exportTransferStatus match {
-        case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) =>
-          consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map { consignmentRef =>
-            Ok(views.html.transferAlreadyCompleted(consignmentId, consignmentRef, request.token.name)).uncache()
+      val consignmentStatusValues: Map[Statuses.StatusType, Option[String]] =
+        consignmentStatusService.getStatusValues(consignmentStatuses, SeriesType, TransferAgreementType, UploadType, ClientChecksType, ExportType)
+      val exportTransferStatus = consignmentStatusValues.get(ExportType).headOption.flatten
+      val incompleteStatuses = consignmentStatusValues.filter { case (_, statusValue) => !statusValue.contains(CompletedValue.value) }
+
+      Seq(SeriesType, TransferAgreementType, UploadType, ClientChecksType)
+        .find(statusType => incompleteStatuses.contains(statusType))
+        .map {
+          case SeriesType            => Future(Redirect(routes.SeriesDetailsController.seriesDetails(consignmentId)))
+          case TransferAgreementType => Future(Redirect(routes.TransferAgreementPart1Controller.transferAgreement(consignmentId)))
+          case UploadType            => Future(Redirect(routes.UploadController.uploadPage(consignmentId)))
+          case ClientChecksType      => Future(Redirect(routes.FileChecksController.fileChecksPage(consignmentId, Some("false"))))
+        }
+        .getOrElse(
+          exportTransferStatus match {
+            case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) =>
+              consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map { consignmentRef =>
+                Ok(views.html.transferAlreadyCompleted(consignmentId, consignmentRef, request.token.name)).uncache()
+              }
+            case None =>
+              getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
+                httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
+              }
+            case _ =>
+              throw new IllegalStateException(s"Unexpected Export status: $exportTransferStatus for consignment $consignmentId")
           }
-        case None =>
-          getConsignmentSummary(request, consignmentId).map { consignmentSummary =>
-            httpStatus(views.html.standard.confirmTransfer(consignmentId, consignmentSummary, finalTransferForm, request.token.name)).uncache()
-          }
-        case _ =>
-          throw new IllegalStateException(s"Unexpected Export status: $exportTransferStatus for consignment $consignmentId")
-      }
+        )
     }
   }
 
