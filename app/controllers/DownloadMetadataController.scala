@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.CsvUtils
+import controllers.util.MetadataProperty.{clientSideFileLastModifiedDate, clientSideOriginalFilepath, fileName, fileUUID}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType
@@ -44,8 +45,9 @@ class DownloadMetadataController @Inject() (
       displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, None, showInactive = true)
     } yield {
       val parseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
-      val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-      val nameMap = displayProperties.filter(dp => dp.active || dp.propertyName == "Filename").map(dp => (dp.propertyName, dp.displayName)).toMap
+      val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+      val systemValues = List(fileUUID, fileName, clientSideOriginalFilepath, clientSideFileLastModifiedDate)
+      val nameMap = displayProperties.filter(dp => dp.active || systemValues.contains(dp.propertyName)).map(dp => (dp.propertyName, dp.displayName)).toMap
       val filteredMetadata: List[CustomMetadata] = customMetadata.filter(cm => nameMap.keySet.contains(cm.name) && cm.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
       val header: List[String] = filteredMetadata.map(f => nameMap.getOrElse(f.name, f.name))
       val fileMetadataRows: List[List[String]] = metadata.files.map { file =>
