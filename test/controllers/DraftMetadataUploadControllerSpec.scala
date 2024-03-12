@@ -1,6 +1,5 @@
 package controllers
 
-
 import cats.effect.IO
 
 import com.github.tomakehurst.wiremock.WireMockServer
