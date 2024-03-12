@@ -1,37 +1,33 @@
 package controllers
 
-import akka.util.ByteString
+
 import cats.effect.IO
-import cats.implicits.catsSyntaxApplicativeId
+
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
+
 import org.scalatest.matchers.should.Matchers._
-import play.api.{Configuration, libs}
+import play.api.Configuration
 import play.api.Play.materializer
-import play.api.libs.Files
-import play.api.libs.Files.{SingletonTemporaryFileCreator, TemporaryFile}
-import play.api.libs.Files.TemporaryFile.temporaryFileToFile
-import play.api.libs.streams.Accumulator
+
+import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.mvc.{MultipartFormData, Result}
 import play.api.mvc.MultipartFormData.FilePart
 import play.api.test.CSRFTokenHelper._
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers.{status => playStatus, _}
-import play.libs.Files
-import play.libs.Files.TemporaryFile
 import services.{ConsignmentService, UploadService}
-import software.amazon.awssdk.http.{SdkHttpFullResponse, SdkHttpResponse}
-import software.amazon.awssdk.services.s3.model.{PutObjectResponse, S3Error}
+
+import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload
 import testUtils.FrontEndTestHelper
 
 import java.io.{BufferedWriter, File, FileWriter}
-import java.nio.file.StandardCopyOption
 import java.util.UUID
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -79,7 +75,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       pageAsString must include("<title>Page not found - Transfer Digital Records - GOV.UK</title>")
     }
 
-    "render next page when upload successful" in {
+    "when upload successful must redirect to checks page" in {
       val uploadServiceMock = mock[UploadService]
 
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
@@ -87,21 +83,22 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(completedUpload)
 
       val response = requestFileUpload(uploadServiceMock)
-      val responseStatus  = playStatus(response)
 
-      responseStatus mustBe 303
+      playStatus(response) mustBe 303
 
+      val redirect = redirectLocation(response)
+      redirect.getOrElse(s"incorrect redirect $redirect") must include regex "/consignment/*.*/draft-metadata/checks"
     }
 
     "render error page when upload unsuccessful" in {
       val uploadServiceMock = mock[UploadService]
-
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(IO.raiseError[Int](new RuntimeException("I have failed")))
+
       val response = requestFileUpload(uploadServiceMock)
-      val responseStatus  = playStatus(response)
 
-      responseStatus mustBe 500
+      playStatus(response) mustBe 500
 
+      contentAsString(response) must include("Unable to upload draft metadata")
     }
   }
 
@@ -119,17 +116,18 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     new DraftMetadataUploadController(securityComponents, keycloakConfiguration, frontEndInfoConfiguration, consignmentService, uploadService, applicationConfig)
   }
 
- private  def requestFileUpload(uploadServiceMock: UploadService) = {
+  private def requestFileUpload(uploadServiceMock: UploadService): Future[Result] = {
     val controller = instantiateDraftMetadataUploadController(blockDraftMetadataUpload = false, uploadService = uploadServiceMock)
 
     val csvUploadFile = new File("my_csv.csv")
     val fileWriter = new BufferedWriter(new FileWriter(csvUploadFile))
     fileWriter.write("yo,ho\n1,2")
     fileWriter.close()
-    val tempFile = SingletonTemporaryFileCreator.create(csvUploadFile.toPath)
     csvUploadFile.deleteOnExit()
+
+    val tempFile = SingletonTemporaryFileCreator.create(csvUploadFile.toPath)
     val file = FilePart("upload", "hello.txt", Option("text/plain"), tempFile)
-    val formData = MultipartFormData(dataParts = Map("" -> Seq("dummydata")), files = Seq(file), badParts = Seq())
+    val formData = MultipartFormData(dataParts = Map("" -> Seq("dummy data")), files = Seq(file), badParts = Seq())
 
     val request = FakeRequest(POST, "/consignment/1234567/draft-metadata").withBody(formData).withHeaders(FakeHeaders())
     controller.saveDraftMetadata(UUID.randomUUID()).apply(request)
