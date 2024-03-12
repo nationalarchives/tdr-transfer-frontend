@@ -14,7 +14,6 @@ import uk.gov.nationalarchives.DAS3Client
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-
 class UploadService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val startUploadClient = graphqlConfiguration.getClient[su.Data, su.Variables]()
   private val addFilesAndMetadataClient = graphqlConfiguration.getClient[afam.Data, afam.Variables]()

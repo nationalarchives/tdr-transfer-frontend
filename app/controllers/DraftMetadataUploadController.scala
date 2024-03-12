@@ -46,12 +46,13 @@ class DraftMetadataUploadController @Inject() (
 
     implicit request: Request[MultipartFormData[TemporaryFile]] =>
       val successPage = routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId)
+      val uploadBucket = s"tdr-draft-metadata-${applicationConfig.frontEndInfo.stage}"
 
       def uploadMetaData: IO[Result] = for {
         firstFilePart <- fromOption(request.body.files.headOption)(new RuntimeException("No meta data file provided "))
         file <- fromOption(request.body.file(firstFilePart.key))(new RuntimeException("No meta data file provided"))
         draftMetadata <- fromOption(Using(scala.io.Source.fromFile(file.ref.getAbsoluteFile))(_.mkString).toOption)(new RuntimeException("No meta data file provided"))
-        _ <- uploadService.uploadDraftMetadata("twickenham-ian", "test.csv", draftMetadata)
+        _ <- uploadService.uploadDraftMetadata(uploadBucket, "draft-metadata.csv", draftMetadata)
         successPage <- IO(play.api.mvc.Results.Redirect(successPage))
       } yield successPage
 
