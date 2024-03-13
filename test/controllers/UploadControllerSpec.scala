@@ -181,17 +181,17 @@ class UploadControllerSpec extends FrontEndTestHelper {
         """<p class="govuk-body">Before uploading, all records (files and folders) you wish to transfer must be put into a single, top-level folder.</p>"""
       )
       uploadPageAsString must include(
-        """There is a size limit of 2GB for an individual file and we ask that you upload no more than 500 files per consignment. """ +
-          """If you need to transfer larger files, contact us at <a href="mailto:nationalArchives.email">nationalArchives.email</a>. """ +
-          "If your folder contains files that we cannot accept, you may have to start again.</p>"
+        """Individual files must be no bigger than 2GB and you must upload no more than 500 files per transfer. """ +
+          """To transfer larger files, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>. """ +
+          "If your folder contains file formats that we cannot accept, you may have to start again.</p>"
       )
       uploadPageAsString must include(
         """We cannot accept files and folders which are password protected, zipped or contain slashes (/ and \) in the name. """ +
           "You must remove all thumbnail images (thumbs.db) and executable files (.exe). Empty folders will not be transferred."
       )
-      uploadPageAsString must include("""<h2 class="govuk-heading-m">Choose a folder to upload</h2>""")
+      uploadPageAsString must include("""<h2 class="govuk-heading-m">Select a folder to upload</h2>""")
       uploadPageAsString must include(
-        """<p class="govuk-body">The 'Choose folder' button below will cause your browser to open a dialog box to find and select a folder. Once selected, you will be prompted to confirm your choice.</p>"""
+        """<p class="govuk-body">Click 'Select a folder' to open a dialog box and select a folder. Once selected, you will be prompted to confirm your choice.</p>"""
       )
       uploadPageAsString must include(
         """<p id="success-message-text" aria-live="assertive" aria-atomic="true" class="govuk-!-margin-bottom-3 govuk-!-margin-top-0 drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span>) has been selected.</p>"""
@@ -213,7 +213,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |                                >
            |                                <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single top-level folder here or &nbsp;</p>
            |                                <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
-           |                                    Choose folder
+           |                                    Select a folder
            |                                </label>""".stripMargin
       )
       uploadPageAsString must include("For information on what metadata will be captured during upload, visit the")
