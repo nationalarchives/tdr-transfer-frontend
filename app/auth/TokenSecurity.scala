@@ -3,8 +3,8 @@ package auth
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
 import io.opentelemetry.api.trace.Span
-import org.pac4j.core.context.session.SessionStore
-import org.pac4j.core.profile.{ProfileManager, UserProfile}
+import org.pac4j.core.profile.UserProfile
+import org.pac4j.oidc.profile.OidcProfile
 import org.pac4j.play.PlayWebContext
 import org.pac4j.play.context.PlayFrameworkParameters
 import play.api.i18n.I18nSupport
@@ -34,8 +34,8 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   }
 
   implicit def requestToRequestWithToken(request: Request[AnyContent]): RequestWithToken = {
-    val profile = getProfile(request)
-    val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
+    val profile = getProfile(request).get().asInstanceOf[OidcProfile]
+    val token: BearerAccessToken = profile.getAccessToken.asInstanceOf[BearerAccessToken]
     val accessToken: Option[Token] = keycloakConfiguration.token(token.getValue)
     RequestWithToken(request, accessToken)
   }
