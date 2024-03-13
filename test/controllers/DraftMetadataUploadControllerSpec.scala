@@ -91,7 +91,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
     "render error page when upload unsuccessful" in {
       val uploadServiceMock = mock[UploadService]
-      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(IO.raiseError[Int](new RuntimeException("I have failed")))
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(IO.raiseError[CompletedUpload](new RuntimeException("I have failed")))
 
       val response = requestFileUpload(uploadServiceMock)
 
