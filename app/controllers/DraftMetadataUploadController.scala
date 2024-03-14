@@ -24,6 +24,7 @@ class DraftMetadataUploadController @Inject() (
     val frontEndInfoConfiguration: ApplicationConfig,
     val consignmentService: ConsignmentService,
     val uploadService: UploadService,
+    val draftMetadataService: DraftMetadataService,
     val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
@@ -46,25 +47,25 @@ class DraftMetadataUploadController @Inject() (
 
     implicit request: Request[MultipartFormData[TemporaryFile]] =>
       val successPage = routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId)
-      val userId = request.asInstanceOf[Request[AnyContent]].token.userId
+      val token = request.asInstanceOf[Request[AnyContent]].token
 
-      val uploadBucket = s"tdr-draft-metadata-${applicationConfig.frontEndInfo.stage}"
-      val uploadKey = s"$userId/$consignmentId/draft-metadata.csv"
+      val uploadBucket = s"${applicationConfig.draft_metadata_s3_bucket_name}-${applicationConfig.frontEndInfo.stage}"
+
+      val uploadKey = s"$consignmentId/draft-metadata.csv"
 
       def uploadMetaData: IO[Result] = for {
-        firstFilePart <- fromOption(request.body.files.headOption)(new RuntimeException("No meta data file provided "))
+        firstFilePart <- fromOption(request.body.files.headOption)(new RuntimeException("No meta data file provided"))
         file <- fromOption(request.body.file(firstFilePart.key))(new RuntimeException("No meta data file provided"))
         draftMetadata <- fromOption(Using(scala.io.Source.fromFile(file.ref.getAbsoluteFile))(_.mkString).toOption)(new RuntimeException("No meta data file provided"))
         _ <- uploadService.uploadDraftMetadata(uploadBucket, uploadKey, draftMetadata)
+        _ <- IO.fromFuture(IO { draftMetadataService.triggerDraftMetadataValidator(consignmentId, token.toString) })
         successPage <- IO(play.api.mvc.Results.Redirect(successPage))
       } yield successPage
 
       uploadMetaData
         .recoverWith { case error =>
-          IO(InternalServerError("Unable to upload draft metadata: " + error.getMessage))
+          IO(InternalServerError(s"Unable to upload draft metadata to : $uploadBucket/$uploadKey: Error:" + error.getMessage))
         }
         .unsafeToFuture()
-
   }
-
 }
