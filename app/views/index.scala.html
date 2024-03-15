@@ -1,12 +1,11 @@
 @(isLoggedIn: Boolean, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
-@defining("The National Archives Transfer Digital Records") { title =>
-  @main(title, isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
+  @main("The National Archives", isLoggedIn = isLoggedIn, name = name, isJudgmentUser = isJudgmentUser) {
     @defining(play.core.PlayVersion.current) { version =>
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
 
             <!-- Headline -->
-          <h1 class="govuk-heading-l">@title</h1>
+          <h1 class="govuk-heading-l">Transfer Digital Records</h1>
 
           <p class="govuk-body">Use this service to:</p>
           <ul class="govuk-list govuk-list--bullet">
@@ -25,4 +24,3 @@
       </div>
     }
   }
-}
