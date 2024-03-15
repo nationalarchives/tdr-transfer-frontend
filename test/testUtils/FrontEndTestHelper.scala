@@ -40,7 +40,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
-import org.pac4j.core.context.session.SessionStore
+import org.pac4j.core.context.session.{SessionStore, SessionStoreFactory}
 import org.pac4j.core.engine.DefaultSecurityLogic
 import org.pac4j.core.http.ajax.AjaxRequestResolver
 import org.pac4j.core.util.Pac4jConstants
@@ -69,7 +69,8 @@ import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import graphql.codegen.GetConsignment.{getConsignment => gcd}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
-import org.pac4j.core.context.CallContext
+import org.pac4j.core.context.{CallContext, FrameworkParameters}
+import org.pac4j.oidc.metadata.OidcOpMetadataResolver
 import services.Statuses.{InProgressValue, SeriesType}
 import viewsapi.FrontEndInfo
 
@@ -949,7 +950,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     override def config: Config = testConfig
 
-    def sessionStore: SessionStore = playCacheSessionStore
+    config.setSessionStoreFactory(new SessionStoreFactory {
+      override def newSessionStore(parameters: FrameworkParameters): SessionStore = playCacheSessionStore
+    })
 
     // scalastyle:off null
     override def parser: BodyParsers.Default = null
@@ -958,6 +961,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
   def getUnauthorisedSecurityComponents: SecurityComponents = {
     val testConfig = new Config()
+    val playCacheSessionStore: SessionStore = mock[PlayCacheSessionStore]
+
     val logic = DefaultSecurityLogic.INSTANCE
     logic setAuthorizationChecker ((_, _, _, _, _, _) => false)
     testConfig.setSecurityLogic(logic)
@@ -968,6 +973,18 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     // There is a check to see whether an OidcClient exists. The name matters and must match the string passed to Secure in the controller.
     val clients = new Clients()
     val configuration = mock[OidcConfiguration]
+    val providerMetadata = mock[OIDCProviderMetadata]
+
+    /*
+    configuration = mock(OidcConfiguration.class);
+    var metadata = mock(OIDCProviderMetadata.class);
+    when(metadata.getIssuer()).thenReturn(new Issuer(PAC4J_URL));
+    when(metadata.getJWKSetURI()).thenReturn(new URI(PAC4J_BASE_URL));
+    val metadataResolver = mock(OidcOpMetadataResolver.class);
+    when(metadataResolver.load()).thenReturn(metadata);
+    when(configuration.getOpMetadataResolver()).thenReturn(metadataResolver);
+
+     */
 
     // Mock the init method to stop it calling out to the keycloak server
     doNothing().when(configuration).init()
@@ -976,9 +993,10 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     doReturn("tdr").when(configuration).getClientId
     doReturn("code").when(configuration).getResponseType
     doReturn(true).when(configuration).isUseNonce
-    val providerMetadata = mock[OIDCProviderMetadata]
+    val metadataResolver = mock[OidcOpMetadataResolver]
     doReturn(URI.create("/auth/realms/tdr/protocol/openid-connect/auth")).when(providerMetadata).getAuthorizationEndpointURI
-    doReturn(providerMetadata).when(configuration)
+    doReturn(providerMetadata).when(metadataResolver).load
+    doReturn(metadataResolver).when(configuration).getOpMetadataResolver
 
     val resolver = mock[AjaxRequestResolver]
     doReturn(false).when(resolver).isAjax(any[CallContext])
@@ -994,18 +1012,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     testConfig.setClients(clients)
 
     // Create a new controller with the session store and config. The parser and components don't affect the tests.
-
-    new SecurityComponents {
-      override def components: ControllerComponents = stubControllerComponents()
-
-      override def config: Config = testConfig
-
-      def sessionStore: SessionStore = mock[SessionStore]
-
-      // scalastyle:off null
-      override def parser: BodyParsers.Default = null
-      // scalastyle:on null
-    }
+    securityComponents(testConfig, playCacheSessionStore)
   }
 }
 

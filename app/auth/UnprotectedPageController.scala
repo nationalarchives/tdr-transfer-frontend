@@ -3,6 +3,7 @@ package auth
 import com.nimbusds.jwt.SignedJWT
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import org.pac4j.core.profile.{CommonProfile, ProfileManager, UserProfile}
+import org.pac4j.oidc.profile.OidcProfile
 import org.pac4j.play.PlayWebContext
 import org.pac4j.play.context.PlayFrameworkParameters
 import org.pac4j.play.scala.{Pac4jScalaTemplateHelper, Security, SecurityComponents}
@@ -29,7 +30,7 @@ class UnprotectedPageController @Inject() (val controllerComponents: SecurityCom
       val profileManager = getProfile(request)
       val profile = profileManager.getProfile
       if (profile.isPresent) {
-        val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
+        val token: BearerAccessToken = profile.get().asInstanceOf[OidcProfile].getAccessToken.asInstanceOf[BearerAccessToken]
         val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
         parsedToken.getClaim("name").toString
       } else {
@@ -41,7 +42,7 @@ class UnprotectedPageController @Inject() (val controllerComponents: SecurityCom
       val profileManager = getProfile(request)
       val profile = profileManager.getProfile
       if (profile.isPresent) {
-        val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
+        val token: BearerAccessToken = profile.get().asInstanceOf[OidcProfile].getAccessToken.asInstanceOf[BearerAccessToken]
         val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
         parsedToken.getBooleanClaim("judgment_user")
       } else {

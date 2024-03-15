@@ -4,6 +4,7 @@ import com.nimbusds.jwt.SignedJWT
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import org.pac4j.core.exception.TechnicalException
 import org.pac4j.core.profile.CommonProfile
+import org.pac4j.oidc.profile.OidcProfile
 import org.pac4j.play.scala.Pac4jScalaTemplateHelper
 import play.api.Logging
 import play.api.http.HttpErrorHandler
@@ -25,7 +26,7 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
       .getCurrentProfiles(request)
       .headOption
       .map(profile => {
-        val token = profile.getAttribute("access_token").asInstanceOf[BearerAccessToken]
+        val token = profile.asInstanceOf[OidcProfile].getAccessToken.asInstanceOf[BearerAccessToken]
         val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
         parsedToken.getClaim("name").toString
       })
@@ -39,7 +40,7 @@ class ErrorHandler @Inject() (val messagesApi: MessagesApi, implicit val pac4jTe
       .getCurrentProfiles(request)
       .headOption
       .exists(profile => {
-        val token = profile.getAttribute("access_token").asInstanceOf[BearerAccessToken]
+        val token = profile.asInstanceOf[OidcProfile].getAccessToken.asInstanceOf[BearerAccessToken]
         val parsedToken = SignedJWT.parse(token.getValue).getJWTClaimsSet
         parsedToken.getBooleanClaim("judgment_user")
       })
