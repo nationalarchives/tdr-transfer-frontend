@@ -919,9 +919,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def instantiateAddAdditionalMetadataController(securityComponents: SecurityComponents = getAuthorisedSecurityComponents, blockValidationLibrary: Boolean = true) = {
-    when(configuration.get[Boolean]("featureAccessBlock.blockValidationLibrary")).thenReturn(blockValidationLibrary)
-    val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
+  private def instantiateAddAdditionalMetadataController(securityComponents: SecurityComponents = getAuthorisedSecurityComponents) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
@@ -934,7 +932,6 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       consignmentService,
       customMetadataService,
       displayPropertiesService,
-      applicationConfig,
       MockAsyncCacheApi()
     )
   }

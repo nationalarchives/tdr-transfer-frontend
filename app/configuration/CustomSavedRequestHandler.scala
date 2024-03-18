@@ -24,7 +24,8 @@ class CustomSavedRequestHandler extends SavedRequestHandler with Logging {
 
   override def restore(context: CallContext, defaultUrl: String): HttpAction = {
     val webContext = context.webContext()
-    val optRequestedUrl = context.sessionStore()
+    val optRequestedUrl = context
+      .sessionStore()
       .get(webContext, Pac4jConstants.REQUESTED_URL)
 
     val redirectAction = optRequestedUrl.toScala
