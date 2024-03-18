@@ -16,7 +16,7 @@
             @notificationBanner(
                 Messages("notification.savedProgress.title"),
                 Messages("notification.savedProgress.heading"),
-                Messages("notification.savedProgress.metadataInfo", routes.ViewTransfersController.viewConsignments(1), "View Transfers")
+                Messages("notification.savedProgress.metadataInfo", routes.ViewTransfersController.viewConsignments(1), "View transfers")
             )
             <p class="govuk-body">Here is a summary of the records you have uploaded.</p>
             @errorSummary(
@@ -24,7 +24,7 @@
                   finalTransferConfirmationForm("transferLegalCustody").id -> finalTransferConfirmationForm("transferLegalCustody").errors.headOption
               ).collect { case (id, Some(formError)) => id -> formError.messages}
             )
-            <dl class="govuk-summary-list">
+            <dl class="govuk-summary-list govuk-!-margin-bottom-9">
                 <div class="govuk-summary-list__row">
                     <dt class="govuk-summary-list__key govuk-!-width-one-half">
                         Series reference
@@ -71,7 +71,7 @@
                                 Map(
                                     Symbol("_label") -> "By proceeding with this transfer, I confirm that I am agreeing to transfer legal custody of these records to The National Archives.",
                                     Symbol("_value") -> "true",
-                                    Symbol("_smallCheckbox") -> true,
+                                    Symbol("_smallCheckbox") -> false,
                                     Symbol("_checkedOption") -> finalTransferConfirmationForm.shouldOptionBeSelected("transferLegalCustody"),
                                     Symbol("_requiredOption") -> true
                                 ),
