@@ -16,5 +16,8 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
   )
 
   val numberOfItemsOnViewTransferPage: Int = configuration.get[Int]("viewTransfers.numberOfItemsPerPage")
-  val blockValidationLibrary: Boolean = configuration.get[Boolean]("featureAccessBlock.blockValidationLibrary")
+
+  val blockDraftMetadataUpload: Boolean = configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")
+
+  val metadataValidationBaseUrl: String = configuration.get[String]("metadatavalidation.baseUrl")
 }

@@ -78,13 +78,23 @@ class FormTester(defaultOptions: List[MockInputOption], smallCheckbox: String = 
     htmlAsString must include("""<div class="govuk-input__suffix">.docx</div>""".stripMargin)
 
     htmlAsString must include("""
-        |    <div class="govuk-radios__conditional" id="conditional-inputradio-DescriptionClosed-yes">
-        |        <label class="govuk-label" for="inputradio-DescriptionClosed-DescriptionAlternate-yes">
-        |            Description Alternate
+        |    <div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="8000">
+        |        <div class="govuk-radios__conditional" id="conditional-inputradio-DescriptionClosed-yes">
+        |            <label class="govuk-label" for="inputradio-DescriptionClosed-DescriptionAlternate-yes">
+        |                Description Alternate
         |""".stripMargin)
 
     htmlAsString must include(
-      """<textarea class="govuk-textarea" id="inputradio-DescriptionClosed-DescriptionAlternate-yes" name="inputradio-DescriptionClosed-DescriptionAlternate-yes" rows="5">inputtext-DescriptionAlternate-DescriptionAlternate value</textarea>""".stripMargin
+      """            <textarea class="govuk-textarea govuk-js-character-count"
+        |            id="inputradio-DescriptionClosed-DescriptionAlternate-yes"
+        |            name="inputradio-DescriptionClosed-DescriptionAlternate-yes"
+        |            rows="5"
+        |            aria-describedby="inputradio-DescriptionClosed-DescriptionAlternate-yes-info">inputtext-DescriptionAlternate-DescriptionAlternate value</textarea>""".stripMargin
+    )
+    htmlAsString must include(
+      """            <div id="inputradio-DescriptionClosed-DescriptionAlternate-yes-info" class="govuk-hint govuk-character-count__message">
+        |                You can enter up to 8000 characters
+        |            </div>""".stripMargin
     )
   }
 
