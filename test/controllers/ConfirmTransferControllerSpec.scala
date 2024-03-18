@@ -247,7 +247,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       confirmTransferPageAsString must include(
         s"""                    <dd class="govuk-summary-list__value">
-           |                        ${consignmentSummaryResponse.totalFiles} files uploaded
+           |                        ${consignmentSummaryResponse.totalFiles} files&nbsp;uploaded
            |                    </dd>""".stripMargin
       )
 
