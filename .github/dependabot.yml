@@ -4,6 +4,10 @@ updates:
     directory: "/npm"
     schedule:
       interval: "daily"
+    groups:
+      npm-dependencies:
+      applies-to: version-updates
+        - "*"
     versioning-strategy: increase
   - package-ecosystem: "docker"
     directory: "/"
