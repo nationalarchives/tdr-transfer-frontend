@@ -112,7 +112,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |                        Your folder 'parentFolder' containing 1 record has been uploaded and checked.
             |                    </h3>
             |                    <p class="govuk-body">You can leave and return to this upload at any time from the <a class="govuk-notification-banner__link" href="/view-transfers">View transfers</a> page.</p>""".stripMargin,
-          s"""            <a class="govuk-button" href="/consignment/0a3f617c-04e8-41c2-9f24-99622a779528/additional-metadata" role="button" draggable="false" data-module="govuk-button">
+          s"""            <a class="govuk-button" href="/consignment/$consignmentId/additional-metadata/entry-method" role="button" draggable="false" data-module="govuk-button">
              |                Next
              |            </a>""".stripMargin,
           """              <p class="govuk-body">
