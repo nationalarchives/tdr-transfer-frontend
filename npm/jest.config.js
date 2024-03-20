@@ -2,7 +2,8 @@ module.exports = {
   preset: "ts-jest",
   moduleNameMapper: {
     "govuk-frontend": "<rootDir>/src/govuk-frontend.d.ts",
-    "@nationalarchives/tdr-components": "<rootDir>/node_modules/@nationalarchives/tdr-components/dist"
+    "@nationalarchives/tdr-components": "<rootDir>/node_modules/@nationalarchives/tdr-components/dist",
+    '^aws-sdk-client-mock$': require.resolve('aws-sdk-client-mock')
   },
   testEnvironment: 'jsdom',
   globals: {
