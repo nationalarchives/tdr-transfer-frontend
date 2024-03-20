@@ -1,11 +1,15 @@
 package services
 
+import cats.effect.IO
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.GraphQLConfiguration
 import graphql.codegen.AddFilesAndMetadata.{addFilesAndMetadata => afam}
 import graphql.codegen.StartUpload.{startUpload => su}
 import graphql.codegen.types.{AddFileAndMetadataInput, StartUploadInput}
 import services.ApiErrorHandling.sendApiRequest
+import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody
+import software.amazon.awssdk.transfer.s3.model.CompletedUpload
+import uk.gov.nationalarchives.DAS3Client
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,5 +26,15 @@ class UploadService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(i
   def saveClientMetadata(addFileAndMetadataInput: AddFileAndMetadataInput, token: BearerAccessToken): Future[List[afam.AddFilesAndMetadata]] = {
     val variables = afam.Variables(addFileAndMetadataInput)
     sendApiRequest(addFilesAndMetadataClient, afam.document, token, variables).map(data => data.addFilesAndMetadata)
+  }
+
+  def uploadDraftMetadata(bucket: String, key: String, draftMetadata: String): IO[CompletedUpload] = {
+    uploadDraftMetadata(bucket, key, draftMetadata, DAS3Client[IO]())
+  }
+
+  def uploadDraftMetadata(bucket: String, key: String, draftMetadata: String, s3client: DAS3Client[IO]): IO[CompletedUpload] = {
+    val bytes = draftMetadata.getBytes
+    val publisher = ByteBuffersAsyncRequestBody.from("application/octet-stream", bytes)
+    s3client.upload(bucket, key, bytes.size, publisher)
   }
 }
