@@ -4,7 +4,7 @@ module.exports = {
     "govuk-frontend": "<rootDir>/src/govuk-frontend.d.ts",
     "@nationalarchives/tdr-components": "<rootDir>/node_modules/@nationalarchives/tdr-components/dist"
   },
-  transformIgnorePatterns: ['/node_modules/(?!(aws-sdk-client-mock|xxx)/)'],
+  transformIgnorePatterns: ['/node_modules/(?!(sinon)/)'],
   testEnvironment: 'jsdom',
   globals: {
     TDR_IDENTITY_PROVIDER_NAME: "TEST_AUTH_URL",
