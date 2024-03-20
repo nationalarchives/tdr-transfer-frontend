@@ -46,7 +46,7 @@ export class Checks {
         )
         if (checksCompleted) {
           clearInterval(intervalId)
-          displayChecksCompletedBanner("draft-metadata-check")
+          displayChecksCompletedBanner("draft-metadata-checks")
         }
       } else {
         clearInterval(intervalId)
