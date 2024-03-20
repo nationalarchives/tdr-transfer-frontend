@@ -15,6 +15,9 @@ import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import org.scalatestplus.mockito.MockitoSugar.mock
+import software.amazon.awssdk.auth.credentials.{AwsCredentials, AwsCredentialsProvider}
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload
 import uk.gov.nationalarchives.DAS3Client
@@ -77,7 +80,22 @@ class UploadServiceSpec extends AnyFlatSpec {
 
   "uploadDraftMetadata" should "return an IO[CompletedUpload] error when unable to save draft metadata " in {
 
-    val completedUploadIO: IO[CompletedUpload] = new UploadService(graphQlConfig).uploadDraftMetadata("test-draft-metadata-bucket", "draft-metadata.csv", "id,code\n12,A")
+    val s3Client = S3AsyncClient
+      .crtBuilder()
+      .region(Region.EU_WEST_2)
+      .credentialsProvider(new AwsCredentialsProvider {
+        override def resolveCredentials(): AwsCredentials = new AwsCredentials {
+          override def accessKeyId(): String = "accessKeyId"
+          override def secretAccessKey(): String = "secretAccessKey"
+        }
+      })
+      .targetThroughputInGbps(20.0)
+      .minimumPartSizeInBytes(10 * 1024 * 1024)
+      .build()
+
+    val daS3client = DAS3Client[IO](s3Client)
+    val completedUploadIO: IO[CompletedUpload] =
+      new UploadService(graphQlConfig).uploadDraftMetadata("test-draft-metadata-bucket", "draft-metadata.csv", "id,code\n12,A", daS3client)
 
     completedUploadIO.recoverWith(error => IO(error.toString)).unsafeRunSync().toString should include("S3Exception")
   }
