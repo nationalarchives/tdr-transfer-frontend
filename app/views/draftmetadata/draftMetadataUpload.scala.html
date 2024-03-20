@@ -5,13 +5,13 @@
 @import java.util.UUID
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit request: RequestHeader, messages: Messages)
 
-@main("Draft Metadata Upload", name = name, backLink = Some(backLink(routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId).url, "How would you like to enter metadata?"))) {
+@main("Upload a metadata CSV", name = name, backLink = Some(backLink(routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId).url, "How would you like to enter metadata?"))) {
     <div id="metadata-file-upload" class="govuk-grid-row" >
 
         <div class="govuk-grid-column-two-thirds">
             <h1 class="govuk-heading-l">Upload a metadata CSV</h1>
             <div class="govuk-body">
-                <p>In your CSV, include a header row for the cloumn titles and one row for every record that requires metadata.</p>
+                <p>In your CSV, include a header row for the column titles and one row for every record that requires metadata.</p>
             </div>
 
             <div class="govuk-form-group">

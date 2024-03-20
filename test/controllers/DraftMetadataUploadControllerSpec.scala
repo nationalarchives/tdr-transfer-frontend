@@ -55,7 +55,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
       playStatus(draftMetadataUploadPage) mustBe OK
       contentType(draftMetadataUploadPage) mustBe Some("text/html")
-      pageAsString must include("<title>Draft Metadata Upload - Transfer Digital Records - GOV.UK</title>")
+      pageAsString must include("<title>Upload a metadata CSV - Transfer Digital Records - GOV.UK</title>")
     }
 
     "render page not found error when 'blockDraftMetadataUpload' set to 'true'" in {
@@ -70,7 +70,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       pageAsString must include("<title>Page not found - Transfer Digital Records - GOV.UK</title>")
     }
 
-    "when upload successful must redirect to checks page" in {
+    "redirect to draft metadata checks page when upload successful" in {
       val uploadServiceMock = mock[UploadService]
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       val completedUpload = IO(CompletedUpload.builder().response(putObjectResponse).build())
