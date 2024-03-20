@@ -2,9 +2,9 @@ module.exports = {
   preset: "ts-jest",
   moduleNameMapper: {
     "govuk-frontend": "<rootDir>/src/govuk-frontend.d.ts",
-    "@nationalarchives/tdr-components": "<rootDir>/node_modules/@nationalarchives/tdr-components/dist"
+    "@nationalarchives/tdr-components": "<rootDir>/node_modules/@nationalarchives/tdr-components/dist",
+    '^sinon$': require.resolve('sinon')
   },
-  transformIgnorePatterns: ['/node_modules/(?!(sinon)/)'],
   testEnvironment: 'jsdom',
   globals: {
     TDR_IDENTITY_PROVIDER_NAME: "TEST_AUTH_URL",
