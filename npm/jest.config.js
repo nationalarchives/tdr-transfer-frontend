@@ -2,9 +2,9 @@ module.exports = {
   preset: "ts-jest",
   moduleNameMapper: {
     "govuk-frontend": "<rootDir>/src/govuk-frontend.d.ts",
-    "@nationalarchives/tdr-components": "<rootDir>/node_modules/@nationalarchives/tdr-components/dist",
-    '^aws-sdk-client-mock$': require.resolve('aws-sdk-client-mock')
+    "@nationalarchives/tdr-components": "<rootDir>/node_modules/@nationalarchives/tdr-components/dist"
   },
+  transformIgnorePatterns: ['/node_modules/(?!(aws-sdk-client-mock|xxx)/)'],
   testEnvironment: 'jsdom',
   globals: {
     TDR_IDENTITY_PROVIDER_NAME: "TEST_AUTH_URL",
