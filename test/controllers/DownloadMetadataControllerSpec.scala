@@ -332,7 +332,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   "DownloadMetadataController downloadMetadataPage GET" should {
-    "load the download metadata page with the image, download link and continue button" in {
+    "load the download metadata page with the image, download link, next button and back button" in {
       setConsignmentReferenceResponse(wiremockServer)
 
       val controller = createController("standard")
@@ -346,6 +346,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         s"""<a class="govuk-button govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
       )
       responseAsString must include(s"""<a class="govuk-button" href="/consignment/$consignmentId/confirm-transfer"""")
+      responseAsString must include(s"""<a href="/consignment/$consignmentId/additional-metadata/entry-method"""")
     }
 
     "return forbidden for a judgment user" in {

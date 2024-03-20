@@ -137,8 +137,8 @@ test("'updateFileCheckProgress' shows a standard user, the notification banner a
 })
 
 test("'updateDraftMetadataValidationProgress' shows a standard user, the notification banner and an enabled continue button if all checks are 'completed'", async () => {
-  document.body.innerHTML = `<div id="draft-metadata-check-completed-banner" hidden></div>
-                            <a id="draft-metadata-check-continue" class="govuk-button--disabled" disabled></a>`
+  document.body.innerHTML = `<div id="draft-metadata-checks-completed-banner" hidden></div>
+                            <a id="draft-metadata-checks-continue" class="govuk-button--disabled" disabled></a>`
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
@@ -160,8 +160,8 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, the notific
 })
 
 test("'updateDraftMetadataValidationProgress' shows a standard user, the notification banner and an enabled continue button if all checks are 'completedWithIssues'", async () => {
-  document.body.innerHTML = `<div id="draft-metadata-check-completed-banner" hidden></div>
-                            <a id="draft-metadata-check-continue" class="govuk-button--disabled" disabled></a>`
+  document.body.innerHTML = `<div id="draft-metadata-checks-completed-banner" hidden></div>
+                            <a id="draft-metadata-checks-continue" class="govuk-button--disabled" disabled></a>`
   const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId

@@ -178,7 +178,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include("<title>Upload your records - Transfer Digital Records - GOV.UK</title>")
       uploadPageAsString must include("""<h1 class="govuk-heading-l">Upload your records</h1>""")
       uploadPageAsString must include(
-        """<p class="govuk-body">Before uploading, all records (files and folders) you wish to transfer must be put into a single, top-level folder.</p>"""
+        """<p class="govuk-body">Before uploading, all files and folders you wish to transfer must be put into a single, top-level folder.</p>"""
       )
       uploadPageAsString must include(
         """Individual files must be no bigger than 2GB and you must upload no more than 500 files per transfer. """ +
@@ -191,7 +191,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       )
       uploadPageAsString must include("""<h2 class="govuk-heading-m">Select a folder to upload</h2>""")
       uploadPageAsString must include(
-        """<p class="govuk-body">Click 'Select a folder' to open a dialog box and select a folder. Once selected, you will be prompted to confirm your choice.</p>"""
+        """<p class="govuk-body">Click 'Select a folder' to open a dialog box and select a folder. Once selected you will be prompted to confirm your choice.</p>"""
       )
       uploadPageAsString must include(
         """<p id="success-message-text" aria-live="assertive" aria-atomic="true" class="govuk-!-margin-bottom-3 govuk-!-margin-top-0 drag-and-drop__selected__description">The folder <strong id="files-selected-folder-name" class="folder-name"></strong> (containing <span class="folder-size"></span>) has been selected.</p>"""
@@ -211,7 +211,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include(
         """|                                accept="*"
            |                                >
-           |                                <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single top-level folder here or &nbsp;</p>
+           |                                <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single top-level folder here&nbsp;</p>
            |                                <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
            |                                    Select a folder
            |                                </label>""".stripMargin
