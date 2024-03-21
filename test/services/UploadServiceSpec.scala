@@ -1,20 +1,29 @@
 package services
 
-import cats.implicits.catsSyntaxOptionId
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
-import configuration.GraphQLConfiguration
 import configuration.GraphQLBackend._
-import org.scalatest.concurrent.ScalaFutures._
-import org.mockito.Mockito.when
-import org.scalatest.flatspec.AnyFlatSpec
-import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
-import graphql.codegen.StartUpload.{startUpload => su}
+import configuration.GraphQLConfiguration
 import graphql.codegen.AddFilesAndMetadata.{addFilesAndMetadata => afam}
-import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
-import graphql.codegen.types.{AddFileAndMetadataInput, ClientSideMetadataInput, ConsignmentStatusInput, StartUploadInput}
-import org.scalatestplus.mockito.MockitoSugar.mock
+import graphql.codegen.StartUpload.{startUpload => su}
+import graphql.codegen.types.{AddFileAndMetadataInput, ClientSideMetadataInput, StartUploadInput}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.reactivestreams.Publisher
+import org.scalatest.concurrent.ScalaFutures._
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
+import org.scalatestplus.mockito.MockitoSugar.mock
+import software.amazon.awssdk.auth.credentials.{AwsCredentials, AwsCredentialsProvider}
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.model.PutObjectResponse
+import software.amazon.awssdk.transfer.s3.model.CompletedUpload
+import uk.gov.nationalarchives.DAS3Client
+import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
+import java.nio.ByteBuffer
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -56,4 +65,39 @@ class UploadServiceSpec extends AnyFlatSpec {
     response.size should equal(1)
     response.head should equal(input)
   }
+
+  "uploadDraftMetadata" should "return an IO[CompletedUpload] indicating success " in {
+
+    val s3client = mock[DAS3Client[IO]]
+    val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
+    val completedUpload = IO(CompletedUpload.builder().response(putObjectResponse).build())
+    when(s3client.upload(any[String], any[String], any[Long], any[Publisher[ByteBuffer]])).thenReturn(completedUpload)
+
+    val completedUploadIO: IO[CompletedUpload] = new UploadService(graphQlConfig).uploadDraftMetadata("test-draft-metadata-bucket", "draft-metadata.csv", "id,code\n12,A", s3client)
+
+    completedUploadIO.unsafeRunSync().response().eTag() shouldBe "testEtag"
+  }
+
+  "uploadDraftMetadata" should "return an IO[CompletedUpload] error when unable to save draft metadata " in {
+
+    val s3Client = S3AsyncClient
+      .crtBuilder()
+      .region(Region.EU_WEST_2)
+      .credentialsProvider(new AwsCredentialsProvider {
+        override def resolveCredentials(): AwsCredentials = new AwsCredentials {
+          override def accessKeyId(): String = "accessKeyId"
+          override def secretAccessKey(): String = "secretAccessKey"
+        }
+      })
+      .targetThroughputInGbps(20.0)
+      .minimumPartSizeInBytes(10 * 1024 * 1024)
+      .build()
+
+    val daS3client = DAS3Client[IO](s3Client)
+    val completedUploadIO: IO[CompletedUpload] =
+      new UploadService(graphQlConfig).uploadDraftMetadata("test-draft-metadata-bucket", "draft-metadata.csv", "id,code\n12,A", daS3client)
+
+    completedUploadIO.recoverWith(error => IO(error.toString)).unsafeRunSync().toString should include("S3Exception")
+  }
+
 }
