@@ -63,7 +63,7 @@ class DraftMetadataUploadController @Inject() (
 
       uploadDraftMetadata
         .recoverWith { case error =>
-          IO(InternalServerError(s"Unable to upload draft metadata to : $uploadBucket/$uploadKey: Error:" + error.getMessage))
+          IO(InternalServerError(s"Unable to upload draft metadata to : $uploadBucket/$uploadKey: Error:" + error.getMessage + " stack" + error.getStackTrace.mkString))
         }
         .unsafeToFuture()
   }
