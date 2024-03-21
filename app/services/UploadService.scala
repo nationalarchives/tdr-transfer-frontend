@@ -8,11 +8,17 @@ import graphql.codegen.StartUpload.{startUpload => su}
 import graphql.codegen.types.{AddFileAndMetadataInput, StartUploadInput}
 import services.ApiErrorHandling.sendApiRequest
 import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody
-import software.amazon.awssdk.transfer.s3.model.CompletedUpload
-import uk.gov.nationalarchives.DAS3Client
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
+import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.model.{PutObjectRequest, PutObjectResponse}
+import uk.gov.nationalarchives.aws.utils.s3.S3Utils
+import uk.gov.nationalarchives.aws.utils.s3.S3Clients._
 
+import java.nio.file.Files
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.FutureConverters.CompletionStageOps
 
 class UploadService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(implicit val ec: ExecutionContext) {
   private val startUploadClient = graphqlConfiguration.getClient[su.Data, su.Variables]()
@@ -28,13 +34,15 @@ class UploadService @Inject() (val graphqlConfiguration: GraphQLConfiguration)(i
     sendApiRequest(addFilesAndMetadataClient, afam.document, token, variables).map(data => data.addFilesAndMetadata)
   }
 
-  def uploadDraftMetadata(bucket: String, key: String, draftMetadata: String): IO[CompletedUpload] = {
-    uploadDraftMetadata(bucket, key, draftMetadata, DAS3Client[IO]())
+  def uploadDraftMetadata(bucket: String, key: String, draftMetadata: String): Future[PutObjectResponse] = {
+    uploadDraftMetadata(bucket, key, draftMetadata, S3Utils(s3Async("https://s3.eu-west-2.amazonaws.com/")))
   }
 
-  def uploadDraftMetadata(bucket: String, key: String, draftMetadata: String, s3client: DAS3Client[IO]): IO[CompletedUpload] = {
+  def uploadDraftMetadata(bucket: String, key: String, draftMetadata: String, s3client: S3Utils): Future[PutObjectResponse] = {
     val bytes = draftMetadata.getBytes
+    val asyncClient = s3Async("https://s3.eu-west-2.amazonaws.com/")
+
     val publisher = ByteBuffersAsyncRequestBody.from("application/octet-stream", bytes)
-    s3client.upload(bucket, key, bytes.size, publisher)
+    asyncClient.putObject(PutObjectRequest.builder.bucket(bucket).key(key).build, publisher).asScala
   }
 }
