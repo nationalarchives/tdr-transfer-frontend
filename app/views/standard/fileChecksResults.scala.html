@@ -1,7 +1,7 @@
 @import views.html.partials.{progressIndicator, transferReference}
 
 @import java.util.UUID
-@(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+@(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String, blockDraftMetadata: Boolean)(implicit messages: Messages, request: RequestHeader)
 
 @main(title, name = name) {
     <div class="govuk-grid-row">
@@ -28,7 +28,7 @@
                     Now that your records have been uploaded you can proceed with the transfer. In the next step you will be given the opportunity to add metadata to your records before transferring them.
                 </strong>
             </div>
-            <a class="govuk-button" href="@routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId)" role="button" draggable="false" data-module="govuk-button">
+            <a class="govuk-button" href="@{if(blockDraftMetadata) routes.AdditionalMetadataController.start(consignmentId) else routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId)}" role="button" draggable="false" data-module="govuk-button">
                 Next
             </a>
         </div>
