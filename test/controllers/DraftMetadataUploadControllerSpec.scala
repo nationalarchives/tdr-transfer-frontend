@@ -1,6 +1,5 @@
 package controllers
 
-import cats.effect.IO
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.mockito.ArgumentMatchers.{any, anyString}
@@ -10,14 +9,13 @@ import org.scalatest.matchers.should.Matchers._
 import play.api.Configuration
 import play.api.Play.materializer
 import play.api.libs.Files.SingletonTemporaryFileCreator
-import play.api.mvc.{MultipartFormData, Result}
 import play.api.mvc.MultipartFormData.FilePart
+import play.api.mvc.{MultipartFormData, Result}
 import play.api.test.CSRFTokenHelper._
-import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers.{status => playStatus, _}
+import play.api.test.{FakeHeaders, FakeRequest}
 import services.{ConsignmentService, DraftMetadataService, UploadService}
 import software.amazon.awssdk.services.s3.model.PutObjectResponse
-import software.amazon.awssdk.transfer.s3.model.CompletedUpload
 import testUtils.FrontEndTestHelper
 
 import java.io.{BufferedWriter, File, FileWriter}
@@ -73,8 +71,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     "redirect to draft metadata checks page when upload successful" in {
       val uploadServiceMock = mock[UploadService]
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
-      val completedUpload = IO(CompletedUpload.builder().response(putObjectResponse).build())
-      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(completedUpload)
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString)).thenReturn(Future.successful(true))
@@ -88,7 +85,8 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
     "render error page when upload unsuccessful" in {
       val uploadServiceMock = mock[UploadService]
-      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(IO.raiseError[CompletedUpload](new RuntimeException("Upload failed")))
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString))
+        .thenReturn(Future.failed(new RuntimeException("Upload failed")))
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString)).thenReturn(Future.successful(true))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
@@ -101,8 +99,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     "render error page when upload success but trigger fails" in {
       val uploadServiceMock = mock[UploadService]
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
-      val completedUpload = IO(CompletedUpload.builder().response(putObjectResponse).build())
-      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(completedUpload)
+      when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
       when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString)).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
