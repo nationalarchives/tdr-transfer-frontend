@@ -5,7 +5,7 @@
 * object to insert into the body of the page.
 *@
 @import views.html.helper.CSPNonce
-
+@import views.html.partials.feedbackLink
 @(title: String, hasError: Boolean = false, isLoggedIn: Boolean = true, name: String = "", isJudgmentUser: Boolean = false, backLink: Option[Html] = None)(content: Html)(implicit messages: Messages, request: RequestHeader)
 
 <!DOCTYPE html>
@@ -85,9 +85,19 @@
             <div class="govuk-phase-banner">
                 <p class="govuk-phase-banner__content">
                     <strong class="govuk-tag govuk-phase-banner__content__tag">BETA</strong>
-                    <span class="govuk-phase-banner__text">This is a new service – your feedback will help us to improve it. Please
-                    <a class="govuk-link" target="_blank" rel="noreferrer noopener" href="/contact">get in touch (opens in new tab).</a>
-                    </span>
+                    @if(isLoggedIn) {
+                        @if(isJudgmentUser){
+                            @feedbackLink("https://www.smartsurvey.co.uk/s/5YDPSA/")
+                        }else{
+                            @feedbackLink("https://www.smartsurvey.co.uk/s/tdr-feedback/")
+                        }
+                    }else {
+                        <span class="govuk-phase-banner__text">
+                            This is a new service – your feedback will help us to improve it. Please
+                            <a class="govuk-link" target="_blank" rel="noreferrer noopener" href="/contact">
+                                get in touch (opens in new tab).</a>
+                        </span>
+                    }
                 </p>
             </div>
             @backLink.getOrElse("")
