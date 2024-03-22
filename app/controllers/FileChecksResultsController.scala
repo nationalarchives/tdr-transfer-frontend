@@ -44,7 +44,8 @@ class FileChecksResultsController @Inject() (
             pageTitle,
             consignmentId,
             reference,
-            request.token.name
+            request.token.name,
+            applicationConfig.blockDraftMetadataUpload
           )
         )
       } else {
