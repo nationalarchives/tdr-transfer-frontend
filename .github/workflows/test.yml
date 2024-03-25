@@ -18,5 +18,6 @@ jobs:
         npm --prefix npm ci
         npm --prefix npm run checks
         sbt scalafmtCheckAll test
+      java-version: '17'
     secrets:
       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
