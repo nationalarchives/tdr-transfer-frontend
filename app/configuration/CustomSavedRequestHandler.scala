@@ -1,7 +1,6 @@
 package configuration
 
 import org.pac4j.core.context.{CallContext, WebContext}
-import org.pac4j.core.context.session.SessionStore
 import org.pac4j.core.engine.savedrequest.SavedRequestHandler
 import org.pac4j.core.exception.http.{FoundAction, HttpAction}
 import org.pac4j.core.util.{HttpActionHelper, Pac4jConstants}
