@@ -13,14 +13,14 @@ scalaVersion := "2.13.12"
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 
-val playVersion = "3.0.0"
+val playVersion = "3.0.2"
 val playPac4jVersion = "12.0.0-PLAY3.0"
-val pac4jVersion = "6.0.0"
+val pac4jVersion = "6.0.2"
 val sttpVersion = "2.3.0"
 
 libraryDependencies ++= Seq(
-  "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll(ExclusionRule("commons-io" , "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
-  "org.pac4j" % "pac4j-http" % pac4jVersion excludeAll(ExclusionRule(organization = "com.fasterxml.jackson.core")),
+  "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
+  "org.pac4j" % "pac4j-http" % pac4jVersion excludeAll (ExclusionRule(organization = "com.fasterxml.jackson.core")),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,
   "io.circe" %% "circe-core" % "0.14.6",
   "io.circe" %% "circe-generic" % "0.14.6",
