@@ -8,7 +8,7 @@ import configuration.{ApplicationConfig, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc.{Action, AnyContent, MultipartFormData, Request, Result}
+import play.api.mvc._
 import services._
 import viewsapi.Caching.preventCaching
 
@@ -63,7 +63,7 @@ class DraftMetadataUploadController @Inject() (
 
       uploadDraftMetadata
         .recoverWith { case error =>
-          IO(InternalServerError(s"Unable to upload draft metadata to : $uploadBucket/$uploadKey: Error:" + error.getMessage + " stack" + error.getStackTrace.mkString))
+          IO(InternalServerError(s"Unable to upload draft metadata to : $uploadBucket/$uploadKey: Error:" + error.getMessage))
         }
         .unsafeToFuture()
   }
