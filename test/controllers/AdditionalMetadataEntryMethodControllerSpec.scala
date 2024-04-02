@@ -4,9 +4,6 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, postRequestedFor, urlEqualTo}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment => gcs}
-import graphql.codegen.UpdateConsignmentStatus.updateConsignmentStatus
-import io.circe.generic.auto._
-import io.circe.syntax._
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
@@ -170,15 +167,11 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
       val controller = instantiateController(blockDraftMetadataUpload = false)
       val someDateTime = ZonedDateTime.now()
       val consignmentStatuses = List(gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, InProgress.value, someDateTime, None))
-      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val client = graphQLConfiguration.getClient[updateConsignmentStatus.Data, updateConsignmentStatus.Variables]()
-      val data = client.GraphqlData(Option(updateConsignmentStatus.Data(Option(1))), Nil)
-      val ucsDataString = data.asJson.noSpaces
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
-      mockUpdateConsignmentStatus(ucsDataString, wiremockServer)
+      setUpdateConsignmentStatus(wiremockServer)
 
       val additionalMetadataEntryMethodPage: Result = controller
         .submitAdditionalMetadataEntryMethod(consignmentId)
