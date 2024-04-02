@@ -234,7 +234,7 @@ case object View extends ActionText {
 }
 
 case object Download extends ActionText {
-  val value: String = "Download report"
+  val value: String = "Download metadata"
 }
 
 case object Resume extends ActionText {
