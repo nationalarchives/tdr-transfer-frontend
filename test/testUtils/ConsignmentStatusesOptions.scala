@@ -369,7 +369,7 @@ object ConsignmentStatusesOptions {
       ),
       "/additional-metadata/download-metadata/csv",
       "Transferred",
-      "Download report"
+      "Download metadata"
     ),
     (
       "export in progress with metadata entered",
@@ -379,7 +379,7 @@ object ConsignmentStatusesOptions {
       ),
       "/additional-metadata/download-metadata/csv",
       "Transferred",
-      "Download report"
+      "Download metadata"
     ),
     (
       "export failed",
@@ -407,7 +407,7 @@ object ConsignmentStatusesOptions {
       ),
       "/additional-metadata/download-metadata/csv",
       "Transferred",
-      "Download report"
+      "Download metadata"
     ),
     (
       "export completed with metadata entered",
@@ -417,7 +417,7 @@ object ConsignmentStatusesOptions {
       ),
       "/additional-metadata/download-metadata/csv",
       "Transferred",
-      "Download report"
+      "Download metadata"
     )
   )
 
