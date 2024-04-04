@@ -1,7 +1,9 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, postRequestedFor, urlEqualTo}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment => gcs}
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
@@ -11,13 +13,15 @@ import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
+import services.Statuses.DraftMetadataType
 import services.{ConsignmentService, ConsignmentStatusService}
 import testUtils.FrontEndTestHelper
-import org.scalatest.concurrent.ScalaFutures._
 
+import java.time.ZonedDateTime
 import java.util.UUID
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.CollectionHasAsScala
+import org.scalatest.concurrent.ScalaFutures._
 
 class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -129,12 +133,14 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
       redirectLocation must include(s"/consignment/$consignmentId/additional-metadata/download-metadata")
     }
 
-    "redirect to draft metadat upload page when the user chooses 'csv' option to enter metadata" in {
+    "redirect to draft metadata upload page when the user chooses 'csv' option to enter metadata" in {
       val controller = instantiateController(blockDraftMetadataUpload = false)
+      val someDateTime = ZonedDateTime.now()
 
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
       setAddConsignmentStatusResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = Nil)
 
       val additionalMetadataEntryMethodPage: Result = controller
         .submitAdditionalMetadataEntryMethod(consignmentId)
@@ -155,6 +161,36 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
 
       val expectedInput = s"""{"addConsignmentStatusInput":{"consignmentId":"$consignmentId","statusType":"DraftMetadata","statusValue":"InProgress"}}"""
       addConsignmentStatusEvent.getRequest.getBodyAsString must include(expectedInput)
+    }
+
+    "redirect to draft metadata upload page when the user chooses 'csv' option to enter metadata and 'draftMetadata' status already exists" in {
+      val controller = instantiateController(blockDraftMetadataUpload = false)
+      val someDateTime = ZonedDateTime.now()
+      val consignmentStatuses = List(gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, InProgress.value, someDateTime, None))
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      setUpdateConsignmentStatus(wiremockServer)
+
+      val additionalMetadataEntryMethodPage: Result = controller
+        .submitAdditionalMetadataEntryMethod(consignmentId)
+        .apply(
+          FakeRequest(POST, "/additional-metadata/entry-method")
+            .withFormUrlEncodedBody(Seq(("metadataRoute", "csv")): _*)
+            .withCSRFToken
+        )
+        .futureValue
+
+      val redirectLocation = additionalMetadataEntryMethodPage.header.headers.getOrElse("Location", "")
+
+      additionalMetadataEntryMethodPage.header.status should equal(303)
+      redirectLocation must include(s"/consignment/$consignmentId/draft-metadata/upload")
+
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing(s"""{"updateConsignmentStatusInput":{"consignmentId":"$consignmentId","statusType":"DraftMetadata","statusValue":"InProgress"}}"""))
+      )
     }
   }
 
