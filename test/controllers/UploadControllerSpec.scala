@@ -12,12 +12,13 @@ import graphql.codegen.types.{AddFileAndMetadataInput, AddFileStatusInput, AddMu
 import io.circe.syntax._
 import io.circe.parser.decode
 import io.circe.generic.auto._
+import org.mockito.Mockito.when
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, redirectLocation, status, _}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
-import services.{BackendChecksService, ConsignmentService, FileStatusService, UploadService}
+import services.{BackendChecksService, ConsignmentService, FileStatusService, Statuses, UploadService}
 import play.api.libs.json._
 
 import java.util.UUID
@@ -27,7 +28,7 @@ import org.scalatest.concurrent.ScalaFutures._
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.Configuration
 import play.api.test.WsTestClient.InternalWSClient
-import services.Statuses.CompletedWithIssuesValue
+import services.Statuses.{CompletedWithIssuesValue, StatusValue}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import scala.jdk.CollectionConverters._
@@ -359,41 +360,15 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "render the 'upload in progress error' page if a judgment file upload has a 'completedWithIssues' status" in {
-      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
-      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val uploadStatus = Statuses.CompletedWithIssuesValue
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = new UploadController(
-        getAuthorisedSecurityComponents,
-        graphQLConfiguration,
-        getValidJudgmentUserKeycloakConfiguration,
-        frontEndInfoConfiguration,
-        consignmentService,
-        uploadService,
-        fileStatusService,
-        backendChecksService
-      )
 
-      val consignmentStatuses = List(
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", CompletedWithIssuesValue.value, someDateTime, None)
-      )
-
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
-      setConsignmentTypeResponse(wiremockServer, "judgment")
-      setConsignmentReferenceResponse(wiremockServer)
-
-      val uploadPage = controller
-        .judgmentUploadPage(consignmentId)
-        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      val uploadPage = executeJudgmentsUpload(uploadStatus, consignmentId, applicationConfig)
       val uploadPageAsString = contentAsString(uploadPage)
-
       status(uploadPage) mustBe OK
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "judgment")
-      checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, userType = "judgment", uploadStatus = CompletedWithIssuesValue.value)
+      checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, userType = "judgment", uploadStatus = uploadStatus.value)
     }
 
     "show the judgment upload page for judgments" in {
@@ -468,76 +443,23 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
 
     "render the 'upload in progress' page if a judgment file upload is in progress" in {
-      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
-      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val uploadStatus = Statuses.InProgressValue
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = new UploadController(
-        getAuthorisedSecurityComponents,
-        graphQLConfiguration,
-        getValidJudgmentUserKeycloakConfiguration,
-        frontEndInfoConfiguration,
-        consignmentService,
-        uploadService,
-        fileStatusService,
-        backendChecksService
-      )
 
-      val uploadStatus = "InProgress"
-
-      val consignmentStatuses = List(
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", uploadStatus, someDateTime, None)
-      )
-
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
-      setConsignmentTypeResponse(wiremockServer, "judgment")
-      setConsignmentReferenceResponse(wiremockServer)
-
-      val uploadPage = controller
-        .judgmentUploadPage(consignmentId)
-        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      val uploadPage = executeJudgmentsUpload(uploadStatus, consignmentId, applicationConfig)
       val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "judgment")
-      checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, userType = "judgment", uploadStatus = uploadStatus)
+      checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, userType = "judgment", uploadStatus = uploadStatus.value)
     }
 
     "render the judgment 'upload is complete' page if the upload has completed" in {
-      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
-      val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
-      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
-      val fileStatusService = new FileStatusService(graphQLConfiguration)
-      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val uploadStatus = Statuses.CompletedValue
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val controller = new UploadController(
-        getAuthorisedSecurityComponents,
-        graphQLConfiguration,
-        getValidJudgmentUserKeycloakConfiguration,
-        frontEndInfoConfiguration,
-        consignmentService,
-        uploadService,
-        fileStatusService,
-        backendChecksService
-      )
-      val uploadStatus = "Completed"
 
-      val consignmentStatuses = List(
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
-        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", uploadStatus, someDateTime, None)
-      )
-
-      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
-      setConsignmentTypeResponse(wiremockServer, "judgment")
-      setConsignmentReferenceResponse(wiremockServer)
-
-      val uploadPage = controller
-        .judgmentUploadPage(consignmentId)
-        .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
+      val uploadPage = executeJudgmentsUpload(uploadStatus, consignmentId, applicationConfig)
       val uploadPageAsString = contentAsString(uploadPage)
 
       status(uploadPage) mustBe OK
@@ -548,8 +470,39 @@ class UploadControllerSpec extends FrontEndTestHelper {
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "judgment")
-      checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, userType = "judgment", uploadStatus = uploadStatus)
+      checkForExpectedPageContentOnOtherUploadPages(uploadPageAsString, userType = "judgment", uploadStatus = uploadStatus.value)
     }
+  }
+
+  private def executeJudgmentsUpload(uploadStatus:StatusValue ,consignmentId:UUID, applicationConfig: ApplicationConfig) = {
+    val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+    val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
+    val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+    val fileStatusService = new FileStatusService(graphQLConfiguration)
+    val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+    val controller = new UploadController(
+      getAuthorisedSecurityComponents,
+      graphQLConfiguration,
+      getValidJudgmentUserKeycloakConfiguration,
+      applicationConfig,
+      consignmentService,
+      uploadService,
+      fileStatusService,
+      backendChecksService
+    )
+
+    val consignmentStatuses = List(
+      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "TransferAgreement", "Completed", someDateTime, None),
+      ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", uploadStatus.value, someDateTime, None)
+    )
+
+    setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+    setConsignmentTypeResponse(wiremockServer, "judgment")
+    setConsignmentReferenceResponse(wiremockServer)
+
+     controller
+      .judgmentUploadPage(consignmentId)
+      .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
   }
 
   forAll(userChecks) { (user, url) =>
