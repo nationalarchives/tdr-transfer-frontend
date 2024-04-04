@@ -143,7 +143,7 @@ class ConfirmTransferController @Inject() (
     } yield res
   }
 
-  def judgmentChecksPassedSubmit(consignmentId: UUID): Action[AnyContent] =  finalJudgmentTransferConfirmationSubmit(consignmentId: UUID)
+  def judgmentChecksPassedSubmit(consignmentId: UUID): Action[AnyContent] = finalJudgmentTransferConfirmationSubmit(consignmentId: UUID)
 
 }
 
