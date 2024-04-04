@@ -148,8 +148,16 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         mockGraphqlResponse(userType, fileStatusResponse, filePathResponse)
         setConsignmentReferenceResponse(wiremockServer)
 
-        val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration)
+        // test blockAutomateJudgmentTransfers
+        if (userType == "judgment") {
+          val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration, blockAutomateJudgmentTransfers = false)
+          val recordCheckResultsPage = fileCheckResultsController
+            .judgmentFileCheckResultsPage(consignmentId)
+            .apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
+          status(recordCheckResultsPage) mustBe 303
+        }
 
+        val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration)
         val recordCheckResultsPage = {
           if (userType == "judgment") {
             fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
@@ -436,8 +444,14 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
   }
 
-  private def instantiateController(securityComponent: SecurityComponents, keycloakConfiguration: KeycloakConfiguration, blockDraftMetadataUpload: Boolean = false) = {
+  private def instantiateController(
+      securityComponent: SecurityComponents,
+      keycloakConfiguration: KeycloakConfiguration,
+      blockDraftMetadataUpload: Boolean = false,
+      blockAutomateJudgmentTransfers: Boolean = true
+  ) = {
     when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
+    when(configuration.get[Boolean]("featureAccessBlock.blockAutomateJudgmentTransfers")).thenReturn(blockAutomateJudgmentTransfers)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
