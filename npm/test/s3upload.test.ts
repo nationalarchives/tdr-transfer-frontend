@@ -32,7 +32,7 @@ interface ITdrFileWithPathAndBits extends ITdrFileWithPath {
 }
 
 const s3Mock = mockClient(S3Client)
-const s3Client = new S3Client({})
+const s3Client = new S3Client({region: "eu-west-2"})
 
 const userId = "b088d123-1280-4959-91ca-74858f7ba226"
 
