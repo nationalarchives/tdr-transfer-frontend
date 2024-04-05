@@ -31,7 +31,8 @@ interface ITdrFileWithPathAndBits extends ITdrFileWithPath {
   bits: Buffer
 }
 
-const s3Mock: AwsClientStub<S3Client> = mockClient(S3Client)
+const s3Mock = mockClient(S3Client)
+const s3Client = new S3Client({})
 
 const userId = "b088d123-1280-4959-91ca-74858f7ba226"
 
@@ -127,7 +128,7 @@ test("a single file upload returns the correct key and should not call addFileSt
   })
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 200 } })
 
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
 
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
@@ -155,7 +156,7 @@ test("a single file upload returns the correct key and should call addFileStatus
     })
   )
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 500 } })
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
 
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
@@ -193,7 +194,7 @@ test("a single file upload returns an error if it fails", async () => {
     })
   )
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 500 } })
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
 
   const result: | IUploadResult | Error = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
@@ -215,7 +216,7 @@ test("a single file upload calls the callback correctly", async () => {
   const callback = jest.fn()
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 200 } })
 
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
 
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
@@ -237,7 +238,7 @@ test("a single file upload calls the callback correctly and should call addFileS
   const callback = jest.fn()
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 500 } })
 
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
 
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
@@ -266,7 +267,7 @@ test("multiple file uploads return the correct params and should call addFileSta
   s3Mock.reset()
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 500 } })
   const s3Upload = new S3Upload(
-    s3Mock as unknown as S3Client,
+      s3Client,
     "https://tdr-fake-url.com/fake"
   )
 
@@ -319,7 +320,7 @@ test("multiple file uploads return errors if they fail", async () => {
   s3Mock.reset()
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 500 } })
   const s3Upload = new S3Upload(
-    s3Mock as unknown as S3Client,
+      s3Client,
     "https://tdr-fake-url.com/fake"
   )
 
@@ -346,7 +347,7 @@ test("multiple file uploads call the callback correctly and should not call addF
   )
   const callback = jest.fn()
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 200 } })
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
 
   expect(fetchMock).not.toBeCalled()
 
@@ -364,7 +365,7 @@ test("multiple file uploads call the callback correctly and should not call addF
 test("when there is an error with the upload, an error is returned and should not call addFileStatus", async () => {
   const tdrFileWithPath = createTdrFile({})
   s3Mock.on(PutObjectCommand).rejects("error")
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
 
   const result = s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
@@ -385,7 +386,7 @@ test("a single file upload calls the callback correctly with a different chunk s
   s3Mock.on(UploadPartCommand).resolves({ ETag: "1" })
   s3Mock.on(CreateMultipartUploadCommand).resolves({ UploadId: "1" })
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 200 } })
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
 
   await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
@@ -407,7 +408,7 @@ test("multiple file uploads of more than 0 bytes returns the correct, same numbe
     (tdrFileParams) => createTdrFile(tdrFileParams)
   )
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 200 } })
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
   const byteSizeofAllFiles = tdrFilesWithPath.reduce(
     (fileIdTotal, tdrFileWithPath) =>
       fileIdTotal + tdrFileWithPath.fileWithPath.file.size,
@@ -439,7 +440,7 @@ test("multiple 0-byte file uploads returns a totalChunks value that equals the s
     { fileId: "6b6694d0-814c-4978-8dee-56ec920a0102", bits: "" }
   ].map((tdrFileParams) => createTdrFile(tdrFileParams))
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 200 } })
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
 
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
@@ -475,7 +476,7 @@ test(`multiple file uploads (some with 0 bytes, some not) returns processedChunk
   ).length
 
   s3Mock.on(PutObjectCommand).resolves({ $metadata: { httpStatusCode: 200 } })
-  const s3Upload = new S3Upload(s3Mock as unknown as S3Client, "")
+  const s3Upload = new S3Upload(s3Client, "")
 
   const result = await s3Upload.uploadToS3(
     "16b73cc7-a81e-4317-a7a4-9bbb5fa1cc4e",
