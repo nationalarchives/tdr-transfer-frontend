@@ -20,8 +20,6 @@ class CheckPageForStaticElements() {
     |    <script  src="/assets/javascripts/all.js" type="text/javascript"></script>
     |    <script  src="/assets/javascripts/main.js" type="text/javascript"></script>""".stripMargin)
     page must include("""<a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>""")
-    page must include("This is a new service – your feedback will help us to improve it. Please")
-    page must include("href=\"/contact\">get in touch (opens in new tab).</a>")
     page must include("""href="/contact">""")
     page must include("""href="/cookies">""")
     page must include("""href="/accessibility-statement">""")
@@ -34,6 +32,8 @@ class CheckPageForStaticElements() {
     if (signedIn) {
       checkContentOfSignedInPagesThatUseMainScala(page, userType, consignmentExists, transferStillInProgress, pageRequiresAwsServices)
     } else {
+      page must include("This is a new service – your feedback will help us to improve it. Please")
+      page must include("""href="/contact"> get in touch (opens in new tab).</a>""")
       page must not include "/faq"
       page must not include "Sign out"
     }
@@ -65,6 +65,7 @@ class CheckPageForStaticElements() {
                          |            </div>
                          |        </dialog>""".stripMargin)
     if (userType == "judgment") {
+      checkHeaderOfSignedInPagesForFeedbackLink(page, survey = "5YDPSA")
       page must not include ("View transfers")
       page must include("""href="/judgment/faq">""")
       page must include("""href="/judgment/help">""")
@@ -77,6 +78,7 @@ class CheckPageForStaticElements() {
         }
       }
     } else if (userType == "standard") {
+      checkHeaderOfSignedInPagesForFeedbackLink(page)
       page must include("View transfers")
       page must include("""href="/faq">""")
       page must include("""href="/help">""")
@@ -96,6 +98,14 @@ class CheckPageForStaticElements() {
           |<input type="hidden" class="upload-url" value="https://mock-upload-url.com">""".stripMargin
       )
     }
+  }
+
+  private def checkHeaderOfSignedInPagesForFeedbackLink(page: String, survey: String = "tdr-feedback") = {
+    page must include(
+      s"""<span class="govuk-phase-banner__text">
+        |    This is a new service - your <a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank" title="What did you think of this service? (opens in new tab)">feedback</a> will help us to improve it.
+        |</span>""".stripMargin
+    )
   }
   // scalastyle:on method.length
 }
