@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => fileCheck}
-import graphql.codegen.UpdateConsignmentStatus.updateConsignmentStatus
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -188,12 +187,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(40, 40, 40, allChecksSucceeded = true)
 
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, InProgress.value, someDateTime, None))
-        val client = graphQLConfiguration.getClient[updateConsignmentStatus.Data, updateConsignmentStatus.Variables]()
-        val data = client.GraphqlData(Option(updateConsignmentStatus.Data(Option(1))), Nil)
-        val ucsDataString = data.asJson.noSpaces
         when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(true))
         mockGetFileCheckProgress(dataString, userType)
-        mockUpdateConsignmentStatus(ucsDataString, wiremockServer)
+        setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
 
@@ -285,11 +281,8 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedValue.value, someDateTime, None))
-        val client = graphQLConfiguration.getClient[updateConsignmentStatus.Data, updateConsignmentStatus.Variables]()
-        val data = client.GraphqlData(Option(updateConsignmentStatus.Data(Option(1))), Nil)
-        val ucsDataString = data.asJson.noSpaces
         mockGetFileCheckProgress(dataString, userType)
-        mockUpdateConsignmentStatus(ucsDataString, wiremockServer)
+        setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
 
@@ -342,12 +335,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, InProgress.value, someDateTime, None))
-        val client = graphQLConfiguration.getClient[updateConsignmentStatus.Data, updateConsignmentStatus.Variables]()
-        val data = client.GraphqlData(Option(updateConsignmentStatus.Data(Option(1))), Nil)
-        val ucsDataString = data.asJson.noSpaces
         when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(false))
         mockGetFileCheckProgress(dataString, userType)
-        mockUpdateConsignmentStatus(ucsDataString, wiremockServer)
+        setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
 
@@ -400,12 +390,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
 
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedWithIssuesValue.value, someDateTime, None))
-        val client = graphQLConfiguration.getClient[updateConsignmentStatus.Data, updateConsignmentStatus.Variables]()
-        val data = client.GraphqlData(Option(updateConsignmentStatus.Data(Option(1))), Nil)
-        val ucsDataString = data.asJson.noSpaces
         when(backendChecksService.triggerBackendChecks(org.mockito.ArgumentMatchers.any(classOf[UUID]), anyString())).thenReturn(Future.successful(false))
         mockGetFileCheckProgress(dataString, userType)
-        mockUpdateConsignmentStatus(ucsDataString, wiremockServer)
+        setUpdateConsignmentStatus(wiremockServer)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
 

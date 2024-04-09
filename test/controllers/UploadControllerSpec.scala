@@ -473,7 +473,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def executeJudgmentsUpload(uploadStatus:StatusValue ,consignmentId:UUID, applicationConfig: ApplicationConfig) = {
+  private def executeJudgmentsUpload(uploadStatus: StatusValue, consignmentId: UUID, applicationConfig: ApplicationConfig) = {
     val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
     val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
@@ -499,7 +499,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
     setConsignmentTypeResponse(wiremockServer, "judgment")
     setConsignmentReferenceResponse(wiremockServer)
 
-     controller
+    controller
       .judgmentUploadPage(consignmentId)
       .apply(FakeRequest(GET, s"/judgment/$consignmentId/upload").withCSRFToken)
   }
