@@ -71,8 +71,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       |              There is a problem
       |          </h2>""".stripMargin
 
-
-
   "FileChecksResultsController GET after file check success" should {
     "render the fileChecksResults page with the confirmation box for a standard user" in {
 
@@ -122,7 +120,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
            |                    </button>
            |                </form>""".stripMargin
 
-      val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration,blockAutomateJudgmentTransfers = true)
+      val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration, blockAutomateJudgmentTransfers = true)
       val recordCheckResultsPage = fileCheckResultsController
         .judgmentFileCheckResultsPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
@@ -485,7 +483,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       applicationConfig
     )
   }
-  def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration, blockAutomateJudgmentTransfers:Boolean = false): FileChecksResultsController = {
+  def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration, blockAutomateJudgmentTransfers: Boolean = false): FileChecksResultsController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
 
     setConsignmentStatusResponse(app.configuration, wiremockServer)
