@@ -71,6 +71,83 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       |              There is a problem
       |          </h2>""".stripMargin
 
+  "FileChecksResultsController GET after file check success" should {
+    "render the fileChecksResults page with the confirmation box for a standard user" in {
+
+      val expectedSuccessMessage: String =
+        s"""                    <h3 class="govuk-notification-banner__heading">
+           |                        Your folder 'parentFolder' containing 1 record has been uploaded and checked.
+           |                    </h3>
+           |                    <p class="govuk-body">You can leave and return to this upload at any time from the <a class="govuk-notification-banner__link" href="/view-transfers">View transfers</a> page.</p>""".stripMargin
+
+      val buttonToProgress: String =
+        s"""            <a class="govuk-button" href="/consignment/$consignmentId/additional-metadata/entry-method" role="button" draggable="false" data-module="govuk-button">
+           |                Next
+           |            </a>""".stripMargin
+
+      val fileCheckResultsController = setUpFileChecksController("standard", getValidStandardUserKeycloakConfiguration)
+
+      val recordCheckResultsPage = fileCheckResultsController
+        .fileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
+
+      val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+      status(recordCheckResultsPage) mustBe 200
+      contentType(recordCheckResultsPage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "standard")
+      resultsPageAsString must include("<title>Results of your checks - Transfer Digital Records - GOV.UK</title>")
+      resultsPageAsString must include("""<h1 class="govuk-heading-l">Results of your checks</h1>""")
+      resultsPageAsString must include(expectedSuccessSummaryTitle)
+      resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(expectedSuccessWarningText(warningMsg).replaceAll(twoOrMoreSpaces, ""))
+
+      resultsPageAsString must include(expectedSuccessMessage)
+      resultsPageAsString must include regex buttonToProgress
+    }
+
+    "render the fileChecksResults page with the confirmation box for a judgement user when block automate judgment" in {
+
+      val expectedSuccessMessage: String =
+        s"""                    <p class="govuk-body">Your uploaded file 'test file.docx' has now been validated.</p>
+           |                    <p class="govuk-body">Click 'Continue' to transfer it to The National Archives.</p>""".stripMargin
+
+      val buttonToProgress: String =
+        s"""                <form method="post" action="/judgment/$consignmentId/file-checks-results">
+           |                    <input type="hidden" name="csrfToken" value="[0-9a-z\\-]+"/>
+           |                    <button class="govuk-button" type="submit" role="button" draggable="false">
+           |                        Continue
+           |                    </button>
+           |                </form>""".stripMargin
+
+      val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration, blockAutomateJudgmentTransfers = true)
+      val recordCheckResultsPage = fileCheckResultsController
+        .judgmentFileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
+      status(recordCheckResultsPage) mustBe 200
+      val resultsPageAsString = contentAsString(recordCheckResultsPage)
+
+      status(recordCheckResultsPage) mustBe 200
+      contentType(recordCheckResultsPage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "judgment")
+
+      resultsPageAsString must include("<title>Results of checks - Transfer Digital Records - GOV.UK</title>")
+      resultsPageAsString must include("""<h1 class="govuk-heading-l">Results of checks</h1>""")
+      resultsPageAsString must include(expectedSuccessMessage)
+      resultsPageAsString must include regex buttonToProgress
+    }
+
+    "return a redirect to judgments checked passed url for a judgements user" in {
+      val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration)
+      val recordCheckResultsPage = fileCheckResultsController
+        .judgmentFileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
+      status(recordCheckResultsPage) mustBe 303
+      redirectLocation(recordCheckResultsPage).get must be("/judgment/0a3f617c-04e8-41c2-9f24-99622a779528/checks-passed")
+    }
+  }
+
   forAll(userTypes) { userType =>
     "FileChecksResultsController GET" should {
 
@@ -120,57 +197,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
             |    <li>Ambiguous naming of redacted files</li>
             |</ul>""".stripMargin
         )
-      }
-
-      s"render the $userType fileChecksResults page with the confirmation box" in {
-        val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
-
-        setConsignmentStatusResponse(app.configuration, wiremockServer)
-        val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
-
-        val fileChecksData = gfcp.Data(
-          Option(
-            GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
-          )
-        )
-
-        val filePathData = gcf.Data(
-          Option(gcf.GetConsignment(List(Files(UUID.randomUUID(), Option(""), Option(""), Option(UUID.randomUUID()), Metadata(Some("test file.docx")), Nil))))
-        )
-
-        val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables]()
-        val getConsignmentFilesClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables]()
-        val fileStatusResponse: String =
-          getFileChecksProgressClient.GraphqlData(Option(fileChecksData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
-        val filePathResponse: String =
-          getConsignmentFilesClient.GraphqlData(Option(filePathData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
-
-        mockGraphqlResponse(userType, fileStatusResponse, filePathResponse)
-        setConsignmentReferenceResponse(wiremockServer)
-
-        val fileCheckResultsController = instantiateController(getAuthorisedSecurityComponents, keycloakConfiguration)
-
-        val recordCheckResultsPage = {
-          if (userType == "judgment") {
-            fileCheckResultsController.judgmentFileCheckResultsPage(consignmentId)
-          } else {
-            fileCheckResultsController.fileCheckResultsPage(consignmentId)
-          }
-        }.apply(FakeRequest(GET, s"/$pathName/$consignmentId/file-checks").withCSRFToken)
-        val resultsPageAsString = contentAsString(recordCheckResultsPage)
-
-        status(recordCheckResultsPage) mustBe 200
-        contentType(recordCheckResultsPage) mustBe Some("text/html")
-
-        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = userType)
-        resultsPageAsString must include(expectedTitle)
-        resultsPageAsString must include(expectedHeading)
-        if (userType != "judgment") {
-          resultsPageAsString must include(expectedSuccessSummaryTitle)
-          resultsPageAsString.replaceAll(twoOrMoreSpaces, "") must include(expectedSuccessWarningText(warningMsg).replaceAll(twoOrMoreSpaces, ""))
-        }
-        resultsPageAsString must include(expectedSuccessMessage)
-        resultsPageAsString must include regex buttonToProgress
       }
 
       s"return a redirect to the auth server if an unauthenticated user tries to access the $userType file checks page" in {
@@ -436,8 +462,14 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
   }
 
-  private def instantiateController(securityComponent: SecurityComponents, keycloakConfiguration: KeycloakConfiguration, blockDraftMetadataUpload: Boolean = false) = {
+  private def instantiateController(
+      securityComponent: SecurityComponents,
+      keycloakConfiguration: KeycloakConfiguration,
+      blockDraftMetadataUpload: Boolean = false,
+      blockAutomateJudgmentTransfers: Boolean = false
+  ) = {
     when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
+    when(configuration.get[Boolean]("featureAccessBlock.blockAutomateJudgmentTransfers")).thenReturn(blockAutomateJudgmentTransfers)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
@@ -450,5 +482,34 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       consignmentStatusService,
       applicationConfig
     )
+  }
+  def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration, blockAutomateJudgmentTransfers: Boolean = false): FileChecksResultsController = {
+    val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+
+    setConsignmentStatusResponse(app.configuration, wiremockServer)
+    val fileStatus = List(gfcp.GetConsignment.Files(Some("Success")))
+
+    val fileChecksData = gfcp.Data(
+      Option(
+        GetConsignment(allChecksSucceeded = true, Option("parentFolder"), 1, fileStatus, FileChecks(AntivirusProgress(1), ChecksumProgress(1), FfidProgress(1)))
+      )
+    )
+
+    val filePathData = gcf.Data(
+      Option(gcf.GetConsignment(List(Files(UUID.randomUUID(), Option(""), Option(""), Option(UUID.randomUUID()), Metadata(Some("test file.docx")), Nil))))
+    )
+
+    val getFileChecksProgressClient = graphQLConfiguration.getClient[gfcp.Data, gfcp.Variables]()
+    val getConsignmentFilesClient = graphQLConfiguration.getClient[gcf.Data, gcf.Variables]()
+    val fileStatusResponse: String =
+      getFileChecksProgressClient.GraphqlData(Option(fileChecksData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+    val filePathResponse: String =
+      getConsignmentFilesClient.GraphqlData(Option(filePathData), List()).asJson.printWith(Printer(dropNullValues = false, ""))
+
+    mockGraphqlResponse(consignmentType, fileStatusResponse, filePathResponse)
+    setConsignmentReferenceResponse(wiremockServer)
+
+    instantiateController(getAuthorisedSecurityComponents, keyCloakConfig, blockAutomateJudgmentTransfers = blockAutomateJudgmentTransfers)
+
   }
 }
