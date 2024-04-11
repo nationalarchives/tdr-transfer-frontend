@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.153",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.196",
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.373",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.20",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.21",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.5.4",
   ws,
