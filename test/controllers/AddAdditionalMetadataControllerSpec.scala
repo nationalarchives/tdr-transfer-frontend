@@ -1,6 +1,5 @@
 package controllers
 
-import akka.Done
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
@@ -19,6 +18,8 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
+import org.apache.pekko.Done
+import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
 import play.api.Play.materializer
