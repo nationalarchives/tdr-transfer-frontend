@@ -53,6 +53,6 @@ disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
-libraryDependencies += "com.github.karelcemus" %% "play-redis" % "2.7.0"
+libraryDependencies += "com.github.karelcemus" %% "play-redis" % "4.1.0"
 
 pipelineStages := Seq(digest)
