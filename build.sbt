@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.373",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.21",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
-  "ch.qos.logback" % "logback-classic" % "1.5.4",
+  "ch.qos.logback" % "logback-classic" % "1.5.5",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.37.0",
   "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.37.0",
