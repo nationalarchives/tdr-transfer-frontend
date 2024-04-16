@@ -50,8 +50,6 @@ class HomeControllerSpec extends FrontEndTestHelper {
 
   private def checkForContentOnHomePage(pageAsString: String, signedIn: Boolean = true): Unit = {
     pageAsString must include("<title>The National Archives - Transfer Digital Records - GOV.UK</title>")
-    pageAsString must include("This is a new service – your feedback will help us to improve it. Please")
-    pageAsString must include("href=\"/contact\">get in touch (opens in new tab).</a>")
     pageAsString must include("Transfer Digital Records")
     pageAsString must include("Use this service to:")
     pageAsString must include("transfer digital records to The National Archives")

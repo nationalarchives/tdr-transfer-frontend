@@ -1,7 +1,6 @@
 package configuration
 
-import org.pac4j.core.context.WebContext
-import org.pac4j.core.context.session.SessionStore
+import org.pac4j.core.context.{CallContext, WebContext}
 import org.pac4j.core.engine.savedrequest.SavedRequestHandler
 import org.pac4j.core.exception.http.{FoundAction, HttpAction}
 import org.pac4j.core.util.{HttpActionHelper, Pac4jConstants}
@@ -10,25 +9,27 @@ import play.api.Logging
 import scala.jdk.OptionConverters.RichOptional
 
 class CustomSavedRequestHandler extends SavedRequestHandler with Logging {
-  override def save(context: WebContext, sessionStore: SessionStore): Unit = {
+  override def save(context: CallContext): Unit = {
     logger.info("Saving webContext")
+    val webContext = context.webContext()
 
-    val requestedUrl = getRequestedUrl(context)
+    val requestedUrl = getRequestedUrl(webContext)
 
     // Need to specify the type of SessionStore so that we can pass the context into the set method context.
-    sessionStore
-      .set(context, Pac4jConstants.REQUESTED_URL, new FoundAction(requestedUrl))
+    context.sessionStore().set(webContext, Pac4jConstants.REQUESTED_URL, new FoundAction(requestedUrl))
   }
 
   private def getRequestedUrl(context: WebContext): String = context.getFullRequestURL
 
-  override def restore(context: WebContext, sessionStore: SessionStore, defaultUrl: String): HttpAction = {
-    val optRequestedUrl = sessionStore
-      .get(context, Pac4jConstants.REQUESTED_URL)
+  override def restore(context: CallContext, defaultUrl: String): HttpAction = {
+    val webContext = context.webContext()
+    val optRequestedUrl = context
+      .sessionStore()
+      .get(webContext, Pac4jConstants.REQUESTED_URL)
 
     val redirectAction = optRequestedUrl.toScala
       .map(_.asInstanceOf[FoundAction])
       .getOrElse(new FoundAction(defaultUrl))
-    HttpActionHelper.buildRedirectUrlAction(context, redirectAction.getLocation)
+    HttpActionHelper.buildRedirectUrlAction(webContext, redirectAction.getLocation)
   }
 }

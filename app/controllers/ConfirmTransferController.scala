@@ -142,6 +142,9 @@ class ConfirmTransferController @Inject() (
       }
     } yield res
   }
+
+  def judgmentChecksPassedSubmit(consignmentId: UUID): Action[AnyContent] = finalJudgmentTransferConfirmationSubmit(consignmentId: UUID)
+
 }
 
 case class ConsignmentSummaryData(seriesCode: String, transferringBody: String, totalFiles: Int, consignmentReference: String)

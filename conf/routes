@@ -24,6 +24,7 @@ POST        /consignment/:consignmentId/transfer-agreement-continued            
 GET         /consignment/:consignmentId/upload                                                    controllers.UploadController.uploadPage(consignmentId: java.util.UUID)
 POST        /start-upload                                                                         controllers.UploadController.startUpload()
 POST        /save-metadata                                                                        controllers.UploadController.saveClientMetadata()
+POST        /consignment/:consignmentId/draft-metadata                                            controllers.DraftMetadataUploadController.saveDraftMetadata(consignmentId: java.util.UUID)
 POST        /add-file-status                                                                      controllers.UploadController.addFileStatus()
 POST        /consignment/:consignmentId/file-check-progress                                       controllers.FileChecksController.fileCheckProgress(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/file-checks                                               controllers.FileChecksController.fileChecksPage(consignmentId: java.util.UUID, uploadFailed: Option[String])
@@ -73,4 +74,5 @@ GET         /judgment/:consignmentId/file-checks                                
 POST        /judgment/:consignmentId/file-check-progress                                    controllers.FileChecksController.fileCheckProgress(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/file-checks-results                                    controllers.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId: java.util.UUID)
 POST        /judgment/:consignmentId/file-checks-results                                    controllers.ConfirmTransferController.finalJudgmentTransferConfirmationSubmit(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/checks-passed                                          controllers.ConfirmTransferController.judgmentChecksPassedSubmit(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/transfer-complete                                      controllers.TransferCompleteController.judgmentTransferComplete(consignmentId: java.util.UUID)
