@@ -218,7 +218,7 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
                                   |        Choose a way of entering metadata
                                   |    </p>""".stripMargin)
     }
-    pageAsString must include(s"""<a href="/consignment/$consignmentId/draft-metadata/checks-results" class="govuk-back-link">Results of your record checks</a>""")
+    pageAsString must include(s"""<a href="/consignment/$consignmentId/file-checks-results" class="govuk-back-link">Results of your record checks</a>""")
     pageAsString must include("""<h1 class="govuk-fieldset__heading">
                                 |                            How would you like to enter record metadata?
                                 |                        </h1>""".stripMargin)
