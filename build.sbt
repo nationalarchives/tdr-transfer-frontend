@@ -8,7 +8,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
-scalaVersion := "2.13.12"
+scalaVersion := "2.13.14"
 
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
@@ -22,16 +22,16 @@ libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
   "org.pac4j" % "pac4j-http" % pac4jVersion excludeAll (ExclusionRule(organization = "com.fasterxml.jackson.core")),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,
-  "io.circe" %% "circe-core" % "0.14.6",
-  "io.circe" %% "circe-generic" % "0.14.6",
+  "io.circe" %% "circe-core" % "0.14.7",
+  "io.circe" %% "circe-generic" % "0.14.7",
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.154",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.190",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.374",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.14",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.161",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.157",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.197",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.375",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.23",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.168",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   ws,
