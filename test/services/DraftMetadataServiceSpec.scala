@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
-  
+
   val uploadFileName = "draft-metadata.csv"
 
   "triggerDraftMetadataValidator" should {
@@ -32,7 +32,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(request.post[String]("{}")).thenReturn(Future(response))
       val service = new DraftMetadataService(wsClient, config)
       val consignmentId = UUID.randomUUID()
-      service.triggerDraftMetadataValidator(consignmentId, uploadFileName,  "token").futureValue
+      service.triggerDraftMetadataValidator(consignmentId, uploadFileName, "token").futureValue
       argumentCaptor.getValue should equal(s"http://localhost/draft-metadata/validate/$consignmentId")
     }
 
