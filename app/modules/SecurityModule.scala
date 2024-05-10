@@ -6,7 +6,8 @@ import com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod
 import configuration.CustomSavedRequestHandler
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
-import org.pac4j.core.context.session.SessionStore
+import org.pac4j.core.context.FrameworkParameters
+import org.pac4j.core.context.session.{SessionStore, SessionStoreFactory}
 import org.pac4j.core.engine.{DefaultCallbackLogic, DefaultSecurityLogic}
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.oidc.client.OidcClient
@@ -61,7 +62,7 @@ class SecurityModule extends AbstractModule {
   }
 
   @Provides
-  def provideConfig(oidcClient: OidcClient): Config = {
+  def provideConfig(oidcClient: OidcClient, sessionStore: SessionStore): Config = {
     val clients = new Clients(oidcClient)
     val config = new Config(clients)
     config.setHttpActionAdapter(new FrontendHttpActionAdaptor())
@@ -72,6 +73,9 @@ class SecurityModule extends AbstractModule {
     config.setCallbackLogic(callbackLogic)
     val securityLogic = DefaultSecurityLogic.INSTANCE
     securityLogic.setSavedRequestHandler(customRequestHandler)
+    config.setSessionStoreFactory(new SessionStoreFactory {
+      override def newSessionStore(parameters: FrameworkParameters): SessionStore = sessionStore
+    })
 
     config
   }

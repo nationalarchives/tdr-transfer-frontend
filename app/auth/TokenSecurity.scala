@@ -3,8 +3,10 @@ package auth
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
 import io.opentelemetry.api.trace.Span
-import org.pac4j.core.profile.{ProfileManager, UserProfile}
+import org.pac4j.core.profile.UserProfile
+import org.pac4j.oidc.profile.OidcProfile
 import org.pac4j.play.PlayWebContext
+import org.pac4j.play.context.PlayFrameworkParameters
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.ConsignmentService
@@ -24,14 +26,16 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
   val userIdKey = "UserId"
 
   def getProfile(request: Request[AnyContent]): Optional[UserProfile] = {
-    val webContext = new PlayWebContext(request)
-    val profileManager = new ProfileManager(webContext, sessionStore)
+    val parameters = new PlayFrameworkParameters(request)
+    val webContext = controllerComponents.config.getWebContextFactory.newContext(parameters).asInstanceOf[PlayWebContext]
+    val sessionStore = config.getSessionStoreFactory.newSessionStore(parameters)
+    val profileManager = controllerComponents.config.getProfileManagerFactory.apply(webContext, sessionStore)
     profileManager.getProfile
   }
 
   implicit def requestToRequestWithToken(request: Request[AnyContent]): RequestWithToken = {
-    val profile = getProfile(request)
-    val token: BearerAccessToken = profile.get().getAttribute("access_token").asInstanceOf[BearerAccessToken]
+    val profile = getProfile(request).get().asInstanceOf[OidcProfile]
+    val token: BearerAccessToken = profile.getAccessToken.asInstanceOf[BearerAccessToken]
     val accessToken: Option[Token] = keycloakConfiguration.token(token.getValue)
     RequestWithToken(request, accessToken)
   }

@@ -6,18 +6,20 @@ import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
-import com.typesafe.config.{ConfigFactory, ConfigValue, ConfigValueFactory}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.AddBulkFileMetadata.addBulkFileMetadata.UpdateBulkFileMetadata
 import graphql.codegen.AddBulkFileMetadata.{addBulkFileMetadata => abfm}
 import graphql.codegen.AddConsignmentStatus.addConsignmentStatus.AddConsignmentStatus
+import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import graphql.codegen.DeleteFileMetadata.deleteFileMetadata.DeleteFileMetadata
 import graphql.codegen.DeleteFileMetadata.{deleteFileMetadata => dfm}
 import graphql.codegen.GetAllDescendants.getAllDescendantIds
 import graphql.codegen.GetAllDescendants.getAllDescendantIds.AllDescendants
+import graphql.codegen.GetConsignment.{getConsignment => gcd}
+import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.{FileMetadata, FileStatuses}
 import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata => gcfm}
-import graphql.codegen.GetConsignmentFiles.{getConsignmentFiles => gcf}
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
@@ -29,9 +31,9 @@ import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.GetDisplayProperties.{displayProperties => dp}
+import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import graphql.codegen.types.DataType.{Boolean, DateTime, Integer, Text}
 import graphql.codegen.types.PropertyType.{Defined, Supplied}
-import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -40,7 +42,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
-import org.pac4j.core.context.session.SessionStore
+import org.pac4j.core.context.session.{SessionStore, SessionStoreFactory}
 import org.pac4j.core.engine.DefaultSecurityLogic
 import org.pac4j.core.http.ajax.AjaxRequestResolver
 import org.pac4j.core.util.Pac4jConstants
@@ -65,10 +67,12 @@ import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
 import play.api.{Application, Configuration}
+import services.Statuses.{InProgressValue, SeriesType}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
-import graphql.codegen.GetConsignment.{getConsignment => gcd}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
+import org.pac4j.core.context.{CallContext, FrameworkParameters}
+import org.pac4j.oidc.metadata.OidcOpMetadataResolver
 import services.Statuses.{InProgressValue, SeriesType}
 import viewsapi.FrontEndInfo
 
@@ -80,7 +84,6 @@ import java.util.{Date, UUID}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.jdk.CollectionConverters._
 import scala.language.existentials
 
 trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with GuiceOneAppPerTest with BeforeAndAfterEach with TableDrivenPropertyChecks {
@@ -258,11 +261,14 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
-  def mockUpdateConsignmentStatus(dataString: String, wiremockServer: WireMockServer): StubMapping = {
+  def setUpdateConsignmentStatus(wiremockServer: WireMockServer): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[ucs.Data, ucs.Variables]()
+    val data = client.GraphqlData(Option(ucs.Data(Option(1))), Nil)
+    val ucsDataString = data.asJson.noSpaces
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("updateConsignmentStatus"))
-        .willReturn(okJson(dataString))
+        .willReturn(okJson(ucsDataString))
     )
   }
 
@@ -948,7 +954,9 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
     override def config: Config = testConfig
 
-    override def sessionStore: SessionStore = playCacheSessionStore
+    config.setSessionStoreFactory(new SessionStoreFactory {
+      override def newSessionStore(parameters: FrameworkParameters): SessionStore = playCacheSessionStore
+    })
 
     // scalastyle:off null
     override def parser: BodyParsers.Default = null
@@ -957,6 +965,8 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
   def getUnauthorisedSecurityComponents: SecurityComponents = {
     val testConfig = new Config()
+    val playCacheSessionStore: SessionStore = mock[PlayCacheSessionStore]
+
     val logic = DefaultSecurityLogic.INSTANCE
     logic setAuthorizationChecker ((_, _, _, _, _, _) => false)
     testConfig.setSecurityLogic(logic)
@@ -967,6 +977,18 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     // There is a check to see whether an OidcClient exists. The name matters and must match the string passed to Secure in the controller.
     val clients = new Clients()
     val configuration = mock[OidcConfiguration]
+    val providerMetadata = mock[OIDCProviderMetadata]
+
+    /*
+    configuration = mock(OidcConfiguration.class);
+    var metadata = mock(OIDCProviderMetadata.class);
+    when(metadata.getIssuer()).thenReturn(new Issuer(PAC4J_URL));
+    when(metadata.getJWKSetURI()).thenReturn(new URI(PAC4J_BASE_URL));
+    val metadataResolver = mock(OidcOpMetadataResolver.class);
+    when(metadataResolver.load()).thenReturn(metadata);
+    when(configuration.getOpMetadataResolver()).thenReturn(metadataResolver);
+
+     */
 
     // Mock the init method to stop it calling out to the keycloak server
     doNothing().when(configuration).init()
@@ -975,12 +997,13 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     doReturn("tdr").when(configuration).getClientId
     doReturn("code").when(configuration).getResponseType
     doReturn(true).when(configuration).isUseNonce
-    val providerMetadata = mock[OIDCProviderMetadata]
+    val metadataResolver = mock[OidcOpMetadataResolver]
     doReturn(URI.create("/auth/realms/tdr/protocol/openid-connect/auth")).when(providerMetadata).getAuthorizationEndpointURI
-    doReturn(providerMetadata).when(configuration).getProviderMetadata
+    doReturn(providerMetadata).when(metadataResolver).load
+    doReturn(metadataResolver).when(configuration).getOpMetadataResolver
 
     val resolver = mock[AjaxRequestResolver]
-    doReturn(false).when(resolver).isAjax(any[PlayWebContext], any[SessionStore])
+    doReturn(false).when(resolver).isAjax(any[CallContext])
 
     // Create a concrete client
     val client = new OidcClient(configuration)
@@ -993,18 +1016,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     testConfig.setClients(clients)
 
     // Create a new controller with the session store and config. The parser and components don't affect the tests.
-
-    new SecurityComponents {
-      override def components: ControllerComponents = stubControllerComponents()
-
-      override def config: Config = testConfig
-
-      override def sessionStore: SessionStore = mock[SessionStore]
-
-      // scalastyle:off null
-      override def parser: BodyParsers.Default = null
-      // scalastyle:on null
-    }
+    securityComponents(testConfig, playCacheSessionStore)
   }
 }
 

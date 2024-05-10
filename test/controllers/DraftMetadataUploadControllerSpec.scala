@@ -69,6 +69,28 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       pageAsString must include("<title>Page not found - Transfer Digital Records - GOV.UK</title>")
     }
 
+    "return a redirect to the auth server with an unauthenticated user" in {
+      val controller = instantiateDraftMetadataUploadController(securityComponents = getUnauthorisedSecurityComponents, blockDraftMetadataUpload = false)
+
+      val draftMetadataUploadPage = controller
+        .draftMetadataUploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
+
+      playStatus(draftMetadataUploadPage) mustBe FOUND
+      redirectLocation(draftMetadataUploadPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
+    }
+
+    "return forbidden if the pages are accessed by a judgment user" in {
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+      val controller = instantiateDraftMetadataUploadController(keycloakConfiguration = getValidJudgmentUserKeycloakConfiguration, blockDraftMetadataUpload = false)
+      val draftMetadataUploadPage = controller
+        .draftMetadataUploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
+
+      playStatus(draftMetadataUploadPage) mustBe FORBIDDEN
+    }
+
     "redirect to draft metadata checks page when upload successful" in {
       val uploadServiceMock = mock[UploadService]
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
