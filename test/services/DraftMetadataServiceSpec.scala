@@ -33,7 +33,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       val service = new DraftMetadataService(wsClient, config)
       val consignmentId = UUID.randomUUID()
       service.triggerDraftMetadataValidator(consignmentId, uploadFileName, "token").futureValue
-      argumentCaptor.getValue should equal(s"http://localhost/draft-metadata/validate/$consignmentId")
+      argumentCaptor.getValue should equal(s"http://localhost/draft-metadata/validate/$consignmentId/$uploadFileName")
     }
 
     "return true if the API response is 200" in {
