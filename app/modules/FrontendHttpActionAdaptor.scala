@@ -6,11 +6,12 @@ import org.pac4j.play.http.PlayHttpActionAdapter
 import play.mvc.{Result, Results}
 
 import scala.compat.java8.OptionConverters.RichOptionalGeneric
+import scala.jdk.OptionConverters.RichOptional
 
 class FrontendHttpActionAdaptor extends PlayHttpActionAdapter {
 
   def isAjax(context: WebContext): Boolean =
-    context.getRequestHeader("X-Requested-With").asScala.contains("XMLHttpRequest")
+    context.getRequestHeader("X-Requested-With").toScala.contains("XMLHttpRequest")
 
   override def adapt(action: HttpAction, context: WebContext): Result = {
     action match {
