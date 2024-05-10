@@ -49,7 +49,8 @@ class DraftMetadataUploadController @Inject() (
       val successPage = routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId)
       val token = request.asInstanceOf[Request[AnyContent]].token
       val uploadBucket = s"${applicationConfig.draft_metadata_s3_bucket_name}"
-      val uploadKey = s"$consignmentId/draft-metadata.csv"
+      val uploadFileName = "draft-metadata.csv"
+      val uploadKey = s"$consignmentId/$uploadFileName"
       val noDraftMetadataFileUploaded: String = "No meta data file provided"
 
       def uploadDraftMetadata: IO[Result] = for {
@@ -57,7 +58,7 @@ class DraftMetadataUploadController @Inject() (
         file <- fromOption(request.body.file(firstFilePart.key))(new RuntimeException(noDraftMetadataFileUploaded))
         draftMetadata <- fromOption(Using(scala.io.Source.fromFile(file.ref.getAbsoluteFile))(_.mkString).toOption)(new RuntimeException(noDraftMetadataFileUploaded))
         _ <- IO.fromFuture(IO(uploadService.uploadDraftMetadata(uploadBucket, uploadKey, draftMetadata)))
-        _ <- IO.fromFuture(IO { draftMetadataService.triggerDraftMetadataValidator(consignmentId, token.bearerAccessToken.getValue) })
+        _ <- IO.fromFuture(IO { draftMetadataService.triggerDraftMetadataValidator(consignmentId, uploadFileName, token.bearerAccessToken.getValue) })
         successPage <- IO(play.api.mvc.Results.Redirect(successPage))
       } yield successPage
 
