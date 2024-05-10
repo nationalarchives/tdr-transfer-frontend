@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.159",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.197",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.375",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.376",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.23",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.169",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
@@ -55,6 +55,6 @@ disablePlugins(PlayLogback)
 scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
-libraryDependencies += "com.github.karelcemus" %% "play-redis" % "4.1.0"
+libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.0.0"
 
 pipelineStages := Seq(digest)
