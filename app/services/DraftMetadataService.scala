@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration: Configuration)(implicit val executionContext: ExecutionContext) extends Logging {
 
   def triggerDraftMetadataValidator(consignmentId: UUID, uploadFileName: String, token: String): Future[Boolean] = {
-    val url = s"${configuration.get[String]("metadatavalidation.baseUrl")}/draft-metadata/validate/$consignmentId?fileName=$uploadFileName"
+    val url = s"${configuration.get[String]("metadatavalidation.baseUrl")}/draft-metadata/validate/$consignmentId/$uploadFileName"
     wsClient
       .url(url)
       .addHttpHeaders(("Authorization", token), ("Content-Type", "application/json"))
