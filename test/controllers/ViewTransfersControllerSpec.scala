@@ -232,7 +232,7 @@ class ViewTransfersControllerSpec extends FrontEndTestHelper {
   "ActionText" should {
     "have the correct value" in {
       ContactUs.value should equal("Contact us")
-      Download.value should equal("Download report")
+      Download.value should equal("Download metadata")
       Errors.value should equal("View errors")
       Resume.value should equal("Resume transfer")
       View.value should equal("View")

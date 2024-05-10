@@ -7,6 +7,7 @@ jobs:
   pre-deploy:
     uses: nationalarchives/tdr-github-actions/.github/workflows/ecs_build.yml@main
     with:
+      java-version: '17'
       repo-name: tdr-transfer-frontend
       image-name: transfer-frontend
       build-command: |

@@ -1,7 +1,8 @@
 package errors
 
 import org.pac4j.core.config.Config
-import org.pac4j.core.context.session.SessionStore
+import org.pac4j.core.context.FrameworkParameters
+import org.pac4j.core.context.session.{SessionStore, SessionStoreFactory}
 import org.pac4j.core.exception.TechnicalException
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.play.scala.Pac4jScalaTemplateHelper
@@ -19,7 +20,12 @@ import java.util.concurrent.CompletionException
 class ErrorHandlerSpec extends AnyFlatSpec with Matchers {
 
   val sessionStore: SessionStore = mock[SessionStore]
-  val pac4jTemplateHelper: Pac4jScalaTemplateHelper[CommonProfile] = new Pac4jScalaTemplateHelper[CommonProfile](sessionStore, Config.INSTANCE)
+  val config = new Config()
+  config.setSessionStoreFactory(new SessionStoreFactory {
+    override def newSessionStore(parameters: FrameworkParameters): SessionStore = sessionStore
+  })
+
+  val pac4jTemplateHelper: Pac4jScalaTemplateHelper[CommonProfile] = new Pac4jScalaTemplateHelper[CommonProfile](config)
   val errorHandler = new ErrorHandler(new DefaultMessagesApi(), pac4jTemplateHelper)
 
   "client error handler" should "return a Default response for any status code not explicitly handled" in {

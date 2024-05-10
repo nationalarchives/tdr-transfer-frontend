@@ -5,7 +5,7 @@
 @(consignmentId: UUID, consignmentRef: String, entryForm: Form[AdditionalMetadataEntryData], name: String)(implicit request: RequestHeader, messages: Messages)
 
 @metadataRoute = @{entryForm("metadataRoute")}
-@main("How would you like to enter record metadata?", name = name, backLink = Some(backLink(routes.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId).url, "Results of your record checks")) ) {
+@main("How would you like to enter record metadata?", name = name, backLink = Some(backLink(routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url, "Results of your record checks")) ) {
     <div id="additional-metadata-entry-method" class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds-from-desktop">
         @errorSummary(
