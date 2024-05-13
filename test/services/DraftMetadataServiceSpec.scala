@@ -16,6 +16,8 @@ import scala.concurrent.Future
 
 class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
 
+  val uploadFileName = "draft-metadata.csv"
+
   "triggerDraftMetadataValidator" should {
     "call the correct url" in {
       val wsClient = mock[WSClient]
@@ -30,8 +32,8 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(request.post[String]("{}")).thenReturn(Future(response))
       val service = new DraftMetadataService(wsClient, config)
       val consignmentId = UUID.randomUUID()
-      service.triggerDraftMetadataValidator(consignmentId, "token").futureValue
-      argumentCaptor.getValue should equal(s"http://localhost/draft-metadata/validate/$consignmentId")
+      service.triggerDraftMetadataValidator(consignmentId, uploadFileName, "token").futureValue
+      argumentCaptor.getValue should equal(s"http://localhost/draft-metadata/validate/$consignmentId/$uploadFileName")
     }
 
     "return true if the API response is 200" in {
@@ -46,7 +48,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(request.post[String]("{}")).thenReturn(Future(response))
       val service = new DraftMetadataService(wsClient, config)
       val consignmentId = UUID.randomUUID()
-      val triggerResponse = service.triggerDraftMetadataValidator(consignmentId, "token").futureValue
+      val triggerResponse = service.triggerDraftMetadataValidator(consignmentId, uploadFileName, "token").futureValue
       triggerResponse should equal(true)
     }
 
@@ -62,7 +64,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(request.post[String]("{}")).thenReturn(Future(response))
       val service = new DraftMetadataService(wsClient, config)
       val consignmentId = UUID.randomUUID()
-      val exception = service.triggerDraftMetadataValidator(consignmentId, "token").failed.futureValue
+      val exception = service.triggerDraftMetadataValidator(consignmentId, uploadFileName, "token").failed.futureValue
       exception.getMessage should equal(s"Call to draft metadata validator failed API has returned a non 200 response for consignment $consignmentId")
     }
   }
