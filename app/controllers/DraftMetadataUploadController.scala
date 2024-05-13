@@ -49,7 +49,7 @@ class DraftMetadataUploadController @Inject() (
       val successPage = routes.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId)
       val token = request.asInstanceOf[Request[AnyContent]].token
       val uploadBucket = s"${applicationConfig.draft_metadata_s3_bucket_name}"
-      val uploadFileName = "draft-metadata.csv"
+      val uploadFileName = applicationConfig.draftMetadataFileName
       val uploadKey = s"$consignmentId/$uploadFileName"
       val noDraftMetadataFileUploaded: String = "No meta data file provided"
 
