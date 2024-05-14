@@ -15,7 +15,7 @@ import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
-import services.ConsignmentService
+import services.{ConsignmentService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.time.{LocalDateTime, ZonedDateTime}
@@ -148,10 +148,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   private def instantiateTransferCompleteController(securityComponents: SecurityComponents, path: String) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val messagingService = mock[MessagingService]
     if (path.equals("judgment")) {
-      new TransferCompleteController(securityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService)
+      new TransferCompleteController(securityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, messagingService)
     } else {
-      new TransferCompleteController(securityComponents, getValidStandardUserKeycloakConfiguration, consignmentService)
+      new TransferCompleteController(securityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, messagingService)
     }
   }
 
