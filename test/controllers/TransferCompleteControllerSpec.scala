@@ -45,6 +45,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   "TransferCompleteController GET" should {
     "render the success page if the export was triggered successfully" in {
       setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentSummaryResponse(wiremockServer)
       val consignmentId = UUID.randomUUID()
       val transferCompletePage = callTransferComplete("consignment", consignmentId)
       val transferCompletePageAsString = contentAsString(transferCompletePage)
@@ -86,6 +87,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
     "render the success page if the export was triggered successfully for a judgment user" in {
       setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentSummaryResponse(wiremockServer)
       val transferCompletePage = callTransferComplete("judgment")
       val transferCompletePageAsString = contentAsString(transferCompletePage)
 
@@ -125,6 +127,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     s"The $url upload page" should {
       s"return 403 if the url doesn't match the consignment type" in {
         setConsignmentReferenceResponse(wiremockServer)
+        setConsignmentSummaryResponse(wiremockServer)
         val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, url)
         val consignmentId = UUID.randomUUID()
         setConsignmentTypeResponse(wiremockServer, url)
