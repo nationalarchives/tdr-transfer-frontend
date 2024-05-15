@@ -22,7 +22,7 @@ import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata 
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
-import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary=> gcsu}
+import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcsu}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
