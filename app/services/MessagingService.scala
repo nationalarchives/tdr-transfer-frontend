@@ -30,6 +30,6 @@ object MessagingService {
       consignmentId: String,
       seriesName: Option[String],
       userId: String,
-      userEmail: String,
+      userEmail: String
   )
 }
