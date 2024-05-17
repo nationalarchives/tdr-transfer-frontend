@@ -3,7 +3,9 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.CsvUtils
-import controllers.util.MetadataProperty.{clientSideFileLastModifiedDate, clientSideOriginalFilepath, fileName, fileUUID}
+import controllers.util.ExcelUtils
+
+import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType
@@ -46,12 +48,29 @@ class DownloadMetadataController @Inject() (
     } yield {
       val parseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
       val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-      val systemValues = List(fileUUID, fileName, clientSideOriginalFilepath, clientSideFileLastModifiedDate)
-      val nameMap = displayProperties.filter(dp => dp.active || systemValues.contains(dp.propertyName)).map(dp => (dp.propertyName, dp.displayName)).toMap
-      val filteredMetadata: List[CustomMetadata] = customMetadata.filter(cm => nameMap.keySet.contains(cm.name) && cm.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
+      //val systemValues = List(fileUUID, fileName, clientSideOriginalFilepath, clientSideFileLastModifiedDate)
+
+      val columnOrder = Seq(fileUUID, clientSideOriginalFilepath, fileName, clientSideFileLastModifiedDate, end_date, description,
+        former_reference, closureType.name, closureStartDate, closurePeriod, foiExemptionCode, foiExemptionAsserted,
+        titleClosed, titleAlternate, descriptionPublic, descriptionAlternate, language, filenameTranslated)
+
+      //val nameMap = displayProperties.filter(dp => dp.active || systemValues.contains(dp.propertyName)).map(dp => (dp.propertyName, dp.displayName)).toMap
+      val nameMap = displayProperties.filter(dp => columnOrder.contains(dp.propertyName)).map(dp => (dp.propertyName, dp.displayName)).toMap
+      //println(s"NameMap: ${nameMap}")
+      //Filtered Metadata is what needs to be re-ordered for column values
+      //val filteredMetadataOLD: List[CustomMetadata] = customMetadata.filter(cm => nameMap.keySet.contains(cm.name) && cm.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
+      val filteredMetadata: List[CustomMetadata] = columnOrder.collect(customMetadata.map(cm => cm.name -> cm).toMap).toList
+
+
+      //println(s"NEW Filtered Metadata: ${filteredMetadata}")
+
       val header: List[String] = filteredMetadata.map(f => nameMap.getOrElse(f.name, f.name))
-      val fileMetadataRows: List[List[String]] = metadata.files.map { file =>
+      //println(s"Header: ${header}")
+
+      //Add sorting by filePath
+      val fileMetadataRows: List[List[String]] = metadata.files.sortBy(f => f.fileMetadata.find(_.name == clientSideOriginalFilepath).map(_.value.toUpperCase)).map { file =>
         val groupedMetadata: Map[String, String] = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
+        println(s"groupedMetadata: ${groupedMetadata}")
         filteredMetadata.map { customMetadata =>
           groupedMetadata
             .get(customMetadata.name)
@@ -65,12 +84,16 @@ class DownloadMetadataController @Inject() (
             .getOrElse("")
         }
       }
-      val csvString = CsvUtils.writeCsv(header :: fileMetadataRows)
+
+
+      //val csvString = CsvUtils.writeCsv(header :: fileMetadataRows)
+      val excelFile = ExcelUtils.writeExcel(consignmentId, header :: fileMetadataRows)
       val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")
       val currentDateTime = dateTimeFormatter.format(LocalDateTime.now())
-      Ok(csvString)
-        .as("text/csv")
-        .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-$currentDateTime.csv")
+      val excelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      Ok(excelFile)
+        .as(excelContentType)
+        .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-$currentDateTime.xlsx")
     }
   }
 }
