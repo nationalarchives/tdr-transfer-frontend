@@ -266,7 +266,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
       seriesName: Option[String] = None,
       transferringBodyName: Option[String] = None,
       totalFiles: Int = 0,
-      consignmentReference: String = ""
+      consignmentReference: String = "TEST-TDR-2021-GB"
   ): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcsu.Data, gcsu.Variables]()
     val consignmentSummaryResponse = gcsu.Data(
