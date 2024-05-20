@@ -57,4 +57,6 @@ scalacOptions ++= Seq("-language:implicitConversions")
 libraryDependencies += play.sbt.PlayImport.cacheApi
 libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.0.0"
 
+libraryDependencies += "org.dhatim" % "fastexcel" % "0.18.0"
+
 pipelineStages := Seq(digest)
