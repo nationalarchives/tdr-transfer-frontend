@@ -24,19 +24,18 @@ class TransferCompleteController @Inject() (
   def transferComplete(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       consignmentTransferSummary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, request.token.bearerAccessToken)
-      consignmentReference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
       messagingService.sendTransferCompleteNotification(
         TransferCompleteEvent(
           transferringBodyName = consignmentTransferSummary.transferringBodyName,
-          consignmentReference = consignmentReference,
+          consignmentReference = consignmentTransferSummary.consignmentReference,
           consignmentId = consignmentId.toString,
           seriesName = consignmentTransferSummary.seriesName,
           userId = request.token.userId.toString,
           userEmail = request.token.email
         )
       )
-      Ok(views.html.standard.transferComplete(consignmentId, consignmentReference, request.token.name))
+      Ok(views.html.standard.transferComplete(consignmentId, consignmentTransferSummary.consignmentReference, request.token.name))
     }
   }
 
