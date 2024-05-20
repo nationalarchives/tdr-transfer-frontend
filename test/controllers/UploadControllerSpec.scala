@@ -185,7 +185,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
         """<p class="govuk-body">Before uploading, all files and folders you wish to transfer must be put into a single, top-level folder.</p>"""
       )
       uploadPageAsString must include(
-        """Individual files must be no bigger than 2GB and you must upload no more than 500 files per transfer. """ +
+        """Individual files must be no bigger than 2GB and you must upload no more than 3000 files per transfer. """ +
+          """The total size of all files for transfer must be no more than 5GB. """ +
           """To transfer larger files, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>. """ +
           "If your folder contains file formats that we cannot accept, you may have to start again.</p>"
       )
