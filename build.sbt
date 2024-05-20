@@ -33,8 +33,6 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.23",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.172",
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.173",
-  "software.amazon.awssdk" % "sso" % "2.20.79",
-  "software.amazon.awssdk" % "ssooidc" % "2.20.79",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   ws,
