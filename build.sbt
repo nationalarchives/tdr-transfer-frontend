@@ -10,10 +10,13 @@ watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
 scalaVersion := "2.13.14"
 
+ivyLoggingLevel := UpdateLogging.Full
+logLevel := Level.Debug
+
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 
-val playVersion = "3.0.2"
+val playVersion = "3.0.3"
 val playPac4jVersion = "12.0.0-PLAY3.0"
 val pac4jVersion = "6.0.2"
 val sttpVersion = "2.3.0"
@@ -32,7 +35,6 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.376",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.23",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.172",
-  "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.38.0",
@@ -46,6 +48,8 @@ libraryDependencies ++= Seq(
   "org.mockito" % "mockito-core" % "5.12.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
+
+libraryDependencies += "org.playframework" %% "play" % playVersion
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
 
 dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.0"
@@ -58,5 +62,6 @@ libraryDependencies += play.sbt.PlayImport.cacheApi
 libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.0.0"
 
 libraryDependencies += "org.dhatim" % "fastexcel" % "0.18.0"
+libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.18.0"
 
 pipelineStages := Seq(digest)

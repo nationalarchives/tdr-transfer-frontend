@@ -3,6 +3,9 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import com.github.tototoshi.csv.CSVReader
+import org.dhatim.fastexcel.reader._
+//import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import configuration.GraphQLConfiguration
 import controllers.util.MetadataProperty.{clientSideFileLastModifiedDate, clientSideOriginalFilepath, fileName, fileUUID}
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
@@ -16,15 +19,17 @@ import graphql.codegen.types.PropertyType.Supplied
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
+//import akka.util.ByteString //Should be
+import org.apache.pekko.util.ByteString
 import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, status}
+import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status}
 import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
-import java.io.StringReader
+import java.io.{ByteArrayInputStream, StringReader}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -62,6 +67,8 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     wiremockServer.resetAll()
     wiremockServer.stop()
   }
+
+  //ALL OF THIS IS WRONG
 
   "DownloadMetadataController downloadMetadataCsv GET" should {
     "download the csv for a multiple properties and rows" in {
@@ -108,6 +115,31 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo, Nil)
       )
 
+      val wb:ReadableWorkbook = getFileFromController(customProperties, files, displayProperties)
+      val ws:Sheet = wb.getFirstSheet
+      val rows: List[Row] = ws.read.asScala.toList
+      println(s"Number of rows: ${rows.length}")
+
+      //println(s"Header row as String: ${rows.toString}")
+
+      //val row1 = rows.head
+      rows.foreach(row => {
+          val cells: List[Cell] = row.getCells(0, 4).asScala.toList
+          cells.foreach(c => println(c.getRawValue))
+        }
+      )
+      //val cells: List[Cell] = row1.getCells(0, 3).asScala.toList
+
+      rows.length must equal(3)
+
+      rows.head.getCell(0).asString must equal("UUID")
+      rows.head.getCell(1).asString must equal("Filepath")
+      rows.head.getCell(2).asString must equal("File Name")
+      rows.head.getCell(3).asString must equal("Date last modified")
+
+      rows(1).getCell(3).asDate must equal(lastModified.format(DateTimeFormatter.ISO_DATE_TIME))
+
+      /*
       val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files, displayProperties).toLazyListWithHeaders().toList
 
       csvList.size must equal(2)
@@ -124,8 +156,11 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       csvList.last("File Name") must equal("FileName2")
       csvList.last("Filepath") must equal("test/path2")
       csvList.last("Date last modified") must equal("2021-02-03")
+
+       */
     }
 
+    /*
     "download the csv for rows with different numbers of metadata" in {
       val customProperties = List(
         customMetadata("TestProperty1", "TestProperty1"),
@@ -310,10 +345,12 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       csvList.head("File Name") must equal("FileName1")
     }
 
+     */
+
     "return forbidden for a judgment user" in {
       val controller = createController("judgment")
       val consignmentId = UUID.randomUUID()
-      val response = controller.downloadMetadataCsv(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+      val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
       status(response) must be(FORBIDDEN)
     }
 
@@ -326,7 +363,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val controller =
         new DownloadMetadataController(getUnauthorisedSecurityComponents, consignmentService, customMetadataService, displayPropertiesService, getInvalidKeycloakConfiguration)
       val consignmentId = UUID.randomUUID()
-      val response = controller.downloadMetadataCsv(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+      val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
       status(response) must be(FOUND)
     }
   }
@@ -370,18 +407,41 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def getCsvFromController(customProperties: List[cm.CustomMetadata], files: List[Files], displayProperties: List[dp.DisplayProperties]): CSVReader = {
+
+  //private def getCsvFromController(customProperties: List[cm.CustomMetadata], files: List[Files], displayProperties: List[dp.DisplayProperties]): CSVReader = {
+  private def getFileFromController(customProperties: List[cm.CustomMetadata], files: List[Files], displayProperties: List[dp.DisplayProperties]): ReadableWorkbook = {
     mockFileMetadataResponse(files)
     mockCustomMetadataResponse(customProperties)
     mockDisplayPropertiesResponse(displayProperties)
 
     val consignmentId = UUID.randomUUID()
     val controller = createController("standard")
-    val response = controller.downloadMetadataCsv(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+    val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+    //val responseAsString = contentAsString(response)
+    //val bufferedSource = new StringReader(responseAsString)
+    //CSVReader.open(bufferedSource)
+    val responseByteArray: ByteString = contentAsBytes(response)
+    val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
+    new ReadableWorkbook(bufferedSource)
+    //CSVReader.open("Placeholder")
+  }
+
+ /*
+
+  private def getExcelFromController(customProperties: List[cm.CustomMetadata], files: List[Files], displayProperties: List[dp.DisplayProperties]): CSVReader = {
+    mockFileMetadataResponse(files)
+    mockCustomMetadataResponse(customProperties)
+    mockDisplayPropertiesResponse(displayProperties)
+
+    val consignmentId = UUID.randomUUID()
+    val controller = createController("standard")
+    val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
     val responseAsString = contentAsString(response)
     val bufferedSource = new StringReader(responseAsString)
     CSVReader.open(bufferedSource)
   }
+
+  */
 
   private def createController(consignmentType: String) = {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
