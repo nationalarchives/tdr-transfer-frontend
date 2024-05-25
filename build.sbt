@@ -15,7 +15,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0
 
 val playVersion = "3.0.2"
 val playPac4jVersion = "12.0.0-PLAY3.0"
-val pac4jVersion = "6.0.2"
+val pac4jVersion = "6.0.3"
 val sttpVersion = "2.3.0"
 
 libraryDependencies ++= Seq(
@@ -29,9 +29,9 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.162",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.199",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.376",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.377",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.25",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.177",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.178",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   ws,
