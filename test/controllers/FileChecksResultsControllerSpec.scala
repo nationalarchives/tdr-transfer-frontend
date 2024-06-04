@@ -106,38 +106,6 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       resultsPageAsString must include regex buttonToProgress
     }
 
-    "render the fileChecksResults page with the confirmation box for a judgement user when block automate judgment" in {
-
-      val expectedSuccessMessage: String =
-        s"""                    <p class="govuk-body">Your uploaded file 'test file.docx' has now been validated.</p>
-           |                    <p class="govuk-body">Click 'Continue' to transfer it to The National Archives.</p>""".stripMargin
-
-      val buttonToProgress: String =
-        s"""                <form method="post" action="/judgment/$consignmentId/file-checks-results">
-           |                    <input type="hidden" name="csrfToken" value="[0-9a-z\\-]+"/>
-           |                    <button class="govuk-button" type="submit" role="button" draggable="false">
-           |                        Continue
-           |                    </button>
-           |                </form>""".stripMargin
-
-      val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration, blockAutomateJudgmentTransfers = true)
-      val recordCheckResultsPage = fileCheckResultsController
-        .judgmentFileCheckResultsPage(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
-      status(recordCheckResultsPage) mustBe 200
-      val resultsPageAsString = contentAsString(recordCheckResultsPage)
-
-      status(recordCheckResultsPage) mustBe 200
-      contentType(recordCheckResultsPage) mustBe Some("text/html")
-
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(resultsPageAsString, userType = "judgment")
-
-      resultsPageAsString must include("<title>Results of checks - Transfer Digital Records - GOV.UK</title>")
-      resultsPageAsString must include("""<h1 class="govuk-heading-l">Results of checks</h1>""")
-      resultsPageAsString must include(expectedSuccessMessage)
-      resultsPageAsString must include regex buttonToProgress
-    }
-
     "return a redirect to judgments checked passed url for a judgements user" in {
       val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration)
       val recordCheckResultsPage = fileCheckResultsController
@@ -465,11 +433,9 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   private def instantiateController(
       securityComponent: SecurityComponents,
       keycloakConfiguration: KeycloakConfiguration,
-      blockDraftMetadataUpload: Boolean = false,
-      blockAutomateJudgmentTransfers: Boolean = false
+      blockDraftMetadataUpload: Boolean = false
   ) = {
     when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
-    when(configuration.get[Boolean]("featureAccessBlock.blockAutomateJudgmentTransfers")).thenReturn(blockAutomateJudgmentTransfers)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
@@ -483,7 +449,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       applicationConfig
     )
   }
-  def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration, blockAutomateJudgmentTransfers: Boolean = false): FileChecksResultsController = {
+  def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration): FileChecksResultsController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
 
     setConsignmentStatusResponse(app.configuration, wiremockServer)
@@ -509,7 +475,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     mockGraphqlResponse(consignmentType, fileStatusResponse, filePathResponse)
     setConsignmentReferenceResponse(wiremockServer)
 
-    instantiateController(getAuthorisedSecurityComponents, keyCloakConfig, blockAutomateJudgmentTransfers = blockAutomateJudgmentTransfers)
+    instantiateController(getAuthorisedSecurityComponents, keyCloakConfig)
 
   }
 }

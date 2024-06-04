@@ -57,7 +57,6 @@ class FileChecksResultsController @Inject() (
 
   def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val pageTitle = "Results of checks"
-    val blockAutomateJudgmentTransfers = applicationConfig.blockAutomateJudgmentTransfers
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
@@ -70,16 +69,7 @@ class FileChecksResultsController @Inject() (
             fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
-                if (blockAutomateJudgmentTransfers) {
-                  consignmentService
-                    .getConsignmentFilesData(consignmentId, request.token.bearerAccessToken)
-                    .flatMap(files => {
-                      val filename = files.files.head.metadata.clientSideOriginalFilePath.get
-                      Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, pageTitle, consignmentId, reference, request.token.name)).uncache())
-                    })
-                } else {
-                  Future(Redirect(routes.ConfirmTransferController.judgmentChecksPassedSubmit(consignmentId)).uncache())
-                }
+                Future(Redirect(routes.ConfirmTransferController.judgmentChecksPassedSubmit(consignmentId)).uncache())
               } else {
                 Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
               }
