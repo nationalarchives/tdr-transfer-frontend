@@ -2,12 +2,10 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
-import com.github.tototoshi.csv.CSVReader
 import org.dhatim.fastexcel.reader._
-//import scala.collection.JavaConverters._
 import scala.jdk.CollectionConverters._
 import configuration.GraphQLConfiguration
-import controllers.util.MetadataProperty.{clientSideFileLastModifiedDate, clientSideOriginalFilepath, fileName, fileUUID}
+import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
@@ -19,7 +17,6 @@ import graphql.codegen.types.PropertyType.Supplied
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
-//import akka.util.ByteString //Should be
 import org.apache.pekko.util.ByteString
 import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND}
@@ -29,7 +26,7 @@ import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesSer
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
-import java.io.{ByteArrayInputStream, StringReader}
+import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -68,284 +65,172 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     wiremockServer.stop()
   }
 
-  //ALL OF THIS IS WRONG
+"DownloadMetadataController downloadMetadataCsv GET" should {
+  "download the csv for a multiple properties and rows" in {
+    val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
+    val uuid1 = UUID.randomUUID().toString
+    val uuid2 = UUID.randomUUID().toString
+    val displayProperties = List(
+      displayProperty(fileUUID, "UUID"),
+      displayProperty(fileName, "File Name"),
+      displayProperty(clientSideOriginalFilepath, "Filepath"),
+      displayProperty(clientSideFileLastModifiedDate, "Date last modified", DataType.DateTime),
+      displayProperty(end_date, "Date of the record", DataType.DateTime),
+      displayProperty(description, "Description")
+    )
+    val customProperties = List(
+      customMetadata(fileUUID, "UUID"),
+      customMetadata(fileName, "FileName"),
+      customMetadata(clientSideOriginalFilepath, "Filepath"),
+      customMetadata(clientSideFileLastModifiedDate, "Date last modified"),
+      customMetadata(end_date, ""),
+      customMetadata(description, "")
+    )
+    val metadataFileOne = List(
+      FileMetadata(fileUUID, uuid1),
+      FileMetadata(fileName, "FileName1"),
+      FileMetadata(clientSideOriginalFilepath, "test/path1"),
+      FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+      FileMetadata(end_date, ""),
+      FileMetadata(description, "")
+    )
+    val metadataFileTwo = List(
+      FileMetadata(fileUUID, uuid2),
+      FileMetadata(fileName, "FileName2"),
+      FileMetadata(clientSideOriginalFilepath, "test/path2"),
+      FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+      FileMetadata(end_date, ""),
+      FileMetadata(description, "")
+    )
+    val files = List(
+      gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil),
+      gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo, Nil)
+    )
 
-  "DownloadMetadataController downloadMetadataCsv GET" should {
-    "download the csv for a multiple properties and rows" in {
-      val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
-      val uuid1 = UUID.randomUUID().toString
-      val uuid2 = UUID.randomUUID().toString
-      val displayProperties = List(
-        displayProperty("TestProperty1", "Test Property 1 Name"),
-        displayProperty("TestProperty2", "Test Property 2 Name"),
-        displayProperty("DateTimeProperty", "Date Time Property Name", DataType.DateTime),
-        displayProperty(fileUUID, "UUID"),
-        displayProperty(fileName, "File Name"),
-        displayProperty(clientSideOriginalFilepath, "Filepath"),
-        displayProperty(clientSideFileLastModifiedDate, "Date last modified", DataType.DateTime)
-      )
-      val customProperties = List(
-        customMetadata("TestProperty1", "TestProperty1"),
-        customMetadata("TestProperty2", "TestProperty2"),
-        customMetadata("DateTimeProperty", "DateTimeProperty"),
-        customMetadata(fileUUID, "UUID"),
-        customMetadata(fileName, "FileName"),
-        customMetadata(clientSideOriginalFilepath, "Filepath"),
-        customMetadata(clientSideFileLastModifiedDate, "Date last modified")
-      )
-      val metadataFileOne = List(
-        FileMetadata("TestProperty1", "TestValue1File1"),
-        FileMetadata("TestProperty2", "TestValue2File1"),
-        FileMetadata("DateTimeProperty", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
-        FileMetadata(fileUUID, uuid1),
-        FileMetadata(fileName, "FileName1"),
-        FileMetadata(clientSideOriginalFilepath, "test/path1"),
-        FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME))
-      )
-      val metadataFileTwo = List(
-        FileMetadata("TestProperty1", "TestValue1File2"),
-        FileMetadata("TestProperty2", "TestValue2File2"),
-        FileMetadata(fileUUID, uuid2),
-        FileMetadata(fileName, "FileName2"),
-        FileMetadata(clientSideOriginalFilepath, "test/path2"),
-        FileMetadata(clientSideFileLastModifiedDate, lastModified.format(DateTimeFormatter.ISO_DATE_TIME))
-      )
-      val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil),
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo, Nil)
-      )
+    val wb:ReadableWorkbook = getFileFromController(customProperties, files, displayProperties)
+    val ws:Sheet = wb.getFirstSheet
+    val rows: List[Row] = ws.read.asScala.toList
 
-      val wb:ReadableWorkbook = getFileFromController(customProperties, files, displayProperties)
-      val ws:Sheet = wb.getFirstSheet
-      val rows: List[Row] = ws.read.asScala.toList
-      println(s"Number of rows: ${rows.length}")
+    rows.length must equal(3)
 
-      //println(s"Header row as String: ${rows.toString}")
+    rows.head.getCell(0).asString must equal("UUID")
+    rows.head.getCell(1).asString must equal("Filepath")
+    rows.head.getCell(2).asString must equal("File Name")
+    rows.head.getCell(3).asString must equal("Date last modified")
+    rows.head.getCell(4).asString must equal("Date of the record")
+    rows.head.getCell(5).asString must equal("Description")
 
-      //val row1 = rows.head
-      rows.foreach(row => {
-          val cells: List[Cell] = row.getCells(0, 4).asScala.toList
-          cells.foreach(c => println(c.getRawValue))
-        }
-      )
-      //val cells: List[Cell] = row1.getCells(0, 3).asScala.toList
+    rows(1).getCell(0).asString must equal(uuid1)
+    rows(1).getCell(1).asString must equal("test/path1")
+    rows(1).getCell(2).asString must equal("FileName1")
+    rows(1).getCell(3).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
 
-      rows.length must equal(3)
+    rows(2).getCell(0).asString must equal(uuid2)
+    rows(2).getCell(1).asString must equal("test/path2")
+    rows(2).getCell(2).asString must equal("FileName2")
+    rows(2).getCell(3).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
 
-      rows.head.getCell(0).asString must equal("UUID")
-      rows.head.getCell(1).asString must equal("Filepath")
-      rows.head.getCell(2).asString must equal("File Name")
-      rows.head.getCell(3).asString must equal("Date last modified")
+  }
 
-      rows(1).getCell(3).asDate must equal(lastModified.format(DateTimeFormatter.ISO_DATE_TIME))
+  /*
 
-      /*
-      val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files, displayProperties).toLazyListWithHeaders().toList
+ "download the csv for rows with multiple values" in {
+   val customProperties = List(
+     customMetadata("TestProperty1", "TestProperty1"),
+     customMetadata("TestProperty2", "TestProperty2"),
+     customMetadata("DateTimeProperty", "DateTimeProperty"),
+     customMetadata("FileName", "FileName")
+   )
+   val displayProperties = List(
+     displayProperty("TestProperty1", "Test Property 1 Name"),
+     displayProperty("TestProperty2", "Test Property 2 Name"),
+     displayProperty("DateTimeProperty", "Date Time Property Name", DataType.DateTime),
+     displayProperty("FileName", "File Name")
+   )
+   val metadataFileOne = List(
+     FileMetadata("TestProperty1", "TestValue1File1"),
+     FileMetadata("TestProperty2", "TestValue2File1"),
+     FileMetadata("TestProperty2", "TestValue3File1"),
+     FileMetadata("FileName", "FileName1")
+   )
+   val files = List(
+     gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil)
+   )
 
-      csvList.size must equal(2)
-      csvList.head("Test Property 1 Name") must equal("TestValue1File1")
-      csvList.head("Test Property 2 Name") must equal("TestValue2File1")
-      csvList.head("Date Time Property Name") must equal("2021-02-03")
-      csvList.head("UUID") must equal(uuid1)
-      csvList.head("File Name") must equal("FileName1")
-      csvList.head("Filepath") must equal("test/path1")
-      csvList.head("Date last modified") must equal("2021-02-03")
-      csvList.last("Test Property 1 Name") must equal("TestValue1File2")
-      csvList.last("Test Property 2 Name") must equal("TestValue2File2")
-      csvList.last("UUID") must equal(uuid2)
-      csvList.last("File Name") must equal("FileName2")
-      csvList.last("Filepath") must equal("test/path2")
-      csvList.last("Date last modified") must equal("2021-02-03")
+   val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files, displayProperties).toLazyListWithHeaders().toList
 
-       */
-    }
+   csvList.size must equal(1)
+   csvList.head("Test Property 1 Name") must equal("TestValue1File1")
+   csvList.head("Test Property 2 Name") must equal("TestValue2File1|TestValue3File1")
+   csvList.head("File Name") must equal("FileName1")
+ }
 
-    /*
-    "download the csv for rows with different numbers of metadata" in {
-      val customProperties = List(
-        customMetadata("TestProperty1", "TestProperty1"),
-        customMetadata("TestProperty2", "TestProperty2"),
-        customMetadata("FileName", "FileName")
-      )
-      val displayProperties = List(
-        displayProperty("TestProperty1", "Test Property 1 Name"),
-        displayProperty("TestProperty2", "Test Property 2 Name"),
-        displayProperty("DateTimeProperty", "Date Time Property Name", DataType.DateTime),
-        displayProperty("FileName", "File Name")
-      )
-      val metadataFileOne = List(
-        FileMetadata("TestProperty1", "TestValue1File1"),
-        FileMetadata("FileName", "FileName1")
-      )
-      val metadataFileTwo = List(
-        FileMetadata("TestProperty1", "TestValue1File2"),
-        FileMetadata("TestProperty2", "TestValue2File2"),
-        FileMetadata("FileName", "FileName2")
-      )
-      val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil),
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileTwo, Nil)
-      )
 
-      val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files, displayProperties).toLazyListWithHeaders().toList
 
-      csvList.size must equal(2)
-      csvList.head("Test Property 1 Name") must equal("TestValue1File1")
-      csvList.head("Test Property 2 Name") must equal("")
-      csvList.head("File Name") must equal("FileName1")
-      csvList.last("Test Property 1 Name") must equal("TestValue1File2")
-      csvList.last("Test Property 2 Name") must equal("TestValue2File2")
-      csvList.last("File Name") must equal("FileName2")
-    }
+ "order fields correctly" in {
+   val customProperties = List(
+     customMetadata("TestProperty1", "TestProperty1"),
+     customMetadata("TestProperty2", "TestProperty2", 3),
+     customMetadata("TestProperty3", "TestProperty3", 2),
+     customMetadata("TestProperty4", "TestProperty4", 4),
+     customMetadata("FileName", "FileName", 1)
+   )
 
-    "download the csv for rows with multiple values" in {
-      val customProperties = List(
-        customMetadata("TestProperty1", "TestProperty1"),
-        customMetadata("TestProperty2", "TestProperty2"),
-        customMetadata("DateTimeProperty", "DateTimeProperty"),
-        customMetadata("FileName", "FileName")
-      )
-      val displayProperties = List(
-        displayProperty("TestProperty1", "Test Property 1 Name"),
-        displayProperty("TestProperty2", "Test Property 2 Name"),
-        displayProperty("DateTimeProperty", "Date Time Property Name", DataType.DateTime),
-        displayProperty("FileName", "File Name")
-      )
-      val metadataFileOne = List(
-        FileMetadata("TestProperty1", "TestValue1File1"),
-        FileMetadata("TestProperty2", "TestValue2File1"),
-        FileMetadata("TestProperty2", "TestValue3File1"),
-        FileMetadata("FileName", "FileName1")
-      )
-      val files = List(
-        gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil)
-      )
+   val displayProperties = List(
+     displayProperty("TestProperty1", "Test Property 1 Name"),
+     displayProperty("TestProperty2", "Test Property 2 Name"),
+     displayProperty("TestProperty3", "Test Property 3 Name"),
+     displayProperty("TestProperty4", "Test Property 4 Name"),
+     displayProperty("DateTimeProperty", "Date Time Property Name", DataType.DateTime),
+     displayProperty("FileName", "File Name")
+   )
 
-      val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files, displayProperties).toLazyListWithHeaders().toList
+   val metadataFileOne = List(
+     FileMetadata("FileName", "FileName1"),
+     FileMetadata("TestProperty1", "TestValue1File1"),
+     FileMetadata("TestProperty2", "TestValue2File1"),
+     FileMetadata("TestProperty3", "TestValue3File1"),
+     FileMetadata("TestProperty4", "TestValue4File1")
+   )
+   val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil))
 
-      csvList.size must equal(1)
-      csvList.head("Test Property 1 Name") must equal("TestValue1File1")
-      csvList.head("Test Property 2 Name") must equal("TestValue2File1|TestValue3File1")
-      csvList.head("File Name") must equal("FileName1")
-    }
+   val csvList = getCsvFromController(customProperties, files, displayProperties).toLazyList()
 
-    "ignore fields set with allowExport set to false" in {
-      val customProperties = List(
-        customMetadata("TestProperty1", "TestProperty1", allowExport = false),
-        customMetadata("TestProperty2", "TestProperty2"),
-        customMetadata("FileName", "File Name")
-      )
-      val displayProperties = List(
-        displayProperty("TestProperty1", "Test Property 1 Name"),
-        displayProperty("TestProperty2", "Test Property 2 Name"),
-        displayProperty("DateTimeProperty", "Date Time Property Name", DataType.DateTime),
-        displayProperty("FileName", "File Name")
-      )
-      val metadataFileOne = List(
-        FileMetadata("TestProperty1", "TestValue1File1"),
-        FileMetadata("TestProperty2", "TestValue2File1"),
-        FileMetadata("FileName", "FileName1")
-      )
-      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil))
+   val headers = csvList.head
+   headers.head must be("File Name")
+   headers(1) must be("Test Property 3 Name")
+   headers(2) must be("Test Property 2 Name")
+   headers(3) must be("Test Property 4 Name")
+   headers(4) must be("Test Property 1 Name")
+ }
 
-      val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files, displayProperties).toLazyListWithHeaders().toList
+ "display yes and no for boolean values" in {
+   val customProperties = List(
+     customMetadata("BooleanProperty1", "BooleanProperty1"),
+     customMetadata("BooleanProperty2", "BooleanProperty2"),
+     customMetadata("FileName", "File Name")
+   )
+   val displayProperties = List(
+     displayProperty("BooleanProperty1", "Test Property 1 Name", dataType = DataType.Boolean),
+     displayProperty("BooleanProperty2", "Test Property 2 Name", dataType = DataType.Boolean),
+     displayProperty("FileName", "File Name")
+   )
+   val metadataFileOne = List(
+     FileMetadata("BooleanProperty1", "true"),
+     FileMetadata("BooleanProperty2", "false"),
+     FileMetadata("FileName", "FileName1")
+   )
+   val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil))
 
-      csvList.size must equal(1)
-      csvList.head.get("Test Property 1 Name") must equal(None)
-      csvList.head("Test Property 2 Name") must equal("TestValue2File1")
-      csvList.head("File Name") must equal("FileName1")
-    }
+   val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files, displayProperties).toLazyListWithHeaders().toList
 
-    "order fields correctly" in {
-      val customProperties = List(
-        customMetadata("TestProperty1", "TestProperty1"),
-        customMetadata("TestProperty2", "TestProperty2", 3),
-        customMetadata("TestProperty3", "TestProperty3", 2),
-        customMetadata("TestProperty4", "TestProperty4", 4),
-        customMetadata("FileName", "FileName", 1)
-      )
+   csvList.size must equal(1)
+   csvList.head("Test Property 1 Name") must equal("Yes")
+   csvList.head("Test Property 2 Name") must equal("No")
+   csvList.head("File Name") must equal("FileName1")
+ }
 
-      val displayProperties = List(
-        displayProperty("TestProperty1", "Test Property 1 Name"),
-        displayProperty("TestProperty2", "Test Property 2 Name"),
-        displayProperty("TestProperty3", "Test Property 3 Name"),
-        displayProperty("TestProperty4", "Test Property 4 Name"),
-        displayProperty("DateTimeProperty", "Date Time Property Name", DataType.DateTime),
-        displayProperty("FileName", "File Name")
-      )
-
-      val metadataFileOne = List(
-        FileMetadata("FileName", "FileName1"),
-        FileMetadata("TestProperty1", "TestValue1File1"),
-        FileMetadata("TestProperty2", "TestValue2File1"),
-        FileMetadata("TestProperty3", "TestValue3File1"),
-        FileMetadata("TestProperty4", "TestValue4File1")
-      )
-      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil))
-
-      val csvList = getCsvFromController(customProperties, files, displayProperties).toLazyList()
-
-      val headers = csvList.head
-      headers.head must be("File Name")
-      headers(1) must be("Test Property 3 Name")
-      headers(2) must be("Test Property 2 Name")
-      headers(3) must be("Test Property 4 Name")
-      headers(4) must be("Test Property 1 Name")
-    }
-
-    "not display a metadata property if the display property is inactive" in {
-      val customProperties = List(
-        customMetadata("TestProperty1", "TestProperty1"),
-        customMetadata("TestProperty2", "TestProperty2"),
-        customMetadata("FileName", "File Name")
-      )
-      val displayProperties = List(
-        displayProperty("TestProperty1", "Test Property 1 Name"),
-        displayProperty("TestProperty2", "Test Property 2 Name", active = false),
-        displayProperty("FileName", "File Name")
-      )
-      val metadataFileOne = List(
-        FileMetadata("TestProperty1", "TestValue1File1"),
-        FileMetadata("TestProperty2", "TestValue2File1"),
-        FileMetadata("FileName", "FileName1")
-      )
-      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil))
-
-      val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files, displayProperties).toLazyListWithHeaders().toList
-
-      csvList.size must equal(1)
-      csvList.head("Test Property 1 Name") must equal("TestValue1File1")
-      csvList.head.get("Test Property 2 Name") must equal(None)
-      csvList.head("File Name") must equal("FileName1")
-    }
-
-    "display yes and no for boolean values" in {
-      val customProperties = List(
-        customMetadata("BooleanProperty1", "BooleanProperty1"),
-        customMetadata("BooleanProperty2", "BooleanProperty2"),
-        customMetadata("FileName", "File Name")
-      )
-      val displayProperties = List(
-        displayProperty("BooleanProperty1", "Test Property 1 Name", dataType = DataType.Boolean),
-        displayProperty("BooleanProperty2", "Test Property 2 Name", dataType = DataType.Boolean),
-        displayProperty("FileName", "File Name")
-      )
-      val metadataFileOne = List(
-        FileMetadata("BooleanProperty1", "true"),
-        FileMetadata("BooleanProperty2", "false"),
-        FileMetadata("FileName", "FileName1")
-      )
-      val files = List(gcfm.GetConsignment.Files(UUID.randomUUID(), Some("FileName"), metadataFileOne, Nil))
-
-      val csvList: List[Map[String, String]] = getCsvFromController(customProperties, files, displayProperties).toLazyListWithHeaders().toList
-
-      csvList.size must equal(1)
-      csvList.head("Test Property 1 Name") must equal("Yes")
-      csvList.head("Test Property 2 Name") must equal("No")
-      csvList.head("File Name") must equal("FileName1")
-    }
-
-     */
+  */
 
     "return forbidden for a judgment user" in {
       val controller = createController("judgment")
@@ -407,8 +292,6 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
-
-  //private def getCsvFromController(customProperties: List[cm.CustomMetadata], files: List[Files], displayProperties: List[dp.DisplayProperties]): CSVReader = {
   private def getFileFromController(customProperties: List[cm.CustomMetadata], files: List[Files], displayProperties: List[dp.DisplayProperties]): ReadableWorkbook = {
     mockFileMetadataResponse(files)
     mockCustomMetadataResponse(customProperties)
@@ -417,31 +300,10 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     val consignmentId = UUID.randomUUID()
     val controller = createController("standard")
     val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
-    //val responseAsString = contentAsString(response)
-    //val bufferedSource = new StringReader(responseAsString)
-    //CSVReader.open(bufferedSource)
     val responseByteArray: ByteString = contentAsBytes(response)
     val bufferedSource = new ByteArrayInputStream(responseByteArray.toArray)
     new ReadableWorkbook(bufferedSource)
-    //CSVReader.open("Placeholder")
   }
-
- /*
-
-  private def getExcelFromController(customProperties: List[cm.CustomMetadata], files: List[Files], displayProperties: List[dp.DisplayProperties]): CSVReader = {
-    mockFileMetadataResponse(files)
-    mockCustomMetadataResponse(customProperties)
-    mockDisplayPropertiesResponse(displayProperties)
-
-    val consignmentId = UUID.randomUUID()
-    val controller = createController("standard")
-    val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
-    val responseAsString = contentAsString(response)
-    val bufferedSource = new StringReader(responseAsString)
-    CSVReader.open(bufferedSource)
-  }
-
-  */
 
   private def createController(consignmentType: String) = {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
