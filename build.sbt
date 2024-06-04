@@ -10,9 +10,6 @@ watchSources ++= (baseDirectory.value / "npm/src" ** "*").get
 
 scalaVersion := "2.13.14"
 
-ivyLoggingLevel := UpdateLogging.Full
-logLevel := Level.Debug
-
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 

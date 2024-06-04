@@ -15,26 +15,26 @@ object ExcelUtils {
     val ws: Worksheet = wb.newWorksheet(s"Metadata for ${consignmentID.toString}")
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-    rows.head.zipWithIndex.foreach {
-      case (header, col) => ws.value(0, col, header)
+    rows.head.zipWithIndex.foreach { case (header, col) =>
+      ws.value(0, col, header)
     }
 
     for ((row, rowNo) <- rows.tail.zipWithIndex) {
       for ((col, colNo) <- row.zipWithIndex) {
-         col match {
-           case a if !a.equals("") && dataTypes(colNo) == DataType.DateTime => ws.value(rowNo+1, colNo, LocalDate.parse(col, formatter))
-           case a if !a.equals("") && dataTypes(colNo) == DataType.Integer => ws.value(rowNo+1, colNo, Integer.valueOf(col))
-           case _ => ws.value(rowNo+1, colNo, col)
-         }
+        col match {
+          case a if !a.equals("") && dataTypes(colNo) == DataType.DateTime => ws.value(rowNo + 1, colNo, LocalDate.parse(col, formatter))
+          case a if !a.equals("") && dataTypes(colNo) == DataType.Integer  => ws.value(rowNo + 1, colNo, Integer.valueOf(col))
+          case _                                                           => ws.value(rowNo + 1, colNo, col)
+        }
       }
     }
 
-    ws.range(0,0,0,100).style().bold().set()
+    ws.range(0, 0, 0, 100).style().bold().set()
 
-    for((dataType, colNo) <- dataTypes.zipWithIndex) {
+    for ((dataType, colNo) <- dataTypes.zipWithIndex) {
       dataType match {
         case DataType.DateTime => ws.range(1, colNo, rows.tail.length, colNo).style.format("yyyy-MM-dd").set()
-        case _ =>
+        case _                 =>
       }
     }
 
