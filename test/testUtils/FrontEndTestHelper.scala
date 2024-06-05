@@ -874,6 +874,18 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
     keycloakMock
   }
+  
+  def getValidTNAUserKeycloakConfiguration: KeycloakConfiguration = {
+    val keycloakMock = mock[KeycloakConfiguration]
+    val accessToken = new AccessToken()
+    accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
+    accessToken.setOtherClaims("tna_user", "true")
+    accessToken.setName("TNA Username")
+    accessToken.setEmail("test@example.com")
+    val token = Token(accessToken, new BearerAccessToken)
+    doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
+    keycloakMock
+  }
 
   def getValidKeycloakConfigurationWithoutBody: KeycloakConfiguration = {
     val keycloakMock = mock[KeycloakConfiguration]
