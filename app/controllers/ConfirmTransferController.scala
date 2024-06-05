@@ -117,7 +117,7 @@ class ConfirmTransferController @Inject() (
       )
     }
 
-  def finalJudgmentTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def judgmentChecksPassedSubmit(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       exportStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
@@ -142,9 +142,6 @@ class ConfirmTransferController @Inject() (
       }
     } yield res
   }
-
-  def judgmentChecksPassedSubmit(consignmentId: UUID): Action[AnyContent] = finalJudgmentTransferConfirmationSubmit(consignmentId: UUID)
-
 }
 
 case class ConsignmentSummaryData(seriesCode: String, transferringBody: String, totalFiles: Int, consignmentReference: String)
