@@ -117,7 +117,7 @@ class ConfirmTransferController @Inject() (
       )
     }
 
-  def judgmentChecksPassedSubmit(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def judgmentChecksPassed(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       exportStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten

@@ -367,7 +367,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       )
 
       val finalTransferConfirmationSubmitResult = controller
-        .judgmentChecksPassedSubmit(consignmentId)
+        .judgmentChecksPassed(consignmentId)
         .apply(
           FakeRequest()
             .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
@@ -401,7 +401,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitResult = controller
-        .judgmentChecksPassedSubmit(consignmentId)
+        .judgmentChecksPassed(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
             .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
@@ -444,7 +444,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitResult = controller
-        .judgmentChecksPassedSubmit(consignmentId)
+        .judgmentChecksPassed(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
             .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
@@ -519,7 +519,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitError: Throwable = controller
-        .judgmentChecksPassedSubmit(consignmentId)
+        .judgmentChecksPassed(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
             .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
@@ -568,7 +568,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       controller
-        .judgmentChecksPassedSubmit(consignmentId)
+        .judgmentChecksPassed(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
             .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
@@ -613,7 +613,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
       val finalTransferConfirmationSubmitError: Throwable = controller
-        .judgmentChecksPassedSubmit(consignmentId)
+        .judgmentChecksPassed(consignmentId)
         .apply(
           FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
             .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
@@ -727,7 +727,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
           case "judgment" =>
             mockGraphqlConsignmentSummaryResponse()
             controller
-              .judgmentChecksPassedSubmit(consignmentId)
+              .judgmentChecksPassed(consignmentId)
               .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer").withCSRFToken)
           case "consignment" =>
             mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")

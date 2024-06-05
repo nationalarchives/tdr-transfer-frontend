@@ -73,5 +73,5 @@ GET         /judgment/:consignmentId/upload                                     
 GET         /judgment/:consignmentId/file-checks                                            controllers.FileChecksController.judgmentFileChecksPage(consignmentId: java.util.UUID, uploadFailed: Option[String])
 POST        /judgment/:consignmentId/file-check-progress                                    controllers.FileChecksController.fileCheckProgress(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/file-checks-results                                    controllers.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId: java.util.UUID)
-GET         /judgment/:consignmentId/checks-passed                                          controllers.ConfirmTransferController.judgmentChecksPassedSubmit(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/checks-passed                                          controllers.ConfirmTransferController.judgmentChecksPassed(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/transfer-complete                                      controllers.TransferCompleteController.judgmentTransferComplete(consignmentId: java.util.UUID)

@@ -69,7 +69,7 @@ class FileChecksResultsController @Inject() (
             fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
-                Future(Redirect(routes.ConfirmTransferController.judgmentChecksPassedSubmit(consignmentId)).uncache())
+                Future(Redirect(routes.ConfirmTransferController.judgmentChecksPassed(consignmentId)).uncache())
               } else {
                 Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
               }
