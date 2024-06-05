@@ -42,7 +42,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       |<a href="/view-transfers" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
       |    View transfers
       |</a>""".stripMargin
-      
+
   val transfersForReviewButton: String =
     """<a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>"""
 
