@@ -15,7 +15,7 @@ import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, status}
-import services.ConsignmentService
+import services.{ConsignmentService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.time.{LocalDateTime, ZonedDateTime}
@@ -45,6 +45,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   "TransferCompleteController GET" should {
     "render the success page if the export was triggered successfully" in {
       setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentSummaryResponse(wiremockServer)
       val consignmentId = UUID.randomUUID()
       val transferCompletePage = callTransferComplete("consignment", consignmentId)
       val transferCompletePageAsString = contentAsString(transferCompletePage)
@@ -86,6 +87,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
     "render the success page if the export was triggered successfully for a judgment user" in {
       setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentSummaryResponse(wiremockServer)
       val transferCompletePage = callTransferComplete("judgment")
       val transferCompletePageAsString = contentAsString(transferCompletePage)
 
@@ -125,6 +127,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     s"The $url upload page" should {
       s"return 403 if the url doesn't match the consignment type" in {
         setConsignmentReferenceResponse(wiremockServer)
+        setConsignmentSummaryResponse(wiremockServer)
         val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, url)
         val consignmentId = UUID.randomUUID()
         setConsignmentTypeResponse(wiremockServer, url)
@@ -148,10 +151,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   private def instantiateTransferCompleteController(securityComponents: SecurityComponents, path: String) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val messagingService = mock[MessagingService]
     if (path.equals("judgment")) {
-      new TransferCompleteController(securityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService)
+      new TransferCompleteController(securityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, messagingService)
     } else {
-      new TransferCompleteController(securityComponents, getValidStandardUserKeycloakConfiguration, consignmentService)
+      new TransferCompleteController(securityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, messagingService)
     }
   }
 
