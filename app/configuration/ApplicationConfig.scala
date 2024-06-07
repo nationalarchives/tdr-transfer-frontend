@@ -25,7 +25,11 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val s3Endpoint: String = configuration.get[String]("s3.endpoint")
 
+  val snsEndpoint: String = configuration.get[String]("sns.endpoint")
+
   val draft_metadata_s3_bucket_name: String = configuration.get[String]("draft_metadata_s3_bucket_name")
 
   val draftMetadataFileName: String = configuration.get[String]("draftMetadata.fileName")
+
+  val notificationSnsTopicArn: String = get("notificationSnsTopicArn")
 }
