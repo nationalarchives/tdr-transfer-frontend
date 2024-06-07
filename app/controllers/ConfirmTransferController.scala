@@ -116,32 +116,6 @@ class ConfirmTransferController @Inject() (
         successFunction
       )
     }
-
-  def judgmentChecksPassed(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    for {
-      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      exportStatus: Option[String] = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
-      res <- {
-        exportStatus match {
-          case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) =>
-            consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken).map { consignmentRef =>
-              Ok(views.html.transferAlreadyCompleted(consignmentId, consignmentRef, request.token.name, isJudgmentUser = true)).uncache()
-            }
-          case None =>
-            val token: BearerAccessToken = request.token.bearerAccessToken
-            val legalCustodyTransferConfirmation = FinalTransferConfirmationData(transferLegalCustody = true)
-            for {
-              _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, legalCustodyTransferConfirmation)
-              _ <- consignmentExportService.updateTransferInitiated(consignmentId, request.token.bearerAccessToken)
-              _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
-              res <- Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)))
-            } yield res
-          case _ =>
-            throw new IllegalStateException(s"Unexpected Export status: $exportStatus for consignment $consignmentId")
-        }
-      }
-    } yield res
-  }
 }
 
 case class ConsignmentSummaryData(seriesCode: String, transferringBody: String, totalFiles: Int, consignmentReference: String)

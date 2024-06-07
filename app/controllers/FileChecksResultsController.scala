@@ -1,12 +1,13 @@
 package controllers
 
 import auth.TokenSecurity
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses.{CompletedValue, ExportType, FailedValue, InProgressValue}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -19,6 +20,8 @@ class FileChecksResultsController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val graphqlConfiguration: GraphQLConfiguration,
     val consignmentService: ConsignmentService,
+    val confirmTransferService: ConfirmTransferService,
+    val consignmentExportService: ConsignmentExportService,
     val consignmentStatusService: ConsignmentStatusService,
     val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
@@ -69,7 +72,14 @@ class FileChecksResultsController @Inject() (
             fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
-                Future(Redirect(routes.ConfirmTransferController.judgmentChecksPassed(consignmentId)).uncache())
+                val token: BearerAccessToken = request.token.bearerAccessToken
+                val legalCustodyTransferConfirmation = FinalTransferConfirmationData(transferLegalCustody = true)
+                for {
+                  _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, legalCustodyTransferConfirmation)
+                  _ <- consignmentExportService.updateTransferInitiated(consignmentId, request.token.bearerAccessToken)
+                  _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
+                  res <- Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)).uncache())
+                } yield res
               } else {
                 Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
               }

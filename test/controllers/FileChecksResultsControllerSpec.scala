@@ -1,6 +1,6 @@
 package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, equalToJson, ok, okJson, post, urlEqualTo}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
@@ -21,19 +21,21 @@ import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import services.{ConsignmentService, ConsignmentStatusService}
-import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
+import play.api.test.WsTestClient.InternalWSClient
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, TransferMockHelper}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   val consignmentId: UUID = UUID.fromString("0a3f617c-04e8-41c2-9f24-99622a779528")
   val wiremockServer = new WireMockServer(9006)
+  val wiremockExportServer = new WireMockServer(9007)
   val configuration: Configuration = mock[Configuration]
   val twoOrMoreSpaces = "\\s{2,}"
 
@@ -41,11 +43,14 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
+    wiremockExportServer.start()
   }
 
   override def afterEach(): Unit = {
     wiremockServer.resetAll()
     wiremockServer.stop()
+    wiremockExportServer.resetAll()
+    wiremockExportServer.stop()
   }
 
   val checkPageForStaticElements = new CheckPageForStaticElements
@@ -108,11 +113,29 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
     "return a redirect to judgments checked passed url for a judgements user" in {
       val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration)
+
+      // Export status not set
+      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      // will add final transfer configuration
+      TransferMockHelper.stubFinalTransferConfirmationResponse(wiremockServer, consignmentId)
+
+      // will initiate transfer
+      TransferMockHelper.stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)
+      // will start export
+      wiremockExportServer.stubFor(
+        post(urlEqualTo(s"/export/$consignmentId"))
+          .willReturn(ok())
+      )
+
       val recordCheckResultsPage = fileCheckResultsController
         .judgmentFileCheckResultsPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
       status(recordCheckResultsPage) mustBe 303
-      redirectLocation(recordCheckResultsPage).get must be("/judgment/0a3f617c-04e8-41c2-9f24-99622a779528/checks-passed")
+      redirectLocation(recordCheckResultsPage).get must be("/judgment/0a3f617c-04e8-41c2-9f24-99622a779528/transfer-complete")
     }
   }
 
@@ -439,15 +462,22 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+    val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     new FileChecksResultsController(
       securityComponent,
       keycloakConfiguration,
       graphQLConfiguration,
       consignmentService,
+      confirmTransferService,
+      exportService(app.configuration),
       consignmentStatusService,
       applicationConfig
     )
+  }
+  def exportService(configuration: Configuration): ConsignmentExportService = {
+    val wsClient = new InternalWSClient("http", 9007)
+    new ConsignmentExportService(wsClient, configuration, new GraphQLConfiguration(configuration))
   }
   def setUpFileChecksController(consignmentType: String, keyCloakConfig: KeycloakConfiguration): FileChecksResultsController = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)

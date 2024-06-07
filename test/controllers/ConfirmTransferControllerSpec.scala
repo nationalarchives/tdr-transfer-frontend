@@ -397,7 +397,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       failure mustBe an[AuthorisationException]
     }
 
-   "redirects to the transfer complete page when a valid form is submitted" in {
+    "redirects to the transfer complete page when a valid form is submitted" in {
       val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
       mockUpdateTransferInitiatedResponse
@@ -592,8 +592,8 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, user)
         mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
         val fileChecksPage = controller
-              .finalTransferConfirmationSubmit(consignmentId)
-              .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+          .finalTransferConfirmationSubmit(consignmentId)
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
         playStatus(fileChecksPage) mustBe FORBIDDEN
       }
     }
