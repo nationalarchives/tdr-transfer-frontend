@@ -77,7 +77,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must include(viewTransferButton)
-      homepagePageAsString must not include(transfersForReviewButton)
+      homepagePageAsString must not include (transfersForReviewButton)
     }
 
     "render the judgment homepage page with an authenticated judgment user" in {
@@ -94,7 +94,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must not include viewTransferButton
-      homepagePageAsString must not include(transfersForReviewButton)
+      homepagePageAsString must not include (transfersForReviewButton)
     }
 
     "render the DTA review homepage page with an authenticated tna user" in {
