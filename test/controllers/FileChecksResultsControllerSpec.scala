@@ -1,6 +1,6 @@
 package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, equalToJson, ok, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, equalToJson, ok, okJson, post, serverError, urlEqualTo}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
@@ -122,6 +122,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
 
       // will add final transfer configuration
       TransferMockHelper.stubFinalTransferConfirmationResponse(wiremockServer, consignmentId)
+//      wiremockServer.stubFor(
+//        post(urlEqualTo(s"/graphql"))
+//          .willReturn(serverError())
+//      )
 
       // will initiate transfer
       TransferMockHelper.stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)

@@ -35,7 +35,7 @@ object TransferMockHelper {
     )
   }
 
-  def stubFinalTransferConfirmationResponse(wiremockServer: WireMockServer, consignmentId: UUID)(implicit app: Application, ec: ExecutionContext): Unit = {
+  def  stubFinalTransferConfirmationResponse(wiremockServer: WireMockServer, consignmentId: UUID)(implicit app: Application, ec: ExecutionContext): Unit = {
 
     val addFinalTransferConfirmationResponse = Some(
       new aftc.AddFinalTransferConfirmation(
