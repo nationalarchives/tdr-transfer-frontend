@@ -22,6 +22,7 @@ import graphql.codegen.GetConsignmentFilesMetadata.{getConsignmentFilesMetadata 
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetConsignmentStatus.{getConsignmentStatus => gcs}
+import graphql.codegen.GetConsignmentSummary.{getConsignmentSummary => gcsu}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
@@ -70,7 +71,6 @@ import play.api.{Application, Configuration}
 import services.Statuses.{InProgressValue, SeriesType}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
-import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import org.pac4j.core.context.{CallContext, FrameworkParameters}
 import org.pac4j.oidc.metadata.OidcOpMetadataResolver
 import services.Statuses.{InProgressValue, SeriesType}
@@ -257,6 +257,34 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     wiremockServer.stubFor(
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getConsignmentStatus"))
+        .willReturn(okJson(dataString))
+    )
+  }
+
+  def setConsignmentSummaryResponse(
+      wiremockServer: WireMockServer,
+      seriesName: Option[String] = None,
+      transferringBodyName: Option[String] = None,
+      totalFiles: Int = 0,
+      consignmentReference: String = "TEST-TDR-2021-GB"
+  ): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcsu.Data, gcsu.Variables]()
+    val consignmentSummaryResponse = gcsu.Data(
+      Option(
+        gcsu.GetConsignment(
+          seriesName,
+          transferringBodyName,
+          totalFiles,
+          consignmentReference
+        )
+      )
+    )
+    val data: client.GraphqlData = client.GraphqlData(Some(consignmentSummaryResponse))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentSummary"))
         .willReturn(okJson(dataString))
     )
   }

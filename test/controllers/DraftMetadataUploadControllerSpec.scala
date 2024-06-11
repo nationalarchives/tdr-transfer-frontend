@@ -27,6 +27,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
   val consignmentId: UUID = UUID.randomUUID()
   val wiremockServer = new WireMockServer(9006)
+  val uploadFilename = "draft-metadata.csv"
 
   private val configuration: Configuration = mock[Configuration]
 
@@ -92,11 +93,12 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
 
     "redirect to draft metadata checks page when upload successful" in {
       val uploadServiceMock = mock[UploadService]
+      when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
-      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString)).thenReturn(Future.successful(true))
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString)).thenReturn(Future.successful(true))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 303
@@ -110,7 +112,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString))
         .thenReturn(Future.failed(new RuntimeException("Upload failed")))
       val draftMetadataServiceMock = mock[DraftMetadataService]
-      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString)).thenReturn(Future.successful(true))
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString)).thenReturn(Future.successful(true))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 500
@@ -121,10 +123,11 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     "render error page when upload success but trigger fails" in {
       val uploadServiceMock = mock[UploadService]
       val putObjectResponse = PutObjectResponse.builder().eTag("testEtag").build()
+      when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)
       when(uploadServiceMock.uploadDraftMetadata(anyString, anyString, anyString)).thenReturn(Future.successful(putObjectResponse))
 
       val draftMetadataServiceMock = mock[DraftMetadataService]
-      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString)).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
+      when(draftMetadataServiceMock.triggerDraftMetadataValidator(any[UUID], anyString, anyString)).thenReturn(Future.failed(new RuntimeException("Trigger failed")))
       val response = requestFileUpload(uploadServiceMock, draftMetadataServiceMock)
 
       playStatus(response) mustBe 500
