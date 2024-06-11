@@ -15,7 +15,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0
 
 val playVersion = "3.0.2"
 val playPac4jVersion = "12.0.0-PLAY3.0"
-val pac4jVersion = "6.0.2"
+val pac4jVersion = "6.0.3"
 val sttpVersion = "2.3.0"
 
 libraryDependencies ++= Seq(
@@ -27,21 +27,21 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.159",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.163",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.202",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.376",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.23",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.172",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.377",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.25",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.183",
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.173",
   "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.38.0",
-  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.38.0",
-  "io.opentelemetry" % "opentelemetry-sdk" % "1.38.0",
+  "io.opentelemetry" % "opentelemetry-api" % "1.39.0",
+  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.39.0",
+  "io.opentelemetry" % "opentelemetry-sdk" % "1.39.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.35.0",
+  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.36.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
   "org.mockito" % "mockito-core" % "5.12.0" % Test,
