@@ -82,7 +82,7 @@ class DownloadMetadataController @Inject() (
               customMetadata.dataType match {
                 case DataType.DateTime => LocalDateTime.parse(fileMetadataValue, parseFormatter).toLocalDate
                 case DataType.Boolean  => if (fileMetadataValue == "true") "Yes" else "No"
-                case DataType.Integer => Integer.valueOf(fileMetadataValue)
+                case DataType.Integer  => Integer.valueOf(fileMetadataValue)
                 case _                 => fileMetadataValue
               }
             }
