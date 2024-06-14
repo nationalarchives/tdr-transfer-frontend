@@ -7,7 +7,7 @@ import java.time.LocalDate
 
 object ExcelUtils {
 
-  def writeExcel(consignmentRef: String, rows: List[List[Any]]): Array[Byte] = {
+  def writeExcel(consignmentRef: String, rows: List[List[Any]], dataTypes: List[DataType]): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
     val ws: Worksheet = wb.newWorksheet(s"Metadata for ${consignmentRef}")
