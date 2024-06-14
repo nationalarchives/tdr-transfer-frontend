@@ -20,8 +20,8 @@ object ExcelUtils {
       for ((col, colNo) <- row.zipWithIndex) {
         col match {
           case value: LocalDate => ws.value(rowNo + 1, colNo, value)
-          case value: Integer => ws.value(rowNo + 1, colNo, value)
-          case value => ws.value(rowNo + 1, colNo, value.toString)
+          case value: Integer   => ws.value(rowNo + 1, colNo, value)
+          case value            => ws.value(rowNo + 1, colNo, value.toString)
         }
       }
     }
