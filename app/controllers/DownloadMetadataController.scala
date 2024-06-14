@@ -72,6 +72,7 @@ class DownloadMetadataController @Inject() (
       val nameMap = displayProperties.filter(dp => columnOrder.contains(dp.propertyName)).map(dp => (dp.propertyName, dp.displayName)).toMap
       val filteredMetadata: List[CustomMetadata] = columnOrder.collect(customMetadata.map(cm => cm.name -> cm).toMap).toList
       val header: List[String] = filteredMetadata.map(f => nameMap.getOrElse(f.name, f.name))
+      val dataTypes: List[DataType] = filteredMetadata.map(f => f.dataType)
 
       val fileMetadataRows: List[List[Any]] = metadata.files.sortBy(f => f.fileMetadata.find(_.name == clientSideOriginalFilepath).map(_.value.toUpperCase)).map { file =>
         val groupedMetadata: Map[String, String] = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
@@ -82,7 +83,7 @@ class DownloadMetadataController @Inject() (
               customMetadata.dataType match {
                 case DataType.DateTime => LocalDateTime.parse(fileMetadataValue, parseFormatter).toLocalDate
                 case DataType.Boolean  => if (fileMetadataValue == "true") "Yes" else "No"
-                case DataType.Integer  => Integer.valueOf(fileMetadataValue)
+                case DataType.Integer => Integer.valueOf(fileMetadataValue)
                 case _                 => fileMetadataValue
               }
             }
@@ -90,7 +91,7 @@ class DownloadMetadataController @Inject() (
         }
       }
 
-      val excelFile = ExcelUtils.writeExcel(metadata.consignmentReference, header :: fileMetadataRows)
+      val excelFile = ExcelUtils.writeExcel(metadata.consignmentReference, header :: fileMetadataRows, dataTypes)
       val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")
       val currentDateTime = dateTimeFormatter.format(LocalDateTime.now())
       val excelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
