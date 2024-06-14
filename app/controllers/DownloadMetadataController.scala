@@ -46,7 +46,6 @@ class DownloadMetadataController @Inject() (
       displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, None, showInactive = true)
     } yield {
       val parseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
-      val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
       val columnOrder = Seq(
         fileUUID,
@@ -83,7 +82,7 @@ class DownloadMetadataController @Inject() (
               customMetadata.dataType match {
                 case DataType.DateTime => LocalDateTime.parse(fileMetadataValue, parseFormatter).toLocalDate
                 case DataType.Boolean  => if (fileMetadataValue == "true") "Yes" else "No"
-                case DataType.Integer => Integer.valueOf(fileMetadataValue)
+                case DataType.Integer  => Integer.valueOf(fileMetadataValue)
                 case _                 => fileMetadataValue
               }
             }
