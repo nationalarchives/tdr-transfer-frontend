@@ -42,7 +42,7 @@
   "homepage": "https://github.com/nationalarchives/tdr-transfer-frontend#readme",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.598.0",
-    "@aws-sdk/lib-storage": "^3.549.0",
+    "@aws-sdk/lib-storage": "^3.556.0",
     "@aws-sdk/querystring-builder": "^3.374.0",
     "@aws-sdk/protocol-http": "^3.374.0",
     "@nationalarchives/file-information": "^1.0.613",
