@@ -13,7 +13,7 @@ scalaVersion := "2.13.14"
 libraryDependencies += guice
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 
-val playVersion = "3.0.2"
+val playVersion = "3.0.3"
 val playPac4jVersion = "12.0.0-PLAY3.0"
 val pac4jVersion = "6.0.3"
 val sttpVersion = "2.3.0"
@@ -33,7 +33,6 @@ libraryDependencies ++= Seq(
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.25",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.183",
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.173",
-  "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.39.0",
@@ -57,5 +56,8 @@ scalacOptions ++= Seq("-language:implicitConversions")
 
 libraryDependencies += play.sbt.PlayImport.cacheApi
 libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.0.0"
+
+libraryDependencies += "org.dhatim" % "fastexcel" % "0.18.0"
+libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.18.0"
 
 pipelineStages := Seq(digest)
