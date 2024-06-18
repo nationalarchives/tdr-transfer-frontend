@@ -24,6 +24,7 @@ import play.api.test.Helpers._
 import play.api.test.WsTestClient.InternalWSClient
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, TransferMockHelper}
+import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
@@ -136,6 +137,33 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
       status(recordCheckResultsPage) mustBe 303
       redirectLocation(recordCheckResultsPage).get must be("/judgment/0a3f617c-04e8-41c2-9f24-99622a779528/transfer-complete")
+    }
+    "render an error when there is an error from the api for judgment after file checks passed" in {
+      val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration)
+
+      // Export status not set
+      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      // final transfer configuration with errors
+      TransferMockHelper.stubFinalTransferConfirmationResponse(wiremockServer, consignmentId, List(GraphQLClient.Error("Error", Nil, Nil, None)))
+
+      // initiated transfer
+      TransferMockHelper.stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)
+      // start export
+      wiremockExportServer.stubFor(
+        post(urlEqualTo(s"/export/$consignmentId"))
+          .willReturn(ok())
+      )
+
+      val recordCheckResultsPage = fileCheckResultsController
+        .judgmentFileCheckResultsPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks").withCSRFToken)
+
+      val failure: Throwable = recordCheckResultsPage.failed.futureValue
+      failure mustBe an[Exception]
     }
   }
 

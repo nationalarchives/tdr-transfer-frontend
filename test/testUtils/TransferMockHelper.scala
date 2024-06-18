@@ -9,6 +9,7 @@ import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
 import play.api.Application
+import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext
@@ -33,17 +34,25 @@ object TransferMockHelper {
     )
   }
 
-  def stubFinalTransferConfirmationResponse(wiremockServer: WireMockServer, consignmentId: UUID)(implicit app: Application, ec: ExecutionContext): Unit = {
+  def stubFinalTransferConfirmationResponse(wiremockServer: WireMockServer, consignmentId: UUID, errors: List[GraphQLClient.Error] = Nil)(implicit
+      app: Application,
+      ec: ExecutionContext
+  ): Unit = {
 
-    val addFinalTransferConfirmationResponse = Some(
-      new aftc.AddFinalTransferConfirmation(
-        consignmentId,
-        legalCustodyTransferConfirmed = true
-      )
-    )
+    val addFinalTransferConfirmationResponse = errors.size match {
+      case 0 =>
+        Some(
+          new aftc.AddFinalTransferConfirmation(
+            consignmentId,
+            legalCustodyTransferConfirmed = true
+          )
+        )
+      case _ => None
+    }
     val client = new GraphQLConfiguration(app.configuration).getClient[aftc.Data, aftc.Variables]()
 
-    val data: client.GraphqlData = client.GraphqlData(addFinalTransferConfirmationResponse.map(ftc => aftc.Data(ftc)), Nil)
+    val data: client.GraphqlData = client.GraphqlData(addFinalTransferConfirmationResponse.map(ftc => aftc.Data(ftc)), errors)
+
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
     val query =
       s"""{"query":"mutation addFinalTransferConfirmation($$input:AddFinalTransferConfirmationInput!)
