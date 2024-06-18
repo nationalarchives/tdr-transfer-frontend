@@ -1,16 +1,14 @@
 package testUtils
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, okJson, post, urlEqualTo}
 import configuration.GraphQLConfiguration
-import io.circe.Printer
-import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
 import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
-import play.api.Application
+import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
+import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
-import uk.gov.nationalarchives.tdr.GraphQLClient
+import play.api.Application
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext

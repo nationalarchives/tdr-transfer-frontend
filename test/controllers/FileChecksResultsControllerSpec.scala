@@ -1,6 +1,6 @@
 package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, equalToJson, ok, okJson, post, serverError, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{status, _}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
@@ -28,7 +28,7 @@ import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, TransferMockHe
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.collection.immutable.TreeMap
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
@@ -120,16 +120,12 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
 
-      // will add final transfer configuration
+      // final transfer configuration
       TransferMockHelper.stubFinalTransferConfirmationResponse(wiremockServer, consignmentId)
-//      wiremockServer.stubFor(
-//        post(urlEqualTo(s"/graphql"))
-//          .willReturn(serverError())
-//      )
 
-      // will initiate transfer
+      // initiated transfer
       TransferMockHelper.stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)
-      // will start export
+      // start export
       wiremockExportServer.stubFor(
         post(urlEqualTo(s"/export/$consignmentId"))
           .willReturn(ok())
