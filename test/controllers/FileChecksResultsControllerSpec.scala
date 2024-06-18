@@ -1,6 +1,6 @@
 package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{status, _}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, ok, okJson, post, urlEqualTo}
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.Metadata
