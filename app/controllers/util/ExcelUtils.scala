@@ -26,7 +26,7 @@ object ExcelUtils {
       }
     }
 
-    ws.range(0, 0, 0,rows.head.length ).style().bold().set()
+    ws.range(0, 0, 0, rows.head.length).style().bold().set()
 
     for ((dataType, colNo) <- dataTypes.zipWithIndex) {
       dataType match {
