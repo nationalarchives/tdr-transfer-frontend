@@ -1,32 +1,63 @@
 package services
 
+import controllers.routes
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
+import play.api.mvc.Call
+import services.ConsignmentStatusService.statusValue
+
+import java.util.UUID
+
 object Statuses {
+
+  val SEQUENCE: Seq[StatusType] =
+    Seq(SeriesType, TransferAgreementType, UploadType, ClientChecksType, MetadataType, DTAReviewType, ConfirmTransferType)
 
   sealed trait StatusType {
     val id: String
     val nonJudgmentStatus: Boolean
+    lazy val dependencies: Set[StatusType] = SEQUENCE.takeWhile(s => s != this).toSet
   }
 
-  sealed trait StatusValue { val value: String }
+  sealed trait PageCorrelating { val baseRoute: UUID => Call }
 
-  case object SeriesType extends StatusType {
+  sealed trait StatusValue {
+    val value: String
+  }
+
+  object StatusValue {
+    def apply(id: String): StatusValue = id match {
+      case EnteredValue.value             => EnteredValue
+      case NotEnteredValue.value          => NotEnteredValue
+      case IncompleteValue.value          => IncompleteValue
+      case CompletedWithIssuesValue.value => CompletedWithIssuesValue
+      case CompletedValue.value           => CompletedValue
+      case InProgressValue.value          => InProgressValue
+      case FailedValue.value              => FailedValue
+    }
+  }
+
+  case object SeriesType extends StatusType with PageCorrelating {
     val id: String = "Series"
     val nonJudgmentStatus: Boolean = true
+    val baseRoute: UUID => Call = routes.SeriesDetailsController.seriesDetails
   }
 
-  case object UploadType extends StatusType {
+  case object UploadType extends StatusType with PageCorrelating {
     val id: String = "Upload"
     val nonJudgmentStatus: Boolean = false
+    val baseRoute: UUID => Call = routes.UploadController.uploadPage
   }
 
-  case object TransferAgreementType extends StatusType {
+  case object TransferAgreementType extends StatusType with PageCorrelating {
     val id: String = "TransferAgreement"
     val nonJudgmentStatus: Boolean = true
+    val baseRoute: UUID => Call = routes.TransferAgreementPart1Controller.transferAgreement
   }
 
-  case object ClientChecksType extends StatusType {
+  case object ClientChecksType extends StatusType with PageCorrelating {
     val id: String = "ClientChecks"
     val nonJudgmentStatus: Boolean = false
+    val baseRoute: UUID => Call = routes.FileChecksController.fileCheckProgress
   }
 
   case object ServerAntivirusType extends StatusType {
@@ -44,9 +75,10 @@ object Statuses {
     val nonJudgmentStatus: Boolean = false
   }
 
-  case object ConfirmTransferType extends StatusType {
+  case object ConfirmTransferType extends StatusType with PageCorrelating {
     val id: String = "ConfirmTransfer"
     val nonJudgmentStatus: Boolean = true
+    val baseRoute: UUID => Call = routes.ConfirmTransferController.confirmTransfer
   }
 
   case object ExportType extends StatusType {
@@ -72,6 +104,35 @@ object Statuses {
   case object DraftMetadataType extends StatusType {
     val id: String = "DraftMetadata"
     val nonJudgmentStatus: Boolean = true
+    val baseRoute: UUID => Call = routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage
+  }
+
+  case object MetadataType extends StatusType with PageCorrelating {
+    val id: String = "Metadata"
+    val nonJudgmentStatus: Boolean = true
+    val baseRoute: UUID => Call = routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage
+
+    def apply(metadataStatuses: List[ConsignmentStatuses]): StatusValue = {
+      val combine: (StatusValue, StatusValue) => StatusValue = (a, b) => {
+        if (a == CompletedValue && b == CompletedValue) CompletedValue
+        else if (a == InProgressValue || b == InProgressValue) InProgressValue
+        else if (a == CompletedWithIssuesValue || b == CompletedWithIssuesValue) CompletedWithIssuesValue
+        else NotEnteredValue
+      }
+      combine(
+        combine(
+          statusValue(DescriptiveMetadataType)(metadataStatuses),
+          statusValue(ClosureMetadataType)(metadataStatuses)
+        ),
+        statusValue(DraftMetadataType)(metadataStatuses)
+      )
+    }
+  }
+
+  case object DTAReviewType extends StatusType with PageCorrelating {
+    val id: String = "DTAReview"
+    override val nonJudgmentStatus: Boolean = true
+    lazy val baseRoute: UUID => Call = ???
   }
 
   case object EnteredValue extends StatusValue { val value: String = "Entered" }
@@ -101,6 +162,8 @@ object Statuses {
       case SeriesType.id              => SeriesType
       case DescriptiveMetadataType.id => DescriptiveMetadataType
       case ClosureMetadataType.id     => ClosureMetadataType
+      case DraftMetadataType.id       => DraftMetadataType
+      case DTAReviewType.id           => DTAReviewType
       case _                          => UnrecognisedType
     }
   }
