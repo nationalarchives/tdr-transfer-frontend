@@ -24,10 +24,8 @@ trait StatusAware {
     Option.when(!shouldBeAccessible(recordedStatuses))(redirect).flatten
   }
 
-  def shouldBeAccessible(recordedStatuses: Seq[ConsignmentStatuses]): Boolean = {
-    println(s"Dependencies: ${pageStatus.dependencies}")
+  def shouldBeAccessible(recordedStatuses: Seq[ConsignmentStatuses]): Boolean =
     pageStatus.dependencies.forall(dependency => statusValue(dependency)(recordedStatuses) == CompletedValue)
-  }
 
   def shouldBeInteractable(recordedStatuses: Seq[ConsignmentStatuses]): Boolean = !recordedStatuses
     .filter { consignmentStatus => Seq(InProgressValue, CompletedValue).contains(StatusValue(consignmentStatus.value)) }
