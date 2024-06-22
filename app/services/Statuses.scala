@@ -112,7 +112,7 @@ object Statuses {
     val nonJudgmentStatus: Boolean = true
     val baseRoute: UUID => Call = routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage
 
-    def apply(metadataStatuses: List[ConsignmentStatuses]): StatusValue = {
+    def value(metadataStatuses: List[ConsignmentStatuses]): StatusValue = {
       val combine: (StatusValue, StatusValue) => StatusValue = (a, b) => {
         if (a == CompletedValue && b == CompletedValue) CompletedValue
         else if (a == InProgressValue || b == InProgressValue) InProgressValue
