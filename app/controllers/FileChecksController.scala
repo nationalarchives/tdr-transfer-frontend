@@ -14,7 +14,9 @@ import viewsapi.Caching.preventCaching
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.control.Breaks.{break, breakable}
 
 @Singleton
 class FileChecksController @Inject() (
@@ -119,15 +121,44 @@ class FileChecksController @Inject() (
         ).uncache()
       } else {
         if (isJudgmentUser) {
-          Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference, applicationConfig.frontEndInfo, request.token.name)).uncache()
+          if (applicationConfig.blockAutomateJudgmentTransfers) {
+            Ok(views.html.judgment.judgmentFileChecksProgress(consignmentId, reference, applicationConfig.frontEndInfo, request.token.name)).uncache()
+          } else {
+            val totalSleepTime = 3 * 60 * 1000 // Total sleep time in milliseconds (5 minutes)
+            Await.result(waitForFileChecksToBeCompleted(consignmentId, totalSleepTime), totalSleepTime.millis + 1.minute) // Adding a little buffer time
+            Redirect(routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId)).uncache()
+          }
         } else {
           Ok(views.html.standard.fileChecksProgress(consignmentId, reference, applicationConfig.frontEndInfo, request.token.name))
             .uncache()
         }
       }
-    }).recover { case exception: Exception =>
+    }).recover { case _: Exception =>
       Ok(views.html.uploadInProgress(consignmentId, reference, "Uploading your records", request.token.name, isJudgmentUser)).uncache()
     }
+  }
+
+  private def waitForFileChecksToBeCompleted(consignmentId: UUID, totalSleepTime: Int)(implicit request: Request[AnyContent]): Future[Unit] = {
+    val interval = 5 * 1000 // Interval time in milliseconds (5 seconds)
+    val intervals = totalSleepTime / interval
+
+    def fileCheckProgress: Future[Boolean] = consignmentService
+      .fileCheckProgress(consignmentId, request.token.bearerAccessToken)
+      .map(consignment =>
+        consignment.fileChecks.checksumProgress.filesProcessed == consignment.totalFiles &&
+          consignment.fileChecks.ffidProgress.filesProcessed == consignment.totalFiles &&
+          consignment.fileChecks.antivirusProgress.filesProcessed == consignment.totalFiles
+      )
+    breakable {
+      for (_ <- 1 to intervals) {
+        if (Await.result(fileCheckProgress, 10.seconds)) {
+          break()
+        } else {
+          Thread.sleep(interval)
+        }
+      }
+    }
+    Future.unit
   }
 }
 
