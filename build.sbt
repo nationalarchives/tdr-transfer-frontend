@@ -15,7 +15,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0
 
 val playVersion = "3.0.2"
 val playPac4jVersion = "12.0.0-PLAY3.0"
-val pac4jVersion = "6.0.3"
+val pac4jVersion = "6.0.4"
 val sttpVersion = "2.3.0"
 
 libraryDependencies ++= Seq(
