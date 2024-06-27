@@ -41,4 +41,7 @@ object MetadataProperty {
   val descriptiveType: StaticMetadata = StaticMetadata("DescriptiveType", "")
   val clientSideFileLastModifiedDate = "ClientSideFileLastModifiedDate"
   val end_date = "end_date"
+  val former_reference = "former_reference_department"
+  val language = "Language"
+  val filenameTranslated = "file_name_translation"
 }

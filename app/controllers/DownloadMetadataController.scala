@@ -2,8 +2,9 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import controllers.util.CsvUtils
-import controllers.util.MetadataProperty.{clientSideFileLastModifiedDate, clientSideOriginalFilepath, fileName, fileUUID}
+import controllers.util.ExcelUtils
+
+import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType
@@ -38,39 +39,64 @@ class DownloadMetadataController @Inject() (
     }
   }
 
-  def downloadMetadataCsv(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def downloadMetadataFile(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)
       customMetadata <- customMetadataService.getCustomMetadata(consignmentId, request.token.bearerAccessToken)
       displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, None, showInactive = true)
     } yield {
       val parseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
-      val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-      val systemValues = List(fileUUID, fileName, clientSideOriginalFilepath, clientSideFileLastModifiedDate)
-      val nameMap = displayProperties.filter(dp => dp.active || systemValues.contains(dp.propertyName)).map(dp => (dp.propertyName, dp.displayName)).toMap
-      val filteredMetadata: List[CustomMetadata] = customMetadata.filter(cm => nameMap.keySet.contains(cm.name) && cm.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
+
+      val columnOrder = Seq(
+        fileUUID,
+        clientSideOriginalFilepath,
+        fileName,
+        clientSideFileLastModifiedDate,
+        end_date,
+        description,
+        former_reference,
+        closureType.name,
+        closureStartDate,
+        closurePeriod,
+        foiExemptionCode,
+        foiExemptionAsserted,
+        titleClosed,
+        titleAlternate,
+        descriptionClosed,
+        descriptionAlternate,
+        language,
+        filenameTranslated
+      )
+
+      val nameMap = displayProperties.filter(dp => columnOrder.contains(dp.propertyName)).map(dp => (dp.propertyName, dp.displayName)).toMap
+      val filteredMetadata: List[CustomMetadata] = columnOrder.collect(customMetadata.map(cm => cm.name -> cm).toMap).toList
       val header: List[String] = filteredMetadata.map(f => nameMap.getOrElse(f.name, f.name))
-      val fileMetadataRows: List[List[String]] = metadata.files.map { file =>
+      val dataTypes: List[DataType] = filteredMetadata.map(f => f.dataType)
+
+      val fileMetadataRows: List[List[Any]] = metadata.files.sortBy(f => f.fileMetadata.find(_.name == clientSideOriginalFilepath).map(_.value.toUpperCase)).map { file =>
         val groupedMetadata: Map[String, String] = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
         filteredMetadata.map { customMetadata =>
           groupedMetadata
             .get(customMetadata.name)
             .map { fileMetadataValue =>
               customMetadata.dataType match {
-                case DataType.DateTime => LocalDateTime.parse(fileMetadataValue, parseFormatter).format(formatter)
+                case DataType.DateTime => LocalDateTime.parse(fileMetadataValue, parseFormatter).toLocalDate
                 case DataType.Boolean  => if (fileMetadataValue == "true") "Yes" else "No"
+                case DataType.Integer  => Integer.valueOf(fileMetadataValue)
                 case _                 => fileMetadataValue
               }
             }
             .getOrElse("")
         }
       }
-      val csvString = CsvUtils.writeCsv(header :: fileMetadataRows)
+
+      val excelFile = ExcelUtils.writeExcel(metadata.consignmentReference, header :: fileMetadataRows, dataTypes)
       val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")
       val currentDateTime = dateTimeFormatter.format(LocalDateTime.now())
-      Ok(csvString)
-        .as("text/csv")
-        .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-$currentDateTime.csv")
+      val excelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      Ok(excelFile)
+        .as(excelContentType)
+        .withHeaders("Content-Disposition" -> s"attachment; filename=${metadata.consignmentReference}-$currentDateTime.xlsx")
     }
   }
 }
