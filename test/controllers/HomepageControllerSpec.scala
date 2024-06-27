@@ -43,6 +43,9 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       |    View transfers
       |</a>""".stripMargin
 
+  val transfersForReviewButton: String =
+    """<a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>"""
+
   "HomepageController GET" should {
 
     "render the registration complete page with an authenticated user with no user type" in {
@@ -74,6 +77,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must include(viewTransferButton)
+      homepagePageAsString must not include (transfersForReviewButton)
     }
 
     "render the judgment homepage page with an authenticated judgment user" in {
@@ -90,6 +94,20 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must not include viewTransferButton
+      homepagePageAsString must not include (transfersForReviewButton)
+    }
+
+    "render the DTA review homepage page with an authenticated tna user" in {
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration, consignmentService)
+      val userType = "tna"
+      val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
+      val homepagePageAsString = contentAsString(homepagePage)
+
+      status(homepagePage) mustBe OK
+      contentType(homepagePage) mustBe Some("text/html")
+
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
+      homepagePageAsString must include(transfersForReviewButton)
     }
 
     "return a redirect to the judgment homepage page with an authenticated judgment user" in {
@@ -199,6 +217,5 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     } else {
       pageAsString must include("""<form action="/homepage" method="POST" novalidate="">""")
     }
-
   }
 }
