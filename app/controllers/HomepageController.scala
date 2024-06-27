@@ -34,6 +34,8 @@ class HomepageController @Inject() (
         Redirect(routes.HomepageController.judgmentHomepage())
       } else if (request.token.isStandardUser) {
         Ok(views.html.standard.homepage(request.token.name))
+      } else if (request.token.isTNAUser) {
+        Ok(views.html.tna.homepage(request.token.name))
       } else {
         Ok(views.html.registrationComplete(request.token.name))
       }
