@@ -354,30 +354,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(finalTransferConfirmationSubmitResult) must be(Some(s"/consignment/$consignmentId/transfer-complete"))
     }
 
-    "add a final judgment transfer confirmation when the api response is successful" in {
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      val addFinalJudgmentTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
-      stubFinalTransferConfirmationResponse(Some(addFinalJudgmentTransferConfirmationResponse))
-      mockUpdateTransferInitiatedResponse
-      mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
-      wiremockExportServer.stubFor(
-        post(urlEqualTo(s"/export/$consignmentId"))
-          .willReturn(okJson("{}"))
-      )
-
-      val finalTransferConfirmationSubmitResult = controller
-        .finalJudgmentTransferConfirmationSubmit(consignmentId)
-        .apply(
-          FakeRequest()
-            .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
-            .withCSRFToken
-        )
-
-      playStatus(finalTransferConfirmationSubmitResult) mustBe SEE_OTHER
-      redirectLocation(finalTransferConfirmationSubmitResult) must be(Some(s"/judgment/$consignmentId/transfer-complete"))
-    }
-
     "render an error when a valid form is submitted but there is an error from the api" in {
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       stubFinalTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
@@ -387,23 +363,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         .finalTransferConfirmationSubmit(consignmentId)
         .apply(
           FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-            .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
-            .withCSRFToken
-        )
-
-      val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
-      failure mustBe an[Exception]
-    }
-
-    "render an error when there is an error from the api for judgment" in {
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      stubFinalTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, None)))
-
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-      val finalTransferConfirmationSubmitResult = controller
-        .finalJudgmentTransferConfirmationSubmit(consignmentId)
-        .apply(
-          FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
             .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
             .withCSRFToken
         )
@@ -432,24 +391,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
             .withCSRFToken
         )
       mockGraphqlConsignmentSummaryResponse()
-
-      val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
-
-      failure mustBe an[AuthorisationException]
-    }
-
-    "throw an authorisation exception when the user does not have permission to save the transfer confirmation for judgment" in {
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      stubFinalTransferConfirmationResponse(errors = List(GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))))
-      mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-      val finalTransferConfirmationSubmitResult = controller
-        .finalJudgmentTransferConfirmationSubmit(consignmentId)
-        .apply(
-          FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-            .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
-            .withCSRFToken
-        )
 
       val failure: Throwable = finalTransferConfirmationSubmitResult.failed.futureValue
 
@@ -505,32 +446,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       finalTransferConfirmationSubmitError mustBe an[Exception]
     }
 
-    "return an error when the call to the export api fails for judgment" in {
-      val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
-      stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      mockUpdateTransferInitiatedResponse
-      mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      wiremockExportServer.stubFor(
-        post(urlEqualTo(s"/export/$consignmentId"))
-          .willReturn(serverError())
-      )
-
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-      val finalTransferConfirmationSubmitError: Throwable = controller
-        .finalJudgmentTransferConfirmationSubmit(consignmentId)
-        .apply(
-          FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-            .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
-            .withCSRFToken
-        )
-        .failed
-        .futureValue
-
-      finalTransferConfirmationSubmitError.getMessage should equal(s"Call to export API has returned a non 200 response for consignment $consignmentId")
-    }
-
     "calls the export api when a valid form is submitted" in {
       val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
       stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
@@ -555,30 +470,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       wiremockExportServer.getAllServeEvents.size() should equal(1)
     }
 
-    "calls the export api when a valid form is submitted for judgment" in {
-      val addFinalTransferConfirmationResponse: aftc.AddFinalTransferConfirmation = createFinalTransferConfirmationResponse
-      stubFinalTransferConfirmationResponse(Some(addFinalTransferConfirmationResponse))
-      mockUpdateTransferInitiatedResponse
-      mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      wiremockExportServer.stubFor(
-        post(urlEqualTo(s"/export/$consignmentId"))
-          .willReturn(okJson("{}"))
-      )
-
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-      controller
-        .finalJudgmentTransferConfirmationSubmit(consignmentId)
-        .apply(
-          FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
-            .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
-            .withCSRFToken
-        )
-        .futureValue
-
-      wiremockExportServer.getAllServeEvents.size() should equal(1)
-    }
-
     "return an error when the call to the graphql api fails" in {
       mockGraphqlConsignmentSummaryResponse()
       setConsignmentStatusResponse(app.configuration, wiremockServer)
@@ -593,29 +484,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
         .finalTransferConfirmationSubmit(consignmentId)
         .apply(
           FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer")
-            .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
-            .withCSRFToken
-        )
-        .failed
-        .futureValue
-
-      finalTransferConfirmationSubmitError.getMessage should startWith("Unexpected response from GraphQL API")
-    }
-
-    "return an error when the call to the graphql api fails for judgment" in {
-      mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      wiremockServer.stubFor(
-        post(urlEqualTo("/graphql"))
-          .withRequestBody(containing("getConsignmentSummary"))
-          .willReturn(serverError())
-      )
-
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, getValidJudgmentUserKeycloakConfiguration)
-      val finalTransferConfirmationSubmitError: Throwable = controller
-        .finalJudgmentTransferConfirmationSubmit(consignmentId)
-        .apply(
-          FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer")
             .withFormUrlEncodedBody(completedConfirmTransferForm: _*)
             .withCSRFToken
         )
@@ -722,19 +590,10 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     s"The $url upload page" should {
       s"return 403 if the url doesn't match the consignment type" in {
         val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, user)
-
-        val fileChecksPage = url match {
-          case "judgment" =>
-            mockGraphqlConsignmentSummaryResponse()
-            controller
-              .finalJudgmentTransferConfirmationSubmit(consignmentId)
-              .apply(FakeRequest(POST, s"/judgment/$consignmentId/confirm-transfer").withCSRFToken)
-          case "consignment" =>
-            mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
-            controller
-              .finalTransferConfirmationSubmit(consignmentId)
-              .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
-        }
+        mockGraphqlConsignmentSummaryResponse(consignmentType = "judgment")
+        val fileChecksPage = controller
+          .finalTransferConfirmationSubmit(consignmentId)
+          .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
         playStatus(fileChecksPage) mustBe FORBIDDEN
       }
     }
