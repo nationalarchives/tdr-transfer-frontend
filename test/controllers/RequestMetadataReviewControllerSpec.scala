@@ -67,7 +67,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
     }
 
-    "return forbidden if the pages are accessed by a judgment user" in {
+    "return forbidden if the page is accessed by a judgment user" in {
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
@@ -101,7 +101,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
       requestMetadataReviewPageAsString must include("<title>Metadata review - Transfer Digital Records - GOV.UK</title>")
     }
 
-    "return forbidden if the pages are accessed by a judgment user" in {
+    "return forbidden if the page is accessed by a judgment user" in {
       setConsignmentTypeResponse(wiremockServer, "judgment")
 
       val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
