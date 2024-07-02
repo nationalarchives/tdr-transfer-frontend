@@ -39,7 +39,7 @@ class RequestMetadataReviewController @Inject() (
           consignmentReference = summary.consignmentReference,
           consignmentId = consignmentId.toString,
           userId = request.token.userId.toString,
-          userEmail = request.token.email,
+          userEmail = request.token.email
         )
       )
       Ok(views.html.standard.metadataReviewStatus(consignmentId, summary.consignmentReference, request.token.name))
