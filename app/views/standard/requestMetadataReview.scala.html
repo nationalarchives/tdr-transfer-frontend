@@ -1,6 +1,6 @@
 @import java.util.UUID
 @import views.html.partials.transferReference
-@(consignmentId: UUID, consignmentRef: String, name: String, blockDraftMetadataUpload: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentRef: String, name: String, email: String, blockDraftMetadataUpload: Boolean)(implicit messages: Messages, request: RequestHeader)
 
 @defining("Request a metadata review") { title =>
   @main(title, name = name) {
@@ -12,7 +12,7 @@
 
           <p class="govuk-body">Before you complete your transfer your metadata needs to be reviewed by a Digital Transfer Advisor. This helps us to ensure we preserve your records accurately.</p>
           <div class="govuk-inset-text">
-            If we find any issues with your metadata we will send guidance to <strong>jesse@@ons.gov.uk</strong>.
+            If we find any issues with your metadata we will send guidance to <strong>@email</strong>.
           </div>
 
           <p class="govuk-body">Once you have submitted your metadata for review we recommend you don't make further changes to your metadata CSV.  If you need to make any changes before requesting a review <a href="@routes.AdditionalMetadataController.start(consignmentId)" class="govuk-link">return to Record metadata</a> to edit the metadata.</p>

@@ -4,7 +4,7 @@ import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
-import services.MessagingService.{MetadataReviewRequestEvent, TransferCompleteEvent}
+import services.MessagingService.MetadataReviewRequestEvent
 import services.Statuses.{InProgressValue, MetadataReviewType}
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
@@ -24,7 +24,7 @@ class RequestMetadataReviewController @Inject() (
     consignmentService
       .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { ref =>
-        Ok(views.html.standard.requestMetadataReview(consignmentId, ref, request.token.name, applicationConfig.blockDraftMetadataUpload))
+        Ok(views.html.standard.requestMetadataReview(consignmentId, ref, request.token.name, request.token.email, applicationConfig.blockDraftMetadataUpload))
       }
   }
 
