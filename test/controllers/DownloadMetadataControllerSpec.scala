@@ -3,8 +3,9 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
 import org.dhatim.fastexcel.reader._
+
 import scala.jdk.CollectionConverters._
-import configuration.GraphQLConfiguration
+import configuration.{ApplicationConfig, GraphQLConfiguration}
 import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
@@ -144,9 +145,17 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val applicationConfig: ApplicationConfig = new ApplicationConfig(app.configuration)
 
       val controller =
-        new DownloadMetadataController(getUnauthorisedSecurityComponents, consignmentService, customMetadataService, displayPropertiesService, getInvalidKeycloakConfiguration)
+        new DownloadMetadataController(
+          getUnauthorisedSecurityComponents,
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getInvalidKeycloakConfiguration,
+          applicationConfig
+        )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
       status(response) must be(FOUND)
@@ -183,9 +192,17 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val applicationConfig: ApplicationConfig = new ApplicationConfig(app.configuration)
 
       val controller =
-        new DownloadMetadataController(getUnauthorisedSecurityComponents, consignmentService, customMetadataService, displayPropertiesService, getInvalidKeycloakConfiguration)
+        new DownloadMetadataController(
+          getUnauthorisedSecurityComponents,
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getInvalidKeycloakConfiguration,
+          applicationConfig
+        )
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
       status(response) must be(FOUND)
@@ -211,11 +228,12 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
     val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+    val applicationConfig: ApplicationConfig = new ApplicationConfig(app.configuration)
     val keycloakConfiguration = consignmentType match {
       case "standard" => getValidStandardUserKeycloakConfiguration
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
     }
-    new DownloadMetadataController(getAuthorisedSecurityComponents, consignmentService, customMetadataService, displayPropertiesService, keycloakConfiguration)
+    new DownloadMetadataController(getAuthorisedSecurityComponents, consignmentService, customMetadataService, displayPropertiesService, keycloakConfiguration, applicationConfig)
   }
 
   private def mockDisplayPropertiesResponse(displayProperties: List[dp.DisplayProperties]) = {
