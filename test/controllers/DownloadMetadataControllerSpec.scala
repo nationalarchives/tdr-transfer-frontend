@@ -263,7 +263,14 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
     }
 
-    new DownloadMetadataController(getAuthorisedSecurityComponents, consignmentService, customMetadataService, displayPropertiesService, keycloakConfiguration, getApplicationConfig(blockDraftMetadataUpload))
+    new DownloadMetadataController(
+      getAuthorisedSecurityComponents,
+      consignmentService,
+      customMetadataService,
+      displayPropertiesService,
+      keycloakConfiguration,
+      getApplicationConfig(blockDraftMetadataUpload)
+    )
   }
 
   private def mockDisplayPropertiesResponse(displayProperties: List[dp.DisplayProperties]) = {
