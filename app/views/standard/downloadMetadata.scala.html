@@ -1,7 +1,7 @@
 @import java.util.UUID
 @import views.html.partials.{progressIndicator, transferReference}
 @import views.html.partials.notificationBanner
-@(consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentRef: String, name: String, blockDraftMetadataUpload: Boolean)(implicit messages: Messages, request: RequestHeader)
 
 @main("Download and review metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
@@ -30,12 +30,18 @@
 
       </div>
       <div class="govuk-button-group">
-        <a href="@routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-          Back
-        </a>
-        <a class="govuk-button" href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" data-module="govuk-button">
-          Next
-        </a>
+        @if(blockDraftMetadataUpload) {
+          <a href="@routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
+            Back
+          </a>
+          <a class="govuk-button" href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" data-module="govuk-button">
+            Next
+          </a>
+        } else {
+          <a href="@routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+            Continue
+          </a>
+        }
       </div>
 
     </div>

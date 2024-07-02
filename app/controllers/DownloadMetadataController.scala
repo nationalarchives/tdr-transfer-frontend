@@ -1,9 +1,8 @@
 package controllers
 
 import auth.TokenSecurity
-import configuration.KeycloakConfiguration
+import configuration.{ApplicationConfig, KeycloakConfiguration}
 import controllers.util.ExcelUtils
-
 import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
@@ -22,14 +21,15 @@ class DownloadMetadataController @Inject() (
     val consignmentService: ConsignmentService,
     val customMetadataService: CustomMetadataService,
     val displayPropertiesService: DisplayPropertiesService,
-    val keycloakConfiguration: KeycloakConfiguration
+    val keycloakConfiguration: KeycloakConfiguration,
+    val applicationConfig: ApplicationConfig
 ) extends TokenSecurity {
 
   def downloadMetadataPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService
       .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { ref =>
-        Ok(views.html.standard.downloadMetadata(consignmentId, ref, request.token.name))
+        Ok(views.html.standard.downloadMetadata(consignmentId, ref, request.token.name, applicationConfig.blockDraftMetadataUpload))
       }
   }
 
