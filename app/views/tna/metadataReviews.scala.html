@@ -1,0 +1,43 @@
+@import graphql.codegen.GetConsignmentsForReview.{getConsignmentForReview => gcfr}
+@(consignments: List[gcfr.GetConsignmentsForReview])(implicit messages: Messages, request: RequestHeader)
+
+@main("Metadata Reviews") {
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+
+      <span class="govuk-caption-l">Transfer Digital records</span>
+      <h1 class="govuk-heading-l">Metadata Reviews</h1>
+      <p class="govuk-body">These are requested reviews that have not been responded to.</p>
+
+      <table data-module="table-row-expander" class="govuk-table govuk-table--tdr-transfers govuk-!-margin-bottom-2">
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">Consignment</th>
+            <th scope="col" class="govuk-table__header">Status</th>
+            <th scope="col" class="govuk-table__header">Department</th>
+            <th scope="col" class="govuk-table__header">Series</th>
+            <th scope="col" class="govuk-table__header"></th>
+@*            <th scope="col" class="govuk-table__header">Date submitted</th>*@
+          </tr>
+        </thead>
+        <tbody>
+        @for((consignment, index) <- consignments.zipWithIndex) {
+          <tr class="govuk-table__row">
+            <th scope="row" class="govuk-table__header">@consignment.consignmentReference</th>
+            <td class="govuk-table__cell">
+              <strong class="tdr-tag tdr-tag--green">Requested</strong>
+            </td>
+            <td class="govuk-table__cell">@consignment.transferringBodyName</td>
+            <td class="govuk-table__cell">@consignment.seriesName</td>
+            <td class="govuk-table__cell">
+              <div class="tdr-link-group">
+                <a href="/consignment/6af3a0e1-3c56-4ca0-ae35-ff408dacf4ec/file-checks-results" class="govuk-link govuk-link--no-visited-state">View request</a>
+              </div>
+            </td>
+          </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

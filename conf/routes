@@ -76,3 +76,7 @@ GET         /judgment/:consignmentId/file-checks-results                        
 POST        /judgment/:consignmentId/file-checks-results                                    controllers.ConfirmTransferController.finalJudgmentTransferConfirmationSubmit(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/checks-passed                                          controllers.ConfirmTransferController.judgmentChecksPassedSubmit(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/transfer-complete                                      controllers.TransferCompleteController.judgmentTransferComplete(consignmentId: java.util.UUID)
+
+
+# Routes for TNA-User
+GET         /admin/metadata-review                                                          controllers.MetadataReviewController.metadataReviews
