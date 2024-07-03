@@ -1,7 +1,7 @@
 @import java.util.UUID
 @import views.html.partials.{progressIndicator, transferReference}
 @import views.html.partials.notificationBanner
-@(consignmentId: UUID, consignmentRef: String, name: String, blockDraftMetadataUpload: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentRef: String, name: String, blockMetadataReview: Boolean)(implicit messages: Messages, request: RequestHeader)
 
 @main("Download and review metadata", name = name) {
   @defining(play.core.PlayVersion.current) { version =>
@@ -30,7 +30,7 @@
 
       </div>
       <div class="govuk-button-group">
-        @if(blockDraftMetadataUpload) {
+      @if(blockMetadataReview) {
           <a href="@routes.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId)" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
             Back
           </a>

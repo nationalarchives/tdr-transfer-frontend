@@ -29,7 +29,7 @@ class DownloadMetadataController @Inject() (
     consignmentService
       .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { ref =>
-        Ok(views.html.standard.downloadMetadata(consignmentId, ref, request.token.name, applicationConfig.blockDraftMetadataUpload))
+        Ok(views.html.standard.downloadMetadata(consignmentId, ref, request.token.name, applicationConfig.blockMetadataReview))
       }
   }
 

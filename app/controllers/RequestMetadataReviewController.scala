@@ -10,6 +10,7 @@ import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
 import java.util.UUID
 import javax.inject.Inject
+import scala.concurrent.Future
 
 class RequestMetadataReviewController @Inject() (
     val controllerComponents: SecurityComponents,
@@ -21,11 +22,15 @@ class RequestMetadataReviewController @Inject() (
 ) extends TokenSecurity {
 
   def requestMetadataReviewPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    consignmentService
-      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      .map { ref =>
-        Ok(views.html.standard.requestMetadataReview(consignmentId, ref, request.token.name, request.token.email, applicationConfig.blockDraftMetadataUpload))
-      }
+    if (applicationConfig.blockMetadataReview) {
+      Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
+    } else {
+      consignmentService
+        .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+        .map { ref =>
+          Ok(views.html.standard.requestMetadataReview(consignmentId, ref, request.token.name, request.token.email))
+        }
+    }
   }
 
   def submitMetadataForReview(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
