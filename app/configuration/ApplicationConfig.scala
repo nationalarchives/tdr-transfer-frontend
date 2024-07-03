@@ -19,6 +19,8 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val blockDraftMetadataUpload: Boolean = configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")
 
+  val blockMetadataReview: Boolean = configuration.get[Boolean]("featureAccessBlock.blockMetadataReview")
+
   val metadataValidationBaseUrl: String = configuration.get[String]("metadatavalidation.baseUrl")
 
   val s3Endpoint: String = configuration.get[String]("s3.endpoint")
