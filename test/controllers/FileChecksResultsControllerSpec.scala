@@ -23,7 +23,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.test.WsTestClient.InternalWSClient
 import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
-import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, TransferMockHelper}
+import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
@@ -122,10 +122,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
 
       // final transfer configuration
-      TransferMockHelper.stubFinalTransferConfirmationResponse(wiremockServer, consignmentId)
+      stubFinalTransferConfirmationResponseWithServer(wiremockServer, consignmentId)
 
       // initiated transfer
-      TransferMockHelper.stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)
+      stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)
       // start export
       wiremockExportServer.stubFor(
         post(urlEqualTo(s"/export/$consignmentId"))
@@ -148,10 +148,10 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
 
       // final transfer configuration with errors
-      TransferMockHelper.stubFinalTransferConfirmationResponse(wiremockServer, consignmentId, List(GraphQLClient.Error("Error", Nil, Nil, None)))
+      stubFinalTransferConfirmationResponseWithServer(wiremockServer, consignmentId, List(GraphQLClient.Error("Error", Nil, Nil, None)))
 
       // initiated transfer
-      TransferMockHelper.stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)
+      stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)
       // start export
       wiremockExportServer.stubFor(
         post(urlEqualTo(s"/export/$consignmentId"))
