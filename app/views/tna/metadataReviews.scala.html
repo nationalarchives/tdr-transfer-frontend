@@ -1,7 +1,7 @@
-@import graphql.codegen.GetConsignmentsForReview.{getConsignmentForReview => gcfr}
-@(consignments: List[gcfr.GetConsignmentsForReview])(implicit messages: Messages, request: RequestHeader)
+@import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfr}
+@(consignments: List[gcfr.GetConsignmentsForMetadataReview])(implicit messages: Messages, request: RequestHeader)
 
-@main("Metadata Reviews") {
+@main("Metadata Reviews", isTnaUser= true) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
 
@@ -17,7 +17,6 @@
             <th scope="col" class="govuk-table__header">Department</th>
             <th scope="col" class="govuk-table__header">Series</th>
             <th scope="col" class="govuk-table__header"></th>
-@*            <th scope="col" class="govuk-table__header">Date submitted</th>*@
           </tr>
         </thead>
         <tbody>

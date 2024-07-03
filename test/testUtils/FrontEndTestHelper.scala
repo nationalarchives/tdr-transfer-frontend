@@ -28,6 +28,7 @@ import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node
 import graphql.codegen.GetConsignments.getConsignments.Consignments.Edges.Node.{ConsignmentStatuses => ecs}
 import graphql.codegen.GetConsignments.{getConsignments => gc}
+import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview, getConsignmentsForMetadataReview => gcfr}
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata.Values.Dependencies
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
@@ -44,11 +45,13 @@ import org.mockito.Mockito._
 import org.pac4j.core.client.Clients
 import org.pac4j.core.config.Config
 import org.pac4j.core.context.session.{SessionStore, SessionStoreFactory}
+import org.pac4j.core.context.{CallContext, FrameworkParameters}
 import org.pac4j.core.engine.DefaultSecurityLogic
 import org.pac4j.core.http.ajax.AjaxRequestResolver
 import org.pac4j.core.util.Pac4jConstants
 import org.pac4j.oidc.client.OidcClient
 import org.pac4j.oidc.config.OidcConfiguration
+import org.pac4j.oidc.metadata.OidcOpMetadataResolver
 import org.pac4j.oidc.profile.{OidcProfile, OidcProfileDefinition}
 import org.pac4j.oidc.redirect.OidcRedirectionActionBuilder
 import org.pac4j.play.PlayWebContext
@@ -71,9 +74,6 @@ import play.api.{Application, Configuration}
 import services.Statuses.{InProgressValue, SeriesType}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
-import org.pac4j.core.context.{CallContext, FrameworkParameters}
-import org.pac4j.oidc.metadata.OidcOpMetadataResolver
-import services.Statuses.{InProgressValue, SeriesType}
 import viewsapi.FrontEndInfo
 
 import java.io.File
@@ -357,6 +357,20 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
         .withRequestBody(containing("getAllDescendantIds"))
         .willReturn(okJson(folderDataString))
         .willSetStateTo("folderDescendants")
+    )
+  }
+
+  def setGetConsignmentsForMetadataReviewResponse(wiremockServer: WireMockServer): StubMapping = {
+    val client = new GraphQLConfiguration(app.configuration).getClient[gcfr.Data, gcfr.Variables]()
+    val consignment = gcfr.GetConsignmentsForMetadataReview("ConsignmentReference", Some("SeriesName"), Some("TransferringBody"))
+    val getConsignmentsForReviewResponse: getConsignmentsForMetadataReview.Data = gcfr.Data(List(consignment))
+    val data = client.GraphqlData(Some(getConsignmentsForReviewResponse))
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(containing("getConsignmentsForMetadataReview"))
+        .willReturn(okJson(dataString))
     )
   }
 

@@ -17,8 +17,8 @@ import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
+import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfr}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
-import graphql.codegen.GetConsignmentsForReview.{getConsignmentForReview => gcfr}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types._
 import graphql.codegen.{AddConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
@@ -197,9 +197,9 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
       .map(data => data.consignments)
   }
 
-  def getConsignmentsForReview(token: BearerAccessToken): Future[List[gcfr.GetConsignmentsForReview]] = {
+  def getConsignmentsForReview(token: BearerAccessToken): Future[List[gcfr.GetConsignmentsForMetadataReview]] = {
     sendApiRequest(getConsignmentsForReviewClient, gcfr.document, token, gcfr.Variables())
-      .map(data => data.getConsignmentsForReview)
+      .map(data => data.getConsignmentsForMetadataReview)
   }
 
   private def getFileFilters(metadataType: Option[String], fileIds: Option[List[UUID]], additionalProperties: Option[List[String]]): Option[FileFilters] = {
