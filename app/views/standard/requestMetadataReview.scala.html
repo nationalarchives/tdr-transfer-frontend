@@ -1,6 +1,6 @@
 @import java.util.UUID
 @import views.html.partials.transferReference
-@(consignmentId: UUID, consignmentRef: String, name: String, email: String, blockDraftMetadataUpload: Boolean)(implicit messages: Messages, request: RequestHeader)
+@(consignmentId: UUID, consignmentRef: String, name: String, email: String)(implicit messages: Messages, request: RequestHeader)
 
 @defining("Request a metadata review") { title =>
   @main(title, name = name) {

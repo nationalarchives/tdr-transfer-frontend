@@ -21,6 +21,8 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val blockAutomateJudgmentTransfers: Boolean = configuration.get[Boolean]("featureAccessBlock.blockAutomateJudgmentTransfers")
 
+  val blockMetadataReview: Boolean = configuration.get[Boolean]("featureAccessBlock.blockMetadataReview")
+
   val metadataValidationBaseUrl: String = configuration.get[String]("metadatavalidation.baseUrl")
 
   val s3Endpoint: String = configuration.get[String]("s3.endpoint")

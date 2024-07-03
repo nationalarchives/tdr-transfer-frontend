@@ -41,10 +41,10 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   val wiremockServer = new WireMockServer(9006)
   val checkPageForStaticElements = new CheckPageForStaticElements()
 
-  def getApplicationConfig(blockDraftMetadataUpload: Boolean): ApplicationConfig = {
+  def getApplicationConfig(blockMetadataReview: Boolean): ApplicationConfig = {
     val config: Map[String, ConfigValue] = ConfigFactory
       .load()
-      .withValue("featureAccessBlock.blockDraftMetadataUpload", ConfigValueFactory.fromAnyRef(blockDraftMetadataUpload))
+      .withValue("featureAccessBlock.blockMetadataReview", ConfigValueFactory.fromAnyRef(blockMetadataReview))
       .entrySet()
       .asScala
       .map(e => e.getKey -> e.getValue)
@@ -177,7 +177,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   "DownloadMetadataController downloadMetadataPage GET" should {
-    "load the download metadata page with the image, download link, next button and back button when 'blockDraftMetadataUpload' is true" in {
+    "load the download metadata page with the image, download link, next button and back button when 'blockMetadataReview' set to true" in {
       setConsignmentReferenceResponse(wiremockServer)
 
       val controller = createController("standard")
@@ -194,10 +194,10 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       responseAsString must include(s"""<a href="/consignment/$consignmentId/additional-metadata/entry-method"""")
     }
 
-    "load the download metadata page with the image, download link, next button and back button when 'blockDraftMetadataUpload' is false" in {
+    "load the download metadata page with the image, download link, next button and back button when 'blockMetadataReview' set to false" in {
       setConsignmentReferenceResponse(wiremockServer)
 
-      val controller = createController("standard", blockDraftMetadataUpload = false)
+      val controller = createController("standard", blockMetadataReview = false)
       val consignmentId = UUID.randomUUID()
       val response = controller.downloadMetadataPage(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/"))
       val responseAsString = contentAsString(response)
@@ -252,7 +252,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     new ReadableWorkbook(bufferedSource)
   }
 
-  private def createController(consignmentType: String, blockDraftMetadataUpload: Boolean = true) = {
+  private def createController(consignmentType: String, blockMetadataReview: Boolean = true) = {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -269,7 +269,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       customMetadataService,
       displayPropertiesService,
       keycloakConfiguration,
-      getApplicationConfig(blockDraftMetadataUpload)
+      getApplicationConfig(blockMetadataReview)
     )
   }
 

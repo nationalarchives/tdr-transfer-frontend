@@ -3,9 +3,10 @@ package controllers
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import org.mockito.Mockito.{times, verify}
+import org.mockito.Mockito.{times, verify, when}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
+import play.api.Configuration
 import play.api.http.Status.OK
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
@@ -23,6 +24,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
   val consignmentId: UUID = UUID.randomUUID()
   val wiremockServer = new WireMockServer(9006)
   val messagingService: MessagingService = mock[MessagingService]
+  val configuration: Configuration = mock[Configuration]
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -39,7 +41,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
   "requestMetadataReviewPage" should {
 
-    "render the request metadata review page with an authenticated user" in {
+    "render the request metadata review page with an authenticated user when 'blockMetadataReview' set to 'false'" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
 
@@ -65,6 +67,20 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(requestMetadataReviewPageAsString, userType = "standard")
 
+    }
+
+    "render page not found error when 'blockMetadataReview' set to 'true'" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration, blockMetadataReview = true)
+      val content = controller
+        .requestMetadataReviewPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/request"))
+
+      val requestMetadataReviewPageAsString = contentAsString(content)
+
+      playStatus(content) mustBe OK
+      contentType(content) mustBe Some("text/html")
+      requestMetadataReviewPageAsString must include("<title>Page not found - Transfer Digital Records - GOV.UK</title>")
     }
 
     "return forbidden if the page is accessed by a judgment user" in {
@@ -115,12 +131,14 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
   private def instantiateRequestMetadataReviewController(
       securityComponents: SecurityComponents,
-      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
+      blockMetadataReview: Boolean = false
   ) = {
+    when(configuration.get[Boolean]("featureAccessBlock.blockMetadataReview")).thenReturn(blockMetadataReview)
+    val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
-    val applicationConfig: ApplicationConfig = new ApplicationConfig(app.configuration)
     new RequestMetadataReviewController(securityComponents, consignmentService, consignmentStatusService, keycloakConfiguration, applicationConfig, messagingService)
   }
 }
