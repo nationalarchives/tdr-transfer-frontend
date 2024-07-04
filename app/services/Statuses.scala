@@ -74,6 +74,11 @@ object Statuses {
     val nonJudgmentStatus: Boolean = true
   }
 
+  case object MetadataReviewType extends StatusType {
+    val id: String = "MetadataReview"
+    val nonJudgmentStatus: Boolean = true
+  }
+
   case object EnteredValue extends StatusValue { val value: String = "Entered" }
 
   case object NotEnteredValue extends StatusValue { val value: String = "NotEntered" }
