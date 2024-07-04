@@ -1,12 +1,13 @@
 package controllers
 
 import auth.TokenSecurity
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses.{CompletedValue, ExportType, FailedValue, InProgressValue}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -19,6 +20,8 @@ class FileChecksResultsController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val graphqlConfiguration: GraphQLConfiguration,
     val consignmentService: ConsignmentService,
+    val confirmTransferService: ConfirmTransferService,
+    val consignmentExportService: ConsignmentExportService,
     val consignmentStatusService: ConsignmentStatusService,
     val applicationConfig: ApplicationConfig
 )(implicit val ec: ExecutionContext)
@@ -57,7 +60,6 @@ class FileChecksResultsController @Inject() (
 
   def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val pageTitle = "Results of checks"
-    val blockAutomateJudgmentTransfers = applicationConfig.blockAutomateJudgmentTransfers
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
@@ -70,16 +72,14 @@ class FileChecksResultsController @Inject() (
             fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
             result <-
               if (fileCheck.allChecksSucceeded) {
-                if (blockAutomateJudgmentTransfers) {
-                  consignmentService
-                    .getConsignmentFilesData(consignmentId, request.token.bearerAccessToken)
-                    .flatMap(files => {
-                      val filename = files.files.head.metadata.clientSideOriginalFilePath.get
-                      Future(Ok(views.html.judgment.judgmentFileChecksResults(filename, pageTitle, consignmentId, reference, request.token.name)).uncache())
-                    })
-                } else {
-                  Future(Redirect(routes.ConfirmTransferController.judgmentChecksPassedSubmit(consignmentId)).uncache())
-                }
+                val token: BearerAccessToken = request.token.bearerAccessToken
+                val legalCustodyTransferConfirmation = FinalTransferConfirmationData(transferLegalCustody = true)
+                for {
+                  _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, legalCustodyTransferConfirmation)
+                  _ <- consignmentExportService.updateTransferInitiated(consignmentId, request.token.bearerAccessToken)
+                  _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
+                  res <- Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)).uncache())
+                } yield res
               } else {
                 Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
               }

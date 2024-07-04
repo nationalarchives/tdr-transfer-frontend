@@ -2,7 +2,7 @@ package testUtils
 
 import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, equalToJson, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata
@@ -74,6 +74,10 @@ import play.api.{Application, Configuration}
 import services.Statuses.{InProgressValue, SeriesType}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.Token
+import org.pac4j.core.context.{CallContext, FrameworkParameters}
+import org.pac4j.oidc.metadata.OidcOpMetadataResolver
+import graphql.codegen.AddFinalTransferConfirmation.{addFinalTransferConfirmation => aftc}
+import graphql.codegen.UpdateTransferInitiated.{updateTransferInitiated => ut}
 import viewsapi.FrontEndInfo
 
 import java.io.File
@@ -1072,6 +1076,59 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     // Create a new controller with the session store and config. The parser and components don't affect the tests.
     securityComponents(testConfig, playCacheSessionStore)
   }
+  def stubUpdateTransferInitiatedResponse(wiremockServer: WireMockServer, consignmentId: UUID): Any = {
+    val utClient = new GraphQLConfiguration(app.configuration).getClient[ut.Data, ut.Variables]()
+    val utData: utClient.GraphqlData = utClient.GraphqlData(Some(ut.Data(Option(1))), List())
+    val utDataString: String = utData.asJson.printWith(Printer(dropNullValues = false, ""))
+
+    val utQuery: String =
+      s"""{"query":"mutation updateTransferInitiated($$consignmentId:UUID!)
+         |                 {updateTransferInitiated(consignmentid:$$consignmentId)}",
+         | "variables":{"consignmentId": "${consignmentId.toString}"}
+         |}""".stripMargin.replaceAll("\n\\s*", "")
+
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(equalToJson(utQuery))
+        .willReturn(okJson(utDataString))
+    )
+  }
+
+  def stubFinalTransferConfirmationResponseWithServer(wiremockServer: WireMockServer, consignmentId: UUID, errors: List[GraphQLClient.Error] = Nil): Unit = {
+
+    val addFinalTransferConfirmationResponse = errors.size match {
+      case 0 =>
+        Some(
+          new aftc.AddFinalTransferConfirmation(
+            consignmentId,
+            legalCustodyTransferConfirmed = true
+          )
+        )
+      case _ => None
+    }
+    val client = new GraphQLConfiguration(app.configuration).getClient[aftc.Data, aftc.Variables]()
+
+    val data: client.GraphqlData = client.GraphqlData(addFinalTransferConfirmationResponse.map(ftc => aftc.Data(ftc)), errors)
+
+    val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
+    val query =
+      s"""{"query":"mutation addFinalTransferConfirmation($$input:AddFinalTransferConfirmationInput!)
+                            {addFinalTransferConfirmation(addFinalTransferConfirmationInput:$$input)
+                            {consignmentId legalCustodyTransferConfirmed}}",
+           "variables":{
+                        "input":{
+                                 "consignmentId":"$consignmentId",
+                                 "legalCustodyTransferConfirmed":true
+                                }
+                       }
+                             }""".stripMargin.replaceAll("\n\\s*", "")
+    wiremockServer.stubFor(
+      post(urlEqualTo("/graphql"))
+        .withRequestBody(equalToJson(query))
+        .willReturn(okJson(dataString))
+    )
+  }
+
 }
 
 case class GetConsignmentFilesMetadataGraphqlRequestData(query: String, variables: gcfm.Variables)

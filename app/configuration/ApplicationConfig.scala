@@ -19,7 +19,7 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
 
   val blockDraftMetadataUpload: Boolean = configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")
 
-  val blockAutomateJudgmentTransfers: Boolean = configuration.get[Boolean]("featureAccessBlock.blockAutomateJudgmentTransfers")
+  val blockMetadataReview: Boolean = configuration.get[Boolean]("featureAccessBlock.blockMetadataReview")
 
   val metadataValidationBaseUrl: String = configuration.get[String]("metadatavalidation.baseUrl")
 
