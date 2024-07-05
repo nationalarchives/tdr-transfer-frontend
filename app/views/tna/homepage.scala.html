@@ -1,6 +1,6 @@
 @(name:String)(implicit messages: Messages, request: RequestHeader)
 @defining("Welcome to the Transfer Digital Records service") { title =>
-    @main(title, name = name) {
+    @main(title, name = name, isTnaUser = true) {
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
                 <h1 class="govuk-heading-l govuk-!-margin-bottom-9">@title</h1>

@@ -17,7 +17,7 @@ import graphql.codegen.GetConsignmentSummary.getConsignmentSummary
 import graphql.codegen.GetConsignmentType.{getConsignmentType => gct}
 import graphql.codegen.GetConsignments.getConsignments.Consignments
 import graphql.codegen.GetConsignments.{getConsignments => gcs}
-import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfr}
+import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfmr}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types._
@@ -45,7 +45,7 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val updateConsignmentSeriesIdClient = graphqlConfiguration.getClient[updateConsignmentSeriesId.Data, updateConsignmentSeriesId.Variables]()
   private val getConsignments = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
-  private val getConsignmentsForReviewClient = graphqlConfiguration.getClient[gcfr.Data, gcfr.Variables]()
+  private val getConsignmentsForReviewClient = graphqlConfiguration.getClient[gcfmr.Data, gcfmr.Variables]()
 
   def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
     val variables = gfcp.Variables(consignmentId)
@@ -197,8 +197,8 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
       .map(data => data.consignments)
   }
 
-  def getConsignmentsForReview(token: BearerAccessToken): Future[List[gcfr.GetConsignmentsForMetadataReview]] = {
-    sendApiRequest(getConsignmentsForReviewClient, gcfr.document, token, gcfr.Variables())
+  def getConsignmentsForReview(token: BearerAccessToken): Future[List[gcfmr.GetConsignmentsForMetadataReview]] = {
+    sendApiRequest(getConsignmentsForReviewClient, gcfmr.document, token, gcfmr.Variables())
       .map(data => data.getConsignmentsForMetadataReview)
   }
 

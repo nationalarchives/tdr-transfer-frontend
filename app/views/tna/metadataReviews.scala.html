@@ -1,5 +1,5 @@
-@import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfr}
-@(consignments: List[gcfr.GetConsignmentsForMetadataReview])(implicit messages: Messages, request: RequestHeader)
+@import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetadataReview => gcfmr}
+@(consignments: List[gcfmr.GetConsignmentsForMetadataReview])(implicit messages: Messages, request: RequestHeader)
 
 @main("Metadata Reviews", isTnaUser= true) {
   <div class="govuk-grid-row">
