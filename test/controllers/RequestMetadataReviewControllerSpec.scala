@@ -55,6 +55,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
       playStatus(content) mustBe OK
       contentType(content) mustBe Some("text/html")
       requestMetadataReviewPageAsString must include("<title>Request a metadata review - Transfer Digital Records - GOV.UK</title>")
+      requestMetadataReviewPageAsString must include(s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" class="govuk-back-link">Back</a>""")
       requestMetadataReviewPageAsString must include(
         s"""
           |          <div class="govuk-button-group">
