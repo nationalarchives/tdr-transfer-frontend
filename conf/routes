@@ -79,4 +79,4 @@ GET         /judgment/:consignmentId/transfer-complete                          
 
 
 # Routes for TNA-User
-GET         /admin/metadata-review                                                          controllers.MetadataReviewController.metadataReviews
+GET         /admin/metadata-review                                                          controllers.MetadataReviewController.metadataReviews()
