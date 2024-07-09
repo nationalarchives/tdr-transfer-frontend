@@ -22,19 +22,22 @@ export class Checks {
     if (isJudgmentUser) {
       goToNextPage("#continue-transfer")
     } else {
-      const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
-        const fileChecksProgress: IFileCheckProgress | Error =
+      const intervalId: ReturnType<typeof setInterval> = setInterval(
+        async () => {
+          const fileChecksProgress: IFileCheckProgress | Error =
             await getFileChecksProgress()
-        if (!isError(fileChecksProgress)) {
-          const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
-          if (checksCompleted) {
-            clearInterval(intervalId)
-            displayChecksCompletedBanner("file-checks")
+          if (!isError(fileChecksProgress)) {
+            const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
+            if (checksCompleted) {
+              clearInterval(intervalId)
+              displayChecksCompletedBanner("file-checks")
+            }
+          } else {
+            return fileChecksProgress
           }
-        } else {
-          return fileChecksProgress
-        }
-      }, 5000)
+        },
+        5000
+      )
     }
   }
 
