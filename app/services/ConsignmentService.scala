@@ -20,7 +20,7 @@ import graphql.codegen.GetConsignments.{getConsignments => gcs}
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types._
-import graphql.codegen.{AddConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
+import graphql.codegen.{AddConsignment, GetConsignmentFilesMetadata}
 import services.ApiErrorHandling._
 import services.ConsignmentService.{File, StatusTag}
 import uk.gov.nationalarchives.tdr.keycloak.Token
