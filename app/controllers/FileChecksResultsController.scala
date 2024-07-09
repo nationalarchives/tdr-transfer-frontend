@@ -32,7 +32,7 @@ class FileChecksResultsController @Inject() (
     val pageTitle = "Results of your checks"
 
     for {
-      fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
+      fileCheck <- consignmentService.fileCheckProgress(consignmentId, request.token.bearerAccessToken)
       parentFolder = fileCheck.parentFolder.getOrElse(throw new IllegalStateException(s"No parent folder found for consignment: '$consignmentId'"))
       reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
     } yield {
@@ -57,38 +57,5 @@ class FileChecksResultsController @Inject() (
       }
     }
   }
-
-  def judgmentFileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val pageTitle = "Results of checks"
-    for {
-      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
-      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
-      result <- exportStatus match {
-        case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(FailedValue.value) =>
-          Future(Ok(views.html.transferAlreadyCompleted(consignmentId, reference, request.token.name, isJudgmentUser = true)).uncache())
-        case None =>
-          for {
-            fileCheck <- consignmentService.getConsignmentFileChecks(consignmentId, request.token.bearerAccessToken)
-            result <-
-              if (fileCheck.allChecksSucceeded) {
-                val token: BearerAccessToken = request.token.bearerAccessToken
-                val legalCustodyTransferConfirmation = FinalTransferConfirmationData(transferLegalCustody = true)
-                for {
-                  _ <- confirmTransferService.addFinalTransferConfirmation(consignmentId, token, legalCustodyTransferConfirmation)
-                  _ <- consignmentExportService.updateTransferInitiated(consignmentId, request.token.bearerAccessToken)
-                  _ <- consignmentExportService.triggerExport(consignmentId, request.token.bearerAccessToken.toString)
-                  res <- Future(Redirect(routes.TransferCompleteController.judgmentTransferComplete(consignmentId)).uncache())
-                } yield res
-              } else {
-                Future(Ok(views.html.fileChecksResultsFailed(request.token.name, pageTitle, reference, isJudgmentUser = true)).uncache())
-              }
-          } yield result
-        case _ =>
-          throw new IllegalStateException(s"Unexpected Export status: $exportStatus for consignment $consignmentId")
-      }
-    } yield result
-  }
 }
-
 case class ConsignmentFolderInfo(numberOfFiles: Int, parentFolder: String)
