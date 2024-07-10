@@ -33,7 +33,7 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
 
   "MetadataReviewController GET" should {
 
-    "render the review metadata page" in {
+    "render the metadata review page" in {
       setGetConsignmentsForMetadataReviewResponse(wiremockServer)
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -41,16 +41,16 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
       val response = controller
         .metadataReviews()
         .apply(FakeRequest(GET, s"/metadata-review").withCSRFToken)
-      val viewTransfersPageAsString = contentAsString(response)
+      val metadataReviewPageAsString = contentAsString(response)
 
       status(response) mustBe OK
       contentType(response) mustBe Some("text/html")
 
-      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(viewTransfersPageAsString, userType = TNAUserType, consignmentExists = false)
-      checkForExpectedMetadataReviewPageContent(viewTransfersPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewPageAsString, userType = TNAUserType, consignmentExists = false)
+      checkForExpectedMetadataReviewPageContent(metadataReviewPageAsString)
     }
 
-    "return 403 if the view transfers page is accessed by a non TNA user" in {
+    "return 403 if the metadata review page is accessed by a non TNA user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val controller = new MetadataReviewController(getValidKeycloakConfiguration, getAuthorisedSecurityComponents, consignmentService)
@@ -74,13 +74,17 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  def checkForExpectedMetadataReviewPageContent(viewTransfersPageAsString: String, consignmentExists: Boolean = true): Unit = {
-    viewTransfersPageAsString must include("<h1 class=\"govuk-heading-l\">Metadata Reviews</h1>")
-    viewTransfersPageAsString must include("""<th scope="col" class="govuk-table__header">Consignment</th>""")
-    viewTransfersPageAsString must include("""<th scope="col" class="govuk-table__header">Status</th>""")
-    viewTransfersPageAsString must include("""<th scope="col" class="govuk-table__header">Department</th>""")
-    viewTransfersPageAsString must include("""<th scope="col" class="govuk-table__header">Series</th>""")
-    viewTransfersPageAsString must include("""<th scope="col" class="govuk-table__header"></th>""")
-    viewTransfersPageAsString must include(s"""These are requested reviews that have not been responded to.""")
+  def checkForExpectedMetadataReviewPageContent(metadataReviewPageAsString: String, consignmentExists: Boolean = true): Unit = {
+    metadataReviewPageAsString must include("<h1 class=\"govuk-heading-l\">Metadata Reviews</h1>")
+    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Consignment</th>""")
+    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Status</th>""")
+    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Department</th>""")
+    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Series</th>""")
+    metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header"></th>""")
+    metadataReviewPageAsString must include(s"""These are requested reviews that have not been responded to.""")
+    metadataReviewPageAsString must include(s"""<th scope="row" class="govuk-table__header">TDR-2024-TEST</th>""")
+    metadataReviewPageAsString must include(s"""<strong class="tdr-tag tdr-tag--green">Requested</strong>""")
+    metadataReviewPageAsString must include(s"""<td class="govuk-table__cell">TransferringBody</td>""")
+    metadataReviewPageAsString must include(s"""<td class="govuk-table__cell">SeriesName</td>""")
   }
 }

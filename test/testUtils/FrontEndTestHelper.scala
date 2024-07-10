@@ -364,7 +364,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
 
   def setGetConsignmentsForMetadataReviewResponse(wiremockServer: WireMockServer): StubMapping = {
     val client = new GraphQLConfiguration(app.configuration).getClient[gcfmr.Data, gcfmr.Variables]()
-    val consignment = gcfmr.GetConsignmentsForMetadataReview("ConsignmentReference", Some("SeriesName"), Some("TransferringBody"))
+    val consignment = gcfmr.GetConsignmentsForMetadataReview("TDR-2024-TEST", Some("SeriesName"), Some("TransferringBody"))
     val getConsignmentsForReviewResponse: getConsignmentsForMetadataReview.Data = gcfmr.Data(List(consignment))
     val data = client.GraphqlData(Some(getConsignmentsForReviewResponse))
     val dataString: String = data.asJson.printWith(Printer(dropNullValues = false, ""))
