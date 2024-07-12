@@ -6,7 +6,7 @@
 @defining("Request a metadata review") { title =>
   @main(title, name = name, backLink = Some(backLink(routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, "Back"))) {
     @defining(play.core.PlayVersion.current) { version =>
-      <<div class="govuk-grid-row">
+      <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds-from-desktop">
 
           <h1 class="govuk-heading-xl">@title</h1>
