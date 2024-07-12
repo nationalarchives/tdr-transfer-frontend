@@ -30,7 +30,7 @@
             <td class="govuk-table__cell">@consignment.seriesName</td>
             <td class="govuk-table__cell">
               <div class="tdr-link-group">
-                <a href="#" class="govuk-link govuk-link--no-visited-state">View request</a>
+                <a href="@routes.MetadataReviewActionController.consignmentMetadataDetails(consignment.consignmentid.get)" class="govuk-link govuk-link--no-visited-state">View request</a>
               </div>
             </td>
           </tr>
