@@ -10,8 +10,9 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import services.MessagingService.MetadataReviewSubmittedEvent
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, MetadataReviewType}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -22,7 +23,8 @@ class MetadataReviewActionController @Inject() (
     val controllerComponents: SecurityComponents,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val consignmentStatusService: ConsignmentStatusService
+    val consignmentStatusService: ConsignmentStatusService,
+    val messagingService: MessagingService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport
@@ -38,7 +40,7 @@ class MetadataReviewActionController @Inject() (
     getConsignmentMetadataDetails(consignmentId, request, Ok, selectedDecisionForm)
   }
 
-  def submitReview(consignmentId: UUID): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
+  def submitReview(consignmentId: UUID, consignmentRef: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedStatusData] = selectedDecisionForm.bindFromRequest()
 
     val errorFunction: Form[SelectedStatusData] => Future[Result] = { formWithErrors: Form[SelectedStatusData] =>
@@ -46,9 +48,21 @@ class MetadataReviewActionController @Inject() (
     }
 
     val successFunction: SelectedStatusData => Future[Result] = { formData: SelectedStatusData =>
-      logger.info(s"TNA user: ${request.token.userId} has set consignment: $consignmentId to ${formData.statusId}" )
-      consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, MetadataReviewType.id, Some(formData.statusId)), request.token.bearerAccessToken)
-      Future(Redirect(routes.MetadataReviewController.metadataReviews()))
+      logger.info(s"TNA user: ${request.token.userId} has set consignment: $consignmentId to ${formData.statusId}")
+      for {
+        _ <- consignmentStatusService.updateConsignmentStatus(
+          ConsignmentStatusInput(consignmentId, MetadataReviewType.id, Some(formData.statusId)),
+          request.token.bearerAccessToken
+        )
+      } yield {
+        messagingService.sendMetadataReviewSubmittedNotification(
+          MetadataReviewSubmittedEvent(
+            consignmentReference = consignmentRef,
+            urlLink = routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId).url
+          )
+        )
+        Redirect(routes.MetadataReviewController.metadataReviews())
+      }
     }
 
     formValidationResult.fold(

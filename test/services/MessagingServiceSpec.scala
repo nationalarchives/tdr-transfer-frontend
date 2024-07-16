@@ -61,6 +61,20 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
     verify(mockUtils).publish(expectedMessageString, testArn)
   }
 
+  "sendMetadataReviewSubmittedNotification" should "call publish with the correct parameters" in {
+    val service = createService
+    val metadataReviewSubmittedEvent = MessagingService.MetadataReviewSubmittedEvent(
+      consignmentReference = "Ref123",
+      urlLink = "example.com"
+    )
+    val expectedMessageString = """{
+                                  |  "consignmentReference" : "Ref123",
+                                  |  "urlLink" : "example.com"
+                                  |}""".stripMargin
+    service.sendMetadataReviewSubmittedNotification(metadataReviewSubmittedEvent)
+    verify(mockUtils).publish(expectedMessageString, testArn)
+  }
+
   def createService: MessagingService = {
     when(config.get[String]("sns.endpoint")).thenReturn("http://localhost:9009")
     when(config.get[String]("notificationSnsTopicArn")).thenReturn(testArn)

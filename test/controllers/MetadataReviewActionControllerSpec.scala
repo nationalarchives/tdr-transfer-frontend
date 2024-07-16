@@ -7,14 +7,16 @@ import graphql.codegen.GetConsignmentDetailsForMetadataReview.getConsignmentDeta
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
+import org.mockito.Mockito.{times, verify}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, status => playStatus, _}
+import services.MessagingService.MetadataReviewSubmittedEvent
 import services.Statuses.CompletedValue
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.util.UUID
@@ -27,6 +29,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
   val userId: UUID = UUID.randomUUID()
 
   val wiremockServer = new WireMockServer(9006)
+  val messagingService: MessagingService = mock[MessagingService]
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
@@ -70,18 +73,24 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "Update the consignment status when a valid form is submitted and the api response is successful" in {
+    "Update the consignment status and send metadata decision message when a valid form is submitted and the api response is successful" in {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val consignmentRef = "TDR-TEST-2024"
+      val metadataReviewDecisionEvent =
+        MetadataReviewSubmittedEvent(consignmentRef, s"/consignment/$consignmentId/metadata-review/request")
       setUpdateConsignmentStatus(wiremockServer)
 
-      val reviewSubmit = controller.submitReview(consignmentId).apply(FakeRequest().withFormUrlEncodedBody(("status", CompletedValue.value)).withCSRFToken)
+      val reviewSubmit = controller.submitReview(consignmentId, consignmentRef).apply(FakeRequest().withFormUrlEncodedBody(("status", CompletedValue.value)).withCSRFToken)
       playStatus(reviewSubmit) mustBe SEE_OTHER
       redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review"))
+      verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(metadataReviewDecisionEvent)
     }
 
     "display errors when an invalid form is submitted" in {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
-      val reviewSubmit = controller.submitReview(consignmentId).apply(FakeRequest().withFormUrlEncodedBody(("status", "")).withCSRFToken)
+      val consignmentRef = "TDR-TEST-2024"
+      val metadataReviewDecisionEvent = MetadataReviewSubmittedEvent(consignmentRef, "SomeUrl")
+      val reviewSubmit = controller.submitReview(consignmentId, consignmentRef).apply(FakeRequest().withFormUrlEncodedBody(("status", "")).withCSRFToken)
       setUpdateConsignmentStatus(wiremockServer)
       setGetConsignmentDetailsForMetadataReviewResponse()
       playStatus(reviewSubmit) mustBe BAD_REQUEST
@@ -98,6 +107,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       |    </p>""".stripMargin)
       checkForExpectedMetadataReviewActionPageContent(metadataReviewSubmitAsString)
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewSubmitAsString, userType = "tna")
+      verify(messagingService, times(0)).sendMetadataReviewSubmittedNotification(metadataReviewDecisionEvent)
     }
   }
 
@@ -109,7 +119,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
 
-    new MetadataReviewActionController(securityComponents, keycloakConfiguration, consignmentService, consignmentStatusService)
+    new MetadataReviewActionController(securityComponents, keycloakConfiguration, consignmentService, consignmentStatusService, messagingService)
   }
 
   private def setGetConsignmentDetailsForMetadataReviewResponse() = {
@@ -164,7 +174,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       |                    Download Metadata</a>""".stripMargin
     )
     pageAsString must include("""2. Set the status of this review""")
-    pageAsString must include(s"""<form action="/admin/metadata-review/$consignmentId" method="POST" novalidate="">""")
+    pageAsString must include(s"""<form action="/admin/metadata-review/$consignmentId?consignmentRef=TDR-2024-TEST" method="POST" novalidate="">""")
     pageAsString must include(s"""<option value="" selected>
      |                    Select a status
      |                </option>""".stripMargin)
