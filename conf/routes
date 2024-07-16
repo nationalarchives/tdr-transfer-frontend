@@ -33,6 +33,8 @@ GET         /consignment/:consignmentId/draft-metadata/upload                   
 GET         /consignment/:consignmentId/draft-metadata/checks                                     controllers.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/draft-metadata/validation-progress                        controllers.DraftMetadataChecksController.draftMetadataValidationProgress(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/draft-metadata/checks-results                             controllers.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId: java.util.UUID)
+GET         /consignment/:consignmentId/metadata-review/request                                   controllers.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId: java.util.UUID)
+GET         /consignment/:consignmentId/metadata-review/submit-request                            controllers.RequestMetadataReviewController.submitMetadataForReview(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/additional-metadata/entry-method                          controllers.AdditionalMetadataEntryMethodController.additionalMetadataEntryMethodPage(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/additional-metadata/entry-method                          controllers.AdditionalMetadataEntryMethodController.submitAdditionalMetadataEntryMethod(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/additional-metadata                                       controllers.AdditionalMetadataController.start(consignmentId: java.util.UUID)
@@ -71,8 +73,9 @@ GET         /judgment/help                                                      
 GET         /judgment/:consignmentId/before-uploading                                       controllers.BeforeUploadingController.beforeUploading(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/upload                                                 controllers.UploadController.judgmentUploadPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/file-checks                                            controllers.FileChecksController.judgmentFileChecksPage(consignmentId: java.util.UUID, uploadFailed: Option[String])
-POST        /judgment/:consignmentId/file-check-progress                                    controllers.FileChecksController.fileCheckProgress(consignmentId: java.util.UUID)
-GET         /judgment/:consignmentId/file-checks-results                                    controllers.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId: java.util.UUID)
-POST        /judgment/:consignmentId/file-checks-results                                    controllers.ConfirmTransferController.finalJudgmentTransferConfirmationSubmit(consignmentId: java.util.UUID)
-GET         /judgment/:consignmentId/checks-passed                                          controllers.ConfirmTransferController.judgmentChecksPassedSubmit(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/continue-transfer                                      controllers.FileChecksController.judgmentCompleteTransfer(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/transfer-complete                                      controllers.TransferCompleteController.judgmentTransferComplete(consignmentId: java.util.UUID)
+
+
+# Routes for TNA-User
+GET         /admin/metadata-review                                                          controllers.MetadataReviewController.metadataReviews()

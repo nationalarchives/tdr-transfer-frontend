@@ -1,0 +1,18 @@
+@import java.util.UUID
+@import views.html.partials.transferReference
+@import views.html.partials.backLink
+@(consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+
+@defining("Metadata review") { title =>
+  @main(title, name = name, backLink = Some(backLink(routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId).url, "Back"))) {
+    @defining(play.core.PlayVersion.current) { version =>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds-from-desktop">
+
+          <h1 class="govuk-heading-xl">@title</h1>
+        </div>
+        @transferReference(consignmentRef, isJudgmentUser = false)
+      </div>
+    }
+  }
+}
