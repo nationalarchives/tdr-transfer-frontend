@@ -1,0 +1,32 @@
+@import java.util.UUID
+@import views.html.partials.transferReference
+@import views.html.partials.backLink
+@(consignmentId: UUID, consignmentRef: String, name: String, email: String)(implicit messages: Messages, request: RequestHeader)
+
+@defining("Request a metadata review") { title =>
+  @main(title, name = name, backLink = Some(backLink(routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, "Back"))) {
+    @defining(play.core.PlayVersion.current) { version =>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds-from-desktop">
+
+          <h1 class="govuk-heading-xl">@title</h1>
+
+          <p class="govuk-body">Before you complete your transfer your metadata needs to be reviewed by a Digital Transfer Advisor. This helps us to ensure we preserve your records accurately.</p>
+          <div class="govuk-inset-text">
+            If we find any issues with your metadata we will send guidance to <strong>@email</strong>.
+          </div>
+
+          <p class="govuk-body">Once you have submitted your metadata for review we recommend you don't make further changes to your metadata CSV.  If you need to make any changes before requesting a review <a href="@routes.AdditionalMetadataController.start(consignmentId)" class="govuk-link">return to Record metadata</a> to edit the metadata.</p>
+
+          <div class="govuk-button-group">
+            <a href="@routes.RequestMetadataReviewController.submitMetadataForReview(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
+              Submit metadata for review
+            </a>
+          </div>
+
+        </div>
+        @transferReference(consignmentRef, isJudgmentUser = false)
+      </div>
+    }
+  }
+}

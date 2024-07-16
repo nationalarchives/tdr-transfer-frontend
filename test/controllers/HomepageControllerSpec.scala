@@ -44,7 +44,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       |</a>""".stripMargin
 
   val transfersForReviewButton: String =
-    """<a href="#" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>"""
+    """<a href="/admin/metadata-review" role="button" draggable="false" class="govuk-button" data-module="govuk-button">Transfers for Review</a>"""
 
   "HomepageController GET" should {
 
@@ -77,7 +77,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must include(viewTransferButton)
-      homepagePageAsString must not include (transfersForReviewButton)
+      homepagePageAsString must not include transfersForReviewButton
     }
 
     "render the judgment homepage page with an authenticated judgment user" in {
@@ -94,7 +94,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must not include viewTransferButton
-      homepagePageAsString must not include (transfersForReviewButton)
+      homepagePageAsString must not include transfersForReviewButton
     }
 
     "render the DTA review homepage page with an authenticated tna user" in {
