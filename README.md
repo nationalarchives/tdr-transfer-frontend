@@ -39,10 +39,12 @@ development environment for the other TDR services.
         aws ssm get-parameter --name "/intg/keycloak/client/secret" --with-decryption
         ```
       - Copy the `Value` from the object returned 
+    - get arn for the slack notifications SNS topic for integration (find in AWS console)
 - In IntelliJ, create a new sbt run configuration:
   - Set the Tasks parameter to `run`
   - Configure the environment variables:
     - AUTH_SECRET=\<the secret for the Keycloak client that you copied above\>
+    - NOTIFICATION_SNS_TOPIC_ARN=\<the arn for sns topic for slack notifications you obtained above>   
 - Follow the Static Assets steps below to build the CSS and JS
 - Run the project from IntelliJ
 - Visit `http://localhost:9000`
