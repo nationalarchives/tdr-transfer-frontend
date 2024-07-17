@@ -2,6 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
+import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.MessagingService.MetadataReviewRequestEvent
@@ -34,10 +35,19 @@ class RequestMetadataReviewController @Inject() (
   }
 
   def submitMetadataForReview(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    val token = request.token.bearerAccessToken
     for {
-      _ <- consignmentStatusService.addConsignmentStatus(consignmentId, MetadataReviewType.id, InProgressValue.value, request.token.bearerAccessToken)
-      summary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, request.token.bearerAccessToken)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
+      statusesToValue = consignmentStatusService.getStatusValues(consignmentStatuses, MetadataReviewType).values.headOption.flatten
+      _ <-
+        if (statusesToValue.isEmpty) {
+          consignmentStatusService.addConsignmentStatus(consignmentId, MetadataReviewType.id, InProgressValue.value, token)
+        } else {
+          consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, MetadataReviewType.id, Some(InProgressValue.value)), token)
+        }
+      summary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, token)
     } yield {
+      /*
       messagingService.sendMetadataReviewRequestNotification(
         MetadataReviewRequestEvent(
           transferringBodyName = summary.transferringBodyName,
@@ -47,7 +57,8 @@ class RequestMetadataReviewController @Inject() (
           userEmail = request.token.email
         )
       )
-      Ok(views.html.standard.metadataReviewStatus(consignmentId, summary.consignmentReference, request.token.name))
+       */
+      Redirect(routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId))
     }
   }
 }

@@ -60,4 +60,9 @@ libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.0.0"
 libraryDependencies += "org.dhatim" % "fastexcel" % "0.18.0"
 libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.18.0"
 
+excludeDependencies ++= Seq(
+  ExclusionRule(organization = "com.typesafe.akka"),
+  ExclusionRule(organization = "com.typesafe.play")
+)
+
 pipelineStages := Seq(digest)

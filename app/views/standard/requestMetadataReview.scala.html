@@ -1,3 +1,5 @@
+@import views.html.helper.form
+@import views.html.helper.CSRF
 @import java.util.UUID
 @import views.html.partials.transferReference
 @import views.html.partials.backLink
@@ -6,7 +8,7 @@
 @defining("Request a metadata review") { title =>
   @main(title, name = name, backLink = Some(backLink(routes.DownloadMetadataController.downloadMetadataPage(consignmentId).url, "Back"))) {
     @defining(play.core.PlayVersion.current) { version =>
-      <<div class="govuk-grid-row">
+      <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds-from-desktop">
 
           <h1 class="govuk-heading-xl">@title</h1>
@@ -18,11 +20,14 @@
 
           <p class="govuk-body">Once you have submitted your metadata for review we recommend you don't make further changes to your metadata CSV.  If you need to make any changes before requesting a review <a href="@routes.AdditionalMetadataController.start(consignmentId)" class="govuk-link">return to Record metadata</a> to edit the metadata.</p>
 
-          <div class="govuk-button-group">
-            <a href="@routes.RequestMetadataReviewController.submitMetadataForReview(consignmentId)" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-              Submit metadata for review
-            </a>
-          </div>
+          @form(routes.RequestMetadataReviewController.submitMetadataForReview(consignmentId), (Symbol("novalidate"), "")) {
+            @CSRF.formField
+            <div class="govuk-button-group">
+              <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                Submit metadata for review
+              </button>
+            </div>
+          }
 
         </div>
         @transferReference(consignmentRef, isJudgmentUser = false)
