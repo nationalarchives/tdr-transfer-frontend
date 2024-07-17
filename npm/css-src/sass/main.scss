@@ -1,6 +1,8 @@
-@import 'overrides/all';
 @import '../../node_modules/govuk-frontend/govuk/all';
+@import 'overrides/all';
+//@import '../../node_modules/@nationalarchives/tdr-components/all';
 @import '../../node_modules/@nationalarchives/tdr-components/dist/all';
+@import '../../node_modules/@nationalarchives/tdr-components/dist/components/alert/alert';
 
 @import 'header';
 @import 'drag-and-drop';
@@ -10,7 +12,7 @@
 @import 'user-guide';
 @import 'button';
 @import 'pagination';
-@import 'card';
+@import 'tags';
 @import 'view-transfer';
 
 a {
