@@ -111,11 +111,11 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
         .submitMetadataForReview(consignmentId)
         .apply(FakeRequest(POST, s"/consignment/$consignmentId/metadata-review/submit-request"))
 
-      val metadataReviewRequestEvent = MetadataReviewRequestEvent("Mock".some, "TDR-2024", consignmentId.toString, "c140d49c-93d0-4345-8d71-c97ff28b947e", "test@example.com")
-      verify(messagingService, times(1)).sendMetadataReviewRequestNotification(metadataReviewRequestEvent)
-
       playStatus(content) mustBe SEE_OTHER
       redirectLocation(content).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
+
+      val metadataReviewRequestEvent = MetadataReviewRequestEvent("Mock".some, "TDR-2024", consignmentId.toString, "c140d49c-93d0-4345-8d71-c97ff28b947e", "test@example.com")
+      verify(messagingService, times(1)).sendMetadataReviewRequestNotification(metadataReviewRequestEvent)
     }
 
     "return forbidden if the page is accessed by a judgment user" in {
