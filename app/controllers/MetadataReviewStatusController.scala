@@ -21,7 +21,6 @@ class MetadataReviewStatusController @Inject() (
 ) extends TokenSecurity {
 
   def metadataReviewStatusPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    println("MetadataReviewStatusController::metadataReviewStatusPage")
     if (applicationConfig.blockMetadataReview) {
       Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
     } else {
@@ -31,7 +30,6 @@ class MetadataReviewStatusController @Inject() (
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         result <- reviewStatus match {
           case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(CompletedWithIssuesValue.value) =>
-            println(s"MetadataReviewStatusController - reviewStatus = ${reviewStatus.get}")
             Future(
               Ok(views.html.standard.metadataReviewStatus(consignmentId, reference, request.token.name, request.token.email, reviewStatus.get))
             )
@@ -44,48 +42,14 @@ class MetadataReviewStatusController @Inject() (
     }
   }
 
-  def metadataReviewProgressTest(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    if (applicationConfig.blockMetadataReview) {
-      Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
-    } else {
-      consignmentService
-        .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        .map { ref =>
-          Ok(views.html.standard.metadataReviewStatus(consignmentId, ref, request.token.name, request.token.email, InProgressValue.value))
-        }
-    }
-  }
-
-  def metadataReviewSuccessTest(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    if (applicationConfig.blockMetadataReview) {
-      Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
-    } else {
-      consignmentService
-        .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        .map { ref =>
-          Ok(views.html.standard.metadataReviewStatus(consignmentId, ref, request.token.name, request.token.email, CompletedValue.value))
-        }
-    }
-  }
-
-  def metadataReviewFailureTest(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    if (applicationConfig.blockMetadataReview) {
-      Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
-    } else {
-      consignmentService
-        .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        .map { ref =>
-          Ok(views.html.standard.metadataReviewStatus(consignmentId, ref, request.token.name, request.token.email, CompletedWithIssuesValue.value))
-        }
-    }
-  }
-
   def metadataReviewActionRequired(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
-      _ <- consignmentStatusService.updateConsignmentStatus(ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value)), request.token.bearerAccessToken)
+      _ <- consignmentStatusService.updateConsignmentStatus(
+        ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value)),
+        request.token.bearerAccessToken
+      )
     } yield {
       Redirect(routes.AdditionalMetadataController.start(consignmentId))
     }
   }
-
 }

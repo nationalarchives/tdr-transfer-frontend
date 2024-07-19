@@ -1,4 +1,6 @@
-@(consignmentRef: String, email: String)(implicit messages: Messages)
+@import java.util.UUID
+@import views.html.partials.downloadMetadataLink
+@(consignmentId: UUID, consignmentRef: String, email: String)(implicit messages: Messages)
 <div class="da-alert da-alert--with-icon">
     <div class="da-alert__icon">
         <div aria-hidden="true"><svg class="da-icon da-icon--xl" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="currentColor" role="img" title="da-icon-search">
@@ -14,6 +16,11 @@
 <p class="govuk-body">
     You can leave and return to this page at any time from the <a class="govuk-notification-banner__link" href="@routes.ViewTransfersController.viewConsignments(1)">
     View transfers</a> page.</p>
+
+<p class="govuk-body">Download a copy of the metadata you submitted below.</p>
+
+@downloadMetadataLink(consignmentId)
+
 <p class="govuk-body">
     If you have any queries email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
     quoting the consignment reference: @consignmentRef</p>

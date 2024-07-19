@@ -47,7 +47,6 @@ class RequestMetadataReviewController @Inject() (
         }
       summary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, token)
     } yield {
-      /*
       messagingService.sendMetadataReviewRequestNotification(
         MetadataReviewRequestEvent(
           transferringBodyName = summary.transferringBodyName,
@@ -57,7 +56,7 @@ class RequestMetadataReviewController @Inject() (
           userEmail = request.token.email
         )
       )
-       */
+
       Redirect(routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId))
     }
   }
