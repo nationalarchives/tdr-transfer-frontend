@@ -132,7 +132,7 @@ class ViewTransfersController @Inject() (
     }
 
     val resultsUrl = if (judgmentType) {
-      routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId).url
+      routes.FileChecksController.judgmentCompleteTransfer(consignmentId).url
     } else {
       routes.FileChecksResultsController.fileCheckResultsPage(consignmentId).url
     }

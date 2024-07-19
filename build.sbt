@@ -22,22 +22,22 @@ libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion excludeAll (ExclusionRule("commons-io", "commons-io"), ExclusionRule(organization = "com.fasterxml.jackson.core")),
   "org.pac4j" % "pac4j-http" % pac4jVersion excludeAll (ExclusionRule(organization = "com.fasterxml.jackson.core")),
   "org.pac4j" % "pac4j-oidc" % pac4jVersion,
-  "io.circe" %% "circe-core" % "0.14.8",
-  "io.circe" %% "circe-generic" % "0.14.8",
+  "io.circe" %% "circe-core" % "0.14.9",
+  "io.circe" %% "circe-generic" % "0.14.9",
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.167",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.204",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.377",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.33",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.191",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.191",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.171",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.205",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.380",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.36",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.196",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.196",
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   ws,
-  "io.opentelemetry" % "opentelemetry-api" % "1.39.0",
-  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.39.0",
-  "io.opentelemetry" % "opentelemetry-sdk" % "1.39.0",
+  "io.opentelemetry" % "opentelemetry-api" % "1.40.0",
+  "io.opentelemetry" % "opentelemetry-exporter-otlp" % "1.40.0",
+  "io.opentelemetry" % "opentelemetry-sdk" % "1.40.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.36.0",
@@ -66,3 +66,8 @@ excludeDependencies ++= Seq(
 )
 
 pipelineStages := Seq(digest)
+
+excludeDependencies ++= Seq(
+  ExclusionRule(organization = "com.typesafe.akka"),
+  ExclusionRule(organization = "com.typesafe.play")
+)

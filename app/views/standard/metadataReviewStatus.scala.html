@@ -2,6 +2,11 @@
 @import views.html.partials.{metadataReviewInProgress, metadataReviewSuccess, metadataReviewFailure, transferReference}
 @import services.Statuses.{InProgressValue, CompletedValue, CompletedWithIssuesValue}
 
+@defining("Metadata review") { title =>
+  @main(title, name = name) {
+  
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds-from-desktop">
 
 @(consignmentId: UUID, consignmentRef: String, name: String, email: String, DTAStatus: String)(implicit messages: Messages, request: RequestHeader)
 
