@@ -78,3 +78,8 @@ GET         /judgment/:consignmentId/file-checks                                
 POST        /judgment/:consignmentId/file-check-progress                                                 controllers.FileChecksController.fileCheckProgress(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/file-checks-results                                                 controllers.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId: java.util.UUID)
 GET         /judgment/:consignmentId/transfer-complete                                                   controllers.TransferCompleteController.judgmentTransferComplete(consignmentId: java.util.UUID)
+
+# Routes for TNA-User
+GET         /admin/metadata-review                                                                       controllers.MetadataReviewController.metadataReviews()
+GET         /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.consignmentMetadataDetails(consignmentId: java.util.UUID)
+POST        /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.submitReview(consignmentId: java.util.UUID, consignmentRef: String)
