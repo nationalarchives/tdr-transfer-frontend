@@ -6,6 +6,7 @@ import configuration.GraphQLConfiguration
 import controllers.util.MetadataProperty.{closureType, fileType}
 import graphql.codegen.AddConsignment.addConsignment
 import graphql.codegen.GetConsignment.getConsignment
+import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files
 import graphql.codegen.GetConsignmentFiles.getConsignmentFiles.GetConsignment.Files.FileStatuses
@@ -45,6 +46,7 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   private val getConsignments = graphqlConfiguration.getClient[gcs.Data, gcs.Variables]()
   private val gctClient = graphqlConfiguration.getClient[gct.Data, gct.Variables]()
   private val getConsignmentsForReviewClient = graphqlConfiguration.getClient[gcfmr.Data, gcfmr.Variables]()
+  private val getConsignmentDetailsForReviewClient = graphqlConfiguration.getClient[gcdfmr.Data, gcdfmr.Variables]()
 
   def fileCheckProgress(consignmentId: UUID, token: BearerAccessToken): Future[gfcp.GetConsignment] = {
     val variables = gfcp.Variables(consignmentId)
@@ -192,6 +194,12 @@ class ConsignmentService @Inject() (val graphqlConfiguration: GraphQLConfigurati
   def getConsignmentsForReview(token: BearerAccessToken): Future[List[gcfmr.GetConsignmentsForMetadataReview]] = {
     sendApiRequest(getConsignmentsForReviewClient, gcfmr.document, token, gcfmr.Variables())
       .map(data => data.getConsignmentsForMetadataReview)
+  }
+
+  def getConsignmentDetailForMetadataReview(consignmentId: UUID, token: BearerAccessToken): Future[gcdfmr.GetConsignment] = {
+    val variables = new gcdfmr.Variables(consignmentId)
+    sendApiRequest(getConsignmentDetailsForReviewClient, gcdfmr.document, token, variables)
+      .map(data => data.getConsignment.get)
   }
 
   private def getFileFilters(metadataType: Option[String], fileIds: Option[List[UUID]], additionalProperties: Option[List[String]]): Option[FileFilters] = {
