@@ -76,7 +76,9 @@ class MetadataReviewActionController @Inject() (
   ): Future[Result] = {
     for {
       consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
+      userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
     } yield {
+      println("USER DETAILS:" + userDetails.email)
       status(
         views.html.tna.metadataReviewAction(
           consignmentId,
