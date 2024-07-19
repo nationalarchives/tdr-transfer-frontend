@@ -17,7 +17,7 @@
                         DTAStatus match {
                             case CompletedWithIssuesValue.value => metadataReviewFailure(consignmentId, email)
                             case CompletedValue.value => metadataReviewSuccess(consignmentId)
-                            case InProgressValue.value => metadataReviewInProgress(consignmentRef, email)
+                            case InProgressValue.value => metadataReviewInProgress(consignmentId, consignmentRef, email)
                             case _ => {
                                     <h2>Error - cannot find status</h2>
                             }
