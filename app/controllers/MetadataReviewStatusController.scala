@@ -6,7 +6,7 @@ import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
 import services.{ConsignmentService, ConsignmentStatusService}
-import services.Statuses.{CompletedValue, CompletedWithIssuesValue, DraftMetadataType, InProgressValue, MetadataReviewType}
+import services.Statuses._
 
 import java.util.UUID
 import javax.inject.Inject
@@ -44,6 +44,14 @@ class MetadataReviewStatusController @Inject() (
 
   def metadataReviewActionRequired(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
+      _ <- consignmentStatusService.updateConsignmentStatus(
+        ConsignmentStatusInput(consignmentId, DescriptiveMetadataType.id, Some(InProgressValue.value)),
+        request.token.bearerAccessToken
+      )
+      _ <- consignmentStatusService.updateConsignmentStatus(
+        ConsignmentStatusInput(consignmentId, ClosureMetadataType.id, Some(InProgressValue.value)),
+        request.token.bearerAccessToken
+      )
       _ <- consignmentStatusService.updateConsignmentStatus(
         ConsignmentStatusInput(consignmentId, DraftMetadataType.id, Some(InProgressValue.value)),
         request.token.bearerAccessToken
