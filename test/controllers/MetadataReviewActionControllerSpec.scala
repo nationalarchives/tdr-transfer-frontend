@@ -7,6 +7,8 @@ import graphql.codegen.GetConsignmentDetailsForMetadataReview.getConsignmentDeta
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax._
+import org.mockito.ArgumentMatcher
+import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mockito.{times, verify}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
@@ -76,14 +78,23 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "Update the consignment status and send metadata decision message when a valid form is submitted and the api response is successful" in {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
       val consignmentRef = "TDR-TEST-2024"
-      val metadataReviewDecisionEvent =
-        MetadataReviewSubmittedEvent(consignmentRef, s"/consignment/$consignmentId/metadata-review/request")
+      val expectedPath = s"/consignment/$consignmentId/metadata-review/request"
+
+      // Custom ArgumentMatcher to match the event based on the consignment reference and the path
+      class MetadataReviewSubmittedEventMatcher(expectedConsignmentRef: String, expectedPath: String) extends ArgumentMatcher[MetadataReviewSubmittedEvent] {
+        override def matches(event: MetadataReviewSubmittedEvent): Boolean = {
+          event.consignmentReference == expectedConsignmentRef && event.urlLink.contains(expectedPath)
+        }
+      }
+
+      val metadataReviewDecisionEventMatcher = new MetadataReviewSubmittedEventMatcher(consignmentRef, expectedPath)
+
       setUpdateConsignmentStatus(wiremockServer)
 
       val reviewSubmit = controller.submitReview(consignmentId, consignmentRef).apply(FakeRequest().withFormUrlEncodedBody(("status", CompletedValue.value)).withCSRFToken)
       playStatus(reviewSubmit) mustBe SEE_OTHER
       redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review"))
-      verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(metadataReviewDecisionEvent)
+      verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(argThat(metadataReviewDecisionEventMatcher))
     }
 
     "display errors when an invalid form is submitted" in {
