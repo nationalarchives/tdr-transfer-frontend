@@ -58,7 +58,7 @@ class MetadataReviewActionController @Inject() (
         messagingService.sendMetadataReviewSubmittedNotification(
           MetadataReviewSubmittedEvent(
             consignmentReference = consignmentRef,
-            urlLink = routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId).url
+            urlLink = generateUrlLink(request, routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId).url)
           )
         )
         Redirect(routes.MetadataReviewController.metadataReviews())
@@ -104,6 +104,11 @@ class MetadataReviewActionController @Inject() (
       isRequired = true,
       errors.toList
     )
+  }
+
+  private def generateUrlLink(request: Request[AnyContent], route: String): String = {
+    val baseUrl = if (request.secure) "https" else "http"
+    baseUrl + "://" + request.host + route
   }
 }
 
