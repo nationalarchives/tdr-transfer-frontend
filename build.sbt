@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.172",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.207",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.379",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.380",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.39",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.196",
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.196",
@@ -60,9 +60,9 @@ libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.0.0"
 libraryDependencies += "org.dhatim" % "fastexcel" % "0.18.0"
 libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.18.0"
 
-pipelineStages := Seq(digest)
-
 excludeDependencies ++= Seq(
   ExclusionRule(organization = "com.typesafe.akka"),
   ExclusionRule(organization = "com.typesafe.play")
 )
+
+pipelineStages := Seq(digest)

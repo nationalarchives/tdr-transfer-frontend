@@ -1,0 +1,90 @@
+@import controllers.util.DropdownField
+@import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
+@import helper._
+@import views.html.partials.{backLink, errorSummary, inputDropdown}
+
+@import java.util.UUID
+@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, dropdownField: DropdownField)(implicit request: RequestHeader, messages: Messages)
+    @main("View Request for Metadata", hasError = dropdownField.fieldErrors.nonEmpty, backLink = Some(backLink(routes.MetadataReviewController.metadataReviews().url, "Back")), isTnaUser = true) {
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <h1 class="govuk-heading-l govuk-!-margin-bottom-3">
+                    View request for @consignmentDetails.consignmentReference
+                </h1>
+
+                @errorSummary(
+                    if(dropdownField.fieldErrors.nonEmpty) {
+                        List(dropdownField.fieldId -> dropdownField.fieldErrors)
+                    } else {
+                        Nil
+                    }
+                )
+
+                <dl class="govuk-summary-list">
+                    <div class="govuk-summary-list__row">
+                        <dt class="govuk-summary-list__key">
+                            Department
+                        </dt>
+                        <dd class="govuk-summary-list__value">
+                        @consignmentDetails.transferringBodyName
+                        </dd>
+                    </div>
+                    <div class="govuk-summary-list__row">
+                        <dt class="govuk-summary-list__key">
+                            Series
+                        </dt>
+                        <dd class="govuk-summary-list__value">
+                        @consignmentDetails.seriesName
+                        </dd>
+                    </div>
+                    <div class="govuk-summary-list__row">
+                        <dt class="govuk-summary-list__key">
+                            UserId
+                        </dt>
+                        <dd class="govuk-summary-list__value">
+                        @consignmentDetails.userid
+                        </dd>
+                    </div>
+                </dl>
+
+                <h2 class="govuk-label-wrapper">
+                    <label class="govuk-label govuk-label--m" for="download-metadata">
+                        1. Download and review transfer metadata
+                    </label>
+                </h2>
+
+                <a id="download-metadata" class="govuk-button govuk-button--secondary" href="/consignment/@consignmentId/additional-metadata/download-metadata/csv">
+                    Download Metadata</a>
+
+                <h2 class="govuk-label-wrapper">
+                    <label class="govuk-label govuk-label--m">
+                        2. Set the status of this review
+                    </label>
+                </h2>
+
+                @form(routes.MetadataReviewActionController.submitReview(consignmentId, consignmentDetails.consignmentReference), (Symbol("novalidate"), "")) {
+                    @CSRF.formField
+                    @inputDropdown(
+                        dropdownField.fieldId,
+                        dropdownField.fieldName,
+                        dropdownField.fieldDescription,
+                        dropdownField.options,
+                        dropdownField.selectedOption,
+                        dropdownField.multiValue,
+                        Map(
+                            Symbol("_dynamicForm") -> false,
+                        ),
+                        dropdownField.fieldErrors,
+                        "Select a status"
+                    )
+
+                    <div class="govuk-button-group">
+                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
+                        role="button">
+                            Submit
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
