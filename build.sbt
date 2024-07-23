@@ -66,8 +66,3 @@ excludeDependencies ++= Seq(
 )
 
 pipelineStages := Seq(digest)
-
-excludeDependencies ++= Seq(
-  ExclusionRule(organization = "com.typesafe.akka"),
-  ExclusionRule(organization = "com.typesafe.play")
-)
