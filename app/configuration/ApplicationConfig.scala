@@ -32,6 +32,4 @@ class ApplicationConfig @Inject() (configuration: Configuration) {
   val draftMetadataFileName: String = configuration.get[String]("draftMetadata.fileName")
 
   val notificationSnsTopicArn: String = get("notificationSnsTopicArn")
-
-  val fileChecksTotalTimoutInSeconds: Int = configuration.get[Int]("fileChecksTotalTimoutInSeconds")
 }
