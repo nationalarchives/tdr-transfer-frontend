@@ -56,8 +56,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       transferCompletePageAsString must include(
         """<p class="govuk-body">Your records are not yet preserved so you must not delete the original records.</p>""".stripMargin
       )
-      transferCompletePageAsString must include(downloadLinkHTML(consignmentId)
-      )
+      transferCompletePageAsString must include(downloadLinkHTML(consignmentId))
       transferCompletePageAsString must include(
         """<p class="govuk-body">We will contact you via email within 90 days. If you do not receive an email, contact <a href="mailto:nationalArchives.email">nationalArchives.email</a>.</p>"""
       )
