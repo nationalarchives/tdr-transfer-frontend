@@ -106,6 +106,8 @@ object Statuses {
       case SeriesType.id              => SeriesType
       case DescriptiveMetadataType.id => DescriptiveMetadataType
       case ClosureMetadataType.id     => ClosureMetadataType
+      case DraftMetadataType.id       => DraftMetadataType
+      case MetadataReviewType.id      => MetadataReviewType
       case _                          => UnrecognisedType
     }
   }
