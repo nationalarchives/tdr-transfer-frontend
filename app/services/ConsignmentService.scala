@@ -22,7 +22,7 @@ import graphql.codegen.GetConsignmentsForMetadataReview.{getConsignmentsForMetad
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => gfcp}
 import graphql.codegen.UpdateConsignmentSeriesId.updateConsignmentSeriesId
 import graphql.codegen.types._
-import graphql.codegen.{AddConsignment, GetConsignmentFilesMetadata}
+import graphql.codegen.{AddConsignment, GetConsignmentFilesMetadata, GetFileCheckProgress}
 import services.ApiErrorHandling._
 import services.ConsignmentService.{File, StatusTag}
 import uk.gov.nationalarchives.tdr.keycloak.Token
