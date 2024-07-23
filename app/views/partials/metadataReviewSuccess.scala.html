@@ -1,0 +1,25 @@
+@import java.util.UUID
+@(consignmentId: UUID)
+<div class="da-alert da-alert--success da-alert--with-icon">
+    <div class="da-alert__icon">
+        <div aria-hidden="true"><svg class="da-icon da-icon--xl" viewBox="0 0 13 10" xmlns="http://www.w3.org/2000/svg" focusable="false" fill="currentColor" role="img" title="da-icon-check">
+            <path d="M14.35,3.9l-.71-.71a.5.5,0,0,0-.71,0h0L5.79,10.34,3.07,7.61a.51.51,0,0,0-.71,0l-.71.71a.51.51,0,0,0,0,.71l3.78,3.78a.5.5,0,0,0,.71,0h0L14.35,4.6A.5.5,0,0,0,14.35,3.9Z" transform="translate(-1.51 -3.04)"></path>
+        </svg></div>
+    </div>
+    <div class="da-alert__content">
+        <h2 class="da-alert__heading">You can now complete your transfer</h2>
+        <p>
+            The metadata you submitted has been reviewed and no issues were found.
+        </p>
+    </div>
+</div>
+
+<p class="govuk-body">
+    You can now continue to confirm your transfer.
+</p>
+
+<div class="govuk-button-group">
+    <a class="govuk-button" href="@routes.ConfirmTransferController.confirmTransfer(consignmentId)" role="button" draggable="false" data-module="govuk-button">
+        Continue
+    </a>
+</div>

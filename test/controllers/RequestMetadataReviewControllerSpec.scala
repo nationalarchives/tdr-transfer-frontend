@@ -6,10 +6,12 @@ import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfigura
 import org.mockito.Mockito.{times, verify, when}
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.matchers.should.Matchers._
+import play.api.Play.materializer
 import play.api.Configuration
 import play.api.http.Status.OK
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
+import play.api.test.CSRFTokenHelper._
 import services.MessagingService.MetadataReviewRequestEvent
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
@@ -48,7 +50,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
       val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val content = controller
         .requestMetadataReviewPage(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/request"))
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/request").withCSRFToken)
 
       val requestMetadataReviewPageAsString = contentAsString(content)
 
@@ -56,14 +58,13 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
       contentType(content) mustBe Some("text/html")
       requestMetadataReviewPageAsString must include("<title>Request a metadata review - Transfer Digital Records - GOV.UK</title>")
       requestMetadataReviewPageAsString must include(s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" class="govuk-back-link">Back</a>""")
+      requestMetadataReviewPageAsString must include(s"""<form action="/consignment/$consignmentId/metadata-review/request" method="POST" novalidate="">""")
       requestMetadataReviewPageAsString must include(
-        s"""
-          |          <div class="govuk-button-group">
-          |            <a href="/consignment/$consignmentId/metadata-review/submit-request" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
-          |              Submit metadata for review
-          |            </a>
-          |          </div>
-          |""".stripMargin
+        s"""<div class="govuk-button-group">
+           |              <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+           |                Submit metadata for review
+           |              </button>
+           |            </div>""".stripMargin
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(requestMetadataReviewPageAsString, userType = "standard")
@@ -101,21 +102,20 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
     "add status, send metadata review request notification and render the metadata review page" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentSummaryResponse(wiremockServer, transferringBodyName = "Mock".some, consignmentReference = "TDR-2024")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setAddConsignmentStatusResponse(wiremockServer)
+      setUpdateConsignmentStatus(wiremockServer)
 
       val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val content = controller
         .submitMetadataForReview(consignmentId)
-        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/submit-request"))
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/metadata-review/submit-request"))
 
-      val requestMetadataReviewPageAsString = contentAsString(content)
+      playStatus(content) mustBe SEE_OTHER
+      redirectLocation(content).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
 
       val metadataReviewRequestEvent = MetadataReviewRequestEvent("Mock".some, "TDR-2024", consignmentId.toString, "c140d49c-93d0-4345-8d71-c97ff28b947e", "test@example.com")
       verify(messagingService, times(1)).sendMetadataReviewRequestNotification(metadataReviewRequestEvent)
-
-      playStatus(content) mustBe OK
-      contentType(content) mustBe Some("text/html")
-      requestMetadataReviewPageAsString must include("<title>Metadata review - Transfer Digital Records - GOV.UK</title>")
     }
 
     "return forbidden if the page is accessed by a judgment user" in {
