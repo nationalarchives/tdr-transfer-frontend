@@ -2,7 +2,6 @@ package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
-import com.github.tomakehurst.wiremock.stubbing.Scenario
 import configuration.GraphQLConfiguration
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.GetFileCheckProgress.{getFileCheckProgress => fileCheck}
@@ -100,13 +99,9 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         val filesProcessedWithChecksum = 12
         val filesProcessedWithFFID = 8
         val dataString: String = progressData(filesProcessedWithAntivirus, filesProcessedWithChecksum, filesProcessedWithFFID, allChecksSucceeded = false)
+
         val uploadStatus = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), UploadType.id, CompletedValue.value, someDateTime, None))
-        if (userType == "judgment") {
-          val dataString2: String = progressData(40, 40, 40, allChecksSucceeded = true)
-          mockGetFileCheckProgressWithMultipleResults(dataString, dataString2, userType)
-        } else {
-          mockGetFileCheckProgress(dataString, userType)
-        }
+        mockGetFileCheckProgress(dataString, userType)
         setConsignmentReferenceResponse(wiremockServer)
         setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = uploadStatus)
 
@@ -132,36 +127,35 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
         val fileChecksPageAsString = contentAsString(fileChecksPage)
 
-        if (userType == "judgment") {
-          playStatus(fileChecksPage) mustBe SEE_OTHER
-          redirectLocation(fileChecksPage) must be(Some(s"/judgment/$consignmentId/file-checks-results"))
-        } else {
-          playStatus(fileChecksPage) mustBe OK
-          contentType(fileChecksPage) mustBe Some("text/html")
-          headers(fileChecksPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
+        playStatus(fileChecksPage) mustBe OK
+        contentType(fileChecksPage) mustBe Some("text/html")
+        headers(fileChecksPage) mustBe TreeMap("Cache-Control" -> "no-store, must-revalidate")
 
-          checkPageForStaticElements.checkContentOfPagesThatUseMainScala(fileChecksPageAsString, userType = userType)
-          fileChecksPageAsString must include(expectedTitle)
-          fileChecksPageAsString must include(expectedHeading)
-          fileChecksPageAsString must include(expectedInstruction)
+        checkPageForStaticElements.checkContentOfPagesThatUseMainScala(fileChecksPageAsString, userType = userType)
+        fileChecksPageAsString must include(expectedTitle)
+        fileChecksPageAsString must include(expectedHeading)
+        fileChecksPageAsString must include(expectedInstruction)
+        if (userType == "judgment") {
+          fileChecksPageAsString must include("""<input id="consignmentId" type="hidden" value="b5bbe4d6-01a7-4305-99ef-9fce4a67917a">""")
+        } else {
           fileChecksPageAsString must include(
             """            <p class="govuk-body govuk-!-margin-bottom-7">For more information on these checks, please see our
-                |                <a href="/faq#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> for this service.
-                |            </p>""".stripMargin
+            |                <a href="/faq#progress-checks" target="_blank" rel="noopener noreferrer" class="govuk-link">FAQ (opens in new tab)</a> for this service.
+            |            </p>""".stripMargin
           )
           fileChecksPageAsString must include(
             """                <div class="govuk-notification-banner__header">
-                |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-                |                        Important
-                |                    </h2>
-                |                </div>
-                |                <div class="govuk-notification-banner__content">
-                |                    <p class="govuk-notification-banner__heading">Your records have been checked</p>
-                |                    <p class="govuk-body">Please click 'Continue' to see your results.</p>
-                |                </div>""".stripMargin
+            |                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+            |                        Important
+            |                    </h2>
+            |                </div>
+            |                <div class="govuk-notification-banner__content">
+            |                    <p class="govuk-notification-banner__heading">Your records have been checked</p>
+            |                    <p class="govuk-body">Please click 'Continue' to see your results.</p>
+            |                </div>""".stripMargin
           )
-          fileChecksPageAsString must include(expectedForm)
         }
+        fileChecksPageAsString must include(expectedForm)
       }
 
       s"return a redirect to the auth server with an unauthenticated $userType user" in {
@@ -505,27 +499,6 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       post(urlEqualTo("/graphql"))
         .withRequestBody(containing("getFileCheckProgress"))
         .willReturn(okJson(dataString))
-    )
-  }
-
-  private def mockGetFileCheckProgressWithMultipleResults(dataString: String, dataString2: String, userType: String) = {
-    setConsignmentTypeResponse(wiremockServer, userType)
-
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .inScenario("FileChecksController GET should render the judgment fileChecks page if the checks are incomplete")
-        .withRequestBody(containing("getFileCheckProgress"))
-        .whenScenarioStateIs(Scenario.STARTED)
-        .willReturn(okJson(dataString))
-        .willSetStateTo("Second call")
-    )
-
-    wiremockServer.stubFor(
-      post(urlEqualTo("/graphql"))
-        .inScenario("FileChecksController GET should render the judgment fileChecks page if the checks are incomplete")
-        .withRequestBody(containing("getFileCheckProgress"))
-        .whenScenarioStateIs("Second call")
-        .willReturn(okJson(dataString2))
     )
   }
 
