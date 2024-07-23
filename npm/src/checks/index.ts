@@ -19,23 +19,21 @@ export class Checks {
     isJudgmentUser: boolean,
     goToNextPage: (formId: string) => void
   ) => {
-    if (isJudgmentUser) {
-      goToNextPage("#continue-transfer")
-    } else {
-      const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
-        const fileChecksProgress: IFileCheckProgress | Error =
-            await getFileChecksProgress()
-        if (!isError(fileChecksProgress)) {
-          const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
-          if (checksCompleted) {
-            clearInterval(intervalId)
-            displayChecksCompletedBanner("file-checks")
-          }
-        } else {
-          return fileChecksProgress
+    const intervalId: ReturnType<typeof setInterval> = setInterval(async () => {
+      const fileChecksProgress: IFileCheckProgress | Error =
+        await getFileChecksProgress()
+      if (!isError(fileChecksProgress)) {
+        const checksCompleted = haveFileChecksCompleted(fileChecksProgress)
+        if (checksCompleted) {
+          clearInterval(intervalId)
+          isJudgmentUser
+            ? goToNextPage("#file-checks-form")
+            : displayChecksCompletedBanner("file-checks")
         }
-      }, 5000)
-    }
+      } else {
+        return fileChecksProgress
+      }
+    }, 5000)
   }
 
   updateDraftMetadataValidationProgress: () => void | Error = () => {

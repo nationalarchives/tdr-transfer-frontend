@@ -99,20 +99,6 @@ const mockDisplayChecksHaveCompletedBanner: () => void = () =>
         () => {}
     )
 
-test("'updateFileCheckProgress' calls goToNextPage for a judgment user without checks", async () => {
-  const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
-  mockGetCheckProgress.getConsignmentId.mockImplementation(
-      () => consignmentId
-  )
-
-  checks.updateFileCheckProgress(true, mockGoToNextPage)
-  await jest.runOnlyPendingTimers()
-
-  expect(mockGetCheckProgress.getFileChecksProgress).not.toHaveBeenCalled()
-  expect(haveFileChecksCompleted).not.toHaveBeenCalled()
-  expect(mockGoToNextPage).toHaveBeenCalled()
-})
-
 test("'updateFileCheckProgress' calls setInterval correctly", async () => {
   jest.spyOn(global, "setInterval")
   await checks.updateFileCheckProgress(false, mockGoToNextPage)
@@ -278,4 +264,59 @@ test("'updateDraftMetadataValidationProgress' shows a standard user, no banner a
 
   expect(hasDraftMetadataValidationCompleted).toBeCalled()
   expect(displayChecksCompletedBanner).not.toBeCalled()
+})
+
+test("'updateFileCheckProgress' calls goToNextPage for a judgment user, if all checks are complete", async () => {
+  const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
+  mockGetCheckProgress.getConsignmentId.mockImplementation(
+      () => consignmentId
+  )
+
+  mockGetFileChecksProgress("complete")
+
+  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
+      () => true
+  )
+
+  checks.updateFileCheckProgress(true, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+
+  expect(haveFileChecksCompleted).toBeCalled()
+  expect(mockGoToNextPage).toHaveBeenCalled()
+})
+
+test("'updateFileCheckProgress' does not call goToNextPage for a judgment user if the checks are in progress", async () => {
+  const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
+  mockGetCheckProgress.getConsignmentId.mockImplementation(
+      () => consignmentId
+  )
+  mockGetFileChecksProgress("inProgress")
+
+  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
+      () => false
+  )
+
+  checks.updateFileCheckProgress(true, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+
+  expect(haveFileChecksCompleted).toBeCalled()
+  expect(mockGoToNextPage).not.toHaveBeenCalled()
+})
+
+test("'updateFileCheckProgress' does not call goToNextPage for a judgment user if no file checks information is returned", async () => {
+  const consignmentId = "e25438db-4bfb-41c9-8fff-6f2e4cca6421"
+  mockGetCheckProgress.getConsignmentId.mockImplementation(
+      () => consignmentId
+  )
+  mockGetFileChecksProgress("noData")
+
+  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
+      () => false
+  )
+
+  checks.updateFileCheckProgress(true, mockGoToNextPage)
+  await jest.runOnlyPendingTimers()
+
+  expect(haveFileChecksCompleted).toBeCalled()
+  expect(mockGoToNextPage).not.toHaveBeenCalled()
 })

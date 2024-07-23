@@ -507,7 +507,7 @@ object ConsignmentStatusesOptions {
       generateStatuses(
         clientChecksCompleted ++ uploadCompleted ++ antivirusFailed
       ),
-      "/continue-transfer",
+      "/file-checks-results",
       "Failed",
       "View errors"
     ),
@@ -516,7 +516,7 @@ object ConsignmentStatusesOptions {
       generateStatuses(
         clientChecksCompleted ++ uploadCompleted ++ antivirusWithIssues
       ),
-      "/continue-transfer",
+      "/file-checks-results",
       "Failed",
       "View errors"
     ),
@@ -543,7 +543,7 @@ object ConsignmentStatusesOptions {
       generateStatuses(
         clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumFailed
       ),
-      "/continue-transfer",
+      "/file-checks-results",
       "Failed",
       "View errors"
     ),
@@ -552,7 +552,7 @@ object ConsignmentStatusesOptions {
       generateStatuses(
         clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumWithIssues
       ),
-      "/continue-transfer",
+      "/file-checks-results",
       "Failed",
       "View errors"
     ),
@@ -579,7 +579,7 @@ object ConsignmentStatusesOptions {
       generateStatuses(
         clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidFailed
       ),
-      "/continue-transfer",
+      "/file-checks-results",
       "Failed",
       "View errors"
     ),
@@ -588,7 +588,7 @@ object ConsignmentStatusesOptions {
       generateStatuses(
         clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidWithIssues
       ),
-      "/continue-transfer",
+      "/file-checks-results",
       "Failed",
       "View errors"
     ),
@@ -597,7 +597,7 @@ object ConsignmentStatusesOptions {
       generateStatuses(
         clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted
       ),
-      "/continue-transfer",
+      "/file-checks-results",
       "In Progress",
       "Resume transfer"
     ),
