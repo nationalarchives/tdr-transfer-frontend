@@ -1,7 +1,7 @@
 @import controllers.util.DropdownField
 @import graphql.codegen.GetConsignmentDetailsForMetadataReview.{getConsignmentDetailsForMetadataReview => gcdfmr}
 @import helper._
-@import views.html.partials.{backLink, errorSummary, inputDropdown}
+@import views.html.partials.{backLink, errorSummary, inputDropdown, downloadMetadataLink}
 
 @import java.util.UUID
 @(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, dropdownField: DropdownField)(implicit request: RequestHeader, messages: Messages)
@@ -53,8 +53,7 @@
                     </label>
                 </h2>
 
-                <a id="download-metadata" class="govuk-button govuk-button--secondary" href="/consignment/@consignmentId/additional-metadata/download-metadata/csv">
-                    Download Metadata</a>
+                @downloadMetadataLink(consignmentId)
 
                 <h2 class="govuk-label-wrapper">
                     <label class="govuk-label govuk-label--m">
