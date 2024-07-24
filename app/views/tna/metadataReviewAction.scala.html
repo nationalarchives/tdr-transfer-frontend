@@ -4,7 +4,7 @@
 @import views.html.partials.{backLink, errorSummary, inputDropdown, downloadMetadataLink}
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, dropdownField: DropdownField)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, email: String, dropdownField: DropdownField)(implicit request: RequestHeader, messages: Messages)
     @main("View Request for Metadata", hasError = dropdownField.fieldErrors.nonEmpty, backLink = Some(backLink(routes.MetadataReviewController.metadataReviews().url, "Back")), isTnaUser = true) {
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
@@ -39,10 +39,10 @@
                     </div>
                     <div class="govuk-summary-list__row">
                         <dt class="govuk-summary-list__key">
-                            UserId
+                            Contact email
                         </dt>
                         <dd class="govuk-summary-list__value">
-                        @consignmentDetails.userid
+                        @email
                         </dd>
                     </div>
                 </dl>

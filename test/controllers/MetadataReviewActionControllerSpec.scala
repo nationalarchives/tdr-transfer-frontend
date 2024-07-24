@@ -46,12 +46,11 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
   "MetadataReviewActionController GET" should {
 
-    "render the correct series details page with an authenticated user" in {
+    "render the correct metadata details page with an authenticated user" in {
       setGetConsignmentDetailsForMetadataReviewResponse()
 
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
       val metadataReviewActionPage = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
-
       val metadataReviewActionPageAsString = contentAsString(metadataReviewActionPage)
 
       playStatus(metadataReviewActionPage) mustBe OK
@@ -174,10 +173,10 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       |                        SeriesName
       |                        </dd>""".stripMargin)
     pageAsString must include(s"""<dt class="govuk-summary-list__key">
-      |                            UserId
+      |                            Contact email
       |                        </dt>
       |                        <dd class="govuk-summary-list__value">
-      |                        $userId
+      |                        email@test.com
       |                        </dd>""".stripMargin)
     pageAsString must include("""1. Download and review transfer metadata""")
     pageAsString must include(downloadLinkHTML(consignmentId))

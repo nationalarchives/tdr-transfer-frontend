@@ -76,11 +76,13 @@ class MetadataReviewActionController @Inject() (
   ): Future[Result] = {
     for {
       consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
+      userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
     } yield {
       status(
         views.html.tna.metadataReviewAction(
           consignmentId,
           consignment,
+          userDetails.email,
           createDropDownField(List(InputNameAndValue("Approve", CompletedValue.value), InputNameAndValue("Reject", CompletedWithIssuesValue.value)), form)
         )
       )
