@@ -74,23 +74,27 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "Update the consignment status and send metadata decision message when a valid form is submitted and the api response is successful" in {
+    "Update the consignment status and send MetadataReviewSubmittedEvent message when a valid form is submitted and the api response is successful" in {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
       val consignmentRef = "TDR-TEST-2024"
-      val expectedPath = s"/consignment/$consignmentId/metadata-review/request"
+      val userEmail = "test@test.com"
+      val status = CompletedValue.value
+      val expectedPath = s"/consignment/$consignmentId/metadata-review/review-progress"
 
-      // Custom ArgumentMatcher to match the event based on the consignment reference and the path
-      class MetadataReviewSubmittedEventMatcher(expectedConsignmentRef: String, expectedPath: String) extends ArgumentMatcher[MetadataReviewSubmittedEvent] {
+      // Custom ArgumentMatcher to match the event based on the consignment reference, path, userEmail and status
+      class MetadataReviewSubmittedEventMatcher(expectedConsignmentRef: String, expectedPath: String, expectedEmail: String, expectedStatus: String)
+          extends ArgumentMatcher[MetadataReviewSubmittedEvent] {
         override def matches(event: MetadataReviewSubmittedEvent): Boolean = {
-          event.consignmentReference == expectedConsignmentRef && event.urlLink.contains(expectedPath)
+          event.consignmentReference == expectedConsignmentRef && event.urlLink.contains(expectedPath) && event.userEmail == expectedEmail && event.status == expectedStatus
         }
       }
 
-      val metadataReviewDecisionEventMatcher = new MetadataReviewSubmittedEventMatcher(consignmentRef, expectedPath)
+      val metadataReviewDecisionEventMatcher = new MetadataReviewSubmittedEventMatcher(consignmentRef, expectedPath, userEmail, status)
 
       setUpdateConsignmentStatus(wiremockServer)
 
-      val reviewSubmit = controller.submitReview(consignmentId, consignmentRef).apply(FakeRequest().withFormUrlEncodedBody(("status", CompletedValue.value)).withCSRFToken)
+      val reviewSubmit =
+        controller.submitReview(consignmentId, consignmentRef, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
       playStatus(reviewSubmit) mustBe SEE_OTHER
       redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review"))
       verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(argThat(metadataReviewDecisionEventMatcher))
@@ -99,8 +103,9 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     "display errors when an invalid form is submitted" in {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
       val consignmentRef = "TDR-TEST-2024"
-      val metadataReviewDecisionEvent = MetadataReviewSubmittedEvent(consignmentRef, "SomeUrl")
-      val reviewSubmit = controller.submitReview(consignmentId, consignmentRef).apply(FakeRequest().withFormUrlEncodedBody(("status", "")).withCSRFToken)
+      val userEmail = "test@test.com"
+      val metadataReviewDecisionEvent = MetadataReviewSubmittedEvent(consignmentRef, "SomeUrl", userEmail, "status")
+      val reviewSubmit = controller.submitReview(consignmentId, consignmentRef, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", "")).withCSRFToken)
       setUpdateConsignmentStatus(wiremockServer)
       setGetConsignmentDetailsForMetadataReviewResponse()
       playStatus(reviewSubmit) mustBe BAD_REQUEST
@@ -181,7 +186,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     pageAsString must include("""1. Download and review transfer metadata""")
     pageAsString must include(downloadLinkHTML(consignmentId))
     pageAsString must include("""2. Set the status of this review""")
-    pageAsString must include(s"""<form action="/admin/metadata-review/$consignmentId?consignmentRef=TDR-2024-TEST" method="POST" novalidate="">""")
+    pageAsString must include(s"""<form action="/admin/metadata-review/$consignmentId?consignmentRef=TDR-2024-TEST&amp;userEmail=email%40test.com" method="POST" novalidate="">""")
     pageAsString must include(s"""<option value="" selected>
      |                    Select a status
      |                </option>""".stripMargin)
