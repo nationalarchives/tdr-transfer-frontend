@@ -1,6 +1,6 @@
-@import views.html.partials.{feedbackSurvey, returnToHomepage}
-
+@import views.html.partials.{feedbackSurvey, returnToHomepage, downloadMetadataLink}
 @import java.util.UUID
+
 @(consignmentId: UUID, consignmentReference: String, name: String)(implicit messages: Messages, request: RequestHeader)
     @main("Transfer complete", name = name) {
         @defining(play.core.PlayVersion.current) { version =>
@@ -22,7 +22,7 @@
                     <p class="govuk-body">Your records are not yet preserved so you must not delete the original records.</p>
 
                     <p class="govuk-body">
-                        Download a <a href="@routes.DownloadMetadataController.downloadMetadataCsv(consignmentId)">CSV of your records and metadata</a>.
+                    @downloadMetadataLink(consignmentId)
                     </p>
 
                     <h2 class="govuk-heading-m govuk-!-margin-top-2">What happens next</h2>

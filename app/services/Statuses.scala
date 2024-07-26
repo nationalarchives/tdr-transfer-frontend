@@ -10,7 +10,7 @@ import java.util.UUID
 object Statuses {
 
   val SEQUENCE: Seq[StatusType] =
-    Seq(SeriesType, TransferAgreementType, UploadType, ClientChecksType, MetadataType, DTAReviewType, ConfirmTransferType)
+    Seq(SeriesType, TransferAgreementType, UploadType, ClientChecksType, MetadataType, MetadataReviewType, ConfirmTransferType)
 
   sealed trait StatusType {
     val id: String
@@ -128,10 +128,10 @@ object Statuses {
       )
     }
   }
-
-  case object DTAReviewType extends StatusType with PageCorrelating {
-    val id: String = "DTAReview"
-    override val nonJudgmentStatus: Boolean = true
+  
+  case object MetadataReviewType extends StatusType with PageCorrelating {
+    val id: String = "MetadataReview"
+    val nonJudgmentStatus: Boolean = true
     lazy val baseRoute: UUID => Call = ???
   }
 
@@ -163,7 +163,7 @@ object Statuses {
       case DescriptiveMetadataType.id => DescriptiveMetadataType
       case ClosureMetadataType.id     => ClosureMetadataType
       case DraftMetadataType.id       => DraftMetadataType
-      case DTAReviewType.id           => DTAReviewType
+      case MetadataReviewType.id      => MetadataReviewType
       case _                          => UnrecognisedType
     }
   }

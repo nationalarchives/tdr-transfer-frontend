@@ -5,20 +5,7 @@ import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Results.Redirect
-import services.Statuses.{
-  ClientChecksType,
-  CompletedValue,
-  CompletedWithIssuesValue,
-  DTAReviewType,
-  InProgressValue,
-  MetadataType,
-  PageCorrelating,
-  SeriesType,
-  StatusType,
-  StatusValue,
-  TransferAgreementType,
-  UploadType
-}
+import services.Statuses.{ClientChecksType, CompletedValue, CompletedWithIssuesValue, InProgressValue, MetadataReviewType, MetadataType, PageCorrelating, SeriesType, StatusType, StatusValue, TransferAgreementType, UploadType}
 
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -41,7 +28,7 @@ class StatusControlPOCSpec extends AnyWordSpec with MockitoSugar {
 
   "A status aware controller with the DTA review page status" should {
     val controller =
-      new TestController with StatusAware { val pageStatus: StatusType with PageCorrelating = DTAReviewType }
+      new TestController with StatusAware { val pageStatus: StatusType with PageCorrelating = MetadataReviewType }
 
     "redirect to the transfer agreement type base route when only series type has been completed" in {
       val recordedStatuses = toDummyConsignmentStatuses(Map(SeriesType -> CompletedValue))
@@ -82,15 +69,15 @@ class StatusControlPOCSpec extends AnyWordSpec with MockitoSugar {
     val controller =
       new TestController with StatusAware { val pageStatus: StatusType with PageCorrelating = MetadataType }
     "not be interactable when DTA review is in progress" in {
-      val recordedStatuses = toDummyConsignmentStatuses(Map(DTAReviewType -> InProgressValue))
+      val recordedStatuses = toDummyConsignmentStatuses(Map(MetadataReviewType -> InProgressValue))
       controller.shouldBeInteractable(recordedStatuses) should equal(false)
     }
     "not be interactable when DTA review is completed" in {
-      val recordedStatuses = toDummyConsignmentStatuses(Map(DTAReviewType -> CompletedValue))
+      val recordedStatuses = toDummyConsignmentStatuses(Map(MetadataReviewType -> CompletedValue))
       controller.shouldBeInteractable(recordedStatuses) should equal(false)
     }
     "be interactable when DTA review has been rejected" in {
-      val recordedStatuses = toDummyConsignmentStatuses(Map(DTAReviewType -> CompletedWithIssuesValue))
+      val recordedStatuses = toDummyConsignmentStatuses(Map(MetadataReviewType -> CompletedWithIssuesValue))
       controller.shouldBeInteractable(recordedStatuses) should equal(true)
     }
     "be interactable when no DTA review status is present" in {
