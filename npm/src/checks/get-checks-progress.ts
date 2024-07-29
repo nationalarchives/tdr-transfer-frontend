@@ -83,9 +83,35 @@ export const getFileChecksProgress: () => Promise<
     )
 }
 
+export const getExportProgress: () => Promise<
+  Boolean | Error
+> = async () => {
+  const progress = await getProgress("export-progress")
+  if (!isError(progress)) {
+    console.log("progress >>>>>>>" + progress)
+    const response = progress as String
+    console.log("Resposnse >>>>>>>" + response)
+    return response === "InProgress" || response === "Failed" || response === "Completed"
+  } else
+    return Error(
+      `Failed to retrieve progress for file checks: ${progress.message}`
+    )
+}
+
+export const continueTransfer: () => Promise<
+  String | Error
+> = async () => {
+  const progress = await getProgress("continue-transfer")
+  if (isError(progress)) {
+    return Error(
+      `Failed to retrieve progress for file checks: ${progress.message}`
+    )
+    }
+}
+
 const getProgress: (
   progressEndpoint: string
-) => Promise<IProgress | Error> = async (progressEndpoint) => {
+) => Promise<String | IProgress | Error> = async (progressEndpoint) => {
   const consignmentId = getConsignmentId()
   if (!isError(consignmentId)) {
     const csrfInput: HTMLInputElement = document.querySelector(
@@ -109,7 +135,11 @@ const getProgress: (
     } else if (result.status != 200) {
       return Error(`Retrieving progress failed: ${result.statusText}`)
     } else {
-      return await result.json()
+      if (progressEndpoint === "export-progress") {
+        return await result.text()
+      } else {
+        return await result.json()
+      }
     }
   } else {
     return Error(`Failed to retrieve consignment id: ${consignmentId.message}`)
