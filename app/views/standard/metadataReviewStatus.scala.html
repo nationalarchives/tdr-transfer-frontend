@@ -1,18 +1,30 @@
 @import java.util.UUID
-@import views.html.partials.transferReference
-@import views.html.partials.backLink
-@(consignmentId: UUID, consignmentRef: String, name: String)(implicit messages: Messages, request: RequestHeader)
+@import views.html.partials.{metadataReviewInProgress, metadataReviewSuccess, metadataReviewFailure, transferReference}
+@import services.Statuses.{InProgressValue, CompletedValue, CompletedWithIssuesValue}
 
-@defining("Metadata review") { title =>
-  @main(title, name = name, backLink = Some(backLink(routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId).url, "Back"))) {
-    @defining(play.core.PlayVersion.current) { version =>
-      <<div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds-from-desktop">
+@(consignmentId: UUID, consignmentRef: String, name: String, email: String, DTAStatus: String)(implicit messages: Messages, request: RequestHeader)
 
-          <h1 class="govuk-heading-xl">@title</h1>
-        </div>
-        @transferReference(consignmentRef, isJudgmentUser = false)
-      </div>
+    @defining("Metadata review") { title =>
+        @main(title, name = name) {
+
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-two-thirds-from-desktop">
+
+                    <h1 class="govuk-heading-xl">@title</h1>
+
+                    @{
+                        DTAStatus match {
+                            case CompletedWithIssuesValue.value => metadataReviewFailure(consignmentId, email)
+                            case CompletedValue.value => metadataReviewSuccess(consignmentId)
+                            case InProgressValue.value => metadataReviewInProgress(consignmentId, consignmentRef, email)
+                            case _ => {
+                                    <h2>Error - cannot find status</h2>
+                            }
+                        }
+                    }
+                </div>
+                @transferReference(consignmentRef, isJudgmentUser = false)
+            </div>
+
+        }
     }
-  }
-}

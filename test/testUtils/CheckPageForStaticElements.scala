@@ -64,9 +64,11 @@ class CheckPageForStaticElements() {
                          |                <a class="govuk-link" href="/sign-out">Sign me out</a>
                          |            </div>
                          |        </dialog>""".stripMargin)
+    if (userType == "judgment" || userType == "tna") {
+      page must not include ("View transfers")
+    }
     if (userType == "judgment") {
       checkHeaderOfSignedInPagesForFeedbackLink(page, survey = "5YDPSA")
-      page must not include ("View transfers")
       page must include("""href="/judgment/faq">""")
       page must include("""href="/judgment/help">""")
       if (consignmentExists) {
