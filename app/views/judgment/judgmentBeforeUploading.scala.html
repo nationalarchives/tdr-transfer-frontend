@@ -1,4 +1,4 @@
-@import views.html.partials.{progressIndicator, transferReference}
+@import views.html.partials.transferReference
 
 @import java.util.UUID
 
@@ -7,7 +7,6 @@
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
-                @progressIndicator(Messages("beforeUploading.progress"), isJudgmentUser = true)
                 <h1 class="govuk-heading-l">Check your file before uploading</h1>
                 <p class="govuk-body">Your upload must contain the following information:</p>
                 <ul class="govuk-list">

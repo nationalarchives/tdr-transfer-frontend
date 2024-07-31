@@ -1,7 +1,7 @@
 @import java.util.UUID
 @import viewsapi.FormFunctions._
 @import helper.{inputRadioGroup => _, _}
-@import views.html.partials.{errorSummary, inputSingleCheckbox, progressIndicator}
+@import views.html.partials.{errorSummary, inputSingleCheckbox}
 
 @import views.html.partials.notificationBanner
 @(consignmentId: UUID, summary: ConsignmentSummaryData, finalTransferConfirmationForm: Form[FinalTransferConfirmationData], name: String)(implicit request: RequestHeader, messages: Messages)
@@ -10,8 +10,6 @@
 @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            @progressIndicator(Messages("confirmTransfer.progress"))
-
             <h1 class="govuk-heading-l">Confirm transfer</h1>
             @notificationBanner(
                 Messages("notification.savedProgress.title"),

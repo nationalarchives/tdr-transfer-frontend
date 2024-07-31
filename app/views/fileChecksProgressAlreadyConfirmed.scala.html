@@ -1,6 +1,6 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
-@import views.html.partials.{frontEndInputs, progressIndicator, transferReference}
+@import views.html.partials.{frontEndInputs, transferReference}
 
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String, isJudgmentUser: Boolean)(implicit messages: Messages, request: RequestHeader)
 @title = @{if(isJudgmentUser){"Checking your upload"} else {"Checking your records"}}
@@ -8,11 +8,6 @@
     @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row file-check-progress">
         <div class="govuk-grid-column-two-thirds">
-            @if(isJudgmentUser) {
-                @progressIndicator(Messages("judgmentCheckingRecords.progress"), isJudgmentUser)
-            } else {
-                @progressIndicator(Messages("checkingRecords.progress"), isJudgmentUser)
-            }
             @frontEndInputs(frontEndInfo)
             <h1 class="govuk-heading-l">@title</h1>
             <input id="consignmentId" type="hidden" value="@consignmentId">
