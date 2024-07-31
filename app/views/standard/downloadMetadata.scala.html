@@ -1,5 +1,5 @@
 @import java.util.UUID
-@import views.html.partials.{progressIndicator, transferReference}
+@import views.html.partials.transferReference
 @import views.html.partials.notificationBanner
 @import views.html.partials.backLink
 @(consignmentId: UUID, consignmentRef: String, name: String, blockMetadataReview: Boolean)(implicit messages: Messages, request: RequestHeader)
@@ -8,7 +8,6 @@
   @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("downloadMetadata.progress"))
       <h1 class="govuk-heading-l">Download and review metadata</h1>
       <div class="download-metadata">
         @notificationBanner(
