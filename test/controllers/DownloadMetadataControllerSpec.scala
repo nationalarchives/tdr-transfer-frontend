@@ -128,22 +128,22 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
       rows.length must equal(3)
 
-      rows.head.getCell(0).asString must equal("UUID")
-      rows.head.getCell(1).asString must equal("Filepath")
-      rows.head.getCell(2).asString must equal("File Name")
-      rows.head.getCell(3).asString must equal("Date last modified")
-      rows.head.getCell(4).asString must equal("Date of the record")
-      rows.head.getCell(5).asString must equal("Description")
+      rows.head.getCell(0).asString must equal("Filepath")
+      rows.head.getCell(1).asString must equal("File Name")
+      rows.head.getCell(2).asString must equal("Date last modified")
+      rows.head.getCell(3).asString must equal("Date of the record")
+      rows.head.getCell(4).asString must equal("Description")
+      rows.head.getCell(5).asString must equal("UUID")
 
-      rows(1).getCell(0).asString must equal(uuid1)
-      rows(1).getCell(1).asString must equal("test/path1")
-      rows(1).getCell(2).asString must equal("FileName1")
-      rows(1).getCell(3).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
+      rows(1).getCell(0).asString must equal("test/path1")
+      rows(1).getCell(1).asString must equal("FileName1")
+      rows(1).getCell(2).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
+      rows(2).getCell(5).asString must equal(uuid2)
 
-      rows(2).getCell(0).asString must equal(uuid2)
-      rows(2).getCell(1).asString must equal("test/path2")
-      rows(2).getCell(2).asString must equal("FileName2")
-      rows(2).getCell(3).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
+      rows(2).getCell(0).asString must equal("test/path2")
+      rows(2).getCell(1).asString must equal("FileName2")
+      rows(2).getCell(2).asDate.toLocalDate.toString must equal(lastModified.format(DateTimeFormatter.ISO_DATE))
+      rows(2).getCell(5).asString must equal(uuid2)
 
     }
 

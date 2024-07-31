@@ -56,6 +56,10 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     consignmentTypeAction(consignmentId, "standard")(action)
   }
 
+  def tnaUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
+    createResult(action, request, request.token.isTNAUser)
+  }
+
   private def createResult(action: Request[AnyContent] => Future[Result], request: AuthenticatedRequest[AnyContent], isPermitted: Boolean) = {
     if (isPermitted) {
       action(request)

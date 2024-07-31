@@ -1,0 +1,40 @@
+@import java.util.UUID
+@import views.html.helper.form
+@import views.html.helper.CSRF
+@import views.html.partials.downloadMetadataLink
+
+@(consignmentId: UUID, email: String)(implicit request: RequestHeader)
+<div class="da-alert da-alert--error da-alert--with-icon">
+    <div class="da-alert__icon">
+        <div aria-hidden="true"><svg class="da-icon da-icon--xxl" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" focusable="false" fill="currentColor" role="img" title="da-icon-warning">
+            <g clip-path="url(#a)">
+                <path d="M11.5 0C17.851 0 23 5.149 23 11.5S17.851 23 11.5 23 0 17.851 0 11.5 5.149 0 11.5 0Zm0 2.3a9.2 9.2 0 1 0 0 18.4 9.2 9.2 0 0 0 0-18.4Z"></path>
+                <path d="M11.5 4c-.208 0-.414.046-.605.135-.19.09-.362.221-.502.385-.141.164-.248.358-.315.568-.066.21-.09.434-.072.655l.6 7.01a.982.982 0 0 0 .293.613.87.87 0 0 0 .602.246.87.87 0 0 0 .602-.246.982.982 0 0 0 .293-.612l.598-7.011a1.697 1.697 0 0 0-.072-.654 1.623 1.623 0 0 0-.314-.568 1.506 1.506 0 0 0-.502-.385A1.421 1.421 0 0 0 11.5 4Zm0 14c.35 0 .684-.148.93-.41.246-.263.385-.619.385-.99s-.139-.727-.385-.99a1.274 1.274 0 0 0-.93-.41c-.348 0-.682.148-.928.41a1.448 1.448 0 0 0-.385.99c0 .371.138.727.385.99.246.262.58.41.929.41Z"></path>
+            </g>
+            <defs>
+                <clipPath>
+                    <path fill="#fff" d="M0 0h23v23H0z"></path>
+                </clipPath>
+            </defs>
+        </svg>
+        </div>
+    </div>
+    <div class="da-alert__content">
+        <h2 class="da-alert__heading">We found issues in your metadata</h2>
+        <p>We have emailed guidance to <strong>@email</strong></p>
+    </div>
+</div>
+
+<p class="govuk-body">Follow the guidance to amend your metadata. You can download a copy of the metadata we reviewed below.</p>
+
+    @downloadMetadataLink(consignmentId)
+
+
+    @form(routes.MetadataReviewStatusController.metadataReviewActionRequired(consignmentId), (Symbol("novalidate"), "")) {
+        @CSRF.formField
+        <div class="govuk-button-group">
+            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                Continue
+            </button>
+        </div>
+    }
