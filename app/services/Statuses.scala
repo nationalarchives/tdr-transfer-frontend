@@ -18,7 +18,10 @@ object Statuses {
     lazy val dependencies: Set[StatusType] = SEQUENCE.takeWhile(s => s != this).toSet
   }
 
-  sealed trait PageCorrelating { val baseRoute: UUID => Call }
+  sealed trait PageCorrelating {
+    val baseRoute: UUID => Call
+    val valueBasedRoutes: Map[StatusValue, UUID => Call] = Map.empty[StatusValue, UUID => Call]
+  }
 
   sealed trait StatusValue {
     val value: String
@@ -132,7 +135,12 @@ object Statuses {
   case object MetadataReviewType extends StatusType with PageCorrelating {
     val id: String = "MetadataReview"
     val nonJudgmentStatus: Boolean = true
-    lazy val baseRoute: UUID => Call = ???
+    lazy val baseRoute: UUID => Call = routes.RequestMetadataReviewController.requestMetadataReviewPage
+    override val valueBasedRoutes: Map[StatusValue, UUID => Call] = Map(
+      InProgressValue -> routes.MetadataReviewStatusController.metadataReviewStatusPage,
+      CompletedWithIssuesValue -> routes.MetadataReviewStatusController.metadataReviewStatusPage,
+      CompletedValue -> routes.MetadataReviewStatusController.metadataReviewStatusPage
+    )
   }
 
   case object EnteredValue extends StatusValue { val value: String = "Entered" }

@@ -19,7 +19,8 @@ trait StatusAware {
       val (_, statusesAfterLastCompleted) = SEQUENCE.splitAt(SEQUENCE.indexOf(lastCompletedStatus) + 1)
       statusesAfterLastCompleted
         .collectFirst({ case status: PageCorrelating => status })
-        .map(a => Redirect(a.baseRoute(consignmentId)))
+        .map(a => a.valueBasedRoutes.getOrElse(statusValue(pageStatus)(recordedStatuses), a.baseRoute))
+        .map(route => Redirect(route(consignmentId)))
     }
     Option.when(!shouldBeAccessible(recordedStatuses))(redirect).flatten
   }
