@@ -250,7 +250,6 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
 
       playStatus(metadataReviewStatusPage) mustBe SEE_OTHER
       redirectLocation(metadataReviewStatusPage).get must equal(s"/consignment/$consignmentId/additional-metadata")
-
     }
   }
 

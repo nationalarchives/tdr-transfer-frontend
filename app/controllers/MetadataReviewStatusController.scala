@@ -5,7 +5,7 @@ import configuration.{ApplicationConfig, KeycloakConfiguration}
 import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, ConsignmentStatusService}
+import services.{ConsignmentService, ConsignmentStatusService, StatusAware}
 import services.Statuses._
 
 import java.util.UUID
