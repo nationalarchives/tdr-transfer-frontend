@@ -75,6 +75,7 @@ import play.api.test.Injecting
 import play.api.{Application, Configuration}
 import services.Statuses.{InProgressValue, SeriesType}
 import uk.gov.nationalarchives.tdr.GraphQLClient
+import uk.gov.nationalarchives.tdr.keycloak.KeycloakUtils.UserDetails
 import uk.gov.nationalarchives.tdr.keycloak.Token
 import viewsapi.FrontEndInfo
 
@@ -929,6 +930,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     accessToken.setEmail("test@example.com")
     val token = Token(accessToken, new BearerAccessToken)
     doAnswer(_ => Some(token)).when(keycloakMock).token(any[String])
+    when(keycloakMock.userDetails(any[String])).thenReturn(Future(UserDetails("email@test.com")))
     keycloakMock
   }
 
