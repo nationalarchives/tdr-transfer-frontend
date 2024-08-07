@@ -138,11 +138,11 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
       status(recordCheckResultsPage) mustBe 303
       redirectLocation(recordCheckResultsPage).get must be("/judgment/0a3f617c-04e8-41c2-9f24-99622a779528/transfer-complete")
     }
-    "render an error when there is an error from the api for judgment after file checks passed" in {
+    "render an error when export status is unknown value" in {
       val fileCheckResultsController = setUpFileChecksController("judgment", getValidJudgmentUserKeycloakConfiguration)
 
       // Export status not set
-      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Upload", "Completed", someDateTime, None))
+      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", "aaaa", someDateTime, None))
       setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)

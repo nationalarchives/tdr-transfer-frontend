@@ -1,16 +1,18 @@
 package controllers
 
 import auth.TokenSecurity
+import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.KeycloakConfiguration
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
 import services.MessagingService.TransferCompleteEvent
+import services.Statuses.{CompletedValue, ExportType, FailedValue, InProgressValue}
 import services.{ConsignmentService, MessagingService}
 
 import java.util.UUID
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class TransferCompleteController @Inject() (
     val controllerComponents: SecurityComponents,
