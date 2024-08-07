@@ -57,10 +57,10 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
   val checkPageForStaticElements = new CheckPageForStaticElements
 
   def initialiseFileChecks(
-                            keycloakConfiguration: KeycloakConfiguration,
-                            controllerComponents: SecurityComponents = getAuthorisedSecurityComponents,
-                            backendChecksService: Option[BackendChecksService] = None
-                          ): FileChecksController = {
+      keycloakConfiguration: KeycloakConfiguration,
+      controllerComponents: SecurityComponents = getAuthorisedSecurityComponents,
+      backendChecksService: Option[BackendChecksService] = None
+  ): FileChecksController = {
 
     val wsClient = mock[WSClient]
     val config = mock[Configuration]
@@ -223,7 +223,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
                                                                                  href="/$pathName/$consignmentId/file-checks">
         Continue"""
-          )
+        )
       }
 
       s"render the $userType file checks complete page if the file checks are complete and all checks are not successful" in {
@@ -252,7 +252,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
           s"""                <a role="button" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button"
                                                                                  href="/$pathName/$consignmentId/file-checks">
         Continue"""
-          )
+        )
       }
 
       s"render the $userType error page if the user upload fails and ensure consignment status is updated" in {
@@ -519,12 +519,12 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
   }
 
   private def progressData(
-                            filesProcessedWithAntivirus: Int,
-                            filesProcessedWithChecksum: Int,
-                            filesProcessedWithFFID: Int,
-                            allChecksSucceeded: Boolean,
-                            fileStatusList: List[String] = List("Success")
-                          ): String = {
+      filesProcessedWithAntivirus: Int,
+      filesProcessedWithChecksum: Int,
+      filesProcessedWithFFID: Int,
+      allChecksSucceeded: Boolean,
+      fileStatusList: List[String] = List("Success")
+  ): String = {
     val client = new GraphQLConfiguration(app.configuration).getClient[fileCheck.Data, fileCheck.Variables]()
     val antivirusProgress = fileCheck.GetConsignment.FileChecks.AntivirusProgress(filesProcessedWithAntivirus)
     val checksumProgress = fileCheck.GetConsignment.FileChecks.ChecksumProgress(filesProcessedWithChecksum)
