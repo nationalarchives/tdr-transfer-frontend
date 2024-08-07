@@ -1,7 +1,9 @@
 const mockGetCheckProgress = {
   getFileChecksProgress: jest.fn(),
+  getTransferProgress: jest.fn(),
   getDraftMetadataValidationProgress: jest.fn(),
-  getConsignmentId: jest.fn()
+  getConsignmentId: jest.fn(),
+  continueTransfer: jest.fn()
 }
 
 const mockVerifyChecksHaveCompleted = {
@@ -78,6 +80,19 @@ const typesOfProgress: {
     totalFiles: 2
   }
 }
+const typesOfTransferProgress: {
+  [key: string]: {} | null
+} = {
+  noData: null,
+  inProgress: {
+    fileChecksStatus: "InProgress",
+    exportStatus: ""
+  },
+  complete: {
+    fileChecksStatus: "Completed",
+    exportStatus: "InProgress"
+  }
+}
 const checks = new Checks()
 
 const mockGetDraftMetadataValidationProgress: (progressType: string) => void = (progressType) => {
@@ -91,6 +106,15 @@ const mockGetFileChecksProgress: (progressType: string) => void = (
 ) => {
   mockGetCheckProgress.getFileChecksProgress.mockImplementation(
       (_) => typesOfProgress[progressType]
+  )
+}
+
+const mockTransferProgress: (progressType: string) => void = (
+    progressType: string
+) => {
+  mockGetCheckProgress.continueTransfer.mockImplementation()
+  mockGetCheckProgress.getTransferProgress.mockImplementation(
+      (_) => typesOfTransferProgress[progressType]
   )
 }
 
@@ -272,16 +296,11 @@ test("'updateFileCheckProgress' calls goToNextPage for a judgment user, if all c
       () => consignmentId
   )
 
-  mockGetFileChecksProgress("complete")
-
-  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
-      () => true
-  )
+  mockTransferProgress("complete")
 
   checks.updateFileCheckProgress(true, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toBeCalled()
   expect(mockGoToNextPage).toHaveBeenCalled()
 })
 
@@ -290,17 +309,12 @@ test("'updateFileCheckProgress' does not call goToNextPage for a judgment user i
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
   )
-  mockGetFileChecksProgress("inProgress")
-
-  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
-      () => false
-  )
+  mockTransferProgress("inProgress")
 
   checks.updateFileCheckProgress(true, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toBeCalled()
-  expect(mockGoToNextPage).not.toHaveBeenCalled()
+  expect(mockGoToNextPage).toHaveBeenCalled()
 })
 
 test("'updateFileCheckProgress' does not call goToNextPage for a judgment user if no file checks information is returned", async () => {
@@ -308,15 +322,10 @@ test("'updateFileCheckProgress' does not call goToNextPage for a judgment user i
   mockGetCheckProgress.getConsignmentId.mockImplementation(
       () => consignmentId
   )
-  mockGetFileChecksProgress("noData")
-
-  mockVerifyChecksHaveCompleted.haveFileChecksCompleted.mockImplementation(
-      () => false
-  )
+  mockTransferProgress("noData")
 
   checks.updateFileCheckProgress(true, mockGoToNextPage)
   await jest.runOnlyPendingTimers()
 
-  expect(haveFileChecksCompleted).toBeCalled()
   expect(mockGoToNextPage).not.toHaveBeenCalled()
 })
