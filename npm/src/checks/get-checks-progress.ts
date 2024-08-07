@@ -19,6 +19,11 @@ export interface IDraftMetadataValidationProgress extends IProgress {
   progressStatus: string | undefined
 }
 
+export interface ITransferProgress extends IProgress {
+  fileChecksStatus: string | undefined
+  exportStatus: string | undefined
+}
+
 export const getConsignmentId: () => string | Error = () => {
   const consignmentIdElement: HTMLInputElement | null =
     document.querySelector("#consignmentId")
@@ -81,6 +86,30 @@ export const getFileChecksProgress: () => Promise<
     return Error(
       `Failed to retrieve progress for file checks: ${progress.message}`
     )
+}
+
+export const getTransferProgress: () => Promise<Boolean | Error> = async () => {
+  const progress = await getProgress("transfer-progress")
+  if (!isError(progress)) {
+    const transferProgress = progress as ITransferProgress
+    return (
+      transferProgress.fileChecksStatus === "CompletedWithIssues" ||
+      (transferProgress.fileChecksStatus === "Completed" &&
+        transferProgress.exportStatus !== undefined)
+    )
+  } else
+    return Error(
+      `Failed to retrieve progress for file checks: ${progress.message}`
+    )
+}
+
+export const continueTransfer: () => Promise<String | Error> = async () => {
+  const progress = await getProgress("continue-transfer")
+  if (isError(progress)) {
+    return Error(
+      `Failed to retrieve progress for file checks: ${progress.message}`
+    )
+  }
 }
 
 const getProgress: (
