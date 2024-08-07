@@ -1,4 +1,4 @@
-@(consignmentRef: String, isJudgmentUser: Boolean)
+@(consignmentRef: String, isJudgmentUser: Boolean)(implicit request: RequestHeader, messages: Messages)
 <div class="govuk-grid-column-one-third">
     <details open class="govuk-details" data-module="govuk-details">
         <summary class="govuk-details__summary">
@@ -14,4 +14,10 @@
             @consignmentRef
         </div>
     </details>
+    @if(isJudgmentUser){
+        <h4 class="govuk-heading-s">Problems with your transfer?</h4>
+        <p class="govuk-body">Email us and include the transfer reference:
+            <a href="mailto:@Messages("nationalArchives.email")" class="govuk-link">@Messages("nationalArchives.email")</a>
+        </p>
+    }
 </div>

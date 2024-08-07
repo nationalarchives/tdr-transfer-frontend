@@ -76,6 +76,9 @@ class CheckPageForStaticElements() {
 
         if (transferStillInProgress) {
           page must include("Transfer reference")
+          page must include("Problems with your transfer?")
+          page must include("Email us and include the transfer reference:")
+          page must include("""<a href="mailto:tdr@nationalarchives.gov.uk" class="govuk-link">tdr@nationalarchives.gov.uk</a>""")
         }
       }
     } else if (userType == "standard") {

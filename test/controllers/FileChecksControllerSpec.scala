@@ -58,11 +58,16 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         (
           "judgment",
           getValidJudgmentUserKeycloakConfiguration,
-          "<title>Checking your upload - Transfer Digital Records - GOV.UK</title>",
-          """<h1 class="govuk-heading-l">Checking your upload""",
-          """            <p class="govuk-body">Your judgment is being checked for errors.
-            |              This may take a few minutes. Once your judgment has been checked, you will be redirected automatically.
-            |            </p>""".stripMargin,
+          "<title>Checking your document - Transfer Digital Records - GOV.UK</title>",
+          """<h1 class="govuk-heading-l">Checking your document""",
+          """            <p class="govuk-body">The following checks are now being performed:</p>
+            |            <ul class="govuk-list govuk-list--bullet">
+            |                <li>Document file format</li>
+            |                <li>Anti-virus scanning</li>
+            |                <li>Validating file integrity</li>
+            |            </ul>
+            |            <p class="govuk-body">This may take a few minutes. If your document has an unusually large number of pages or images it may take longer.</p>
+            |            <p class="govuk-body">Once your document has been checked, you will be redirected automatically.</p>""".stripMargin,
           s"""<form action="/judgment/$consignmentId/file-checks-results" method="GET" id="file-checks-form">""".stripMargin
         )
       } else {
