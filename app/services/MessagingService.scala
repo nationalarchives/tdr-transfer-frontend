@@ -52,6 +52,8 @@ object MessagingService {
   )
   case class MetadataReviewSubmittedEvent(
       consignmentReference: String,
-      urlLink: String
+      urlLink: String,
+      userEmail: String,
+      status: String
   )
 }
