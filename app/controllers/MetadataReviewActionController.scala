@@ -40,7 +40,7 @@ class MetadataReviewActionController @Inject() (
     getConsignmentMetadataDetails(consignmentId, request, Ok, selectedDecisionForm)
   }
 
-  def submitReview(consignmentId: UUID, consignmentRef: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
+  def submitReview(consignmentId: UUID, consignmentRef: String, userEmail: String): Action[AnyContent] = tnaUserAction { implicit request: Request[AnyContent] =>
     val formValidationResult: Form[SelectedStatusData] = selectedDecisionForm.bindFromRequest()
 
     val errorFunction: Form[SelectedStatusData] => Future[Result] = { formWithErrors: Form[SelectedStatusData] =>
@@ -57,8 +57,10 @@ class MetadataReviewActionController @Inject() (
       } yield {
         messagingService.sendMetadataReviewSubmittedNotification(
           MetadataReviewSubmittedEvent(
-            consignmentReference = consignmentRef,
-            urlLink = generateUrlLink(request, routes.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId).url)
+            consignmentRef,
+            urlLink = generateUrlLink(request, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url),
+            userEmail,
+            formData.statusId
           )
         )
         Redirect(routes.MetadataReviewController.metadataReviews())
@@ -76,11 +78,13 @@ class MetadataReviewActionController @Inject() (
   ): Future[Result] = {
     for {
       consignment <- consignmentService.getConsignmentDetailForMetadataReview(consignmentId, request.token.bearerAccessToken)
+      userDetails <- keycloakConfiguration.userDetails(consignment.userid.toString)
     } yield {
       status(
         views.html.tna.metadataReviewAction(
           consignmentId,
           consignment,
+          userDetails.email,
           createDropDownField(List(InputNameAndValue("Approve", CompletedValue.value), InputNameAndValue("Reject", CompletedWithIssuesValue.value)), form)
         )
       )
