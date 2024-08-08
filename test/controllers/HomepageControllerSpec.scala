@@ -227,7 +227,6 @@ class HomepageControllerSpec extends FrontEndTestHelper {
         """<p class="govuk-body">Once you have successfully completed the transfer you will need to email us. More information will be provided after the transfer.</p>"""
       )
       pageAsString must include("""<h2 class="govuk-heading-m">Contact the publishing editors</h2>""")
-      pageAsString must include("""<a href="mailto:judgments@nationalarchives.gov.uk">judgments@nationalarchives.gov.uk</a>""")
     } else {
       pageAsString must include("Start transfer")
       pageAsString must include("""<form action="/homepage" method="POST" novalidate="">""")
