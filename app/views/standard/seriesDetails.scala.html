@@ -1,6 +1,6 @@
 @import helper._
 @import viewsapi.FormFunctions._
-@import views.html.partials.{errorSummary, progressIndicator, transferReference}
+@import views.html.partials.{errorSummary, transferReference}
 
 @import java.util.UUID
 @import controllers.util.DropdownField
@@ -13,7 +13,6 @@ messages: Messages)
 
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-two-thirds">
-                    @progressIndicator(Messages("seriesDetails.progress"))
 
                 <h1 class="govuk-label-wrapper">
                     <label class="govuk-label govuk-label--l" for="@dropdownField.fieldId">@title</label>

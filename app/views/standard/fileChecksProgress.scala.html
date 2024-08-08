@@ -1,7 +1,7 @@
 @import java.util.UUID
 @import viewsapi.FrontEndInfo
 @import helper._
-@import views.html.partials.{frontEndInputs, progressIndicator, transferReference}
+@import views.html.partials.{frontEndInputs, transferReference}
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
 
 @main("Checking your records", name = name) {
@@ -9,7 +9,6 @@
     <div class="govuk-grid-row file-check-progress">
         <div class="govuk-grid-column-two-thirds">
 
-            @progressIndicator(Messages("checkingRecords.progress"))
             @frontEndInputs(frontEndInfo)
             <h1 class="govuk-heading-l">Checking your records</h1>
             <input id="consignmentId" type="hidden" value="@consignmentId">

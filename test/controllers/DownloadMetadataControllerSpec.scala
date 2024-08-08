@@ -188,7 +188,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(responseAsString, userType = "standard")
       responseAsString must include("""<svg""")
       responseAsString must include(
-        s"""<a class="govuk-button govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
+        s"""<a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
       )
       responseAsString must include(s"""<a class="govuk-button" href="/consignment/$consignmentId/confirm-transfer"""")
       responseAsString must include(s"""<a href="/consignment/$consignmentId/additional-metadata/entry-method"""")
@@ -205,7 +205,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(responseAsString, userType = "standard")
       responseAsString must include("""<svg""")
       responseAsString must include(
-        s"""<a class="govuk-button govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
+        s"""<a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">"""
       )
       responseAsString must include(s"""<a href="/consignment/$consignmentId/metadata-review/request"""")
     }

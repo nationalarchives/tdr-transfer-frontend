@@ -1,4 +1,4 @@
-@import views.html.partials.{notificationBanner, progressIndicator, transferReference, warningMessage}
+@import views.html.partials.{notificationBanner, transferReference, warningMessage}
 @import controllers.AdditionalMetadataController._
 @import services.Details
 
@@ -12,7 +12,6 @@
     @defining(play.core.PlayVersion.current) { version =>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds-from-desktop">
-                @progressIndicator(Messages("additionalMetadataStart.progress"))
                 <h1 class="govuk-heading-l">Descriptive & closure metadata</h1>
 
                 @form(routes.AdditionalMetadataController.validate(pageArgs.consignmentId)) {

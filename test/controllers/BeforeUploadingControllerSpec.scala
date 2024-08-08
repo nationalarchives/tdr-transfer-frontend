@@ -44,31 +44,38 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
       contentType(beforeUploadingPage) mustBe Some("text/html")
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(beforeUploadingPageAsString, userType = "judgment")
-      beforeUploadingPageAsString must include("""<h1 class="govuk-heading-l">Check your file before uploading</h1>""")
+      beforeUploadingPageAsString must include("""<h1 class="govuk-heading-l">Before you upload a document</h1>""")
+      beforeUploadingPageAsString must include("""<h2 class="govuk-heading-m">What your document must contain</h2>""")
       beforeUploadingPageAsString must include(
-        """<p class="govuk-body">Your upload must contain the following information:</p>"""
+        """<p class="govuk-body">We can only accept a single document in Microsoft Word (docx) format. It must contain the following information:</p>"""
       )
       beforeUploadingPageAsString must include(
-        """                <ul class="govuk-list">
-          |                    <li>neutral citation</li>
-          |                    <li>name(s) of judge(s)</li>
-          |                    <li>name(s) of parties</li>
-          |                    <li>court and judgment date</li>
-          |                </ul>""".stripMargin
+        """              <ul class="govuk-list govuk-list--number">
+        |                    <li>neutral citation</li>
+        |                    <li>name(s) of judge(s)</li>
+        |                    <li>name(s) of parties</li>
+        |                    <li>court and judgment date</li>
+        |                </ul>""".stripMargin
       )
-      beforeUploadingPageAsString must include("""<h2 class="govuk-heading-m">Do you need to contact us about this transfer?</h2>""")
+      beforeUploadingPageAsString must include("""<h2 class="govuk-heading-m">How to format your document</h2>""")
       beforeUploadingPageAsString must include(
-        """                <p class="govuk-body">
-          |                    Send an email to <a class="govuk-link" href="mailto:nationalArchives.judgmentsEmail?subject=Ref: TEST-TDR-2021-GB">nationalArchives.judgmentsEmail</a>
-          |                    with <strong>Ref: TEST-TDR-2021-GB</strong> as the subject line if you need to:
-          |                </p>""".stripMargin
+        """<p class="govuk-body">After you submit a Microsoft Word document we convert the content into a web page and PDF. To ensure the information is converted correctly, we ask you to follow some formatting guidelines and rules in the original document.</p>""".stripMargin
       )
       beforeUploadingPageAsString must include(
-        """                <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
-          |                    <li>Attach and send supplementary material for this judgment.</li>
-          |                    <li>Flag when your judgment is a new version; quote the details of the original document being replaced.</li>
-          |                    <li>Flag when your judgment is subject to an anonymisation order.</li>
-          |                </ul>""".stripMargin
+        """<p class="govuk-body govuk-!-margin-bottom-6">Read our <a target="_blank" class="govuk-link" href="https://nationalarchives.github.io/ds-caselaw-judiciary-guidance/">guidance on formatting your document</a>.</p>""".stripMargin
+      )
+      beforeUploadingPageAsString must include(
+        """              <details class="govuk-details govuk-!-margin-bottom-4">
+        |                    <summary class="govuk-details__summary">
+        |                        <span class="govuk-details__summary-text">
+        |                            How will my document look once it's published?
+        |                        </span>
+        |                    </summary>
+        |                    <div class="govuk-details__text">
+        |                        <p class="govuk-body">The web page view may look slightly different to the original document but will contain the same information. This is to make sure the document meets basic web accessibility standards.</p>
+        |                        <p class="govuk-body">The PDF will be as close a copy of the original document as possible.</p>
+        |                    </div>
+        |                </details>""".stripMargin
       )
       beforeUploadingPageAsString must include(s"""<a href="/judgment/$consignmentId/upload" role="button" draggable="false" class="govuk-button" data-module="govuk-button">""")
     }

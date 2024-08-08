@@ -1,4 +1,4 @@
-@import views.html.partials.{progressIndicator, transferReference}
+@import views.html.partials.transferReference
 
 @import java.util.UUID
 @import controllers.util.DropdownField
@@ -12,7 +12,6 @@ messages: Messages)
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        @progressIndicator(Messages("seriesDetails.progress"))
 
         <h1 class="govuk-heading-l">@title</h1>
         <div id="upload-progress-success" class="success-summary" aria-labelledby="success-summary-title"

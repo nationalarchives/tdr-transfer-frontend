@@ -82,8 +82,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
       transferCompletePageAsString must include(
         """                            <div class="transfer-complete">
-          |                                <p>Your file has now been transferred</p>
-          |                                <p>to The National Archives.</p>
+          |                                <p>Your file has now been transferred to The National Archives.</p>
           |                            </div>""".stripMargin
       )
       transferCompletePageAsString must include(
@@ -92,7 +91,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
           |                        </div>""".stripMargin
       )
       transferCompletePageAsString must include(
-        """                    <p class="govuk-body">You will be notified by email once the judgment has been received and published.</p>"""
+        """                    <p class="govuk-body">You will be notified by email once the judgment has been reviewed and published.</p>"""
       )
       transferCompletePageAsString must include(
         """                    <p class="govuk-body">Do not delete the original file you uploaded until you have been notified.</p>"""
@@ -171,7 +170,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
         |                        </h1>""".stripMargin
     )
     transferCompletePageAsString must include(
-      """                    <h2 class="govuk-heading-m govuk-!-margin-top-2">What happens next</h2>""".stripMargin
+      """                    <h2 class="govuk-heading-m">What happens next</h2>""".stripMargin
     )
     transferCompletePageAsString must include(
       s"""<a href="https://www.smartsurvey.co.uk/s/$survey/" class="govuk-link" rel="noreferrer noopener" target="_blank" title="What did you think of this service? (opens in new tab)">
@@ -181,7 +180,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
   }
 
   private def downloadLinkHTML(consignmentId: UUID): String = {
-    val linkHTML: String = s"""<a class="govuk-button  govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">
+    val linkHTML: String = s"""<a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">
                               |    <span aria-hidden="true" class="tna-button-icon">
                               |        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
                               |            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"></path>

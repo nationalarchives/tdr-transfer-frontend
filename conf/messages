@@ -31,27 +31,6 @@ deleteAdditionalMetadata.alternateDescriptionWarningMessage=You have previously 
 additionalMetadata.warningMessage=Check you have entered any additional metadata that is required before proceeding with the transfer.
 closureStatus.warningMessage=You have now added closure status to the selected files. You can remove the status by deleting the closure metadata. To do this, visit the <a href="{0}">{1}</a>.
 
-progressIndicator.step=Step {0} of {1}
-# Progress indicator step numbers
-seriesDetails.progress=1
-beforeUploading.progress=1
-transferAgreement.progress=2
-judgmentUpload.progress=2
-judgmentUploadProgress.progress=2
-upload.progress=3
-uploadProgress.progress=3
-judgmentCheckingRecords.progress=3
-judgmentFileChecksResults.progress=3
-checkingRecords.progress=4
-fileChecksResults.progress=4
-draftMetadataChecksResults.progress=5
-additionalMetadataStart.progress=5
-downloadMetadata.progress=6
-confirmTransfer.progress=7
-
-progress.totalSteps=7
-judgmentProgress.totalSteps=3
-
 notification.savedProgress.title=Important
 notification.savedProgress.heading=Your progress has been saved
 notification.savedProgress.metadataInfo=Your records and any metadata you added has been saved. You can leave at any time and return to this transfer by visiting the <a class="govuk-notification-banner__link" href="{0}">{1}</a> page.

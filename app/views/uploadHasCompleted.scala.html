@@ -1,15 +1,10 @@
 @import java.util.UUID
-@import views.html.partials.{progressIndicator, transferReference}
+@import views.html.partials.transferReference
 @(consignmentId: UUID, consignmentRef: String, pageHeading: String, name: String, isJudgmentUser: Boolean)(implicit request: RequestHeader, messages: Messages)
 
 @main(pageHeading, name = name, isJudgmentUser = isJudgmentUser) {
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-        @if(isJudgmentUser) {
-            @progressIndicator(Messages("judgmentUpload.progress"), isJudgmentUser)
-        } else {
-            @progressIndicator(Messages("upload.progress"), isJudgmentUser)
-        }
       <h1 class="govuk-heading-l">@pageHeading</h1>
       <p class="govuk-body">Your records have been uploaded and saved. You cannot add additional files or folders to this transfer.</p>
       <p class="govuk-body">Click 'Continue' to proceed with your transfer.</p>

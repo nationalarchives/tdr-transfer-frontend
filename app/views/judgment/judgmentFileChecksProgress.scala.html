@@ -1,24 +1,26 @@
 @import java.util.UUID
 @import helper._
 @import viewsapi.FrontEndInfo
-@import views.html.partials.{frontEndInputs, progressIndicator, transferReference}
+@import views.html.partials.{frontEndInputs, transferReference}
 @import views.html.helper.form
 @(consignmentId: UUID, consignmentRef: String, frontEndInfo: FrontEndInfo, name: String)(implicit messages: Messages, request: RequestHeader)
 
-@main("Checking your upload", name = name, isJudgmentUser = true) {
+@main("Checking your document", name = name, isJudgmentUser = true) {
     @defining(play.core.PlayVersion.current) { version =>
     <div class="govuk-grid-row file-check-progress">
         @CSRF.formField
         <div class="govuk-grid-column-two-thirds">
-
-            @progressIndicator(Messages("judgmentCheckingRecords.progress"), isJudgmentUser=true)
             @frontEndInputs(frontEndInfo)
-            <h1 class="govuk-heading-l">Checking your upload</h1>
+            <h1 class="govuk-heading-l">Checking your document</h1>
             <input id="consignmentId" type="hidden" value="@consignmentId">
-            <p class="govuk-body">Your judgment is being checked for errors.
-              This may take a few minutes. Once your judgment has been checked, you will be redirected automatically.
-            </p>
-
+            <p class="govuk-body">The following checks are now being performed:</p>
+            <ul class="govuk-list govuk-list--bullet">
+                <li>Document file format</li>
+                <li>Anti-virus scanning</li>
+                <li>Validating file integrity</li>
+            </ul>
+            <p class="govuk-body">This may take a few minutes. If your document has an unusually large number of pages or images it may take longer.</p>
+            <p class="govuk-body">Once your document has been checked, you will be redirected automatically.</p>
             <!--        Form to redirect user once file checks have completed. It sends consignmentId to record results' placeholder page -->
             @form(routes.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId), Symbol("id") -> "file-checks-form") { }
         </div>

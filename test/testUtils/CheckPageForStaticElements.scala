@@ -75,8 +75,9 @@ class CheckPageForStaticElements() {
         page must include("TEST-TDR-2021-GB")
 
         if (transferStillInProgress) {
-          page must include("""<span class="govuk-caption-l">progressIndicator.step</span>""")
           page must include("Transfer reference")
+          page must include("Problems with your transfer?")
+          page must include("Email us and include the transfer reference:")
         }
       }
     } else if (userType == "standard") {

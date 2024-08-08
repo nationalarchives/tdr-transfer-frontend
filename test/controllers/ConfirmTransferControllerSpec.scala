@@ -183,6 +183,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(confirmTransferPage) mustBe OK
       contentType(confirmTransferPage) mustBe Some("text/html")
       confirmTransferPageAsString must include("<title>Confirm transfer - Transfer Digital Records - GOV.UK</title>")
+      confirmTransferPageAsString must include(s"""<a href="/consignment/$consignmentId/additional-metadata/download-metadata" class="govuk-back-link">Back</a>""")
       confirmTransferPageAsString must include("""<h1 class="govuk-heading-l">Confirm transfer</h1>""")
 
       confirmTransferPageAsString must include(
@@ -261,10 +262,6 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
 
       confirmTransferPageAsString must include(
         s"""                    <div class="govuk-button-group">
-           |                            <!-- Transfer -->
-           |                        <a href="/consignment/$consignmentId/additional-metadata/download-metadata" role="button" draggable="false" class="govuk-button govuk-button--secondary" data-module="govuk-button">
-           |                            Back
-           |                        </a>
            |                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
            |                            Transfer your records
            |                        </button>
