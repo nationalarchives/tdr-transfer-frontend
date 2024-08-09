@@ -78,7 +78,7 @@ GET         /judgment/:consignmentId/file-checks                                
 POST        /judgment/:consignmentId/file-check-progress                                                 controllers.FileChecksController.fileCheckProgress(consignmentId: java.util.UUID)
 POST        /judgment/:consignmentId/transfer-progress                                                   controllers.FileChecksController.transferProgress(consignmentId: java.util.UUID)
 POST        /judgment/:consignmentId/continue-transfer                                                   controllers.FileChecksController.judgmentCompleteTransfer(consignmentId: java.util.UUID)
-GET         /judgment/:consignmentId/file-checks-results                                                 controllers.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId: java.util.UUID)
+GET         /judgment/:consignmentId/file-checks-results                                                 controllers.FileChecksResultsController.judgmentFileCheckResultsPage(consignmentId: java.util.UUID, transferProgress: Option[String])
 GET         /judgment/:consignmentId/transfer-complete                                                   controllers.TransferCompleteController.judgmentTransferComplete(consignmentId: java.util.UUID)
 
 # Routes for TNA-User

@@ -3,10 +3,9 @@ package controllers
 import auth.TokenSecurity
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
-import graphql.codegen.GetFileCheckProgress.getFileCheckProgress.GetConsignment
 import graphql.codegen.types.ConsignmentStatusInput
-import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.Encoder
+import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax._
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
@@ -88,12 +87,12 @@ class FileChecksController @Inject() (
             for {
               consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
               exportStatus = consignmentStatusService.getStatusValues(consignmentStatuses, ExportType).values.headOption.flatten
-            } yield TransferProgress("Completed", exportStatus.getOrElse(""))
+            } yield TransferProgress(CompletedValue.value, exportStatus.getOrElse(""))
           } else {
-            Future(TransferProgress("CompletedWithIssues"))
+            Future(TransferProgress(CompletedWithIssuesValue.value))
           }
         } else {
-          Future(TransferProgress("InProgress"))
+          Future(TransferProgress(InProgressValue.value))
         }
       }
     } yield Ok(result.asJson.noSpaces)
@@ -124,8 +123,8 @@ class FileChecksController @Inject() (
   def judgmentCompleteTransfer(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       _ <- waitForFileChecksToBeCompleted(consignmentId)
-      _ <- JudgmentCompleteTransfer(consignmentId)
-    } yield Ok
+      result <- JudgmentCompleteTransfer(consignmentId)
+    } yield Ok(result)
   }
 
   private def handleSuccessfulUpload(consignmentId: UUID, reference: String, isJudgmentUser: Boolean)(implicit request: Request[AnyContent]) = {
@@ -195,7 +194,7 @@ class FileChecksController @Inject() (
   }
 
   private def waitForFileChecksToBeCompleted(consignmentId: UUID)(implicit request: Request[AnyContent]): Future[Unit] = {
-    val totalSleepTime = 480 * 1000 // Total sleep time in milliseconds
+    val totalSleepTime = applicationConfig.fileChecksTotalTimoutInSeconds * 1000 // Total sleep time in milliseconds
     val interval = 5 * 1000 // Interval time in milliseconds (5 seconds)
     val intervals = totalSleepTime / interval
 
