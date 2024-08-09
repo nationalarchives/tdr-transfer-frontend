@@ -92,11 +92,13 @@ export const getTransferProgress: () => Promise<Boolean | Error> = async () => {
   const progress = await getProgress("transfer-progress")
   if (!isError(progress)) {
     const transferProgress = progress as ITransferProgress
-    return (
-      transferProgress.fileChecksStatus === "CompletedWithIssues" ||
-      (transferProgress.fileChecksStatus === "Completed" &&
-        transferProgress.exportStatus !== undefined)
-    )
+    const transferProgressInput: HTMLInputElement | null =
+      document.querySelector("#transferProgress")
+    transferProgressInput.value = transferProgress.fileChecksStatus
+
+    return (transferProgress.fileChecksStatus === "CompletedWithIssues" ||
+        (transferProgress.fileChecksStatus === "Completed" &&
+            transferProgress.exportStatus !== undefined))
   } else
     return Error(
       `Failed to retrieve progress for file checks: ${progress.message}`

@@ -14,14 +14,12 @@ import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1}
-import play.api.Configuration
-import play.api.libs.ws.WSClient
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, status => playStatus, _}
 import play.api.test.WsTestClient.InternalWSClient
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, UploadType}
-import services.{BackendChecksService, ConfirmTransferService, ConsignmentExportService, ConsignmentService, ConsignmentStatusService}
+import services._
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
@@ -38,14 +36,18 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
   val someDateTime: ZonedDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
 
   val wiremockServer = new WireMockServer(9006)
+  val wiremockExportServer = new WireMockServer(9007)
 
   override def beforeEach(): Unit = {
     wiremockServer.start()
+    wiremockExportServer.start()
   }
 
   override def afterEach(): Unit = {
     wiremockServer.resetAll()
+    wiremockExportServer.resetAll()
     wiremockServer.stop()
+    wiremockExportServer.stop()
   }
 
   val fileChecks: TableFor1[String] = Table(
@@ -62,15 +64,13 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       backendChecksService: Option[BackendChecksService] = None
   ): FileChecksController = {
 
-    val wsClient = mock[WSClient]
-    val config = mock[Configuration]
-
+    val wsClient = new InternalWSClient("http", 9007)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val backendChecks = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
     val confirmTransferService = new ConfirmTransferService(graphQLConfiguration)
-    val consignmentExportService = new ConsignmentExportService(wsClient, config, graphQLConfiguration)
+    val consignmentExportService = new ConsignmentExportService(wsClient, app.configuration, graphQLConfiguration)
 
     new FileChecksController(
       controllerComponents,
@@ -423,6 +423,74 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     }
   }
 
+  "FileChecksController transferProgress" should {
+    "return in progress when file checks are still in progress" in {
+      val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+
+      mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = false), "standard")
+
+      val results = controller
+        .transferProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-progress").withCSRFToken)
+
+      playStatus(results) mustBe OK
+
+      val transferProgressAsString = contentAsString(results)
+      transferProgressAsString must be("{\"fileChecksStatus\":\"InProgress\",\"exportStatus\":\"\"}")
+    }
+
+    "return CompletedWithIssues when file checks failed" in {
+      val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+
+      mockGetFileCheckProgress(progressData(40, 40, 40, allChecksSucceeded = false), "standard")
+
+      val results = controller
+        .transferProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-progress").withCSRFToken)
+
+      playStatus(results) mustBe OK
+
+      val transferProgressAsString = contentAsString(results)
+      transferProgressAsString must be("{\"fileChecksStatus\":\"CompletedWithIssues\",\"exportStatus\":\"\"}")
+    }
+
+    "return Completed when file checks are succeeded and export is InProgress" in {
+      val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+
+      mockGetFileCheckProgress(progressData(40, 40, 40, allChecksSucceeded = true), "standard")
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", "InProgress", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+      val results = controller
+        .transferProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-progress").withCSRFToken)
+
+      playStatus(results) mustBe OK
+
+      val transferProgressAsString = contentAsString(results)
+      transferProgressAsString must be("{\"fileChecksStatus\":\"Completed\",\"exportStatus\":\"InProgress\"}")
+    }
+
+    "throw an error if the API returns an error" in {
+      val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+
+      wiremockServer.stubFor(
+        post(urlEqualTo("/graphql"))
+          .withRequestBody(containing("getFileCheckProgress"))
+          .willReturn(serverError())
+      )
+
+      val transferProgressResponse = controller
+        .transferProgress(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/transfer-progress").withCSRFToken)
+
+      val exception: Throwable = transferProgressResponse.failed.futureValue
+      exception.getMessage must startWith("Unexpected response from GraphQL API")
+    }
+  }
+
   "FileChecksController judgmentCompleteTransfer" should {
 
     s"return a redirect to the auth server if an unauthenticated user tries to access the judgment complete transfer page" in {
@@ -435,7 +503,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       redirectLocation(recordChecksResultsPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
-    s"return the judgment error page if some file checks have failed" in {
+    s"return 'FileChecksFailed' if some file checks have failed" in {
 
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
@@ -445,45 +513,58 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       val fileChecksController = initialiseFileChecks(getValidKeycloakConfiguration)
       val recordCheckResultsPage = fileChecksController.judgmentCompleteTransfer(consignmentId).apply(FakeRequest(GET, s"/judgment/$consignmentId/continue-transfer"))
       status(recordCheckResultsPage) mustBe OK
+      contentAsString(recordCheckResultsPage) mustBe "FileChecksFailed"
     }
 
-    s"return the judgment error page if file checks have failed with PasswordProtected" in {
+    s"return 'TransferAlreadyCompleted' if the export is already in progress" in {
+      val consignmentStatuses = List(
+        ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", "InProgress", someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
       setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      val fileStatus = "PasswordProtected"
-      val dataString: String =
-        progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = false, List(fileStatus))
+      val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = false)
       mockGetFileCheckProgress(dataString, "judgment")
 
       val fileChecksController = initialiseFileChecks(getValidKeycloakConfiguration)
       val recordCheckResultsPage = fileChecksController.judgmentCompleteTransfer(consignmentId).apply(FakeRequest(GET, s"/judgment/$consignmentId/continue-transfer"))
       status(recordCheckResultsPage) mustBe OK
+      contentAsString(recordCheckResultsPage) mustBe "TransferAlreadyCompleted"
     }
 
-    s"return the judgment error page if file checks have failed with Zip" in {
-      setConsignmentReferenceResponse(wiremockServer)
+    s"return 'Completed' if the file checks are succeeded and export is triggerred" in {
       setConsignmentStatusResponse(app.configuration, wiremockServer)
-      val fileStatus = "Zip"
-      val dataString: String =
-        progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = false, List(fileStatus))
+      setConsignmentReferenceResponse(wiremockServer)
+      stubFinalTransferConfirmationResponseWithServer(wiremockServer, consignmentId)
+      stubUpdateTransferInitiatedResponse(wiremockServer, consignmentId)
+
+      wiremockExportServer.stubFor(
+        post(urlEqualTo(s"/export/$consignmentId"))
+          .willReturn(okJson("{}"))
+      )
+
+      val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = true)
       mockGetFileCheckProgress(dataString, "judgment")
 
       val fileChecksController = initialiseFileChecks(getValidKeycloakConfiguration)
       val recordCheckResultsPage = fileChecksController.judgmentCompleteTransfer(consignmentId).apply(FakeRequest(GET, s"/judgment/$consignmentId/continue-transfer"))
       status(recordCheckResultsPage) mustBe OK
+      contentAsString(recordCheckResultsPage) mustBe "Completed"
     }
 
-    s"return the judgment error page if file checks have failed with PasswordProtected and Zip" in {
-      setConsignmentReferenceResponse(wiremockServer)
-      setConsignmentStatusResponse(app.configuration, wiremockServer)
-      val fileStatuses = List("PasswordProtected", "Zip")
-      val dataString: String =
-        progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = false, fileStatuses)
-      mockGetFileCheckProgress(dataString, "judgment")
+    "render an error when export status is unknown value" in {
+      val fileCheckResultsController = initialiseFileChecks(getValidJudgmentUserKeycloakConfiguration)
 
-      val fileChecksController = initialiseFileChecks(getValidKeycloakConfiguration)
-      val recordCheckResultsPage = fileChecksController.judgmentCompleteTransfer(consignmentId).apply(FakeRequest(GET, s"/judgment/$consignmentId/continue-transfer"))
-      status(recordCheckResultsPage) mustBe OK
+      val consignmentStatuses = List(ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), "Export", "aaaa", someDateTime, None))
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      setConsignmentTypeResponse(wiremockServer, "judgment")
+      setConsignmentReferenceResponse(wiremockServer)
+
+      val recordCheckResultsPage = fileCheckResultsController
+        .judgmentCompleteTransfer(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/continue-transfer").withCSRFToken)
+
+      val failure: Throwable = recordCheckResultsPage.failed.futureValue
+      failure mustBe an[Exception]
     }
   }
 
