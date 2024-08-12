@@ -47,7 +47,7 @@ object MessagingService {
       transferringBodyName: Option[String],
       consignmentReference: String,
       consignmentId: String,
-      seriesName: Option[String],
+      seriesCode: Option[String],
       userId: String,
       userEmail: String
   )
