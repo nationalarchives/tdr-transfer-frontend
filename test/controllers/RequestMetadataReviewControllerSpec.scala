@@ -114,7 +114,8 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
       playStatus(content) mustBe SEE_OTHER
       redirectLocation(content).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
 
-      val metadataReviewRequestEvent = MetadataReviewRequestEvent("Mock".some, "TDR-2024", consignmentId.toString, "someSeries".some, "c140d49c-93d0-4345-8d71-c97ff28b947e", "test@example.com")
+      val metadataReviewRequestEvent =
+        MetadataReviewRequestEvent("Mock".some, "TDR-2024", consignmentId.toString, "someSeries".some, "c140d49c-93d0-4345-8d71-c97ff28b947e", "test@example.com")
       verify(messagingService, times(1)).sendMetadataReviewRequestNotification(metadataReviewRequestEvent)
     }
 
