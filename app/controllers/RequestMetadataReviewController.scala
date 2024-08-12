@@ -52,6 +52,7 @@ class RequestMetadataReviewController @Inject() (
           transferringBodyName = summary.transferringBodyName,
           consignmentReference = summary.consignmentReference,
           consignmentId = consignmentId.toString,
+          seriesName = summary.seriesName,
           userId = request.token.userId.toString,
           userEmail = request.token.email
         )

@@ -101,7 +101,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
     "add status, send metadata review request notification and render the metadata review page" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
-      setConsignmentSummaryResponse(wiremockServer, transferringBodyName = "Mock".some, consignmentReference = "TDR-2024")
+      setConsignmentSummaryResponse(wiremockServer, transferringBodyName = "Mock".some, consignmentReference = "TDR-2024", seriesName = "someSeries".some)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
       setAddConsignmentStatusResponse(wiremockServer)
       setUpdateConsignmentStatus(wiremockServer)
@@ -114,7 +114,7 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
       playStatus(content) mustBe SEE_OTHER
       redirectLocation(content).get must equal(s"/consignment/$consignmentId/metadata-review/review-progress")
 
-      val metadataReviewRequestEvent = MetadataReviewRequestEvent("Mock".some, "TDR-2024", consignmentId.toString, "c140d49c-93d0-4345-8d71-c97ff28b947e", "test@example.com")
+      val metadataReviewRequestEvent = MetadataReviewRequestEvent("Mock".some, "TDR-2024", consignmentId.toString, "someSeries".some, "c140d49c-93d0-4345-8d71-c97ff28b947e", "test@example.com")
       verify(messagingService, times(1)).sendMetadataReviewRequestNotification(metadataReviewRequestEvent)
     }
 
