@@ -47,6 +47,7 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
       transferringBodyName = Some("TransferringBodyName"),
       consignmentReference = "Ref123",
       consignmentId = "ConsID456",
+      seriesCode = Some("SomeSeries"),
       userId = "UserID789",
       userEmail = "user@example.com"
     )
@@ -54,6 +55,7 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
                                   |  "transferringBodyName" : "TransferringBodyName",
                                   |  "consignmentReference" : "Ref123",
                                   |  "consignmentId" : "ConsID456",
+                                  |  "seriesCode" : "SomeSeries",
                                   |  "userId" : "UserID789",
                                   |  "userEmail" : "user@example.com"
                                   |}""".stripMargin
@@ -65,11 +67,15 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
     val service = createService
     val metadataReviewSubmittedEvent = MessagingService.MetadataReviewSubmittedEvent(
       consignmentReference = "Ref123",
-      urlLink = "example.com"
+      urlLink = "example.com",
+      userEmail = "user@example.com",
+      status = "Status"
     )
     val expectedMessageString = """{
                                   |  "consignmentReference" : "Ref123",
-                                  |  "urlLink" : "example.com"
+                                  |  "urlLink" : "example.com",
+                                  |  "userEmail" : "user@example.com",
+                                  |  "status" : "Status"
                                   |}""".stripMargin
     service.sendMetadataReviewSubmittedNotification(metadataReviewSubmittedEvent)
     verify(mockUtils).publish(expectedMessageString, testArn)

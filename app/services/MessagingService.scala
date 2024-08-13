@@ -47,11 +47,14 @@ object MessagingService {
       transferringBodyName: Option[String],
       consignmentReference: String,
       consignmentId: String,
+      seriesCode: Option[String],
       userId: String,
       userEmail: String
   )
   case class MetadataReviewSubmittedEvent(
       consignmentReference: String,
-      urlLink: String
+      urlLink: String,
+      userEmail: String,
+      status: String
   )
 }

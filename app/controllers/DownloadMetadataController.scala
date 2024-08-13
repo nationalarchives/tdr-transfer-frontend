@@ -51,7 +51,6 @@ class DownloadMetadataController @Inject() (
       val parseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
 
       val columnOrder = Seq(
-        fileUUID,
         clientSideOriginalFilepath,
         fileName,
         clientSideFileLastModifiedDate,
@@ -68,7 +67,8 @@ class DownloadMetadataController @Inject() (
         descriptionClosed,
         descriptionAlternate,
         language,
-        filenameTranslated
+        filenameTranslated,
+        fileUUID
       )
 
       val nameMap = displayProperties.filter(dp => columnOrder.contains(dp.propertyName)).map(dp => (dp.propertyName, dp.displayName)).toMap
