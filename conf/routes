@@ -82,4 +82,4 @@ GET         /judgment/:consignmentId/transfer-complete                          
 # Routes for TNA-User
 GET         /admin/metadata-review                                                                       controllers.MetadataReviewController.metadataReviews()
 GET         /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.consignmentMetadataDetails(consignmentId: java.util.UUID)
-POST        /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.submitReview(consignmentId: java.util.UUID, consignmentRef: String)
+POST        /admin/metadata-review/:consignmentId                                                        controllers.MetadataReviewActionController.submitReview(consignmentId: java.util.UUID, consignmentRef: String, userEmail: String)

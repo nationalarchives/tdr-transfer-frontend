@@ -1,15 +1,26 @@
 package configuration
 
-import javax.inject.Inject
 import play.api.Configuration
+import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
 import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeployment, Token}
 
-import scala.concurrent.ExecutionContext
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class KeycloakConfiguration @Inject() (configuration: Configuration)(implicit val executionContext: ExecutionContext) {
+  implicit val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
+  val authUrl: String = configuration.get[String]("auth.url")
+  val secret: String = configuration.get[String]("read.auth.secret")
+
   def token(value: String): Option[Token] = {
     implicit val tdrKeycloakDeployment: TdrKeycloakDeployment =
-      TdrKeycloakDeployment(s"${configuration.get[String]("auth.url")}", "tdr", 3600)
+      TdrKeycloakDeployment(authUrl, "tdr", 3600)
     KeycloakUtils().token(value).toOption
+  }
+
+  def userDetails(userId: String): Future[KeycloakUtils.UserDetails] = {
+    implicit val tdrKeycloakDeployment: TdrKeycloakDeployment =
+      TdrKeycloakDeployment(authUrl, "tdr", 3600)
+    KeycloakUtils().userDetails(userId, "tdr-user-read", secret)
   }
 }
