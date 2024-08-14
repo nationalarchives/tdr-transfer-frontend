@@ -222,7 +222,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       pageAsString must include("""<form action="/judgment/homepage" method="POST" novalidate="">""")
       pageAsString must include("""<h2 class="govuk-heading-m">If this is an update to an existing judgment or decision</h2>""")
       pageAsString must include("""<p class="govuk-body">You can use this service to transfer an update or revision to a previously transferred document.</p>""")
-      pageAsString must include("""<p class="govuk-body">Transfer the document in the same way as any judgement or decision, by clicking "Start your transfer" above.</p>""")
+      pageAsString must include("""<p class="govuk-body">Transfer the document in the same way as any judgment or decision, by clicking "Start your transfer" above.</p>""")
       pageAsString must include(
         """<p class="govuk-body">Once you have successfully completed the transfer you will need to email us. More information will be provided after the transfer.</p>"""
       )

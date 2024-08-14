@@ -133,7 +133,7 @@ export const htmlForFileUploadForm = `
                                       <input type="file" id="file-selection" name="files"
                                           class="govuk-file-upload drag-and-drop__input" multiple
                                       >
-                                      <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single file here or</p>
+                                      <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single file here or&nbsp;</p>
                                       <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
                                           Choose file
                                       </label>
