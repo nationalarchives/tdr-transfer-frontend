@@ -47,6 +47,7 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
       transferringBodyName = Some("TransferringBodyName"),
       consignmentReference = "Ref123",
       consignmentId = "ConsID456",
+      seriesCode = Some("SomeSeries"),
       userId = "UserID789",
       userEmail = "user@example.com"
     )
@@ -54,6 +55,7 @@ class MessagingServiceSpec extends AnyFlatSpec with Matchers {
                                   |  "transferringBodyName" : "TransferringBodyName",
                                   |  "consignmentReference" : "Ref123",
                                   |  "consignmentId" : "ConsID456",
+                                  |  "seriesCode" : "SomeSeries",
                                   |  "userId" : "UserID789",
                                   |  "userEmail" : "user@example.com"
                                   |}""".stripMargin
