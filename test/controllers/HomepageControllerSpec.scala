@@ -88,9 +88,9 @@ class HomepageControllerSpec extends FrontEndTestHelper {
       status(homepagePage) mustBe OK
       contentType(homepagePage) mustBe Some("text/html")
 
-      homepagePageAsString must include("Before you start")
-      homepagePageAsString must include("You must upload your judgment as a Microsoft Word (.docx) document. Any other formats will not be accepted.")
-      homepagePageAsString must include("Upload your judgment to start a new transfer")
+      homepagePageAsString must include("Welcome to the Transfer Digital Records service")
+      homepagePageAsString must include("You can use this service to:")
+      homepagePageAsString must include("transfer judgments and decisions")
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(homepagePageAsString, userType = userType, consignmentExists = false)
       checkForContentOnHomepagePage(homepagePageAsString, userType = userType)
       homepagePageAsString must not include viewTransferButton
@@ -211,10 +211,24 @@ class HomepageControllerSpec extends FrontEndTestHelper {
   private def checkForContentOnHomepagePage(pageAsString: String, userType: String = "standard"): Unit = {
     pageAsString must include("Welcome to the Transfer Digital Records service")
     pageAsString must include("<title>Welcome to the Transfer Digital Records service - Transfer Digital Records - GOV.UK</title>")
-    pageAsString must include("Start transfer")
     if (userType == "judgment") {
+      pageAsString must include("""<h1 class="govuk-heading-xl">Welcome to the Transfer Digital Records service</h1>""")
+      pageAsString must include("""<p class="govuk-body">You can use this service to:</p>""")
+      pageAsString must include("""<ul class="govuk-list govuk-list--bullet">
+       |          <li>transfer judgments and decisions</li>
+       |          <li>transfer an amendment to an existing judgment or decision</li>
+       |        </ul>""".stripMargin)
+      pageAsString must include("Start your transfer")
       pageAsString must include("""<form action="/judgment/homepage" method="POST" novalidate="">""")
+      pageAsString must include("""<h2 class="govuk-heading-m">If this is an update to an existing judgment or decision</h2>""")
+      pageAsString must include("""<p class="govuk-body">You can use this service to transfer an update or revision to a previously transferred document.</p>""")
+      pageAsString must include("""<p class="govuk-body">Transfer the document in the same way as any judgement or decision, by clicking "Start your transfer" above.</p>""")
+      pageAsString must include(
+        """<p class="govuk-body">Once you have successfully completed the transfer you will need to email us. More information will be provided after the transfer.</p>"""
+      )
+      pageAsString must include("""<h2 class="govuk-heading-m">Contact the publishing editors</h2>""")
     } else {
+      pageAsString must include("Start transfer")
       pageAsString must include("""<form action="/homepage" method="POST" novalidate="">""")
     }
   }
