@@ -88,6 +88,8 @@ class ViewTransfersController @Inject() (
       case s if s.containsStatuses(ExportType) => toExportAction(s.find(_.statusType == ExportType.id).get, judgmentType, consignmentId, consignmentRef)
       case s if s.statusValue(ConfirmTransferType).contains(CompletedValue.value) =>
         UserAction(InProgress.value, routes.TransferCompleteController.transferComplete(consignmentId).url, Resume.value)
+      case s if s.containsStatuses(MetadataReviewType) =>
+        UserAction(InProgress.value, routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId).url, Resume.value)
       case s if additionalMetadataEntered(s) =>
         UserAction(InProgress.value, routes.AdditionalMetadataController.start(consignmentId).url, Resume.value)
       case s if s.containsStatuses(ServerAntivirusType, ServerChecksumType, ServerFFIDType) =>

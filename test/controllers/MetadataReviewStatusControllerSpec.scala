@@ -135,13 +135,13 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
       )
 
       metadataReviewStatusPageAsString must include(downloadLinkHTML(consignmentId))
-      metadataReviewStatusPageAsString must include(s"""<form action="/consignment/$consignmentId/metadata-review/review-progress" method="POST" novalidate="">""")
       metadataReviewStatusPageAsString must include(
-        s"""<div class="govuk-button-group">
-           |            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-           |                Continue
-           |            </button>
-           |        </div>""".stripMargin
+        s"""
+           |<div class="govuk-button-group">
+           |    <a class="govuk-button" href="/consignment/$consignmentId/additional-metadata" role="button" draggable="false" data-module="govuk-button">
+           |        Continue
+           |    </a>
+           |</div>""".stripMargin
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewStatusPageAsString, userType = "standard")
@@ -234,26 +234,8 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
 
       playStatus(page) mustBe FORBIDDEN
     }
-
   }
-
-  "metadataReviewStatusPage POST" should {
-    "update the status and redirect to the File Check Results page with an authenticated user" in {
-      val consignmentId = UUID.randomUUID()
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setUpdateConsignmentStatus(wiremockServer)
-
-      val controller = instantiateMetadataReviewStatusController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
-      val metadataReviewStatusPage = controller
-        .metadataReviewActionRequired(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/metadata-review/review-progress"))
-
-      playStatus(metadataReviewStatusPage) mustBe SEE_OTHER
-      redirectLocation(metadataReviewStatusPage).get must equal(s"/consignment/$consignmentId/additional-metadata")
-
-    }
-  }
-
+  
   private def instantiateMetadataReviewStatusController(
       securityComponents: SecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
@@ -279,5 +261,4 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
        |""".stripMargin
     linkHTML
   }
-
 }
