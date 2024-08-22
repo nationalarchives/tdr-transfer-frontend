@@ -129,6 +129,17 @@ class RequestMetadataReviewControllerSpec extends FrontEndTestHelper {
 
       playStatus(page) mustBe FORBIDDEN
     }
+
+    "return forbidden for a TNA user" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+
+      val controller = instantiateRequestMetadataReviewController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val page = controller
+        .submitMetadataForReview(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/submit-request"))
+
+      playStatus(page) mustBe FORBIDDEN
+    }
   }
 
   private def instantiateRequestMetadataReviewController(

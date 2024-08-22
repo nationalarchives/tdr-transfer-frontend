@@ -56,6 +56,32 @@ class UploadControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
   "UploadController GET upload" should {
+    
+    "return forbidden for a TNA user" in {
+      val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
+      val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
+      val fileStatusService = new FileStatusService(graphQLConfiguration)
+      val backendChecksService = new BackendChecksService(new InternalWSClient("http", 9007), app.configuration)
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = new UploadController(
+        getAuthorisedSecurityComponents,
+        graphQLConfiguration,
+        getValidTNAUserKeycloakConfiguration,
+        frontEndInfoConfiguration,
+        consignmentService,
+        uploadService,
+        fileStatusService,
+        backendChecksService
+      )
+      setConsignmentTypeResponse(wiremockServer, "standard")
+
+      val uploadPage = controller
+        .uploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/consignment/1/upload").withCSRFToken)
+      status(uploadPage) mustBe FORBIDDEN
+    }
+    
     "redirect to the transfer agreement page if the transfer agreement for that consignment has not been signed" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService: ConsignmentService = new ConsignmentService(graphQLConfiguration)
@@ -113,7 +139,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe SEE_OTHER
       redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement")
     }
-
+    
     "redirect to the transfer agreement page if the transfer agreement for that consignment has been partially agreed to" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val uploadService = new UploadService(graphQLConfiguration, applicationConfig)
@@ -144,6 +170,8 @@ class UploadControllerSpec extends FrontEndTestHelper {
       status(uploadPage) mustBe SEE_OTHER
       redirectLocation(uploadPage).get must equal(s"/consignment/$consignmentId/transfer-agreement-continued")
     }
+    
+    
 
     "show the standard upload page if the transfer agreement for that consignment has been agreed to in full" in {
       val graphQLConfiguration: GraphQLConfiguration = new GraphQLConfiguration(app.configuration)

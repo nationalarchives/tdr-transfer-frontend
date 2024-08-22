@@ -48,6 +48,14 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
       pageAsString must include("<title>Page not found - Transfer Digital Records - GOV.UK</title>")
     }
+
+    "return forbidden for a TNA user" in {
+      val controller = instantiateController(blockDraftMetadataUpload = false, keycloakConfiguration = getValidJudgmentUserKeycloakConfiguration)
+      val additionalMetadataEntryMethodPage = controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      
+      playStatus(additionalMetadataEntryMethodPage) mustBe FORBIDDEN
+    }
   }
 
   "DraftMetadataChecksResultsController should render the page with the correct status" should {
