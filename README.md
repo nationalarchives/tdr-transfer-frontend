@@ -43,6 +43,7 @@ development environment for the other TDR services.
 - In IntelliJ, create a new sbt run configuration:
   - Set the Tasks parameter to `run`
   - Configure the environment variables:
+    - AUTH_URL=https://auth.tdr-integration.nationalarchives.gov.uk
     - AUTH_SECRET=\<the secret for the Keycloak client that you copied above\>
     - READ_AUTH_SECRET=\<follow the steps above for obtaining `AUTH_SECRET`, but using parameter key `/intg/keycloak/user_read_client/secret`\>
     - NOTIFICATION_SNS_TOPIC_ARN=\<the arn for sns topic for slack notifications you obtained above>
