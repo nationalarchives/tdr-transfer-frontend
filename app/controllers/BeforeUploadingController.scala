@@ -21,7 +21,7 @@ class BeforeUploadingController @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
-  def beforeUploading(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def beforeUploading(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService
       .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map(reference => Ok(views.html.judgment.judgmentBeforeUploading(consignmentId, reference, request.token.name)))
