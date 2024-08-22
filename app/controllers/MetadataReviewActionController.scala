@@ -136,8 +136,8 @@ object MetadataReviewActionController {
     val metadataStatusResets =
       if (formData.statusId == CompletedWithIssuesValue.value)
         Seq(
-          (DescriptiveMetadataType.id, IncompleteValue.value),
-          (ClosureMetadataType.id, IncompleteValue.value),
+          (DescriptiveMetadataType.id, InProgress.value),
+          (ClosureMetadataType.id, InProgress.value),
           (DraftMetadataType.id, InProgressValue.value)
         )
       else Seq.empty
