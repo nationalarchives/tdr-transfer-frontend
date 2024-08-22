@@ -24,7 +24,7 @@ class AdditionalMetadataSummaryController @Inject() (
 ) extends TokenSecurity {
 
   def getSelectedSummaryPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID], page: Option[String] = None): Action[AnyContent] =
-    standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       for {
         consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
         displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some(metadataType))
