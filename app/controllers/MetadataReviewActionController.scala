@@ -10,7 +10,7 @@ import play.api.Logging
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
-import play.api.mvc.{request, _}
+import play.api.mvc. _
 import services.MessagingService.MetadataReviewSubmittedEvent
 import services.Statuses.{
   ClosureMetadataType,
