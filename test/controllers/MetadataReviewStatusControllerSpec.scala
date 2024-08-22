@@ -235,7 +235,7 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
       playStatus(page) mustBe FORBIDDEN
     }
   }
-  
+
   private def instantiateMetadataReviewStatusController(
       securityComponents: SecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
