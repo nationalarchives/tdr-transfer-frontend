@@ -43,9 +43,13 @@ object ConsignmentStatusesOptions {
   private val ffidCompleted: Map[StatusType, StatusValue] = Map(ServerFFIDType -> CompletedValue)
   private val descriptiveMetadataNotEntered: Map[StatusType, StatusValue] = Map(DescriptiveMetadataType -> NotEnteredValue)
   private val descriptiveMetadataEntered: Map[StatusType, StatusValue] = Map(DescriptiveMetadataType -> EnteredValue)
+  private val descriptiveMetadataComplete: Map[StatusType, StatusValue] = Map(DescriptiveMetadataType -> CompletedValue)
   private val closureMetadataNotEntered: Map[StatusType, StatusValue] = Map(ClosureMetadataType -> NotEnteredValue)
   private val closureMetadataIncomplete: Map[StatusType, StatusValue] = Map(ClosureMetadataType -> IncompleteValue)
   private val closureMetadataComplete: Map[StatusType, StatusValue] = Map(ClosureMetadataType -> CompletedValue)
+  private val metadataReviewInProgress: Map[StatusType, StatusValue] = Map(MetadataReviewType -> InProgressValue)
+  private val metadataReviewCompleted: Map[StatusType, StatusValue] = Map(MetadataReviewType -> CompletedValue)
+  private val metadataReviewCompletedWithIssues: Map[StatusType, StatusValue] = Map(MetadataReviewType -> CompletedWithIssuesValue)
   private val confirmCompleted: Map[StatusType, StatusValue] = Map(ConfirmTransferType -> CompletedValue)
   private val exportInProgress: Map[StatusType, StatusValue] = Map(ExportType -> InProgressValue)
   private val exportFailed: Map[StatusType, StatusValue] = Map(ExportType -> FailedValue)
@@ -324,6 +328,46 @@ object ConsignmentStatusesOptions {
       "Resume transfer"
     ),
     (
+      "descriptive and closure metadata complete",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataComplete ++ closureMetadataComplete,
+        includeDefaultStatuses = false
+      ),
+      "/additional-metadata",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "metadata review in progress",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataComplete ++ closureMetadataComplete ++ metadataReviewInProgress,
+        includeDefaultStatuses = false
+      ),
+      "/metadata-review/review-progress",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "metadata review rejected",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataComplete ++ closureMetadataComplete ++ metadataReviewCompletedWithIssues,
+        includeDefaultStatuses = false
+      ),
+      "/metadata-review/review-progress",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
+      "metadata review accepted",
+      generateStatuses(
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ descriptiveMetadataComplete ++ closureMetadataComplete ++ metadataReviewCompleted,
+        includeDefaultStatuses = false
+      ),
+      "/metadata-review/review-progress",
+      "In Progress",
+      "Resume transfer"
+    ),
+    (
       "confirm transfer completed with no additional metadata",
       generateStatuses(
         seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted
@@ -345,7 +389,7 @@ object ConsignmentStatusesOptions {
     (
       "confirm transfer completed with descriptive metadata only entered",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ descriptiveMetadataEntered ++ closureMetadataNotEntered,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ descriptiveMetadataEntered ++ closureMetadataNotEntered ++ metadataReviewCompleted,
         includeDefaultStatuses = false
       ),
       "/transfer-complete",
@@ -355,7 +399,7 @@ object ConsignmentStatusesOptions {
     (
       "confirm transfer completed with closure metadata only entered",
       generateStatuses(
-        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ descriptiveMetadataNotEntered ++ closureMetadataComplete,
+        seriesCompleted ++ taCompleted ++ clientChecksCompleted ++ uploadCompleted ++ antivirusCompleted ++ checksumCompleted ++ ffidCompleted ++ confirmCompleted ++ descriptiveMetadataNotEntered ++ closureMetadataComplete ++ metadataReviewCompleted,
         includeDefaultStatuses = false
       ),
       "/transfer-complete",
