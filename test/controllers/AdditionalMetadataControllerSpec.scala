@@ -370,7 +370,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe FORBIDDEN
     }
-    
+
     "redirect to the login page if the page is accessed by a logged out user" in {
       val consignmentId = UUID.randomUUID()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)

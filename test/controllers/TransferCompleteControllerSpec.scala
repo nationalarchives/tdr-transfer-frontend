@@ -135,7 +135,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
       }
     }
   }
-  
+
   "return forbidden for a TNA user" in {
     setConsignmentReferenceResponse(wiremockServer)
     setConsignmentSummaryResponse(wiremockServer)
@@ -151,11 +151,11 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val messagingService = mock[MessagingService]
-    
+
     val keycloakConfiguration = path match {
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
       case "standard" => getValidStandardUserKeycloakConfiguration
-      case "admin" => getValidTNAUserKeycloakConfiguration
+      case "admin"    => getValidTNAUserKeycloakConfiguration
     }
     new TransferCompleteController(securityComponents, keycloakConfiguration, consignmentService, messagingService)
   }

@@ -268,7 +268,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     val keycloakConfiguration = userType.getOrElse(consignmentType) match {
       case "standard" => getValidStandardUserKeycloakConfiguration
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
-      case "TNA" => getValidTNAUserKeycloakConfiguration
+      case "TNA"      => getValidTNAUserKeycloakConfiguration
     }
 
     new DownloadMetadataController(

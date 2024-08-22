@@ -241,7 +241,6 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       playStatus(seriesPost) mustBe FORBIDDEN
     }
 
-
     "render the series 'already chosen' page with an authenticated user if series status is 'Completed'" in {
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, f"/consignment/$consignmentId/series").withCSRFToken)
