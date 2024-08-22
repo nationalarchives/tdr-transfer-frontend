@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
   "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.177",
   "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.208",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.382",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.384",
   "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.42",
   "uk.gov.nationalarchives" %% "s3-utils" % "0.1.201",
   "uk.gov.nationalarchives" %% "sns-utils" % "0.1.201",
