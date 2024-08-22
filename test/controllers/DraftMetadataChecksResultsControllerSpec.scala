@@ -53,7 +53,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       val controller = instantiateController(blockDraftMetadataUpload = false, keycloakConfiguration = getValidJudgmentUserKeycloakConfiguration)
       val additionalMetadataEntryMethodPage = controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
       setConsignmentTypeResponse(wiremockServer, "standard")
-      
+
       playStatus(additionalMetadataEntryMethodPage) mustBe FORBIDDEN
     }
   }

@@ -249,7 +249,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
       playStatus(addAdditionalMetadataPage) mustBe FORBIDDEN
     }
-    
+
     "return a redirect to the additionalMetadataClosureStatus page if the closure status isn't closed" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
@@ -929,8 +929,8 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
   }
 
   private def instantiateAddAdditionalMetadataController(
-    securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
-    keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
+      securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
   ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)

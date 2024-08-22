@@ -279,7 +279,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       redirectLocation(confirmTransferPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(confirmTransferPage) mustBe FOUND
     }
-    
+
     "return forbidden for a TNA user" in {
       val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, keycloakConfiguration = getValidTNAUserKeycloakConfiguration)
       mockGraphqlConsignmentSummaryResponse()

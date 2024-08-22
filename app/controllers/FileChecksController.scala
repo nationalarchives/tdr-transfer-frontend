@@ -109,15 +109,16 @@ class FileChecksController @Inject() (
     } yield result
   }
 
-  def judgmentFileChecksPage(consignmentId: UUID, uploadFailed: Option[String]): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val token = request.token.bearerAccessToken
-    for {
-      reference <- consignmentService.getConsignmentRef(consignmentId, token)
-      result <- uploadFailed match {
-        case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = true, token)
-        case _            => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = true)
-      }
-    } yield result
+  def judgmentFileChecksPage(consignmentId: UUID, uploadFailed: Option[String]): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) {
+    implicit request: Request[AnyContent] =>
+      val token = request.token.bearerAccessToken
+      for {
+        reference <- consignmentService.getConsignmentRef(consignmentId, token)
+        result <- uploadFailed match {
+          case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = true, token)
+          case _            => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = true)
+        }
+      } yield result
   }
 
   def judgmentCompleteTransfer(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>

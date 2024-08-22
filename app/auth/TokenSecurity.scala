@@ -39,7 +39,7 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
     val accessToken: Option[Token] = keycloakConfiguration.token(token.getValue)
     RequestWithToken(request, accessToken)
   }
-  
+
   def judgmentUserAction(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
     createResult(action, request, request.token.isJudgmentUser)
   }
@@ -75,22 +75,21 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
       )
     }
   }
-  
+
   private def validatedAction(
-    consignmentId: UUID,
-    expectedConsignmentType: String,
-    isPermitted: Token => Boolean = _ => true
-  )(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async {
-    request =>
-      val token = request.token
-      consignmentService
-        .getConsignmentType(consignmentId, token.bearerAccessToken)
-        .flatMap(consignmentType => {
-          // These are custom user annotation traces used in Xray
-          val current = Span.current()
-          current.setAttribute(consignmentIdKey, consignmentId.toString)
-          current.setAttribute(userIdKey, token.userId.toString)
-          createResult(action, request, consignmentType == expectedConsignmentType && isPermitted(token))
-        })
+      consignmentId: UUID,
+      expectedConsignmentType: String,
+      isPermitted: Token => Boolean = _ => true
+  )(action: Request[AnyContent] => Future[Result]): Action[AnyContent] = secureAction.async { request =>
+    val token = request.token
+    consignmentService
+      .getConsignmentType(consignmentId, token.bearerAccessToken)
+      .flatMap(consignmentType => {
+        // These are custom user annotation traces used in Xray
+        val current = Span.current()
+        current.setAttribute(consignmentIdKey, consignmentId.toString)
+        current.setAttribute(userIdKey, token.userId.toString)
+        createResult(action, request, consignmentType == expectedConsignmentType && isPermitted(token))
+      })
   }
 }
