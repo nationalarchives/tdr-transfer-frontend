@@ -12,7 +12,16 @@ import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{request, _}
 import services.MessagingService.MetadataReviewSubmittedEvent
-import services.Statuses.{ClosureMetadataType, CompletedValue, CompletedWithIssuesValue, DescriptiveMetadataType, DraftMetadataType, InProgressValue, IncompleteValue, MetadataReviewType}
+import services.Statuses.{
+  ClosureMetadataType,
+  CompletedValue,
+  CompletedWithIssuesValue,
+  DescriptiveMetadataType,
+  DraftMetadataType,
+  InProgressValue,
+  IncompleteValue,
+  MetadataReviewType
+}
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
 import java.util.UUID
@@ -47,7 +56,7 @@ class MetadataReviewActionController @Inject() (
     val errorFunction: Form[SelectedStatusData] => Future[Result] = { formWithErrors: Form[SelectedStatusData] =>
       getConsignmentMetadataDetails(consignmentId, request, BadRequest, formWithErrors)
     }
-    
+
     val successFunction: SelectedStatusData => Future[Result] = { formData: SelectedStatusData =>
       logger.info(s"TNA user: ${request.token.userId} has set consignment: $consignmentId to ${formData.statusId}")
       for {
@@ -124,11 +133,14 @@ class MetadataReviewActionController @Inject() (
 object MetadataReviewActionController {
   def consignmentStatusUpdates(formData: SelectedStatusData): Seq[(String, String)] = {
     val metadataReviewStatusUpdate = (MetadataReviewType.id, formData.statusId)
-    val metadataStatusResets = if (formData.statusId == CompletedWithIssuesValue.value) Seq(
-      (DescriptiveMetadataType.id, IncompleteValue.value),
-      (ClosureMetadataType.id, IncompleteValue.value),
-      (DraftMetadataType.id, InProgressValue.value)
-    ) else Seq.empty
+    val metadataStatusResets =
+      if (formData.statusId == CompletedWithIssuesValue.value)
+        Seq(
+          (DescriptiveMetadataType.id, IncompleteValue.value),
+          (ClosureMetadataType.id, IncompleteValue.value),
+          (DraftMetadataType.id, InProgressValue.value)
+        )
+      else Seq.empty
     Seq(metadataReviewStatusUpdate) ++ metadataStatusResets
   }
 }

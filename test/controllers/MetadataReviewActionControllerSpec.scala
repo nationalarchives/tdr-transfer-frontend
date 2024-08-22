@@ -18,7 +18,16 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, status => playStatus, _}
 import services.MessagingService.MetadataReviewSubmittedEvent
-import services.Statuses.{ClosureMetadataType, CompletedValue, CompletedWithIssuesValue, DescriptiveMetadataType, DraftMetadataType, InProgressValue, IncompleteValue, MetadataReviewType}
+import services.Statuses.{
+  ClosureMetadataType,
+  CompletedValue,
+  CompletedWithIssuesValue,
+  DescriptiveMetadataType,
+  DraftMetadataType,
+  InProgressValue,
+  IncompleteValue,
+  MetadataReviewType
+}
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
@@ -100,11 +109,13 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       playStatus(reviewSubmit) mustBe SEE_OTHER
       redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review"))
       verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(argThat(metadataReviewDecisionEventMatcher))
-      
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql"))
-        .withRequestBody(containing("updateConsignmentStatus"))
-        .withRequestBody(containing("MetadataReview"))
-        .withRequestBody(containing("Completed")))
+
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("MetadataReview"))
+          .withRequestBody(containing("Completed"))
+      )
     }
 
     "Update the consignment metadata review status, reset metadata statuses and send MetadataReviewSubmittedEvent message when a valid form is submitted with a rejected review and the api response is successful" in {
@@ -113,7 +124,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       // Custom ArgumentMatcher to match the event based on the consignment reference, path, userEmail and status
       class MetadataReviewSubmittedEventMatcher(expectedConsignmentRef: String, expectedPath: String, expectedEmail: String, expectedStatus: String)
-        extends ArgumentMatcher[MetadataReviewSubmittedEvent] {
+          extends ArgumentMatcher[MetadataReviewSubmittedEvent] {
         override def matches(event: MetadataReviewSubmittedEvent): Boolean = {
           event.consignmentReference == expectedConsignmentRef && event.urlLink.contains(expectedPath) && event.userEmail == expectedEmail && event.status == expectedStatus
         }
@@ -132,26 +143,34 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       wiremockServer.getAllServeEvents.forEach { e =>
         println(e.getRequest.toString)
       }
-      
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql"))
-        .withRequestBody(containing("updateConsignmentStatus"))
-        .withRequestBody(containing("MetadataReview"))
-        .withRequestBody(containing("CompletedWithIssues")))
 
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql"))
-        .withRequestBody(containing("updateConsignmentStatus"))
-        .withRequestBody(containing("DescriptiveMetadata"))
-        .withRequestBody(containing("Incomplete")))
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("MetadataReview"))
+          .withRequestBody(containing("CompletedWithIssues"))
+      )
 
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql"))
-        .withRequestBody(containing("updateConsignmentStatus"))
-        .withRequestBody(containing("ClosureMetadata"))
-        .withRequestBody(containing("Incomplete")))
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("DescriptiveMetadata"))
+          .withRequestBody(containing("Incomplete"))
+      )
 
-      wiremockServer.verify(postRequestedFor(urlEqualTo("/graphql"))
-        .withRequestBody(containing("updateConsignmentStatus"))
-        .withRequestBody(containing("DraftMetadata"))
-        .withRequestBody(containing("InProgress")))
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("ClosureMetadata"))
+          .withRequestBody(containing("Incomplete"))
+      )
+
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("DraftMetadata"))
+          .withRequestBody(containing("InProgress"))
+      )
     }
 
     "display errors when an invalid form is submitted" in {
