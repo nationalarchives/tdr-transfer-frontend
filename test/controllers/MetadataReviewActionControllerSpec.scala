@@ -155,14 +155,14 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
         postRequestedFor(urlEqualTo("/graphql"))
           .withRequestBody(containing("updateConsignmentStatus"))
           .withRequestBody(containing("DescriptiveMetadata"))
-          .withRequestBody(containing("Incomplete"))
+          .withRequestBody(containing("InProgress"))
       )
 
       wiremockServer.verify(
         postRequestedFor(urlEqualTo("/graphql"))
           .withRequestBody(containing("updateConsignmentStatus"))
           .withRequestBody(containing("ClosureMetadata"))
-          .withRequestBody(containing("Incomplete"))
+          .withRequestBody(containing("InProgress"))
       )
 
       wiremockServer.verify(
@@ -242,8 +242,8 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       result mustBe Seq(
         (MetadataReviewType.id, CompletedWithIssuesValue.value),
-        (DescriptiveMetadataType.id, IncompleteValue.value),
-        (ClosureMetadataType.id, IncompleteValue.value),
+        (DescriptiveMetadataType.id, InProgress.value),
+        (ClosureMetadataType.id, InProgress.value),
         (DraftMetadataType.id, InProgressValue.value)
       )
     }
