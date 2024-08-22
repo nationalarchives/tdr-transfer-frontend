@@ -235,6 +235,20 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
       playStatus(page) mustBe FORBIDDEN
     }
 
+    "return forbidden for a TNA user" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
+
+      val controller = instantiateMetadataReviewStatusController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val page = controller
+        .metadataReviewStatusPage(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/review-progress"))
+
+      playStatus(page) mustBe FORBIDDEN
+    }
+
   }
 
   "metadataReviewStatusPage POST" should {

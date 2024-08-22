@@ -461,6 +461,34 @@ class TransferAgreementPart2ControllerSpec extends FrontEndTestHelper {
     playStatus(transferAgreement) mustBe FORBIDDEN
   }
 
+  s"return 403 if the GET is accessed for a non-standard consignment type" in {
+    val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+    val TransferAgreementPart2Controller =
+      taHelper.instantiateTransferAgreementPart2Controller(getAuthorisedSecurityComponents, app.configuration)
+
+    val transferAgreement = {
+      setConsignmentTypeResponse(wiremockServer, consignmentType = "judgment")
+      TransferAgreementPart2Controller
+        .transferAgreement(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement-continued").withCSRFToken)
+    }
+    playStatus(transferAgreement) mustBe FORBIDDEN
+  }
+
+  s"return forbidden for a TNA user" in {
+    val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+    val TransferAgreementPart2Controller =
+      taHelper.instantiateTransferAgreementPart2Controller(getAuthorisedSecurityComponents, app.configuration, getValidTNAUserKeycloakConfiguration)
+
+    val transferAgreement = {
+      setConsignmentTypeResponse(wiremockServer, consignmentType = "standard")
+      TransferAgreementPart2Controller
+        .transferAgreement(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement-continued").withCSRFToken)
+    }
+    playStatus(transferAgreement) mustBe FORBIDDEN
+  }
+
   private def checkForExpectedTAPart2PageContent(pageAsString: String, taAlreadyConfirmed: Boolean = true): Unit = {
     pageAsString must include("<title>Transfer agreement (part 2) - Transfer Digital Records - GOV.UK</title>")
     pageAsString must include("""<h1 class="govuk-heading-l govuk-!-margin-bottom-3">Transfer agreement (part 2)</h1>""")

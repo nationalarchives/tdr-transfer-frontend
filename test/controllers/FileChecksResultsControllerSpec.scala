@@ -473,6 +473,15 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  "return forbidden for a TNA user" in {
+    val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+    setConsignmentTypeResponse(wiremockServer, "standard")
+    val fileCheckResultsPage = controller
+      .fileCheckResultsPage(consignmentId)
+      .apply(FakeRequest(GET, s"/consignment/$consignmentId/file-checks-results"))
+    status(fileCheckResultsPage) mustBe FORBIDDEN
+  }
+
   private def mockGraphqlResponse(consignmentType: String, fileStatusResponse: String = "", filePathResponse: String = "") = {
     if (consignmentType == "judgment") {
       wiremockServer.stubFor(

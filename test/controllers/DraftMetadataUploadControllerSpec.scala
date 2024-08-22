@@ -91,6 +91,16 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       playStatus(draftMetadataUploadPage) mustBe FORBIDDEN
     }
 
+    "return forbidden for a TNA user" in {
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val controller = instantiateDraftMetadataUploadController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration, blockDraftMetadataUpload = false)
+      val draftMetadataUploadPage = controller
+        .draftMetadataUploadPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)
+      playStatus(draftMetadataUploadPage) mustBe FORBIDDEN
+    }
+
     "redirect to draft metadata checks page when upload successful" in {
       val uploadServiceMock = mock[UploadService]
       when(configuration.get[String]("draftMetadata.fileName")).thenReturn(uploadFilename)

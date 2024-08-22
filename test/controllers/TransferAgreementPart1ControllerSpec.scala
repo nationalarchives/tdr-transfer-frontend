@@ -451,7 +451,7 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
   }
 
   s"The consignment transfer agreement (part 1) page" should {
-    s"return 403 if the GET is accessed by a non-standard user" in {
+    s"return 403 if the GET is accessed for a non-standard consignment type" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val TransferAgreementPart1Controller =
         taHelper.instantiateTransferAgreementPart1Controller(
@@ -462,6 +462,24 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
 
       val transferAgreement = {
         setConsignmentTypeResponse(wiremockServer, consignmentType = "judgment")
+        TransferAgreementPart1Controller
+          .transferAgreement(consignmentId)
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)
+      }
+      playStatus(transferAgreement) mustBe FORBIDDEN
+    }
+
+    s"return forbidden for a TNA user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val TransferAgreementPart1Controller =
+        taHelper.instantiateTransferAgreementPart1Controller(
+          getAuthorisedSecurityComponents,
+          app.configuration,
+          getValidTNAUserKeycloakConfiguration
+        )
+
+      val transferAgreement = {
+        setConsignmentTypeResponse(wiremockServer, consignmentType = "standard")
         TransferAgreementPart1Controller
           .transferAgreement(consignmentId)
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-agreement").withCSRFToken)

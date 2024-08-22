@@ -75,13 +75,7 @@ trait TokenSecurity extends OidcSecurity with I18nSupport {
       )
     }
   }
-
-  private def consignmentTypeAction(
-    consignmentId: UUID,
-    expectedConsignmentType: String
-  )(action: Request[AnyContent] => Future[Result]): Action[AnyContent] =
-    validatedAction(consignmentId, expectedConsignmentType)(action)
-
+  
   private def validatedAction(
     consignmentId: UUID,
     expectedConsignmentType: String,

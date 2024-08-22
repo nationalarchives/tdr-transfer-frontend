@@ -4,7 +4,7 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent
-import configuration.GraphQLConfiguration
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.util.MetadataProperty._
 import controllers.util._
 import errors.GraphQlException
@@ -241,6 +241,15 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       playStatus(addAdditionalMetadataPage) mustBe FOUND
     }
 
+    "return forbidden for a TNA user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = instantiateAddAdditionalMetadataController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration)
+      val addAdditionalMetadataPage = controller
+        .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
+      playStatus(addAdditionalMetadataPage) mustBe FORBIDDEN
+    }
+    
     "return a redirect to the additionalMetadataClosureStatus page if the closure status isn't closed" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
@@ -919,7 +928,10 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def instantiateAddAdditionalMetadataController(securityComponents: SecurityComponents = getAuthorisedSecurityComponents) = {
+  private def instantiateAddAdditionalMetadataController(
+    securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
+    keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
+  ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
@@ -928,7 +940,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     new AddAdditionalMetadataController(
       securityComponents,
       new GraphQLConfiguration(app.configuration),
-      getValidStandardUserKeycloakConfiguration,
+      keycloakConfiguration,
       consignmentService,
       customMetadataService,
       displayPropertiesService,

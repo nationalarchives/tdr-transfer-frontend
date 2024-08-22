@@ -604,6 +604,15 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     }
   }
 
+  "return forbidden for a TNA user" in {
+    val controller = initialiseFileChecks(getValidTNAUserKeycloakConfiguration)
+    setConsignmentTypeResponse(wiremockServer, "standard")
+    val fileChecksPage = controller
+      .judgmentFileChecksPage(consignmentId, None)
+      .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks"))
+    playStatus(fileChecksPage) mustBe FORBIDDEN
+  }
+
   private def progressData(
       filesProcessedWithAntivirus: Int,
       filesProcessedWithChecksum: Int,
