@@ -242,8 +242,8 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
       result mustBe Seq(
         (MetadataReviewType.id, CompletedWithIssuesValue.value),
-        (DescriptiveMetadataType.id, InProgress.value),
-        (ClosureMetadataType.id, InProgress.value),
+        (DescriptiveMetadataType.id, InProgressValue.value),
+        (ClosureMetadataType.id, InProgressValue.value),
         (DraftMetadataType.id, InProgressValue.value)
       )
     }
