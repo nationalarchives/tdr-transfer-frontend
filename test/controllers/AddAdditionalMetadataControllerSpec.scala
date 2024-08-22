@@ -244,6 +244,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     "return forbidden for a TNA user" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val controller = instantiateAddAdditionalMetadataController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration)
+      setConsignmentTypeResponse(wiremockServer, "standard")
       val addAdditionalMetadataPage = controller
         .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
