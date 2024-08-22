@@ -82,7 +82,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
   }
 
   s"The judgment before uploading page" should {
-    s"return 403 if the GET is accessed by for a non-judgment consignment" in {
+    s"return 403 if the GET is accessed for a non-judgment consignment" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val beforeUploadingController: BeforeUploadingController = instantiateBeforeUploadingController()
 
