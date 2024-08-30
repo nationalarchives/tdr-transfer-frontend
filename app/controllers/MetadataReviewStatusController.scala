@@ -28,6 +28,7 @@ class MetadataReviewStatusController @Inject() (
         consignmentStatus <- consignmentStatusService.consignmentStatusSeries(consignmentId, request.token.bearerAccessToken)
         reviewStatus = consignmentStatus.flatMap(s => consignmentStatusService.getStatusValues(s.consignmentStatuses, MetadataReviewType).values.headOption.flatten)
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+<<<<<<< HEAD
         result <- reviewStatus match {
           case Some(InProgressValue.value) | Some(CompletedValue.value) | Some(CompletedWithIssuesValue.value) =>
             Future(
@@ -58,6 +59,11 @@ class MetadataReviewStatusController @Inject() (
       )
     } yield {
       Redirect(routes.AdditionalMetadataController.start(consignmentId))
+=======
+      } yield reviewStatus
+        .map(status => Ok(views.html.standard.metadataReviewStatus(consignmentId, reference, request.token.name, request.token.email, status)))
+        .getOrElse(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
+>>>>>>> master
     }
   }
 }
