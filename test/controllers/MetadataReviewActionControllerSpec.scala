@@ -295,9 +295,11 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       |                        </dd>""".stripMargin)
     pageAsString must include("""1. Download and review transfer metadata""")
     pageAsString must include(downloadLinkHTML(consignmentId))
-    if(isTransferAdvisor) {
+    if (isTransferAdvisor) {
       pageAsString must include("""2. Set the status of this review""")
-      pageAsString must include(s"""<form action="/admin/metadata-review/$consignmentId?consignmentRef=TDR-2024-TEST&amp;userEmail=email%40test.com" method="POST" novalidate="">""")
+      pageAsString must include(
+        s"""<form action="/admin/metadata-review/$consignmentId?consignmentRef=TDR-2024-TEST&amp;userEmail=email%40test.com" method="POST" novalidate="">"""
+      )
       pageAsString must include(s"""<option value="" selected>
                                    |                    Select a status
                                    |                </option>""".stripMargin)

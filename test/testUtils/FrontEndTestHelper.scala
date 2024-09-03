@@ -926,7 +926,7 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     val accessToken = new AccessToken()
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     accessToken.setOtherClaims("tna_user", "true")
-    if(isTransferAdvisor) accessToken.setOtherClaims("transfer_adviser", "true")
+    if (isTransferAdvisor) accessToken.setOtherClaims("transfer_adviser", "true")
     accessToken.setName("TNA Username")
     accessToken.setEmail("test@example.com")
     val token = Token(accessToken, new BearerAccessToken)
