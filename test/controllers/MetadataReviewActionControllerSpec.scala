@@ -60,10 +60,24 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
 
   "MetadataReviewActionController GET" should {
 
-    "render the correct metadata details page with an authenticated user" in {
+    "render the correct metadata details page with an authenticated transfer advisor user" in {
       setGetConsignmentDetailsForMetadataReviewResponse()
 
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
+      val metadataReviewActionPage = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
+      val metadataReviewActionPageAsString = contentAsString(metadataReviewActionPage)
+
+      playStatus(metadataReviewActionPage) mustBe OK
+      contentType(metadataReviewActionPage) mustBe Some("text/html")
+
+      checkForExpectedMetadataReviewActionPageContent(metadataReviewActionPageAsString)
+      checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewActionPageAsString, userType = "tna")
+    }
+
+    "render the correct metadata details page with an authenticated read only user" in {
+      setGetConsignmentDetailsForMetadataReviewResponse()
+
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val metadataReviewActionPage = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       val metadataReviewActionPageAsString = contentAsString(metadataReviewActionPage)
 
@@ -75,7 +89,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "return a redirect to the auth server with an unauthenticated user" in {
-      val controller = instantiateMetadataReviewActionController(getUnauthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val controller = instantiateMetadataReviewActionController(getUnauthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val metadataReviewActionPage = controller.consignmentMetadataDetails(consignmentId).apply(FakeRequest(GET, s"/admin/metadata-review/$consignmentId").withCSRFToken)
       redirectLocation(metadataReviewActionPage).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
       playStatus(metadataReviewActionPage) mustBe FOUND
@@ -89,7 +103,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "Update the metadata review consignment status and send MetadataReviewSubmittedEvent message when a valid form is submitted with an accepted review and the api response is successful" in {
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val status = CompletedValue.value
 
       // Custom ArgumentMatcher to match the event based on the consignment reference, path, userEmail and status
@@ -119,7 +133,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "Update the consignment metadata review status, reset metadata statuses and send MetadataReviewSubmittedEvent message when a valid form is submitted with a rejected review and the api response is successful" in {
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val status = CompletedWithIssuesValue.value
 
       // Custom ArgumentMatcher to match the event based on the consignment reference, path, userEmail and status
@@ -174,7 +188,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
 
     "display errors when an invalid form is submitted" in {
-      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(isTransferAdvisor = true))
       val consignmentRef = "TDR-TEST-2024"
       val userEmail = "test@test.com"
       val metadataReviewDecisionEvent = MetadataReviewSubmittedEvent(consignmentRef, "SomeUrl", userEmail, "status")
@@ -258,7 +272,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def checkForExpectedMetadataReviewActionPageContent(pageAsString: String): Unit = {
+  private def checkForExpectedMetadataReviewActionPageContent(pageAsString: String, isTransferAdvisor: Boolean = false): Unit = {
     pageAsString must include("""<a href="/admin/metadata-review" class="govuk-back-link">Back</a>""")
     pageAsString must include("""View request for TDR-2024-TEST""")
     pageAsString must include("""<dt class="govuk-summary-list__key">
@@ -281,13 +295,15 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       |                        </dd>""".stripMargin)
     pageAsString must include("""1. Download and review transfer metadata""")
     pageAsString must include(downloadLinkHTML(consignmentId))
-    pageAsString must include("""2. Set the status of this review""")
-    pageAsString must include(s"""<form action="/admin/metadata-review/$consignmentId?consignmentRef=TDR-2024-TEST&amp;userEmail=email%40test.com" method="POST" novalidate="">""")
-    pageAsString must include(s"""<option value="" selected>
-     |                    Select a status
-     |                </option>""".stripMargin)
-    pageAsString must include(s"""<option value="Completed">Approve</option>""")
-    pageAsString must include(s"""<option value="CompletedWithIssues">Reject</option>""")
+    if(isTransferAdvisor) {
+      pageAsString must include("""2. Set the status of this review""")
+      pageAsString must include(s"""<form action="/admin/metadata-review/$consignmentId?consignmentRef=TDR-2024-TEST&amp;userEmail=email%40test.com" method="POST" novalidate="">""")
+      pageAsString must include(s"""<option value="" selected>
+                                   |                    Select a status
+                                   |                </option>""".stripMargin)
+      pageAsString must include(s"""<option value="Completed">Approve</option>""")
+      pageAsString must include(s"""<option value="CompletedWithIssues">Reject</option>""")
+    }
   }
 
   private def downloadLinkHTML(consignmentId: UUID): String = {
