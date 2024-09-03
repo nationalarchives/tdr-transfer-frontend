@@ -6,28 +6,32 @@
   @main(title, name = name, isJudgmentUser = true) {
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-        <h1 class="govuk-heading-l">@title</h1>
+        <h1 class="govuk-heading-xl">@title</h1>
 
-        <h2 class="govuk-heading-m govuk-!-margin-top-7">Before you start</h2>
-
-        <p class="govuk-body">
-          You must upload your judgment as a Microsoft Word (.docx) document. Any other formats will not be accepted.
-        </p>
-
-        <h2 class="govuk-heading-m govuk-!-margin-top-2">Upload your judgment to start a new transfer</h2>
+        <p class="govuk-body">You can use this service to:</p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>transfer judgments and decisions</li>
+          <li>transfer an amendment to an existing judgment or decision</li>
+        </ul>
 
         @form(routes.HomepageController.judgmentHomepageSubmit(), (Symbol("novalidate"), "")) {
           @CSRF.formField
-          <div class="govuk-button-group">
-            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
-            role="button">
-              Start transfer
-            </button>
-          </div>
+          <button data-prevent-double-click="true" class="govuk-button govuk-!-margin-bottom-8" type="submit" data-module="govuk-button"
+          role="button">
+            Start your transfer
+          </button>
           @if(!blockViewTransfers) {
             @viewTransfersBtn()
           }
         }
+
+        <h2 class="govuk-heading-m">If this is an update to an existing judgment or decision</h2>
+        <p class="govuk-body">You can use this service to transfer an update or revision to a previously transferred document.</p>
+        <p class="govuk-body">Transfer the document in the same way as any judgment or decision, by clicking "Start your transfer" above.</p>
+        <p class="govuk-body">Once you have successfully completed the transfer you will need to email us. More information will be provided after the transfer.</p>
+        <h2 class="govuk-heading-m">Contact the publishing editors</h2>
+        <p class="govuk-body"><a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a></p>
+
       </div>
     </div>
   }
