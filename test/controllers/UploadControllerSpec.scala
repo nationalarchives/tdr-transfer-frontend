@@ -403,10 +403,10 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(uploadPageAsString, userType = "judgment", pageRequiresAwsServices = true)
       checkForExpectedPageContentOnMainUploadPage(uploadPageAsString)
-      uploadPageAsString must include("<title>Upload judgment - Transfer Digital Records - GOV.UK</title>")
-      uploadPageAsString must include("""<h1 class="govuk-heading-l">Upload judgment</h1>""")
-      uploadPageAsString must include("You may now upload the judgment you wish to transfer. You can only upload one file.")
-      uploadPageAsString must include("We only accept Microsoft Word files (.docx).")
+      uploadPageAsString must include("<title>Upload document - Transfer Digital Records - GOV.UK</title>")
+      uploadPageAsString must include("""<h1 class="govuk-heading-l">Upload document</h1>""")
+      uploadPageAsString must include("You may now select and upload the judgment or decision. You can only upload one file.")
+      uploadPageAsString must include("We only accept Microsoft Word files ending in .docx.")
       uploadPageAsString must include(
         """<form id="file-upload-form" data-consignment-id="c2efd3e6-6664-4582-8c28-dcf891f60e68">"""
       )
@@ -427,11 +427,11 @@ class UploadControllerSpec extends FrontEndTestHelper {
       uploadPageAsString must include(
         """|                                    accept=".docx"
            |                                    >
-           |                                    <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single file here or</p>
+           |                                    <p class="govuk-body drag-and-drop__hint-text">Drag and drop a single file here or&nbsp;</p>
            |                                    <label for="file-selection" class="govuk-button govuk-button--secondary drag-and-drop__button">
            |                                        Choose file""".stripMargin
       )
-      uploadPageAsString must include("""<h1 class="govuk-heading-l">Uploading judgment</h1>""")
+      uploadPageAsString must include("""<h1 class="govuk-heading-l">Uploading document</h1>""")
       uploadPageAsString must include(
         """|                <h2 class="govuk-error-summary__title" id="progress-error-summary-title">
            |                    There is a problem
@@ -439,7 +439,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
            |                <div class="govuk-error-summary__body">
            |                    <p>Your file has failed to upload.</p>""".stripMargin
       )
-      uploadPageAsString must include("""<p class="govuk-body">Do not close your browser window while your file is being uploaded. This could take a few minutes.</p>""")
+      uploadPageAsString must include("""<p class="govuk-body">Do not close your browser window while your file is being uploaded. This may take a few minutes.</p>""")
     }
 
     "render the 'upload in progress' page if a judgment file upload is in progress" in {
@@ -988,7 +988,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
 
   private def checkForExpectedPageContentOnOtherUploadPages(pageAsString: String, userType: String = "standard", uploadStatus: String = "") = {
     if (userType == "judgment") {
-      pageAsString must include("""<h1 class="govuk-heading-l">Uploading judgment</h1>""")
+      pageAsString must include("""<h1 class="govuk-heading-l">Uploading document</h1>""")
     } else {
       pageAsString must include("""<h1 class="govuk-heading-l">Uploading your records</h1>""")
     }

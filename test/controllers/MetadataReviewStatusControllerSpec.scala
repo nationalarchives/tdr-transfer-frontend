@@ -135,13 +135,13 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
       )
 
       metadataReviewStatusPageAsString must include(downloadLinkHTML(consignmentId))
-      metadataReviewStatusPageAsString must include(s"""<form action="/consignment/$consignmentId/metadata-review/review-progress" method="POST" novalidate="">""")
       metadataReviewStatusPageAsString must include(
-        s"""<div class="govuk-button-group">
-           |            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-           |                Continue
-           |            </button>
-           |        </div>""".stripMargin
+        s"""
+           |<div class="govuk-button-group">
+           |    <a class="govuk-button" href="/consignment/$consignmentId/additional-metadata" role="button" draggable="false" data-module="govuk-button">
+           |        Continue
+           |    </a>
+           |</div>""".stripMargin
       )
 
       checkPageForStaticElements.checkContentOfPagesThatUseMainScala(metadataReviewStatusPageAsString, userType = "standard")
@@ -234,24 +234,6 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
 
       playStatus(page) mustBe FORBIDDEN
     }
-
-  }
-
-  "metadataReviewStatusPage POST" should {
-    "update the status and redirect to the File Check Results page with an authenticated user" in {
-      val consignmentId = UUID.randomUUID()
-      setConsignmentTypeResponse(wiremockServer, "standard")
-      setUpdateConsignmentStatus(wiremockServer)
-
-      val controller = instantiateMetadataReviewStatusController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
-      val metadataReviewStatusPage = controller
-        .metadataReviewActionRequired(consignmentId)
-        .apply(FakeRequest(POST, s"/consignment/$consignmentId/metadata-review/review-progress"))
-
-      playStatus(metadataReviewStatusPage) mustBe SEE_OTHER
-      redirectLocation(metadataReviewStatusPage).get must equal(s"/consignment/$consignmentId/additional-metadata")
-
-    }
   }
 
   private def instantiateMetadataReviewStatusController(
@@ -268,7 +250,7 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
   }
 
   private def downloadLinkHTML(consignmentId: UUID): String = {
-    val linkHTML: String = s"""<a class="govuk-button  govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">
+    val linkHTML: String = s"""<a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">
        |    <span aria-hidden="true" class="tna-button-icon">
        |        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
        |            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"></path>
@@ -279,5 +261,4 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
        |""".stripMargin
     linkHTML
   }
-
 }

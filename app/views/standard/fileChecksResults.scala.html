@@ -1,4 +1,4 @@
-@import views.html.partials.{progressIndicator, transferReference}
+@import views.html.partials.transferReference
 
 @import java.util.UUID
 @(consignmentInfo: ConsignmentFolderInfo, title: String, consignmentId: UUID, consignmentRef: String, name: String, blockDraftMetadata: Boolean)(implicit messages: Messages, request: RequestHeader)
@@ -6,7 +6,6 @@
 @main(title, name = name) {
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
-            @progressIndicator(Messages("fileChecksResults.progress"))
             <h1 class="govuk-heading-l">@title</h1>
             <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
                 <div class="govuk-notification-banner__header">

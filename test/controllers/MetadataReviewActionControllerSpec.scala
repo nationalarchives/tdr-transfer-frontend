@@ -3,6 +3,7 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import configuration.{GraphQLConfiguration, KeycloakConfiguration}
+import controllers.MetadataReviewActionController.consignmentStatusUpdates
 import graphql.codegen.GetConsignmentDetailsForMetadataReview.getConsignmentDetailsForMetadataReview
 import io.circe.Printer
 import io.circe.generic.auto._
@@ -17,7 +18,16 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, status => playStatus, _}
 import services.MessagingService.MetadataReviewSubmittedEvent
-import services.Statuses.CompletedValue
+import services.Statuses.{
+  ClosureMetadataType,
+  CompletedValue,
+  CompletedWithIssuesValue,
+  DescriptiveMetadataType,
+  DraftMetadataType,
+  InProgressValue,
+  IncompleteValue,
+  MetadataReviewType
+}
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 
@@ -43,6 +53,10 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
   }
 
   val checkPageForStaticElements = new CheckPageForStaticElements
+
+  val consignmentRef = "TDR-TEST-2024"
+  val userEmail = "test@test.com"
+  val expectedPath = s"/consignment/$consignmentId/metadata-review/review-progress"
 
   "MetadataReviewActionController GET" should {
 
@@ -74,12 +88,9 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
-    "Update the consignment status and send MetadataReviewSubmittedEvent message when a valid form is submitted and the api response is successful" in {
+    "Update the metadata review consignment status and send MetadataReviewSubmittedEvent message when a valid form is submitted with an accepted review and the api response is successful" in {
       val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
-      val consignmentRef = "TDR-TEST-2024"
-      val userEmail = "test@test.com"
       val status = CompletedValue.value
-      val expectedPath = s"/consignment/$consignmentId/metadata-review/review-progress"
 
       // Custom ArgumentMatcher to match the event based on the consignment reference, path, userEmail and status
       class MetadataReviewSubmittedEventMatcher(expectedConsignmentRef: String, expectedPath: String, expectedEmail: String, expectedStatus: String)
@@ -98,6 +109,68 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       playStatus(reviewSubmit) mustBe SEE_OTHER
       redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review"))
       verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(argThat(metadataReviewDecisionEventMatcher))
+
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("MetadataReview"))
+          .withRequestBody(containing("Completed"))
+      )
+    }
+
+    "Update the consignment metadata review status, reset metadata statuses and send MetadataReviewSubmittedEvent message when a valid form is submitted with a rejected review and the api response is successful" in {
+      val controller = instantiateMetadataReviewActionController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val status = CompletedWithIssuesValue.value
+
+      // Custom ArgumentMatcher to match the event based on the consignment reference, path, userEmail and status
+      class MetadataReviewSubmittedEventMatcher(expectedConsignmentRef: String, expectedPath: String, expectedEmail: String, expectedStatus: String)
+          extends ArgumentMatcher[MetadataReviewSubmittedEvent] {
+        override def matches(event: MetadataReviewSubmittedEvent): Boolean = {
+          event.consignmentReference == expectedConsignmentRef && event.urlLink.contains(expectedPath) && event.userEmail == expectedEmail && event.status == expectedStatus
+        }
+      }
+
+      val metadataReviewDecisionEventMatcher = new MetadataReviewSubmittedEventMatcher(consignmentRef, expectedPath, userEmail, status)
+
+      setUpdateConsignmentStatus(wiremockServer)
+
+      val reviewSubmit =
+        controller.submitReview(consignmentId, consignmentRef, userEmail).apply(FakeRequest().withFormUrlEncodedBody(("status", status)).withCSRFToken)
+      playStatus(reviewSubmit) mustBe SEE_OTHER
+      redirectLocation(reviewSubmit) must be(Some(s"/admin/metadata-review"))
+      verify(messagingService, times(1)).sendMetadataReviewSubmittedNotification(argThat(metadataReviewDecisionEventMatcher))
+
+      wiremockServer.getAllServeEvents.forEach { e =>
+        println(e.getRequest.toString)
+      }
+
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("MetadataReview"))
+          .withRequestBody(containing("CompletedWithIssues"))
+      )
+
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("DescriptiveMetadata"))
+          .withRequestBody(containing("InProgress"))
+      )
+
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("ClosureMetadata"))
+          .withRequestBody(containing("InProgress"))
+      )
+
+      wiremockServer.verify(
+        postRequestedFor(urlEqualTo("/graphql"))
+          .withRequestBody(containing("updateConsignmentStatus"))
+          .withRequestBody(containing("DraftMetadata"))
+          .withRequestBody(containing("InProgress"))
+      )
     }
 
     "display errors when an invalid form is submitted" in {
@@ -162,6 +235,29 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
     )
   }
 
+  "consignmentStatusUpdates" should {
+    "return correct updates when status is CompletedWithIssues" in {
+      val formData = SelectedStatusData(CompletedWithIssuesValue.value)
+      val result = consignmentStatusUpdates(formData)
+
+      result mustBe Seq(
+        (MetadataReviewType.id, CompletedWithIssuesValue.value),
+        (DescriptiveMetadataType.id, InProgressValue.value),
+        (ClosureMetadataType.id, InProgressValue.value),
+        (DraftMetadataType.id, InProgressValue.value)
+      )
+    }
+
+    "return only metadata review status update when status is Completed" in {
+      val formData = SelectedStatusData(CompletedValue.value)
+      val result = consignmentStatusUpdates(formData)
+
+      result mustBe Seq(
+        (MetadataReviewType.id, CompletedValue.value)
+      )
+    }
+  }
+
   private def checkForExpectedMetadataReviewActionPageContent(pageAsString: String): Unit = {
     pageAsString must include("""<a href="/admin/metadata-review" class="govuk-back-link">Back</a>""")
     pageAsString must include("""View request for TDR-2024-TEST""")
@@ -195,7 +291,7 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
   }
 
   private def downloadLinkHTML(consignmentId: UUID): String = {
-    val linkHTML: String = s"""<a class="govuk-button  govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">
+    val linkHTML: String = s"""<a class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8 download-metadata" href="/consignment/$consignmentId/additional-metadata/download-metadata/csv">
                               |    <span aria-hidden="true" class="tna-button-icon">
                               |        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
                               |            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"></path>

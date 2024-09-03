@@ -29,12 +29,9 @@
 
     @downloadMetadataLink(consignmentId)
 
+<div class="govuk-button-group">
+    <a class="govuk-button" href="@routes.AdditionalMetadataController.start(consignmentId)" role="button" draggable="false" data-module="govuk-button">
+        Continue
+    </a>
+</div>
 
-    @form(routes.MetadataReviewStatusController.metadataReviewActionRequired(consignmentId), (Symbol("novalidate"), "")) {
-        @CSRF.formField
-        <div class="govuk-button-group">
-            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
-                Continue
-            </button>
-        </div>
-    }

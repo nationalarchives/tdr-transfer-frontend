@@ -2,6 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
+import controllers.MetadataReviewActionController.consignmentStatusUpdates
 import controllers.util.{DropdownField, InputNameAndValue}
 import graphql.codegen.types.ConsignmentStatusInput
 import org.pac4j.play.scala.SecurityComponents
@@ -11,7 +12,16 @@ import play.api.data.Forms._
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 import services.MessagingService.MetadataReviewSubmittedEvent
-import services.Statuses.{CompletedValue, CompletedWithIssuesValue, MetadataReviewType}
+import services.Statuses.{
+  ClosureMetadataType,
+  CompletedValue,
+  CompletedWithIssuesValue,
+  DescriptiveMetadataType,
+  DraftMetadataType,
+  InProgressValue,
+  IncompleteValue,
+  MetadataReviewType
+}
 import services.{ConsignmentService, ConsignmentStatusService, MessagingService}
 
 import java.util.UUID
@@ -50,9 +60,13 @@ class MetadataReviewActionController @Inject() (
     val successFunction: SelectedStatusData => Future[Result] = { formData: SelectedStatusData =>
       logger.info(s"TNA user: ${request.token.userId} has set consignment: $consignmentId to ${formData.statusId}")
       for {
-        _ <- consignmentStatusService.updateConsignmentStatus(
-          ConsignmentStatusInput(consignmentId, MetadataReviewType.id, Some(formData.statusId)),
-          request.token.bearerAccessToken
+        _ <- Future.sequence(
+          consignmentStatusUpdates(formData).map { case (statusType, statusValue) =>
+            consignmentStatusService.updateConsignmentStatus(
+              ConsignmentStatusInput(consignmentId, statusType, Some(statusValue)),
+              request.token.bearerAccessToken
+            )
+          }
         )
       } yield {
         messagingService.sendMetadataReviewSubmittedNotification(
@@ -113,6 +127,21 @@ class MetadataReviewActionController @Inject() (
   private def generateUrlLink(request: Request[AnyContent], route: String): String = {
     val baseUrl = if (request.secure) "https" else "http"
     baseUrl + "://" + request.host + route
+  }
+}
+
+object MetadataReviewActionController {
+  def consignmentStatusUpdates(formData: SelectedStatusData): Seq[(String, String)] = {
+    val metadataReviewStatusUpdate = (MetadataReviewType.id, formData.statusId)
+    val metadataStatusResets =
+      if (formData.statusId == CompletedWithIssuesValue.value)
+        Seq(
+          (DescriptiveMetadataType.id, InProgressValue.value),
+          (ClosureMetadataType.id, InProgressValue.value),
+          (DraftMetadataType.id, InProgressValue.value)
+        )
+      else Seq.empty
+    Seq(metadataReviewStatusUpdate) ++ metadataStatusResets
   }
 }
 
