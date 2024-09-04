@@ -27,12 +27,12 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.client" %% "core" % sttpVersion,
   "com.softwaremill.sttp.client" %% "circe" % sttpVersion,
   "com.softwaremill.sttp.client" %% "async-http-client-backend-future" % sttpVersion,
-  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.174",
-  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.208",
-  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.382",
-  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.42",
-  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.201",
-  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.201",
+  "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.178",
+  "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.210",
+  "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.384",
+  "uk.gov.nationalarchives" %% "tdr-metadata-validation" % "0.0.52",
+  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.203",
+  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.203",
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   ws,
   "io.opentelemetry" % "opentelemetry-api" % "1.40.0",
@@ -40,10 +40,10 @@ libraryDependencies ++= Seq(
   "io.opentelemetry" % "opentelemetry-sdk" % "1.40.0",
   "io.opentelemetry" % "opentelemetry-extension-aws" % "1.20.1",
   "io.opentelemetry" % "opentelemetry-sdk-extension-aws" % "1.19.0",
-  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.37.0",
+  "io.opentelemetry.contrib" % "opentelemetry-aws-xray" % "1.38.0",
   "io.opentelemetry.contrib" % "opentelemetry-aws-xray-propagator" % "1.22.0-alpha",
   "com.github.tomakehurst" % "wiremock-standalone" % "3.0.1" % Test,
-  "org.mockito" % "mockito-core" % "5.12.0" % Test,
+  "org.mockito" % "mockito-core" % "5.13.0" % Test,
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test
 )
 libraryDependencies += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2"
@@ -57,8 +57,8 @@ scalacOptions ++= Seq("-language:implicitConversions")
 libraryDependencies += play.sbt.PlayImport.cacheApi
 libraryDependencies += "com.github.karelcemus" %% "play-redis" % "5.0.0"
 
-libraryDependencies += "org.dhatim" % "fastexcel" % "0.18.1"
-libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.18.1"
+libraryDependencies += "org.dhatim" % "fastexcel" % "0.18.2"
+libraryDependencies += "org.dhatim" % "fastexcel-reader" % "0.18.2"
 
 excludeDependencies ++= Seq(
   ExclusionRule(organization = "com.typesafe.akka"),
