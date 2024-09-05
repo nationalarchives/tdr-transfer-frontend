@@ -99,7 +99,8 @@ class MetadataReviewActionController @Inject() (
           consignmentId,
           consignment,
           userDetails.email,
-          createDropDownField(List(InputNameAndValue("Approve", CompletedValue.value), InputNameAndValue("Reject", CompletedWithIssuesValue.value)), form)
+          createDropDownField(List(InputNameAndValue("Approve", CompletedValue.value), InputNameAndValue("Reject", CompletedWithIssuesValue.value)), form),
+          request.token.isTransferAdviser
         )
       )
     }
