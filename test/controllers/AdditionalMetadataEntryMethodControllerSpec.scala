@@ -71,7 +71,7 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
     }
 
     "return forbidden for a TNA user" in {
-      val controller = instantiateController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration)
+      val controller = instantiateController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
       val additionalMetadataEntryMethodPage = controller.additionalMetadataEntryMethodPage(consignmentId).apply(FakeRequest(GET, "/additional-metadata/entry-method").withCSRFToken)
       setConsignmentTypeResponse(wiremockServer, "standard")
       playStatus(additionalMetadataEntryMethodPage) mustBe FORBIDDEN

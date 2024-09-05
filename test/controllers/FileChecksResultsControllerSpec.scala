@@ -474,7 +474,7 @@ class FileChecksResultsControllerSpec extends FrontEndTestHelper {
   }
 
   "return forbidden for a TNA user" in {
-    val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+    val controller = instantiateController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
     setConsignmentTypeResponse(wiremockServer, "standard")
     val fileCheckResultsPage = controller
       .fileCheckResultsPage(consignmentId)

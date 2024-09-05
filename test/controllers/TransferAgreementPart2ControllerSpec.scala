@@ -478,7 +478,7 @@ class TransferAgreementPart2ControllerSpec extends FrontEndTestHelper {
   s"return forbidden for a TNA user" in {
     val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
     val transferAgreementPart2Controller =
-      taHelper.instantiateTransferAgreementPart2Controller(getAuthorisedSecurityComponents, app.configuration, getValidTNAUserKeycloakConfiguration)
+      taHelper.instantiateTransferAgreementPart2Controller(getAuthorisedSecurityComponents, app.configuration, getValidTNAUserKeycloakConfiguration())
 
     val transferAgreement = {
       setConsignmentTypeResponse(wiremockServer, consignmentType = "standard")

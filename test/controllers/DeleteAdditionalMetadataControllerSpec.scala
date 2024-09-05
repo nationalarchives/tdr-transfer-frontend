@@ -221,7 +221,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           consignmentService,
           customMetadataService,
           displayPropertiesService,
-          getValidJudgmentUserKeycloakConfiguration,
+          getValidTNAUserKeycloakConfiguration(),
           getAuthorisedSecurityComponents
         )
 

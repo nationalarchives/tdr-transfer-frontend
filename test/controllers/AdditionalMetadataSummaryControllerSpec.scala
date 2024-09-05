@@ -208,7 +208,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentService = new ConsignmentService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val controller =
-        new AdditionalMetadataSummaryController(consignmentService, displayPropertiesService, getValidTNAUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new AdditionalMetadataSummaryController(consignmentService, displayPropertiesService, getValidTNAUserKeycloakConfiguration(), getAuthorisedSecurityComponents)
       val response = controller
         .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))

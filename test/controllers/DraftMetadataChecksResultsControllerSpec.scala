@@ -50,7 +50,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     }
 
     "return forbidden for a TNA user" in {
-      val controller = instantiateController(blockDraftMetadataUpload = false, keycloakConfiguration = getValidJudgmentUserKeycloakConfiguration)
+      val controller = instantiateController(blockDraftMetadataUpload = false, keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
       val additionalMetadataEntryMethodPage = controller.draftMetadataChecksResultsPage(consignmentId).apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
       setConsignmentTypeResponse(wiremockServer, "standard")
 
