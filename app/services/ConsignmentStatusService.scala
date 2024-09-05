@@ -9,7 +9,7 @@ import graphql.codegen.AddConsignmentStatus.{addConsignmentStatus => acs}
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import graphql.codegen.types.ConsignmentStatusInput
 import services.ApiErrorHandling._
-import services.Statuses.StatusType
+import services.Statuses.{NotEnteredValue, StatusType, StatusValue}
 
 import java.util.UUID
 import javax.inject.Inject
@@ -57,4 +57,9 @@ class ConsignmentStatusService @Inject() (val graphqlConfiguration: GraphQLConfi
     sendApiRequest(getConsignmentStatusClient, gcs.document, token, variables).map(data => data.getConsignment)
   }
 
+}
+
+object ConsignmentStatusService {
+  def statusValue(statusType: StatusType): Seq[ConsignmentStatuses] => StatusValue =
+    _.find(_.statusType == statusType.id).map(cs => StatusValue(cs.value)).getOrElse(NotEnteredValue)
 }

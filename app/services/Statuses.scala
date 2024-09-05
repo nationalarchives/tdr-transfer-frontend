@@ -9,6 +9,17 @@ object Statuses {
 
   sealed trait StatusValue { val value: String }
 
+  object StatusValue {
+    def apply(id: String): StatusValue = id match {
+      case EnteredValue.value             => EnteredValue
+      case NotEnteredValue.value          => NotEnteredValue
+      case IncompleteValue.value          => IncompleteValue
+      case CompletedWithIssuesValue.value => CompletedWithIssuesValue
+      case CompletedValue.value           => CompletedValue
+      case InProgressValue.value          => InProgressValue
+      case FailedValue.value              => FailedValue
+    }
+  }
   case object SeriesType extends StatusType {
     val id: String = "Series"
     val nonJudgmentStatus: Boolean = true

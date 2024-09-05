@@ -4,10 +4,12 @@ import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.AdditionalMetadataController._
 import graphql.codegen.GetConsignment.getConsignment.GetConsignment
-import graphql.codegen.GetConsignmentFiles
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
+import graphql.codegen.{GetConsignmentFiles, GetConsignmentStatus}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
-import play.api.mvc.{Action, AnyContent, Request}
+import play.api.mvc.Results.Redirect
+import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, DisplayPropertiesService, DisplayProperty}
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -35,7 +37,7 @@ class AdditionalMetadataController @Inject() (
       val uploadStatus: Option[String] = statusesToValue.get(UploadType).flatten
       uploadStatus match {
         case Some(CompletedValue.value) =>
-          Ok(views.html.standard.additionalMetadataStart(pageArgs))
+          redirectIfReviewInProgress(consignmentId, consignmentStatuses)(Ok(views.html.standard.additionalMetadataStart(pageArgs)))
         case Some(InProgressValue.value) | None =>
           Redirect(routes.UploadController.uploadPage(consignmentId))
       }
@@ -123,4 +125,13 @@ object AdditionalMetadataController {
       descriptiveStatus: MetadataProgress,
       errors: Seq[(String, Seq[String])] = Nil
   )
+  
+  def redirectIfReviewInProgress(
+    consignmentId: UUID,
+    consignmentStatuses: Seq[ConsignmentStatuses]
+  ): Result => Result = requestedPage => {
+    if (ConsignmentStatusService.statusValue(MetadataReviewType)(consignmentStatuses) == InProgressValue) {
+      Redirect(routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId))
+    } else requestedPage
+  }
 }

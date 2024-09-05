@@ -5,7 +5,7 @@ import configuration.KeycloakConfiguration
 import controllers.util.MetadataProperty.fileType
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.ConsignmentService
+import services.{ConsignmentService, ConsignmentStatusService}
 
 import java.util.UUID
 import javax.inject.Inject
@@ -13,6 +13,7 @@ import scala.concurrent.Future
 
 class AdditionalMetadataNavigationController @Inject() (
     val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService,
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
@@ -21,9 +22,12 @@ class AdditionalMetadataNavigationController @Inject() (
     implicit request: Request[AnyContent] =>
       for {
         allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken, metadataType)
+        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       } yield {
         val ex = expanded.contains("true")
-        Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, expanded = ex))
+        AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(
+          Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, expanded = ex))
+        )
       }
   }
 

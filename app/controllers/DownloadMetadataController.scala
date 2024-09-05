@@ -10,7 +10,7 @@ import graphql.codegen.types.DataType
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import services.{ConsignmentService, ConsignmentStatusService, CustomMetadataService, DisplayPropertiesService}
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -19,20 +19,24 @@ import javax.inject.Inject
 
 class DownloadMetadataController @Inject() (
     val controllerComponents: SecurityComponents,
-    val consignmentService: ConsignmentService,
+    val consignmentService: ConsignmentService, 
+    val consignmentStatusService: ConsignmentStatusService,
     val customMetadataService: CustomMetadataService,
     val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration,
     val applicationConfig: ApplicationConfig
 ) extends TokenSecurity
     with Logging {
-
-  def downloadMetadataPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    consignmentService
-      .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-      .map { ref =>
+  
+  def downloadMetadataPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    for {
+      ref <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
+    } yield {
+      AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(
         Ok(views.html.standard.downloadMetadata(consignmentId, ref, request.token.name, applicationConfig.blockMetadataReview))
-      }
+      )
+    }
   }
 
   implicit class MapUtils(metadata: Map[String, FileMetadata]) {
