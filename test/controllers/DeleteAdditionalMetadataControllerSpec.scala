@@ -208,6 +208,35 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(descriptiveResponse) mustBe FORBIDDEN
     }
 
+    "return forbidden for a TNA user" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val controller =
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidTNAUserKeycloakConfiguration(),
+          getAuthorisedSecurityComponents
+        )
+
+      val closureResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType"))
+
+      val descriptiveResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType"))
+
+      status(closureResponse) mustBe FORBIDDEN
+      status(descriptiveResponse) mustBe FORBIDDEN
+    }
+
     "return forbidden if the user does not own the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
