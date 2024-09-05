@@ -27,7 +27,7 @@ class FileChecksResultsController @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
-  def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def fileCheckResultsPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val pageTitle = "Results of your checks"
 
     for {
@@ -57,7 +57,7 @@ class FileChecksResultsController @Inject() (
     }
   }
 
-  def judgmentFileCheckResultsPage(consignmentId: UUID, transferProgress: Option[String]): Action[AnyContent] = judgmentTypeAction(consignmentId) {
+  def judgmentFileCheckResultsPage(consignmentId: UUID, transferProgress: Option[String]): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       val pageTitle = "Results of checks"
       for {

@@ -155,6 +155,16 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         playStatus(result) must equal(FORBIDDEN)
       }
 
+      "return forbidden for a TNA user" in {
+        val consignmentService = mockConsignmentService(Nil, "standard")
+        val additionalMetadataController =
+          new AdditionalMetadataNavigationController(consignmentService, getValidTNAUserKeycloakConfiguration(), getAuthorisedSecurityComponents)
+        val result = additionalMetadataController
+          .getAllFiles(consignmentId, "closure")
+          .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/${metadataType(0)}").withCSRFToken)
+        playStatus(result) must equal(FORBIDDEN)
+      }
+
       "return a redirect the login page for a logged out user" in {
         val consignmentService = mockConsignmentService(Nil, "standard")
         val additionalMetadataController =

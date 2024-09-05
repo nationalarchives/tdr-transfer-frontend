@@ -20,7 +20,7 @@ class MetadataReviewStatusController @Inject() (
     val applicationConfig: ApplicationConfig
 ) extends TokenSecurity {
 
-  def metadataReviewStatusPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def metadataReviewStatusPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     if (applicationConfig.blockMetadataReview) {
       Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
     } else {

@@ -136,15 +136,28 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
     }
   }
 
+  "return forbidden for a TNA user" in {
+    setConsignmentReferenceResponse(wiremockServer)
+    setConsignmentSummaryResponse(wiremockServer)
+    val controller = instantiateTransferCompleteController(getAuthorisedSecurityComponents, "admin")
+    val consignmentId = UUID.randomUUID()
+    setConsignmentTypeResponse(wiremockServer, "standard")
+    controller
+      .transferComplete(consignmentId)
+      .apply(FakeRequest(GET, s"/consignment/$consignmentId/transfer-complete").withCSRFToken)
+  }
+
   private def instantiateTransferCompleteController(securityComponents: SecurityComponents, path: String) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val messagingService = mock[MessagingService]
-    if (path.equals("judgment")) {
-      new TransferCompleteController(securityComponents, getValidJudgmentUserKeycloakConfiguration, consignmentService, messagingService)
-    } else {
-      new TransferCompleteController(securityComponents, getValidStandardUserKeycloakConfiguration, consignmentService, messagingService)
+
+    val keycloakConfiguration = path match {
+      case "judgment" => getValidJudgmentUserKeycloakConfiguration
+      case "admin"    => getValidTNAUserKeycloakConfiguration()
+      case _          => getValidStandardUserKeycloakConfiguration
     }
+    new TransferCompleteController(securityComponents, keycloakConfiguration, consignmentService, messagingService)
   }
 
   private def callTransferComplete(path: String, consignmentId: UUID = UUID.randomUUID()): Future[Result] = {

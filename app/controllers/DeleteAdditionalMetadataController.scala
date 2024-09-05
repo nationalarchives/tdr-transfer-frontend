@@ -23,7 +23,7 @@ class DeleteAdditionalMetadataController @Inject() (
     with I18nSupport {
 
   def confirmDeleteAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
-    standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       if (fileIds.isEmpty) {
         Future.failed(new IllegalArgumentException("fileIds are empty"))
       } else {
@@ -55,7 +55,7 @@ class DeleteAdditionalMetadataController @Inject() (
     }
 
   def deleteAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
-    standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       if (fileIds.isEmpty) {
         Future.failed(new IllegalArgumentException("fileIds are empty"))
       } else {
