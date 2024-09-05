@@ -13,7 +13,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.cache._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import services.{ConsignmentService, ConsignmentStatusService, CustomMetadataService, DisplayPropertiesService}
 import uk.gov.nationalarchives.tdr.validation.MetadataValidation
 import viewsapi.Caching.preventCaching
 
@@ -31,6 +31,7 @@ class AddAdditionalMetadataController @Inject() (
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService, 
     val customMetadataService: CustomMetadataService,
     val displayPropertiesService: DisplayPropertiesService,
     val cache: AsyncCacheApi
@@ -43,13 +44,14 @@ class AddAdditionalMetadataController @Inject() (
       for {
         consignment <- getConsignmentFileMetadata(consignmentId, metadataType, fileIds)
         closureStatusOpen = consignment.files.flatMap(files => files.fileMetadata.find(fmetadata => fmetadata.name == closureType.name && fmetadata.value == "Open")).nonEmpty
+        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
         result <-
           if (closureStatusOpen) {
             Future(Redirect(routes.AdditionalMetadataClosureStatusController.getClosureStatusPage(consignmentId, metadataType, fileIds)))
           } else {
             updateFormFields(consignmentId, metadataType, consignment)
           }
-      } yield result
+      } yield AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(result)
   }
 
   def addAdditionalMetadataSubmit(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
