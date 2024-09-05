@@ -37,7 +37,7 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
       setGetConsignmentsForMetadataReviewResponse(wiremockServer)
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
-      val controller = new MetadataReviewController(getValidTNAUserKeycloakConfiguration, getAuthorisedSecurityComponents, consignmentService)
+      val controller = new MetadataReviewController(getValidTNAUserKeycloakConfiguration(), getAuthorisedSecurityComponents, consignmentService)
       val response = controller
         .metadataReviews()
         .apply(FakeRequest(GET, s"/metadata-review").withCSRFToken)
