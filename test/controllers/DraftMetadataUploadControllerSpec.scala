@@ -94,7 +94,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
     "return forbidden for a TNA user" in {
       setConsignmentTypeResponse(wiremockServer, "standard")
       setConsignmentReferenceResponse(wiremockServer)
-      val controller = instantiateDraftMetadataUploadController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration, blockDraftMetadataUpload = false)
+      val controller = instantiateDraftMetadataUploadController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration(), blockDraftMetadataUpload = false)
       val draftMetadataUploadPage = controller
         .draftMetadataUploadPage(consignmentId)
         .apply(FakeRequest(GET, "/draft-metadata/upload").withCSRFToken)

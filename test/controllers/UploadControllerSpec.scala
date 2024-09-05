@@ -67,7 +67,7 @@ class UploadControllerSpec extends FrontEndTestHelper {
       val controller = new UploadController(
         getAuthorisedSecurityComponents,
         graphQLConfiguration,
-        getValidTNAUserKeycloakConfiguration,
+        getValidTNAUserKeycloakConfiguration(),
         frontEndInfoConfiguration,
         consignmentService,
         uploadService,

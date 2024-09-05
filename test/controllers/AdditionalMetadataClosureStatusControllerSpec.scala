@@ -140,7 +140,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
         consignmentService,
         customMetadataService,
         displayPropertiesService,
-        getValidTNAUserKeycloakConfiguration,
+        getValidTNAUserKeycloakConfiguration(),
         getAuthorisedSecurityComponents,
         asyncCacheApi
       )

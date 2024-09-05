@@ -281,7 +281,7 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
     }
 
     "return forbidden for a TNA user" in {
-      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, keycloakConfiguration = getValidTNAUserKeycloakConfiguration)
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
       mockGraphqlConsignmentSummaryResponse()
       val fileChecksPage = controller
         .finalTransferConfirmationSubmit(consignmentId)

@@ -241,7 +241,7 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
       setConsignmentReferenceResponse(wiremockServer)
       setConsignmentStatusResponse(app.configuration, wiremockServer)
 
-      val controller = instantiateMetadataReviewStatusController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val controller = instantiateMetadataReviewStatusController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val page = controller
         .metadataReviewStatusPage(consignmentId)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/metadata-review/review-progress"))

@@ -154,7 +154,7 @@ class TransferCompleteControllerSpec extends FrontEndTestHelper {
 
     val keycloakConfiguration = path match {
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
-      case "admin"    => getValidTNAUserKeycloakConfiguration
+      case "admin"    => getValidTNAUserKeycloakConfiguration()
       case _          => getValidStandardUserKeycloakConfiguration
     }
     new TransferCompleteController(securityComponents, keycloakConfiguration, consignmentService, messagingService)

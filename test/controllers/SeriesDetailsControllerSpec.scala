@@ -234,7 +234,7 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       mockGetSeries()
       setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
       setConsignmentTypeResponse(wiremockServer, "standard")
-      val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration)
+      val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
       val seriesGet = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
       val seriesPost = controller.seriesSubmit(consignmentId).apply(FakeRequest().withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
       playStatus(seriesGet) mustBe FORBIDDEN

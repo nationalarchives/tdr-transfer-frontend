@@ -475,7 +475,7 @@ class TransferAgreementPart1ControllerSpec extends FrontEndTestHelper with Table
         taHelper.instantiateTransferAgreementPart1Controller(
           getAuthorisedSecurityComponents,
           app.configuration,
-          getValidTNAUserKeycloakConfiguration
+          getValidTNAUserKeycloakConfiguration()
         )
 
       val transferAgreement = {

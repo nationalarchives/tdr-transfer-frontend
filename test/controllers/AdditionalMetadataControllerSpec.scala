@@ -360,7 +360,7 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val controller = new AdditionalMetadataController(
         consignmentService,
         displayPropertiesService,
-        getValidTNAUserKeycloakConfiguration,
+        getValidTNAUserKeycloakConfiguration(),
         getAuthorisedSecurityComponents,
         consignmentStatusService
       )
