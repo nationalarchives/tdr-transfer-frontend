@@ -81,11 +81,11 @@ class TransferAgreementPart1Controller @Inject() (
     }
   }
 
-  def transferAgreement(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def transferAgreement(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     loadStandardPageBasedOnTaStatus(consignmentId, Ok, transferAgreementForm)
   }
 
-  def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def transferAgreementSubmit(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val errorFunction: Form[TransferAgreementData] => Future[Result] = { formWithErrors: Form[TransferAgreementData] =>
       loadStandardPageBasedOnTaStatus(consignmentId, BadRequest, formWithErrors)
     }

@@ -201,6 +201,21 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
+    "return forbidden for a TNA user" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val controller =
+        new AdditionalMetadataSummaryController(consignmentService, displayPropertiesService, getValidTNAUserKeycloakConfiguration(), getAuthorisedSecurityComponents)
+      val response = controller
+        .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))
+
+      status(response) mustBe FORBIDDEN
+    }
+
     "return forbidden if the user does not own the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "judgment")

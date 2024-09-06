@@ -38,7 +38,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
 
   private val additionalProperties: List[String] = List(clientSideOriginalFilepath, fileType)
 
-  def getClosureStatusPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def getClosureStatusPage(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
         closureProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some(metadataType)).map(_.map(_.summary))
@@ -77,7 +77,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
       } yield AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(response)
   }
 
-  def submitClosureStatus(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def submitClosureStatus(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       val errorFunction: Form[ClosureStatusFormData] => Future[Result] = { formWithErrors: Form[ClosureStatusFormData] =>
         for {

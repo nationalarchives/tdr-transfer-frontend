@@ -39,7 +39,7 @@ class AddAdditionalMetadataController @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
-  def addAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def addAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
         consignment <- getConsignmentFileMetadata(consignmentId, metadataType, fileIds)
@@ -54,7 +54,7 @@ class AddAdditionalMetadataController @Inject() (
       } yield AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(result)
   }
 
-  def addAdditionalMetadataSubmit(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def addAdditionalMetadataSubmit(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
         formFields <- cache.getOrElseUpdate[List[FormField]]("formFields") {

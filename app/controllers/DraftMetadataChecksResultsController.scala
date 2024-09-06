@@ -25,7 +25,7 @@ class DraftMetadataChecksResultsController @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
-  def draftMetadataChecksResultsPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def draftMetadataChecksResultsPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     if (applicationConfig.blockDraftMetadataUpload) {
       Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
     } else {
