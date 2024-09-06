@@ -17,7 +17,7 @@ class AdditionalMetadataNavigationController @Inject() (
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  def getAllFiles(consignmentId: UUID, metadataType: String, expanded: Option[String] = Some("false")): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def getAllFiles(consignmentId: UUID, metadataType: String, expanded: Option[String] = Some("false")): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
         allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken, metadataType)
@@ -27,7 +27,7 @@ class AdditionalMetadataNavigationController @Inject() (
       }
   }
 
-  def submitFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def submitFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val formData = request.body.asFormUrlEncoded
     val action = formData.flatMap(_.get("action")).map(_.head)
     val fileIds = formData

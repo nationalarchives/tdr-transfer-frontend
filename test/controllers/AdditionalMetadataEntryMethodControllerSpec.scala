@@ -69,6 +69,13 @@ class AdditionalMetadataEntryMethodControllerSpec extends FrontEndTestHelper {
       contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
       pageAsString must include("<title>Page not found - Transfer Digital Records - GOV.UK</title>")
     }
+
+    "return forbidden for a TNA user" in {
+      val controller = instantiateController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
+      val additionalMetadataEntryMethodPage = controller.additionalMetadataEntryMethodPage(consignmentId).apply(FakeRequest(GET, "/additional-metadata/entry-method").withCSRFToken)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      playStatus(additionalMetadataEntryMethodPage) mustBe FORBIDDEN
+    }
   }
 
   "AdditionalMetadataEntryMethodController POST" should {

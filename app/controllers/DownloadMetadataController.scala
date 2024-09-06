@@ -27,7 +27,7 @@ class DownloadMetadataController @Inject() (
 ) extends TokenSecurity
     with Logging {
 
-  def downloadMetadataPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def downloadMetadataPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService
       .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { ref =>
@@ -41,7 +41,7 @@ class DownloadMetadataController @Inject() (
     }
   }
 
-  def downloadMetadataFile(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def downloadMetadataFile(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     if (request.token.isTNAUser) logger.info(s"TNA User: ${request.token.userId} downloaded metadata for consignmentId: $consignmentId")
     for {
       metadata <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, None, None)

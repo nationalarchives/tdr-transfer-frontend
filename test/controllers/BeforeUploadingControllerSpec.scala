@@ -1,7 +1,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import configuration.GraphQLConfiguration
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import play.api.Play.materializer
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
@@ -31,7 +31,7 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
   "BeforeUploadingController GET" should {
     "render the before uploading page for judgments" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val beforeUploadingController = instantiateBeforeUploadingController
+      val beforeUploadingController = instantiateBeforeUploadingController()
       setConsignmentTypeResponse(wiremockServer, "judgment")
       setConsignmentReferenceResponse(wiremockServer)
 
@@ -82,9 +82,24 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
   }
 
   s"The judgment before uploading page" should {
-    s"return 403 if the GET is accessed by a non-judgment user" in {
+    s"return 403 if the GET is accessed for a non-judgment consignment" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
-      val beforeUploadingController: BeforeUploadingController = instantiateBeforeUploadingController
+      val beforeUploadingController: BeforeUploadingController = instantiateBeforeUploadingController()
+
+      val beforeUploading = {
+        setConsignmentTypeResponse(wiremockServer, "standard")
+        beforeUploadingController
+          .beforeUploading(consignmentId)
+          .apply(FakeRequest(GET, s"/judgment/$consignmentId/before-uploading").withCSRFToken)
+      }
+
+      playStatus(beforeUploading) mustBe FORBIDDEN
+    }
+
+    s"return forbidden for a TNA user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val beforeUploadingController: BeforeUploadingController =
+        instantiateBeforeUploadingController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
 
       val beforeUploading = {
         setConsignmentTypeResponse(wiremockServer, "standard")
@@ -97,7 +112,9 @@ class BeforeUploadingControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def instantiateBeforeUploadingController = {
+  private def instantiateBeforeUploadingController(
+      keycloakConfiguration: KeycloakConfiguration = getValidJudgmentUserKeycloakConfiguration
+  ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
 

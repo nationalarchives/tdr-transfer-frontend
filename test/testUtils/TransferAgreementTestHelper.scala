@@ -88,7 +88,7 @@ class TransferAgreementTestHelper(wireMockServer: WireMockServer) extends FrontE
   def instantiateTransferAgreementPart2Controller(
       securityComponents: SecurityComponents,
       config: Configuration,
-      keycloakConfiguration: KeycloakConfiguration = getValidKeycloakConfiguration
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
   ): TransferAgreementPart2Controller = {
     val graphQLConfiguration = new GraphQLConfiguration(config)
     val transferAgreementService = new TransferAgreementService(graphQLConfiguration)

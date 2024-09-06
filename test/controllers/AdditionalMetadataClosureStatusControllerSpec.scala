@@ -129,6 +129,29 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
+    "return forbidden for a TNA user" in {
+      val consignmentId = UUID.randomUUID()
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val asyncCacheApi = MockAsyncCacheApi()
+      val controller = new AdditionalMetadataClosureStatusController(
+        consignmentService,
+        customMetadataService,
+        displayPropertiesService,
+        getValidTNAUserKeycloakConfiguration(),
+        getAuthorisedSecurityComponents,
+        asyncCacheApi
+      )
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val response = controller
+        .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}"))
+
+      status(response) mustBe FORBIDDEN
+    }
+
     "redirect to the login page if the page is accessed by a logged out user" in {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Closed", "standard", getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)

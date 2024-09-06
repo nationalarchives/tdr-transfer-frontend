@@ -154,6 +154,13 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
       status(response) must be(FORBIDDEN)
     }
 
+    "return forbidden for a TNA user" in {
+      val controller = createController(consignmentType = "standard", userType = Some("TNA"))
+      val consignmentId = UUID.randomUUID()
+      val response = controller.downloadMetadataFile(consignmentId)(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/download-metadata/csv"))
+      status(response) must be(FORBIDDEN)
+    }
+
     "return a redirect to login for a logged out user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
@@ -252,15 +259,16 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     new ReadableWorkbook(bufferedSource)
   }
 
-  private def createController(consignmentType: String, blockMetadataReview: Boolean = true) = {
+  private def createController(consignmentType: String, userType: Option[String] = None, blockMetadataReview: Boolean = true) = {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
     val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
-    val keycloakConfiguration = consignmentType match {
+    val keycloakConfiguration = userType.getOrElse(consignmentType) match {
       case "standard" => getValidStandardUserKeycloakConfiguration
       case "judgment" => getValidJudgmentUserKeycloakConfiguration
+      case "TNA"      => getValidTNAUserKeycloakConfiguration()
     }
 
     new DownloadMetadataController(
