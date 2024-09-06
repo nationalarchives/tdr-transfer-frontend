@@ -98,7 +98,7 @@ class FileChecksController @Inject() (
     } yield Ok(result.asJson.noSpaces)
   }
 
-  def fileChecksPage(consignmentId: UUID, uploadFailed: Option[String]): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def fileChecksPage(consignmentId: UUID, uploadFailed: Option[String]): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val token = request.token.bearerAccessToken
     for {
       reference <- consignmentService.getConsignmentRef(consignmentId, token)
@@ -109,18 +109,19 @@ class FileChecksController @Inject() (
     } yield result
   }
 
-  def judgmentFileChecksPage(consignmentId: UUID, uploadFailed: Option[String]): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
-    val token = request.token.bearerAccessToken
-    for {
-      reference <- consignmentService.getConsignmentRef(consignmentId, token)
-      result <- uploadFailed match {
-        case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = true, token)
-        case _            => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = true)
-      }
-    } yield result
+  def judgmentFileChecksPage(consignmentId: UUID, uploadFailed: Option[String]): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) {
+    implicit request: Request[AnyContent] =>
+      val token = request.token.bearerAccessToken
+      for {
+        reference <- consignmentService.getConsignmentRef(consignmentId, token)
+        result <- uploadFailed match {
+          case Some("true") => handleFailedUpload(consignmentId, reference, isJudgmentUser = true, token)
+          case _            => handleSuccessfulUpload(consignmentId, reference, isJudgmentUser = true)
+        }
+      } yield result
   }
 
-  def judgmentCompleteTransfer(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def judgmentCompleteTransfer(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       _ <- waitForFileChecksToBeCompleted(consignmentId)
       result <- JudgmentCompleteTransfer(consignmentId)
