@@ -28,7 +28,7 @@ class AdditionalMetadataController @Inject() (
 
   val byClosureType: DisplayProperty => Boolean = (dp: DisplayProperty) => dp.propertyType == "Closure"
 
-  def start(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def start(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     (for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       pageArgs <- getStartPageDetails(consignmentId, request.token)
@@ -67,7 +67,7 @@ class AdditionalMetadataController @Inject() (
     }
   }
 
-  def validate(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def validate(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     (for {
       pageArgs <- getStartPageDetails(consignmentId, request.token)
       statuses <- consignmentService.getConsignmentFilesData(consignmentId, request.token.bearerAccessToken)

@@ -349,6 +349,28 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
       status(response) mustBe FORBIDDEN
     }
 
+    "return forbidden for a TNA user" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(
+        consignmentService,
+        displayPropertiesService,
+        getValidTNAUserKeycloakConfiguration(),
+        getAuthorisedSecurityComponents,
+        consignmentStatusService
+      )
+      val response = controller
+        .validate(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata"))
+
+      status(response) mustBe FORBIDDEN
+    }
+
     "redirect to the login page if the page is accessed by a logged out user" in {
       val consignmentId = UUID.randomUUID()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)

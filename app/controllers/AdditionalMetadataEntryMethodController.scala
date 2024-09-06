@@ -33,7 +33,7 @@ class AdditionalMetadataEntryMethodController @Inject() (
     )(AdditionalMetadataEntryData.apply)(AdditionalMetadataEntryData.unapply)
   )
 
-  def additionalMetadataEntryMethodPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def additionalMetadataEntryMethodPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     if (applicationConfig.blockDraftMetadataUpload) {
       Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
     } else {
@@ -46,7 +46,7 @@ class AdditionalMetadataEntryMethodController @Inject() (
     }
   }
 
-  def submitAdditionalMetadataEntryMethod(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def submitAdditionalMetadataEntryMethod(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val token = request.token.bearerAccessToken
     if (applicationConfig.blockDraftMetadataUpload) {
       Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))

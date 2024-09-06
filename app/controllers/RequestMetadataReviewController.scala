@@ -22,7 +22,7 @@ class RequestMetadataReviewController @Inject() (
     val messagingService: MessagingService
 ) extends TokenSecurity {
 
-  def requestMetadataReviewPage(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def requestMetadataReviewPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     if (applicationConfig.blockMetadataReview) {
       Future(Ok(views.html.notFoundError(name = request.token.name, isLoggedIn = true, isJudgmentUser = false)))
     } else {
@@ -34,7 +34,7 @@ class RequestMetadataReviewController @Inject() (
     }
   }
 
-  def submitMetadataForReview(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def submitMetadataForReview(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val token = request.token.bearerAccessToken
     for {
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
