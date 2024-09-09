@@ -26,7 +26,7 @@ import play.api.http.HttpVerbs.GET
 import play.api.http.Status.{FORBIDDEN, FOUND}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsBytes, contentAsString, defaultAwaitTimeout, status}
-import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import services.{ConsignmentService, ConsignmentStatusService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 
@@ -164,6 +164,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     "return a redirect to login for a logged out user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val applicationConfig: ApplicationConfig = new ApplicationConfig(app.configuration)
@@ -172,6 +173,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         new DownloadMetadataController(
           getUnauthorisedSecurityComponents,
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getInvalidKeycloakConfiguration,
@@ -227,6 +229,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     "return a redirect to login for a logged out user" in {
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val applicationConfig: ApplicationConfig = new ApplicationConfig(app.configuration)
@@ -235,6 +238,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
         new DownloadMetadataController(
           getUnauthorisedSecurityComponents,
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getInvalidKeycloakConfiguration,
@@ -263,6 +267,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     setConsignmentTypeResponse(wiremockServer, consignmentType)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
     val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
     val keycloakConfiguration = userType.getOrElse(consignmentType) match {
@@ -274,6 +279,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
     new DownloadMetadataController(
       getAuthorisedSecurityComponents,
       consignmentService,
+      consignmentStatusService,
       customMetadataService,
       displayPropertiesService,
       keycloakConfiguration,
