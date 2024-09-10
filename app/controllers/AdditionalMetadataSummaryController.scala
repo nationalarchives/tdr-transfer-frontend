@@ -18,7 +18,7 @@ import scala.concurrent.Future
 
 class AdditionalMetadataSummaryController @Inject() (
     val consignmentService: ConsignmentService,
-    val consignmentStatusService: ConsignmentStatusService, 
+    val consignmentStatusService: ConsignmentStatusService,
     val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents

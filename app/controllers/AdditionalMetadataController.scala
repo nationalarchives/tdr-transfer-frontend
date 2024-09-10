@@ -125,10 +125,10 @@ object AdditionalMetadataController {
       descriptiveStatus: MetadataProgress,
       errors: Seq[(String, Seq[String])] = Nil
   )
-  
+
   def redirectIfReviewInProgress(
-    consignmentId: UUID,
-    consignmentStatuses: Seq[ConsignmentStatuses]
+      consignmentId: UUID,
+      consignmentStatuses: Seq[ConsignmentStatuses]
   ): Result => Result = requestedPage => {
     if (ConsignmentStatusService.statusValue(MetadataReviewType)(consignmentStatuses) == InProgressValue) {
       Redirect(routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId))

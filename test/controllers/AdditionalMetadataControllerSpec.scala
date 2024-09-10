@@ -15,7 +15,7 @@ import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, POST, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
-import services.Statuses.{CompletedValue, InProgressValue, UploadType}
+import services.Statuses.{CompletedValue, InProgressValue, MetadataReviewType, UploadType}
 import services.{ConsignmentService, ConsignmentStatusService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
@@ -162,6 +162,39 @@ class AdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       status(response) mustBe SEE_OTHER
       redirectLocation(response).get must equal(s"/consignment/$consignmentId/upload")
+    }
+
+    "return a redirect to the metadata review status page if a review is in progress for the consignment" in {
+      val parentFolder = "parentFolder"
+      val parentFolderId = UUID.randomUUID()
+      val consignmentId = UUID.randomUUID()
+      val metadataStatuses = List(ConsignmentStatuses("DescriptiveMetadata", "NotEntered"), ConsignmentStatuses("ClosureMetadata", "NotEntered"))
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(
+        app.configuration,
+        wiremockServer,
+        consignmentStatuses = toDummyConsignmentStatuses(Map(UploadType -> CompletedValue, MetadataReviewType -> InProgressValue), consignmentId)
+      )
+      setConsignmentDetailsResponse(wiremockServer, Option(parentFolder), parentFolderId = Option(parentFolderId), consignmentStatuses = metadataStatuses)
+      setDisplayPropertiesResponse(wiremockServer)
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val controller = new AdditionalMetadataController(
+        consignmentService,
+        displayPropertiesService,
+        getValidStandardUserKeycloakConfiguration,
+        getAuthorisedSecurityComponents,
+        consignmentStatusService
+      )
+      val response = controller
+        .start(consignmentId)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata").withCSRFToken)
+
+      status(response) mustBe SEE_OTHER
+      redirectLocation(response) must be(Some(s"${routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId)}"))
     }
 
     forAll(metadataTypeTable) { metadataType =>

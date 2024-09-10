@@ -14,6 +14,7 @@ import play.api.Play.materializer
 import play.api.http.Status.{FORBIDDEN, FOUND, OK}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
+import services.Statuses.{InProgressValue, MetadataReviewType}
 import services.{ConsignmentService, ConsignmentStatusService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
@@ -58,6 +59,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         GetConsignment.Files.FileMetadata("ClosureStartDate", Timestamp.valueOf(closureStartDate).toString)
       )
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()), fileMetadata = fileMetadata)
       setDisplayPropertiesResponse(wiremockServer)
 
@@ -66,7 +68,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val controller =
-        new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new AdditionalMetadataSummaryController(
+          consignmentService,
+          consignmentStatusService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds, "review".some)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))
@@ -93,6 +101,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentReference = "TEST-TDR-2021-GB"
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()))
       setDisplayPropertiesResponse(wiremockServer)
 
@@ -101,7 +110,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val controller =
-        new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new AdditionalMetadataSummaryController(
+          consignmentService,
+          consignmentStatusService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .getSelectedSummaryPage(consignmentId, descriptiveMetadataType, fileIds, "review".some)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${descriptiveMetadataType}"))
@@ -122,6 +137,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         val consignmentReference = "TEST-TDR-2021-GB"
 
         setConsignmentTypeResponse(wiremockServer, "standard")
+        setConsignmentStatusResponse(app.configuration, wiremockServer)
         setConsignmentFilesMetadataResponse(
           wiremockServer,
           consignmentReference,
@@ -135,7 +151,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
         val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
         val controller =
-          new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          new AdditionalMetadataSummaryController(
+            consignmentService,
+            consignmentStatusService,
+            displayPropertiesService,
+            getValidStandardUserKeycloakConfiguration,
+            getAuthorisedSecurityComponents
+          )
         val response = controller
           .getSelectedSummaryPage(consignmentId, metadataType, fileIds)
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/$metadataType"))
@@ -159,6 +181,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         val consignmentReference = "TEST-TDR-2021-GB"
 
         setConsignmentTypeResponse(wiremockServer, "standard")
+        setConsignmentStatusResponse(app.configuration, wiremockServer)
         setConsignmentFilesMetadataResponse(
           wiremockServer,
           consignmentReference,
@@ -172,7 +195,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
         val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
         val controller =
-          new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          new AdditionalMetadataSummaryController(
+            consignmentService,
+            consignmentStatusService,
+            displayPropertiesService,
+            getValidStandardUserKeycloakConfiguration,
+            getAuthorisedSecurityComponents
+          )
         val response = controller
           .getSelectedSummaryPage(consignmentId, metadataType, fileIds)
           .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/$metadataType"))
@@ -198,7 +227,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val controller =
-        new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new AdditionalMetadataSummaryController(
+          consignmentService,
+          consignmentStatusService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))
@@ -214,7 +249,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val controller =
-        new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidTNAUserKeycloakConfiguration(), getAuthorisedSecurityComponents)
+        new AdditionalMetadataSummaryController(
+          consignmentService,
+          consignmentStatusService,
+          displayPropertiesService,
+          getValidTNAUserKeycloakConfiguration(),
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))
@@ -239,7 +280,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val controller =
-        new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new AdditionalMetadataSummaryController(
+          consignmentService,
+          consignmentStatusService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))
@@ -254,7 +301,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val controller =
-        new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getUnauthorisedSecurityComponents)
+        new AdditionalMetadataSummaryController(
+          consignmentService,
+          consignmentStatusService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getUnauthorisedSecurityComponents
+        )
       val response = controller
         .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))
@@ -266,6 +319,7 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
     "return an error if no files exist for the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val dataString = s"""{"data":{"getConsignment":{"consignmentReference":"TEST","files":[]}}}""".stripMargin
       wiremockServer.stubFor(
@@ -280,7 +334,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val controller =
-        new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new AdditionalMetadataSummaryController(
+          consignmentService,
+          consignmentStatusService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))
@@ -301,7 +361,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val controller =
-        new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new AdditionalMetadataSummaryController(
+          consignmentService,
+          consignmentStatusService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .getSelectedSummaryPage(consignmentId, "invalidMetadataType", fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))
@@ -309,6 +375,31 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
         .futureValue
 
       response.getMessage mustBe "Invalid metadata type: invalidMetadataType"
+    }
+
+    "return a redirect to the metadata review status page if a review is in progress for the consignment" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = toDummyConsignmentStatuses(Map(MetadataReviewType -> InProgressValue), consignmentId))
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+      setDisplayPropertiesResponse(wiremockServer)
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val controller =
+        new AdditionalMetadataSummaryController(
+          consignmentService,
+          consignmentStatusService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
+      val response = controller
+        .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))
+      redirectLocation(response) must be(Some(s"${routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId)}"))
     }
 
     "return an error if the consignment doesn't exist" in {
@@ -327,7 +418,13 @@ class AdditionalMetadataSummaryControllerSpec extends FrontEndTestHelper {
       val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val controller =
-        new AdditionalMetadataSummaryController(consignmentService, consignmentStatusService, displayPropertiesService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+        new AdditionalMetadataSummaryController(
+          consignmentService,
+          consignmentStatusService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
       val response = controller
         .getSelectedSummaryPage(consignmentId, closureMetadataType, fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/selected-summary/${closureMetadataType}"))

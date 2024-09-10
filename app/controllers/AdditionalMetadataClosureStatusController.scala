@@ -18,7 +18,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 
 class AdditionalMetadataClosureStatusController @Inject() (
-    val consignmentService: ConsignmentService, 
+    val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
     val customMetadataService: CustomMetadataService,
     val displayPropertiesService: DisplayPropertiesService,
