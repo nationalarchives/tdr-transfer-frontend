@@ -25,7 +25,7 @@
             Details
         </dt>
         <dd class="govuk-summary-list__value">
-            We found validation errors in the uploaded metadata. @errorType
+            @Messages(s"draftMetadata.validation.details.$errorType")
         </dd>
     </div>
 
@@ -34,7 +34,7 @@
             Action
         </dt>
         <dd class="govuk-summary-list__value">
-            @Messages("draftMetadata.validation.details")
+            @Messages(s"draftMetadata.validation.action.$errorType")
         </dd>
     </div>
 </dl>
