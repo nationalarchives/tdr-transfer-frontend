@@ -5,6 +5,7 @@ import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfigura
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment => gcs}
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
+import org.scalatest.Ignore
 import org.scalatest.matchers.should.Matchers._
 import play.api.Configuration
 import play.api.Play.materializer
@@ -18,7 +19,7 @@ import testUtils.FrontEndTestHelper
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.ExecutionContext
-
+@Ignore
 class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 

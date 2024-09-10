@@ -14,7 +14,7 @@ import play.api.mvc.{MultipartFormData, Result}
 import play.api.test.CSRFTokenHelper._
 import play.api.test.Helpers.{status => playStatus, _}
 import play.api.test.{FakeHeaders, FakeRequest}
-import services.{ConsignmentService, DraftMetadataService, UploadService}
+import services.{ConsignmentService, DraftMetadataService, FileError, UploadService}
 import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import testUtils.FrontEndTestHelper
 
@@ -154,6 +154,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       draftMetadataService: DraftMetadataService = mock[DraftMetadataService]
   ): DraftMetadataUploadController = {
     when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
+    when(draftMetadataService.getErrorType(any[UUID])).thenReturn(Future.successful(FileError.None))
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)

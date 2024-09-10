@@ -50,7 +50,7 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
       downloadService.downloadFile(applicationConfig.draft_metadata_s3_bucket_name, s"$consignmentId/${applicationConfig.draftMetadataErrorFileName}")
     errorFile.map(responseBytes => {
       val errorJson = new String(responseBytes.asByteArray(), StandardCharsets.UTF_8)
-      decode[ErrorFileData](errorJson).fold(error => FileError.UNSPECIFIED, errorFileData => errorFileData.fileError)
+      decode[ErrorFileData](errorJson).fold(error => FileError.SCHEMA_VALIDATION, errorFileData => errorFileData.fileError)
     })
   }
 }

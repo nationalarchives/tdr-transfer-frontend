@@ -34,10 +34,11 @@ class DraftMetadataChecksResultsController @Inject() (
       for {
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
+        errorType <- draftMetadataService.getErrorType(consignmentId)
       } yield {
         Ok(
           views.html.draftmetadata
-            .draftMetadataChecksResults(consignmentId, reference, getValue(consignmentStatuses, DraftMetadataType), request.token.name)
+            .draftMetadataChecksValidationErrors(consignmentId, reference, getValue(consignmentStatuses, DraftMetadataType), request.token.name, errorType)
         )
           .uncache()
       }

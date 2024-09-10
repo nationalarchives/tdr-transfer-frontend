@@ -1,0 +1,40 @@
+@import services.FileError
+@(errorType: FileError.FileError)(implicit request: RequestHeader, messages: Messages)
+
+
+
+<h1 class="govuk-heading-l">
+    Results of your metadata checks
+</h1>
+<p class="govuk-body">There was an issue with your uploaded metadata file.</p>
+
+<p class="govuk-body"></p>
+
+<dl class="govuk-summary-list">
+    <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+            Status
+        </dt>
+        <dd class="govuk-summary-list__value">
+            <strong class="govuk-tag govuk-tag--orange">Issues found</strong>
+        </dd>
+    </div>
+
+    <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+            Details
+        </dt>
+        <dd class="govuk-summary-list__value">
+            We found validation errors in the uploaded metadata. @errorType
+        </dd>
+    </div>
+
+    <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+            Action
+        </dt>
+        <dd class="govuk-summary-list__value">
+            @Messages("draftMetadata.validation.details")
+        </dd>
+    </div>
+</dl>
