@@ -20,7 +20,8 @@ class DraftMetadataChecksResultsController @Inject() (
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
     val applicationConfig: ApplicationConfig,
-    val consignmentStatusService: ConsignmentStatusService
+    val consignmentStatusService: ConsignmentStatusService,
+    val draftMetadataService: DraftMetadataService
 )(implicit val ec: ExecutionContext)
     extends TokenSecurity
     with I18nSupport {

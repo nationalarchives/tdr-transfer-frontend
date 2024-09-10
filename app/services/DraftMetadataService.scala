@@ -1,13 +1,31 @@
 package services
 
 import com.google.inject.Inject
+import configuration.ApplicationConfig
 import play.api.libs.ws.WSClient
 import play.api.{Configuration, Logging}
+import software.amazon.awssdk.core.ResponseBytes
+import uk.gov.nationalarchives.tdr.validation.Metadata
+import io.circe.parser.decode
+import io.circe.generic.auto._
+import io.circe.syntax._
+import software.amazon.awssdk.services.s3.model.GetObjectResponse
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration: Configuration)(implicit val executionContext: ExecutionContext) extends Logging {
+class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration: Configuration, val applicationConfig: ApplicationConfig, val downloadService: DownloadService)(
+    implicit val executionContext: ExecutionContext
+) extends Logging {
+
+  object FileError extends Enumeration {
+    type FileError = Value
+    val UTF_8, INVALID_CSV, SCHEMA_REQUIRED, SCHEMA_VALIDATION, UNSPECIFIED, None = Value
+  }
+
+  case class Error(validationProcess: String, property: String, errorKey: String, message: String)
+  case class ValidationErrors(assetId: String, errors: Set[Error], data: List[Metadata] = List.empty[Metadata])
+  case class ErrorFileData(consignmentId: UUID, date: String, fileError: FileError.FileError, validationErrors: List[ValidationErrors])
 
   def triggerDraftMetadataValidator(consignmentId: UUID, uploadFileName: String, token: String): Future[Boolean] = {
     val url = s"${configuration.get[String]("metadatavalidation.baseUrl")}/draft-metadata/validate/$consignmentId/$uploadFileName"
@@ -23,5 +41,11 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
             Future.failed(new Exception(s"Call to draft metadata validator failed API has returned a non 200 response for consignment $consignmentId"))
         }
       )
+  }
+
+  def getErrorType(consignmentId: UUID): Future[FileError.FileError] = {
+    val errorFile: Future[ResponseBytes[GetObjectResponse]] =
+      downloadService.downloadFile(applicationConfig.draft_metadata_s3_bucket_name, s"$consignmentId/${applicationConfig.draftMetadataErrorFileName}")
+    errorFile.map(responseBytes => decode[ValidationErrors](responseBytes.toString).fold(error => FileError.UNSPECIFIED, errorFileData => FileError.UNSPECIFIED))
   }
 }
