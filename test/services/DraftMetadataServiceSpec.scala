@@ -102,7 +102,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(downloadService.downloadFile(anyString, anyString)).thenReturn(Future.successful(p))
       val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
 
-      Await.result(service.getErrorType(UUID.randomUUID()), Duration("10 seconds")) shouldBe 20
+      Await.result(service.getErrorType(UUID.randomUUID()), Duration("10 seconds")) shouldBe FileError.None
     }
   }
 }
