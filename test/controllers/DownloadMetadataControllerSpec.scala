@@ -188,6 +188,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
   "DownloadMetadataController downloadMetadataPage GET" should {
     "load the download metadata page with the image, download link, next button and back button when 'blockMetadataReview' set to true" in {
       setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val controller = createController("standard")
       val consignmentId = UUID.randomUUID()
@@ -205,6 +206,7 @@ class DownloadMetadataControllerSpec extends FrontEndTestHelper {
 
     "load the download metadata page with the image, download link, next button and back button when 'blockMetadataReview' set to false" in {
       setConsignmentReferenceResponse(wiremockServer)
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val controller = createController("standard", blockMetadataReview = false)
       val consignmentId = UUID.randomUUID()

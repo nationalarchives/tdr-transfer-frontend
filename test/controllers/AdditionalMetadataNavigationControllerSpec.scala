@@ -20,6 +20,7 @@ import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, POST, contentAsString, defaultAwaitTimeout, redirectLocation, status => playStatus}
+import services.Statuses.{InProgressValue, MetadataReviewType}
 import services.{ConsignmentService, ConsignmentStatusService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, GetConsignmentFilesMetadataGraphqlRequestData}
 
@@ -61,6 +62,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
           val consignmentService: ConsignmentService = mockConsignmentService(List(parentFile), "standard", graphQLConfiguration)
           val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+          setConsignmentStatusResponse(app.configuration, wiremockServer)
 
           val additionalMetadataController =
             new AdditionalMetadataNavigationController(consignmentService, consignmentStatusService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
@@ -112,6 +114,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           val consignmentService: ConsignmentService =
             mockConsignmentService(mockFileHierarchy(), "standard", graphQLConfiguration)
           val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+          setConsignmentStatusResponse(app.configuration, wiremockServer)
           val additionalMetadataController =
             new AdditionalMetadataNavigationController(consignmentService, consignmentStatusService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val result = additionalMetadataController
@@ -126,6 +129,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           val consignmentService: ConsignmentService =
             mockConsignmentService(mockFileHierarchy(), "standard", graphQLConfiguration)
           val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+          setConsignmentStatusResponse(app.configuration, wiremockServer)
           val additionalMetadataController =
             new AdditionalMetadataNavigationController(consignmentService, consignmentStatusService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val result = additionalMetadataController
@@ -140,6 +144,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
           val consignmentService: ConsignmentService =
             mockConsignmentService(mockFileHierarchy(), "standard", graphQLConfiguration)
           val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+          setConsignmentStatusResponse(app.configuration, wiremockServer)
           val additionalMetadataController =
             new AdditionalMetadataNavigationController(consignmentService, consignmentStatusService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
           val result = additionalMetadataController
@@ -147,6 +152,24 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
             .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
 
           checkPageContent(result, metadataType)
+        }
+
+        s"return a redirect to the metadata review status page if a review is in progress for the consignment for metadata type $metadataType " in {
+          val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+          val consignmentService = mockConsignmentService(mockFileHierarchy(), "standard", graphQLConfiguration)
+          val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+          setConsignmentStatusResponse(
+            app.configuration,
+            wiremockServer,
+            consignmentStatuses = toDummyConsignmentStatuses(Map(MetadataReviewType -> InProgressValue), consignmentId)
+          )
+          val additionalMetadataController =
+            new AdditionalMetadataNavigationController(consignmentService, consignmentStatusService, getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          val result = additionalMetadataController
+            .getAllFiles(consignmentId, metadataType, expanded = Some("false"))
+            .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/files/$metadataType/").withCSRFToken)
+          playStatus(result) must equal(SEE_OTHER)
+          redirectLocation(result) must be(Some(s"${routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId)}"))
         }
       }
 
@@ -314,7 +337,7 @@ class AdditionalMetadataNavigationControllerSpec extends FrontEndTestHelper {
         val consignmentService = mockConsignmentService(Nil, "judgment", graphQLConfiguration)
         val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
         val additionalMetadataController =
-          new AdditionalMetadataNavigationController(consignmentService, consignmentStatusService,getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+          new AdditionalMetadataNavigationController(consignmentService, consignmentStatusService, getValidJudgmentUserKeycloakConfiguration, getAuthorisedSecurityComponents)
         val result = additionalMetadataController
           .submitFiles(consignmentId, "closure")
           .apply(FakeRequest(POST, s"/consignment/$consignmentId/additional-metadata/files/closure").withCSRFToken)

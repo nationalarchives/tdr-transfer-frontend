@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 class DownloadMetadataController @Inject() (
     val controllerComponents: SecurityComponents,
-    val consignmentService: ConsignmentService, 
+    val consignmentService: ConsignmentService,
     val consignmentStatusService: ConsignmentStatusService,
     val customMetadataService: CustomMetadataService,
     val displayPropertiesService: DisplayPropertiesService,
@@ -27,7 +27,7 @@ class DownloadMetadataController @Inject() (
     val applicationConfig: ApplicationConfig
 ) extends TokenSecurity
     with Logging {
-  
+
   def downloadMetadataPage(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       ref <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)

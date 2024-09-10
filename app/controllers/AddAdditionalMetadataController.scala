@@ -31,7 +31,7 @@ class AddAdditionalMetadataController @Inject() (
     val graphqlConfiguration: GraphQLConfiguration,
     val keycloakConfiguration: KeycloakConfiguration,
     val consignmentService: ConsignmentService,
-    val consignmentStatusService: ConsignmentStatusService, 
+    val consignmentStatusService: ConsignmentStatusService,
     val customMetadataService: CustomMetadataService,
     val displayPropertiesService: DisplayPropertiesService,
     val cache: AsyncCacheApi
