@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.MetadataProperty.fileType
+import controllers.util.RedirectUtils
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.{ConsignmentService, ConsignmentStatusService}
@@ -25,7 +26,7 @@ class AdditionalMetadataNavigationController @Inject() (
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       } yield {
         val ex = expanded.contains("true")
-        AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(
+        RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(
           Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, expanded = ex))
         )
       }

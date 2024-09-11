@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.MetadataProperty.titleAlternate
+import controllers.util.RedirectUtils
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime}
@@ -67,7 +68,7 @@ class AdditionalMetadataSummaryController @Inject() (
             }
           case Nil => Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
         }
-      } yield AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(response)
+      } yield RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(response)
     }
 
   private def getMetadataForView(metadata: List[GetConsignment.Files.FileMetadata], displayProperties: List[DisplayProperty]): List[FileMetadata] = {

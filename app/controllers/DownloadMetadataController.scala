@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
-import controllers.util.ExcelUtils
+import controllers.util.{ExcelUtils, RedirectUtils}
 import controllers.util.MetadataProperty._
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
@@ -33,7 +33,7 @@ class DownloadMetadataController @Inject() (
       ref <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
     } yield {
-      AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(
+      RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(
         Ok(views.html.standard.downloadMetadata(consignmentId, ref, request.token.name, applicationConfig.blockMetadataReview))
       )
     }

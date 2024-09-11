@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.AdditionalMetadataController._
+import controllers.util.RedirectUtils
 import graphql.codegen.GetConsignment.getConsignment.GetConsignment
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
 import graphql.codegen.{GetConsignmentFiles, GetConsignmentStatus}
@@ -37,7 +38,7 @@ class AdditionalMetadataController @Inject() (
       val uploadStatus: Option[String] = statusesToValue.get(UploadType).flatten
       uploadStatus match {
         case Some(CompletedValue.value) =>
-          redirectIfReviewInProgress(consignmentId, consignmentStatuses)(Ok(views.html.standard.additionalMetadataStart(pageArgs)))
+          RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(Ok(views.html.standard.additionalMetadataStart(pageArgs)))
         case Some(InProgressValue.value) | None =>
           Redirect(routes.UploadController.uploadPage(consignmentId))
       }
@@ -125,13 +126,4 @@ object AdditionalMetadataController {
       descriptiveStatus: MetadataProgress,
       errors: Seq[(String, Seq[String])] = Nil
   )
-
-  def redirectIfReviewInProgress(
-      consignmentId: UUID,
-      consignmentStatuses: Seq[ConsignmentStatuses]
-  ): Result => Result = requestedPage => {
-    if (ConsignmentStatusService.statusValue(MetadataReviewType)(consignmentStatuses) == InProgressValue) {
-      Redirect(routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId))
-    } else requestedPage
-  }
 }

@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import controllers.util.InputNameAndValue
+import controllers.util.{InputNameAndValue, RedirectUtils}
 import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType, fileType}
 import graphql.codegen.types.UpdateFileMetadataInput
 import org.pac4j.play.scala.SecurityComponents
@@ -74,7 +74,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
           } else {
             Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
           }
-      } yield AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(response)
+      } yield RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(response)
   }
 
   def submitClosureStatus(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
