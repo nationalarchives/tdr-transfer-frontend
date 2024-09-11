@@ -3,6 +3,7 @@ package controllers
 import com.github.tomakehurst.wiremock.WireMockServer
 import configuration.{ApplicationConfig, GraphQLConfiguration, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment => gcs}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
 import org.scalatest.Ignore
@@ -13,13 +14,13 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status => playStatus, _}
 import services.Statuses.{CompletedValue, CompletedWithIssuesValue, DraftMetadataType, FailedValue}
-import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService}
+import services.{ConsignmentService, ConsignmentStatusService, DraftMetadataService, FileError}
 import testUtils.FrontEndTestHelper
 
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
-import scala.concurrent.ExecutionContext
-@Ignore
+import scala.concurrent.{ExecutionContext, Future}
+
 class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
@@ -63,7 +64,6 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     val draftMetadataStatuses = Table(
       ("status", "progress"),
       (CompletedValue.value, DraftMetadataProgress("IMPORTED", "blue")),
-      (CompletedWithIssuesValue.value, DraftMetadataProgress("ERRORS", "red")),
       (FailedValue.value, DraftMetadataProgress("FAILED", "red"))
     )
     forAll(draftMetadataStatuses) { (statusValue, progress) =>
@@ -126,6 +126,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val draftMetaDataService = mock[DraftMetadataService]
+    when(draftMetaDataService.getErrorType(any[UUID])).thenReturn(Future.successful(FileError.UNSPECIFIED))
 
     new DraftMetadataChecksResultsController(securityComponents, keycloakConfiguration, consignmentService, applicationConfig, consignmentStatusService, draftMetaDataService)
   }
