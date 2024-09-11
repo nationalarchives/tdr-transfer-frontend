@@ -51,7 +51,7 @@ class AddAdditionalMetadataController @Inject() (
           } else {
             updateFormFields(consignmentId, metadataType, consignment)
           }
-      } yield AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(result)
+      } yield RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(result)
   }
 
   def addAdditionalMetadataSubmit(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {

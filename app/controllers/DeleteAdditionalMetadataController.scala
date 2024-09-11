@@ -3,6 +3,7 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.MetadataProperty.{clientSideOriginalFilepath, descriptionAlternate}
+import controllers.util.RedirectUtils
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
@@ -52,7 +53,7 @@ class DeleteAdditionalMetadataController @Inject() (
             } else {
               Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
             }
-        } yield AdditionalMetadataController.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(response)
+        } yield RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(response)
       }
     }
 
