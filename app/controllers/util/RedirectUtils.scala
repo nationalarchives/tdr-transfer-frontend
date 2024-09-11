@@ -11,8 +11,8 @@ import java.util.UUID
 
 object RedirectUtils {
   def redirectIfReviewInProgress(
-    consignmentId: UUID,
-    consignmentStatuses: Seq[ConsignmentStatuses]
+      consignmentId: UUID,
+      consignmentStatuses: Seq[ConsignmentStatuses]
   ): Result => Result = requestedPage => {
     if (ConsignmentStatusService.statusValue(MetadataReviewType)(consignmentStatuses) == InProgressValue) {
       Redirect(routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId))
