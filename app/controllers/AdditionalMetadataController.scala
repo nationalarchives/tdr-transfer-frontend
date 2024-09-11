@@ -3,11 +3,14 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.AdditionalMetadataController._
+import controllers.util.RedirectUtils
 import graphql.codegen.GetConsignment.getConsignment.GetConsignment
-import graphql.codegen.GetConsignmentFiles
+import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment.ConsignmentStatuses
+import graphql.codegen.{GetConsignmentFiles, GetConsignmentStatus}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.Logging
-import play.api.mvc.{Action, AnyContent, Request}
+import play.api.mvc.Results.Redirect
+import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.Statuses._
 import services.{ConsignmentService, ConsignmentStatusService, DisplayPropertiesService, DisplayProperty}
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -35,7 +38,7 @@ class AdditionalMetadataController @Inject() (
       val uploadStatus: Option[String] = statusesToValue.get(UploadType).flatten
       uploadStatus match {
         case Some(CompletedValue.value) =>
-          Ok(views.html.standard.additionalMetadataStart(pageArgs))
+          RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(Ok(views.html.standard.additionalMetadataStart(pageArgs)))
         case Some(InProgressValue.value) | None =>
           Redirect(routes.UploadController.uploadPage(consignmentId))
       }

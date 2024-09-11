@@ -73,7 +73,7 @@ import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
 import play.api.{Application, Configuration}
-import services.Statuses.{InProgressValue, SeriesType}
+import services.Statuses.{InProgressValue, SeriesType, StatusType, StatusValue}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.KeycloakUtils.UserDetails
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -1131,6 +1131,17 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
+  def toDummyConsignmentStatuses(statusMap: Map[StatusType, StatusValue], dummyConsignmentId: UUID = UUID.randomUUID()): List[ConsignmentStatuses] =
+    statusMap.map { case (statusType, statusValue) =>
+      ConsignmentStatuses(
+        consignmentStatusId = UUID.randomUUID(),
+        consignmentId = dummyConsignmentId,
+        statusType = statusType.id,
+        value = statusValue.value,
+        createdDatetime = ZonedDateTime.now(),
+        modifiedDatetime = Some(ZonedDateTime.now())
+      )
+    }.toList
 }
 
 case class GetConsignmentFilesMetadataGraphqlRequestData(query: String, variables: gcfm.Variables)
