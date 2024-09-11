@@ -45,7 +45,8 @@
         </p>
         <ul class="govuk-list govuk-list--bullet">
           <li>First you will upload your judgment onto TDR </li>
-          <li>Then you will be prompted to export your judgment for transfer to TNA</li>
+          <li>Then your document will be scanned to check for viruses etc.</li>
+          <li>If your document passes these checks, it will automatically be submitted for transfer to TNA</li>
         </ul>
 
         <h2 class="govuk-heading-m" id="before-you-begin">Before you begin</h2>
@@ -165,11 +166,21 @@
           </li>
           <img src="@routes.Assets.versioned("images/enter-mfa-code-page.png")" class="screenshots" alt="Form to enter the code from the MFA app" />
           <li>
-            Enter a new 6-digit one-time code from the authenticator app that you set up when you registered. Enter the code without any spaces and click <span class="govuk-!-font-weight-bold">"Continue"</span> before it refreshes.
+            Make sure you have access to the smart device which has the Authenticator app linked to your Transfer Digital Records account.
           </li>
-          <li>You will then be taken to the TDR Homepage
+          <li>
+            Open the app on your device and go to the Transfer Digital Records account within the app to retrieve the 6 digit one-time passcode.
+          </li>
+          <li>
+            If the code doesn't work, wait for the app to refresh and generate a new code and try using that instead.
+          </li>
+          <li>
+            Enter the code without any spaces and click <span class="govuk-!-font-weight-bold">"Continue"</span> before the authenticator app refreshes the code. 
+              Contact <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a> if you need support.
+          </li>
+          <li>You will then be taken to the TDR Homepage:
             <img src="@routes.Assets.versioned("images/judgment-tdr-start-page.png")" class="screenshots" alt="The TDR Homepage" />
-            Click <span class="govuk-!-font-weight-bold">"Start transfer"</span> to begin
+            Click <span class="govuk-!-font-weight-bold">"Start your transfer"</span> to begin
           </li>
 
         </ol>
@@ -179,35 +190,41 @@
           You will be prompted to check that your file contains the following information:
         </p>
         <ul class="govuk-body">
-          <li>Neutral citation</li>
-          <li>Name(s) of judge(s)</li>
-          <li>Name(s) of parties </li>
-          <li>Court</li>
-          <li>Judgment date</li>
+          <li>neutral citation</li>
+          <li>name(s) of judge(s)</li>
+          <li>name(s) of parties </li>
+          <li>court</li>
+          <li>judgment date</li>
         </ul>
         <p class="govuk-body">
-            You must ensure your judgment includes all important information above <span class="govuk-!-font-weight-bold">before</span> you start your upload. Press "Continue" when you are ready to move on.
+            You must ensure your judgment includes all important information above <span class="govuk-!-font-weight-bold">before</span> you start your upload.
+        </p>
+        <p class="govuk-body">
+          Check that your document follows the guidance and rules provided below, so that it can be converted into the correct format for publishing:
+        </p>
+        <p class="govuk-body">
+          <a href="https://nationalarchives.github.io/ds-caselaw-judiciary-guidance/">Home- Judiciary guidance for the Find case law service from the National Archives</a>
+        </p>
+        <p class="govuk-body">
+          Press "Continue" when you are ready to move on.
         </p>
         <img src="@routes.Assets.versioned("images/judgment-check-your-file.png")" class="screenshots" alt="Check your file before uploading page" />
 
         <h3 class="govuk-heading-s" id="supp-material">Supplementary material</h3>
         <p class="govuk-body">
-          Currently, you cannot upload additional documents with your judgment, as part of the transfer. Instead, click on the <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">
+          Currently, you cannot upload additional documents with your judgment, as part of the transfer. Instead, you will need to send these via email to <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">
           @Messages("nationalArchives.judgmentsEmail")</a>
-          link located in the middle of the screen to generate an automatic email with the transfer reference as the subject. Attach your supplementary documents and add any other relevant information before sending.
-        </p>
-        <p class="govuk-body">
-          You can also create the email yourself, manually adding the transfer reference as the subject and sending it to the correct email address.
+          quoting your transfer reference.
         </p>
 
         <h3 class="govuk-heading-s" id="replacement-versions">Replacement versions</h3>
         <p class="govuk-body">
-          If your judgment is an amended replacement version for an existing judgment, email <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a> to notify the TNA Find Case Law editorial team. Include the neutral citation reference of the original judgment that it is replacing.
+          If your judgment is a revision or an update to an existing judgment, email <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a> to notify the TNA Find Case Law editorial team. <span class="govuk-!-font-weight-bold">Include the neutral citation reference</span> of the original judgment that it is replacing.
         </p>
 
         <h3 class="govuk-heading-s" id="anonymisation-orders">Anonymisation Orders</h3>
         <p class="govuk-body">
-          If your judgment has an anonymisation order, email <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a> to notify the TNA Find Case Law editorial team. You must include the neutral citation reference and any important information. This procedure will become automated in time.
+          If your judgment has an anonymisation order, email <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a> to notify the TNA Find Case Law editorial team. <span class="govuk-!-font-weight-bold">You must include the neutral citation reference and any important information</span>. This procedure will become automated in time.
         </p>
 
         <h3 class="govuk-heading-s" id="step-2">Step 2: Upload the judgment</h3>
@@ -230,23 +247,55 @@
           </li>
           <img src="@routes.Assets.versioned("images/judgment-progress-bar.png")" class="screenshots" alt="Judgment upload progress bar"/>
           <p class="govuk-body">
-            You will automatically be transferred to Step 3 when the upload is complete.
+            Your document will automatically undergo checks once the upload is complete.
           </p>
         </ol>
 
         <h3 class="govuk-heading-s" id="step-3">Step 3: Upload undergoes checks</h3>
         <p class="govuk-body">
-          Once uploaded, your judgment is automatically checked to ensure it is suitable for transfer. This will take several minutes so you must keep your browser tab open.
+          Once uploaded, your judgment will be checked to ensure it is suitable for transfer. This will take several minutes so you must keep your browser tab open.
         </p>
         <img src="@routes.Assets.versioned("images/judgment-checking-your-upload.png")" class="screenshots" alt="Checking your upload page" />
 
+        <h3 class="govuk-heading-s" id="step-4">Step 4: Transfer complete</h3>
+
         <p class="govuk-body">
-          If your upload passes the checks, you will be notified on screen with a "Success" message.
+          If your uploaded document passes the checks, your document will automatically be submitted for transfer to TNA and you will be notified on screen with a "Transfer complete" message.
         </p>
-        <img src="@routes.Assets.versioned("images/judgment-file-check-results.png")" class="screenshots" alt="File check results page" />
+        <img src="@routes.Assets.versioned("images/judgment-transfer-complete.png")" class="screenshots" alt="File check results page" />
 
-        <p class="govuk-body">You must click "Export" to transfer your successful upload from TDR to TNA and complete the process.</p>
+        <p class="govuk-body">
+          This will include a transfer reference (e.g. TDR-2024-FKDS). Make a note of this reference in case you need to contact us regarding your transfer.
+        </p>
 
+        <p class="govuk-body">
+          Clicking on the email link <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>,
+          on the screen, will generate an email.
+        </p>
+
+        <p class="govuk-body">
+          You can contact <a href="mailto:@Messages("nationalArchives.judgmentsEmail")">@Messages("nationalArchives.judgmentsEmail")</a>,
+          if you need to submit supporting documents, inform us about an update or revision, or inform us of an anonymisation order.
+        </p>
+
+        <p class="govuk-body">
+          Make sure you include the following in the email wherever possible:
+        </p>
+        <ul class="govuk-body">
+          <li>the neutral citation</li>
+          <li>the transfer reference: TDR-2024-FKDS</li>
+          <li>tell us if this transfer was a revision or an update</li>
+          <li>provide a short description of what has changed</li>
+        </ul>
+
+        <p class="govuk-body">
+          You will be notified by email once the judgment has been received, processed by the Find Case Law editorial team, and published for viewing on the Find Case Law website.
+        </p>
+
+        <p class="govuk-heading-s">
+          <span class="govuk-!-font-weight-bold">Do not delete your original file yet.</span>
+        </p>
+        
         <h3 class="govuk-heading-s" id="error-message">Error message</h3>
         <p class="govuk-body">
           If your file fails our checks, you will be notified on screen and asked to begin your transfer again from the TDR Homepage.
@@ -263,22 +312,7 @@
           If your file meets this criteria then try again. If your file still fails, contact <a href="mailto:@Messages("nationalArchives.email")">
           @Messages("nationalArchives.email")</a> with details of the judgment you have tried to upload.
         </p>
-
-        <h3 class="govuk-heading-s" id="step-4">Step 4: Transfer complete</h3>
-
-        <p class="govuk-body">
-          After clicking "Export", your upload will be transferred to TNA and, once received, you will automatically be taken to the "Transfer complete" page.
-        </p>
-        <p class="govuk-body">
-          This will include a transfer reference (e.g. TDR-2022-1234). Make a note of this reference in case you need to contact us regarding your transfer or if you need to submit supporting documents, inform us about a replacement version, or inform us with details of an anonymisation order.
-        </p>
-        <p class="govuk-heading-s">
-          Do not delete your original file yet.
-        </p>
-        <p class="govuk-body">
-          You will be notified again by email once the judgment has been received, processed by the Find Case Law editorial team, and published for viewing on the Find Case Law website.
-        </p>
-        <img src="@routes.Assets.versioned("images/judgment-transfer-complete.png")" class="screenshots" alt="Transfer complete page" />
+        
         <p class="govuk-body">
           Click <span class="govuk-!-font-weight-bold">"Return to start"</span> to begin a new transfer, or <span class="govuk-!-font-weight-bold">"Sign Out"</span> in the top right corner.
         </p>
@@ -336,9 +370,9 @@
           A unique code generated in an authenticator app that is specific to the user of a configured account.
         </p>
 
-        <h3 class="govuk-heading-s" id="glossary-replacement-versions">Replacement versions</h3>
+        <h3 class="govuk-heading-s" id="glossary-replacement-versions">Update or revision</h3>
         <p class="govuk-body">
-          An amended replacement version of an existing judgment that has already been published by TNA.
+          An amended replacement version of an existing judgment that has already been uploaded to TNA for publishing.
         </p>
 
         <h3 class="govuk-heading-s" id="glossary-supplementary-material">Supplementary material</h3>
