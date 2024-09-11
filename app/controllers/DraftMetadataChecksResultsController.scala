@@ -4,7 +4,7 @@ import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import org.pac4j.play.scala.SecurityComponents
-import play.api.i18n.I18nSupport
+import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
 import services._
@@ -36,12 +36,60 @@ class DraftMetadataChecksResultsController @Inject() (
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
         errorType <- draftMetadataService.getErrorType(consignmentId)
       } yield {
-        Ok(
-          views.html.draftmetadata
-            .draftMetadataChecksValidationErrors(consignmentId, reference, getValue(consignmentStatuses, DraftMetadataType), request.token.name, errorType)
-        )
-          .uncache()
+        val resultsPage = {
+          // leaving original page for no errors
+          if (getValue(consignmentStatuses, DraftMetadataType).value != "ERRORS") {
+            views.html.draftmetadata
+              .draftMetadataChecksResults(consignmentId, reference, getValue(consignmentStatuses, DraftMetadataType), request.token.name)
+          } else {
+            if (errorReportDownloadAvailable(errorType)) {
+              views.html.draftmetadata
+                .draftMetadataChecksWithErrorDownload(
+                  consignmentId,
+                  reference,
+                  getValue(consignmentStatuses, DraftMetadataType),
+                  request.token.name,
+                  actionMessage(errorType),
+                  detailsMessage(errorType)
+                )
+            } else {
+              views.html.draftmetadata
+                .draftMetadataChecksErrorsNoDownload(
+                  consignmentId,
+                  reference,
+                  getValue(consignmentStatuses, DraftMetadataType),
+                  request.token.name,
+                  actionMessage(errorType),
+                  detailsMessage(errorType)
+                )
+            }
+          }
+        }
+        Ok(resultsPage).uncache()
       }
+    }
+  }
+
+  private def actionMessage(fileError: FileError.FileError)(implicit messages: Messages): String = {
+    val key = s"draftMetadata.validation.action.$fileError"
+    if (Messages.isDefinedAt(key))
+      Messages(key)
+    else
+      s"Require action message for $key"
+  }
+
+  private def detailsMessage(fileError: FileError.FileError)(implicit messages: Messages): String = {
+    val key = s"draftMetadata.validation.details.$fileError"
+    if (Messages.isDefinedAt(key))
+      Messages(key)
+    else
+      s"Require action message for $key"
+  }
+
+  private def errorReportDownloadAvailable(fileError: FileError.FileError) = {
+    fileError match {
+      case FileError.SCHEMA_VALIDATION => true
+      case _                           => false
     }
   }
 
