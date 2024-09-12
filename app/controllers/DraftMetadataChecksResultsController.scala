@@ -83,7 +83,7 @@ class DraftMetadataChecksResultsController @Inject() (
     if (Messages.isDefinedAt(key))
       Messages(key)
     else
-      s"Require action message for $key"
+      s"Require details message for $key"
   }
 
   private def errorReportDownloadAvailable(fileError: FileError.FileError) = {
