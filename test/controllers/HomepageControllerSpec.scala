@@ -98,7 +98,7 @@ class HomepageControllerSpec extends FrontEndTestHelper {
     }
 
     "render the DTA review homepage page with an authenticated tna user" in {
-      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration, consignmentService)
+      val controller = new HomepageController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration(), consignmentService)
       val userType = "tna"
       val homepagePage = controller.homepage().apply(FakeRequest(GET, "/homepage").withCSRFToken)
       val homepagePageAsString = contentAsString(homepagePage)

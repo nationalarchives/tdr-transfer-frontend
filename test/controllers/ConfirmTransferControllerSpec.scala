@@ -280,6 +280,15 @@ class ConfirmTransferControllerSpec extends FrontEndTestHelper {
       playStatus(confirmTransferPage) mustBe FOUND
     }
 
+    "return forbidden for a TNA user" in {
+      val controller = instantiateConfirmTransferController(getAuthorisedSecurityComponents, keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
+      mockGraphqlConsignmentSummaryResponse()
+      val fileChecksPage = controller
+        .finalTransferConfirmationSubmit(consignmentId)
+        .apply(FakeRequest(POST, s"/consignment/$consignmentId/confirm-transfer").withCSRFToken)
+      playStatus(fileChecksPage) mustBe FORBIDDEN
+    }
+
     "throw an authorisation exception when the user does not have permission to see a consignment's transfer summary" in {
       val client = new GraphQLConfiguration(app.configuration).getClient[gcs.Data, gcs.Variables]()
       val graphQlError = GraphQLClient.Error("Error", Nil, Nil, Some(Extensions(Some("NOT_AUTHORISED"))))

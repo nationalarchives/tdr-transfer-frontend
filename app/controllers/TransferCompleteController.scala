@@ -21,7 +21,7 @@ class TransferCompleteController @Inject() (
     extends TokenSecurity
     with I18nSupport {
 
-  def transferComplete(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def transferComplete(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     for {
       consignmentTransferSummary <- consignmentService.getConsignmentConfirmTransfer(consignmentId, request.token.bearerAccessToken)
     } yield {
@@ -39,7 +39,7 @@ class TransferCompleteController @Inject() (
     }
   }
 
-  def judgmentTransferComplete(consignmentId: UUID): Action[AnyContent] = judgmentTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def judgmentTransferComplete(consignmentId: UUID): Action[AnyContent] = judgmentUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     consignmentService
       .getConsignmentRef(consignmentId, request.token.bearerAccessToken)
       .map { consignmentReference =>

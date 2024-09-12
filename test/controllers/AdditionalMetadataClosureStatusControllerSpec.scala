@@ -18,7 +18,8 @@ import play.api.http.Status._
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, POST, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
-import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import services.Statuses.{InProgressValue, MetadataReviewType}
+import services.{ConsignmentService, ConsignmentStatusService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, GetConsignmentFilesMetadataGraphqlRequestData}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 
@@ -49,6 +50,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     "render the closure status page and closure status checkbox should be unchecked" in {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Open")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val response = controller
         .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
@@ -74,6 +76,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     "render the closure status page with the closure status checkbox checked and disabled when the closure status is already set to 'closed'" in {
       val consignmentId = UUID.randomUUID()
       val controller = createController("Closed")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val response = controller
         .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
@@ -111,17 +114,44 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val asyncCacheApi = MockAsyncCacheApi()
       val controller = new AdditionalMetadataClosureStatusController(
         consignmentService,
+        consignmentStatusService,
         customMetadataService,
         displayPropertiesService,
         getValidJudgmentUserKeycloakConfiguration,
         getAuthorisedSecurityComponents,
         asyncCacheApi
       )
+      val response = controller
+        .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}"))
+
+      status(response) mustBe FORBIDDEN
+    }
+
+    "return forbidden for a TNA user" in {
+      val consignmentId = UUID.randomUUID()
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+      val asyncCacheApi = MockAsyncCacheApi()
+      val controller = new AdditionalMetadataClosureStatusController(
+        consignmentService,
+        consignmentStatusService,
+        customMetadataService,
+        displayPropertiesService,
+        getValidTNAUserKeycloakConfiguration(),
+        getAuthorisedSecurityComponents,
+        asyncCacheApi
+      )
+      setConsignmentTypeResponse(wiremockServer, "standard")
       val response = controller
         .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
         .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}"))
@@ -140,9 +170,22 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
       redirectLocation(response).get must startWith("/auth/realms/tdr/protocol/openid-connect/auth")
     }
 
+    "return a redirect to the metadata review status page if a review is in progress for the consignment" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = toDummyConsignmentStatuses(Map(MetadataReviewType -> InProgressValue), consignmentId))
+      setDisplayPropertiesResponse(wiremockServer)
+      val controller = createController("Closed", "standard", getValidStandardUserKeycloakConfiguration, getAuthorisedSecurityComponents)
+      val response = controller
+        .getClosureStatusPage(consignmentId, metadataType(0), fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/status/${metadataType(0)}").withCSRFToken)
+      redirectLocation(response) must be(Some(s"${routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId)}"))
+    }
+
     "return an error if no files exist for the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
 
       val dataString = s"""{"data":{"getConsignment":{"consignmentReference":"TEST","files":[]}}}""".stripMargin
@@ -154,11 +197,13 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val asyncCacheApi = MockAsyncCacheApi()
       val controller = new AdditionalMetadataClosureStatusController(
         consignmentService,
+        consignmentStatusService,
         customMetadataService,
         displayPropertiesService,
         getValidStandardUserKeycloakConfiguration,
@@ -188,11 +233,13 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val asyncCacheApi = MockAsyncCacheApi()
       val controller = new AdditionalMetadataClosureStatusController(
         consignmentService,
+        consignmentStatusService,
         customMetadataService,
         displayPropertiesService,
         getValidStandardUserKeycloakConfiguration,
@@ -213,6 +260,7 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
     "render the closure status page and display an error when the form is submitted without selecting the checkbox" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = List(UUID.randomUUID()))
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
       setConsignmentTypeResponse(wiremockServer, "standard")
 
@@ -220,11 +268,13 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val asyncCacheApi = MockAsyncCacheApi()
       val controller = new AdditionalMetadataClosureStatusController(
         consignmentService,
+        consignmentStatusService,
         customMetadataService,
         displayPropertiesService,
         getValidStandardUserKeycloakConfiguration,
@@ -255,11 +305,13 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
       val asyncCacheApi = MockAsyncCacheApi()
       val controller = new AdditionalMetadataClosureStatusController(
         consignmentService,
+        consignmentStatusService,
         customMetadataService,
         displayPropertiesService,
         getValidStandardUserKeycloakConfiguration,
@@ -307,10 +359,19 @@ class AdditionalMetadataClosureStatusControllerSpec extends FrontEndTestHelper {
 
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
     val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
     val asyncCacheApi = MockAsyncCacheApi()
-    new AdditionalMetadataClosureStatusController(consignmentService, customMetadataService, displayPropertiesService, keycloakConfiguration, controllerComponents, asyncCacheApi)
+    new AdditionalMetadataClosureStatusController(
+      consignmentService,
+      consignmentStatusService,
+      customMetadataService,
+      displayPropertiesService,
+      keycloakConfiguration,
+      controllerComponents,
+      asyncCacheApi
+    )
   }
 
   // scalastyle:off method.length
