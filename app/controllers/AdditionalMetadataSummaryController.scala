@@ -3,12 +3,13 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.MetadataProperty.titleAlternate
+import controllers.util.RedirectUtils
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment
 import graphql.codegen.GetConsignmentFilesMetadata.getConsignmentFilesMetadata.GetConsignment.Files.FileMetadata
 import graphql.codegen.types.DataType.{Boolean, DateTime}
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, DisplayPropertiesService, DisplayProperty}
+import services.{ConsignmentService, ConsignmentStatusService, DisplayPropertiesService, DisplayProperty}
 
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
@@ -18,6 +19,7 @@ import scala.concurrent.Future
 
 class AdditionalMetadataSummaryController @Inject() (
     val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService,
     val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents
@@ -27,6 +29,7 @@ class AdditionalMetadataSummaryController @Inject() (
     standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       for {
         consignment <- consignmentService.getConsignmentFileMetadata(consignmentId, request.token.bearerAccessToken, Some(metadataType), Some(fileIds))
+        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
         displayProperties <- displayPropertiesService.getDisplayProperties(consignmentId, request.token.bearerAccessToken, Some(metadataType))
         response <- consignment.files match {
           case first :: _ =>
@@ -65,7 +68,7 @@ class AdditionalMetadataSummaryController @Inject() (
             }
           case Nil => Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
         }
-      } yield response
+      } yield RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(response)
     }
 
   private def getMetadataForView(metadata: List[GetConsignment.Files.FileMetadata], displayProperties: List[DisplayProperty]): List[FileMetadata] = {
