@@ -102,7 +102,29 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(downloadService.downloadFile(anyString, anyString)).thenReturn(Future.successful(p))
       val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
 
-      Await.result(service.getErrorType(UUID.randomUUID()), Duration("10 seconds")) shouldBe FileError.None
+      Await.result(service.getErrorType(UUID.randomUUID()), Duration("1 seconds")) shouldBe FileError.None
     }
+
+    "get error type will be unspecified if none in json" in {
+      val errorJson =
+        """
+          |{
+          |  "consignmentId" : "f82af3bf-b742-454c-9771-bfd6c5eae749",
+          |  "date" : "$today",
+          |   |  "validationErrors" : [
+          |  ]
+          |}
+          |""".stripMargin
+      val mockResponse = GetObjectResponse.builder().build()
+      val p: ResponseBytes[GetObjectResponse] = ResponseBytes.fromByteArray(mockResponse, errorJson.getBytes())
+      when(config.get[String]("draftMetadata.errorFileName")).thenReturn("error.json")
+      when(config.get[String]("draft_metadata_s3_bucket_name")).thenReturn("bucket")
+      val applicationConfig: ApplicationConfig = new ApplicationConfig(config)
+      when(downloadService.downloadFile(anyString, anyString)).thenReturn(Future.successful(p))
+      val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
+
+      Await.result(service.getErrorType(UUID.randomUUID()), Duration("1 seconds")) shouldBe FileError.UNSPECIFIED
+    }
+
   }
 }

@@ -118,7 +118,8 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   private def instantiateController(
       securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
-      blockDraftMetadataUpload: Boolean = true
+      blockDraftMetadataUpload: Boolean = true,
+      fileError: FileError.FileError = FileError.UNSPECIFIED
   ): DraftMetadataChecksResultsController = {
     when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
