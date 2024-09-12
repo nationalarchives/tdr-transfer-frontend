@@ -255,10 +255,10 @@ class MetadataReviewActionControllerSpec extends FrontEndTestHelper {
       val result = consignmentStatusUpdates(formData)
 
       result mustBe Seq(
-        (MetadataReviewType.id, CompletedWithIssuesValue.value),
         (DescriptiveMetadataType.id, InProgressValue.value),
         (ClosureMetadataType.id, InProgressValue.value),
-        (DraftMetadataType.id, InProgressValue.value)
+        (DraftMetadataType.id, InProgressValue.value),
+        (MetadataReviewType.id, CompletedWithIssuesValue.value)
       )
     }
 
