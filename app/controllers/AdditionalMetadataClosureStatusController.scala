@@ -2,7 +2,7 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
-import controllers.util.InputNameAndValue
+import controllers.util.{InputNameAndValue, RedirectUtils}
 import controllers.util.MetadataProperty.{clientSideOriginalFilepath, closureType, fileType}
 import graphql.codegen.types.UpdateFileMetadataInput
 import org.pac4j.play.scala.SecurityComponents
@@ -10,7 +10,7 @@ import play.api.cache.AsyncCacheApi
 import play.api.data.Form
 import play.api.data.Forms.{boolean, mapping}
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import services.{ConsignmentService, ConsignmentStatusService, CustomMetadataService, DisplayPropertiesService}
 
 import java.util.UUID
 import javax.inject.Inject
@@ -19,6 +19,7 @@ import scala.concurrent.duration.DurationInt
 
 class AdditionalMetadataClosureStatusController @Inject() (
     val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService,
     val customMetadataService: CustomMetadataService,
     val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration,
@@ -48,6 +49,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
           Some(fileIds),
           Some(additionalProperties)
         )
+        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
         response <-
           if (consignment.files.nonEmpty) {
             val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
@@ -72,7 +74,7 @@ class AdditionalMetadataClosureStatusController @Inject() (
           } else {
             Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
           }
-      } yield response
+      } yield RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(response)
   }
 
   def submitClosureStatus(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
