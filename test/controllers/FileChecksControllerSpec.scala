@@ -397,7 +397,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
   "FileChecksController fileCheckProgress" should {
     "call the fileCheckProgress endpoint" in {
-      val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+      val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
       mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = true), "standard")
 
@@ -411,7 +411,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     }
 
     "throw an error if the API returns an error" in {
-      val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+      val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
@@ -430,7 +430,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
 
   "FileChecksController transferProgress" should {
     "return in progress when file checks are still in progress" in {
-      val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+      val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
       mockGetFileCheckProgress(progressData(1, 1, 1, allChecksSucceeded = false), "standard")
 
@@ -445,7 +445,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     }
 
     "return CompletedWithIssues when file checks failed" in {
-      val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+      val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
       mockGetFileCheckProgress(progressData(40, 40, 40, allChecksSucceeded = false), "standard")
 
@@ -460,7 +460,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     }
 
     "return Completed when file checks are succeeded and export is InProgress" in {
-      val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+      val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
       mockGetFileCheckProgress(progressData(40, 40, 40, allChecksSucceeded = true), "standard")
       val consignmentStatuses = List(
@@ -479,7 +479,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
     }
 
     "throw an error if the API returns an error" in {
-      val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+      val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
       wiremockServer.stubFor(
         post(urlEqualTo("/graphql"))
@@ -515,7 +515,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = false)
       mockGetFileCheckProgress(dataString, "judgment")
 
-      val fileChecksController = initialiseFileChecks(getValidKeycloakConfiguration)
+      val fileChecksController = initialiseFileChecks(getValidJudgmentUserKeycloakConfiguration)
       val recordCheckResultsPage = fileChecksController.judgmentCompleteTransfer(consignmentId).apply(FakeRequest(GET, s"/judgment/$consignmentId/continue-transfer"))
       status(recordCheckResultsPage) mustBe OK
       contentAsString(recordCheckResultsPage) mustBe "FileChecksFailed"
@@ -530,7 +530,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = false)
       mockGetFileCheckProgress(dataString, "judgment")
 
-      val fileChecksController = initialiseFileChecks(getValidKeycloakConfiguration)
+      val fileChecksController = initialiseFileChecks(getValidJudgmentUserKeycloakConfiguration)
       val recordCheckResultsPage = fileChecksController.judgmentCompleteTransfer(consignmentId).apply(FakeRequest(GET, s"/judgment/$consignmentId/continue-transfer"))
       status(recordCheckResultsPage) mustBe OK
       contentAsString(recordCheckResultsPage) mustBe "TransferAlreadyCompleted"
@@ -550,7 +550,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
       val dataString: String = progressData(filesProcessedWithAntivirus = 40, filesProcessedWithChecksum = 40, filesProcessedWithFFID = 40, allChecksSucceeded = true)
       mockGetFileCheckProgress(dataString, "judgment")
 
-      val fileChecksController = initialiseFileChecks(getValidKeycloakConfiguration)
+      val fileChecksController = initialiseFileChecks(getValidJudgmentUserKeycloakConfiguration)
       val recordCheckResultsPage = fileChecksController.judgmentCompleteTransfer(consignmentId).apply(FakeRequest(GET, s"/judgment/$consignmentId/continue-transfer"))
       status(recordCheckResultsPage) mustBe OK
       contentAsString(recordCheckResultsPage) mustBe "Completed"
@@ -585,7 +585,7 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
   forAll(userChecks) { (user, url) =>
     s"The $url upload page" should {
       s"return 403 if the url doesn't match the consignment type" in {
-        val controller = initialiseFileChecks(getValidKeycloakConfiguration)
+        val controller = initialiseFileChecks(getValidStandardUserKeycloakConfiguration)
 
         val fileChecksPage = url match {
           case "judgment" =>
@@ -602,6 +602,15 @@ class FileChecksControllerSpec extends FrontEndTestHelper with TableDrivenProper
         playStatus(fileChecksPage) mustBe FORBIDDEN
       }
     }
+  }
+
+  "return forbidden for a TNA user" in {
+    val controller = initialiseFileChecks(getValidTNAUserKeycloakConfiguration())
+    setConsignmentTypeResponse(wiremockServer, "standard")
+    val fileChecksPage = controller
+      .fileChecksPage(consignmentId, None)
+      .apply(FakeRequest(GET, s"/judgment/$consignmentId/file-checks"))
+    playStatus(fileChecksPage) mustBe FORBIDDEN
   }
 
   private def progressData(

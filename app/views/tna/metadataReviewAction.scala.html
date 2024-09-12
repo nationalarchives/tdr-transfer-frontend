@@ -4,7 +4,7 @@
 @import views.html.partials.{backLink, errorSummary, inputDropdown, downloadMetadataLink}
 
 @import java.util.UUID
-@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, userEmail: String, dropdownField: DropdownField)(implicit request: RequestHeader, messages: Messages)
+@(consignmentId: UUID, consignmentDetails: gcdfmr.GetConsignment, userEmail: String, dropdownField: DropdownField, isTransferAdvisor: Boolean)(implicit request: RequestHeader, messages: Messages)
     @main("View Request for Metadata", hasError = dropdownField.fieldErrors.nonEmpty, backLink = Some(backLink(routes.MetadataReviewController.metadataReviews().url, "Back")), isTnaUser = true) {
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
@@ -55,34 +55,36 @@
 
                 @downloadMetadataLink(consignmentId)
 
-                <h2 class="govuk-label-wrapper">
-                    <label class="govuk-label govuk-label--m">
-                        2. Set the status of this review
-                    </label>
-                </h2>
+                @if(isTransferAdvisor) {
+                    <h2 class="govuk-label-wrapper">
+                        <label class="govuk-label govuk-label--m">
+                            2. Set the status of this review
+                        </label>
+                    </h2>
 
-                @form(routes.MetadataReviewActionController.submitReview(consignmentId, consignmentDetails.consignmentReference, userEmail), (Symbol("novalidate"), "")) {
-                    @CSRF.formField
-                    @inputDropdown(
-                        dropdownField.fieldId,
-                        dropdownField.fieldName,
-                        dropdownField.fieldDescription,
-                        dropdownField.options,
-                        dropdownField.selectedOption,
-                        dropdownField.multiValue,
-                        Map(
-                            Symbol("_dynamicForm") -> false,
-                        ),
-                        dropdownField.fieldErrors,
-                        "Select a status"
-                    )
+                    @form(routes.MetadataReviewActionController.submitReview(consignmentId, consignmentDetails.consignmentReference, userEmail), (Symbol("novalidate"), "")) {
+                        @CSRF.formField
+                        @inputDropdown(
+                            dropdownField.fieldId,
+                            dropdownField.fieldName,
+                            dropdownField.fieldDescription,
+                            dropdownField.options,
+                            dropdownField.selectedOption,
+                            dropdownField.multiValue,
+                            Map(
+                                Symbol("_dynamicForm") -> false,
+                            ),
+                            dropdownField.fieldErrors,
+                            "Select a status"
+                        )
 
-                    <div class="govuk-button-group">
-                        <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
-                        role="button">
-                            Submit
-                        </button>
-                    </div>
+                        <div class="govuk-button-group">
+                            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
+                            role="button">
+                                Submit
+                            </button>
+                        </div>
+                    }
                 }
             </div>
         </div>

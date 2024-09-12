@@ -22,7 +22,8 @@ import play.api.http.Status.{FORBIDDEN, FOUND, OK, SEE_OTHER}
 import play.api.test.CSRFTokenHelper.CSRFRequest
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, defaultAwaitTimeout, redirectLocation, status}
-import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import services.Statuses.{InProgressValue, MetadataReviewType}
+import services.{ConsignmentService, ConsignmentStatusService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.{CheckPageForStaticElements, FrontEndTestHelper, GetConsignmentFilesMetadataGraphqlRequestData}
 import uk.gov.nationalarchives.tdr.GraphQLClient.Error
 
@@ -64,16 +65,19 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentReference = "TEST-TDR-2021-GB"
       val fileStatuses = List(FileStatuses(closureMetadataType.capitalize, "Completed"))
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()), fileStatuses = fileStatuses)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
       val controller =
         new DeleteAdditionalMetadataController(
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getValidStandardUserKeycloakConfiguration,
@@ -106,16 +110,19 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentReference = "TEST-TDR-2021-GB"
       val fileStatuses = List(FileStatuses(descriptiveMetadataType.capitalize, "Completed"))
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(UUID.randomUUID()), fileStatuses = fileStatuses)
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
       val controller =
         new DeleteAdditionalMetadataController(
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getValidStandardUserKeycloakConfiguration,
@@ -141,16 +148,19 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         val fileId = UUID.randomUUID()
         val fileStatus = FileStatuses(metadataType.capitalize, fileMetadataStatus)
         setConsignmentTypeResponse(wiremockServer, "standard")
+        setConsignmentStatusResponse(app.configuration, wiremockServer)
         setConsignmentFilesMetadataResponse(wiremockServer, consignmentReference, fileIds = List(fileId), fileStatuses = List(fileStatus))
 
         val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
         val consignmentService = new ConsignmentService(graphQLConfiguration)
+        val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
         val customMetadataService = new CustomMetadataService(graphQLConfiguration)
         val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
         val controller =
           new DeleteAdditionalMetadataController(
             consignmentService,
+            consignmentStatusService,
             customMetadataService,
             displayPropertiesService,
             getValidStandardUserKeycloakConfiguration,
@@ -184,15 +194,48 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
       val controller =
         new DeleteAdditionalMetadataController(
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getValidJudgmentUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
+
+      val closureResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType"))
+
+      val descriptiveResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType"))
+
+      status(closureResponse) mustBe FORBIDDEN
+      status(descriptiveResponse) mustBe FORBIDDEN
+    }
+
+    "return forbidden for a TNA user" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val controller =
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          consignmentStatusService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidTNAUserKeycloakConfiguration(),
           getAuthorisedSecurityComponents
         )
 
@@ -222,12 +265,14 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
       val controller =
         new DeleteAdditionalMetadataController(
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getValidStandardUserKeycloakConfiguration,
@@ -254,12 +299,14 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
       val controller =
         new DeleteAdditionalMetadataController(
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getValidStandardUserKeycloakConfiguration,
@@ -288,12 +335,14 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
       val controller =
         new DeleteAdditionalMetadataController(
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getValidStandardUserKeycloakConfiguration,
@@ -319,6 +368,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     "return an error if no files exist for the consignment" in {
       val consignmentId = UUID.randomUUID()
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
 
       val dataString = s"""{"data":{"getConsignment":{"consignmentReference":"TEST","files":[]}}}""".stripMargin
       wiremockServer.stubFor(
@@ -329,12 +379,14 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
       val controller =
         new DeleteAdditionalMetadataController(
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getValidStandardUserKeycloakConfiguration,
@@ -356,6 +408,40 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       closureResponse.getMessage mustBe s"Can't find selected files for the consignment $consignmentId"
       descriptiveResponse.getMessage mustBe s"Can't find selected files for the consignment $consignmentId"
     }
+
+    "return a redirect to the metadata review status page if a review is in progress for the consignment" in {
+      val consignmentId = UUID.randomUUID()
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = toDummyConsignmentStatuses(Map(MetadataReviewType -> InProgressValue), consignmentId))
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+
+      val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
+      val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
+      val customMetadataService = new CustomMetadataService(graphQLConfiguration)
+      val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
+
+      val controller =
+        new DeleteAdditionalMetadataController(
+          consignmentService,
+          consignmentStatusService,
+          customMetadataService,
+          displayPropertiesService,
+          getValidStandardUserKeycloakConfiguration,
+          getAuthorisedSecurityComponents
+        )
+
+      val closureResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$closureMetadataType").withCSRFToken)
+
+      val descriptiveResponse = controller
+        .confirmDeleteAdditionalMetadata(consignmentId, descriptiveMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/consignment/$consignmentId/additional-metadata/confirm-delete-metadata/$descriptiveMetadataType").withCSRFToken)
+
+      redirectLocation(closureResponse) must be(Some(s"${routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId)}"))
+      redirectLocation(descriptiveResponse) must be(Some(s"${routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId)}"))
+    }
   }
 
   "deleteAdditionalMetadata" should {
@@ -367,6 +453,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = mock[CustomMetadataService]
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
@@ -380,6 +467,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val controller = new DeleteAdditionalMetadataController(
         consignmentService,
+        consignmentStatusService,
         customMetadataService,
         displayPropertiesService,
         getValidStandardUserKeycloakConfiguration,
@@ -416,6 +504,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = mock[CustomMetadataService]
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
@@ -429,6 +518,7 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val controller = new DeleteAdditionalMetadataController(
         consignmentService,
+        consignmentStatusService,
         customMetadataService,
         displayPropertiesService,
         getValidStandardUserKeycloakConfiguration,
@@ -454,11 +544,13 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
 
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
       val controller = new DeleteAdditionalMetadataController(
         consignmentService,
+        consignmentStatusService,
         customMetadataService,
         displayPropertiesService,
         getValidStandardUserKeycloakConfiguration,
@@ -486,12 +578,14 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       setConsignmentTypeResponse(wiremockServer, "judgment")
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
       val controller =
         new DeleteAdditionalMetadataController(
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getValidJudgmentUserKeycloakConfiguration,
@@ -514,12 +608,14 @@ class DeleteAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val consignmentId = UUID.randomUUID()
       val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
       val consignmentService = new ConsignmentService(graphQLConfiguration)
+      val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
       val customMetadataService = new CustomMetadataService(graphQLConfiguration)
       val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
       val controller =
         new DeleteAdditionalMetadataController(
           consignmentService,
+          consignmentStatusService,
           customMetadataService,
           displayPropertiesService,
           getValidStandardUserKeycloakConfiguration,

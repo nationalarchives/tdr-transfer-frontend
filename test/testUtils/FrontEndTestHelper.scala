@@ -73,7 +73,7 @@ import play.api.mvc.{BodyParsers, ControllerComponents}
 import play.api.test.Helpers.stubControllerComponents
 import play.api.test.Injecting
 import play.api.{Application, Configuration}
-import services.Statuses.{InProgressValue, SeriesType}
+import services.Statuses.{InProgressValue, SeriesType, StatusType, StatusValue}
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import uk.gov.nationalarchives.tdr.keycloak.KeycloakUtils.UserDetails
 import uk.gov.nationalarchives.tdr.keycloak.Token
@@ -921,11 +921,12 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     keycloakMock
   }
 
-  def getValidTNAUserKeycloakConfiguration: KeycloakConfiguration = {
+  def getValidTNAUserKeycloakConfiguration(isTransferAdvisor: Boolean = false): KeycloakConfiguration = {
     val keycloakMock = mock[KeycloakConfiguration]
     val accessToken = new AccessToken()
     accessToken.setOtherClaims("user_id", "c140d49c-93d0-4345-8d71-c97ff28b947e")
     accessToken.setOtherClaims("tna_user", "true")
+    if (isTransferAdvisor) accessToken.setOtherClaims("transfer_adviser", "true")
     accessToken.setName("TNA Username")
     accessToken.setEmail("test@example.com")
     val token = Token(accessToken, new BearerAccessToken)
@@ -1130,6 +1131,17 @@ trait FrontEndTestHelper extends PlaySpec with MockitoSugar with Injecting with 
     )
   }
 
+  def toDummyConsignmentStatuses(statusMap: Map[StatusType, StatusValue], dummyConsignmentId: UUID = UUID.randomUUID()): List[ConsignmentStatuses] =
+    statusMap.map { case (statusType, statusValue) =>
+      ConsignmentStatuses(
+        consignmentStatusId = UUID.randomUUID(),
+        consignmentId = dummyConsignmentId,
+        statusType = statusType.id,
+        value = statusValue.value,
+        createdDatetime = ZonedDateTime.now(),
+        modifiedDatetime = Some(ZonedDateTime.now())
+      )
+    }.toList
 }
 
 case class GetConsignmentFilesMetadataGraphqlRequestData(query: String, variables: gcfm.Variables)
