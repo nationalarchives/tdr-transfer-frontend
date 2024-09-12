@@ -142,7 +142,7 @@ object MetadataReviewActionController {
           (DraftMetadataType.id, InProgressValue.value)
         )
       else Seq.empty
-    Seq(metadataReviewStatusUpdate) ++ metadataStatusResets
+    metadataStatusResets :+ metadataReviewStatusUpdate
   }
 }
 
