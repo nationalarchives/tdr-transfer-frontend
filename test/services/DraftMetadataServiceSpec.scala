@@ -89,7 +89,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
           |{
           |  "consignmentId" : "f82af3bf-b742-454c-9771-bfd6c5eae749",
           |  "date" : "$today",
-          |  "fileError" : "None",
+          |  "fileError" : "NONE",
           |  "validationErrors" : [
           |  ]
           |}
@@ -102,7 +102,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(downloadService.downloadFile(anyString, anyString)).thenReturn(Future.successful(p))
       val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
 
-      Await.result(service.getErrorType(UUID.randomUUID()), Duration("1 seconds")) shouldBe FileError.None
+      Await.result(service.getErrorType(UUID.randomUUID()), Duration("1 seconds")) shouldBe FileError.NONE
     }
 
     "get error type will be unspecified if none in json" in {
