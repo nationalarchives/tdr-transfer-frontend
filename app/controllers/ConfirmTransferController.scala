@@ -80,12 +80,12 @@ class ConfirmTransferController @Inject() (
     }
   }
 
-  def confirmTransfer(consignmentId: UUID): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def confirmTransfer(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     loadStandardPageBasedOnCtStatus(consignmentId, Ok)
   }
 
   def finalTransferConfirmationSubmit(consignmentId: UUID): Action[AnyContent] =
-    standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       val errorFunction: Form[FinalTransferConfirmationData] => Future[Result] = { formWithErrors: Form[FinalTransferConfirmationData] =>
         loadStandardPageBasedOnCtStatus(consignmentId, BadRequest, formWithErrors)
       }

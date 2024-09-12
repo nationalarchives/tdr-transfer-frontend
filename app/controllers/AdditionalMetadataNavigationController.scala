@@ -3,9 +3,10 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.MetadataProperty.fileType
+import controllers.util.RedirectUtils
 import org.pac4j.play.scala.SecurityComponents
 import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.ConsignmentService
+import services.{ConsignmentService, ConsignmentStatusService}
 
 import java.util.UUID
 import javax.inject.Inject
@@ -13,21 +14,25 @@ import scala.concurrent.Future
 
 class AdditionalMetadataNavigationController @Inject() (
     val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService,
     val keycloakConfiguration: KeycloakConfiguration,
     val controllerComponents: SecurityComponents
 ) extends TokenSecurity {
 
-  def getAllFiles(consignmentId: UUID, metadataType: String, expanded: Option[String] = Some("false")): Action[AnyContent] = standardTypeAction(consignmentId) {
+  def getAllFiles(consignmentId: UUID, metadataType: String, expanded: Option[String] = Some("false")): Action[AnyContent] = standardUserAndTypeAction(consignmentId) {
     implicit request: Request[AnyContent] =>
       for {
         allFiles <- consignmentService.getAllConsignmentFiles(consignmentId, request.token.bearerAccessToken, metadataType)
+        consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
       } yield {
         val ex = expanded.contains("true")
-        Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, expanded = ex))
+        RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(
+          Ok(views.html.standard.additionalMetadataNavigation(consignmentId, request.token.name, allFiles, metadataType, expanded = ex))
+        )
       }
   }
 
-  def submitFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+  def submitFiles(consignmentId: UUID, metadataType: String): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
     val formData = request.body.asFormUrlEncoded
     val action = formData.flatMap(_.get("action")).map(_.head)
     val fileIds = formData

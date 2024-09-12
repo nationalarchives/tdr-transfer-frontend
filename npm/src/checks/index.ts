@@ -55,7 +55,7 @@ export class Checks {
             return fileChecksProgress
           }
         },
-        5000
+        10000
       )
     }
   }
