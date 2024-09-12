@@ -3,10 +3,11 @@ package controllers
 import auth.TokenSecurity
 import configuration.KeycloakConfiguration
 import controllers.util.MetadataProperty.{clientSideOriginalFilepath, descriptionAlternate}
+import controllers.util.RedirectUtils
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Request}
-import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService, Statuses}
+import services.{ConsignmentService, ConsignmentStatusService, CustomMetadataService, DisplayPropertiesService, Statuses}
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -15,6 +16,7 @@ import scala.concurrent.Future
 
 class DeleteAdditionalMetadataController @Inject() (
     val consignmentService: ConsignmentService,
+    val consignmentStatusService: ConsignmentStatusService,
     val customMetadataService: CustomMetadataService,
     val displayPropertiesService: DisplayPropertiesService,
     val keycloakConfiguration: KeycloakConfiguration,
@@ -23,7 +25,7 @@ class DeleteAdditionalMetadataController @Inject() (
     with I18nSupport {
 
   def confirmDeleteAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
-    standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       if (fileIds.isEmpty) {
         Future.failed(new IllegalArgumentException("fileIds are empty"))
       } else {
@@ -35,6 +37,7 @@ class DeleteAdditionalMetadataController @Inject() (
             Some(fileIds),
             Some(List(clientSideOriginalFilepath, descriptionAlternate))
           )
+          consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, request.token.bearerAccessToken)
           response <-
             if (consignment.files.nonEmpty) {
               val filePaths = consignment.files.flatMap(_.fileMetadata).filter(_.name == clientSideOriginalFilepath).map(_.value)
@@ -50,12 +53,12 @@ class DeleteAdditionalMetadataController @Inject() (
             } else {
               Future.failed(new IllegalStateException(s"Can't find selected files for the consignment $consignmentId"))
             }
-        } yield response
+        } yield RedirectUtils.redirectIfReviewInProgress(consignmentId, consignmentStatuses)(response)
       }
     }
 
   def deleteAdditionalMetadata(consignmentId: UUID, metadataType: String, fileIds: List[UUID]): Action[AnyContent] =
-    standardTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
       if (fileIds.isEmpty) {
         Future.failed(new IllegalArgumentException("fileIds are empty"))
       } else {

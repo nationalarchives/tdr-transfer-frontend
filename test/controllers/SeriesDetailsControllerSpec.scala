@@ -230,6 +230,17 @@ class SeriesDetailsControllerSpec extends FrontEndTestHelper {
       playStatus(seriesPost) mustBe FORBIDDEN
     }
 
+    "return forbidden if the pages are accessed by a TNA user" in {
+      mockGetSeries()
+      setConsignmentStatusResponse(app.configuration, wiremockServer, Some(seriesId))
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidTNAUserKeycloakConfiguration())
+      val seriesGet = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, "/series").withCSRFToken)
+      val seriesPost = controller.seriesSubmit(consignmentId).apply(FakeRequest().withFormUrlEncodedBody(("series", seriesId.toString)).withCSRFToken)
+      playStatus(seriesGet) mustBe FORBIDDEN
+      playStatus(seriesPost) mustBe FORBIDDEN
+    }
+
     "render the series 'already chosen' page with an authenticated user if series status is 'Completed'" in {
       val controller = instantiateSeriesController(getAuthorisedSecurityComponents, getValidStandardUserKeycloakConfiguration)
       val seriesDetailsPage = controller.seriesDetails(consignmentId).apply(FakeRequest(GET, f"/consignment/$consignmentId/series").withCSRFToken)

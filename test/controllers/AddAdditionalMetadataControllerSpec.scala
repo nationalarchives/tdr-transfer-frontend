@@ -4,7 +4,7 @@ import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent
-import configuration.GraphQLConfiguration
+import configuration.{GraphQLConfiguration, KeycloakConfiguration}
 import controllers.util.MetadataProperty._
 import controllers.util._
 import errors.GraphQlException
@@ -29,11 +29,12 @@ import play.api.mvc.Result
 import play.api.test.CSRFTokenHelper._
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, contentAsString, contentType, status => playStatus, _}
-import services.{ConsignmentService, CustomMetadataService, DisplayPropertiesService}
+import services.{ConsignmentService, ConsignmentStatusService, CustomMetadataService, DisplayPropertiesService}
 import testUtils.DefaultMockFormOptions.{expectedClosureDefaultOptions, expectedClosureDependencyDefaultOptions, expectedDescriptiveDefaultOptions}
 import testUtils._
 import uk.gov.nationalarchives.tdr.GraphQLClient
 import org.scalatest.concurrent.ScalaFutures._
+import services.Statuses.{InProgressValue, MetadataReviewType}
 
 import java.sql.Timestamp
 import java.time.LocalDateTime
@@ -74,6 +75,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val formTester = new FormTester(expectedClosureDefaultOptions.filterNot(_.name.contains("DescriptionClosed")))
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, fileHasMetadata = false)
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
@@ -114,6 +116,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val formTester = new FormTester(expectedDescriptiveDefaultOptions)
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, fileHasMetadata = false)
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
@@ -147,6 +150,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
@@ -208,6 +212,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val formTester = new FormTester(expectedDescriptiveDefaultOptions)
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
@@ -241,11 +246,22 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       playStatus(addAdditionalMetadataPage) mustBe FOUND
     }
 
+    "return forbidden for a TNA user" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val controller = instantiateAddAdditionalMetadataController(keycloakConfiguration = getValidTNAUserKeycloakConfiguration())
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      val addAdditionalMetadataPage = controller
+        .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
+      playStatus(addAdditionalMetadataPage) mustBe FORBIDDEN
+    }
+
     "return a redirect to the additionalMetadataClosureStatus page if the closure status isn't closed" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
 
       val addAdditionalMetadataPage = addAdditionalMetadataController
@@ -256,11 +272,27 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       playStatus(addAdditionalMetadataPage) mustBe SEE_OTHER
     }
 
+    "return a redirect to the metadata review status page if a review is in progress for the consignment" in {
+      val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
+      val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
+
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = toDummyConsignmentStatuses(Map(MetadataReviewType -> InProgressValue), consignmentId))
+      setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
+
+      val addAdditionalMetadataPage = addAdditionalMetadataController
+        .addAdditionalMetadata(consignmentId, closureMetadataType, fileIds)
+        .apply(FakeRequest(GET, s"/standard/$consignmentId/additional-metadata/add/$closureMetadataType").withCSRFToken)
+
+      redirectLocation(addAdditionalMetadataPage) must be(Some(s"${routes.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId)}"))
+      playStatus(addAdditionalMetadataPage) mustBe SEE_OTHER
+    }
     "direct the user to the add additional metadata page if the closure status is set to 'Closed'" in {
       val consignmentId = UUID.fromString("c2efd3e6-6664-4582-8c28-dcf891f60e68")
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
@@ -302,6 +334,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val formTester =
         new FormTester(expectedClosureDefaultOptions.filterNot(formOptionMocks => formOptionMocks.name.contains("DescriptionClosed") || formOptionMocks.name.contains("inputdate")))
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
       setDisplayPropertiesResponse(wiremockServer)
@@ -345,6 +378,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
           expectedClosureDefaultOptions.filterNot(formOptionMocks => formOptionMocks.name.contains("DescriptionClosed") || formOptionMocks.name.contains("ClosureStartDate"))
         )
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
       setDisplayPropertiesResponse(wiremockServer)
@@ -389,6 +423,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
         )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setCustomMetadataResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
       setDisplayPropertiesResponse(wiremockServer)
@@ -460,6 +495,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
@@ -518,6 +554,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
@@ -577,6 +614,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       )
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
@@ -617,6 +655,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds, closureType = "Closed")
@@ -664,6 +703,7 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
       val addAdditionalMetadataController = instantiateAddAdditionalMetadataController()
 
       setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentStatusResponse(app.configuration, wiremockServer)
       setConsignmentFilesMetadataResponse(wiremockServer, fileIds = fileIds)
       setCustomMetadataResponse(wiremockServer)
       setDisplayPropertiesResponse(wiremockServer)
@@ -919,17 +959,22 @@ class AddAdditionalMetadataControllerSpec extends FrontEndTestHelper {
     }
   }
 
-  private def instantiateAddAdditionalMetadataController(securityComponents: SecurityComponents = getAuthorisedSecurityComponents) = {
+  private def instantiateAddAdditionalMetadataController(
+      securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
+      keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration
+  ) = {
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)
+    val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val customMetadataService = new CustomMetadataService(graphQLConfiguration)
     val displayPropertiesService = new DisplayPropertiesService(graphQLConfiguration)
 
     new AddAdditionalMetadataController(
       securityComponents,
       new GraphQLConfiguration(app.configuration),
-      getValidStandardUserKeycloakConfiguration,
+      keycloakConfiguration,
       consignmentService,
+      consignmentStatusService,
       customMetadataService,
       displayPropertiesService,
       MockAsyncCacheApi()
