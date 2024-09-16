@@ -114,31 +114,32 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
       (CompletedWithIssuesValue.value, FileError.SCHEMA_VALIDATION)
     )
     forAll(draftMetadataStatuses) { (statusValue, fileError) =>
-      s"render the draftMetadataResults page when the status is $statusValue" in {
-        val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError)
-        val additionalMetadataEntryMethodPage = controller
-          .draftMetadataChecksResultsPage(consignmentId)
-          .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
-        setConsignmentTypeResponse(wiremockServer, "standard")
-        setConsignmentReferenceResponse(wiremockServer)
-        val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
-        val consignmentStatuses = List(
-          gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, statusValue, someDateTime, None)
-        )
-        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+      {
+        s"render the draftMetadataResults page when the status is $statusValue" in {
+          val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError)
+          val additionalMetadataEntryMethodPage = controller
+            .draftMetadataChecksResultsPage(consignmentId)
+            .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
+          setConsignmentTypeResponse(wiremockServer, "standard")
+          setConsignmentReferenceResponse(wiremockServer)
+          val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+          val consignmentStatuses = List(
+            gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, statusValue, someDateTime, None)
+          )
+          setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
-        val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
+          val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
 
-        playStatus(additionalMetadataEntryMethodPage) mustBe OK
-        contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
-        pageAsString must include("<title>Results of CSV Checks - Transfer Digital Records - GOV.UK</title>")
-        pageAsString must include(
-          """<h1 class="govuk-heading-l">
-             |    Results of your metadata checks
-             |</h1>""".stripMargin
-        )
-        pageAsString must include(
-          s"""<dl class="govuk-summary-list">
+          playStatus(additionalMetadataEntryMethodPage) mustBe OK
+          contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
+          pageAsString must include("<title>Results of CSV Checks - Transfer Digital Records - GOV.UK</title>")
+          pageAsString must include(
+            """<h1 class="govuk-heading-l">
+            |    Results of your metadata checks
+            |</h1>""".stripMargin
+          )
+          pageAsString must include(
+            s"""<dl class="govuk-summary-list">
              |    <div class="govuk-summary-list__row">
              |        <dt class="govuk-summary-list__key">
              |            Status
@@ -166,28 +167,31 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
              |        </dd>
              |    </div>
              |</dl>""".stripMargin
-        )
-        pageAsString must include(
-          s"""<p class="govuk-body">The report below contains details about issues found.</p>
-             |
-             |            <button class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8" data-module="govuk-button">
-             |                <span aria-hidden="true" class="tna-button-icon tna-button-icon--download">
-             |                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
-             |                        <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"/>
-             |                    </svg>
-             |                </span>
-             |                Download report
-             |            </button>""".stripMargin
-        )
+          )
+          pageAsString must include(
+            s"""<p class="govuk-body">The report below contains details about issues found.</p>
+               |
+               |                <button class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8" data-module="govuk-button">
+               |                    <span aria-hidden="true" class="tna-button-icon tna-button-icon--download">
+               |                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
+               |                            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"/>
+               |                        </svg>
+               |                    </span>
+               |                    Download report
+               |                </button>""".stripMargin
+          )
+        }
       }
     }
+  }
 
-    "DraftMetadataChecksResultsController should render the error page with no error download for some errors" should {
-      val draftMetadataStatuses = Table(
-        ("status", "fileError"),
-        (FailedValue.value, FileError.UNKNOWN)
-      )
-      forAll(draftMetadataStatuses) { (statusValue, fileError) =>
+  "DraftMetadataChecksResultsController should render the error page with no error download for some errors" should {
+    val draftMetadataStatuses = Table(
+      ("status", "fileError"),
+      (FailedValue.value, FileError.UNKNOWN)
+    )
+    forAll(draftMetadataStatuses) { (statusValue, fileError) =>
+      {
         s"render the draftMetadataResults page when the status is $statusValue" in {
           val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError)
           val additionalMetadataEntryMethodPage = controller
@@ -207,41 +211,40 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
           contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
           pageAsString must include("<title>Results of CSV Checks - Transfer Digital Records - GOV.UK</title>")
           pageAsString must include(
-            """<h1 class="govuk-heading-l">
-              |    Results of your metadata checks
-              |</h1>""".stripMargin
+            s"""<h1 class="govuk-heading-l">
+             |    Results of your metadata checks
+             |</h1>""".stripMargin
           )
           pageAsString must include(
             s"""<dl class="govuk-summary-list">
-               |    <div class="govuk-summary-list__row">
-               |        <dt class="govuk-summary-list__key">
-               |            Status
-               |        </dt>
-               |        <dd class="govuk-summary-list__value">
-               |            <strong class="govuk-tag govuk-tag--orange">Issues found</strong>
-               |        </dd>
-               |    </div>
-               |
-               |    <div class="govuk-summary-list__row">
-               |        <dt class="govuk-summary-list__key">
-               |            Details
-               |        </dt>
-               |        <dd class="govuk-summary-list__value">
-               |            Require details message for draftMetadata.validation.details.$fileError
-               |        </dd>
-               |    </div>
-               |
-               |    <div class="govuk-summary-list__row">
-               |        <dt class="govuk-summary-list__key">
-               |            Action
-               |        </dt>
-               |        <dd class="govuk-summary-list__value">
-               |            Require action message for draftMetadata.validation.action.$fileError
-               |        </dd>
-               |    </div>
-               |</dl>""".stripMargin
+             |    <div class="govuk-summary-list__row">
+             |        <dt class="govuk-summary-list__key">
+             |            Status
+             |        </dt>
+             |        <dd class="govuk-summary-list__value">
+             |            <strong class="govuk-tag govuk-tag--orange">Issues found</strong>
+             |        </dd>
+             |    </div>
+             |
+             |    <div class="govuk-summary-list__row">
+             |        <dt class="govuk-summary-list__key">
+             |            Details
+             |        </dt>
+             |        <dd class="govuk-summary-list__value">
+             |            Require details message for draftMetadata.validation.details.$fileError
+             |        </dd>
+             |    </div>
+             |
+             |    <div class="govuk-summary-list__row">
+             |        <dt class="govuk-summary-list__key">
+             |            Action
+             |        </dt>
+             |        <dd class="govuk-summary-list__value">
+             |            Require action message for draftMetadata.validation.action.$fileError
+             |        </dd>
+             |    </div>
+             |</dl>""".stripMargin
           )
-
         }
       }
     }
