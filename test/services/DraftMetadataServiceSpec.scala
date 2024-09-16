@@ -102,7 +102,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(downloadService.downloadFile(anyString, anyString)).thenReturn(Future.successful(p))
       val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
 
-      Await.result(service.getErrorType(UUID.randomUUID()), Duration("1 seconds")) shouldBe FileError.NONE
+      Await.result(service.getErrorTypeFromErrorJson(UUID.randomUUID()), Duration("1 seconds")) shouldBe FileError.NONE
     }
 
     "get error type will be unspecified if none in json" in {
@@ -123,7 +123,7 @@ class DraftMetadataServiceSpec extends AnyWordSpec with MockitoSugar {
       when(downloadService.downloadFile(anyString, anyString)).thenReturn(Future.successful(p))
       val service = new DraftMetadataService(wsClient, config, applicationConfig, downloadService)
 
-      Await.result(service.getErrorType(UUID.randomUUID()), Duration("1 seconds")) shouldBe FileError.UNKNOWN
+      Await.result(service.getErrorTypeFromErrorJson(UUID.randomUUID()), Duration("1 seconds")) shouldBe FileError.UNKNOWN
     }
 
   }

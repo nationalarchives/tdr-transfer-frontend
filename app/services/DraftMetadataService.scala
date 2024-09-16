@@ -44,7 +44,7 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
       )
   }
 
-  def getErrorType(consignmentId: UUID): Future[FileError.FileError] = {
+  def getErrorTypeFromErrorJson(consignmentId: UUID): Future[FileError.FileError] = {
     implicit val FileErrorDecoder: Decoder[FileError.Value] = Decoder.decodeEnumeration(FileError)
     val errorFile: Future[ResponseBytes[GetObjectResponse]] =
       downloadService.downloadFile(applicationConfig.draft_metadata_s3_bucket_name, s"$consignmentId/${applicationConfig.draftMetadataErrorFileName}")

@@ -262,7 +262,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
     val consignmentService = new ConsignmentService(graphQLConfiguration)
     val consignmentStatusService = new ConsignmentStatusService(graphQLConfiguration)
     val draftMetaDataService = mock[DraftMetadataService]
-    when(draftMetaDataService.getErrorType(any[UUID])).thenReturn(Future.successful(fileError))
+    when(draftMetaDataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(fileError))
 
     new DraftMetadataChecksResultsController(securityComponents, keycloakConfiguration, consignmentService, applicationConfig, consignmentStatusService, draftMetaDataService)
   }

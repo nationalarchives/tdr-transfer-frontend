@@ -154,7 +154,7 @@ class DraftMetadataUploadControllerSpec extends FrontEndTestHelper {
       draftMetadataService: DraftMetadataService = mock[DraftMetadataService]
   ): DraftMetadataUploadController = {
     when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
-    when(draftMetadataService.getErrorType(any[UUID])).thenReturn(Future.successful(FileError.NONE))
+    when(draftMetadataService.getErrorTypeFromErrorJson(any[UUID])).thenReturn(Future.successful(FileError.NONE))
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)
     val graphQLConfiguration = new GraphQLConfiguration(app.configuration)
     val consignmentService = new ConsignmentService(graphQLConfiguration)

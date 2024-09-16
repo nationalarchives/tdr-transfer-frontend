@@ -7,7 +7,7 @@ import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.{Action, AnyContent, Request}
 import services.Statuses._
-import services._
+import services.{FileError, _}
 import viewsapi.Caching.preventCaching
 
 import java.util.UUID
@@ -34,20 +34,19 @@ class DraftMetadataChecksResultsController @Inject() (
       for {
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
-        errorType <- if (errorTypeDeterminedFromFile(consignmentStatuses)) draftMetadataService.getErrorType(consignmentId) else Future.successful(FileError.UNKNOWN)
+        errorType <- getErrorType(consignmentStatuses, consignmentId)
       } yield {
         val resultsPage = {
           // leaving original page for no errors
-          if (getValue(consignmentStatuses, DraftMetadataType).value == "IMPORTED") {
+          if (errorType == FileError.NONE) {
             views.html.draftmetadata
-              .draftMetadataChecksResults(consignmentId, reference, getValue(consignmentStatuses, DraftMetadataType), request.token.name)
+              .draftMetadataChecksResults(consignmentId, reference, DraftMetadataProgress("IMPORTED", "blue"), request.token.name)
           } else {
             if (isErrorReportAvailable(errorType)) {
               views.html.draftmetadata
                 .draftMetadataChecksWithErrorDownload(
                   consignmentId,
                   reference,
-                  getValue(consignmentStatuses, DraftMetadataType),
                   request.token.name,
                   actionMessage(errorType),
                   detailsMessage(errorType)
@@ -57,7 +56,6 @@ class DraftMetadataChecksResultsController @Inject() (
                 .draftMetadataChecksErrorsNoDownload(
                   consignmentId,
                   reference,
-                  getValue(consignmentStatuses, DraftMetadataType),
                   request.token.name,
                   actionMessage(errorType),
                   detailsMessage(errorType)
@@ -93,22 +91,17 @@ class DraftMetadataChecksResultsController @Inject() (
     }
   }
 
-  private def errorTypeDeterminedFromFile(statuses: List[GetConsignment.ConsignmentStatuses]): Boolean = {
-    val draftMetadataProgress = getValue(statuses, DraftMetadataType)
-    draftMetadataProgress.value match {
-      case "IMPORTED" | "FAILED" => false
-      case _                     => true
+  private def getErrorType(consignmentStatuses: List[GetConsignment.ConsignmentStatuses], consignmentId: UUID): Future[FileError.Value] = {
+    val draftMetadataStatus = consignmentStatuses.find(_.statusType == DraftMetadataType.id).map(_.value)
+    if (draftMetadataStatus.isDefined) {
+      draftMetadataStatus.get match {
+        case CompletedValue.value => Future.successful(FileError.NONE)
+        case FailedValue.value    => Future.successful(FileError.UNKNOWN)
+        case _                    => draftMetadataService.getErrorTypeFromErrorJson(consignmentId)
+      }
+    } else {
+      Future.successful(FileError.UNKNOWN)
     }
-  }
-
-  def getValue(statuses: List[GetConsignment.ConsignmentStatuses], statusType: StatusType): DraftMetadataProgress = {
-    val failed = DraftMetadataProgress("FAILED", "red")
-    statuses.find(_.statusType == statusType.id).map(_.value).map {
-      case FailedValue.value              => failed
-      case CompletedWithIssuesValue.value => DraftMetadataProgress("ERRORS", "red")
-      case CompletedValue.value           => DraftMetadataProgress("IMPORTED", "blue")
-      case _                              => failed
-    } getOrElse failed
   }
 }
 
