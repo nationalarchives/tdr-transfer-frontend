@@ -1,7 +1,4 @@
-@import services.FileError
-@(actionMessage:String,detailsMessage:String)(implicit request: RequestHeader, messages: Messages)
-
-
+@(actionMessage: String, detailsMessage: String)(implicit request: RequestHeader, messages: Messages)
 
 <h1 class="govuk-heading-l">
     Results of your metadata checks
@@ -34,7 +31,7 @@
             Action
         </dt>
         <dd class="govuk-summary-list__value">
-            @actionMessage
+        @actionMessage
         </dd>
     </div>
 </dl>
