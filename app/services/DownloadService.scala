@@ -18,7 +18,7 @@ class DownloadService @Inject() (val applicationConfig: ApplicationConfig)(impli
     downloadFile(bucket, key, s3Async(s3Endpoint))
   }
 
-  private def downloadFile(bucket: String, key: String, s3AsyncClient: S3AsyncClient): Future[ResponseBytes[GetObjectResponse]] = {
+  def downloadFile(bucket: String, key: String, s3AsyncClient: S3AsyncClient): Future[ResponseBytes[GetObjectResponse]] = {
     val getObjectRequest = GetObjectRequest.builder.bucket(bucket).key(key).build()
     s3AsyncClient.getObject(getObjectRequest, AsyncResponseTransformer.toBytes[GetObjectResponse]).asScala
   }
