@@ -6,7 +6,6 @@ import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.{GetConsignment
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.pac4j.play.scala.SecurityComponents
-import org.scalatest.Ignore
 import org.scalatest.matchers.should.Matchers._
 import play.api.Configuration
 import play.api.Play.materializer
@@ -61,66 +60,60 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
   }
 
   "DraftMetadataChecksResultsController should render the page with the correct status" should {
-    val draftMetadataStatuses = Table(
-      ("status", "progress"),
-      (CompletedValue.value, DraftMetadataProgress("IMPORTED", "blue")),
-      (FailedValue.value, DraftMetadataProgress("FAILED", "red"))
-    )
-    forAll(draftMetadataStatuses) { (statusValue, progress) =>
-      s"render the draftMetadataResults page when the status is $statusValue" in {
-        val controller = instantiateController(blockDraftMetadataUpload = false)
-        val additionalMetadataEntryMethodPage = controller
-          .draftMetadataChecksResultsPage(consignmentId)
-          .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
-        setConsignmentTypeResponse(wiremockServer, "standard")
-        setConsignmentReferenceResponse(wiremockServer)
-        val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
-        val consignmentStatuses = List(
-          gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, statusValue, someDateTime, None)
-        )
-        setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+    s"render the draftMetadataResults page when the status is completed" in {
+      val controller = instantiateController(blockDraftMetadataUpload = false)
+      val additionalMetadataEntryMethodPage = controller
+        .draftMetadataChecksResultsPage(consignmentId)
+        .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
+      setConsignmentTypeResponse(wiremockServer, "standard")
+      setConsignmentReferenceResponse(wiremockServer)
+      val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+      val consignmentStatuses = List(
+        gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, CompletedValue.value, someDateTime, None)
+      )
+      setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
 
-        val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
+      val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
 
-        playStatus(additionalMetadataEntryMethodPage) mustBe OK
-        contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
-        pageAsString must include("<title>Results of CSV Checks - Transfer Digital Records - GOV.UK</title>")
-        pageAsString must include(
-          """            <h1 class="govuk-heading-l">
-            |                Results of your metadata checks
-            |            </h1>""".stripMargin
-        )
-        pageAsString must include(
-          s"""          <dl class="govuk-summary-list">
+      playStatus(additionalMetadataEntryMethodPage) mustBe OK
+      contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
+      pageAsString must include("<title>Results of CSV Checks - Transfer Digital Records - GOV.UK</title>")
+      pageAsString must include(
+        s"""<h1 class="govuk-heading-l">
+             |                Results of your metadata checks
+             |            </h1>""".stripMargin
+      )
+      pageAsString must include(
+        s"""          <dl class="govuk-summary-list">
             |                <div class="govuk-summary-list__row">
             |                    <dt class="govuk-summary-list__key">
             |                        Status
             |                    </dt>
             |                    <dd class="govuk-summary-list__value">
-            |                        <strong class="govuk-tag govuk-tag--${progress.colour}">
-            |                            ${progress.value}
+            |                        <strong class="govuk-tag govuk-tag--${DraftMetadataProgress("IMPORTED", "blue").colour}">
+            |                            ${DraftMetadataProgress("IMPORTED", "blue").value}
             |                        </strong>
             |                    </dd>
             |                </div>
             |            </dl>""".stripMargin
-        )
-        pageAsString must include(
-          s"""            <div class="govuk-button-group">
+      )
+      pageAsString must include(
+        s"""            <div class="govuk-button-group">
              |                <a href="/consignment/$consignmentId/additional-metadata/download-metadata" role="button" draggable="false" class="govuk-button" data-module="govuk-button">
              |                    Next
              |                </a>
              |            </div>""".stripMargin
-        )
-      }
+      )
+
     }
   }
 
   "DraftMetadataChecksResultsController should render the error page with error report download button" should {
     val draftMetadataStatuses = Table(
-      ("status", "progress", "fileError"),
-      (CompletedWithIssuesValue.value, DraftMetadataProgress("ERRORS", "red"), FileError.SCHEMA_VALIDATION)
+      ("status", "fileError"),
+      (CompletedWithIssuesValue.value, FileError.SCHEMA_VALIDATION)
     )
-    forAll(draftMetadataStatuses) { (statusValue, progress, fileError) =>
+    forAll(draftMetadataStatuses) { (statusValue, fileError) =>
       s"render the draftMetadataResults page when the status is $statusValue" in {
         val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError)
         val additionalMetadataEntryMethodPage = controller
@@ -139,10 +132,10 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
         playStatus(additionalMetadataEntryMethodPage) mustBe OK
         contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
         pageAsString must include("<title>Results of CSV Checks - Transfer Digital Records - GOV.UK</title>")
-        pageAsString.stripMargin must include(
+        pageAsString must include(
           """<h1 class="govuk-heading-l">
-            |    Results of your metadata checks
-            |</h1>""".stripMargin
+             |    Results of your metadata checks
+             |</h1>""".stripMargin
         )
         pageAsString must include(
           s"""<dl class="govuk-summary-list">
@@ -160,7 +153,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
              |            Details
              |        </dt>
              |        <dd class="govuk-summary-list__value">
-             |            Require details message for draftMetadata.validation.details.${fileError}
+             |            Require details message for draftMetadata.validation.details.$fileError
              |        </dd>
              |    </div>
              |
@@ -169,7 +162,7 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
              |            Action
              |        </dt>
              |        <dd class="govuk-summary-list__value">
-             |            Require action message for draftMetadata.validation.action.${fileError}
+             |            Require action message for draftMetadata.validation.action.$fileError
              |        </dd>
              |    </div>
              |</dl>""".stripMargin
@@ -188,13 +181,77 @@ class DraftMetadataChecksResultsControllerSpec extends FrontEndTestHelper {
         )
       }
     }
+
+    "DraftMetadataChecksResultsController should render the error page with no error download for some errors" should {
+      val draftMetadataStatuses = Table(
+        ("status", "fileError"),
+        (FailedValue.value, FileError.UNKNOWN)
+      )
+      forAll(draftMetadataStatuses) { (statusValue, fileError) =>
+        s"render the draftMetadataResults page when the status is $statusValue" in {
+          val controller = instantiateController(blockDraftMetadataUpload = false, fileError = fileError)
+          val additionalMetadataEntryMethodPage = controller
+            .draftMetadataChecksResultsPage(consignmentId)
+            .apply(FakeRequest(GET, "/draft-metadata/checks-results").withCSRFToken)
+          setConsignmentTypeResponse(wiremockServer, "standard")
+          setConsignmentReferenceResponse(wiremockServer)
+          val someDateTime = ZonedDateTime.of(LocalDateTime.of(2022, 3, 10, 1, 0), ZoneId.systemDefault())
+          val consignmentStatuses = List(
+            gcs.ConsignmentStatuses(UUID.randomUUID(), UUID.randomUUID(), DraftMetadataType.id, statusValue, someDateTime, None)
+          )
+          setConsignmentStatusResponse(app.configuration, wiremockServer, consignmentStatuses = consignmentStatuses)
+
+          val pageAsString = contentAsString(additionalMetadataEntryMethodPage)
+
+          playStatus(additionalMetadataEntryMethodPage) mustBe OK
+          contentType(additionalMetadataEntryMethodPage) mustBe Some("text/html")
+          pageAsString must include("<title>Results of CSV Checks - Transfer Digital Records - GOV.UK</title>")
+          pageAsString must include(
+            """<h1 class="govuk-heading-l">
+              |    Results of your metadata checks
+              |</h1>""".stripMargin
+          )
+          pageAsString must include(
+            s"""<dl class="govuk-summary-list">
+               |    <div class="govuk-summary-list__row">
+               |        <dt class="govuk-summary-list__key">
+               |            Status
+               |        </dt>
+               |        <dd class="govuk-summary-list__value">
+               |            <strong class="govuk-tag govuk-tag--orange">Issues found</strong>
+               |        </dd>
+               |    </div>
+               |
+               |    <div class="govuk-summary-list__row">
+               |        <dt class="govuk-summary-list__key">
+               |            Details
+               |        </dt>
+               |        <dd class="govuk-summary-list__value">
+               |            Require details message for draftMetadata.validation.details.$fileError
+               |        </dd>
+               |    </div>
+               |
+               |    <div class="govuk-summary-list__row">
+               |        <dt class="govuk-summary-list__key">
+               |            Action
+               |        </dt>
+               |        <dd class="govuk-summary-list__value">
+               |            Require action message for draftMetadata.validation.action.$fileError
+               |        </dd>
+               |    </div>
+               |</dl>""".stripMargin
+          )
+
+        }
+      }
+    }
   }
 
   private def instantiateController(
       securityComponents: SecurityComponents = getAuthorisedSecurityComponents,
       keycloakConfiguration: KeycloakConfiguration = getValidStandardUserKeycloakConfiguration,
       blockDraftMetadataUpload: Boolean = true,
-      fileError: FileError.FileError = FileError.UNSPECIFIED
+      fileError: FileError.FileError = FileError.UNKNOWN
   ): DraftMetadataChecksResultsController = {
     when(configuration.get[Boolean]("featureAccessBlock.blockDraftMetadataUpload")).thenReturn(blockDraftMetadataUpload)
     val applicationConfig: ApplicationConfig = new ApplicationConfig(configuration)

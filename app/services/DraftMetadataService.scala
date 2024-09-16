@@ -17,7 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object FileError extends Enumeration {
   type FileError = Value
-  val UTF_8, INVALID_CSV, SCHEMA_REQUIRED, SCHEMA_VALIDATION, UNSPECIFIED, NONE = Value
+  val UTF_8, INVALID_CSV, SCHEMA_REQUIRED, SCHEMA_VALIDATION, UNKNOWN, NONE = Value
 }
 
 case class Error(validationProcess: String, property: String, errorKey: String, message: String)
@@ -52,8 +52,8 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
     errorFile
       .map(responseBytes => {
         val errorJson = new String(responseBytes.asByteArray(), StandardCharsets.UTF_8)
-        decode[ErrorFileData](errorJson).fold(error => FileError.UNSPECIFIED, errorFileData => errorFileData.fileError)
+        decode[ErrorFileData](errorJson).fold(_ => FileError.UNKNOWN, errorFileData => errorFileData.fileError)
       })
-      .recoverWith(error => Future.successful(FileError.UNSPECIFIED))
+      .recoverWith(_ => Future.successful(FileError.UNKNOWN))
   }
 }

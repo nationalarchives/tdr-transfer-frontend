@@ -36,7 +36,6 @@ class DraftMetadataUploadController @Inject() (
     } else {
       for {
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
-        errorType <- draftMetadataService.getErrorType(consignmentId)
       } yield {
         Ok(views.html.draftmetadata.draftMetadataUpload(consignmentId, reference, frontEndInfoConfiguration.frontEndInfo, request.token.bearerAccessToken.getValue))
           .uncache()

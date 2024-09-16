@@ -34,15 +34,15 @@ class DraftMetadataChecksResultsController @Inject() (
       for {
         reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
         consignmentStatuses <- consignmentStatusService.getConsignmentStatuses(consignmentId, token)
-        errorType <- draftMetadataService.getErrorType(consignmentId)
+        errorType <- if (errorTypeDeterminedFromFile(consignmentStatuses)) draftMetadataService.getErrorType(consignmentId) else Future.successful(FileError.UNKNOWN)
       } yield {
         val resultsPage = {
           // leaving original page for no errors
-          if (getValue(consignmentStatuses, DraftMetadataType).value != "ERRORS") {
+          if (getValue(consignmentStatuses, DraftMetadataType).value == "IMPORTED") {
             views.html.draftmetadata
               .draftMetadataChecksResults(consignmentId, reference, getValue(consignmentStatuses, DraftMetadataType), request.token.name)
           } else {
-            if (errorReportDownloadAvailable(errorType)) {
+            if (isErrorReportAvailable(errorType)) {
               views.html.draftmetadata
                 .draftMetadataChecksWithErrorDownload(
                   consignmentId,
@@ -86,10 +86,18 @@ class DraftMetadataChecksResultsController @Inject() (
       s"Require details message for $key"
   }
 
-  private def errorReportDownloadAvailable(fileError: FileError.FileError) = {
+  private def isErrorReportAvailable(fileError: FileError.FileError): Boolean = {
     fileError match {
       case FileError.SCHEMA_VALIDATION => true
       case _                           => false
+    }
+  }
+
+  private def errorTypeDeterminedFromFile(statuses: List[GetConsignment.ConsignmentStatuses]): Boolean = {
+    val draftMetadataProgress = getValue(statuses, DraftMetadataType)
+    draftMetadataProgress.value match {
+      case "IMPORTED" | "FAILED" => false
+      case _                     => true
     }
   }
 
