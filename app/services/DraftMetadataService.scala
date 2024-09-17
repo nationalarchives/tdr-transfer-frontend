@@ -28,6 +28,8 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
     implicit val executionContext: ExecutionContext
 ) extends Logging {
 
+  implicit val FileErrorDecoder: Decoder[FileError.Value] = Decoder.decodeEnumeration(FileError)
+
   def triggerDraftMetadataValidator(consignmentId: UUID, uploadFileName: String, token: String): Future[Boolean] = {
     val url = s"${configuration.get[String]("metadatavalidation.baseUrl")}/draft-metadata/validate/$consignmentId/$uploadFileName"
     wsClient
@@ -45,15 +47,18 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
   }
 
   def getErrorTypeFromErrorJson(consignmentId: UUID): Future[FileError.FileError] = {
-    implicit val FileErrorDecoder: Decoder[FileError.Value] = Decoder.decodeEnumeration(FileError)
+    getErrorReport(consignmentId).map(_.fileError)
+  }
+
+  def getErrorReport(consignmentId: UUID): Future[ErrorFileData] = {
     val errorFile: Future[ResponseBytes[GetObjectResponse]] =
       downloadService.downloadFile(applicationConfig.draft_metadata_s3_bucket_name, s"$consignmentId/${applicationConfig.draftMetadataErrorFileName}")
-
+    val unknownError = ErrorFileData(consignmentId, date = "", FileError.UNKNOWN, validationErrors = Nil)
     errorFile
       .map(responseBytes => {
         val errorJson = new String(responseBytes.asByteArray(), StandardCharsets.UTF_8)
-        decode[ErrorFileData](errorJson).fold(_ => FileError.UNKNOWN, errorFileData => errorFileData.fileError)
+        decode[ErrorFileData](errorJson).getOrElse(unknownError)
       })
-      .recoverWith(_ => Future.successful(FileError.UNKNOWN))
+      .recoverWith(_ => Future.successful(unknownError))
   }
 }
