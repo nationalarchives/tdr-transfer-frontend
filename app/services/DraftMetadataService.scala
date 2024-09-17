@@ -48,12 +48,24 @@ class DraftMetadataService @Inject() (val wsClient: WSClient, val configuration:
     implicit val FileErrorDecoder: Decoder[FileError.Value] = Decoder.decodeEnumeration(FileError)
     val errorFile: Future[ResponseBytes[GetObjectResponse]] =
       downloadService.downloadFile(applicationConfig.draft_metadata_s3_bucket_name, s"$consignmentId/${applicationConfig.draftMetadataErrorFileName}")
-
     errorFile
       .map(responseBytes => {
         val errorJson = new String(responseBytes.asByteArray(), StandardCharsets.UTF_8)
-        decode[ErrorFileData](errorJson).fold(_ => FileError.UNKNOWN, errorFileData => errorFileData.fileError)
+        decode[ErrorFileData](errorJson).fold(
+          error => {
+            logger.error(
+              s"Decoding error file error ${error.getMessage} draft_metadata_s3_bucket_name:${applicationConfig.draft_metadata_s3_bucket_name} file:${applicationConfig.draftMetadataErrorFileName}"
+            )
+            FileError.UNKNOWN
+          },
+          errorFileData => errorFileData.fileError
+        )
       })
-      .recoverWith(_ => Future.successful(FileError.UNKNOWN))
+      .recoverWith(unknownError => {
+        logger.error(
+          s"Download error file json file $unknownError draft_metadata_s3_bucket_name:${applicationConfig.draft_metadata_s3_bucket_name} file:${applicationConfig.draftMetadataErrorFileName}"
+        )
+        Future.successful(FileError.UNKNOWN)
+      })
   }
 }
