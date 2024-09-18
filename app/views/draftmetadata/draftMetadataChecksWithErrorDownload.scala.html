@@ -1,0 +1,33 @@
+@import views.html.partials._
+
+@import java.util.UUID
+@(consignmentId: UUID, consignmentRef: String, name: String, actionMessage: String, detailsMessage: String)(implicit request: RequestHeader, messages: Messages)
+
+    @main("Results of CSV Checks", name = name) {
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                @draftMetadataChecksActionProcess(actionMessage, detailsMessage)
+
+                <p class="govuk-body">The report below contains details about issues found.</p>
+
+                <button class="govuk-button govuk-button--secondary govuk-!-margin-bottom-8" data-module="govuk-button">
+                    <span aria-hidden="true" class="tna-button-icon tna-button-icon--download">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 23 23">
+                            <path fill="#020202" d="m11.5 16.75-6.563-6.563 1.838-1.903 3.412 3.413V1h2.626v10.697l3.412-3.413 1.837 1.903L11.5 16.75ZM3.625 22c-.722 0-1.34-.257-1.853-.77A2.533 2.533 0 0 1 1 19.375v-3.938h2.625v3.938h15.75v-3.938H22v3.938c0 .722-.257 1.34-.77 1.855a2.522 2.522 0 0 1-1.855.77H3.625Z"/>
+                        </svg>
+                    </span>
+                    Download report
+                </button>
+
+                <p class="govuk-body">Once you have addressed this issue upload a revised metadata file.</p>
+
+                <div class="govuk-button-group">
+                    <a class="govuk-button" href="@{
+                        routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)
+                    }" role="button" draggable="false" data-module="govuk-button">Re-upload metadata</a>
+                </div>
+
+            </div>
+            @transferReference(consignmentRef, isJudgmentUser = false)
+        </div>
+    }
