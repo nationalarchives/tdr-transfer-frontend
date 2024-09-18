@@ -10,7 +10,7 @@
 
             <p class="govuk-body">The report below contains details about issues found.</p>
 
-            @downloadMetadataLink(consignmentId, "Download report")
+            @downloadMetadataLink(consignmentId, "Download report", routes.DraftMetadataChecksResultsController.downloadErrorReport(consignmentId).url)
             <p class="govuk-body">Once you have addressed this issue upload a revised metadata file.</p>
 
             <div class="govuk-button-group">
