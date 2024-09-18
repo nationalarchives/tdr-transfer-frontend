@@ -21,7 +21,6 @@ import testUtils.FrontEndTestHelper
 import uk.gov.nationalarchives.tdr.validation.Metadata
 
 import java.io.ByteArrayInputStream
-import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
