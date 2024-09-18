@@ -1,0 +1,21 @@
+@import views.html.partials._
+
+@import java.util.UUID
+@(consignmentId: UUID, consignmentRef: String, name: String, actionMessage: String, detailsMessage: String)(implicit request: RequestHeader, messages: Messages)
+
+@main("Results of CSV Checks", name = name) {
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            @draftMetadataChecksActionProcess(actionMessage, detailsMessage)
+            <p class="govuk-body">Once you have addressed this issue upload a revised metadata file.</p>
+
+            <div class="govuk-button-group">
+                <a class="govuk-button" href="@{
+                    routes.DraftMetadataUploadController.draftMetadataUploadPage(consignmentId)
+                }" role="button" draggable="false" data-module="govuk-button">Re-upload metadata</a>
+            </div>
+
+        </div>
+        @transferReference(consignmentRef, isJudgmentUser = false)
+    </div>
+}
