@@ -2,14 +2,19 @@ package controllers
 
 import auth.TokenSecurity
 import configuration.{ApplicationConfig, KeycloakConfiguration}
+import controllers.util.ExcelUtils
+import controllers.util.MetadataProperty.filePath
 import graphql.codegen.GetConsignmentStatus.getConsignmentStatus.GetConsignment
 import org.pac4j.play.scala.SecurityComponents
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.{Action, AnyContent, Request}
+import services.FileError.SCHEMA_VALIDATION
 import services.Statuses._
 import services.{FileError, _}
 import viewsapi.Caching.preventCaching
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -86,8 +91,8 @@ class DraftMetadataChecksResultsController @Inject() (
 
   private def isErrorReportAvailable(fileError: FileError.FileError): Boolean = {
     fileError match {
-      case FileError.SCHEMA_VALIDATION => true
-      case _                           => false
+      case SCHEMA_VALIDATION => true
+      case _                 => false
     }
   }
 
@@ -101,6 +106,30 @@ class DraftMetadataChecksResultsController @Inject() (
       }
     } else {
       Future.successful(FileError.UNKNOWN)
+    }
+  }
+
+  def downloadErrorReport(consignmentId: UUID): Action[AnyContent] = standardUserAndTypeAction(consignmentId) { implicit request: Request[AnyContent] =>
+    for {
+      reference <- consignmentService.getConsignmentRef(consignmentId, request.token.bearerAccessToken)
+      errorReport <- draftMetadataService.getErrorReport(consignmentId)
+    } yield {
+      val errorList = errorReport.fileError match {
+        case SCHEMA_VALIDATION =>
+          errorReport.validationErrors.flatMap { validationErrors =>
+            val data = validationErrors.data.map(metadata => metadata.name -> metadata.value).toMap
+            validationErrors.errors.map(error => List(data(filePath), error.property, data(error.property), error.message))
+          }
+        case _ => Nil
+      }
+      val header: List[String] = List(filePath, "Field", "Value", "Error Message")
+      val excelFile = ExcelUtils.writeExcel(s"Error report for $reference", header :: errorList)
+      val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")
+      val currentDateTime = dateTimeFormatter.format(LocalDateTime.now())
+      val excelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      Ok(excelFile)
+        .as(excelContentType)
+        .withHeaders("Content-Disposition" -> s"attachment; filename=ErrorReport-${reference}-$currentDateTime.xlsx")
     }
   }
 }
