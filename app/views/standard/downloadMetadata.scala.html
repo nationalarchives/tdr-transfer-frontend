@@ -19,7 +19,7 @@
         <p class="govuk-body">
           You can review the metadata added to your records by downloading the CSV file. If you would like to add or amend the metadata, return to the previous step.
         </p>
-        @downloadMetadataLink(consignmentId)
+        @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
       </div>
       <div class="govuk-button-group">
       @if(blockMetadataReview) {

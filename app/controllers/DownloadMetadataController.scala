@@ -97,7 +97,7 @@ class DownloadMetadataController @Inject() (
         }
       }
 
-      val excelFile = ExcelUtils.writeExcel(metadata.consignmentReference, header :: fileMetadataRows, dataTypes)
+      val excelFile = ExcelUtils.writeExcel(s"Metadata for ${metadata.consignmentReference}", header :: fileMetadataRows, dataTypes)
       val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss")
       val currentDateTime = dateTimeFormatter.format(LocalDateTime.now())
       val excelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
