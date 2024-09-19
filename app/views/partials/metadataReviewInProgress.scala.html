@@ -19,7 +19,7 @@
 
 <p class="govuk-body">Download a copy of the metadata you submitted below.</p>
 
-@downloadMetadataLink(consignmentId)
+@downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
 
 <p class="govuk-body">
     If you have any queries email <a href="mailto:@Messages("nationalArchives.email")">@Messages("nationalArchives.email")</a>
