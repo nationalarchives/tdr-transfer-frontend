@@ -125,7 +125,7 @@ class MetadataReviewStatusControllerSpec extends FrontEndTestHelper {
         s"""</div>
            |    <div class="da-alert__content">
            |        <h2 class="da-alert__heading">We found issues in your metadata</h2>
-           |        <p>We have emailed guidance to <strong>test@example.com</strong></p>
+           |        <p>We will email guidance to <strong>test@example.com</strong></p>
            |    </div>
            |</div>""".stripMargin
       )
