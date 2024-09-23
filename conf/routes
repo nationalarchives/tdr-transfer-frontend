@@ -33,6 +33,7 @@ GET         /consignment/:consignmentId/draft-metadata/upload                   
 GET         /consignment/:consignmentId/draft-metadata/checks                                            controllers.DraftMetadataChecksController.draftMetadataChecksPage(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/draft-metadata/validation-progress                               controllers.DraftMetadataChecksController.draftMetadataValidationProgress(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/draft-metadata/checks-results                                    controllers.DraftMetadataChecksResultsController.draftMetadataChecksResultsPage(consignmentId: java.util.UUID)
+GET         /consignment/:consignmentId/draft-metadata/download-report                                   controllers.DraftMetadataChecksResultsController.downloadErrorReport(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/metadata-review/request                                          controllers.RequestMetadataReviewController.requestMetadataReviewPage(consignmentId: java.util.UUID)
 POST        /consignment/:consignmentId/metadata-review/request                                          controllers.RequestMetadataReviewController.submitMetadataForReview(consignmentId: java.util.UUID)
 GET         /consignment/:consignmentId/metadata-review/review-progress                                  controllers.MetadataReviewStatusController.metadataReviewStatusPage(consignmentId: java.util.UUID)
