@@ -47,43 +47,40 @@
                     </div>
                 </dl>
 
-                <h2 class="govuk-label-wrapper">
-                    <label class="govuk-label govuk-label--m" for="download-metadata">
-                        1. Download and review transfer metadata
-                    </label>
-                </h2>
+                <h2 class="govuk-heading-m">1. Download and review transfer metadata</h2>
 
                 @downloadMetadataLink(consignmentId)
 
                 @if(isTransferAdvisor) {
-                    <h2 class="govuk-label-wrapper">
-                        <label class="govuk-label govuk-label--m">
-                            2. Set the status of this review
-                        </label>
-                    </h2>
+                    <div class="govuk-form-group">
+                        <h2 class="govuk-label-wrapper">
+                            <label class="govuk-label govuk-label--m" for="status">
+                                2. Set the status of this review
+                            </label>
+                        </h2>
 
-                    @form(routes.MetadataReviewActionController.submitReview(consignmentId, consignmentDetails.consignmentReference, userEmail), (Symbol("novalidate"), "")) {
-                        @CSRF.formField
-                        @inputDropdown(
-                            dropdownField.fieldId,
-                            dropdownField.fieldName,
-                            dropdownField.fieldDescription,
-                            dropdownField.options,
-                            dropdownField.selectedOption,
-                            dropdownField.multiValue,
-                            Map(
-                                Symbol("_dynamicForm") -> false,
-                            ),
-                            dropdownField.fieldErrors,
-                            "Select a status"
-                        )
+                        @form(routes.MetadataReviewActionController.submitReview(consignmentId, consignmentDetails.consignmentReference, userEmail), (Symbol("novalidate"), "")) {
+                            @CSRF.formField
+                            @inputDropdown(
+                                dropdownField.fieldId,
+                                dropdownField.fieldName,
+                                dropdownField.fieldDescription,
+                                dropdownField.options,
+                                dropdownField.selectedOption,
+                                dropdownField.multiValue,
+                                Map(
+                                    Symbol("_dynamicForm") -> false,
+                                ),
+                                dropdownField.fieldErrors,
+                                "Select a status"
+                            )
+                    </div>
 
-                        <div class="govuk-button-group">
-                            <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button"
-                            role="button">
-                                Submit
-                            </button>
-                        </div>
+                    <div class="govuk-button-group">
+                         <button data-prevent-double-click="true" class="govuk-button" type="submit" data-module="govuk-button" role="button">
+                             Submit
+                         </button>
+                    </div>
                     }
                 }
             </div>
