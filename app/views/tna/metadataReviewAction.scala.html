@@ -49,7 +49,7 @@
 
                 <h2 class="govuk-heading-m">1. Download and review transfer metadata</h2>
 
-                @downloadMetadataLink(consignmentId)
+                @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
 
                 @if(isTransferAdvisor) {
                     <div class="govuk-form-group">
