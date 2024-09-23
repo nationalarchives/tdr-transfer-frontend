@@ -7,10 +7,10 @@ import java.time.LocalDate
 
 object ExcelUtils {
 
-  def writeExcel(consignmentRef: String, rows: List[List[Any]], dataTypes: List[DataType]): Array[Byte] = {
+  def writeExcel(worksheetName: String, rows: List[List[Any]], dataTypes: List[DataType] = Nil): Array[Byte] = {
     val xlBas = new ByteArrayOutputStream()
     val wb = new Workbook(xlBas, "TNA - Transfer Digital Records", "1.0")
-    val ws: Worksheet = wb.newWorksheet(s"Metadata for ${consignmentRef}")
+    val ws: Worksheet = wb.newWorksheet(worksheetName)
 
     rows.head.zipWithIndex.foreach { case (header, col) =>
       ws.value(0, col, header.toString)

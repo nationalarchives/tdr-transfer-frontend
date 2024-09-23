@@ -22,7 +22,7 @@
                     <p class="govuk-body">Your records are not yet preserved so you must not delete the original records.</p>
 
                     <p class="govuk-body">
-                    @downloadMetadataLink(consignmentId)
+                    @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
                     </p>
 
                     <h2 class="govuk-heading-m">What happens next</h2>
