@@ -80,8 +80,7 @@ class MetadataReviewControllerSpec extends FrontEndTestHelper {
     metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Status</th>""")
     metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Department</th>""")
     metadataReviewPageAsString must include("""<th scope="col" class="govuk-table__header">Series</th>""")
-    metadataReviewPageAsString must include(
-      s"""<th scope="col" class="govuk-table__header">
+    metadataReviewPageAsString must include(s"""<th scope="col" class="govuk-table__header">
          |              <span class="govuk-visually-hidden">Actions</span>
          |            </th>""".stripMargin)
     metadataReviewPageAsString must include(s"""These are requested reviews that have not been responded to.""")
