@@ -14,7 +14,7 @@
                 <p>In your CSV, include a header row for the column titles and one row for every record that requires metadata.</p>
             </div>
             <div>
-                @downloadMetadataLink(consignmentId, "Download metadata Excel template")
+                @downloadMetadataLink(consignmentId, "Download metadata Excel template", routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
             </div>
 
             <div class="govuk-form-group">

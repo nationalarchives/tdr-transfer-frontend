@@ -44,4 +44,5 @@ object MetadataProperty {
   val former_reference = "former_reference_department"
   val language = "Language"
   val filenameTranslated = "file_name_translation"
+  val filePath = "Filepath"
 }
