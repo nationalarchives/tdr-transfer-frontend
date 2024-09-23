@@ -53,7 +53,7 @@
                     </label>
                 </h2>
 
-                @downloadMetadataLink(consignmentId)
+                @downloadMetadataLink(consignmentId, url = routes.DownloadMetadataController.downloadMetadataFile(consignmentId).url)
 
                 @if(isTransferAdvisor) {
                     <h2 class="govuk-label-wrapper">
